@@ -10,6 +10,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MyComicsManagerApi.Models;
+using MyComicsManagerApi.Services;
+using Serilog;
 
 namespace MyComicsManagerApi
 {
@@ -25,7 +29,14 @@ namespace MyComicsManagerApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            // requires using Microsoft.Extensions.Options
+            services.Configure<DatabaseSettings>( Configuration.GetSection(nameof(DatabaseSettings)));
+
+            services.AddSingleton<IDatabaseSettings>(sp => sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
+
+            services.AddSingleton<ComicService>();
+            
+            services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,12 +51,15 @@ namespace MyComicsManagerApi
 
             app.UseRouting();
 
+            app.UseSerilogRequestLogging();
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+            
         }
     }
 }
