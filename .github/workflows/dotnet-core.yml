@@ -17,11 +17,12 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.101
-    - name: Change Directory
-      run: cd MyComicsManagerApi
     - name: Install dependencies
+      working-directory: MyComicsManagerApi
       run: dotnet restore
     - name: Build
+      working-directory: MyComicsManagerApi
       run: dotnet build --configuration Release --no-restore
     - name: Test
+      working-directory: MyComicsManagerApi
       run: dotnet test --no-restore --verbosity normal
