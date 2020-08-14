@@ -26,3 +26,12 @@ jobs:
     - name: Test
       working-directory: MyComicsManagerApi
       run: dotnet test --no-restore --verbosity normal
+    - name: Install dependencies
+      working-directory: MyComicsManagerWeb
+      run: dotnet restore
+    - name: Build
+      working-directory: MyComicsManagerWeb
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      working-directory: MyComicsManagerWeb
+      run: dotnet test --no-restore --verbosity normal
