@@ -5,8 +5,8 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster-arm32v7 AS build
 WORKDIR /src
-COPY MyComicsManagerWeb.csproj .
-RUN dotnet restore "MyComicsManagerWeb.csproj"
+COPY ["MyComicsManagerWeb.csproj", "./"]
+RUN dotnet restore "./MyComicsManagerWeb.csproj"
 COPY . .
 RUN dotnet build "MyComicsManagerWeb.csproj" -c Release -o /app/build
 
