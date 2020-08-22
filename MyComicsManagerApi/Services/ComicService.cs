@@ -1,0 +1,41 @@
+using MyComicsManagerApi.Models;
+using MongoDB.Driver;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace MyComicsManagerApi.Services
+{
+    public class ComicService
+    {
+        private readonly IMongoCollection<Comic> _comics;
+
+        public ComicService(IDatabaseSettings settings)
+        {
+            var client = new MongoClient(settings.ConnectionString);
+            var database = client.GetDatabase(settings.DatabaseName);
+
+            _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
+        }
+
+        public List<Comic> Get() =>
+            _comics.Find(comic => true).ToList();
+
+        public Comic Get(string id) =>
+            _comics.Find<Comic>(comic => comic.Id == id).FirstOrDefault();
+
+        public Comic Create(Comic comic)
+        {
+            _comics.InsertOne(comic);
+            return comic;
+        }
+
+        public void Update(string id, Comic comicIn) =>
+            _comics.ReplaceOne(comic => comic.Id == id, comicIn);
+
+        public void Remove(Comic comicIn) =>
+            _comics.DeleteOne(comic => comic.Id == comicIn.Id);
+
+        public void Remove(string id) => 
+            _comics.DeleteOne(comic => comic.Id == id);
+    }
+}
