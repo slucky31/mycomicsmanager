@@ -1,13 +1,14 @@
 ﻿@page "/fetchdata"
 
-@using MyComicsManagerWeb.Data
-@inject WeatherForecastService ForecastService
+@using MyComicsManagerWeb.Models
+@using MyComicsManagerWeb.Services
+@inject ComicService ComicService
 
 <h1>Weather forecast</h1>
 
 <p>This component demonstrates fetching data from a service.</p>
 
-@if (forecasts == null)
+@if (comics == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -16,20 +17,22 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Author</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var forecast in forecasts)
+            @foreach (var comic in comics)
             {
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    <td>@comic.Id</td>
+                    <td>@comic.Title</td>
+                    <td>@comic.Price</td>
+                    <td>@comic.Category</td>
+                    <td>@comic.Author</td>
                 </tr>
             }
         </tbody>
@@ -37,10 +40,10 @@ else
 }
 
 @code {
-    private WeatherForecast[] forecasts;
+    private IEnumerable<Comic> comics;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+        comics = await ComicService.GetComics();
     }
 }
