@@ -2,6 +2,7 @@ using MyComicsManagerApi.Models;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Linq;
+using Serilog;
 
 namespace MyComicsManagerApi.Services
 {
@@ -11,9 +12,9 @@ namespace MyComicsManagerApi.Services
 
         public ComicService(IDatabaseSettings settings)
         {
+            Log.Debug("settings = {@settings}", settings);
             var client = new MongoClient(settings.ConnectionString);
             var database = client.GetDatabase(settings.DatabaseName);
-
             _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
         }
 

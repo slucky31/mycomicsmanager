@@ -19,6 +19,7 @@ namespace MyComicsManagerApi
         {
             
             Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
                 .ReadFrom.Configuration(Configuration)
                 .Enrich.FromLogContext()
                 .WriteTo.Console(
