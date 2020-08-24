@@ -1,12 +1,10 @@
-﻿@page "/fetchdata"
+﻿@page "/listcomics"
 
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
 @inject ComicService ComicService
 
-<h1>Weather forecast</h1>
-
-<p>This component demonstrates fetching data from a service.</p>
+<h1>Comics <a class="btn btn-primary" href="createcomic">Ajouter</a></h1>
 
 @if (comics == null)
 {
@@ -22,6 +20,7 @@ else
                 <th>Price</th>
                 <th>Category</th>
                 <th>Author</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -33,6 +32,7 @@ else
                     <td>@comic.Price</td>
                     <td>@comic.Category</td>
                     <td>@comic.Author</td>
+                    <td><button class="btn btn-primary" @onclick="@(async () => await DeleteComic(comic.Id))">Delete</button></td>
                 </tr>
             }
         </tbody>
@@ -44,6 +44,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        comics = await ComicService.GetComics();
+    }
+
+    private async Task DeleteComic(String id) {
+        await ComicService.DeleteComic(id);
         comics = await ComicService.GetComics();
     }
 }
