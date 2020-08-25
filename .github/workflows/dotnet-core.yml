@@ -2,9 +2,9 @@ name: .NET Core
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ master, develop, feature/* ]
   pull_request:
-    branches: [ master, develop ]
+    branches: [ master, develop, feature/* ]
 
 jobs:
   build:
@@ -17,21 +17,21 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.101
-    - name: Install dependencies
+    - name: MyComicsManagerApi Install dependencies
       working-directory: MyComicsManagerApi
       run: dotnet restore
-    - name: Build
+    - name: MyComicsManagerApi Build
       working-directory: MyComicsManagerApi
       run: dotnet build --configuration Release --no-restore
-    - name: Test
+    - name: MyComicsManagerApi Test
       working-directory: MyComicsManagerApi
       run: dotnet test --no-restore --verbosity normal
-    - name: Install dependencies
+    - name: MyComicsManagerWeb Install dependencies
       working-directory: MyComicsManagerWeb
       run: dotnet restore
-    - name: Build
+    - name: MyComicsManagerWeb Build
       working-directory: MyComicsManagerWeb
       run: dotnet build --configuration Release --no-restore
-    - name: Test
+    - name: MyComicsManagerWeb Test
       working-directory: MyComicsManagerWeb
       run: dotnet test --no-restore --verbosity normal

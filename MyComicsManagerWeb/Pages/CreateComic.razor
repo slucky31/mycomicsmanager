@@ -1,0 +1,33 @@
+﻿@page "/createcomic"
+
+@using MyComicsManagerWeb.Models
+@using MyComicsManagerWeb.Services
+@inject ComicService ComicService
+
+<h1>Create</h1>
+
+<EditForm Model="@comic" OnValidSubmit="Create">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText id="title" @bind-Value="comic.Title" />
+
+    <button class="btn btn-primary" type="submit">Create</button>
+</EditForm>
+
+<p>@comic.Id</p>
+<p>@comic.Title</p>
+<p>@comic.Price</p>
+<p>@comic.Category</p>
+<p>@comic.Author</p>
+
+<button class="btn btn-primary" @onclick="Create">Create</button>
+
+@code {
+    private Comic comic = new Comic();
+
+    private async Task Create()
+    {
+        await ComicService.CreateComicAsync(comic);
+    }
+}

@@ -22,7 +22,8 @@ namespace MyComicsManagerWeb
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseUrls("http://localhost:7000")
+                    .UseStartup<Startup>();
                 });
     }
 }

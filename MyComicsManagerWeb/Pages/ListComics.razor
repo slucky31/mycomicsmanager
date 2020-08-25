@@ -1,0 +1,54 @@
+﻿@page "/listcomics"
+
+@using MyComicsManagerWeb.Models
+@using MyComicsManagerWeb.Services
+@inject ComicService ComicService
+
+<h1>Comics <a class="btn btn-primary" href="createcomic">Ajouter</a></h1>
+
+@if (comics == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Author</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var comic in comics)
+            {
+                <tr>
+                    <td>@comic.Id</td>
+                    <td>@comic.Title</td>
+                    <td>@comic.Price</td>
+                    <td>@comic.Category</td>
+                    <td>@comic.Author</td>
+                    <td><button class="btn btn-primary" @onclick="@(async () => await DeleteComic(comic.Id))">Delete</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Comic> comics;
+
+    protected override async Task OnInitializedAsync()
+    {
+        comics = await ComicService.GetComics();
+    }
+
+    private async Task DeleteComic(String id) {
+        await ComicService.DeleteComic(id);
+        comics = await ComicService.GetComics();
+    }
+}
