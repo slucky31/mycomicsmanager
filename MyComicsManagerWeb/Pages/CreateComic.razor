@@ -3,25 +3,31 @@
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
 @inject ComicService ComicService
+@inject NavigationManager NavigationManager;
 
 <h1>Create</h1>
 
 <EditForm Model="@comic" OnValidSubmit="Create">
     <DataAnnotationsValidator />
     <ValidationSummary />
-
-    <InputText id="title" @bind-Value="comic.Title" />
-
+    <div class="form-group">
+        <label for="inputTitle">Titre</label>
+        <InputText id="title" @bind-Value="comic.Title" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="inputCategory">Catégorie</label>
+        <InputText id="category" @bind-Value="comic.Category" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="inputAuthor">Author</label>
+        <InputText id="author" @bind-Value="comic.Author" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="inputPrice">Prix</label>
+        <InputNumber id="price" @bind-Value="comic.Price" class="form-control" />
+    </div>    
     <button class="btn btn-primary" type="submit">Create</button>
 </EditForm>
-
-<p>@comic.Id</p>
-<p>@comic.Title</p>
-<p>@comic.Price</p>
-<p>@comic.Category</p>
-<p>@comic.Author</p>
-
-<button class="btn btn-primary" @onclick="Create">Create</button>
 
 @code {
     private Comic comic = new Comic();
@@ -29,5 +35,6 @@
     private async Task Create()
     {
         await ComicService.CreateComicAsync(comic);
+        NavigationManager.NavigateTo("listcomics", false);
     }
 }
