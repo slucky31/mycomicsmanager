@@ -46,7 +46,7 @@ namespace MyComicsManagerApi
                 .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {                    
-                    webBuilder.UseUrls("http://localhost:5000")
+                    webBuilder//.UseUrls("http://localhost:5000")
                     .UseStartup<Startup>();
                 });
     }
