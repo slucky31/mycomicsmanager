@@ -5,8 +5,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
-
 using MyComicsManagerWeb.Models;
 
 namespace MyComicsManagerWeb.Services {
@@ -16,7 +14,7 @@ namespace MyComicsManagerWeb.Services {
 
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
-        public ComicService(HttpClient client)
+        public ComicService(HttpClient client, IWebserviceSettings settings)
         {
             _jsonSerializerOptions = new JsonSerializerOptions
             {
@@ -24,7 +22,7 @@ namespace MyComicsManagerWeb.Services {
                 WriteIndented = true
             };
             
-            client.BaseAddress = new Uri("http://localhost:5000/");
+            client.BaseAddress = new Uri(settings.WebserviceUri);
             _httpClient = client;
         }
 

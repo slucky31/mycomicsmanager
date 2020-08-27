@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using MyComicsManagerWeb.Services;
+using MyComicsManagerWeb.Models;
 
 namespace MyComicsManagerWeb
 {
@@ -26,6 +28,10 @@ namespace MyComicsManagerWeb
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            
+            services.Configure<WebserviceSettings>( Configuration.GetSection(nameof(WebserviceSettings)));
+            services.AddSingleton<IWebserviceSettings>(sp => sp.GetRequiredService<IOptions<WebserviceSettings>>().Value);
+            
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddHttpClient<ComicService>();
