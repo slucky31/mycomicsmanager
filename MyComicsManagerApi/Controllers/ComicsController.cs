@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Serilog;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace MyComicsManagerApi.Controllers
 {
@@ -39,8 +40,17 @@ namespace MyComicsManagerApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Comic> Create(Comic comic)
+        public ActionResult<Comic> Create([FromForm]Comic comic)
         {
+            // Saving Image on Server
+            var eBook = comic.EBook;
+            if (eBook != null && eBook.Length > 0) {
+                var filePath = Path.Combine("./", eBook.FileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                    eBook.CopyTo(fileStream);
+                }
+            }
+            
             _comicService.Create(comic);
 
             return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic);

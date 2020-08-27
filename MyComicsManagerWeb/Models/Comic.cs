@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace MyComicsManagerWeb.Models
 {
@@ -15,5 +16,7 @@ namespace MyComicsManagerWeb.Models
         public string Category { get; set; }
 
         public string Author { get; set; }
+
+        public IFormFile EBook { get; set; }
     }
 }
