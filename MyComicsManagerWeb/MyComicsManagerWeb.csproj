@@ -4,4 +4,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Tewr.Blazor.FileReader" Version="2.0.0.20242" />
+  </ItemGroup>
+
 </Project>

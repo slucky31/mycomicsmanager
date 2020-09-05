@@ -1,13 +1,16 @@
 ﻿@page "/createcomic"
 
+@using System.IO
+@using Tewr.Blazor.FileReader
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
 @inject ComicService ComicService;
 @inject NavigationManager NavigationManager;
+@inject IFileReaderService fileReaderService;
 
 <h1>Create</h1>
 
-<EditForm Model="@comic" OnValidSubmit="Create">
+<EditForm Model="@comic" OnValidSubmit="Create" >
     <DataAnnotationsValidator />
     <ValidationSummary />
     <div class="form-group">
@@ -25,16 +28,103 @@
     <div class="form-group">
         <label for="inputPrice">Prix</label>
         <InputNumber id="price" @bind-Value="comic.Price" class="form-control" />
-    </div>    
+    </div>
+    <div class="drag-drop-zone" @ondrop=ReadFile>
+        
+        <input type="file"
+           class="clickable"
+           @ref=selectedFile
+           @onchange="ReadFile"
+        />
+        <div class="file-row">
+            <!-- File info -->
+            <div>
+                <textarea style="max-width: 100%;" cols="50" rows="20">@Output</textarea>
+        @*if (selectedFile != null)
+        {
+            var isLoading = selectedFile.Data.Position > 0;
+            <h2>@selectedFile.Name</h2>
+            <p>Size: <strong>@selectedFile.Size bytes</strong></p>
+            <p>Last modified: <strong>@selectedFile.LastModified.ToShortDateString()</strong></p>
+            <p>Type: <strong>@selectedFile.Type</strong></p>
+            <p>Relative Path: <strong>@selectedFile.RelativePath</strong></p>
+            @if (selectedFile.Size > MaxFileSize)
+            {
+            <p>That's too big. Max size: @(MaxFileSize) bytes.</p>;
+            }
+            else if (selectedFile.Data.Position == selectedFile.Size)
+            {
+            <p>Download finished !</p>
+            }
+            else
+            {
+            <p>Loaded @((100.0 * selectedFile.Data.Position / selectedFile.Size).ToString("0"))%</p>
+            }   
+        }
+        else
+        {
+            <p>Drop a file here to view it, or click to choose a file</p>
+        }*@
+            </div>
+        </div>
+        
+    </div>
     <button class="btn btn-primary" type="submit">Create</button>
 </EditForm>
 
+
+
 @code {
+    
+    const int MaxFileSize = 500 * 1024 * 1024; // 500M
+    
     private Comic comic = new Comic();
+
+    private ElementReference selectedFile;
 
     private async Task Create()
     {
+        await ReadFile();
         await ComicService.CreateComicAsync(comic);
         NavigationManager.NavigateTo("listcomics", false);
     }
+
+    string Output { get; set; }
+
+    public async Task ReadFile()
+    {
+        Output = string.Empty;
+        this.StateHasChanged();
+        var nl = Environment.NewLine;
+        foreach (var file in await fileReaderService.CreateReference(selectedFile).EnumerateFilesAsync())
+        {
+            var fileInfo = await file.ReadFileInfoAsync();
+            Output += $"{nameof(IFileInfo)}.{nameof(fileInfo.Name)}: {fileInfo.Name}{nl}";
+            Output += $"{nameof(IFileInfo)}.{nameof(fileInfo.Size)}: {fileInfo.Size}{nl}";
+            Output += $"{nameof(IFileInfo)}.{nameof(fileInfo.Type)}: {fileInfo.Type}{nl}";
+            Output += $"{nameof(IFileInfo)}.{nameof(fileInfo.LastModifiedDate)}: {fileInfo.LastModifiedDate?.ToString() ?? "(N/A)"}{nl}";
+            Output += $"Reading file...";
+            this.StateHasChanged();
+            
+            //fileInfo.PositionInfo.PositionChanged += (s, e) => {
+            //    Output += $"Read {e.PositionDeltaSinceAcknowledge}, {e.Position} / {fileInfo.Size} ({e.Percentage:0.00}%){nl}";
+            //    InvokeAsync(() => StateHasChanged());
+            //};
+
+            var filePath = Path.Combine("./", fileInfo.Name);
+            DateTime begin = DateTime.Now;
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (var fs = await file.OpenReadAsync())
+            {
+                await fs.CopyToAsync(fileStream);
+                Output += $"Done reading file {fileInfo.Name}{nl}.";
+            }
+            var end = DateTime.Now;
+            var time = end - begin;
+            Output += $"Transfert Duration : {time}.";
+            this.StateHasChanged();
+        }
+
+    }
+
 }
