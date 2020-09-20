@@ -40,17 +40,8 @@ namespace MyComicsManagerApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Comic> Create([FromForm]Comic comic)
-        {
-            // Saving Image on Server
-            var eBook = comic.EBook;
-            if (eBook != null && eBook.Length > 0) {
-                var filePath = Path.Combine("./", eBook.FileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create)) {
-                    eBook.CopyTo(fileStream);
-                }
-            }
-            
+        public ActionResult<Comic> Create(Comic comic)
+        {   
             _comicService.Create(comic);
 
             return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic);

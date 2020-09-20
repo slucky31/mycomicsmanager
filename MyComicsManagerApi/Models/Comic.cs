@@ -1,6 +1,5 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Microsoft.AspNetCore.Http;
 
 namespace MyComicsManagerApi.Models
 {
@@ -18,7 +17,7 @@ namespace MyComicsManagerApi.Models
 
         public string Author { get; set; }
 
-        [BsonIgnore]
-        public IFormFile EBook { get; set; }
+        public string EbookPath { get; set; }
+
     }
 }
