@@ -35,6 +35,7 @@ namespace MyComicsManagerApi
             services.AddSingleton<IDatabaseSettings>(sp => sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
 
             services.AddSingleton<ComicService>();
+            services.AddSingleton<LibraryService>();
             
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
         }
