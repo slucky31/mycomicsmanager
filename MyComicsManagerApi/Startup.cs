@@ -31,8 +31,10 @@ namespace MyComicsManagerApi
         {
             // requires using Microsoft.Extensions.Options
             services.Configure<DatabaseSettings>( Configuration.GetSection(nameof(DatabaseSettings)));
-
             services.AddSingleton<IDatabaseSettings>(sp => sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
+
+            services.Configure<LibrairiesSettings>( Configuration.GetSection(nameof(LibrairiesSettings)));
+            services.AddSingleton<ILibrairiesSettings>(sp => sp.GetRequiredService<IOptions<LibrairiesSettings>>().Value);
 
             services.AddSingleton<ComicService>();
             services.AddSingleton<LibraryService>();

@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
 
 namespace MyComicsManagerWeb.Models
 {
@@ -8,7 +7,6 @@ namespace MyComicsManagerWeb.Models
         public string Id { get; set; }
 
         [Required]
-        [StringLength(10, ErrorMessage = "Title is too long.")]
         public string Title { get; set; }
 
         public double Price { get; set; }
@@ -17,6 +15,11 @@ namespace MyComicsManagerWeb.Models
 
         public string Author { get; set; }
 
-        public IFormFile EBook { get; set; }
+        [Required]
+        public string EbookPath { get; set; }
+
+        [Required]
+        public string LibraryId { get; set; }
+
     }
 }
