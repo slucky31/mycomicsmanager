@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using MyComicsManagerWeb.Services;
 using MyComicsManagerWeb.Models;
 using Tewr.Blazor.FileReader;
+using Serilog;
 
 namespace MyComicsManagerWeb
 {
@@ -36,6 +37,7 @@ namespace MyComicsManagerWeb
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddHttpClient<ComicService>();
+            services.AddHttpClient<LibraryService>();
 
             // Réglage pour upload de fichier
             services.AddServerSideBlazor().AddHubOptions(o =>
@@ -63,6 +65,8 @@ namespace MyComicsManagerWeb
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseSerilogRequestLogging();
 
             app.UseEndpoints(endpoints =>
             {

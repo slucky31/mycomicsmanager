@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Tewr.Blazor.FileReader" Version="2.0.0.20242" />
+    <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
   </ItemGroup>
 
 </Project>
