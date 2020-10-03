@@ -9,46 +9,48 @@ namespace MyComicsManagerApi.Services
 {
     public class LibraryService
     {
-        private readonly IMongoCollection<Comic> _comics;
+        private readonly IMongoCollection<Library> _libraries;
 
-        public LibraryService(IDatabaseSettings settings)
+        private readonly ILibrairiesSettings _libSettings;
+
+        public LibraryService(IDatabaseSettings dbSettings, ILibrairiesSettings libSettings)
         {
-            Log.Debug("settings = {@settings}", settings);
-            var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
-            _comics = database.GetCollection<Comic>(settings.LibrariesCollectionName);
+            Log.Debug("settings = {@settings}", dbSettings);
+            var client = new MongoClient(dbSettings.ConnectionString);
+            var database = client.GetDatabase(dbSettings.DatabaseName);
+            _libraries = database.GetCollection<Library>(dbSettings.LibrariesCollectionName);
+            _libSettings = libSettings;
         }
 
-        public List<Comic> Get() =>
-            _comics.Find(comic => true).ToList();
+        public List<Library> Get() =>
+            _libraries.Find(library => true).ToList();
 
-        public Comic Get(string id) =>
-            _comics.Find<Comic>(comic => comic.Id == id).FirstOrDefault();
+        public Library Get(string id) =>
+            _libraries.Find<Library>(library => library.Id == id).FirstOrDefault();
 
-        public Comic Create(Comic comic)
+        public Library Create(Library libraryIn)
         {
-            _comics.InsertOne(comic);
-            return comic;
+            // Création de la librairie sur le disque
+            Directory.CreateDirectory(_libSettings.LibrairiesDirRootPath + libraryIn.RelPath);
+            
+            // Création de la librairie dans MangoDB
+            _libraries.InsertOne(libraryIn);
+
+            return libraryIn;
         }
 
-        public void Update(string id, Comic comicIn) =>
-            _comics.ReplaceOne(comic => comic.Id == id, comicIn);
+        public void Update(string id, Library libraryIn) {
+            _libraries.ReplaceOne(library => library.Id == id, libraryIn);
+        }
 
-        public void Remove(Comic comicIn)
+        public void Remove(Library libraryIn)
         {
-            // Suppression du fichier
-            Comic c = _comics.Find<Comic>(comic => (comic.Id == comicIn.Id) && (comic.EbookPath == comicIn.EbookPath)).FirstOrDefault();
-            if (c != null) {    
-                File.Delete(c.EbookPath);
-            }
-
-            //TODO : Gestion des exceptions
-
+            // Suppression des fichiers et du répértoire
+            Directory.Delete(_libSettings.LibrairiesDirRootPath + libraryIn.RelPath, true);
+            
             // Suppression de la référence en base de données
-            _comics.DeleteOne(comic => comic.Id == comicIn.Id);
+            _libraries.DeleteOne(library => library.Id == libraryIn.Id);
         }
 
-        public void Remove(string id) => 
-            _comics.DeleteOne(comic => comic.Id == id);
     }
 }
