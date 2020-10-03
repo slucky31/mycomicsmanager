@@ -1,3 +1,4 @@
+using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -6,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using MyComicsManagerWeb.Models;
+using Tewr.Blazor.FileReader;
 
 namespace MyComicsManagerWeb.Services {
     public class ComicService
@@ -13,8 +15,10 @@ namespace MyComicsManagerWeb.Services {
         private readonly HttpClient _httpClient;
 
         private readonly JsonSerializerOptions _jsonSerializerOptions;
+        private readonly IWebserviceSettings _settings;
+        private readonly LibraryService _libraryService;
 
-        public ComicService(HttpClient client, IWebserviceSettings settings)
+        public ComicService(HttpClient client, IWebserviceSettings settings, LibraryService libraryService)
         {
             _jsonSerializerOptions = new JsonSerializerOptions
             {
@@ -22,6 +26,8 @@ namespace MyComicsManagerWeb.Services {
                 WriteIndented = true
             };
             
+            _settings = settings;
+            _libraryService = libraryService;
             client.BaseAddress = new Uri(settings.WebserviceUri);
             _httpClient = client;
         }
@@ -35,6 +41,16 @@ namespace MyComicsManagerWeb.Services {
             using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync
                 <IEnumerable<Comic>>(responseStream);
+        }
+
+        public async Task<Comic> GetComic(string id)
+        {
+            var response = await _httpClient.GetAsync("/api/comics/" + id);
+
+            response.EnsureSuccessStatusCode();
+
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<Comic>(responseStream);
         }
 
         public async Task DeleteComic(String itemId)
@@ -70,5 +86,19 @@ namespace MyComicsManagerWeb.Services {
 
             httpResponse.EnsureSuccessStatusCode();
         }
+
+        public async Task UploadFile(IFileReference file, string fileName)
+        {          
+            Library lib = await _libraryService.GetSelectedLibrary();
+            
+            var filePath = Path.Combine(_settings.LibrariesRootPath + lib.RelPath + "tmp/", fileName);
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (var fs = await file.OpenReadAsync())
+            {
+                await fs.CopyToAsync(fileStream);
+            }
+        }
+
+        
     }
 }

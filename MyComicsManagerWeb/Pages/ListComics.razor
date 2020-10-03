@@ -1,10 +1,10 @@
-﻿@page "/listcomics"
+﻿@page "/comics/list"
 
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
 @inject ComicService ComicService
 
-<h1>Comics <a class="btn btn-primary" href="createcomic">Ajouter</a></h1>
+<h1>Comics <a class="btn btn-primary" href="/comics/create">Ajouter</a></h1>
 
 @if (comics == null)
 {
@@ -27,7 +27,9 @@ else
             @foreach (var comic in comics)
             {
                 <tr>
-                    <td>@comic.Id</td>
+                    <td>
+                        <a href="comics/edit/@(comic.Id)">@comic.Id</a>
+                    </td>
                     <td>@comic.Title</td>
                     <td>@comic.Price</td>
                     <td>@comic.Category</td>

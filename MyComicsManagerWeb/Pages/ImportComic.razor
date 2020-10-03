@@ -1,43 +1,16 @@
-﻿@page "/comics/create"
+﻿@page "/comics/import"
 
 @using System.IO
 @using Tewr.Blazor.FileReader
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
 @inject ComicService ComicService;
-@inject LibraryService LibraryService;
 @inject NavigationManager NavigationManager;
 @inject IFileReaderService fileReaderService;
 
-<h1>Create</h1>
+<h1>Import</h1>
 
-<EditForm Model="@comic" OnValidSubmit="Create" >
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div class="form-group">
-        <label for="inputTitle">Titre</label>
-        <InputText id="title" @bind-Value="comic.Title" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="inputCategory">Catégorie</label>
-        <InputText id="category" @bind-Value="comic.Category" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="inputAuthor">Author</label>
-        <InputText id="author" @bind-Value="comic.Author" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="inputPrice">Prix</label>
-        <InputNumber id="price" @bind-Value="comic.Price" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="inputEbookPath">Ebook Path sur le serveur</label>
-        <InputText id="ebookpath" @bind-Value="comic.EbookPath" class="form-control" disabled/>
-    </div>
-    <div class="form-group">
-        <label for="inputLibraryId">Library Id</label>
-        <InputText id="libraryid" @bind-Value="comic.LibraryId" class="form-control" disabled/>
-    </div>
+<EditForm Model="@comic">
     <div class="drag-drop-zone" >
         
         <input type="file"
@@ -72,13 +45,12 @@
         }
         else
         {
-            <p>Déposer un fichier ou cliquer pour sélectionner un fichier</p>
+            <p>Déposer des fichiers ou cliquer pour sélectionner des fichiers</p>
         }
             </div>
         </div>
         
     </div>
-    <button class="btn btn-primary" type="submit">Create</button>
 </EditForm>
 
 @code {
@@ -86,27 +58,25 @@
     const int MaxFileSize = 500 * 1024 * 1024; // 500M
     
     private Comic comic = new Comic();
-    
+
     ElementReference selectedFile { get; set; }
     String status { get; set; }
 
     private IFileInfo fileInfo;
 
-    protected override async Task OnInitializedAsync()
-    {
-        Library lib = await LibraryService.GetSelectedLibrary();
-        comic.LibraryId = comic.LibraryId ?? lib.Id;
-    }
-
     private async Task Create()
     {
         await ComicService.CreateComicAsync(comic);
-        NavigationManager.NavigateTo("comics/list", false);
+        NavigationManager.NavigateTo("listcomics", false);
     }
+
+    string Output { get; set; }
 
     public async Task ReadFile()
     {
-
+        Output = string.Empty;
+        this.StateHasChanged();
+        var nl = Environment.NewLine;
         var files = await fileReaderService.CreateReference(selectedFile).EnumerateFilesAsync();
         var file = files.First();
         
@@ -114,21 +84,19 @@
         status = $"Reading file...";
         this.StateHasChanged();
 
+        var filePath = Path.Combine("./", fileInfo.Name);
         DateTime begin = DateTime.Now;
-
-        var filePath = Path.Combine("/lib/tmp/", fileInfo.Name);
         using (var fileStream = new FileStream(filePath, FileMode.Create))
         using (var fs = await file.OpenReadAsync())
         {
             await fs.CopyToAsync(fileStream);
+            status = $"Done reading file.";
         }
-        status = $"Done reading file.";
         var end = DateTime.Now;
         var time = end - begin;
         status += $" Transfert Duration : {time}.";
         
-        comic.Title = comic.Title ?? Path.GetFileNameWithoutExtension(fileInfo.Name);
-        comic.EbookPath = filePath;
+        comic.Title = Path.GetFileNameWithoutExtension(fileInfo.Name);
         this.StateHasChanged();
     
     }
