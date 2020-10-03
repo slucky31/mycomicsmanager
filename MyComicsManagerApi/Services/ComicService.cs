@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Serilog;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace MyComicsManagerApi.Services
 {
@@ -28,6 +29,9 @@ namespace MyComicsManagerApi.Services
         public Comic Create(Comic comic)
         {
             _comics.InsertOne(comic);
+            // Pour l'instant, l'upload du fichier est assuré directement  par le front ...
+            // Améliorations possibles : le front envoie sur une zone connue des deux
+            // L'api récupère et mets dans le bon répertoire
             return comic;
         }
 

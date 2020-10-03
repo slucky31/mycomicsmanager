@@ -2,9 +2,7 @@ using MyComicsManagerApi.Models;
 using MyComicsManagerApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using Serilog;
 using Microsoft.Extensions.Logging;
-using System.IO;
 
 namespace MyComicsManagerApi.Controllers
 {

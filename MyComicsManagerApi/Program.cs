@@ -1,7 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 
 namespace MyComicsManagerApi
@@ -28,8 +28,8 @@ namespace MyComicsManagerApi
         
             try
             {
-            Log.Information("Starting web host");
-            CreateHostBuilder(args).Build().Run();
+                Log.Information("Starting web host");
+                CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
             {
