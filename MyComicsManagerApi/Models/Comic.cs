@@ -16,5 +16,12 @@ namespace MyComicsManagerApi.Models
         public string Category { get; set; }
 
         public string Author { get; set; }
+
+        public string EbookPath { get; set; }
+
+        public string EbookName { get; set; }
+
+        public string LibraryId { get; set; }
+
     }
 }

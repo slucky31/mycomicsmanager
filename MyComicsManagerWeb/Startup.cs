@@ -12,6 +12,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MyComicsManagerWeb.Services;
 using MyComicsManagerWeb.Models;
+using Tewr.Blazor.FileReader;
+using Serilog;
 
 namespace MyComicsManagerWeb
 {
@@ -35,6 +37,14 @@ namespace MyComicsManagerWeb
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddHttpClient<ComicService>();
+            services.AddHttpClient<LibraryService>();
+
+            // Réglage pour upload de fichier
+            //services.AddServerSideBlazor().AddHubOptions(o =>
+            //{
+            //    o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+            //});
+            services.AddFileReaderService();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,6 +65,8 @@ namespace MyComicsManagerWeb
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseSerilogRequestLogging();
 
             app.UseEndpoints(endpoints =>
             {
