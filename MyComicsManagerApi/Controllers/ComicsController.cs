@@ -2,7 +2,6 @@ using MyComicsManagerApi.Models;
 using MyComicsManagerApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using Serilog;
 using Microsoft.Extensions.Logging;
 
 namespace MyComicsManagerApi.Controllers
@@ -40,7 +39,7 @@ namespace MyComicsManagerApi.Controllers
 
         [HttpPost]
         public ActionResult<Comic> Create(Comic comic)
-        {
+        {   
             _comicService.Create(comic);
 
             return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic);
@@ -71,7 +70,7 @@ namespace MyComicsManagerApi.Controllers
                 return NotFound();
             }
 
-            _comicService.Remove(comic.Id);
+            _comicService.Remove(comic);
 
             return NoContent();
         }
