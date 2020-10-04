@@ -352,5 +352,5 @@ MigrationBackup/
 # MyComicsManagerWeb
 lib/
 
-# MyComicsManagerWeb
-MyComicsManagerApi\appsettings.json
+# MyComicsManagerApi
+MyComicsManagerApi/appsettings.json
