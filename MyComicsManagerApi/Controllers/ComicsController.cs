@@ -70,7 +70,7 @@ namespace MyComicsManagerApi.Controllers
                 return NotFound();
             }
 
-            _comicService.Remove(comic.Id);
+            _comicService.Remove(comic);
 
             return NoContent();
         }

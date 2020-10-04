@@ -13,6 +13,8 @@ namespace MyComicsManagerApi.Services
 
         private readonly ILibrairiesSettings _libSettings;
 
+        private readonly char[] charsToTrim = {'/', '\\'};
+
         public LibraryService(IDatabaseSettings dbSettings, ILibrairiesSettings libSettings)
         {
             Log.Debug("settings = {@settings}", dbSettings);
@@ -30,8 +32,11 @@ namespace MyComicsManagerApi.Services
 
         public Library Create(Library libraryIn)
         {
-            // Création de la librairie sur le disque
+            // Création de la librairie dans libs
             Directory.CreateDirectory(_libSettings.LibrairiesDirRootPath + libraryIn.RelPath);
+
+            // Création de la librairie dans import
+            Directory.CreateDirectory(_libSettings.FileImportDirRootPath + libraryIn.RelPath);
             
             // Création de la librairie dans MangoDB
             _libraries.InsertOne(libraryIn);
@@ -45,11 +50,44 @@ namespace MyComicsManagerApi.Services
 
         public void Remove(Library libraryIn)
         {
-            // Suppression des fichiers et du répértoire
+            // Suppression des fichiers et du répértoire dans libs
             Directory.Delete(_libSettings.LibrairiesDirRootPath + libraryIn.RelPath, true);
+
+            // Suppression des fichiers et du répértoire dans import
+            Directory.Delete(_libSettings.FileImportDirRootPath + libraryIn.RelPath, true);
             
             // Suppression de la référence en base de données
             _libraries.DeleteOne(library => library.Id == libraryIn.Id);
+        }
+
+        public string GetLibrayRelPath(string id) {
+            
+            Library lib = this.Get(id);
+            if (lib == null) {
+                return null;
+            } else {
+                return lib.RelPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar;
+            }
+        }
+
+        public string GetLibrayFullPath(string id) {
+
+            Library lib = this.Get(id);
+            if (lib == null) {
+                return null;
+            } else {
+                return _libSettings.LibrairiesDirRootPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar + GetLibrayRelPath(id);
+            }
+        }
+
+        public string GetLibrairiesDirRootPath() {
+
+            return _libSettings.LibrairiesDirRootPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar;
+        }
+
+        public string GetFileUploadDirRootPath() {
+
+            return _libSettings.FileUploadDirRootPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar;
         }
 
     }
