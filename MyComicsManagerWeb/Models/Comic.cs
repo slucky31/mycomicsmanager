@@ -19,6 +19,9 @@ namespace MyComicsManagerWeb.Models
         public string EbookPath { get; set; }
 
         [Required]
+        public string EbookName { get; set; }
+
+        [Required]
         public string LibraryId { get; set; }
 
     }

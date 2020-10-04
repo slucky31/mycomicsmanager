@@ -4,6 +4,7 @@
 @using Tewr.Blazor.FileReader
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
+@using System.Diagnostics
 @inject ComicService ComicService;
 @inject LibraryService LibraryService;
 @inject NavigationManager NavigationManager;
@@ -33,6 +34,10 @@
     <div class="form-group">
         <label for="inputEbookPath">Ebook Path sur le serveur</label>
         <InputText id="ebookpath" @bind-Value="comic.EbookPath" class="form-control" disabled/>
+    </div>
+    <div class="form-group">
+        <label for="inputEbookName">EbookName</label>
+        <InputText id="ebookname" @bind-Value="comic.EbookName" class="form-control" disabled/>
     </div>
     <div class="form-group">
         <label for="inputLibraryId">Library Id</label>
@@ -114,21 +119,23 @@
         status = $"Reading file...";
         this.StateHasChanged();
 
-        DateTime begin = DateTime.Now;
+        Stopwatch stopWatch = new Stopwatch();
+        stopWatch.Start();
 
-        var filePath = Path.Combine("/lib/tmp/", fileInfo.Name);
-        using (var fileStream = new FileStream(filePath, FileMode.Create))
-        using (var fs = await file.OpenReadAsync())
-        {
-            await fs.CopyToAsync(fileStream);
-        }
+        await ComicService.UploadFile(file, fileInfo.Name);
+        //var filePath = Path.Combine("/lib/tmp/", fileInfo.Name);
+        //using (var fileStream = new FileStream(filePath, FileMode.Create))
+        //using (var fs = await file.OpenReadAsync())
+        //{
+        //    await fs.CopyToAsync(fileStream);
+        //}
         status = $"Done reading file.";
-        var end = DateTime.Now;
-        var time = end - begin;
-        status += $" Transfert Duration : {time}.";
+        stopWatch.Stop();        
+        status += $" Transfert Duration : {stopWatch.ElapsedMilliseconds} ms";
         
         comic.Title = comic.Title ?? Path.GetFileNameWithoutExtension(fileInfo.Name);
-        comic.EbookPath = filePath;
+        comic.EbookPath = "tmp/";
+        comic.EbookName = fileInfo.Name;
         this.StateHasChanged();
     
     }

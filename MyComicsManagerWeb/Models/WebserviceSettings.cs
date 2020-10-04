@@ -4,7 +4,7 @@ namespace MyComicsManagerWeb.Models
     {
         public string WebserviceUri { get; set; }
 
-        public string LibrariesRootPath { get; set; }
+        public string FileUploadDirRootPath { get; set; }
         
     }
 
@@ -12,6 +12,6 @@ namespace MyComicsManagerWeb.Models
     {
         string WebserviceUri { get; set; }
 
-        string LibrariesRootPath { get; set; }
+        string FileUploadDirRootPath { get; set; }
     }
 }

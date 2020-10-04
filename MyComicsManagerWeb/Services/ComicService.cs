@@ -91,7 +91,7 @@ namespace MyComicsManagerWeb.Services {
         {          
             Library lib = await _libraryService.GetSelectedLibrary();
             
-            var filePath = Path.Combine(_settings.LibrariesRootPath + lib.RelPath + "tmp/", fileName);
+            var filePath = Path.Combine(_settings.FileUploadDirRootPath, fileName);
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             using (var fs = await file.OpenReadAsync())
             {
