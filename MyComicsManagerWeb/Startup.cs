@@ -40,10 +40,10 @@ namespace MyComicsManagerWeb
             services.AddHttpClient<LibraryService>();
 
             // Réglage pour upload de fichier
-            services.AddServerSideBlazor().AddHubOptions(o =>
-            {
-                o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-            });
+            //services.AddServerSideBlazor().AddHubOptions(o =>
+            //{
+            //    o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+            //});
             services.AddFileReaderService();
         }
 
