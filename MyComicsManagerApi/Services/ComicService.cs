@@ -36,12 +36,14 @@ namespace MyComicsManagerApi.Services
             char[] charsToTrim = {'/', '\\'};
 
             string origin = _libraryService.GetFileUploadDirRootPath() + comic.EbookName;
-            string destination = _libraryService.GetLibrayFullPath(comic.LibraryId) + comic.EbookName;
+            string destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.FULL_PATH) + comic.EbookName;
             File.Move(origin,destination);
             //TODO : Gestion des exceptions
 
             // Mise à jour du champs EbookPath avec le champ relatif
-            comic.EbookPath = _libraryService.GetLibrayRelPath(comic.LibraryId) + comic.EbookName;
+            comic.EbookPath = comic.EbookName;
+
+            // Insertion en base de données
             _comics.InsertOne(comic);
             
             return comic;
@@ -55,14 +57,25 @@ namespace MyComicsManagerApi.Services
             // Suppression du fichier
             Comic c = _comics.Find<Comic>(c => (c.Id == comic.Id) && (c.EbookName == comic.EbookName)).FirstOrDefault();
             if (c != null) {    
-                File.Delete(_libraryService.GetLibrairiesDirRootPath() + comic.EbookPath);
+                
+                string filePath = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.FULL_PATH) + comic.EbookPath;
+                if (File.Exists(filePath)) {
+                    File.Delete(filePath);
+                }
                 //TODO : Gestion des exceptions
             }
 
-            //TODO : Gestion des exceptions
-
             // Suppression de la référence en base de données
             _comics.DeleteOne(c => c.Id == comic.Id);
+        }
+
+        public void RemoveAllComicsFromLibrary(string libId)
+        {
+            // Suppression du fichier
+            List<Comic> comics = _comics.Find<Comic>(c => (c.LibraryId == libId)).ToList();
+            foreach(Comic c in comics) {
+                Remove(c);
+            }
         }
 
     }
