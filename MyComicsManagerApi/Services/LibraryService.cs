@@ -15,6 +15,12 @@ namespace MyComicsManagerApi.Services
 
         private readonly char[] charsToTrim = {'/', '\\'};
 
+        public enum PathType
+        {
+            RELATIVE_PATH,
+            FULL_PATH
+        }
+
         public LibraryService(IDatabaseSettings dbSettings, ILibrairiesSettings libSettings)
         {
             Log.Debug("settings = {@settings}", dbSettings);
@@ -32,14 +38,17 @@ namespace MyComicsManagerApi.Services
 
         public Library Create(Library libraryIn)
         {
-            // Création de la librairie dans libs
-            Directory.CreateDirectory(_libSettings.LibrairiesDirRootPath + libraryIn.RelPath);
-
-            // Création de la librairie dans import
-            Directory.CreateDirectory(_libSettings.FileImportDirRootPath + libraryIn.RelPath);
-            
             // Création de la librairie dans MangoDB
             _libraries.InsertOne(libraryIn);
+
+            // Création de la librairie dans libs
+            Directory.CreateDirectory(GetLibraryPath(libraryIn.Id, PathType.FULL_PATH));
+
+            // Création de import dans la librairie
+            Directory.CreateDirectory(GetLibraryImportPath(libraryIn.Id, PathType.FULL_PATH));
+
+            // Création du répertoire d'upload si il n'est pas déjà créé
+            GetFileUploadDirRootPath();
 
             return libraryIn;
         }
@@ -51,42 +60,49 @@ namespace MyComicsManagerApi.Services
         public void Remove(Library libraryIn)
         {
             // Suppression des fichiers et du répértoire dans libs
-            Directory.Delete(_libSettings.LibrairiesDirRootPath + libraryIn.RelPath, true);
+            string libPath = GetLibraryPath(libraryIn.Id, PathType.FULL_PATH);
+            if (Directory.Exists(libPath))
+            {
+                Directory.Delete(libPath, true);
+            }
 
-            // Suppression des fichiers et du répértoire dans import
-            Directory.Delete(_libSettings.FileImportDirRootPath + libraryIn.RelPath, true);
+            // Suppression de toutes les entrées en base de données
+            
             
             // Suppression de la référence en base de données
             _libraries.DeleteOne(library => library.Id == libraryIn.Id);
         }
 
-        public string GetLibrayRelPath(string id) {
-            
+        public string GetLibraryPath(string id, PathType type)
+        {    
             Library lib = this.Get(id);
-            if (lib == null) {
+            if (lib == null)
+            {
                 return null;
             } else {
-                return lib.RelPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar;
+                string path = "";
+                if (type == PathType.FULL_PATH)
+                {
+                    path = GetLibrairiesDirRootPath();
+                }
+                return path + lib.RelPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar; 
             }
         }
 
-        public string GetLibrayFullPath(string id) {
-
-            Library lib = this.Get(id);
-            if (lib == null) {
-                return null;
-            } else {
-                return _libSettings.LibrairiesDirRootPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar + GetLibrayRelPath(id);
-            }
+        public string GetLibraryImportPath(string id, PathType type)
+        {    
+            return GetLibraryPath(id,type) + "import";
         }
 
         public string GetLibrairiesDirRootPath() {
 
+            Directory.CreateDirectory(_libSettings.LibrairiesDirRootPath.TrimEnd(charsToTrim));
             return _libSettings.LibrairiesDirRootPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar;
         }
 
         public string GetFileUploadDirRootPath() {
 
+            Directory.CreateDirectory(_libSettings.FileUploadDirRootPath.TrimEnd(charsToTrim));
             return _libSettings.FileUploadDirRootPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar;
         }
 

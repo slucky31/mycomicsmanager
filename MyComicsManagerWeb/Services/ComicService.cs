@@ -90,7 +90,11 @@ namespace MyComicsManagerWeb.Services {
         public async Task UploadFile(IFileReference file, string fileName)
         {          
             Library lib = await _libraryService.GetSelectedLibrary();
+
+            // Création du répertoire si il n'existe pas
+            Directory.CreateDirectory(_settings.FileUploadDirRootPath);
             
+            // Upload du fichier
             var filePath = Path.Combine(_settings.FileUploadDirRootPath, fileName);
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             using (var fs = await file.OpenReadAsync())
