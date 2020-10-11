@@ -61,6 +61,14 @@ namespace MyComicsManagerWeb.Services {
 
         }
 
+        public async Task DeleteAllComicsFromLib(String libId)
+        {
+            using var httpResponse = await _httpClient.DeleteAsync($"/api/Comics/DeleteAllComicsFromLib/{libId}");
+
+            httpResponse.EnsureSuccessStatusCode();
+
+        }
+
         public async Task CreateComicAsync(Comic comicItem)
         {
             var comicItemJson = new StringContent(
@@ -90,7 +98,11 @@ namespace MyComicsManagerWeb.Services {
         public async Task UploadFile(IFileReference file, string fileName)
         {          
             Library lib = await _libraryService.GetSelectedLibrary();
+
+            // Création du répertoire si il n'existe pas
+            Directory.CreateDirectory(_settings.FileUploadDirRootPath);
             
+            // Upload du fichier
             var filePath = Path.Combine(_settings.FileUploadDirRootPath, fileName);
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             using (var fs = await file.OpenReadAsync())
