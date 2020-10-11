@@ -61,6 +61,14 @@ namespace MyComicsManagerWeb.Services {
 
         }
 
+        public async Task DeleteAllComicsFromLib(String libId)
+        {
+            using var httpResponse = await _httpClient.DeleteAsync($"/api/Comics/DeleteAllComicsFromLib/{libId}");
+
+            httpResponse.EnsureSuccessStatusCode();
+
+        }
+
         public async Task CreateComicAsync(Comic comicItem)
         {
             var comicItemJson = new StringContent(

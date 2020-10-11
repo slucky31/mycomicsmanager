@@ -10,9 +10,7 @@ namespace MyComicsManagerApi.Services
     public class LibraryService
     {
         private readonly IMongoCollection<Library> _libraries;
-
         private readonly ILibrairiesSettings _libSettings;
-
         private readonly char[] charsToTrim = {'/', '\\'};
 
         public enum PathType
@@ -59,6 +57,7 @@ namespace MyComicsManagerApi.Services
 
         public void Remove(Library libraryIn)
         {
+            
             // Suppression des fichiers et du répértoire dans libs
             string libPath = GetLibraryPath(libraryIn.Id, PathType.FULL_PATH);
             if (Directory.Exists(libPath))
@@ -66,9 +65,6 @@ namespace MyComicsManagerApi.Services
                 Directory.Delete(libPath, true);
             }
 
-            // Suppression de toutes les entrées en base de données
-            
-            
             // Suppression de la référence en base de données
             _libraries.DeleteOne(library => library.Id == libraryIn.Id);
         }

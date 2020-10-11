@@ -74,5 +74,13 @@ namespace MyComicsManagerApi.Controllers
 
             return NoContent();
         }
+
+        [HttpDelete("deleteallcomicsfromlib/{id:length(24)}")]
+        public IActionResult DeleteAllComicsFromLib(string id)
+        {
+            _comicService.RemoveAllComicsFromLibrary(id);
+
+            return NoContent();
+        }
     }
 }

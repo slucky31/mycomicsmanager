@@ -69,5 +69,14 @@ namespace MyComicsManagerApi.Services
             _comics.DeleteOne(c => c.Id == comic.Id);
         }
 
+        public void RemoveAllComicsFromLibrary(string libId)
+        {
+            // Suppression du fichier
+            List<Comic> comics = _comics.Find<Comic>(c => (c.LibraryId == libId)).ToList();
+            foreach(Comic c in comics) {
+                Remove(c);
+            }
+        }
+
     }
 }
