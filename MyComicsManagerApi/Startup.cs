@@ -40,6 +40,9 @@ namespace MyComicsManagerApi
             services.AddSingleton<LibraryService>();
             
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
+
+            // Register the Swagger generator, defining 1 or more Swagger documents
+            services.AddSwaggerGen();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,6 +52,18 @@ namespace MyComicsManagerApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                // To serve the Swagger UI at the app's root (http://localhost:<port>/), set the RoutePrefix property to an empty string
+                c.RoutePrefix = string.Empty;
+            });
 
             //app.UseHttpsRedirection();
 
