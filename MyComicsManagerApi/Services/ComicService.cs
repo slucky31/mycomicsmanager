@@ -37,9 +37,21 @@ namespace MyComicsManagerApi.Services
 
             string origin = _libraryService.GetFileUploadDirRootPath() + comic.EbookName;
             string destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.FULL_PATH) + comic.EbookName;
-            File.Move(origin,destination);
-            //TODO : Gestion des exceptions
 
+            try
+            {
+                File.Move(origin,destination);
+                //TODO : Gestion des exceptions
+            }
+            catch (System.Exception)
+            {
+                
+                Log.Error("Erreur lors du dépalcement du fichier");
+                Log.Error("Origin = {@origin}", origin);
+                Log.Error("Destination = {@destination}", destination);
+                return null;
+            }
+            
             // Mise à jour du champs EbookPath avec le champ relatif
             comic.EbookPath = comic.EbookName;
 
