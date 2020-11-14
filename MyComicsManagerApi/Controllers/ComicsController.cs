@@ -40,9 +40,16 @@ namespace MyComicsManagerApi.Controllers
         [HttpPost]
         public ActionResult<Comic> Create(Comic comic)
         {   
-            _comicService.Create(comic);
+            var createdComic = _comicService.Create(comic);
 
-            return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic);
+            if (createdComic == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+               return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic); 
+            }
         }
 
         [HttpPut("{id:length(24)}")]
