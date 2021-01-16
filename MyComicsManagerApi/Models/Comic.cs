@@ -25,7 +25,9 @@ namespace MyComicsManagerApi.Models
         
         public string Title { get; set; }
 
-        public string Vomume { get; set; }
+        public string ISBN { get; set; }
+
+        public string Volume { get; set; }
 
         public string Summary { get; set; }
 
@@ -34,8 +36,6 @@ namespace MyComicsManagerApi.Models
         public string Category { get; set; }
 
         public DateTime Published { get; set; }
-        
-        public string Author { get; set; }
 
         public string Writer { get; set; }
 
@@ -43,13 +43,13 @@ namespace MyComicsManagerApi.Models
 
         public string Colorist { get; set; }
 
-        public string Dditor { get; set; }
+        public string Editor { get; set; }
 
-        public string languageISO { get; set; }
+        public string LanguageISO { get; set; }
         
-        public int pageCount { get; set; }
+        public int PageCount { get; set; }
 
-        public int review { get; set; }
+        public int Review { get; set; }
 
     }
 }
