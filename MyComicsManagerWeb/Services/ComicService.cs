@@ -4,10 +4,9 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using MyComicsManagerWeb.Models;
-using Tewr.Blazor.FileReader;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace MyComicsManagerWeb.Services {
     public class ComicService
@@ -95,22 +94,22 @@ namespace MyComicsManagerWeb.Services {
             httpResponse.EnsureSuccessStatusCode();
         }
 
-        public async Task UploadFile(IFileReference file, string fileName)
-        {          
+        public async Task UploadFile(IBrowserFile file)
+        {
+            long maxFileSize = 1024 * 1024 * 400; // 400 Mo
             Library lib = await _libraryService.GetSelectedLibrary();
 
             // Création du répertoire si il n'existe pas
             Directory.CreateDirectory(_settings.FileUploadDirRootPath);
             
             // Upload du fichier
-            var filePath = Path.Combine(_settings.FileUploadDirRootPath, fileName);
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            using (var fs = await file.OpenReadAsync())
+            using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
+            using (var stream = file.OpenReadStream(maxFileSize))
             {
-                await fs.CopyToAsync(fileStream);
+                await stream.CopyToAsync(savedFile);
+
             }
         }
 
-        
     }
 }

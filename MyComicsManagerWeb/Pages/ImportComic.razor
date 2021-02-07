@@ -1,104 +1,137 @@
-﻿@page "/comics/import"
+﻿@page "/comics/Import"
 
-@using System.IO
-@using Tewr.Blazor.FileReader
-@using MyComicsManagerWeb.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using System.Diagnostics
+@using System.Linq
+
 @using MyComicsManagerWeb.Services
+
 @inject ComicService ComicService;
 @inject NavigationManager NavigationManager;
-@inject IFileReaderService fileReaderService;
 
-<h1>Import</h1>
+<h3>File Preview Component</h3>
 
-<EditForm Model="@comic">
-    <div class="drag-drop-zone" >
-        
-        <input type="file"
-           class="clickable"
-           @ref=selectedFile
-           @onchange="ReadFile" 
-        />
-        <div class="file-row">
-            <!-- File info -->
-            <div>
-                
-        @if (fileInfo != null)
+<p>Max allowed files: @maxAllowedFiles</p>
+
+<div class="form-group">
+    <InputFile OnChange="LoadFiles" class="form-control" id="input-file" multiple />
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Fichier</th>
+            <th>Taille</th>
+            <th>Temps Upload</th>
+            <th>Exception Message</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var file in uploadedFiles)
         {
-            
-            <h2>@fileInfo.Name</h2>
-            <p>Size: <strong>@fileInfo.Size bytes</strong></p>
-            <p>Status: <strong>@status</strong></p>
-            @*
-            @if (fileInfo.Size > MaxFileSize)
+            <tr>
+                <td>@file.Name</td>
+                <td>@file.Size</td>
+                <td>@file.UploadDuration</td>
+                <td>@file.ExceptionMessage</td>                    
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+
+    private List<ComicFile> uploadedFiles = new List<ComicFile>();
+
+    private int maxAllowedFiles = 10;
+    private bool isLoading;
+    private bool displayProgress;
+
+    private int progressPercent;
+    private string[] AllowedExtensions = new[] { ".cbr", ".cbz", ".pdf" };
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+
+        uploadedFiles.Clear();
+        string exceptionMessage = string.Empty;
+
+
+        displayProgress = true;
+        foreach (IBrowserFile file in e.GetMultipleFiles(maxAllowedFiles))
+        {
+            Stopwatch stopWatch = new Stopwatch();
+
+            // Check extension
+            var extension = System.IO.Path.GetExtension(file.Name);
+            if (!AllowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
             {
-            <p>That's too big. Max size: @(MaxFileSize) bytes.</p>;
-            }
-            else if (fileInfo.Data.Position == fileInfo.Size)
-            {
-            <p>Download finished !</p>
+                exceptionMessage = "File must have one of the following extensions: " + string.Join(", ", AllowedExtensions);
             }
             else
             {
-            <p>Loaded @((100.0 * selectedFile.Data.Position / selectedFile.Size).ToString("0"))%</p>
+                stopWatch.Start();
+
+                try
+                {
+                    await ComicService.UploadFile(file);
+                }
+                catch (Exception ex)
+                {
+                    exceptionMessage = ex.Message;
+                }
+
+                StateHasChanged();
+                stopWatch.Stop();
             }
-            *@ 
+
+            ComicFile uploadedFile = new ComicFile();
+            uploadedFile.Name = file.Name;
+            uploadedFile.Size = file.Size;
+            uploadedFile.UploadDuration = stopWatch.ElapsedMilliseconds / 1000.0;
+            uploadedFile.ExceptionMessage = exceptionMessage;
+            uploadedFiles.Add(uploadedFile);
         }
-        else
-        {
-            <p>Déposer des fichiers ou cliquer pour sélectionner des fichiers</p>
-        }
-            </div>
-        </div>
-        
-    </div>
-</EditForm>
-
-@code {
-    
-    const int MaxFileSize = 500 * 1024 * 1024; // 500M
-    
-    private Comic comic = new Comic();
-
-    ElementReference selectedFile { get; set; }
-    String status { get; set; }
-
-    private IFileInfo fileInfo;
-
-    private async Task Create()
-    {
-        await ComicService.CreateComicAsync(comic);
-        NavigationManager.NavigateTo("listcomics", false);
+        displayProgress = false;
     }
 
-    string Output { get; set; }
-
-    public async Task ReadFile()
+    public class ComicFile
     {
-        Output = string.Empty;
-        this.StateHasChanged();
-        var nl = Environment.NewLine;
-        var files = await fileReaderService.CreateReference(selectedFile).EnumerateFilesAsync();
-        var file = files.First();
-        
-        fileInfo = await file.ReadFileInfoAsync();
-        status = $"Reading file...";
-        this.StateHasChanged();
 
-        var filePath = Path.Combine("./", fileInfo.Name);
-        DateTime begin = DateTime.Now;
-        using (var fileStream = new FileStream(filePath, FileMode.Create))
-        using (var fs = await file.OpenReadAsync())
-        {
-            await fs.CopyToAsync(fileStream);
-            status = $"Done reading file.";
-        }
-        var end = DateTime.Now;
-        var time = end - begin;
-        status += $" Transfert Duration : {time}.";
-        
-        comic.Title = Path.GetFileNameWithoutExtension(fileInfo.Name);
-        this.StateHasChanged();
-    
+        public string Name { get; set; }
+
+        public long Size { get; set; }
+
+        public double UploadDuration { get; set; }
+
+        public string ExceptionMessage { get; set; }
     }
+
+    private class FileValidationAttribute : ValidationAttribute
+    {
+        public FileValidationAttribute(string[] allowedExtensions)
+        {
+            AllowedExtensions = allowedExtensions;
+        }
+
+        private string[] AllowedExtensions { get; }
+
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            var file = (IBrowserFile)value;
+
+            var extension = System.IO.Path.GetExtension(file.Name);
+
+            if (!AllowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+            {
+                return new ValidationResult($"File must have one of the following extensions: {string.Join(", ", AllowedExtensions)}.", new[] { validationContext.MemberName });
+            }
+
+            return ValidationResult.Success;
+        }
+    }
+
 
 }
