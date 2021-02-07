@@ -2,6 +2,8 @@
 
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
+@using System.Diagnostics
+@using System.IO
 
 @inject ComicService ComicService;
 @inject LibraryService LibraryService;
@@ -12,7 +14,16 @@
 <EditForm Model="@comic" OnValidSubmit="Create">
     <DataAnnotationsValidator />
     <ValidationSummary />
-    <h2>Technical Data</h2>
+
+    <h2>Ficher</h2>
+    <hr />
+
+    <div class="form-group">
+        <label for="review">Fichier</label>
+        <InputFile OnChange="ReadFile" class="form-control" id="input-file" />
+    </div>
+
+    <h2>Données techniques</h2>
     <hr />
 
     <div class="form-group">
@@ -32,7 +43,7 @@
         <InputText id="libraryid" @bind-Value="comic.LibraryId" class="form-control" disabled />
     </div>
 
-    <h2>Comics Info</h2>
+    <h2>Informations sur le fichier</h2>
     <hr />
     <div class="form-group">
         <label for="serie">Série</label>
@@ -95,18 +106,20 @@
         <InputNumber id="review" @bind-Value="comic.Review" class="form-control" />
     </div>
 
-    <DragDropZone comic="comic"/>
 
-    
+
+
     <button class="btn btn-primary" type="submit">Create</button>
 </EditForm>
 
 @code {
-    
-    const int MaxFileSize = 500 * 1024 * 1024; // 500M
-    
+
     private Comic comic = new Comic();
-    
+    private string[] AllowedExtensions = new[] { ".cbr", ".cbz", ".pdf" };
+
+    ElementReference selectedFile { get; set; }
+    String status { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         Library lib = await LibraryService.GetSelectedLibrary();
@@ -117,6 +130,52 @@
     {
         await ComicService.CreateComicAsync(comic);
         NavigationManager.NavigateTo("comics/list", false);
+    }
+
+    public async Task ReadFile(InputFileChangeEventArgs e)
+    {
+
+        string exceptionMessage = string.Empty;
+
+        var file = e.File;
+
+        status = $"Reading file...";
+        this.StateHasChanged();
+
+        Stopwatch stopWatch = new Stopwatch();
+
+        // Check extension
+        var extension = System.IO.Path.GetExtension(file.Name);
+        if (!AllowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+        {
+            exceptionMessage = "File must have one of the following extensions: " + string.Join(", ", AllowedExtensions);
+        }
+        else
+        {
+            stopWatch.Start();
+
+            try
+            {
+                await ComicService.UploadFile(file);
+            }
+            catch (Exception ex)
+            {
+                exceptionMessage = ex.Message;
+            }
+
+            StateHasChanged();
+            stopWatch.Stop();
+        }
+
+        status = $"Done reading file.";
+        stopWatch.Stop();
+        status += $" Transfert Duration : {stopWatch.ElapsedMilliseconds} ms";
+
+        comic.Title = comic.Title ?? Path.GetFileNameWithoutExtension(file.Name);
+        comic.EbookPath = "tmp/";
+        comic.EbookName = file.Name;
+        this.StateHasChanged();
+
     }
 
 }
