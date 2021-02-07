@@ -1,19 +1,14 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyComicsManagerWeb.Models
 {
     public class Comic
     {
+
+        // Technical data
+
         public string Id { get; set; }
-
-        [Required]
-        public string Title { get; set; }
-
-        public double Price { get; set; }
-
-        public string Category { get; set; }
-
-        public string Author { get; set; }
 
         [Required]
         public string EbookPath { get; set; }
@@ -24,5 +19,38 @@ namespace MyComicsManagerWeb.Models
         [Required]
         public string LibraryId { get; set; }
 
+        // Book info
+
+        public string Serie { get; set; }
+
+        [Required]
+        public string Title { get; set; }
+
+        public string ISBN { get; set; }
+
+        public string Volume { get; set; }
+
+        public string Summary { get; set; }
+
+        public decimal Price { get; set; }
+
+        public string Category { get; set; }
+
+        public DateTime Published { get; set; }
+
+        public string Writer { get; set; }
+
+        public string Penciller { get; set; }
+
+        public string Colorist { get; set; }
+
+        public string Editor { get; set; }
+
+        public string LanguageISO { get; set; }
+        
+        public int PageCount { get; set; }
+
+        public int Review { get; set; }
+ 
     }
 }

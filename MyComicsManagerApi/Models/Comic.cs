@@ -21,7 +21,7 @@ namespace MyComicsManagerApi.Models
 
         // Book info
 
-        public string Series { get; set; }
+        public string Serie { get; set; }
         
         public string Title { get; set; }
 
