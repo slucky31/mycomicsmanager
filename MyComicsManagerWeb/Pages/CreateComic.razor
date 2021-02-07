@@ -1,88 +1,103 @@
 ﻿@page "/comics/create"
 
-@using System.IO
-@using Tewr.Blazor.FileReader
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
-@using System.Diagnostics
+
 @inject ComicService ComicService;
 @inject LibraryService LibraryService;
 @inject NavigationManager NavigationManager;
-@inject IFileReaderService fileReaderService;
 
 <h1>Create</h1>
 
-<EditForm Model="@comic" OnValidSubmit="Create" >
+<EditForm Model="@comic" OnValidSubmit="Create">
     <DataAnnotationsValidator />
     <ValidationSummary />
+    <h2>Technical Data</h2>
+    <hr />
+
     <div class="form-group">
-        <label for="inputTitle">Titre</label>
-        <InputText id="title" @bind-Value="comic.Title" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="inputCategory">Catégorie</label>
-        <InputText id="category" @bind-Value="comic.Category" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="inputAuthor">Author</label>
-        <InputText id="author" @bind-Value="comic.Author" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="inputPrice">Prix</label>
-        <InputNumber id="price" @bind-Value="comic.Price" class="form-control" />
+        <label for="inputTitle">Id</label>
+        <InputText id="title" @bind-Value="comic.Id" class="form-control" disabled />
     </div>
     <div class="form-group">
         <label for="inputEbookPath">Ebook Path sur le serveur</label>
-        <InputText id="ebookpath" @bind-Value="comic.EbookPath" class="form-control" disabled/>
+        <InputText id="ebookpath" @bind-Value="comic.EbookPath" class="form-control" disabled />
     </div>
     <div class="form-group">
         <label for="inputEbookName">EbookName</label>
-        <InputText id="ebookname" @bind-Value="comic.EbookName" class="form-control" disabled/>
+        <InputText id="ebookname" @bind-Value="comic.EbookName" class="form-control" disabled />
     </div>
     <div class="form-group">
         <label for="inputLibraryId">Library Id</label>
-        <InputText id="libraryid" @bind-Value="comic.LibraryId" class="form-control" disabled/>
+        <InputText id="libraryid" @bind-Value="comic.LibraryId" class="form-control" disabled />
     </div>
-    <div class="drag-drop-zone" >
-        
-        <input type="file"
-           class="clickable"
-           @ref=selectedFile
-           @onchange="ReadFile" 
-        />
-        <div class="file-row">
-            <!-- File info -->
-            <div>
-                
-        @if (fileInfo != null)
-        {
-            
-            <h2>@fileInfo.Name</h2>
-            <p>Size: <strong>@fileInfo.Size bytes</strong></p>
-            <p>Status: <strong>@status</strong></p>
-            @*
-            @if (fileInfo.Size > MaxFileSize)
-            {
-            <p>That's too big. Max size: @(MaxFileSize) bytes.</p>;
-            }
-            else if (fileInfo.Data.Position == fileInfo.Size)
-            {
-            <p>Download finished !</p>
-            }
-            else
-            {
-            <p>Loaded @((100.0 * selectedFile.Data.Position / selectedFile.Size).ToString("0"))%</p>
-            }
-            *@ 
-        }
-        else
-        {
-            <p>Déposer un fichier ou cliquer pour sélectionner un fichier</p>
-        }
-            </div>
-        </div>
-        
+
+    <h2>Comics Info</h2>
+    <hr />
+    <div class="form-group">
+        <label for="serie">Série</label>
+        <InputText id="serie" @bind-Value="comic.Serie" class="form-control" />
     </div>
+    <div class="form-group">
+        <label for="title">Titre</label>
+        <InputText id="title" @bind-Value="comic.Title" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="isbn">ISBN</label>
+        <InputText id="isbn" @bind-Value="comic.ISBN" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="volume">Volume</label>
+        <InputText id="volume" @bind-Value="comic.Volume" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="summary">Résumé</label>
+        <InputText id="summary" @bind-Value="comic.Summary" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="price">Prix</label>
+        <InputNumber id="price" @bind-Value="comic.Price" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="category">Catégorie</label>
+        <InputText id="category" @bind-Value="comic.Category" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="published" class="col-sm-3">Date de publication</label>
+        <InputDate id="published" @bind-Value="comic.Published" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="writer">Scénariste</label>
+        <InputText id="writer" @bind-Value="comic.Writer" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="penciller">Déssinateur</label>
+        <InputText id="penciller" @bind-Value="comic.Penciller" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="colorist">Coloriste</label>
+        <InputText id="colorist" @bind-Value="comic.Colorist" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="editor">Editeur</label>
+        <InputText id="editor" @bind-Value="comic.Editor" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="LanguageIso">Langue</label>
+        <InputText id="LanguageIso" @bind-Value="comic.LanguageISO" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="pagecount">Pages</label>
+        <InputNumber id="pagecount" @bind-Value="comic.PageCount" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="review">Note</label>
+        <InputNumber id="review" @bind-Value="comic.Review" class="form-control" />
+    </div>
+
+    <DragDropZone comic="comic"/>
+
+    
     <button class="btn btn-primary" type="submit">Create</button>
 </EditForm>
 
@@ -92,11 +107,6 @@
     
     private Comic comic = new Comic();
     
-    ElementReference selectedFile { get; set; }
-    String status { get; set; }
-
-    private IFileInfo fileInfo;
-
     protected override async Task OnInitializedAsync()
     {
         Library lib = await LibraryService.GetSelectedLibrary();
@@ -107,37 +117,6 @@
     {
         await ComicService.CreateComicAsync(comic);
         NavigationManager.NavigateTo("comics/list", false);
-    }
-
-    public async Task ReadFile()
-    {
-
-        var files = await fileReaderService.CreateReference(selectedFile).EnumerateFilesAsync();
-        var file = files.First();
-        
-        fileInfo = await file.ReadFileInfoAsync();
-        status = $"Reading file...";
-        this.StateHasChanged();
-
-        Stopwatch stopWatch = new Stopwatch();
-        stopWatch.Start();
-
-        await ComicService.UploadFile(file, fileInfo.Name);
-        //var filePath = Path.Combine("/lib/tmp/", fileInfo.Name);
-        //using (var fileStream = new FileStream(filePath, FileMode.Create))
-        //using (var fs = await file.OpenReadAsync())
-        //{
-        //    await fs.CopyToAsync(fileStream);
-        //}
-        status = $"Done reading file.";
-        stopWatch.Stop();        
-        status += $" Transfert Duration : {stopWatch.ElapsedMilliseconds} ms";
-        
-        comic.Title = comic.Title ?? Path.GetFileNameWithoutExtension(fileInfo.Name);
-        comic.EbookPath = "tmp/";
-        comic.EbookName = fileInfo.Name;
-        this.StateHasChanged();
-    
     }
 
 }

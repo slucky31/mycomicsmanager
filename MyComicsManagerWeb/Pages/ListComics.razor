@@ -33,7 +33,7 @@ else
                     <td>@comic.Title</td>
                     <td>@comic.Price</td>
                     <td>@comic.Category</td>
-                    <td>@comic.Author</td>
+                    <td>@comic.Writer</td>
                     <td><button class="btn btn-primary" @onclick="@(async () => await DeleteComic(comic.Id))">Delete</button></td>
                 </tr>
             }
