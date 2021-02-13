@@ -1,0 +1,31 @@
+﻿@page "/comics/Import"
+
+<h3>File Preview Component</h3>
+
+<p>Max allowed files: @maxAllowedFiles</p>
+
+<div class="form-group">
+    <InputFile OnChange="LoadFiles" class="form-control" id="input-file" multiple />
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Fichier</th>
+            <th>Taille</th>
+            <th>Temps Upload</th>
+            <th>Exception Message</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var file in uploadedFiles)
+        {
+            <tr>
+                <td>@file.Name</td>
+                <td>@file.Size</td>
+                <td>@file.UploadDuration</td>
+                <td>@file.ExceptionMessage</td>                    
+            </tr>
+        }
+    </tbody>
+</table>
