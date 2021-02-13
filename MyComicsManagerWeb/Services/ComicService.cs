@@ -97,18 +97,15 @@ namespace MyComicsManagerWeb.Services {
         public async Task UploadFile(IBrowserFile file)
         {
             long maxFileSize = 1024 * 1024 * 400; // 400 Mo
-            Library lib = await _libraryService.GetSelectedLibrary();
+            await _libraryService.GetSelectedLibrary();
 
             // Création du répertoire si il n'existe pas
             Directory.CreateDirectory(_settings.FileUploadDirRootPath);
             
             // Upload du fichier
             using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
-            using (var stream = file.OpenReadStream(maxFileSize))
-            {
-                await stream.CopyToAsync(savedFile);
-
-            }
+            using Stream stream = file.OpenReadStream(maxFileSize);
+            await stream.CopyToAsync(savedFile);
         }
 
     }

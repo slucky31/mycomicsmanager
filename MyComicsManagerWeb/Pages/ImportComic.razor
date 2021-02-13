@@ -46,10 +46,7 @@
     private List<ComicFile> uploadedFiles = new List<ComicFile>();
 
     private int maxAllowedFiles = 10;
-    private bool isLoading;
-    private bool displayProgress;
 
-    private int progressPercent;
     private string[] AllowedExtensions = new[] { ".cbr", ".cbz", ".pdf" };
 
     private async Task LoadFiles(InputFileChangeEventArgs e)
@@ -59,7 +56,6 @@
         string exceptionMessage = string.Empty;
 
 
-        displayProgress = true;
         foreach (IBrowserFile file in e.GetMultipleFiles(maxAllowedFiles))
         {
             Stopwatch stopWatch = new Stopwatch();
@@ -94,7 +90,6 @@
             uploadedFile.ExceptionMessage = exceptionMessage;
             uploadedFiles.Add(uploadedFile);
         }
-        displayProgress = false;
     }
 
     public class ComicFile
