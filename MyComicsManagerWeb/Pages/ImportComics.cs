@@ -3,24 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Forms;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Components;
 using MyComicsManagerWeb.Services;
+using MyComicsManagerWeb.Models;
 
 namespace MyComicsManagerWeb.Pages
 {
-    public partial class UploadComics
+    public partial class ImportComics
     {
         
         [Inject] 
         private ComicService ComicService { get; set; }
-        
+
+        [Inject]
+        private LibraryService LibraryService { get; set; }
+
         public List<ComicFile> uploadedFiles = new List<ComicFile>();
+        public List<ComicFile> importingFiles = new List<ComicFile>();
 
         public readonly int maxAllowedFiles = 10;
+        public bool Uploading { get; set; } = false;
 
         private readonly string[] AllowedExtensions = new[] { ".cbr", ".cbz", ".pdf" };
+
+        protected override Task OnInitializedAsync()
+        {
+            ListImportingFiles();
+            return base.OnInitializedAsync();
+        }
 
         public async Task LoadFiles(InputFileChangeEventArgs e)
         {
@@ -64,7 +75,55 @@ namespace MyComicsManagerWeb.Pages
                     ExceptionMessage = exceptionMessage
                 };
                 uploadedFiles.Add(uploadedFile);
+                importingFiles.Add(uploadedFile);
+                this.StateHasChanged();
             }
+        }
+
+        public async Task AddComic(ComicFile file)
+        {
+
+            Comic comic = new Comic
+            {
+                EbookName = file.Name,
+                Title = file.Name,
+                LibraryId = file.libId
+
+            };
+            await ComicService.CreateComicAsync(comic);
+            importingFiles.Remove(file);
+            this.StateHasChanged();
+        }
+
+        public async Task AddComics()
+        {
+
+            foreach(var file in importingFiles.ToList())
+            {
+                await AddComic(file);
+            }
+            
+        }
+
+        private async void ListImportingFiles()
+        {
+            var files = ComicService.ListImportingFiles();
+            Library lib = await LibraryService.GetSelectedLibrary();
+                   
+            importingFiles.Clear();
+            foreach (var file in files)
+            {
+                ComicFile uploadedFile = new ComicFile
+                {
+                    Name = file.Name,
+                    Size = file.Length,
+                    libId = lib.Id,
+                    UploadDuration = 0,
+                    ExceptionMessage = string.Empty
+                };
+                importingFiles.Add(uploadedFile);
+            }
+            this.StateHasChanged();
         }
 
         public class ComicFile
@@ -74,33 +133,13 @@ namespace MyComicsManagerWeb.Pages
 
             public long Size { get; set; }
 
+            public string libId { get; set; }
+
             public double UploadDuration { get; set; }
 
             public string ExceptionMessage { get; set; }
         }
 
-        private class FileValidationAttribute : ValidationAttribute
-        {
-            public FileValidationAttribute(string[] allowedExtensions)
-            {
-                AllowedExtensions = allowedExtensions;
-            }
-
-            private string[] AllowedExtensions { get; }
-
-            protected override ValidationResult IsValid(object value, ValidationContext validationContext)
-            {
-                var file = (IBrowserFile)value;
-
-                var extension = System.IO.Path.GetExtension(file.Name);
-
-                if (!AllowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
-                {
-                    return new ValidationResult($"File must have one of the following extensions: {string.Join(", ", AllowedExtensions)}.", new[] { validationContext.MemberName });
-                }
-
-                return ValidationResult.Success;
-            }
-        }
+        
     }
 }

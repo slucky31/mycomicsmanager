@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using MyComicsManagerWeb.Models;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Linq;
+using Serilog;
 
 namespace MyComicsManagerWeb.Services {
     public class ComicService
@@ -16,6 +18,7 @@ namespace MyComicsManagerWeb.Services {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly IWebserviceSettings _settings;
         private readonly LibraryService _libraryService;
+        private readonly string[] extensions = { "*.cbr", "*.cbz", "*.pdf" };
 
         public ComicService(HttpClient client, IWebserviceSettings settings, LibraryService libraryService)
         {
@@ -106,6 +109,18 @@ namespace MyComicsManagerWeb.Services {
             using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
             using Stream stream = file.OpenReadStream(maxFileSize);
             await stream.CopyToAsync(savedFile);
+        }
+
+        public IEnumerable<FileInfo> ListImportingFiles()
+        {
+            Log.Information("Recherche des fichiers dans {path}", _settings.FileUploadDirRootPath);
+            
+            // Création du répertoire si il n'existe pas
+            Directory.CreateDirectory(_settings.FileUploadDirRootPath);
+
+            // Lister les fichiers
+            var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
+            return extensions.SelectMany(directory.EnumerateFiles);
         }
 
     }
