@@ -12,14 +12,16 @@ namespace MyComicsManagerApi.Services
     {
         private readonly IMongoCollection<Comic> _comics;
         private readonly LibraryService _libraryService;
+        private readonly ComicFileService _comicFileService;
 
-        public ComicService(IDatabaseSettings settings, LibraryService libraryService)
+        public ComicService(IDatabaseSettings settings, LibraryService libraryService, ComicFileService comicFileService)
         {
             Log.Debug("settings = {@settings}", settings);
             var client = new MongoClient(settings.ConnectionString);
             var database = client.GetDatabase(settings.DatabaseName);
             _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
             _libraryService = libraryService;
+            _comicFileService = comicFileService;
         }
 
         public List<Comic> Get() =>
@@ -30,17 +32,16 @@ namespace MyComicsManagerApi.Services
 
         public Comic Create(Comic comic)
         {
-            // Le fichier a été copié par le front dans le zone tmp.
-            // Copie du fichier dans la bonne librairie
-            // Path.DirectorySeparatorChar : https://docs.microsoft.com/fr-fr/dotnet/api/system.io.path.directoryseparatorchar?view=netcore-3.1
-            char[] charsToTrim = {'/', '\\'};
 
-            string origin = _libraryService.GetFileUploadDirRootPath() + comic.EbookName;
-            string destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.FULL_PATH) + comic.EbookName;
+            Log.Information("Comic à créer : {@comic}", comic);
+
+            string origin = Path.GetFullPath(_libraryService.GetFileUploadDirRootPath() + comic.EbookName);
+            string destination = Path.GetFullPath(_libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.FULL_PATH) + comic.EbookName);
 
             try
             {
                 File.Move(origin,destination);
+                comic.EbookPath = destination;
                 //TODO : Gestion des exceptions
             }
             catch (System.Exception)
@@ -51,9 +52,17 @@ namespace MyComicsManagerApi.Services
                 Log.Error("Destination = {@destination}", destination);
                 return null;
             }
-            
+
+            Log.Information("Comic = {@comic}", comic);
+
+            // TODO : Gérer le champ EbookPath en rélatif ou en absolu ???
             // Mise à jour du champs EbookPath avec le champ relatif
-            comic.EbookPath = comic.EbookName;
+            //comic.EbookPath = comic.EbookName;
+
+            // Extraction de l'image de couverture
+            _comicFileService.SetAndExtractCoverImage(comic);
+
+            Log.Information("Comic = {@comic}", comic);
 
             // Insertion en base de données
             _comics.InsertOne(comic);
@@ -67,12 +76,18 @@ namespace MyComicsManagerApi.Services
         public void Remove(Comic comic)
         {
             // Suppression du fichier
-            Comic c = _comics.Find<Comic>(c => (c.Id == comic.Id) && (c.EbookName == comic.EbookName)).FirstOrDefault();
+            Comic c = _comics.Find<Comic>(c => (c.Id == comic.Id) && (c.EbookPath == comic.EbookPath)).FirstOrDefault();
             if (c != null) {    
                 
-                string filePath = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.FULL_PATH) + comic.EbookPath;
-                if (File.Exists(filePath)) {
-                    File.Delete(filePath);
+                // Suppression du fichier
+                if (File.Exists(c.EbookPath)) {
+                    File.Delete(c.EbookPath);
+                }
+
+                // Suppression de l'image de couverture
+                if (File.Exists(c.CoverPath))
+                {
+                    File.Delete(c.CoverPath);
                 }
                 //TODO : Gestion des exceptions
             }
