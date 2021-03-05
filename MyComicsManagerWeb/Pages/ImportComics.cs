@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Components;
 using MyComicsManagerWeb.Services;
 using MyComicsManagerWeb.Models;
+using System.IO;
 
 namespace MyComicsManagerWeb.Pages
 {
@@ -87,7 +88,7 @@ namespace MyComicsManagerWeb.Pages
             Comic comic = new Comic
             {
                 EbookName = file.Name,
-                Title = file.Name,
+                Title = Path.GetFileNameWithoutExtension(file.Name),
                 LibraryId = file.libId
 
             };

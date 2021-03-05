@@ -5,6 +5,7 @@ using System.Linq;
 using Serilog;
 using System.IO;
 using System.Threading.Tasks;
+using System;
 
 namespace MyComicsManagerApi.Services
 {
@@ -33,45 +34,55 @@ namespace MyComicsManagerApi.Services
         public Comic Create(Comic comic)
         {
 
-            Log.Information("Comic à créer : {@comic}", comic);
-
             string origin = Path.GetFullPath(_libraryService.GetFileUploadDirRootPath() + comic.EbookName);
-            string destination = Path.GetFullPath(_libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.FULL_PATH) + comic.EbookName);
-
-            try
-            {
-                File.Move(origin,destination);
-                comic.EbookPath = destination;
-                //TODO : Gestion des exceptions
-            }
-            catch (System.Exception)
-            {
-                
-                Log.Error("Erreur lors du dépalcement du fichier");
-                Log.Error("Origin = {@origin}", origin);
-                Log.Error("Destination = {@destination}", destination);
-                return null;
-            }
-
-            Log.Information("Comic = {@comic}", comic);
+            
 
             // TODO : Gérer le champ EbookPath en rélatif ou en absolu ???
             // Mise à jour du champs EbookPath avec le champ relatif
-            //comic.EbookPath = comic.EbookName;
 
-            // Extraction de l'image de couverture
-            _comicFileService.SetAndExtractCoverImage(comic);
+            // Si PDF, conversion en CBZ
+            // TODO : EbookPath ne devrait jamais être null,  car un comic ne peut exister sans fichier !
+            comic.EbookPath = origin;
+            _comicFileService.ConvertComicFileToCbz(comic);
 
-            Log.Information("Comic = {@comic}", comic);
-
+            string destination = Path.GetFullPath(_libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.FULL_PATH) + comic.EbookName);
+            try
+            {
+                
+                File.Move(comic.EbookPath, destination);
+                comic.EbookPath = destination;
+                //TODO : Gestion des exceptions
+            }
+            catch (Exception e)
+            {                
+                Log.Error("Erreur lors du dépalcement du fichier : {0}", e.Message);
+                Log.Error("Origin = {@origin}", comic.EbookPath);
+                Log.Error("Destination = {@destination}", destination);
+                return null;
+            }
+            
             // Insertion en base de données
             _comics.InsertOne(comic);
-            
+ 
+            // Extraction de l'image de couverture        
+            _comicFileService.SetAndExtractCoverImage(comic);
+            var filter = Builders<Comic>.Filter.Eq(comic => comic.Id,comic.Id);
+            var update = Builders<Comic>.Update.Set(comic => comic.CoverPath, comic.CoverPath);            
+            this.UpdateField(filter, update);
+
             return comic;
         }
 
-        public void Update(string id, Comic comic) =>
-            _comics.ReplaceOne(c => comic.Id == id, comic);
+        public void Update(string id, Comic comic)
+        {
+            _comics.ReplaceOne(comic => comic.Id == id, comic);
+        }
+
+        public void UpdateField(FilterDefinition<Comic> filter, UpdateDefinition<Comic> update)
+        {
+            var options = new UpdateOptions { IsUpsert = true };
+            _comics.UpdateOne(filter, update, options);
+        }
 
         public void Remove(Comic comic)
         {

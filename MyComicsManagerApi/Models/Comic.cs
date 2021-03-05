@@ -10,6 +10,7 @@ namespace MyComicsManagerApi.Models
         // Technical data
         
         [BsonId]
+        [BsonIgnoreIfDefault]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 

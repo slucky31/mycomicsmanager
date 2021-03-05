@@ -70,10 +70,12 @@ namespace ImageThumbnail.AspNetCore.Middleware
         /// <returns></returns>
         private ThumbnailRequest ParseRequest(HttpRequest request)
         {
-            var req = new ThumbnailRequest();
-            req.RequestedPath = request.Path;
-            req.ThumbnailSize = ParseSize(request.Query["size"]);
-            req.SourceImagePath = GetPhysicalPath(request.Path);
+            var req = new ThumbnailRequest
+            {
+                RequestedPath = request.Path,
+                ThumbnailSize = ParseSize(request.Query["size"]),
+                SourceImagePath = GetPhysicalPath(request.Path)
+            };
             req.ThumbnailImagePath = GenerateThumbnailFilePath(request.Path, req.ThumbnailSize);
 
             return req;
@@ -114,9 +116,6 @@ namespace ImageThumbnail.AspNetCore.Middleware
                 graphic.Clear(_options.ThumbnailBackground);
                 graphic.DrawImage(image, posX, posY, newWidth, newHeight);
 
-
-                System.Drawing.Imaging.ImageCodecInfo[] info =
-                                 ImageCodecInfo.GetImageEncoders();
                 EncoderParameters encoderParameters;
                 encoderParameters = new EncoderParameters(1);
                 encoderParameters.Param[0] = new EncoderParameter(Encoder.Quality,
