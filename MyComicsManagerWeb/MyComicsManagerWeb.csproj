@@ -8,8 +8,12 @@
 		<PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\ImageThumbnailMiddleWare\ImageThumbnail.AspNetCore.Middleware.csproj" />
+	</ItemGroup>
+
 	<PropertyGroup>
-		<BlazorLinkOnBuild  Condition="'$(Configuration)'!='Release'">false</BlazorLinkOnBuild>
+		<BlazorLinkOnBuild Condition="'$(Configuration)'!='Release'">false</BlazorLinkOnBuild>
 	</PropertyGroup>
 
 </Project>

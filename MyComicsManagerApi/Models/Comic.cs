@@ -10,6 +10,7 @@ namespace MyComicsManagerApi.Models
         // Technical data
         
         [BsonId]
+        [BsonIgnoreIfDefault]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
@@ -18,6 +19,8 @@ namespace MyComicsManagerApi.Models
         public string EbookName { get; set; }
 
         public string LibraryId { get; set; }
+
+        public string CoverPath { get; set; }
 
         // Book info
 

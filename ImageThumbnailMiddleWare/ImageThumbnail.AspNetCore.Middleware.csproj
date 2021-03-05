@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>1.0.1</Version>
+    <Authors>osprakash</Authors>
+    <Company>osprakash</Company>
+    <Product>Product 2</Product>
+    <PackageId>ImageThumbnail.AspNetCore.Middleware</PackageId>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.0.0</FileVersion>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Title>ImageThumbnail.AspNetCore.Middleware</Title>
+    <Description>AspNetCore middleware to serve image thumbnails with disk caching.</Description>
+    <Summary>AspNetCore middleware to serve image thumbnails with disk caching.</Summary>
+    <Copyright></Copyright>
+    <PackageProjectUrl>https://github.com/osprakash/Imagethumbnail-aspnetcore</PackageProjectUrl>
+    <PackageIconUrl></PackageIconUrl>
+    <RepositoryUrl>https://github.com/osprakash/Imagethumbnail-aspnetcore</RepositoryUrl>
+    <RepositoryType></RepositoryType>
+    <PackageTags>AspNetCore,Thumbnail,Images,Photos,Gallery,Middleware, Resize</PackageTags>
+    <PackageReleaseNotes>Release</PackageReleaseNotes>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="3.1.0" />
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+  </ItemGroup>
+
+</Project>

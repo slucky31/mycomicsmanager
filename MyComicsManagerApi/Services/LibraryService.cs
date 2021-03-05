@@ -102,5 +102,11 @@ namespace MyComicsManagerApi.Services
             return _libSettings.FileUploadDirRootPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar;
         }
 
+        public string GetCoversDirRootPath()
+        {
+            Directory.CreateDirectory(_libSettings.CoversDirRootPath.TrimEnd(charsToTrim));
+            return _libSettings.CoversDirRootPath.TrimEnd(charsToTrim) + Path.DirectorySeparatorChar;
+        }
+
     }
 }

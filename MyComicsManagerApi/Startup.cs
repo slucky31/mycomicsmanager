@@ -38,7 +38,8 @@ namespace MyComicsManagerApi
 
             services.AddSingleton<ComicService>();
             services.AddSingleton<LibraryService>();
-            
+            services.AddSingleton<ComicFileService>();
+
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
 
             // Register the Swagger generator, defining 1 or more Swagger documents

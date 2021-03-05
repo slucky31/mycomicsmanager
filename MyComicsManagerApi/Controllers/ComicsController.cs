@@ -12,12 +12,9 @@ namespace MyComicsManagerApi.Controllers
     {
         private readonly ComicService _comicService;
 
-        private readonly ILogger<ComicsController> _logger;
-
-        public ComicsController(ILogger<ComicsController> logger, ComicService comicService)
+        public ComicsController(ComicService comicService)
         {
             _comicService = comicService;
-            _logger = logger;
         }
 
         [HttpGet]
