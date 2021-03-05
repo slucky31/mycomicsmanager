@@ -9,10 +9,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="wwwroot\covers\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\ImageThumbnailMiddleWare\ImageThumbnail.AspNetCore.Middleware.csproj" />
 	</ItemGroup>
 
