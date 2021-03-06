@@ -350,7 +350,8 @@ MigrationBackup/
 .ionide/
 
 # MyComicsManagerWeb
-MyComicsManagerWeb/Covers
+MyComicsManagerWeb/Covers/
+MyComicsManagerWeb/Covers/**
 *.cbz
 *.cbr
 *.pdf
