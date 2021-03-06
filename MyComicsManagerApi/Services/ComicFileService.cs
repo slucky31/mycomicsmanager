@@ -92,7 +92,7 @@ namespace MyComicsManagerApi.Services
                 default:
                     // TODO : Faudrait faire qqch la, non ?
                     Log.Error("L'extension de ce fichier n'est pas pris en compte.");
-                    break;
+                    return;
             }
 
             // Création de l'archive à partir du répertoire
