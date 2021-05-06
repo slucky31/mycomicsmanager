@@ -12,12 +12,9 @@ namespace MyComicsManagerApi.Controllers
     {
         private readonly ComicService _comicService;
 
-        private readonly ILogger<ComicsController> _logger;
-
-        public ComicsController(ILogger<ComicsController> logger, ComicService comicService)
+        public ComicsController(ComicService comicService)
         {
             _comicService = comicService;
-            _logger = logger;
         }
 
         [HttpGet]
@@ -40,9 +37,16 @@ namespace MyComicsManagerApi.Controllers
         [HttpPost]
         public ActionResult<Comic> Create(Comic comic)
         {   
-            _comicService.Create(comic);
+            var createdComic = _comicService.Create(comic);
 
-            return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic);
+            if (createdComic == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+               return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic); 
+            }
         }
 
         [HttpPut("{id:length(24)}")]
@@ -71,6 +75,14 @@ namespace MyComicsManagerApi.Controllers
             }
 
             _comicService.Remove(comic);
+
+            return NoContent();
+        }
+
+        [HttpDelete("deleteallcomicsfromlib/{id:length(24)}")]
+        public IActionResult DeleteAllComicsFromLib(string id)
+        {
+            _comicService.RemoveAllComicsFromLibrary(id);
 
             return NoContent();
         }

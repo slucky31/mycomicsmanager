@@ -1,19 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MyComicsManagerWeb.Services;
 using MyComicsManagerWeb.Models;
-using Tewr.Blazor.FileReader;
 using Serilog;
+using ImageThumbnail.AspNetCore.Middleware;
+
 
 namespace MyComicsManagerWeb
 {
@@ -39,12 +34,6 @@ namespace MyComicsManagerWeb
             services.AddHttpClient<ComicService>();
             services.AddHttpClient<LibraryService>();
 
-            // Réglage pour upload de fichier
-            //services.AddServerSideBlazor().AddHubOptions(o =>
-            //{
-            //    o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-            //});
-            services.AddFileReaderService();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -63,6 +52,9 @@ namespace MyComicsManagerWeb
 
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            ImageThumbnailOptions options = new ImageThumbnailOptions("Covers", "Thumbs");            
+            app.UseImageThumbnail(options);
 
             app.UseRouting();
 

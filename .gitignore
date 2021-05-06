@@ -350,7 +350,11 @@ MigrationBackup/
 .ionide/
 
 # MyComicsManagerWeb
-lib/
+MyComicsManagerWeb/Covers/
+MyComicsManagerWeb/Covers/**
+*.cbz
+*.cbr
+*.pdf
+
 
 # MyComicsManagerApi
-MyComicsManagerApi/appsettings.json

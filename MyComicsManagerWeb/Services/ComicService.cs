@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using MyComicsManagerWeb.Models;
-using Tewr.Blazor.FileReader;
+using Microsoft.AspNetCore.Components.Forms;
+using System.Linq;
+using Serilog;
 
 namespace MyComicsManagerWeb.Services {
     public class ComicService
@@ -17,6 +18,7 @@ namespace MyComicsManagerWeb.Services {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly IWebserviceSettings _settings;
         private readonly LibraryService _libraryService;
+        private readonly string[] extensions = { "*.cbr", "*.cbz", "*.pdf" };
 
         public ComicService(HttpClient client, IWebserviceSettings settings, LibraryService libraryService)
         {
@@ -61,6 +63,14 @@ namespace MyComicsManagerWeb.Services {
 
         }
 
+        public async Task DeleteAllComicsFromLib(String libId)
+        {
+            using var httpResponse = await _httpClient.DeleteAsync($"/api/Comics/DeleteAllComicsFromLib/{libId}");
+
+            httpResponse.EnsureSuccessStatusCode();
+
+        }
+
         public async Task CreateComicAsync(Comic comicItem)
         {
             var comicItemJson = new StringContent(
@@ -87,18 +97,31 @@ namespace MyComicsManagerWeb.Services {
             httpResponse.EnsureSuccessStatusCode();
         }
 
-        public async Task UploadFile(IFileReference file, string fileName)
-        {          
-            Library lib = await _libraryService.GetSelectedLibrary();
+        public async Task UploadFile(IBrowserFile file)
+        {
+            long maxFileSize = 1024 * 1024 * 400; // 400 Mo
+            await _libraryService.GetSelectedLibrary();
+
+            // Création du répertoire si il n'existe pas
+            Directory.CreateDirectory(_settings.FileUploadDirRootPath);
             
-            var filePath = Path.Combine(_settings.FileUploadDirRootPath, fileName);
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            using (var fs = await file.OpenReadAsync())
-            {
-                await fs.CopyToAsync(fileStream);
-            }
+            // Upload du fichier
+            using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
+            using Stream stream = file.OpenReadStream(maxFileSize);
+            await stream.CopyToAsync(savedFile);
         }
 
-        
+        public IEnumerable<FileInfo> ListImportingFiles()
+        {
+            Log.Information("Recherche des fichiers dans {path}", _settings.FileUploadDirRootPath);
+            
+            // Création du répertoire si il n'existe pas
+            Directory.CreateDirectory(_settings.FileUploadDirRootPath);
+
+            // Lister les fichiers
+            var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
+            return extensions.SelectMany(directory.EnumerateFiles);
+        }
+
     }
 }
