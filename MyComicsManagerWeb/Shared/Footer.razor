@@ -1,0 +1,12 @@
+﻿
+<div>
+    <p>© Nicolas DUFAUT - Version <a href="https://github.com/slucky31/mycomicsmanager/commit/@(ThisAssembly.Git.Sha)">@versionTag</a> - Branche : @ThisAssembly.Git.Branch</p>
+</div>
+
+@code {
+
+    private String versionTag = "v" + ThisAssembly.Git.SemVer.Major + "." +
+        ThisAssembly.Git.SemVer.Minor + "." +
+        ThisAssembly.Git.SemVer.Patch + "-" +
+        ThisAssembly.Git.Commit;
+}
