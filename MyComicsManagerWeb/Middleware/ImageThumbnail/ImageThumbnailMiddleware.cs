@@ -164,9 +164,9 @@ namespace ImageThumbnail.AspNetCore.Middleware
                     }
                 }
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException)
             {
-                throw ex;
+                throw;
             }
 
 
