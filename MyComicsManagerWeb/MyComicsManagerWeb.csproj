@@ -9,7 +9,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ImageThumbnailMiddleWare\ImageThumbnail.AspNetCore.Middleware.csproj" />
+		<!-- Dépendeces pour ImageThumnail.AspNetCore.Middleware -->
+		<!-- https://github.com/osprakash/ImageThumbnail-aspnetcore -->
+		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="3.1.0" />
+		<PackageReference Include="System.Drawing.Common" Version="4.7.0" />
 	</ItemGroup>
 
 	<PropertyGroup>
