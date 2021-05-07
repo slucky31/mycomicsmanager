@@ -3,6 +3,7 @@ using Serilog;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Common;
+using SharpCompress.Readers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -139,16 +140,22 @@ namespace MyComicsManagerApi.Services
         public void ExtractImagesFromCbr(Comic comic, string tempDir)
         {
 
-            using var archive = RarArchive.Open(comic.EbookPath);
-            foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
+            //using var archive = RarArchive.Open(comic.EbookPath);
+            using (Stream stream = File.OpenRead(comic.EbookPath))
+            using (var reader = ReaderFactory.Open(stream))
             {
-
-                Log.Information("Entry : {0}", entry.Key);
-                entry.WriteToDirectory(tempDir, new ExtractionOptions()
+                while (reader.MoveToNextEntry())
                 {
-                    ExtractFullPath = true,
-                    Overwrite = true
-                });
+                    if (!reader.Entry.IsDirectory)
+                    {
+                        Log.Information("Entry : {0}", reader.Entry.Key);
+                        reader.WriteEntryToDirectory(tempDir, new ExtractionOptions()
+                        {
+                            ExtractFullPath = true,
+                            Overwrite = true
+                        });
+                    }
+                }
             }
         }
 
