@@ -12,33 +12,20 @@
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Price</th>
-                <th>Category</th>
-                <th>Author</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var comic in comics)
-            {
-                <tr>
-                    <td>
-                        <a href="comics/edit/@(comic.Id)">@comic.Id</a>
-                    </td>
-                    <td>@comic.Title</td>
-                    <td>@comic.Price</td>
-                    <td>@comic.Category</td>
-                    <td>@comic.Writer</td>
-                    <td><button class="btn btn-primary" @onclick="@(async () => await DeleteComic(comic.Id))">Delete</button></td>
-                </tr>
-            }
-        </tbody>
-    </table>
+
+<div class="card-deck">
+    @foreach (var comic in comics)
+    {
+        <div class="card mb-4" style="min-width: 15rem; max-width: 20rem;">
+            <img class="card-img" src="/Covers/@(comic.Id).jpg?size=256" alt="Card image cap">
+            <div class="card-body">
+                <h5 class="card-title"><a href="comics/edit/@(comic.Id)">@comic.Title</a></h5>
+                <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+            </div>
+        </div>
+    }
+
+</div>
 }
 
 @code {
@@ -49,7 +36,8 @@ else
         comics = await ComicService.GetComics();
     }
 
-    private async Task DeleteComic(String id) {
+    private async Task DeleteComic(String id)
+    {
         await ComicService.DeleteComic(id);
         comics = await ComicService.GetComics();
     }
