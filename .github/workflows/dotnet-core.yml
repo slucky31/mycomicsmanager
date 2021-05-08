@@ -67,7 +67,7 @@ jobs:
             name: Build and push
             uses: docker/build-push-action@v2
             with:
-              context: /MyComicsManagerWeb
+              context: MyComicsManagerWeb
               file: Dockerfile
               push: true
               tags: ${{ secrets.DOCKERHUB_USERNAME }}/mycomicsmanager-web:dev
