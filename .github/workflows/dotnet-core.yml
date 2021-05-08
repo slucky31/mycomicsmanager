@@ -39,7 +39,7 @@ jobs:
         - 
             name: MyComicsManagerWeb Build
             working-directory: MyComicsManagerWeb
-            run: dotnet build --configuration Release --no-restore
+            run: dotnet build --configuration Release --no-restore -v d
         - 
             name: MyComicsManagerWeb Test
             working-directory: MyComicsManagerWeb
