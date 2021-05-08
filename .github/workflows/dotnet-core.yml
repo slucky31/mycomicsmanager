@@ -44,7 +44,8 @@ jobs:
             run: dotnet test --no-restore --verbosity normal
   
             
-  docker:
+  docker-web:
+    needs: build
     runs-on: ubuntu-latest
     steps:      
         -
@@ -63,6 +64,6 @@ jobs:
             name: Build and push
             uses: docker/build-push-action@v2
             with:
-              context: .
+              context: ./MyComicsManagerWeb
               push: true
-              tags: user/app:latest
+              tags: slucky31/mycomicsmanager-web:dev
