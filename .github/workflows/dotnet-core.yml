@@ -62,7 +62,7 @@ jobs:
             id: meta
             uses: crazy-max/ghaction-docker-meta@v2
             with:
-              images: name/app
+              images: ${{ secrets.DOCKERHUB_USERNAME }}/mycomicsmanager-web
               tags: |
                 type=ref,event=branch
                 type=ref,event=pr
@@ -80,5 +80,5 @@ jobs:
             with:
               context: ./MyComicsManagerWeb
               file: ./MyComicsManagerWeb/Dockerfile
-              push: true
-              tags: ${{ secrets.DOCKERHUB_USERNAME }}/mycomicsmanager-web:dev
+              push: ${{ github.event_name != 'pull_request' }}
+              tags: ${{ steps.meta.outputs.tags }}
