@@ -3,6 +3,7 @@ WORKDIR /app
 EXPOSE 7000
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+# Besoin de Git pour la lib GitInfo
 RUN apt-get update
 RUN apt-get -y install git
 WORKDIR /src

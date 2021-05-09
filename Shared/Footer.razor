@@ -1,5 +1,5 @@
 <div>
-    <p>© Nicolas DUFAUT - Version <a href="https://github.com/slucky31/mycomicsmanager/commit/@(ThisAssembly.Git.Sha)">@versionTag</a> - Branche : @ThisAssembly.Git.Branch<br />@platform</p>
+    <p>© Nicolas DUFAUT - Version <a href="@githubUrl/commit/@(ThisAssembly.Git.Sha)">@versionTag</a> - Branche : @ThisAssembly.Git.Branch<br />@platform</p>
 </div>
 
 @code {
@@ -14,4 +14,6 @@
         @System.Runtime.InteropServices.RuntimeInformation.OSDescription + " - " +
         @System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture + " - " +
         @System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier;
+
+    private string githubUrl = ThisAssembly.Git.RepositoryUrl.Substring(0, ThisAssembly.Git.RepositoryUrl.Length - ".git".Length);
 }
