@@ -7,11 +7,12 @@ WORKDIR /src
 
 # copy csproj and restore as distinct layers
 COPY ["MyComicsManagerWeb.csproj", "./"]
-RUN ls -l
+RUN ls -la
 RUN dotnet restore -r linux-arm "./MyComicsManagerWeb.csproj"
 
 # copy and publish app and libraries
 COPY . .
+RUN ls -la
 RUN dotnet build "MyComicsManagerWeb.csproj" -c Release -o /app/build -r linux-arm -v d
 
 FROM build AS publish
