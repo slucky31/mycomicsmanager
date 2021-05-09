@@ -4,6 +4,7 @@ EXPOSE 7000
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
+RUN ls -l
 
 # copy csproj and restore as distinct layers
 COPY ["MyComicsManagerWeb.csproj", "./"]
