@@ -22,15 +22,12 @@ jobs:
                 dotnet-version: 5.0.x
         - 
             name: MyComicsManagerWeb Install dependencies
-            working-directory: MyComicsManagerWeb
             run: dotnet restore
         - 
             name: MyComicsManagerWeb Build
-            working-directory: MyComicsManagerWeb
             run: dotnet build --configuration Release --no-restore -v d
         - 
             name: MyComicsManagerWeb Test
-            working-directory: MyComicsManagerWeb
             run: dotnet test --no-restore --verbosity normal
   
             
