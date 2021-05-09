@@ -25,10 +25,10 @@ jobs:
             run: dotnet restore "./MyComicsManagerWeb.csproj"
         - 
             name: MyComicsManagerWeb Build
-            run: dotnet build --configuration Release --no-restore -v d
+            run: dotnet build "./MyComicsManagerWeb.csproj" --configuration Release --no-restore #-v d : pour log détaillé
         - 
             name: MyComicsManagerWeb Test
-            run: dotnet test --no-restore --verbosity normal
+            run: dotnet test "./MyComicsManagerWeb.csproj" --no-restore --verbosity normal
   
             
   docker-web:
