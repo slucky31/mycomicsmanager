@@ -16,8 +16,6 @@ RUN dotnet restore -r linux-arm "./MyComicsManagerWeb.csproj"
 COPY . .
 RUN ls -la
 RUN dotnet build "MyComicsManagerWeb.csproj" -c Release -o /app/build -r linux-arm -v d
-RUN ls -la obj/Debug/net5.0
-RUN more obj/Debug/net5.0/ThisAssembly.GitInfo.g.cs
 
 FROM build AS publish
 RUN dotnet publish "MyComicsManagerWeb.csproj" -c Release -o /app/publish -r linux-arm
