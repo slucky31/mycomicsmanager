@@ -12,6 +12,7 @@ RUN dotnet restore -r linux-arm "./MyComicsManagerWeb.csproj"
 
 # copy and publish app and libraries
 COPY . .
+COPY .git/ ./.git/ # copy git directory for GitInfo
 RUN ls -la
 RUN dotnet build "MyComicsManagerWeb.csproj" -c Release -o /app/build -r linux-arm -v d
 
