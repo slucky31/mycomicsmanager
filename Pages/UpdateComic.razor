@@ -1,0 +1,32 @@
+@page "/comics/edit/{id}"
+
+@using MyComicsManagerWeb.Models
+@using MyComicsManagerWeb.Services
+@inject ComicService ComicService
+
+@if (comic == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>@comic.Id</h1>
+    <p>@comic.Title</p>
+    <p>@comic.Category</p>
+    <p>@comic.Writer</p>
+    <p>@comic.Price</p>
+    <p>@comic.EbookPath</p>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    protected Comic comic;
+
+    protected override async Task OnInitializedAsync()
+    {
+        comic = await ComicService.GetComic(Id);
+    }
+
+}

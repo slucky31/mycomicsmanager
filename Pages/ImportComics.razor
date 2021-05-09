@@ -1,0 +1,62 @@
+﻿@page "/comics/Import"
+
+<h2>Import Comics</h2>
+
+<p>Max allowed files: @maxAllowedFiles</p>
+
+<div class="form-group drag-drop-zone">
+    Glisser-Déposer vos fichiers ici ou cliquer pour ouvrir la fenêtre de téléchargement !
+    <InputFile OnChange="LoadFiles" class="form-control" id="input-file" multiple />
+</div>
+
+<h3>Comics uploadés</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Fichier</th>
+            <th>Taille</th>
+            <th>Temps Upload</th>
+            <th>Exception Message</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var file in uploadedFiles)
+        {
+            <tr>
+                <td>@file.Name</td>
+                <td>@file.Size</td>
+                <td>@file.UploadDuration</td>
+                <td>@file.ExceptionMessage</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Comics en attente de traitement</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Fichier</th>
+            <th>Taille</th>
+            <th>Actions</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var file in importingFiles)
+        {
+            <tr>
+                <td>@file.Name</td>
+                <td>@file.Size</td>
+                <td><button class="btn btn-primary" @onclick="@(async () => await AddComic(file))">Ajouter</button></td>
+            </tr>
+        }
+        <tr>
+            <td></td>
+            <td></td>
+            <td><button class="btn btn-primary" @onclick="@(async () => await AddComics())">Tout ajouter</button></td>
+        </tr>
+    </tbody>
+</table>

@@ -1,0 +1,105 @@
+﻿@page "/comics/create"
+
+<h1>Create</h1>
+
+<EditForm Model="@comic" OnValidSubmit="Create">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <h2>Ficher</h2>
+    <hr />
+
+    <div class="form-group">
+        <label for="review">Fichier</label>
+        <InputFile OnChange="ReadFile" class="form-control" id="input-file" />
+    </div>
+
+    <h2>Données techniques</h2>
+    <hr />
+
+    <div class="form-group">
+        <label for="inputTitle">Id</label>
+        <InputText id="title" @bind-Value="comic.Id" class="form-control" disabled />
+    </div>
+    <div class="form-group">
+        <label for="inputEbookPath">Ebook Path sur le serveur</label>
+        <InputText id="ebookpath" @bind-Value="comic.EbookPath" class="form-control" disabled />
+    </div>
+    <div class="form-group">
+        <label for="inputEbookName">EbookName</label>
+        <InputText id="ebookname" @bind-Value="comic.EbookName" class="form-control" disabled />
+    </div>
+    <div class="form-group">
+        <label for="inputLibraryId">Library Id</label>
+        <InputText id="libraryid" @bind-Value="comic.LibraryId" class="form-control" disabled />
+    </div>
+
+    <h2>Informations sur le fichier</h2>
+    <hr />
+    <div class="form-group">
+        <label for="serie">Série</label>
+        <InputText id="serie" @bind-Value="comic.Serie" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="title">Titre</label>
+        <InputText id="title" @bind-Value="comic.Title" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="isbn">ISBN</label>
+        <InputText id="isbn" @bind-Value="comic.ISBN" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="volume">Volume</label>
+        <InputText id="volume" @bind-Value="comic.Volume" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="summary">Résumé</label>
+        <InputText id="summary" @bind-Value="comic.Summary" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="price">Prix</label>
+        <InputNumber id="price" @bind-Value="comic.Price" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="category">Catégorie</label>
+        <InputText id="category" @bind-Value="comic.Category" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="published" class="col-sm-3">Date de publication</label>
+        <InputDate id="published" @bind-Value="comic.Published" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="writer">Scénariste</label>
+        <InputText id="writer" @bind-Value="comic.Writer" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="penciller">Déssinateur</label>
+        <InputText id="penciller" @bind-Value="comic.Penciller" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="colorist">Coloriste</label>
+        <InputText id="colorist" @bind-Value="comic.Colorist" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="editor">Editeur</label>
+        <InputText id="editor" @bind-Value="comic.Editor" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="LanguageIso">Langue</label>
+        <InputText id="LanguageIso" @bind-Value="comic.LanguageISO" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="pagecount">Pages</label>
+        <InputNumber id="pagecount" @bind-Value="comic.PageCount" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="review">Note</label>
+        <InputNumber id="review" @bind-Value="comic.Review" class="form-control" />
+    </div>
+
+
+
+
+    <button class="btn btn-primary" type="submit">Create</button>
+</EditForm>
+
