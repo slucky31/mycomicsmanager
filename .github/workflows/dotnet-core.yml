@@ -22,7 +22,7 @@ jobs:
                 dotnet-version: 5.0.x
         - 
             name: MyComicsManagerWeb Install dependencies
-            run: dotnet restore
+            run: dotnet restore "./MyComicsManagerWeb.csproj"
         - 
             name: MyComicsManagerWeb Build
             run: dotnet build --configuration Release --no-restore -v d
