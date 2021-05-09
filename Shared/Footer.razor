@@ -15,5 +15,7 @@
         @System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture + " - " +
         @System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier;
 
-    private string githubUrl = ThisAssembly.Git.RepositoryUrl.Substring(0, ThisAssembly.Git.RepositoryUrl.Length - ".git".Length);
+    private string githubUrl = ThisAssembly.Git.RepositoryUrl.EndsWith(".git") ? 
+        ThisAssembly.Git.RepositoryUrl.Substring(0, ThisAssembly.Git.RepositoryUrl.Length - ".git".Length) : 
+        ThisAssembly.Git.RepositoryUrl;
 }
