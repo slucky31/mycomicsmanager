@@ -7,17 +7,21 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3">MyComicsManager</MudText>
         <MudAppBarSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        @*NavMenu*@
+        <NavMenu />
     </MudDrawer>
     <MudMainContent>
         @Body
     </MudMainContent>
+    <MudAppBar Elevation="1" Style="top: auto; bottom: 0">
+        This is footer
+    </MudAppBar>
 </MudLayout>
+
 @code {
     bool _drawerOpen = true;
 
@@ -26,23 +30,3 @@
         _drawerOpen = !_drawerOpen;
     }
 }
-
-@*<div class="sidebar">
-    <NavMenu />
-</div>
-
-<div class="main">
-    <div class="top-row px-4">
-        <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-    </div>
-
-    <div class="content px-4">
-        @Body
-    </div>
-
-    <footer class="footer">
-        <Footer />
-    </footer>
-
-</div>*@
-
