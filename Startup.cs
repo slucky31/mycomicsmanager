@@ -8,6 +8,7 @@ using MyComicsManagerWeb.Services;
 using MyComicsManagerWeb.Models;
 using Serilog;
 using ImageThumbnail.AspNetCore.Middleware;
+using MudBlazor.Services;
 
 
 namespace MyComicsManagerWeb
@@ -33,6 +34,7 @@ namespace MyComicsManagerWeb
             services.AddServerSideBlazor();
             services.AddHttpClient<ComicService>();
             services.AddHttpClient<LibraryService>();
+            services.AddMudServices();
 
         }
 
