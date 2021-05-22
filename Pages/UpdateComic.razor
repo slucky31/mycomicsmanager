@@ -7,16 +7,109 @@
 @if (comic == null)
 {
     <p><em>Loading...</em></p>
+
+} else { 
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+
+        <EditForm Model="@comic" OnValidSubmit="Update">
+
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <!--
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h4">Ajouter un comic</MudText>
+                    <InputFile OnChange="ReadFile" class="form-control" id="input-file" hidden />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton HtmlTag="label"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Filled.CloudUpload"
+                               for="input-file">
+                        Upload
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+            -->
+
+            <MudCard Class="mt-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Données techniques</MudText>
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="comic.Id" ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Library Id" Variant="Variant.Filled" @bind-Value="comic.LibraryId" ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="EbookName" Variant="Variant.Filled" @bind-Value="comic.EbookName" ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Ebook Path sur le serveur" Variant="Variant.Filled" @bind-Value="comic.EbookPath" ReadOnly="true" />
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Informations sur le comic</MudText>
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Série" Variant="Variant.Text" @bind-Value="comic.Serie" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Titre" Variant="Variant.Text" @bind-Value="comic.Title" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="comic.ISBN" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Volume" Variant="Variant.Text" @bind-Value="comic.Volume" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Prix" Variant="Variant.Text" @bind-Value="comic.Price" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Catégorie" Variant="Variant.Text" @bind-Value="comic.Category" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Date de publication" Variant="Variant.Text" @bind-Value="comic.Published" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Scénariste" Variant="Variant.Text" @bind-Value="comic.Writer" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Déssinateur" Variant="Variant.Text" @bind-Value="comic.Penciller" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Coloriste" Variant="Variant.Text" @bind-Value="comic.Colorist" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Editeur" Variant="Variant.Text" @bind-Value="comic.Editor" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Langue" Variant="Variant.Text" @bind-Value="comic.LanguageISO" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Pages" Variant="Variant.Text" @bind-Value="comic.PageCount" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Note" Variant="Variant.Text" @bind-Value="comic.Review" />
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
+                </MudCardActions>
+            </MudCard>
+
+        </EditForm>
+
+    </MudContainer>
+
 }
-else
-{
-    <h1>@comic.Id</h1>
-    <p>@comic.Title</p>
-    <p>@comic.Category</p>
-    <p>@comic.Writer</p>
-    <p>@comic.Price</p>
-    <p>@comic.EbookPath</p>
-}
+
 
 @code {
     [Parameter]
@@ -27,6 +120,11 @@ else
     protected override async Task OnInitializedAsync()
     {
         comic = await ComicService.GetComic(Id);
+    }
+
+    protected void Update()
+    {
+        //TODO
     }
 
 }
