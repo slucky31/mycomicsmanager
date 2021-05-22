@@ -18,21 +18,16 @@
         <MudGrid>
             @foreach (var comic in comics)
             {
-                @*<div class="card mb-4" style="min-width: 15rem; max-width: 20rem;">
-                        <img class="card-img" src="/Covers/@(comic.Id).jpg?size=256" alt="Card image cap">
-                        <div class="card-body">
-                            <h5 class="card-title"><a href="comics/edit/@(comic.Id)">@comic.Title</a></h5>
-                            <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-                        </div>
-                    </div>*@
-                string coverPath = "/Covers/@(comic.Id).jpg?size=256";
+                string coverPath = "/Covers/"+@comic.Id+".jpg?size=256";
+                string viewHref = "comics/view/" + @comic.Id;
+                string editHref = "comics/edit/" + @comic.Id;
                 <MudItem xs="4">
                     <MudCard>
                         <MudCardMedia Image="@coverPath" Height="200" />
                         <MudCardContent>
-                            <MudText Typo="Typo.h5">@comic.Title</MudText>
-                            <MudText Typo="Typo.body2">Old paint found on a stone house door.</MudText>
-                            <MudText Typo="Typo.body2">This photo was taken in a small village in Istra Croatia.</MudText>
+                            <MudLink Href="@viewHref" Typo="Typo.h5">@comic.Title</MudLink>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref"></MudIconButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)"></MudIconButton>
                         </MudCardContent>
                         <MudCardActions>
                             <MudButton Variant="Variant.Text" Color="Color.Primary">Learn More</MudButton>
