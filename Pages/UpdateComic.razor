@@ -1,4 +1,4 @@
-@page "/comics/edit/{id}"
+Ôªø@page "/comics/edit/{id}"
 
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
@@ -36,7 +36,7 @@
 
             <MudCard Class="mt-4">
                 <MudCardContent>
-                    <MudText Typo="Typo.h5">DonnÈes techniques</MudText>
+                    <MudText Typo="Typo.h5">Donn√©es techniques</MudText>
                     <MudGrid Spacing="2">
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="comic.Id" ReadOnly="true" />
@@ -56,7 +56,7 @@
                     <MudText Typo="Typo.h5">Informations sur le comic</MudText>
                     <MudGrid Spacing="2">
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="SÈrie" Variant="Variant.Text" @bind-Value="comic.Serie" />
+                            <MudTextField Label="S√©rie" Variant="Variant.Text" @bind-Value="comic.Serie" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Titre" Variant="Variant.Text" @bind-Value="comic.Title" />
@@ -71,16 +71,16 @@
                             <MudTextField Label="Prix" Variant="Variant.Text" @bind-Value="comic.Price" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="CatÈgorie" Variant="Variant.Text" @bind-Value="comic.Category" />
+                            <MudTextField Label="Cat√©gorie" Variant="Variant.Text" @bind-Value="comic.Category" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Date de publication" Variant="Variant.Text" @bind-Value="comic.Published" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="ScÈnariste" Variant="Variant.Text" @bind-Value="comic.Writer" />
+                            <MudTextField Label="Sc√©nariste" Variant="Variant.Text" @bind-Value="comic.Writer" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="DÈssinateur" Variant="Variant.Text" @bind-Value="comic.Penciller" />
+                            <MudTextField Label="D√©ssinateur" Variant="Variant.Text" @bind-Value="comic.Penciller" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Coloriste" Variant="Variant.Text" @bind-Value="comic.Colorist" />
@@ -97,9 +97,13 @@
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Note" Variant="Variant.Text" @bind-Value="comic.Review" />
                         </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="URL Fiche" Variant="Variant.Text" @bind-Value="comic.FicheUrl" />
+                        </MudItem>
                     </MudGrid>
                 </MudCardContent>
                 <MudCardActions>
+                    <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="SearchComicInfoAsync">Import Donn√©es</MudButton>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
                 </MudCardActions>
             </MudCard>
@@ -122,9 +126,16 @@
         comic = await ComicService.GetComic(Id);
     }
 
-    protected void Update()
+    private async Task Update()
     {
-        //TODO
+        await ComicService.UpdateComicAsync(comic);
+        this.StateHasChanged();
+    }
+
+    private async Task SearchComicInfoAsync()
+    {
+        await ComicService.SearchComicInfoAsync(comic.Id);
+        this.StateHasChanged();
     }
 
 }

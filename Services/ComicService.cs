@@ -47,7 +47,7 @@ namespace MyComicsManagerWeb.Services {
 
         public async Task<Comic> GetComic(string id)
         {
-            var response = await _httpClient.GetAsync("/api/comics/" + id);
+            var response = await _httpClient.GetAsync($"/api/comics/{id}");
 
             response.EnsureSuccessStatusCode();
 
@@ -92,9 +92,19 @@ namespace MyComicsManagerWeb.Services {
                 "application/json");
 
             using var httpResponse =
-                await _httpClient.PutAsync("/api/Comics", comicItemJson);
+                await _httpClient.PutAsync($"/api/Comics/{comicItem.Id}", comicItemJson);
 
             httpResponse.EnsureSuccessStatusCode();
+        }
+
+        public async Task<Comic> SearchComicInfoAsync(string id)
+        {
+            using var httpResponse = await _httpClient.GetAsync($"api/Comics/searchcomicinfo/{id}");
+
+            httpResponse.EnsureSuccessStatusCode();
+
+            using var responseStream = await httpResponse.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<Comic>(responseStream);
         }
 
         public async Task UploadFile(IBrowserFile file)
