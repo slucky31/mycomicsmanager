@@ -28,10 +28,7 @@
                             <MudLink Href="@viewHref" Typo="Typo.h5">@comic.Title</MudLink>
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref"></MudIconButton>
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)"></MudIconButton>
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudButton Variant="Variant.Text" Color="Color.Primary">Learn More</MudButton>
-                        </MudCardActions>
+                        </MudCardContent>                        
                     </MudCard>
                 </MudItem>
             }

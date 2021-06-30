@@ -107,6 +107,13 @@ namespace MyComicsManagerWeb.Services {
             return await JsonSerializer.DeserializeAsync<Comic>(responseStream);
         }
 
+        public async Task ExtractCover(string id)
+        {
+            using var httpResponse = await _httpClient.GetAsync($"api/Comics/extractcover/{id}");
+
+            httpResponse.EnsureSuccessStatusCode();            
+        }
+
         public async Task UploadFile(IBrowserFile file)
         {
             long maxFileSize = 1024 * 1024 * 400; // 400 Mo

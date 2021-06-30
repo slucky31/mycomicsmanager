@@ -1,0 +1,49 @@
+﻿@page "/settings"
+
+@using MyComicsManagerWeb.Models
+@using MyComicsManagerWeb.Services
+@inject ComicService ComicService
+
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Regénérer les miniatures</MudText>
+            </CardHeaderContent>            
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText>Cette action permet de regénérer l'image de couverture de chaque comic de la librairie</MudText>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton OnClick="ClearAndGenerateCovers" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Settings">Générer</MudButton>
+        </MudCardActions>
+        @if (ActionInProgress)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+        }
+    </MudCard>
+
+</MudContainer>
+
+@code {
+
+    bool ActionInProgress = false;
+
+
+    private async Task ClearAndGenerateCovers()
+    {
+        ActionInProgress = true;
+
+        var comics = await ComicService.GetComics();
+
+        foreach(Comic comic in comics)
+        {
+            await ComicService.ExtractCover(comic.Id);
+        }
+
+        ActionInProgress = false;
+    }
+
+}
