@@ -8,7 +8,8 @@ using MyComicsManagerWeb.Services;
 using MyComicsManagerWeb.Models;
 using Serilog;
 using ImageThumbnail.AspNetCore.Middleware;
-
+using MudBlazor.Services;
+using Microsoft.Extensions.FileProviders;
 
 namespace MyComicsManagerWeb
 {
@@ -33,6 +34,7 @@ namespace MyComicsManagerWeb
             services.AddServerSideBlazor();
             services.AddHttpClient<ComicService>();
             services.AddHttpClient<LibraryService>();
+            services.AddMudServices();
 
         }
 
@@ -53,7 +55,13 @@ namespace MyComicsManagerWeb
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
-            ImageThumbnailOptions options = new ImageThumbnailOptions("Covers", "Thumbs");            
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider("C:\\MyComicsManager\\covers"),
+                RequestPath = "/covers"
+            });
+
+            ImageThumbnailOptions options = new ImageThumbnailOptions("covers", "thumbs");            
             app.UseImageThumbnail(options);
 
             app.UseRouting();

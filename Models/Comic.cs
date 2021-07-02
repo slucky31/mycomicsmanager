@@ -53,6 +53,8 @@ namespace MyComicsManagerWeb.Models
         public int PageCount { get; set; }
 
         public int Review { get; set; }
- 
+
+        public string FicheUrl { get; set; }
+
     }
 }

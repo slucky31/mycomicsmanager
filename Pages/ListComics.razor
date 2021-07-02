@@ -4,41 +4,50 @@
 @using MyComicsManagerWeb.Services
 @inject ComicService ComicService
 
-<h1>Comics <a class="btn btn-primary" href="/comics/create">Ajouter</a></h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
 
-@if (comics == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
+    <h1>Comics <a class="btn btn-primary" href="/comics/create">Ajouter</a></h1>
 
-<div class="card-deck">
-    @foreach (var comic in comics)
+    @if (comics == null)
     {
-        <div class="card mb-4" style="min-width: 15rem; max-width: 20rem;">
-            <img class="card-img" src="/Covers/@(comic.Id).jpg?size=256" alt="Card image cap">
-            <div class="card-body">
-                <h5 class="card-title"><a href="comics/edit/@(comic.Id)">@comic.Title</a></h5>
-                <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-            </div>
-        </div>
+        <p><em>Loading...</em></p>
     }
-
-</div>
-}
-
-@code {
-    private IEnumerable<Comic> comics;
-
-    protected override async Task OnInitializedAsync()
+    else
     {
-        comics = await ComicService.GetComics();
-    }
 
-    private async Task DeleteComic(String id)
-    {
-        await ComicService.DeleteComic(id);
-        comics = await ComicService.GetComics();
+        <MudGrid>
+            @foreach (var comic in comics)
+            {
+                string coverPath = "/Covers/"+@comic.Id+".jpg?size=256";
+                string viewHref = "comics/view/" + @comic.Id;
+                string editHref = "comics/edit/" + @comic.Id;
+                <MudItem xs="4">
+                    <MudCard>
+                        <MudCardMedia Image="@coverPath" Height="200" />
+                        <MudCardContent>
+                            <MudLink Href="@viewHref" Typo="Typo.h5">@comic.Title</MudLink>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref"></MudIconButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)"></MudIconButton>
+                        </MudCardContent>                        
+                    </MudCard>
+                </MudItem>
+            }
+
+        </MudGrid>
     }
-}
+</MudContainer>
+
+    @code {
+        private IEnumerable<Comic> comics;
+
+        protected override async Task OnInitializedAsync()
+        {
+            comics = await ComicService.GetComics();
+        }
+
+        private async Task DeleteComic(String id)
+        {
+            await ComicService.DeleteComic(id);
+            comics = await ComicService.GetComics();
+        }
+    }

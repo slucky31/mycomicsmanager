@@ -1,0 +1,71 @@
+﻿@page "/settings"
+
+@using MyComicsManagerWeb.Models
+@using MyComicsManagerWeb.Services
+@inject ComicService ComicService
+@inject IWebserviceSettings  WebserviceSettings
+
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+
+    <MudCard Class="mt-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Regénérer les miniatures</MudText>
+            </CardHeaderContent>            
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText>Cette action permet de regénérer l'image de couverture de chaque comic de la librairie</MudText>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton OnClick="ClearAndGenerateCovers" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Settings">Générer</MudButton>
+        </MudCardActions>
+        @if (ActionInProgress)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+        }
+    </MudCard>
+
+    <MudCard Class="mt-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Paramètres</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="WebserviceUri" Variant="Variant.Filled" @bind-Value="WebserviceSettings.WebserviceUri" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="FileUploadDirRootPath" Variant="Variant.Filled" @bind-Value="WebserviceSettings.FileUploadDirRootPath" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="CoversDirRootPath" Variant="Variant.Filled" @bind-Value="WebserviceSettings.CoversDirRootPath" ReadOnly="true" />
+                </MudItem>                
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+</MudContainer>
+
+@code {
+
+    bool ActionInProgress = false;
+
+
+    private async Task ClearAndGenerateCovers()
+    {
+        ActionInProgress = true;
+
+        var comics = await ComicService.GetComics();
+
+        foreach(Comic comic in comics)
+        {
+            await ComicService.ExtractCover(comic.Id);
+        }
+
+        ActionInProgress = false;
+    }
+
+}

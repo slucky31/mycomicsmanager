@@ -1,52 +1,14 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">MyComicsManagerWeb</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-</div>
-
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="comics/create">
-                <span class="oi oi-plus" aria-hidden="true"></span> Create Comic
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="comics/import">
-                <span class="oi oi-plus" aria-hidden="true"></span> Import Comics
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="comics/list">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> List Comics
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="libraries/create">
-                <span class="oi oi-plus" aria-hidden="true"></span> Create Library
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="libraries/list">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> List Library
-            </NavLink>
-        </li>
-    </ul>
-</div>
-
-@code {
-    private bool collapseNavMenu = true;
-
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}
+﻿
+<MudNavMenu>
+    <MudNavLink Href="/">Home</MudNavLink>
+    <MudNavGroup Title="Comics" >
+        <MudNavLink Href="comics/create">Create</MudNavLink>
+        <MudNavLink Href="comics/list">List</MudNavLink>
+        <MudNavLink Href="comics/import">Import</MudNavLink>
+    </MudNavGroup>
+    <MudNavGroup Title="Libraries" >
+        <MudNavLink Href="libraries/create">Create</MudNavLink>
+        <MudNavLink Href="libraries/list">List</MudNavLink>
+    </MudNavGroup>
+    <MudNavLink Href="/about">About</MudNavLink>
+</MudNavMenu>
