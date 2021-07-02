@@ -3,11 +3,12 @@
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
 @inject ComicService ComicService
+@inject IWebserviceSettings  WebserviceSettings
 
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
 
-    <MudCard>
+    <MudCard Class="mt-4">
         <MudCardHeader>
             <CardHeaderContent>
                 <MudText Typo="Typo.h6">Regénérer les miniatures</MudText>
@@ -23,6 +24,27 @@
         {
             <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
         }
+    </MudCard>
+
+    <MudCard Class="mt-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Paramètres</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="WebserviceUri" Variant="Variant.Filled" @bind-Value="WebserviceSettings.WebserviceUri" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="FileUploadDirRootPath" Variant="Variant.Filled" @bind-Value="WebserviceSettings.FileUploadDirRootPath" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="CoversDirRootPath" Variant="Variant.Filled" @bind-Value="WebserviceSettings.CoversDirRootPath" ReadOnly="true" />
+                </MudItem>                
+            </MudGrid>
+        </MudCardContent>
     </MudCard>
 
 </MudContainer>
