@@ -10,6 +10,7 @@ using Serilog;
 using ImageThumbnail.AspNetCore.Middleware;
 using MudBlazor.Services;
 using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 namespace MyComicsManagerWeb
 {
@@ -39,7 +40,7 @@ namespace MyComicsManagerWeb
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IWebserviceSettings settings)
         {
             if (env.IsDevelopment())
             {
@@ -55,9 +56,12 @@ namespace MyComicsManagerWeb
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
+            // Création du répertoire des covers si il n'existe pas
+            Directory.CreateDirectory(settings.CoversDirRootPath);
+
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new PhysicalFileProvider("C:\\MyComicsManager\\covers"),
+                FileProvider = new PhysicalFileProvider(settings.CoversDirRootPath),
                 RequestPath = "/covers"
             });
 
