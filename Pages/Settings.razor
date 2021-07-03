@@ -11,8 +11,56 @@
     <MudCard Class="mt-4">
         <MudCardHeader>
             <CardHeaderContent>
+                <MudText Typo="Typo.h6">Version</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudField Label="Version" Variant="Variant.Filled">@versionTag</MudField>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudField Label="Platforme" Variant="Variant.Filled">@platform</MudField>                   
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudField Label="URL Github" Variant="Variant.Filled">@githubUrl</MudField>                    
+                </MudItem>
+                <MudItem xs="12" sm="6">                    
+                    <MudField Label="Branche" Variant="Variant.Filled">@branch</MudField>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudField Label="Commit" Variant="Variant.Filled"><MudLink Href="@commitUrl">@commit</MudLink></MudField>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>        
+    </MudCard>
+
+    <MudCard Class="mt-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Paramètres</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">                    
+                    <MudField Label="WebserviceUri" Variant="Variant.Filled">@WebserviceSettings.WebserviceUri</MudField>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudField Label="FileUploadDirRootPath" Variant="Variant.Filled">@WebserviceSettings.FileUploadDirRootPath</MudField>                    
+                </MudItem>
+                <MudItem xs="12" sm="6">                    
+                    <MudField Label="CoversDirRootPath" Variant="Variant.Filled">@WebserviceSettings.CoversDirRootPath</MudField>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Class="mt-4">
+        <MudCardHeader>
+            <CardHeaderContent>
                 <MudText Typo="Typo.h6">Regénérer les miniatures</MudText>
-            </CardHeaderContent>            
+            </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
             <MudText>Cette action permet de regénérer l'image de couverture de chaque comic de la librairie</MudText>
@@ -26,32 +74,39 @@
         }
     </MudCard>
 
-    <MudCard Class="mt-4">
-        <MudCardHeader>
-            <CardHeaderContent>
-                <MudText Typo="Typo.h6">Paramètres</MudText>
-            </CardHeaderContent>
-        </MudCardHeader>
-        <MudCardContent>
-            <MudGrid Spacing="2">
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="WebserviceUri" Variant="Variant.Filled" @bind-Value="WebserviceSettings.WebserviceUri" ReadOnly="true" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="FileUploadDirRootPath" Variant="Variant.Filled" @bind-Value="WebserviceSettings.FileUploadDirRootPath" ReadOnly="true" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="CoversDirRootPath" Variant="Variant.Filled" @bind-Value="WebserviceSettings.CoversDirRootPath" ReadOnly="true" />
-                </MudItem>                
-            </MudGrid>
-        </MudCardContent>
-    </MudCard>
+
 
 </MudContainer>
 
 @code {
 
     bool ActionInProgress = false;
+
+    private string branch = ThisAssembly.Git.Branch;
+
+    private string commit = ThisAssembly.Git.Commit;
+
+    private string versionTag = "v" + ThisAssembly.Git.SemVer.Major + "." +
+        ThisAssembly.Git.SemVer.Minor + "." +
+        ThisAssembly.Git.SemVer.Patch + "-" +
+        ThisAssembly.Git.Commit;
+
+    private string platform = @System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription + " - " +
+        @System.Runtime.InteropServices.RuntimeInformation.OSArchitecture + " - " +
+        @System.Runtime.InteropServices.RuntimeInformation.OSDescription + " - " +
+        @System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture + " - " +
+        @System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier;
+
+    private string githubUrl = ThisAssembly.Git.RepositoryUrl.EndsWith(".git") ?
+        ThisAssembly.Git.RepositoryUrl.Substring(0, ThisAssembly.Git.RepositoryUrl.Length - ".git".Length) :
+        ThisAssembly.Git.RepositoryUrl;
+
+    private string commitUrl;
+
+    protected override void OnInitialized()
+    {
+        commitUrl = githubUrl + "/commit/" + ThisAssembly.Git.Sha;
+    }
 
 
     private async Task ClearAndGenerateCovers()
