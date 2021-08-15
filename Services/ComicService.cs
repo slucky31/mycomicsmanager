@@ -114,6 +114,13 @@ namespace MyComicsManagerWeb.Services {
             httpResponse.EnsureSuccessStatusCode();            
         }
 
+        public async Task ExtractISBN(string id, int indexImage)
+        {
+            using var httpResponse = await _httpClient.GetAsync($"api/Comics/extractisbn/{id}&{indexImage}");
+
+            httpResponse.EnsureSuccessStatusCode();
+        }
+
         public async Task UploadFile(IBrowserFile file)
         {
             long maxFileSize = 1024 * 1024 * 400; // 400 Mo

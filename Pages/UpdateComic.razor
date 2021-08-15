@@ -103,6 +103,7 @@
                     </MudGrid>
                 </MudCardContent>
                 <MudCardActions>
+                    <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="ExtractISBNComicAsync">Extraire ISBN</MudButton>
                     <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="SearchComicInfoAsync">Import Données</MudButton>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
                 </MudCardActions>
@@ -135,6 +136,13 @@
     private async Task SearchComicInfoAsync()
     {
         await ComicService.SearchComicInfoAsync(comic.Id);
+        this.StateHasChanged();
+    }
+
+    private async Task ExtractISBNComicAsync()
+    {
+        // TODO : Get Nb IMages in Comic Object
+        await ComicService.ExtractISBN(comic.Id,3);
         this.StateHasChanged();
     }
 
