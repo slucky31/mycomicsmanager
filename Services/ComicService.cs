@@ -114,11 +114,15 @@ namespace MyComicsManagerWeb.Services {
             httpResponse.EnsureSuccessStatusCode();            
         }
 
-        public async Task ExtractISBN(string id, int indexImage)
+        public async Task<List<string>> ExtractISBN(string id, int indexImage)
         {
-            using var httpResponse = await _httpClient.GetAsync($"api/Comics/extractisbn/{id}&{indexImage}");
+            using var response = await _httpClient.GetAsync($"api/Comics/extractisbn/{id}&{indexImage}");
 
-            httpResponse.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
+
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<List<string>>(responseStream);
+
         }
 
         public async Task UploadFile(IBrowserFile file)

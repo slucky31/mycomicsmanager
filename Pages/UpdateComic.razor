@@ -2,7 +2,9 @@
 
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
+
 @inject ComicService ComicService
+@inject IDialogService DialogService
 
 @if (comic == null)
 {
@@ -15,24 +17,6 @@
 
             <DataAnnotationsValidator />
             <ValidationSummary />
-
-            <!--
-            <MudCard>
-                <MudCardContent>
-                    <MudText Typo="Typo.h4">Ajouter un comic</MudText>
-                    <InputFile OnChange="ReadFile" class="form-control" id="input-file" hidden />
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton HtmlTag="label"
-                               Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Filled.CloudUpload"
-                               for="input-file">
-                        Upload
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
-            -->
 
             <MudCard Class="mt-4">
                 <MudCardContent>
@@ -62,7 +46,7 @@
                             <MudTextField Label="Titre" Variant="Variant.Text" @bind-Value="comic.Title" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="comic.ISBN" />
+                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="comic.ISBN" />                            
                         </MudItem>
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Volume" Variant="Variant.Text" @bind-Value="comic.Volume" />
@@ -111,7 +95,11 @@
 
         </EditForm>
 
+        
+
     </MudContainer>
+
+
 
 }
 
@@ -121,6 +109,10 @@
     public string Id { get; set; }
 
     protected Comic comic;
+
+    protected List<string> listISBN = new List<string>();
+
+    protected string selectedISBN = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,8 +134,24 @@
     private async Task ExtractISBNComicAsync()
     {
         // TODO : Get Nb IMages in Comic Object
-        await ComicService.ExtractISBN(comic.Id,3);
-        this.StateHasChanged();
+        // https://stackoverflow.com/questions/66372676/blazor-mudselect-bind-selectedvalues-to-both-id-and-value
+
+        //listISBN = await ComicService.ExtractISBN(comic.Id,104);
+
+        //this.StateHasChanged();
+        var parameters = new DialogParameters();
+        parameters.Add("Id", comic.Id);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = DialogService.Show<DialogIsbnSelector>("Select ISBN", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            this.StateHasChanged();
+        }
+
     }
 
 }

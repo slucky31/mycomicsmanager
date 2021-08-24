@@ -1,0 +1,121 @@
+﻿
+<MudDialog>
+    <DialogContent>
+
+        <MudContainer Style="max-height: 500px; overflow-y: scroll">
+
+            <MudText Typo="Typo.h5">First pages</MudText>
+
+            <!--  Les 5 premières pages-->
+
+            <MudGrid Spacing="2" Justify="Justify.Center">
+                <MudItem xs="3">
+                    <MudCard>
+                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudCard>
+                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudCard>
+                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudCard>
+                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+
+            <MudText Typo="Typo.h5">Last pages</MudText>
+
+            <MudGrid Spacing="2" Justify="Justify.Center">
+                <MudItem xs="3">
+                    <MudCard>
+                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudCard>
+                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudCard>
+                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudCard>
+                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+
+
+
+            <!--  Les 5 Dernières pages-->
+            <!--
+    <MudSelect Label = "ISBN Extraits" T="string" @bind-Value="selectedISBN" Variant="Variant.Outlined" >
+        @foreach (var isbn in listISBN)
+        {
+             <MudSelectItem T="string" Value="isbn" />
+        }
+    </MudSelect>
+    -->
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Error" OnClick="Save">Save</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public string Id { get; set; }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void Save()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+}

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
+using MyComicsManagerWeb.Models;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -16,11 +17,13 @@ namespace ImageThumbnail.AspNetCore.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ImageThumbnailOptions _options;
+        private readonly IWebserviceSettings _settings;
 
-        public ImageThumbnailMiddleware(RequestDelegate next, ImageThumbnailOptions options)
+        public ImageThumbnailMiddleware(RequestDelegate next, ImageThumbnailOptions options, IWebserviceSettings settings)
         {
             _next = next;
             _options = options;
+            _settings = settings;
             CreateThumbnailCacheDir();
         }
 
@@ -195,7 +198,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
 
         private string GetPhysicalPath(string path)
         {
-            var provider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory()));
+            var provider = new PhysicalFileProvider(Path.Combine(_settings.CoversDirRootPath));
             var fileInfo = provider.GetFileInfo(path);
 
             return fileInfo.PhysicalPath;
@@ -211,7 +214,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
             //ex : sample.jpg -> sample_256x256.jpg
             fileName = string.Format("{0}_{1}x{2}{3}", fileName, size.Value.Width, size.Value.Height, ext);
 
-            var provider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), _options.ImagesDirectory, _options.CacheDirectoryName));
+            var provider = new PhysicalFileProvider(Path.Combine(_settings.CoversDirRootPath, _options.ImagesDirectory, _options.CacheDirectoryName));
             var fileInfo = provider.GetFileInfo(fileName);
 
             return fileInfo.PhysicalPath;
@@ -220,7 +223,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             if (!string.IsNullOrEmpty(_options.CacheDirectoryName))
             {
-                Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), _options.ImagesDirectory, _options.CacheDirectoryName));
+                Directory.CreateDirectory(Path.Combine(_settings.CoversDirRootPath, _options.ImagesDirectory, _options.CacheDirectoryName));
             }
         }
 
