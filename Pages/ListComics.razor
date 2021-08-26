@@ -24,9 +24,10 @@
                 <MudItem xs="2">
                     <MudCard>
                         <MudCardMedia Image="@coverPath" Height="200" />
-                        <MudCardContent>                            
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref"></MudIconButton>
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)"></MudIconButton>
+                        <MudCardContent>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref" Title="Edit" ></MudIconButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)" Title="Delete" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Download" Title="Download"/>
                         </MudCardContent>                        
                     </MudCard>
                 </MudItem>
