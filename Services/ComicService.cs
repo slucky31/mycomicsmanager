@@ -125,6 +125,17 @@ namespace MyComicsManagerWeb.Services {
 
         }
 
+        public async Task<List<string>> ExtractImages(string id, int nbImagesToExtract, bool first)
+        {
+            using var response = await _httpClient.GetAsync($"api/Comics/extractimages/{id}&{nbImagesToExtract}&{first}");
+
+            response.EnsureSuccessStatusCode();
+
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<List<string>>(responseStream);
+
+        }
+
         public async Task UploadFile(IBrowserFile file)
         {
             long maxFileSize = 1024 * 1024 * 400; // 400 Mo

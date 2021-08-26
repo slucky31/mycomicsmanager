@@ -127,18 +127,13 @@
 
     private async Task SearchComicInfoAsync()
     {
-        await ComicService.SearchComicInfoAsync(comic.Id);
+        comic = await ComicService.SearchComicInfoAsync(comic.Id);
         this.StateHasChanged();
     }
 
     private async Task ExtractISBNComicAsync()
     {
-        // TODO : Get Nb IMages in Comic Object
-        // https://stackoverflow.com/questions/66372676/blazor-mudselect-bind-selectedvalues-to-both-id-and-value
 
-        //listISBN = await ComicService.ExtractISBN(comic.Id,104);
-
-        //this.StateHasChanged();
         var parameters = new DialogParameters();
         parameters.Add("Id", comic.Id);
 
@@ -149,6 +144,8 @@
 
         if (!result.Cancelled)
         {
+            comic.ISBN = result.Data.ToString();
+            await ComicService.UpdateComicAsync(comic);
             this.StateHasChanged();
         }
 

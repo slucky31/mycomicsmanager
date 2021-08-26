@@ -1,96 +1,76 @@
-﻿
+﻿@using MyComicsManagerWeb.Models
+@using MyComicsManagerWeb.Services
+@using System.IO
+
+@inject ComicService ComicService
+
 <MudDialog>
     <DialogContent>
 
         <MudContainer Style="max-height: 500px; overflow-y: scroll">
 
-            <MudText Typo="Typo.h5">First pages</MudText>
+            @if (firstPages == null)
+            {
+                <MudText Typo="Typo.h5">Loading ...</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h5">First pages</MudText>
 
-            <!--  Les 5 premières pages-->
+                <!--  Les 5 premières pages-->
 
-            <MudGrid Spacing="2" Justify="Justify.Center">
-                <MudItem xs="3">
-                    <MudCard>
-                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
-                        <MudCardActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="3">
-                    <MudCard>
-                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
-                        <MudCardActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="3">
-                    <MudCard>
-                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
-                        <MudCardActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="3">
-                    <MudCard>
-                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
-                        <MudCardActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
+                <MudGrid Spacing="2" Justify="Justify.Center">
+                    @foreach (var _page in firstPages)
+                    {
+                        string url = "/covers/isbn/" + _page + "?size=200";
+                        int idImage = Int32.Parse(Path.GetFileNameWithoutExtension(_page).Split('-')[1]);
+                        <MudItem xs="3">
+                            <MudCard>
+                                <MudCardMedia Image="@url" Height="200" />
+                                <MudCardActions>
+                                    <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" OnClick="() => launchISBNAnalysis(idImage)" />
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
 
-            <MudText Typo="Typo.h5">Last pages</MudText>
+            @if (lastPages == null)
+            {
+                <MudText Typo="Typo.h5">Loading ...</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h5">Last pages</MudText>
 
-            <MudGrid Spacing="2" Justify="Justify.Center">
-                <MudItem xs="3">
-                    <MudCard>
-                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
-                        <MudCardActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="3">
-                    <MudCard>
-                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
-                        <MudCardActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="3">
-                    <MudCard>
-                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
-                        <MudCardActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="3">
-                    <MudCard>
-                        <MudCardMedia Image="/Covers/6116f5fca11b63ba43acb036.jpg" Height="250" />
-                        <MudCardActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" />
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
+                <MudGrid Spacing="2" Justify="Justify.Center">
+                    @foreach (var _page in lastPages)
+                    {
+                        string url = "/covers/isbn/" + _page + "?size=200";
+                        int idImage = Int32.Parse(Path.GetFileNameWithoutExtension(_page).Split('-')[1]);
+                        <MudItem xs="3">
+                            <MudCard>
+                                <MudCardMedia Image="@url" Height="200" />
+                                <MudCardActions>
+                                    <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" OnClick="() => launchISBNAnalysis(idImage)" />
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+
+            <MudSelect T="string" Label="Choose ISBN :" @bind-Value="@selectedISBN">
+                @foreach (var isbn in listISBN)
+                {
+                    // https://stackoverflow.com/questions/66372676/blazor-mudselect-bind-selectedvalues-to-both-id-and-value
+                    <MudSelectItem Value="@isbn" />
+                }
+            </MudSelect>
 
 
 
-            <!--  Les 5 Dernières pages-->
-            <!--
-    <MudSelect Label = "ISBN Extraits" T="string" @bind-Value="selectedISBN" Variant="Variant.Outlined" >
-        @foreach (var isbn in listISBN)
-        {
-             <MudSelectItem T="string" Value="isbn" />
-        }
-    </MudSelect>
-    -->
         </MudContainer>
     </DialogContent>
     <DialogActions>
@@ -106,7 +86,19 @@
 
     [Parameter] public string Id { get; set; }
 
-    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    private List<string> firstPages = null;
+
+    private List<string> lastPages = null;
+
+    private string selectedISBN;
+
+    protected List<string> listISBN = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        firstPages = await ComicService.ExtractImages(Id, 4, true);
+        lastPages = await ComicService.ExtractImages(Id, 4, false);
+    }
 
     private void Cancel()
     {
@@ -115,7 +107,13 @@
 
     private void Save()
     {
-        MudDialog.Close(DialogResult.Ok(true));
+        MudDialog.Close(DialogResult.Ok(selectedISBN));
+    }
+
+    private async void launchISBNAnalysis(int imageId)
+    {
+        listISBN.Clear();
+        listISBN = await ComicService.ExtractISBN(Id, imageId);
     }
 
 }
