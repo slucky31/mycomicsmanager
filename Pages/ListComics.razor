@@ -23,8 +23,9 @@
                 string editHref = "comics/edit/" + @comic.Id;
                 <MudItem xs="2">
                     <MudCard>
-                        <MudCardMedia Image="@coverPath" Height="200" />
+                        <MudCardMedia Image="@coverPath" Height="200" Style="background-color: white; background-size: contain; background-repeat: no-repeat; "/>
                         <MudCardContent>
+                            <MudIconButton Icon="@Icons.Material.Filled.Search" Link="@viewHref" Title="View"></MudIconButton>
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref" Title="Edit" ></MudIconButton>
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)" Title="Delete" />
                             <MudIconButton Icon="@Icons.Material.Filled.Download" Title="Download"/>
