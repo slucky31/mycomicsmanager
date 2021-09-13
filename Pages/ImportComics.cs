@@ -109,17 +109,17 @@ namespace MyComicsManagerWeb.Pages
             this.StateHasChanged();
         }
 
-        public async Task AddComics()
+        public async void AddComics()
         {
 
             foreach(var file in importingFiles.ToList())
             {
-                await AddComic(file);
+                await AddComic(file).ConfigureAwait(false); ;
             }
             
         }
 
-        private async Task ListImportingFiles()
+        private async void ListImportingFiles()
         {
             var files = ComicService.ListImportingFiles();
             Library lib = await LibraryService.GetSelectedLibrary();

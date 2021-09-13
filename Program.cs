@@ -6,7 +6,7 @@ using Serilog;
 
 namespace MyComicsManagerWeb
 {
-    public class Program
+    public static class Program
     {
         public static IConfiguration Configuration { get; } = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)

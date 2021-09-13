@@ -53,23 +53,14 @@ namespace MyComicsManagerWeb
                 app.UseHsts();
             }
 
-            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             // Création du répertoire des covers si il n'existe pas
             Directory.CreateDirectory(settings.CoversDirRootPath);
 
-            //app.UseStaticFiles(new StaticFileOptions
-            //{
-            //    FileProvider = new PhysicalFileProvider(settings.CoversDirRootPath),
-            //    RequestPath = "/covers"
-            //});
-
             ImageThumbnailOptions options = new ImageThumbnailOptions("covers", "thumbs");            
             app.UseImageThumbnail(settings.CoversDirRootPath, options);
-
             app.UseRouting();
-
             app.UseSerilogRequestLogging();
 
             app.UseEndpoints(endpoints =>
