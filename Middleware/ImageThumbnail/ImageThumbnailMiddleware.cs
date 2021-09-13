@@ -46,12 +46,12 @@ namespace ImageThumbnail.AspNetCore.Middleware
                     else if (IsThumbnailExists(thumbnailRequest) && thumbnailRequest.ThumbnailSize.HasValue)
                     {
                         //Thumbnail already exists. Send it from cache.
-                        await WriteFromCache(thumbnailRequest, context.Response.Body).ConfigureAwait(false); ;
+                        await WriteFromCache(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
                     }
                     else
                     {
                         //Generate, cache and send.
-                        await GenerateThumbnail(thumbnailRequest, context.Response.Body).ConfigureAwait(false); ;
+                        await GenerateThumbnail(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
                     }
                 }
                 else
@@ -235,7 +235,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             using (var fs = new FileStream(request.ThumbnailImagePath, FileMode.Open))
             {
-                await fs.CopyToAsync(stream).ConfigureAwait(false); ;
+                await fs.CopyToAsync(stream).ConfigureAwait(false);
             }
         }
 

@@ -147,7 +147,7 @@ namespace MyComicsManagerWeb.Services {
             // Upload du fichier
             using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
             using Stream stream = file.OpenReadStream(maxFileSize);
-            await stream.CopyToAsync(savedFile).ConfigureAwait(false); ;
+            await stream.CopyToAsync(savedFile).ConfigureAwait(false);
         }
 
         public IEnumerable<FileInfo> ListImportingFiles()

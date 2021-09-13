@@ -4,9 +4,7 @@ EXPOSE 7000
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 # Besoin de Git pour la lib GitInfo
-RUN apt-get update && apt-get --no-install-recommends -y install git=2.33 \
-	&& apt-get clean \
-	&& rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get --no-install-recommends -y install git && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 
 # copy csproj and restore as distinct layers
