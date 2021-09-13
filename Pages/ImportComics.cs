@@ -30,7 +30,7 @@ namespace MyComicsManagerWeb.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            await ListImportingFiles();
+            await ListImportingFiles().ConfigureAwait(false);
             Uploading = false;
             await base.OnInitializedAsync();
         }
@@ -90,7 +90,7 @@ namespace MyComicsManagerWeb.Pages
                 this.StateHasChanged();
             }
             Uploading = false;
-            await this.ListImportingFiles();
+            await this.ListImportingFiles().ConfigureAwait(false);
             this.StateHasChanged();
         }
 

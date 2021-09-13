@@ -243,7 +243,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             using (var fs = new FileStream(request.SourceImagePath, FileMode.Open))
             {
-                await fs.CopyToAsync(stream);
+                await fs.CopyToAsync(stream).ConfigureAwait(false);
             }
         }
     }
