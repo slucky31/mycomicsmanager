@@ -28,11 +28,11 @@ namespace MyComicsManagerWeb.Pages
         public string _dragEnterStyle { get; set; }
 
 
-        protected override Task OnInitializedAsync()
+        protected override async Task OnInitializedAsync()
         {
-            ListImportingFiles();
+            await ListImportingFiles();
             Uploading = false;
-            return base.OnInitializedAsync();
+            await base.OnInitializedAsync();
         }
 
         public void OnInputFileChanged(InputFileChangeEventArgs e)
@@ -90,7 +90,7 @@ namespace MyComicsManagerWeb.Pages
                 this.StateHasChanged();
             }
             Uploading = false;
-            this.ListImportingFiles();
+            await this.ListImportingFiles();
             this.StateHasChanged();
         }
 
@@ -119,7 +119,7 @@ namespace MyComicsManagerWeb.Pages
             
         }
 
-        private async Task ListImportingFiles()
+        public async Task ListImportingFiles()
         {
             var files = ComicService.ListImportingFiles();
             Library lib = await LibraryService.GetSelectedLibrary();
