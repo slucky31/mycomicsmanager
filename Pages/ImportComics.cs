@@ -22,7 +22,7 @@ namespace MyComicsManagerWeb.Pages
         public List<ComicFile> uploadedFiles { get; } = new();
         public List<ComicFile> importingFiles { get; }  = new();
         public int maxAllowedFiles { get; } = 10;
-        public bool Uploading { get; set; } = false;
+        public bool Uploading { get; set; }
         public IList<IBrowserFile> browserFiles { get; set; } = new List<IBrowserFile>();        
         string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf" };
         public string _dragEnterStyle { get; set; }
@@ -31,6 +31,7 @@ namespace MyComicsManagerWeb.Pages
         protected override Task OnInitializedAsync()
         {
             ListImportingFiles();
+            Uploading = false;
             return base.OnInitializedAsync();
         }
 

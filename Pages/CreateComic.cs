@@ -21,7 +21,7 @@ namespace MyComicsManagerWeb.Pages
         [Inject]
         private NavigationManager NavigationManager { get; set; }
 
-        public Comic comic = new Comic();
+        public Comic comic { get; set; } 
         public string Status1 { get; set; }
 
         private readonly string[] AllowedExtensions = new[] { ".cbr", ".cbz", ".pdf" };
@@ -31,6 +31,7 @@ namespace MyComicsManagerWeb.Pages
         protected override async Task OnInitializedAsync()
         {
             Library lib = await LibraryService.GetSelectedLibrary();
+            comic = new Comic();
             comic.LibraryId ??= lib.Id;
         }
 
