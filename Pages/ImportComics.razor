@@ -1,62 +1,119 @@
 ﻿@page "/comics/Import"
 
-<h2>Import Comics</h2>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
 
-<p>Max allowed files: @maxAllowedFiles</p>
+    <MudText Typo="Typo.h4">Import</MudText>
 
-<div class="form-group drag-drop-zone">
-    Glisser-Déposer vos fichiers ici ou cliquer pour ouvrir la fenêtre de téléchargement !
-    <InputFile OnChange="LoadFiles" class="form-control" id="input-file" multiple />
-</div>
+    <MudAlert Class="my-4" Severity="Severity.Warning">Max allowed files: @maxAllowedFiles</MudAlert>
 
-<h3>Comics uploadés</h3>
+    <style>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Fichier</th>
-            <th>Taille</th>
-            <th>Temps Upload</th>
-            <th>Exception Message</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var file in uploadedFiles)
-        {
-            <tr>
-                <td>@file.Name</td>
-                <td>@file.Size</td>
-                <td>@file.UploadDuration</td>
-                <td>@file.ExceptionMessage</td>
-            </tr>
+        .drag-drop-zone {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            position: relative;
         }
-    </tbody>
-</table>
 
-<h3>Comics en attente de traitement</h3>
+            .drag-drop-zone:hover {
+                background-color: #f5f5f5;
+            }
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Fichier</th>
-            <th>Taille</th>
-            <th>Actions</th>
+            .drag-drop-zone input[type=file] {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                cursor: pointer;
+            }
 
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var file in importingFiles)
-        {
-            <tr>
-                <td>@file.Name</td>
-                <td>@file.Size</td>
-                <td><button class="btn btn-primary" @onclick="@(async () => await AddComic(file))">Ajouter</button></td>
-            </tr>
+        .drag-enter {
+            box-shadow: var(--mud-elevation-10);
         }
-        <tr>
-            <td></td>
-            <td></td>
-            <td><button class="btn btn-primary" @onclick="@(async () => await AddComics())">Tout ajouter</button></td>
-        </tr>
-    </tbody>
-</table>
+
+        .list {
+            padding: 2em;
+            min-width: 100%;
+        }
+    </style>
+
+    <MudPaper @ondragenter="@(()=>_dragEnterStyle="drag-enter")"
+              @ondragleave="@(()=>_dragEnterStyle=null)"
+              @ondragend="@(()=>_dragEnterStyle=null)"
+              Class=@("drag-drop-zone "+ _dragEnterStyle)>
+
+        <InputFile OnChange="OnInputFileChanged" multiple accept="@(getAllowedExtensions())" />
+
+        @if (browserFiles.Count() == 0)
+        {
+            <MudAlert Class="my-4" Severity="Severity.Info">Glisser-Déposer vos fichiers ici ou cliquer pour ouvrir la fenêtre de téléchargement !</MudAlert>
+        }
+        else
+        {
+            <MudList Style="padding:2em;width:100%;" Dense="true">
+                @foreach (var file in browserFiles)
+                {
+                    <MudListItem @key="@file.Name">
+                        <MudChip Color="Color.Dark"
+                                 Style="width:60px; overflow:hidden;"
+                                 Text="@(file.Name.Split(".").Last())" />
+                        @file.Name
+                    </MudListItem>}
+            </MudList>
+        }
+    </MudPaper>
+
+    <MudGrid Class="my-2" Justify="Justify.Center" Spacing="4">
+        <MudItem>
+            <MudButton OnClick="UploadFiles" Disabled="@(!browserFiles.Any())" Color="Color.Primary" Variant="Variant.Filled">Upload</MudButton>
+        </MudItem>
+        <MudItem>
+            <MudButton OnClick="@browserFiles.Clear" Disabled="@(!browserFiles.Any())" Color="Color.Error" Variant="Variant.Filled">Clear</MudButton>
+        </MudItem>
+    </MudGrid>
+
+
+
+    @if ((uploadedFiles.Count() != 0) || Uploading)
+    {
+        <MudText Typo="Typo.h5">Comics uploadés</MudText>
+        <MudTable Items="uploadedFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Uploading" LoadingProgressColor="Color.Info">
+            <HeaderContent>
+                <MudTh>Fichier</MudTh>
+                <MudTh>Taille</MudTh>
+                <MudTh>Temps Upload</MudTh>
+                <MudTh>Exception Message</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Fichier">@context.Name</MudTd>
+                <MudTd DataLabel="Taille">@context.Size</MudTd>
+                <MudTd DataLabel="Temps Upload">@context.UploadDuration</MudTd>
+                <MudTd DataLabel="Exception Message">@context.ExceptionMessage</MudTd>
+            </RowTemplate>
+            <FooterContent>
+                <MudText Typo="Typo.caption">TODO</MudText>
+            </FooterContent>
+        </MudTable>
+    }
+
+    @if (importingFiles.Count() != 0)
+    {
+        <MudText Class="my-4" Typo="Typo.h5">Comics en attente de traitement</MudText>
+        <MudTable Items="importingFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Uploading" LoadingProgressColor="Color.Info">
+            <HeaderContent>
+                <MudTh>Fichier</MudTh>
+                <MudTh>Taille</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Fichier">@context.Name</MudTd>
+                <MudTd DataLabel="Taille">@context.Size</MudTd>
+                <MudTd DataLabel="Actions"><MudIconButton Icon="@Icons.Material.Filled.ThumbUp" /></MudTd>
+            </RowTemplate>
+            <FooterContent>
+                <MudTd colspan="3"><MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.Add" OnClick="@(async () => await AddComics())">ADD ALL</MudButton></MudTd>
+            </FooterContent>
+        </MudTable>
+    }
+</MudContainer>

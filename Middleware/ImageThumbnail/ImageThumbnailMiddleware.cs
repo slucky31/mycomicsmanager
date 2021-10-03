@@ -5,6 +5,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -40,17 +41,17 @@ namespace ImageThumbnail.AspNetCore.Middleware
                     if (!thumbnailRequest.ThumbnailSize.HasValue)
                     {
                         //Original image requested
-                        await WriteFromSource(thumbnailRequest, context.Response.Body);
+                        await WriteFromSource(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
                     }
                     else if (IsThumbnailExists(thumbnailRequest) && thumbnailRequest.ThumbnailSize.HasValue)
                     {
                         //Thumbnail already exists. Send it from cache.
-                        await WriteFromCache(thumbnailRequest, context.Response.Body);
+                        await WriteFromCache(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
                     }
                     else
                     {
                         //Generate, cache and send.
-                        await GenerateThumbnail(thumbnailRequest, context.Response.Body);
+                        await GenerateThumbnail(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
                     }
                 }
                 else
@@ -149,7 +150,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
             {
                 if (!string.IsNullOrEmpty(size))
                 {
-                    size = size.ToLower();
+                    size = size.ToLower(CultureInfo.InvariantCulture);
                     if (size.Contains("x"))
                     {
                         var parts = size.Split('x');
@@ -207,7 +208,10 @@ namespace ImageThumbnail.AspNetCore.Middleware
         private string GenerateThumbnailFilePath(string path, Size? size)
         {
             if (!size.HasValue)
+            {
                 return path;
+            }
+
             var fileName = Path.GetFileNameWithoutExtension(path);
             var ext = Path.GetExtension(path);
 
@@ -231,7 +235,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             using (var fs = new FileStream(request.ThumbnailImagePath, FileMode.Open))
             {
-                await fs.CopyToAsync(stream);
+                await fs.CopyToAsync(stream).ConfigureAwait(false);
             }
         }
 
@@ -239,7 +243,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             using (var fs = new FileStream(request.SourceImagePath, FileMode.Open))
             {
-                await fs.CopyToAsync(stream);
+                await fs.CopyToAsync(stream).ConfigureAwait(false);
             }
         }
     }

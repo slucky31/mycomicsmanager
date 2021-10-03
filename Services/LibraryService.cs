@@ -49,11 +49,14 @@ namespace MyComicsManagerWeb.Services {
         //TODO : Revoir le calcul du selected : pour l'instant, le premier est pris par défaut
         public async Task<Library> GetSelectedLibrary()
         {
-            var libraries = await GetLibraries();
+            var libraries = await GetLibraries().ConfigureAwait(false);
             
             Library lib = null;
             using (IEnumerator<Library> enumer = libraries.GetEnumerator()) {
-                if (enumer.MoveNext()) lib = enumer.Current;
+                if (enumer.MoveNext())
+                {
+                    lib = enumer.Current;
+                }
             }
 
             return lib;
