@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components;
 using MyComicsManagerWeb.Services;
 using MyComicsManagerWeb.Models;
 using System.IO;
+using System.Text;
 
 namespace MyComicsManagerWeb.Pages
 {
@@ -16,32 +17,42 @@ namespace MyComicsManagerWeb.Pages
         
         [Inject] 
         private ComicService ComicService { get; set; }
-
         [Inject]
         private LibraryService LibraryService { get; set; }
+        public List<ComicFile> uploadedFiles { get; } = new();
+        public List<ComicFile> importingFiles { get; }  = new();
+        public int maxAllowedFiles { get; } = 10;
+        public bool Uploading { get; set; }
+        public IList<IBrowserFile> browserFiles { get; set; } = new List<IBrowserFile>();        
+        string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf" };
+        public string _dragEnterStyle { get; set; }
 
-        public List<ComicFile> uploadedFiles = new List<ComicFile>();
-        public List<ComicFile> importingFiles = new List<ComicFile>();
 
-        public readonly int maxAllowedFiles = 10;
-        public bool Uploading { get; set; } = false;
-
-        private readonly string[] AllowedExtensions = new[] { ".cbr", ".cbz", ".pdf" };
-
-        protected override Task OnInitializedAsync()
+        protected override async Task OnInitializedAsync()
         {
-            ListImportingFiles();
-            return base.OnInitializedAsync();
+            await ListImportingFiles().ConfigureAwait(false);
+            Uploading = false;
+            await base.OnInitializedAsync();
         }
 
-        public async Task LoadFiles(InputFileChangeEventArgs e)
+        public void OnInputFileChanged(InputFileChangeEventArgs e)
+        {
+            var temp = (IList<IBrowserFile>)e.GetMultipleFiles(maxAllowedFiles);
+            foreach(var item in temp)
+            {
+                browserFiles.Clear();
+                browserFiles.Add(item);
+            }
+        }
+
+        public async Task UploadFiles()
         {
 
             uploadedFiles.Clear();
             string exceptionMessage = string.Empty;
-            Library lib = await LibraryService.GetSelectedLibrary();
+            Uploading = true;
 
-            foreach (IBrowserFile file in e.GetMultipleFiles(maxAllowedFiles))
+            foreach (IBrowserFile file in browserFiles)
             {
                 Stopwatch stopWatch = new Stopwatch();
 
@@ -78,7 +89,8 @@ namespace MyComicsManagerWeb.Pages
                 uploadedFiles.Add(uploadedFile);                
                 this.StateHasChanged();
             }
-            this.ListImportingFiles();
+            Uploading = false;
+            await this.ListImportingFiles().ConfigureAwait(false);
             this.StateHasChanged();
         }
 
@@ -102,12 +114,12 @@ namespace MyComicsManagerWeb.Pages
 
             foreach(var file in importingFiles.ToList())
             {
-                await AddComic(file);
+                await AddComic(file).ConfigureAwait(false);
             }
             
         }
 
-        private async void ListImportingFiles()
+        public async Task ListImportingFiles()
         {
             var files = ComicService.ListImportingFiles();
             Library lib = await LibraryService.GetSelectedLibrary();
@@ -140,6 +152,20 @@ namespace MyComicsManagerWeb.Pages
             public double UploadDuration { get; set; }
 
             public string ExceptionMessage { get; set; }
+        }
+
+        public string getAllowedExtensions()
+        {
+            StringBuilder sb = new();
+            foreach (var ext in AllowedExtensions)
+            {
+                sb.Append(ext);
+                if (ext != AllowedExtensions.Last())
+                {
+                    sb.Append(", ");
+                }
+            }
+            return sb.ToString();
         }
 
         

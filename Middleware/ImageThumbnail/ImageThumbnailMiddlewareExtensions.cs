@@ -1,15 +1,14 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.Extensions.FileProviders;
+using MyComicsManagerWeb.Models;
 
 namespace ImageThumbnail.AspNetCore.Middleware
 {
     public static class ImageThumbnailMiddlewareExtensions
     {
         public static IApplicationBuilder UseImageThumbnail(
-            this IApplicationBuilder builder,ImageThumbnailOptions options)
-        {
+            this IApplicationBuilder builder, string coversDirRootPath, ImageThumbnailOptions options)
+        {           
             return builder.UseMiddleware<ImageThumbnailMiddleware>(options);
         }
     }

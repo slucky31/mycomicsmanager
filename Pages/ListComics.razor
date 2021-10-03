@@ -18,16 +18,17 @@
         <MudGrid>
             @foreach (var comic in comics)
             {
-                string coverPath = "/Covers/"+@comic.Id+".jpg?size=256";
+                string coverPath = "/Covers/" + @comic.CoverPath + "?size=200";
                 string viewHref = "comics/view/" + @comic.Id;
                 string editHref = "comics/edit/" + @comic.Id;
-                <MudItem xs="4">
+                <MudItem xs="2">
                     <MudCard>
-                        <MudCardMedia Image="@coverPath" Height="200" />
+                        <MudCardMedia Image="@coverPath" Height="200" Style="background-color: white; background-size: contain; background-repeat: no-repeat; "/>
                         <MudCardContent>
-                            <MudLink Href="@viewHref" Typo="Typo.h5">@comic.Title</MudLink>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref"></MudIconButton>
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)"></MudIconButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.Search" Link="@viewHref" Title="View"></MudIconButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref" Title="Edit" ></MudIconButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)" Title="Delete" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Download" Title="Download"/>
                         </MudCardContent>                        
                     </MudCard>
                 </MudItem>

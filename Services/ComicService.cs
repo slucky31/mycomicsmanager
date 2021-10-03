@@ -114,6 +114,28 @@ namespace MyComicsManagerWeb.Services {
             httpResponse.EnsureSuccessStatusCode();            
         }
 
+        public async Task<List<string>> ExtractISBN(string id, int indexImage)
+        {
+            using var response = await _httpClient.GetAsync($"api/Comics/extractisbn/{id}&{indexImage}");
+
+            response.EnsureSuccessStatusCode();
+
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<List<string>>(responseStream);
+
+        }
+
+        public async Task<List<string>> ExtractImages(string id, int nbImagesToExtract, bool first)
+        {
+            using var response = await _httpClient.GetAsync($"api/Comics/extractimages/{id}&{nbImagesToExtract}&{first}");
+
+            response.EnsureSuccessStatusCode();
+
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<List<string>>(responseStream);
+
+        }
+
         public async Task UploadFile(IBrowserFile file)
         {
             long maxFileSize = 1024 * 1024 * 400; // 400 Mo
@@ -125,7 +147,7 @@ namespace MyComicsManagerWeb.Services {
             // Upload du fichier
             using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
             using Stream stream = file.OpenReadStream(maxFileSize);
-            await stream.CopyToAsync(savedFile);
+            await stream.CopyToAsync(savedFile).ConfigureAwait(false);
         }
 
         public IEnumerable<FileInfo> ListImportingFiles()

@@ -2,7 +2,9 @@
 
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
+
 @inject ComicService ComicService
+@inject IDialogService DialogService
 
 @if (comic == null)
 {
@@ -15,24 +17,6 @@
 
             <DataAnnotationsValidator />
             <ValidationSummary />
-
-            <!--
-            <MudCard>
-                <MudCardContent>
-                    <MudText Typo="Typo.h4">Ajouter un comic</MudText>
-                    <InputFile OnChange="ReadFile" class="form-control" id="input-file" hidden />
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton HtmlTag="label"
-                               Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Filled.CloudUpload"
-                               for="input-file">
-                        Upload
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
-            -->
 
             <MudCard Class="mt-4">
                 <MudCardContent>
@@ -48,7 +32,10 @@
                             <MudTextField Label="EbookName" Variant="Variant.Filled" @bind-Value="comic.EbookName" ReadOnly="true" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Ebook Path sur le serveur" Variant="Variant.Filled" @bind-Value="comic.EbookPath" ReadOnly="true" />
+                            <MudTextField Label="Ebook Path" Variant="Variant.Filled" @bind-Value="comic.EbookPath" ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Cover Path" Variant="Variant.Filled" @bind-Value="comic.CoverPath" ReadOnly="true" />
                         </MudItem>
                     </MudGrid>
                 </MudCardContent>
@@ -62,7 +49,7 @@
                             <MudTextField Label="Titre" Variant="Variant.Text" @bind-Value="comic.Title" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="comic.ISBN" />
+                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="comic.ISBN" />                            
                         </MudItem>
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Volume" Variant="Variant.Text" @bind-Value="comic.Volume" />
@@ -103,6 +90,7 @@
                     </MudGrid>
                 </MudCardContent>
                 <MudCardActions>
+                    <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="ExtractISBNComicAsync">Extraire ISBN</MudButton>
                     <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="SearchComicInfoAsync">Import Données</MudButton>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
                 </MudCardActions>
@@ -110,7 +98,11 @@
 
         </EditForm>
 
+        
+
     </MudContainer>
+
+
 
 }
 
@@ -120,6 +112,10 @@
     public string Id { get; set; }
 
     protected Comic comic;
+
+    protected List<string> listISBN = new List<string>();
+
+    protected string selectedISBN = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -134,8 +130,28 @@
 
     private async Task SearchComicInfoAsync()
     {
-        await ComicService.SearchComicInfoAsync(comic.Id);
+        comic = await ComicService.SearchComicInfoAsync(comic.Id);
         this.StateHasChanged();
+    }
+
+    private async Task ExtractISBNComicAsync()
+    {
+
+        var parameters = new DialogParameters();
+        parameters.Add("Id", comic.Id);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = DialogService.Show<DialogIsbnSelector>("Select ISBN", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            comic.ISBN = result.Data.ToString();
+            await ComicService.UpdateComicAsync(comic);
+            this.StateHasChanged();
+        }
+
     }
 
 }

@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
+using MyComicsManagerWeb.Models;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -16,11 +18,13 @@ namespace ImageThumbnail.AspNetCore.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ImageThumbnailOptions _options;
+        private readonly IWebserviceSettings _settings;
 
-        public ImageThumbnailMiddleware(RequestDelegate next, ImageThumbnailOptions options)
+        public ImageThumbnailMiddleware(RequestDelegate next, ImageThumbnailOptions options, IWebserviceSettings settings)
         {
             _next = next;
             _options = options;
+            _settings = settings;
             CreateThumbnailCacheDir();
         }
 
@@ -37,17 +41,17 @@ namespace ImageThumbnail.AspNetCore.Middleware
                     if (!thumbnailRequest.ThumbnailSize.HasValue)
                     {
                         //Original image requested
-                        await WriteFromSource(thumbnailRequest, context.Response.Body);
+                        await WriteFromSource(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
                     }
                     else if (IsThumbnailExists(thumbnailRequest) && thumbnailRequest.ThumbnailSize.HasValue)
                     {
                         //Thumbnail already exists. Send it from cache.
-                        await WriteFromCache(thumbnailRequest, context.Response.Body);
+                        await WriteFromCache(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
                     }
                     else
                     {
                         //Generate, cache and send.
-                        await GenerateThumbnail(thumbnailRequest, context.Response.Body);
+                        await GenerateThumbnail(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
                     }
                 }
                 else
@@ -146,7 +150,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
             {
                 if (!string.IsNullOrEmpty(size))
                 {
-                    size = size.ToLower();
+                    size = size.ToLower(CultureInfo.InvariantCulture);
                     if (size.Contains("x"))
                     {
                         var parts = size.Split('x');
@@ -195,7 +199,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
 
         private string GetPhysicalPath(string path)
         {
-            var provider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory()));
+            var provider = new PhysicalFileProvider(Path.Combine(_settings.CoversDirRootPath));
             var fileInfo = provider.GetFileInfo(path);
 
             return fileInfo.PhysicalPath;
@@ -204,14 +208,17 @@ namespace ImageThumbnail.AspNetCore.Middleware
         private string GenerateThumbnailFilePath(string path, Size? size)
         {
             if (!size.HasValue)
+            {
                 return path;
+            }
+
             var fileName = Path.GetFileNameWithoutExtension(path);
             var ext = Path.GetExtension(path);
 
             //ex : sample.jpg -> sample_256x256.jpg
             fileName = string.Format("{0}_{1}x{2}{3}", fileName, size.Value.Width, size.Value.Height, ext);
 
-            var provider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), _options.ImagesDirectory, _options.CacheDirectoryName));
+            var provider = new PhysicalFileProvider(Path.Combine(_settings.CoversDirRootPath, _options.ImagesDirectory, _options.CacheDirectoryName));
             var fileInfo = provider.GetFileInfo(fileName);
 
             return fileInfo.PhysicalPath;
@@ -220,7 +227,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             if (!string.IsNullOrEmpty(_options.CacheDirectoryName))
             {
-                Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), _options.ImagesDirectory, _options.CacheDirectoryName));
+                Directory.CreateDirectory(Path.Combine(_settings.CoversDirRootPath, _options.ImagesDirectory, _options.CacheDirectoryName));
             }
         }
 
@@ -228,7 +235,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             using (var fs = new FileStream(request.ThumbnailImagePath, FileMode.Open))
             {
-                await fs.CopyToAsync(stream);
+                await fs.CopyToAsync(stream).ConfigureAwait(false);
             }
         }
 
@@ -236,7 +243,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             using (var fs = new FileStream(request.SourceImagePath, FileMode.Open))
             {
-                await fs.CopyToAsync(stream);
+                await fs.CopyToAsync(stream).ConfigureAwait(false);
             }
         }
     }

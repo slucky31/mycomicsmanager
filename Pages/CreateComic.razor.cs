@@ -21,7 +21,7 @@ namespace MyComicsManagerWeb.Pages
         [Inject]
         private NavigationManager NavigationManager { get; set; }
 
-        public Comic comic = new Comic();
+        private Comic comic = new Comic();
         public string Status1 { get; set; }
 
         private readonly string[] AllowedExtensions = new[] { ".cbr", ".cbz", ".pdf" };
@@ -31,6 +31,7 @@ namespace MyComicsManagerWeb.Pages
         protected override async Task OnInitializedAsync()
         {
             Library lib = await LibraryService.GetSelectedLibrary();
+            
             comic.LibraryId ??= lib.Id;
         }
 
@@ -40,7 +41,7 @@ namespace MyComicsManagerWeb.Pages
             NavigationManager.NavigateTo("comics/list", false);
         }
 
-        public async Task ReadFile(InputFileChangeEventArgs e)
+        private async Task ReadFile(InputFileChangeEventArgs e)
         {
             var file = e.File;
 
