@@ -32,9 +32,6 @@
                             <MudTextField Label="EbookName" Variant="Variant.Filled" @bind-Value="comic.EbookName" ReadOnly="true" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Ebook Path" Variant="Variant.Filled" @bind-Value="comic.EbookPath" ReadOnly="true" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6">
                             <MudTextField Label="Cover Path" Variant="Variant.Filled" @bind-Value="comic.CoverPath" ReadOnly="true" />
                         </MudItem>
                     </MudGrid>
@@ -140,14 +137,22 @@
         var parameters = new DialogParameters();
         parameters.Add("Id", comic.Id);
 
-        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
 
         var dialog = DialogService.Show<DialogIsbnSelector>("Select ISBN", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Cancelled)
         {
-            comic.ISBN = result.Data.ToString();
+            if ((null != result.Data.ToString()) && (result.Data.ToString().Contains(':')))
+            {
+                comic.ISBN = result.Data.ToString().Split(':')[1].Trim();
+            }
+            else
+            {
+                comic.ISBN = result.Data.ToString();    
+            }
+            
             await ComicService.UpdateComicAsync(comic);
             this.StateHasChanged();
         }

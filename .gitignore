@@ -356,5 +356,6 @@ MyComicsManagerWeb/Covers/**
 *.cbr
 *.pdf
 
+# Rider
+.idea/
 
-# MyComicsManagerApi
