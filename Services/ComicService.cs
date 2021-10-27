@@ -84,7 +84,7 @@ namespace MyComicsManagerWeb.Services {
             httpResponse.EnsureSuccessStatusCode();
         }
 
-        public async Task UpdateComicAsync(Comic comicItem)
+        public async Task<Comic> UpdateComicAsync(Comic comicItem)
         {
             var comicItemJson = new StringContent(
                 JsonSerializer.Serialize(comicItem, _jsonSerializerOptions),
@@ -95,6 +95,8 @@ namespace MyComicsManagerWeb.Services {
                 await _httpClient.PutAsync($"/api/Comics/{comicItem.Id}", comicItemJson);
 
             httpResponse.EnsureSuccessStatusCode();
+
+            return await GetComic(comicItem.Id);
         }
 
         public async Task<Comic> SearchComicInfoAsync(string id)
