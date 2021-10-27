@@ -19,13 +19,14 @@ namespace MyComicsManagerWeb.Pages
         private ComicService ComicService { get; set; }
         [Inject]
         private LibraryService LibraryService { get; set; }
-        public List<ComicFile> uploadedFiles { get; } = new();
-        public List<ComicFile> importingFiles { get; }  = new();
-        public int maxAllowedFiles { get; } = 10;
-        public bool Uploading { get; set; }
-        public IList<IBrowserFile> browserFiles { get; set; } = new List<IBrowserFile>();        
-        string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf" };
-        public string _dragEnterStyle { get; set; }
+        private List<ComicFile> UploadedFiles { get; } = new();
+        private List<ComicFile> ImportingFiles { get; }  = new();
+        private int MaxAllowedFiles { get; } = 10;
+        private bool Uploading { get; set; }
+        private bool Importing { get; set; }
+        private IList<IBrowserFile> BrowserFiles { get; set; } = new List<IBrowserFile>();        
+        private string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf" };
+        private string DragEnterStyle { get; set; }
 
 
         protected override async Task OnInitializedAsync()
@@ -35,29 +36,29 @@ namespace MyComicsManagerWeb.Pages
             await base.OnInitializedAsync();
         }
 
-        public void OnInputFileChanged(InputFileChangeEventArgs e)
+        private void OnInputFileChanged(InputFileChangeEventArgs e)
         {
-            var temp = (IList<IBrowserFile>)e.GetMultipleFiles(maxAllowedFiles);
+            BrowserFiles.Clear();
+            var temp = (IList<IBrowserFile>)e.GetMultipleFiles(MaxAllowedFiles);
             foreach(var item in temp)
             {
-                browserFiles.Clear();
-                browserFiles.Add(item);
+                BrowserFiles.Add(item);
             }
         }
 
-        public async Task UploadFiles()
+        private async Task UploadFiles()
         {
 
-            uploadedFiles.Clear();
+            UploadedFiles.Clear();
             string exceptionMessage = string.Empty;
             Uploading = true;
 
-            foreach (IBrowserFile file in browserFiles)
+            foreach (IBrowserFile file in BrowserFiles)
             {
                 Stopwatch stopWatch = new Stopwatch();
 
                 // Check extension
-                var extension = System.IO.Path.GetExtension(file.Name);
+                var extension = Path.GetExtension(file.Name);
                 if (!AllowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                 {
                     exceptionMessage = "File must have one of the following extensions: " + string.Join(", ", AllowedExtensions);
@@ -86,56 +87,59 @@ namespace MyComicsManagerWeb.Pages
                     UploadDuration = stopWatch.ElapsedMilliseconds / 1000.0,                    
                     ExceptionMessage = exceptionMessage
                 };
-                uploadedFiles.Add(uploadedFile);                
+                UploadedFiles.Add(uploadedFile);                
                 this.StateHasChanged();
             }
             Uploading = false;
-            await this.ListImportingFiles().ConfigureAwait(false);
+            await this.ListImportingFiles();
             this.StateHasChanged();
         }
 
-        public async Task AddComic(ComicFile file)
+        private async Task AddComic(ComicFile file)
         {
 
             Comic comic = new Comic
             {
                 EbookName = file.Name,
+                EbookPath = file.Path,
                 Title = Path.GetFileNameWithoutExtension(file.Name),
-                LibraryId = file.libId
+                LibraryId = file.LibId
 
             };
             await ComicService.CreateComicAsync(comic);
-            importingFiles.Remove(file);
+            ImportingFiles.Remove(file);
             this.StateHasChanged();
         }
 
-        public async Task AddComics()
+        private async Task AddComics()
         {
-
-            foreach(var file in importingFiles.ToList())
+            Importing = true;
+            foreach(var file in ImportingFiles.ToList())
             {
-                await AddComic(file).ConfigureAwait(false);
+                await AddComic(file);
             }
-            
+            Importing = false;
+            this.StateHasChanged();
         }
 
-        public async Task ListImportingFiles()
+        private async Task ListImportingFiles()
         {
             var files = ComicService.ListImportingFiles();
             Library lib = await LibraryService.GetSelectedLibrary();
                    
-            importingFiles.Clear();
+            ImportingFiles.Clear();
             foreach (var file in files)
             {
                 ComicFile uploadedFile = new ComicFile
                 {
                     Name = file.Name,
                     Size = file.Length,
-                    libId = lib.Id,
+                    LibId = lib.Id,
+                    Path = file.FullName,
                     UploadDuration = 0,
                     ExceptionMessage = string.Empty
                 };
-                importingFiles.Add(uploadedFile);
+                ImportingFiles.Add(uploadedFile);
             }
             this.StateHasChanged();
         }
@@ -143,18 +147,20 @@ namespace MyComicsManagerWeb.Pages
         public class ComicFile
         {
 
-            public string Name { get; set; }
+            public string Name { get; init; }
 
-            public long Size { get; set; }
+            public long Size { get; init; }
 
-            public string libId { get; set; }
+            public string LibId { get; init; }
+            
+            public string Path { get; init; }
 
-            public double UploadDuration { get; set; }
+            public double UploadDuration { get; init; }
 
-            public string ExceptionMessage { get; set; }
+            public string ExceptionMessage { get; init; }
         }
 
-        public string getAllowedExtensions()
+        private string GetAllowedExtensions()
         {
             StringBuilder sb = new();
             foreach (var ext in AllowedExtensions)

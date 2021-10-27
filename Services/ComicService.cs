@@ -84,7 +84,7 @@ namespace MyComicsManagerWeb.Services {
             httpResponse.EnsureSuccessStatusCode();
         }
 
-        public async Task UpdateComicAsync(Comic comicItem)
+        public async Task<Comic> UpdateComicAsync(Comic comicItem)
         {
             var comicItemJson = new StringContent(
                 JsonSerializer.Serialize(comicItem, _jsonSerializerOptions),
@@ -95,6 +95,8 @@ namespace MyComicsManagerWeb.Services {
                 await _httpClient.PutAsync($"/api/Comics/{comicItem.Id}", comicItemJson);
 
             httpResponse.EnsureSuccessStatusCode();
+
+            return await GetComic(comicItem.Id);
         }
 
         public async Task<Comic> SearchComicInfoAsync(string id)
@@ -159,7 +161,7 @@ namespace MyComicsManagerWeb.Services {
 
             // Lister les fichiers
             var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
-            return extensions.SelectMany(directory.EnumerateFiles);
+            return extensions.SelectMany(i => directory.EnumerateFiles("*", SearchOption.AllDirectories));
         }
 
     }

@@ -78,7 +78,6 @@ namespace MyComicsManagerWeb.Pages
             Status1 += " Transfert Duration : {stopWatch.ElapsedMilliseconds} ms.";
 
             comic.Title ??= Path.GetFileNameWithoutExtension(file.Name);
-            comic.EbookPath = "tmp/";
             comic.EbookName = file.Name;
             this.StateHasChanged();
 
