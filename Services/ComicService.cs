@@ -161,7 +161,7 @@ namespace MyComicsManagerWeb.Services {
 
             // Lister les fichiers
             var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
-            return extensions.SelectMany(directory.EnumerateFiles);
+            return extensions.SelectMany(i => directory.EnumerateFiles("*", SearchOption.AllDirectories));
         }
 
     }

@@ -23,6 +23,7 @@ namespace MyComicsManagerWeb.Pages
         private List<ComicFile> ImportingFiles { get; }  = new();
         private int MaxAllowedFiles { get; } = 10;
         private bool Uploading { get; set; }
+        private bool Importing { get; set; }
         private IList<IBrowserFile> BrowserFiles { get; set; } = new List<IBrowserFile>();        
         private string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf" };
         private string DragEnterStyle { get; set; }
@@ -100,6 +101,7 @@ namespace MyComicsManagerWeb.Pages
             Comic comic = new Comic
             {
                 EbookName = file.Name,
+                EbookPath = file.Path,
                 Title = Path.GetFileNameWithoutExtension(file.Name),
                 LibraryId = file.LibId
 
@@ -111,12 +113,13 @@ namespace MyComicsManagerWeb.Pages
 
         private async Task AddComics()
         {
-
+            Importing = true;
             foreach(var file in ImportingFiles.ToList())
             {
                 await AddComic(file);
             }
-            
+            Importing = false;
+            this.StateHasChanged();
         }
 
         private async Task ListImportingFiles()
@@ -132,6 +135,7 @@ namespace MyComicsManagerWeb.Pages
                     Name = file.Name,
                     Size = file.Length,
                     LibId = lib.Id,
+                    Path = file.FullName,
                     UploadDuration = 0,
                     ExceptionMessage = string.Empty
                 };
@@ -148,6 +152,8 @@ namespace MyComicsManagerWeb.Pages
             public long Size { get; init; }
 
             public string LibId { get; init; }
+            
+            public string Path { get; init; }
 
             public double UploadDuration { get; init; }
 

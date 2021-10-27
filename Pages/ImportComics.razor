@@ -96,7 +96,7 @@
     @if (ImportingFiles.Count() != 0)
     {
         <MudText Class="my-4" Typo="Typo.h5">Comics en attente de traitement</MudText>
-        <MudTable Items="ImportingFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Uploading" LoadingProgressColor="Color.Info">
+        <MudTable Items="ImportingFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Importing" LoadingProgressColor="Color.Info">
             <HeaderContent>
                 <MudTh>Fichier</MudTh>
                 <MudTh>Taille</MudTh>
