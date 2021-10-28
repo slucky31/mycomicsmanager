@@ -8,6 +8,8 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using ImageProcessor;
+using ImageProcessor.Plugins.WebP.Imaging.Formats;
 
 namespace ImageThumbnail.AspNetCore.Middleware
 {
@@ -95,7 +97,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             if (File.Exists(request.SourceImagePath))
             {
-                Image image = Image.FromFile(request.SourceImagePath);
+                /*Image image = Image.FromFile(request.SourceImagePath);
 
                 System.Drawing.Image thumbnail =
                     new Bitmap(request.ThumbnailSize.Value.Width, request.ThumbnailSize.Value.Height);
@@ -105,15 +107,33 @@ namespace ImageThumbnail.AspNetCore.Middleware
                 graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 graphic.SmoothingMode = SmoothingMode.HighQuality;
                 graphic.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                graphic.CompositingQuality = CompositingQuality.HighQuality;
+                graphic.CompositingQuality = CompositingQuality.HighQuality;*/
+                
+                using (var webPFileStream = new FileStream(request.ThumbnailImagePath, FileMode.Create))
+                {
+                    using (ImageFactory imageFactory = new ImageFactory(preserveExifData: false))
+                    {
+                        imageFactory.Load(request.SourceImagePath);
+                        var image = imageFactory.Image;
+                        
+                        double ratioX = (double)request.ThumbnailSize.Value.Width / (double)image.Width;
+                        double ratioY = (double)request.ThumbnailSize.Value.Height / (double)image.Height;
+                        double ratio = ratioX < ratioY ? ratioX : ratioY;
 
-                double ratioX = (double)request.ThumbnailSize.Value.Width / (double)image.Width;
-                double ratioY = (double)request.ThumbnailSize.Value.Height / (double)image.Height;
-                double ratio = ratioX < ratioY ? ratioX : ratioY;
+                        int newHeight = Convert.ToInt32(image.Height * ratio);
+                        int newWidth = Convert.ToInt32(image.Width * ratio);
+                        
+                        var thumb = imageFactory.Image.GetThumbnailImage(newWidth, newHeight, () => false, IntPtr.Zero);
+                        imageFactory.Load(thumb).Format(new WebPFormat())
+                            .Quality(100)
+                            .Save(webPFileStream);
+                    }
+                    webPFileStream.Close();
+                }
 
-                int newHeight = Convert.ToInt32(image.Height * ratio);
-                int newWidth = Convert.ToInt32(image.Width * ratio);
-
+                
+                
+/*
                 int posX = Convert.ToInt32((request.ThumbnailSize.Value.Width - (image.Width * ratio)) / 2);
                 int posY = Convert.ToInt32((request.ThumbnailSize.Value.Height - (image.Height * ratio)) / 2);
 
@@ -128,6 +148,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
 
                 thumbnail.Save(request.ThumbnailImagePath);
                 image.Dispose();
+                */
 
                 using (var fs = new FileStream(request.ThumbnailImagePath, FileMode.Open))
                 {
@@ -213,7 +234,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
             }
 
             var fileName = Path.GetFileNameWithoutExtension(path);
-            var ext = Path.GetExtension(path);
+            var ext = ".webp";//Path.GetExtension(path);
 
             //ex : sample.jpg -> sample_256x256.jpg
             fileName = string.Format("{0}_{1}x{2}{3}", fileName, size.Value.Width, size.Value.Height, ext);
