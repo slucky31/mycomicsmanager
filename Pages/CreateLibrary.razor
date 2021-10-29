@@ -5,28 +5,47 @@
 @inject NavigationManager NavigationManager;
 @inject LibraryService LibraryService;
 
-<h1>Create</h1>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    
+    <MudCard>
+        <MudCardContent>
+            <MudText Typo="Typo.h4">Créer une librairie</MudText>
+        </MudCardContent>
+    </MudCard>  
+    
+    <EditForm Model="@library" OnValidSubmit="Create" >
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <MudCard Class="mt-4">
+            <MudCardContent>
+                <MudText Typo="Typo.h5">Données techniques</MudText>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="library.Id" ReadOnly="true"/>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+            <MudCardContent>
+                <MudText Typo="Typo.h5">Informations sur la librairie</MudText>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="RelPath" Variant="Variant.Text" @bind-Value="library.RelPath"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="inputTmpPath" Variant="Variant.Text" @bind-Value="library.TmpPath"/>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Créer</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </EditForm>
 
-<EditForm Model="@library" OnValidSubmit="Create" >
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div class="form-group">
-        <label for="inputName">Name</label>
-        <InputText id="name" @bind-Value="library.Name" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="inputRelPath">RelPath</label>
-        <InputText id="relpath" @bind-Value="library.RelPath" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="inputTmpPath">TmpPath</label>
-        <InputText id="tmppath" @bind-Value="library.TmpPath" class="form-control" disabled/>
-    </div>
-    <button class="btn btn-primary" type="submit">Create</button>
-</EditForm>
+</MudContainer>
 
 @code {
-    
+
     private Library library = new Library();
 
     private async Task Create()
