@@ -2,14 +2,12 @@
 using Microsoft.Extensions.FileProviders;
 using MyComicsManagerWeb.Models;
 using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
-using ImageProcessor;
-using ImageProcessor.Plugins.WebP.Imaging.Formats;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
 namespace ImageThumbnail.AspNetCore.Middleware
 {
@@ -107,11 +105,11 @@ namespace ImageThumbnail.AspNetCore.Middleware
                 graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 graphic.SmoothingMode = SmoothingMode.HighQuality;
                 graphic.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                graphic.CompositingQuality = CompositingQuality.HighQuality;*/
+                graphic.CompositingQuality = CompositingQuality.HighQuality;
                 
                 using (var webPFileStream = new FileStream(request.ThumbnailImagePath, FileMode.Create))
                 {
-                    using (ImageFactory imageFactory = new ImageFactory(preserveExifData: false))
+                    using (ImageFactory imageFactory = new ImageFactory(preserveExifData: false))                        
                     {
                         imageFactory.Load(request.SourceImagePath);
                         var image = imageFactory.Image;
@@ -129,9 +127,19 @@ namespace ImageThumbnail.AspNetCore.Middleware
                             .Save(webPFileStream);
                     }
                     webPFileStream.Close();
+                }*/
+                await using (var webPFileStream = new FileStream(request.ThumbnailImagePath, FileMode.Create))
+                {
+                    using (var image = await Image.LoadAsync(request.SourceImagePath))
+                    {
+                        if (request.ThumbnailSize != null)
+                        {
+                            image.Mutate(x => x.Resize(request.ThumbnailSize.Value.Width, 0));
+                            await image.SaveAsync(webPFileStream, new WebpEncoder());
+                        }
+                    }
+                    webPFileStream.Close();
                 }
-
-                
                 
 /*
                 int posX = Convert.ToInt32((request.ThumbnailSize.Value.Width - (image.Width * ratio)) / 2);
@@ -167,34 +175,25 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             var _size = _options.DefaultSize.Value;
 
-            try
+            if (!string.IsNullOrEmpty(size))
             {
-                if (!string.IsNullOrEmpty(size))
+                size = size.ToLower(CultureInfo.InvariantCulture);
+                if (size.Contains("x"))
                 {
-                    size = size.ToLower(CultureInfo.InvariantCulture);
-                    if (size.Contains("x"))
-                    {
-                        var parts = size.Split('x');
-                        _size.Width = int.Parse(parts[0]);
-                        _size.Height = int.Parse(parts[1]);
-                    }
-                    else if (size == "full")
-                    {
-                        return new Nullable<Size>();
-                    }
-                    else
-                    {
-                        _size.Width = int.Parse(size);
-                        _size.Height = int.Parse(size);
-                    }
+                    var parts = size.Split('x');
+                    _size.Width = int.Parse(parts[0]);
+                    _size.Height = int.Parse(parts[1]);
+                }
+                else if (size == "full")
+                {
+                    return new Nullable<Size>();
+                }
+                else
+                {
+                    _size.Width = int.Parse(size);
+                    _size.Height = int.Parse(size);
                 }
             }
-            catch (ArgumentException)
-            {
-                throw;
-
-            }
-
 
             return _size;
         }
