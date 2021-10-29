@@ -2,13 +2,14 @@
 
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
-@inject ComicService ComicService
+@inject ComicService _comicService
+@inject LibraryService _libraryService
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
 
     <h1>Comics <a class="btn btn-primary" href="/comics/create">Ajouter</a></h1>
 
-    @if (comics == null)
+    @if (_comics == null)
     {
         <p><em>Loading...</em></p>
     }
@@ -16,7 +17,7 @@
     {
 
         <MudGrid>
-            @foreach (var comic in comics)
+            @foreach (var comic in _comics)
             {
                 string coverPath = "/covers/" + @comic.CoverPath + "?size=250";
                 string viewHref = "comics/view/" + @comic.Id;
@@ -39,16 +40,19 @@
 </MudContainer>
 
     @code {
-        private IEnumerable<Comic> comics;
+        private IEnumerable<Comic> _comics;
+
+        private Library _library;
 
         protected override async Task OnInitializedAsync()
         {
-            comics = await ComicService.GetComics();
+            _comics = await _comicService.GetComics();
+            _library = await _libraryService.GetSelectedLibrary();
         }
 
         private async Task DeleteComic(String id)
         {
-            await ComicService.DeleteComic(id);
-            comics = await ComicService.GetComics();
+            await _comicService.DeleteComic(id);
+            _comics = await _comicService.GetComics();
         }
     }

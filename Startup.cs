@@ -9,8 +9,9 @@ using MyComicsManagerWeb.Models;
 using Serilog;
 using ImageThumbnail.AspNetCore.Middleware;
 using MudBlazor.Services;
-using Microsoft.Extensions.FileProviders;
 using System.IO;
+using MyComicsManagerWeb.Middleware.DownloadEBookFile;
+using MyComicsManagerWeb.Middleware.ImageThumbnail;
 
 namespace MyComicsManagerWeb
 {
@@ -55,11 +56,16 @@ namespace MyComicsManagerWeb
 
             app.UseStaticFiles();
 
-            // Cr�ation du r�pertoire des covers si il n'existe pas
+            // Cr�ation du r�pertoire des covers si il n'existe pas
             Directory.CreateDirectory(settings.CoversDirRootPath);
 
-            ImageThumbnailOptions options = new ImageThumbnailOptions("covers", "thumbs");            
+            // Ajout du module Middleware pour gérer les thumnails à la volée
+            var options = new ImageThumbnailOptions("covers", "thumbs");            
             app.UseImageThumbnail(settings.CoversDirRootPath, options);
+            
+            // Ajout du module Middleware pour gérer les téléchargement de fichier
+            app.UseDownloadEbookFile();
+            
             app.UseRouting();
             app.UseSerilogRequestLogging();
 
