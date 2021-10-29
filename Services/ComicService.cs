@@ -147,8 +147,8 @@ namespace MyComicsManagerWeb.Services {
             Directory.CreateDirectory(_settings.FileUploadDirRootPath);
             
             // Upload du fichier
-            using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
-            using Stream stream = file.OpenReadStream(maxFileSize);
+            await using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
+            await using var stream = file.OpenReadStream(maxFileSize);
             await stream.CopyToAsync(savedFile).ConfigureAwait(false);
         }
 

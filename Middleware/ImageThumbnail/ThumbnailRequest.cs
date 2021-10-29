@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
+using SixLabors.ImageSharp;
 
 namespace ImageThumbnail.AspNetCore.Middleware
 {

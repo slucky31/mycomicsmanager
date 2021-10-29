@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.FileProviders;
-using MyComicsManagerWeb.Models;
-using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using ImageThumbnail.AspNetCore.Middleware;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.FileProviders;
+using MyComicsManagerWeb.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
-namespace ImageThumbnail.AspNetCore.Middleware
+namespace MyComicsManagerWeb.Middleware.ImageThumbnail
 {
     /// <summary>
     /// Middleware to serve image thumbnails
@@ -43,7 +44,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
                         //Original image requested
                         await WriteFromSource(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
                     }
-                    else if (IsThumbnailExists(thumbnailRequest) && thumbnailRequest.ThumbnailSize.HasValue)
+                    else if (IsThumbnailExists(thumbnailRequest))
                     {
                         //Thumbnail already exists. Send it from cache.
                         await WriteFromCache(thumbnailRequest, context.Response.Body).ConfigureAwait(false);
@@ -95,41 +96,21 @@ namespace ImageThumbnail.AspNetCore.Middleware
         {
             if (File.Exists(request.SourceImagePath))
             {
-                Image image = Image.FromFile(request.SourceImagePath);
+                
+                await using (var webPFileStream = new FileStream(request.ThumbnailImagePath, FileMode.Create))
+                {
+                    using (var image = await Image.LoadAsync(request.SourceImagePath))
+                    {
+                        if (request.ThumbnailSize != null)
+                        {
+                            image.Mutate(x => x.Resize(request.ThumbnailSize.Value.Width, 0));
+                            await image.SaveAsync(webPFileStream, new WebpEncoder());
+                        }
+                    }
+                    webPFileStream.Close();
+                }
 
-                System.Drawing.Image thumbnail =
-                    new Bitmap(request.ThumbnailSize.Value.Width, request.ThumbnailSize.Value.Height);
-                System.Drawing.Graphics graphic =
-                             System.Drawing.Graphics.FromImage(thumbnail);
-
-                graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphic.SmoothingMode = SmoothingMode.HighQuality;
-                graphic.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                graphic.CompositingQuality = CompositingQuality.HighQuality;
-
-                double ratioX = (double)request.ThumbnailSize.Value.Width / (double)image.Width;
-                double ratioY = (double)request.ThumbnailSize.Value.Height / (double)image.Height;
-                double ratio = ratioX < ratioY ? ratioX : ratioY;
-
-                int newHeight = Convert.ToInt32(image.Height * ratio);
-                int newWidth = Convert.ToInt32(image.Width * ratio);
-
-                int posX = Convert.ToInt32((request.ThumbnailSize.Value.Width - (image.Width * ratio)) / 2);
-                int posY = Convert.ToInt32((request.ThumbnailSize.Value.Height - (image.Height * ratio)) / 2);
-
-                graphic.Clear(_options.ThumbnailBackground);
-                graphic.DrawImage(image, posX, posY, newWidth, newHeight);
-
-                EncoderParameters encoderParameters;
-                encoderParameters = new EncoderParameters(1);
-                encoderParameters.Param[0] = new EncoderParameter(Encoder.Quality,
-                                 _options.ImageQuality);
-
-
-                thumbnail.Save(request.ThumbnailImagePath);
-                image.Dispose();
-
-                using (var fs = new FileStream(request.ThumbnailImagePath, FileMode.Open))
+                await using (var fs = new FileStream(request.ThumbnailImagePath, FileMode.Open))
                 {
                     await fs.CopyToAsync(stream);
                 }
@@ -144,18 +125,18 @@ namespace ImageThumbnail.AspNetCore.Middleware
         /// <returns></returns>
         private Size? ParseSize(string size)
         {
-            var _size = _options.DefaultSize.Value;
-
-            try
+            if (_options.DefaultSize != null)
             {
+                var parseSize = _options.DefaultSize.Value;
+
                 if (!string.IsNullOrEmpty(size))
                 {
                     size = size.ToLower(CultureInfo.InvariantCulture);
                     if (size.Contains("x"))
                     {
                         var parts = size.Split('x');
-                        _size.Width = int.Parse(parts[0]);
-                        _size.Height = int.Parse(parts[1]);
+                        parseSize.Width = int.Parse(parts[0]);
+                        parseSize.Height = int.Parse(parts[1]);
                     }
                     else if (size == "full")
                     {
@@ -163,19 +144,15 @@ namespace ImageThumbnail.AspNetCore.Middleware
                     }
                     else
                     {
-                        _size.Width = int.Parse(size);
-                        _size.Height = int.Parse(size);
+                        parseSize.Width = int.Parse(size);
+                        parseSize.Height = int.Parse(size);
                     }
                 }
-            }
-            catch (ArgumentException)
-            {
-                throw;
 
+                return parseSize;
             }
 
-
-            return _size;
+            return null;
         }
 
         private bool IsSourceImageExists(ThumbnailRequest request)
@@ -213,7 +190,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
             }
 
             var fileName = Path.GetFileNameWithoutExtension(path);
-            var ext = Path.GetExtension(path);
+            var ext = ".webp";
 
             //ex : sample.jpg -> sample_256x256.jpg
             fileName = string.Format("{0}_{1}x{2}{3}", fileName, size.Value.Width, size.Value.Height, ext);
