@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.FileProviders;
+using MyComicsManagerWeb.Middleware.ImageThumbnail;
 using MyComicsManagerWeb.Models;
 
 namespace ImageThumbnail.AspNetCore.Middleware
