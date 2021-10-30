@@ -10,6 +10,9 @@ using Serilog;
 using ImageThumbnail.AspNetCore.Middleware;
 using MudBlazor.Services;
 using System.IO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
 using MyComicsManagerWeb.Middleware.DownloadEBookFile;
 using MyComicsManagerWeb.Middleware.ImageThumbnail;
 
@@ -64,8 +67,21 @@ namespace MyComicsManagerWeb
             app.UseImageThumbnail(settings.CoversDirRootPath, options);
             
             // Ajout du module Middleware pour gérer les téléchargement de fichier
-            app.UseDownloadEbookFile();
+            //loadEbookFile();
             
+            
+            // Set up custom content types -associating file extension to MIME type and Add new mappings
+            // Source : https://docs.microsoft.com/en-us/aspnet/core/fundamentals/static-files?view=aspnetcore-5.0#fileextensioncontenttypeprovider
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".cbz"] = "application/zip";
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(settings.LibrariesDirRootPath)),
+                RequestPath = new PathString("/download"),
+                ContentTypeProvider = provider
+            });
+
             app.UseRouting();
             app.UseSerilogRequestLogging();
 
