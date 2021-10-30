@@ -22,7 +22,6 @@ FROM build AS publish
 RUN dotnet publish "MyComicsManagerWeb.csproj" -c Release -o /app/publish -r linux-arm
 
 FROM base AS final
-RUN apt-get update && apt-get install -y libgdiplus
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "MyComicsManagerWeb.dll"]
