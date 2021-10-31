@@ -164,5 +164,39 @@ namespace MyComicsManagerWeb.Services {
             return extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
         }
 
+        public void DeleteEmptyDirs()
+        {
+            //DeleteEmptyDirs(_settings.FileUploadDirRootPath);
+        }
+        
+        private static void DeleteEmptyDirs(string dir)
+        {
+            if (string.IsNullOrEmpty(dir))
+            {
+                throw new ArgumentException("Starting directory is a null reference or an empty string", nameof(dir));
+            }
+
+            try
+            {
+                foreach (var d in Directory.EnumerateDirectories(dir))
+                {
+                    DeleteEmptyDirs(d);
+                }
+
+                var entries = Directory.EnumerateFileSystemEntries(dir);
+
+                if (!entries.Any())
+                {
+                    try
+                    {
+                        Directory.Delete(dir);
+                    }
+                    catch (UnauthorizedAccessException) { }
+                    catch (DirectoryNotFoundException) { }
+                }
+            }
+            catch (UnauthorizedAccessException) { }
+        }
+
     }
 }
