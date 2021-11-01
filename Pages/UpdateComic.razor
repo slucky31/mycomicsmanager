@@ -49,7 +49,7 @@
                             <MudTextField Label="Titre" Variant="Variant.Text" @bind-Value="comic.Title" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="comic.ISBN" />                            
+                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="comic.Isbn" />                            
                         </MudItem>
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Volume" Variant="Variant.Text" @bind-Value="comic.Volume" />
@@ -76,7 +76,7 @@
                             <MudTextField Label="Editeur" Variant="Variant.Text" @bind-Value="comic.Editor" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Langue" Variant="Variant.Text" @bind-Value="comic.LanguageISO" />
+                            <MudTextField Label="Langue" Variant="Variant.Text" @bind-Value="comic.LanguageIso" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Pages" Variant="Variant.Text" @bind-Value="comic.PageCount" />
@@ -90,6 +90,7 @@
                     </MudGrid>
                 </MudCardContent>
                 <MudCardActions>
+                    <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="EvaluateComicAsync">Evaluer</MudButton>
                     <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="ExtractISBNComicAsync">Extraire ISBN</MudButton>
                     <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="SearchComicInfoAsync">Import Données</MudButton>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
@@ -149,13 +150,40 @@
         {
             if ((null != result.Data.ToString()) && (result.Data.ToString().Contains(':')))
             {
-                comic.ISBN = result.Data.ToString().Split(':')[1].Trim();
+                comic.Isbn = result.Data.ToString().Split(':')[1].Trim();
             }
             else
             {
-                comic.ISBN = result.Data.ToString();    
+                comic.Isbn = result.Data.ToString();    
             }
             
+            await ComicService.UpdateComicAsync(comic);
+            this.StateHasChanged();
+        }
+
+    }
+    
+    private async Task EvaluateComicAsync()
+    {
+
+        var parameters = new DialogParameters();
+        parameters.Add("Id", comic.Id);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+
+        var dialog = DialogService.Show<DialogReview>("Evaluation", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+
+            if (result.Data != null)
+            {
+                // Si le champ est null, il est initialisé
+                comic.ComicReviews ??= new List<ComicReview>();
+                // L'évaluation est ajoutée
+                comic.ComicReviews.Add((ComicReview)result.Data);
+            }
             await ComicService.UpdateComicAsync(comic);
             this.StateHasChanged();
         }

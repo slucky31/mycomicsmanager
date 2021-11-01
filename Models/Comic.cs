@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyComicsManagerWeb.Models
@@ -28,7 +29,7 @@ namespace MyComicsManagerWeb.Models
         [Required]
         public string Title { get; set; }
 
-        public string ISBN { get; set; }
+        public string Isbn { get; set; }
 
         public int Volume { get; set; }
 
@@ -48,13 +49,21 @@ namespace MyComicsManagerWeb.Models
 
         public string Editor { get; set; }
 
-        public string LanguageISO { get; set; }
+        public string LanguageIso { get; set; }
         
         public int PageCount { get; set; }
 
         public double Review { get; set; }
+        
+        public List<ComicReview> ComicReviews { get; set; }
 
         public string FicheUrl { get; set; }
 
+    }
+
+    public class ComicReview
+    {
+        public DateTime? Reviewed { get; set; }
+        public int Note { get; set; }
     }
 }

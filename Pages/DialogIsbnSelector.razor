@@ -2,7 +2,7 @@
     @using MyComicsManagerWeb.Services
     @using System.IO
 
-    @inject ComicService ComicService
+    @inject ComicService _comicService
 
     <MudDialog>
         <DialogContent>
@@ -113,8 +113,8 @@
 
         protected override async Task OnInitializedAsync()
         {
-            firstPages = await ComicService.ExtractImages(Id, 5, true);
-            lastPages = await ComicService.ExtractImages(Id, 5, false);
+            firstPages = await _comicService.ExtractImages(Id, 5, true);
+            lastPages = await _comicService.ExtractImages(Id, 5, false);
         }
 
         private void Cancel()
@@ -133,7 +133,7 @@
             _imageIdProcessed = imageId;
             selectedISBN = "";
             listISBN.Clear();
-            listISBN = await ComicService.ExtractISBN(Id, imageId);
+            listISBN = await _comicService.ExtractISBN(Id, imageId);
             if (listISBN.Count > 0)
             {
                 selectedISBN = listISBN[0];
