@@ -84,7 +84,7 @@ namespace MyComicsManagerWeb.Services {
             httpResponse.EnsureSuccessStatusCode();
         }
 
-        public async Task UpdateComicAsync(Comic comicItem)
+        public async Task<Comic> UpdateComicAsync(Comic comicItem)
         {
             var comicItemJson = new StringContent(
                 JsonSerializer.Serialize(comicItem, _jsonSerializerOptions),
@@ -95,6 +95,8 @@ namespace MyComicsManagerWeb.Services {
                 await _httpClient.PutAsync($"/api/Comics/{comicItem.Id}", comicItemJson);
 
             httpResponse.EnsureSuccessStatusCode();
+
+            return await GetComic(comicItem.Id);
         }
 
         public async Task<Comic> SearchComicInfoAsync(string id)
@@ -145,8 +147,8 @@ namespace MyComicsManagerWeb.Services {
             Directory.CreateDirectory(_settings.FileUploadDirRootPath);
             
             // Upload du fichier
-            using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
-            using Stream stream = file.OpenReadStream(maxFileSize);
+            await using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
+            await using var stream = file.OpenReadStream(maxFileSize);
             await stream.CopyToAsync(savedFile).ConfigureAwait(false);
         }
 
@@ -159,7 +161,41 @@ namespace MyComicsManagerWeb.Services {
 
             // Lister les fichiers
             var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
-            return extensions.SelectMany(directory.EnumerateFiles);
+            return extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
+        }
+
+        public void DeleteEmptyDirs()
+        {
+            //DeleteEmptyDirs(_settings.FileUploadDirRootPath);
+        }
+        
+        private static void DeleteEmptyDirs(string dir)
+        {
+            if (string.IsNullOrEmpty(dir))
+            {
+                throw new ArgumentException("Starting directory is a null reference or an empty string", nameof(dir));
+            }
+
+            try
+            {
+                foreach (var d in Directory.EnumerateDirectories(dir))
+                {
+                    DeleteEmptyDirs(d);
+                }
+
+                var entries = Directory.EnumerateFileSystemEntries(dir);
+
+                if (!entries.Any())
+                {
+                    try
+                    {
+                        Directory.Delete(dir);
+                    }
+                    catch (UnauthorizedAccessException) { }
+                    catch (DirectoryNotFoundException) { }
+                }
+            }
+            catch (UnauthorizedAccessException) { }
         }
 
     }

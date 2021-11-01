@@ -2,7 +2,7 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
 
-        <EditForm Model="@comic" OnValidSubmit="Create" >
+        <EditForm Model="@_comic" OnValidSubmit="Create" >
                 
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -28,63 +28,60 @@
                     <MudText Typo="Typo.h5">Données techniques</MudText>
                     <MudGrid Spacing="2">
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="comic.Id" ReadOnly="true" />  
+                            <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="_comic.Id" ReadOnly="true" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField  Label="Library Id" Variant="Variant.Filled" @bind-Value="comic.LibraryId" ReadOnly="true" />  
+                            <MudTextField  Label="Library Id" Variant="Variant.Filled" @bind-Value="_comic.LibraryId" ReadOnly="true" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField  Label="EbookName" Variant="Variant.Filled" @bind-Value="comic.EbookName" ReadOnly="true" />  
+                            <MudTextField  Label="EbookName" Variant="Variant.Filled" @bind-Value="_comic.EbookName" ReadOnly="true" />  
                         </MudItem>
-                        <MudItem xs="12" sm="6">
-                            <MudTextField  Label="Ebook Path sur le serveur" Variant="Variant.Filled" @bind-Value="comic.EbookPath" ReadOnly="true" />  
-                        </MudItem>
-                     </MudGrid>
+                    </MudGrid>
                 </MudCardContent>
                 <MudCardContent>
                     <MudText Typo="Typo.h5">Informations sur le comic</MudText>
                     <MudGrid Spacing="2">
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Série" Variant="Variant.Text" @bind-Value="comic.Serie" /> 
+                            <MudTextField Label="Série" Variant="Variant.Text" @bind-Value="_comic.Serie" /> 
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Titre" Variant="Variant.Text" @bind-Value="comic.Title" />  
+                            <MudTextField Label="Titre" Variant="Variant.Text" @bind-Value="_comic.Title" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="comic.ISBN" />  
+                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="_comic.Isbn" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Volume" Variant="Variant.Text" @bind-Value="comic.Volume" />  
+                            <MudTextField Label="Volume" Variant="Variant.Text" @bind-Value="_comic.Volume" />  
                         </MudItem>                        
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Prix" Variant="Variant.Text" @bind-Value="comic.Price" />  
+                            <MudTextField Label="Prix" Variant="Variant.Text" @bind-Value="_comic.Price" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Catégorie" Variant="Variant.Text" @bind-Value="comic.Category" />  
+                            <MudTextField Label="Catégorie" Variant="Variant.Text" @bind-Value="_comic.Category" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Date de publication" Variant="Variant.Text" @bind-Value="comic.Published" />  
+                            <MudTextField Label="Date de publication" Variant="Variant.Text" @bind-Value="_comic.Published" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Scénariste" Variant="Variant.Text" @bind-Value="comic.Writer" /> 
+                            <MudTextField Label="Scénariste" Variant="Variant.Text" @bind-Value="_comic.Writer" /> 
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Déssinateur" Variant="Variant.Text" @bind-Value="comic.Penciller" />  
+                            <MudTextField Label="Déssinateur" Variant="Variant.Text" @bind-Value="_comic.Penciller" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Coloriste" Variant="Variant.Text" @bind-Value="comic.Colorist" />  
+                            <MudTextField Label="Coloriste" Variant="Variant.Text" @bind-Value="_comic.Colorist" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Editeur" Variant="Variant.Text" @bind-Value="comic.Editor" />  
+                            <MudTextField Label="Editeur" Variant="Variant.Text" @bind-Value="_comic.Editor" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Langue" Variant="Variant.Text" @bind-Value="comic.LanguageISO" /> 
+                            <MudTextField Label="Langue" Variant="Variant.Text" @bind-Value="_comic.LanguageIso" /> 
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Pages" Variant="Variant.Text" @bind-Value="comic.PageCount" />  
+                            <MudTextField Label="Pages" Variant="Variant.Text" @bind-Value="_comic.PageCount" />  
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Note" Variant="Variant.Text" @bind-Value="comic.Review" />
+                            <MudTextField Label="Note" Variant="Variant.Text" @bind-Value="_comic.Review" />
                         </MudItem>                        
                      </MudGrid>
                 </MudCardContent>

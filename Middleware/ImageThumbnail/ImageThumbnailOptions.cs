@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Text;
+﻿using SixLabors.ImageSharp;
 
 namespace ImageThumbnail.AspNetCore.Middleware
 {
@@ -14,7 +10,7 @@ namespace ImageThumbnail.AspNetCore.Middleware
             this.CacheDirectoryName = cacheDirectoryName;
             this.ThumbnailBackground = Color.White;
             this.ImageQuality = 90L;
-            this.DefaultSize = new Size?(new Size(256, 256));
+            this.DefaultSize = new Size(256, 256);
         }
         /// <summary>
         /// Gets or sets Images directory. 

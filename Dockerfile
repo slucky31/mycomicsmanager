@@ -9,6 +9,7 @@ WORKDIR /src
 
 # copy csproj and restore as distinct layers
 COPY ["MyComicsManagerWeb.csproj", "./"]
+COPY ["NuGet.config", "./"]
 RUN ls -la
 RUN dotnet restore -r linux-arm "./MyComicsManagerWeb.csproj"
 

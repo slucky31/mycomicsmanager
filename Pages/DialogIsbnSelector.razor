@@ -1,66 +1,84 @@
-﻿@using MyComicsManagerWeb.Models
-@using MyComicsManagerWeb.Services
-@using System.IO
+﻿    @using MyComicsManagerWeb.Models
+    @using MyComicsManagerWeb.Services
+    @using System.IO
 
-@inject ComicService ComicService
+    @inject ComicService _comicService
 
-<MudDialog>
-    <DialogContent>
+    <MudDialog>
+        <DialogContent>
 
-        <MudContainer Style="max-height: 500px; overflow-y: scroll">
+            <MudContainer Style="max-height: 650px;">
 
-            @if (firstPages == null)
-            {
-                <MudText Typo="Typo.h5">Loading ...</MudText>
-            }
-            else
-            {
-                <MudText Typo="Typo.h5">First pages</MudText>
+                @if (firstPages == null)
+                {
+                    <MudText Typo="Typo.h5">First pages Loading ...</MudText>
+                }
+                else
+                {
+                    <!--  Les 5 premières pages-->
+                    <MudGrid Spacing="2" Justify="Justify.Center">
+                        @foreach (var _page in firstPages)
+                        {
+                            string url = "/covers/isbn/" + _page + "?size=200";
+                            int idImage = Int32.Parse(Path.GetFileNameWithoutExtension(_page).Split('-')[1]);
+                            <MudItem xs="2">
+                                <MudCard>
+                                    <MudCardMedia Image="@url" Height="200" />
+                                    <MudCardActions>
+                                        @if (_processing && idImage == _imageIdProcessed)
+                                        {
+                                            <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary">
+                                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                                                <MudText Class="ms-2">Processing</MudText>
+                                            </MudButton>
+                                        }
+                                        else
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" OnClick="() => launchISBNAnalysis(idImage)" />
+                                        }
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
 
-                <!--  Les 5 premières pages-->
+                @if (lastPages == null)
+                {
+                    <MudText Typo="Typo.h5">Last pages Loading ...</MudText>
+                }
+                else
+                {
+                    <MudGrid Spacing="2" Justify="Justify.Center">
+                        @foreach (var _page in lastPages)
+                        {
+                            string url = "/covers/isbn/" + _page + "?size=200";
+                            int idImage = Int32.Parse(Path.GetFileNameWithoutExtension(_page).Split('-')[1]);
+                            <MudItem xs="2">
+                                <MudCard>
+                                    <MudCardMedia Image="@url" Height="200" />
+                                    <MudCardActions>
+                                        @if (_processing && idImage == _imageIdProcessed)
+                                        {
+                                            <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary">
+                                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                                                <MudText Class="ms-2">Processing</MudText>
+                                            </MudButton>
+                                        }
+                                        else
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" OnClick="() => launchISBNAnalysis(idImage)" />
+                                        }
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
 
-                <MudGrid Spacing="2" Justify="Justify.Center">
-                    @foreach (var _page in firstPages)
-                    {
-                        string url = "/covers/isbn/" + _page + "?size=200";
-                        int idImage = Int32.Parse(Path.GetFileNameWithoutExtension(_page).Split('-')[1]);
-                        <MudItem xs="3">
-                            <MudCard>
-                                <MudCardMedia Image="@url" Height="200" />
-                                <MudCardActions>
-                                    <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" OnClick="() => launchISBNAnalysis(idImage)" />
-                                </MudCardActions>
-                            </MudCard>
-                        </MudItem>
-                    }
-                </MudGrid>
-            }
-
-            @if (lastPages == null)
-            {
-                <MudText Typo="Typo.h5">Loading ...</MudText>
-            }
-            else
-            {
-                <MudText Typo="Typo.h5">Last pages</MudText>
-
-                <MudGrid Spacing="2" Justify="Justify.Center">
-                    @foreach (var _page in lastPages)
-                    {
-                        string url = "/covers/isbn/" + _page + "?size=200";
-                        int idImage = Int32.Parse(Path.GetFileNameWithoutExtension(_page).Split('-')[1]);
-                        <MudItem xs="3">
-                            <MudCard>
-                                <MudCardMedia Image="@url" Height="200" />
-                                <MudCardActions>
-                                    <MudIconButton Icon="@Icons.Material.Filled.ImageSearch" Color="Color.Default" OnClick="() => launchISBNAnalysis(idImage)" />
-                                </MudCardActions>
-                            </MudCard>
-                        </MudItem>
-                    }
-                </MudGrid>
-            }
-
+                
+                
+            </MudContainer>
             <MudSelect T="string" Label="Choose ISBN :" @bind-Value="@selectedISBN">
                 @foreach (var isbn in listISBN)
                 {
@@ -68,52 +86,61 @@
                     <MudSelectItem Value="@isbn" />
                 }
             </MudSelect>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton Color="Color.Error" OnClick="Save">Save</MudButton>
+        </DialogActions>
 
+    </MudDialog>
 
+    @code {
 
-        </MudContainer>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Error" OnClick="Save">Save</MudButton>
-    </DialogActions>
+        [CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
-</MudDialog>
+        [Parameter] public string Id { get; set; }
 
-@code {
+        private List<string> firstPages = null;
 
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+        private List<string> lastPages = null;
 
-    [Parameter] public string Id { get; set; }
+        private string selectedISBN;
+        
+        private bool _processing = false;
+        private int _imageIdProcessed = -1;
 
-    private List<string> firstPages = null;
+        protected List<string> listISBN = new List<string>();
 
-    private List<string> lastPages = null;
+        protected override async Task OnInitializedAsync()
+        {
+            firstPages = await _comicService.ExtractImages(Id, 5, true);
+            lastPages = await _comicService.ExtractImages(Id, 5, false);
+        }
 
-    private string selectedISBN;
+        private void Cancel()
+        {
+            MudDialog.Cancel();
+        }
 
-    protected List<string> listISBN = new List<string>();
+        private void Save()
+        {
+            MudDialog.Close(DialogResult.Ok(selectedISBN));
+        }
 
-    protected override async Task OnInitializedAsync()
-    {
-        firstPages = await ComicService.ExtractImages(Id, 4, true);
-        lastPages = await ComicService.ExtractImages(Id, 4, false);
+        private async void launchISBNAnalysis(int imageId)
+        {
+            _processing = true;
+            _imageIdProcessed = imageId;
+            selectedISBN = "";
+            listISBN.Clear();
+            listISBN = await _comicService.ExtractISBN(Id, imageId);
+            if (listISBN.Count > 0)
+            {
+                selectedISBN = listISBN[0];
+            }
+            _processing = false;
+            _imageIdProcessed = -1;
+            this.StateHasChanged();
+        }
+
     }
-
-    private void Cancel()
-    {
-        MudDialog.Cancel();
-    }
-
-    private void Save()
-    {
-        MudDialog.Close(DialogResult.Ok(selectedISBN));
-    }
-
-    private async void launchISBNAnalysis(int imageId)
-    {
-        listISBN.Clear();
-        listISBN = await ComicService.ExtractISBN(Id, imageId);
-    }
-
-}

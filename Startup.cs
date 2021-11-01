@@ -9,8 +9,11 @@ using MyComicsManagerWeb.Models;
 using Serilog;
 using ImageThumbnail.AspNetCore.Middleware;
 using MudBlazor.Services;
-using Microsoft.Extensions.FileProviders;
 using System.IO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
+using MyComicsManagerWeb.Middleware.ImageThumbnail;
 
 namespace MyComicsManagerWeb
 {
@@ -55,11 +58,26 @@ namespace MyComicsManagerWeb
 
             app.UseStaticFiles();
 
-            // Cr�ation du r�pertoire des covers si il n'existe pas
+            // Cr�ation du r�pertoire des covers si il n'existe pas
             Directory.CreateDirectory(settings.CoversDirRootPath);
 
-            ImageThumbnailOptions options = new ImageThumbnailOptions("covers", "thumbs");            
+            // Ajout du module Middleware pour gérer les thumnails à la volée
+            var options = new ImageThumbnailOptions("covers", "thumbs");            
             app.UseImageThumbnail(settings.CoversDirRootPath, options);
+            
+            // Set up custom content types -associating file extension to MIME type and Add new mappings
+            // Source : https://docs.microsoft.com/en-us/aspnet/core/fundamentals/static-files?view=aspnetcore-5.0#fileextensioncontenttypeprovider
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".cbz"] = "application/zip";
+
+            // Permettre de télécharger les fichiers en mode public
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(settings.LibrariesDirRootPath)),
+                RequestPath = new PathString("/download"),
+                ContentTypeProvider = provider
+            });
+
             app.UseRouting();
             app.UseSerilogRequestLogging();
 
