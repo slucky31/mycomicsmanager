@@ -23,16 +23,19 @@
                     <MudItem xs="12" sm="6">
                         <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="library.Id" ReadOnly="true"/>
                     </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="inputTmpPath" Variant="Variant.Filled" @bind-Value="library.TmpPath" ReadOnly="true" />
+                    </MudItem>
                 </MudGrid>
             </MudCardContent>
             <MudCardContent>
                 <MudText Typo="Typo.h5">Informations sur la librairie</MudText>
                 <MudGrid Spacing="2">
                     <MudItem xs="12" sm="6">
-                        <MudTextField Label="RelPath" Variant="Variant.Text" @bind-Value="library.RelPath"/>
+                        <MudTextField Label="Name" Variant="Variant.Text" @bind-Value="library.Name"/>
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudTextField Label="inputTmpPath" Variant="Variant.Text" @bind-Value="library.TmpPath"/>
+                        <MudTextField Label="RelPath" Variant="Variant.Text" @bind-Value="library.RelPath"/>
                     </MudItem>
                 </MudGrid>
             </MudCardContent>
