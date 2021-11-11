@@ -40,6 +40,10 @@ namespace MyComicsManagerWeb.Models
         public string Category { get; set; }
 
         public DateTime Published { get; set; }
+        
+        public DateTime Added { get; set; }
+        
+        public DateTime Edited { get; set; }
 
         public string Writer { get; set; }
 
