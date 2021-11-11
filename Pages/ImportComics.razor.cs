@@ -24,15 +24,21 @@ namespace MyComicsManagerWeb.Pages
         private int MaxAllowedFiles { get; } = 10;
         private bool Uploading { get; set; }
         private bool Importing { get; set; }
+        
+        private bool Listing { get; set; }
+        private bool ImportingComicFile { get; set; }
         private IList<IBrowserFile> BrowserFiles { get; set; } = new List<IBrowserFile>();        
         private string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf" };
-        private string DragEnterStyle { get; set; }
+        private int DragElevation { get; set; }
 
 
         protected override async Task OnInitializedAsync()
         {
             await ListImportingFiles().ConfigureAwait(false);
             Uploading = false;
+            ImportingComicFile = false;
+            Importing = false;
+            Listing = false;
             await base.OnInitializedAsync();
         }
 
@@ -97,7 +103,7 @@ namespace MyComicsManagerWeb.Pages
 
         private async Task AddComic(ComicFile file)
         {
-
+            ImportingComicFile = true;
             Comic comic = new Comic
             {
                 EbookName = file.Name,
@@ -107,6 +113,7 @@ namespace MyComicsManagerWeb.Pages
 
             };
             await ComicService.CreateComicAsync(comic);
+            ImportingComicFile = false;  
             ImportingFiles.Remove(file);
             this.StateHasChanged();
         }
@@ -125,6 +132,7 @@ namespace MyComicsManagerWeb.Pages
 
         private async Task ListImportingFiles()
         {
+            Listing = true;
             var files = ComicService.ListImportingFiles();
             Library lib = await LibraryService.GetSelectedLibrary();
                    
@@ -142,6 +150,7 @@ namespace MyComicsManagerWeb.Pages
                 };
                 ImportingFiles.Add(uploadedFile);
             }
+            Listing = false;
             this.StateHasChanged();
         }
 
