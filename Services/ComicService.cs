@@ -81,7 +81,10 @@ namespace MyComicsManagerWeb.Services {
             using var httpResponse =
                 await _httpClient.PostAsync("/api/Comics", comicItemJson);
 
-            httpResponse.EnsureSuccessStatusCode();
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                Log.Error("Une erreur est survenue lors de la création du comic {EbookPath}", comicItem.EbookPath);
+            }
         }
 
         public async Task<Comic> UpdateComicAsync(Comic comicItem)
