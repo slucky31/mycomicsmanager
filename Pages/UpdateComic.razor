@@ -35,6 +35,12 @@
                             <MudTextField Label="EbookPath" Variant="Variant.Filled" @bind-Value="comic.EbookPath" ReadOnly="true" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
+                            <MudTextField Label="Date d'ajout" Variant="Variant.Filled" @bind-Value="comic.Added" ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Date de modification" Variant="Variant.Filled" @bind-Value="comic.Edited" ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
                             <MudTextField Label="Cover Path" Variant="Variant.Filled" @bind-Value="comic.CoverPath" ReadOnly="true" />
                         </MudItem>
                     </MudGrid>
