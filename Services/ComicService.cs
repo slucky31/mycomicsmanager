@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using MyComicsManagerWeb.Models;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Linq;
+using System.Text.Json.Serialization;
 using Serilog;
 
 namespace MyComicsManagerWeb.Services {
@@ -24,7 +25,7 @@ namespace MyComicsManagerWeb.Services {
         {
             _jsonSerializerOptions = new JsonSerializerOptions
             {
-                IgnoreNullValues = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 WriteIndented = true
             };
             
