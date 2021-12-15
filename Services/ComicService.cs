@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using MyComicsManagerWeb.Models;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Linq;
+using System.Text.Json.Serialization;
 using Serilog;
 
 namespace MyComicsManagerWeb.Services {
@@ -24,7 +25,7 @@ namespace MyComicsManagerWeb.Services {
         {
             _jsonSerializerOptions = new JsonSerializerOptions
             {
-                IgnoreNullValues = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 WriteIndented = true
             };
             
@@ -81,7 +82,10 @@ namespace MyComicsManagerWeb.Services {
             using var httpResponse =
                 await _httpClient.PostAsync("/api/Comics", comicItemJson);
 
-            httpResponse.EnsureSuccessStatusCode();
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                Log.Error("Une erreur est survenue lors de la création du comic {EbookPath}", comicItem.EbookPath);
+            }
         }
 
         public async Task<Comic> UpdateComicAsync(Comic comicItem)
