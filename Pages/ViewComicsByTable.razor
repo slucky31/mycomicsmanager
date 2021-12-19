@@ -6,23 +6,40 @@
 @inject LibraryService _libraryService
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    
+    <MudButton
+        Class="ma-2"
+        Link="/comics/import"
+        Variant="Variant.Filled"
+        EndIcon="@Icons.Material.Filled.UploadFile"
+        Color="Color.Primary">
+        Import
+    </MudButton>
+    <MudButton
+        Class="ma-2"
+        Link="/"
+        Variant="Variant.Filled"
+        EndIcon="@Icons.Filled.CalendarViewMonth"
+        Color="Color.Primary">
+        ImageView
+    </MudButton>
 
     @if (Comics.Any())
     {
-        <MudTable Items="@Comics" Hover="true" SortLabel="Sort By" 
+        <MudTable Items="@Comics" Hover="true" SortLabel="Sort By"
                   GroupBy="@_groupDefinition"
                   Dense="true"
                   GroupHeaderStyle="background-color:var(--mud-palette-background-grey)"
                   GroupFooterClass="mb-4"
                   RowStyle="background-color:var(--mud-palette-white)">
             <ColGroup>
-                <col style="width: 60px;" />
-                <col />
-                <col />
+                <col style="width: 60px;"/>
+                <col/>
+                <col/>
             </ColGroup>
             <HeaderContent>
-                <MudTh><MudTableSortLabel SortBy="new Func<Comic, object>(x=>x.Volume)">Tome</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<Comic, object>(x=>x.Title)">Titre</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Comic, object>(x => x.Volume)">Tome</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Comic, object>(x => x.Title)">Titre</MudTableSortLabel></MudTh>
                 <MudTh>Actions</MudTh>
             </HeaderContent>
             <GroupHeaderTemplate>
@@ -44,13 +61,13 @@
                 </MudTd>
             </RowTemplate>
             <PagerContent>
-                <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+                <MudTablePager PageSizeOptions="new int[] {50, 100}"/>
             </PagerContent>
         </MudTable>
     }
     else
     {
-        <MudProgressCircular Color="Color.Info" Indeterminate="true" />
+        <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
     }
 
 </MudContainer>
