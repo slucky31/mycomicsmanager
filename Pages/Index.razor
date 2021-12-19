@@ -7,22 +7,27 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
     
-    @if (_comics == null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else
-    {
-        <MudButton
+    <MudButton
+        Class="ma-2"
+        Link="/comics/import"
+        Variant="Variant.Filled"
+        EndIcon="@Icons.Material.Filled.UploadFile"
+        Color="Color.Primary">
+        Import
+    </MudButton>
+    <MudButton
             Class="ma-2"
-            Link="/comics/import"
+            Link="/comics/table"
             Variant="Variant.Filled"
-            EndIcon="@Icons.Material.Filled.UploadFile"
+            EndIcon="@Icons.Material.Filled.TableView"
             Color="Color.Primary">
-            Import
+            TableView
         </MudButton>
+    @if (ComicsRandom.Any())
+    {
+        <MudText Typo="Typo.h5">Hasard</MudText>
         <MudGrid>
-            @foreach (var comic in _comics)
+            @foreach (var comic in ComicsRandom)
             {
                 var coverPath = "/covers/" + @comic.CoverPath + "?size=250";
                 var viewHref = "/comics/view/" + @comic.Id;
@@ -40,25 +45,59 @@
                     </MudCard>
                 </MudItem>
             }
-
         </MudGrid>
+    }
+    else
+    {
+        <MudProgressCircular Color="Color.Info" Indeterminate="true" />
+    }
+    @if (Comics.Any())
+    {
+        <MudText Typo="Typo.h5">Derniers Ajouts</MudText>
+        <MudGrid>
+            @foreach (var comic in Comics)
+            {
+                var coverPath = "/covers/" + @comic.CoverPath + "?size=250";
+                var viewHref = "/comics/view/" + @comic.Id;
+                var editHref = "/comics/edit/" + @comic.Id;
+                var downloadHref = "/download/" + _library.RelPath + "/" + @comic.EbookPath;
+                <MudItem xs="12" sm="4" lg="2">
+                    <MudCard>
+                        <MudCardMedia Image="@coverPath" Style="/*background-color: white; background-size: contain; background-repeat: no-repeat; */"/>
+                        <MudCardContent>
+                            <MudIconButton Icon="@Icons.Material.Filled.Search" Link="@viewHref" Title="View" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref" Title="Edit" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)" Title="Delete" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Download" Link="@downloadHref" Title="Download"/>
+                        </MudCardContent>                        
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        <MudProgressCircular Color="Color.Info" Indeterminate="true" />
     }
 </MudContainer>
 
 @code {
-    private IEnumerable<Comic> _comics;
 
+    private List<Comic> Comics { get; set; } = new();
+    private List<Comic> ComicsRandom { get; set; } = new();
+    
     private Library _library;
 
     protected override async Task OnInitializedAsync()
     {
-        _comics = await _comicService.GetComics();
+        ComicsRandom = (List<Comic>) await _comicService.GetComicsRandomLimitBy(10);
+        Comics = (List<Comic>) await _comicService.GetComicsOrderByLastAddedLimitBy(30);
         _library = await _libraryService.GetSelectedLibrary();
     }
 
-    private async Task DeleteComic(String id)
+    private async Task DeleteComic(string id)
     {
         await _comicService.DeleteComic(id);
-        _comics = await _comicService.GetComics();
+        Comics = (List<Comic>) await _comicService.GetComics();
     }
 }
