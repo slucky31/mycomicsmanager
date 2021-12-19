@@ -72,7 +72,7 @@
         </MudItem>
     </MudGrid>
     
-    @if ((!Listing)&&((UploadedFiles.Count() != 0) || Uploading))
+    @if ((!Listing)&&((UploadedFiles.Any()) || Uploading))
     {
         <MudText Typo="Typo.h5">Comics uploadés</MudText>
         <MudTable Items="UploadedFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Uploading" LoadingProgressColor="Color.Info">
@@ -95,9 +95,10 @@
         <MudProgressCircular Size="Size.Small" Color="Color.Info" Indeterminate="true" /> <MudText Class="my-4" >En cours de chargement des fichiers à importer</MudText>
     }
 
-    @if (ImportingFiles.Count() != 0)
+    @if (ImportingFiles.Any())
     {
         <MudText Class="my-4" Typo="Typo.h5">Comics en attente de traitement (@ImportingFiles.Count)</MudText>
+        <MudTd colspan="3"><MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.Add" OnClick="@(async () => await AddComics())">ADD ALL</MudButton></MudTd>
         <MudTable Items="ImportingFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Importing" LoadingProgressColor="Color.Info">
             <HeaderContent>
                 <MudTh>Fichier</MudTh>
@@ -108,19 +109,10 @@
                 <MudTd DataLabel="Fichier">@context.Name</MudTd>
                 <MudTd DataLabel="Taille">@(context.Size/1024/1024)</MudTd>
                 <MudTd DataLabel="Actions">
-                    @if (!ImportingComicFile)
-                    {
-                        <MudIconButton Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.UploadFile" OnClick="@(async () => await AddComic(context))"/>
-                    }
-                    else
-                    {
-                        <MudProgressCircular Color="Color.Info" Indeterminate="true" />
-                    }
+                    <MudIconButton Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.UploadFile" OnClick="@(async () => await AddComic(context))"/>
                 </MudTd>
             </RowTemplate>
-            <FooterContent>
-                <MudTd colspan="3"><MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.Add" OnClick="@(async () => await AddComics())">ADD ALL</MudButton></MudTd>
-            </FooterContent>
         </MudTable>
+        <MudTd colspan="3"><MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.Add" OnClick="@(async () => await AddComics())">ADD ALL</MudButton></MudTd>
     }
 </MudContainer>
