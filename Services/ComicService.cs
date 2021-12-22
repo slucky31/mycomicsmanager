@@ -129,9 +129,13 @@ namespace MyComicsManagerWeb.Services {
         {
             using var httpResponse = await _httpClient.GetAsync($"api/Comics/searchcomicinfo/{id}");
 
-            httpResponse.EnsureSuccessStatusCode();
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                Log.Warning("Le comic {Id} n'a pas été trouvé dans la base de référence", id);
+                return null;
+            }
 
-            using var responseStream = await httpResponse.Content.ReadAsStreamAsync();
+            await using var responseStream = await httpResponse.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<Comic>(responseStream);
         }
 

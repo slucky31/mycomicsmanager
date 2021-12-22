@@ -163,9 +163,18 @@
     private async Task SearchComicInfoAsync()
     {
         SearchComicInfoAsyncStatus = true;
-        comic = await ComicService.SearchComicInfoAsync(comic.Id);
+        var tmpComic = await ComicService.SearchComicInfoAsync(comic.Id);
         Snackbar.Clear();
-        Snackbar.Add("Recherche terminée", Severity.Normal);
+        if (null == tmpComic)
+        {
+            Snackbar.Add("Comic inconnu au bataillon !,", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Recherche terminée avec succès !", Severity.Success);
+            comic = tmpComic;
+        }
+        
         SearchComicInfoAsyncStatus = false;
         this.StateHasChanged();
     }
