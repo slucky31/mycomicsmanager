@@ -5,6 +5,7 @@
 
 @inject ComicService ComicService
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 @if (comic == null)
 {
@@ -97,8 +98,29 @@
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="EvaluateComicAsync">Evaluer</MudButton>
-                    <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="ExtractISBNComicAsync">Extraire ISBN</MudButton>
-                    <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="SearchComicInfoAsync">Import Données</MudButton>
+                    @if (!ExtractIsbnComicAsyncStatus)
+                    {
+                        <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="ExtractIsbnComicAsync">Extraire ISBN</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            <MudText Class="ms-2">Processing</MudText>
+                        </MudButton>
+                    }
+                    
+                    @if (!SearchComicInfoAsyncStatus)
+                    {
+                        <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="SearchComicInfoAsync">Rechercher</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            <MudText Class="ms-2">Processing</MudText>
+                        </MudButton>
+                    }
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
                 </MudCardActions>
             </MudCard>
@@ -120,9 +142,12 @@
 
     protected Comic comic;
 
-    protected List<string> listISBN = new List<string>();
+    protected List<string> ListIsbn = new List<string>();
 
-    protected string selectedISBN = "";
+    protected string SelectedIsbn = "";
+    
+    private bool ExtractIsbnComicAsyncStatus { get; set; } = false;
+    private bool SearchComicInfoAsyncStatus { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -137,13 +162,18 @@
 
     private async Task SearchComicInfoAsync()
     {
+        SearchComicInfoAsyncStatus = true;
         comic = await ComicService.SearchComicInfoAsync(comic.Id);
+        Snackbar.Clear();
+        Snackbar.Add("Recherche terminée", Severity.Normal);
+        SearchComicInfoAsyncStatus = false;
         this.StateHasChanged();
     }
 
-    private async Task ExtractISBNComicAsync()
+    private async Task ExtractIsbnComicAsync()
     {
 
+        ExtractIsbnComicAsyncStatus = true;
         var parameters = new DialogParameters();
         parameters.Add("Id", comic.Id);
 
@@ -166,6 +196,7 @@
             await ComicService.UpdateComicAsync(comic);
             this.StateHasChanged();
         }
+        ExtractIsbnComicAsyncStatus = false;
 
     }
     
