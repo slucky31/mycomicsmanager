@@ -28,7 +28,7 @@ namespace MyComicsManagerWeb.Pages
         private bool Listing { get; set; }
         private bool ImportingComicFile { get; set; }
         private IList<IBrowserFile> BrowserFiles { get; set; } = new List<IBrowserFile>();        
-        private string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf" };
+        private string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf", ".zip", ".rar" };
         private int DragElevation { get; set; }
 
 

@@ -19,7 +19,7 @@ namespace MyComicsManagerWeb.Services {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly IWebserviceSettings _settings;
         private readonly LibraryService _libraryService;
-        private readonly string[] extensions = { "*.cbr", "*.cbz", "*.pdf" };
+        private readonly string[] _extensions = { "*.cbr", "*.cbz", "*.pdf", "*.zip", "*.rar" };
 
         public ComicService(HttpClient client, IWebserviceSettings settings, LibraryService libraryService)
         {
@@ -191,7 +191,7 @@ namespace MyComicsManagerWeb.Services {
 
             // Lister les fichiers
             var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
-            return extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
+            return _extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
         }
 
         public void DeleteEmptyDirs()
