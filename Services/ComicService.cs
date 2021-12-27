@@ -19,7 +19,7 @@ namespace MyComicsManagerWeb.Services {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly IWebserviceSettings _settings;
         private readonly LibraryService _libraryService;
-        private readonly string[] extensions = { "*.cbr", "*.cbz", "*.pdf" };
+        private readonly string[] _extensions = { "*.cbr", "*.cbz", "*.pdf", "*.zip", "*.rar" };
 
         public ComicService(HttpClient client, IWebserviceSettings settings, LibraryService libraryService)
         {
@@ -129,9 +129,13 @@ namespace MyComicsManagerWeb.Services {
         {
             using var httpResponse = await _httpClient.GetAsync($"api/Comics/searchcomicinfo/{id}");
 
-            httpResponse.EnsureSuccessStatusCode();
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                Log.Warning("Le comic {Id} n'a pas été trouvé dans la base de référence", id);
+                return null;
+            }
 
-            using var responseStream = await httpResponse.Content.ReadAsStreamAsync();
+            await using var responseStream = await httpResponse.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<Comic>(responseStream);
         }
 
@@ -187,7 +191,7 @@ namespace MyComicsManagerWeb.Services {
 
             // Lister les fichiers
             var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
-            return extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
+            return _extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
         }
 
         public void DeleteEmptyDirs()
