@@ -12,15 +12,22 @@ namespace MyComicsManagerWeb
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddEnvironmentVariables()
             .Build();
+        
+        private const string LogFormat = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}";
     
         public static void Main(string[] args)
         {
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
                 .ReadFrom.Configuration(Configuration)
                 .Enrich.FromLogContext()
                 .WriteTo.Console(
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {NewLine}{Exception}")
+                    outputTemplate: LogFormat)
+                .WriteTo.File("logs/mcm-web-.log", 
+                    rollingInterval: RollingInterval.Day,
+                    outputTemplate: LogFormat,
+                    buffered:true)
                 .CreateLogger();
         
             try
