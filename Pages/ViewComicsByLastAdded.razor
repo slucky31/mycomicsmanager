@@ -23,8 +23,8 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
     
     <MudButton
-        Class="ma-2"
         Link="/"
+        Class="mb-6"
         Variant="Variant.Filled"
         EndIcon="@Icons.Filled.CalendarViewMonth"
         Color="Color.Primary">
@@ -40,7 +40,7 @@
                 var viewHref = "/comics/view/" + @comic.Id;
                 var editHref = "/comics/edit/" + @comic.Id;
                 var downloadHref = "/download/" + _library.RelPath + "/" + @comic.EbookPath;
-                <MudItem xs="12" md="4">
+                <MudItem xs="12" md="6" lg="4">
                     <MudPaper Class="py-1 px-1" >
                         <MudGrid >
                             <MudItem xs="12" Class="d-flex">
