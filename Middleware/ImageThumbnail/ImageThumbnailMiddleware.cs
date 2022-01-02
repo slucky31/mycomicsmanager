@@ -104,7 +104,7 @@ namespace MyComicsManagerWeb.Middleware.ImageThumbnail
                         if (request.ThumbnailSize != null)
                         {
                             image.Mutate(x => x.Resize(request.ThumbnailSize.Value.Width, 0));
-                            await image.SaveAsync(webPFileStream, new WebpEncoder() { FileFormat = WebpFileFormatType.Lossy });
+                            await image.SaveAsync(webPFileStream, new WebpEncoder { FileFormat = WebpFileFormatType.Lossy });
                         }
                     }
                     webPFileStream.Close();
