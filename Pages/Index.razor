@@ -22,7 +22,16 @@
             EndIcon="@Icons.Material.Filled.TableView"
             Color="Color.Primary">
             TableView
-        </MudButton>
+    </MudButton>
+    <MudButton
+        Class="ma-2"
+        Link="/comics/last-added"
+        Variant="Variant.Filled"
+        EndIcon="@Icons.Material.Filled.TableView"
+        Color="Color.Primary">
+        Last Added
+    </MudButton>
+    
     @if (ComicsRandom.Any())
     {
         <MudText Typo="Typo.h5">Hasard</MudText>
