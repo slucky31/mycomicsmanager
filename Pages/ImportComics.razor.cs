@@ -126,7 +126,6 @@ namespace MyComicsManagerWeb.Pages
                 await AddComic(file);
             }
             Importing = false;
-            ComicService.DeleteEmptyDirs();
             this.StateHasChanged();
         }
 
