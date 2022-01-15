@@ -1,0 +1,18 @@
+﻿@page "/books/create"
+@using MyComicsManagerWeb.Services
+
+@inject ComicService ComicService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+
+        <EditForm Model="@_book" OnValidSubmit="Create" >
+                
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            
+            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="_book.Isbn"/>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Ajouter</MudButton>
+            
+        </EditForm>
+            
+</MudContainer>
