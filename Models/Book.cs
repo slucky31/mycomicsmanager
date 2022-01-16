@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace MyComicsManagerWeb.Models
@@ -14,7 +15,9 @@ namespace MyComicsManagerWeb.Models
 
         public int Volume { get; set; }
         
-        public List<ComicReview> Reviews { get; set; }
+        public DateTime Added { get; set; }
+        
+        public int Review { get; set; }
 
     }
 }

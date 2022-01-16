@@ -1,17 +1,25 @@
-﻿@page "/books/create"
-@using MyComicsManagerWeb.Services
+﻿@page "/book/create"
 
-@inject ComicService ComicService
+@inject ISnackbar Snackbar
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" >
 
         <EditForm Model="@_book" OnValidSubmit="Create" >
                 
             <DataAnnotationsValidator />
             <ValidationSummary />
             
-            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="_book.Isbn"/>
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Ajouter</MudButton>
+            <MudGrid >
+                <MudItem xs="12" >
+                    <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="_book.Isbn"/>
+                </MudItem>
+                <MudItem xs="12"  Class="d-flex align-end">
+                    <MudRating @bind-SelectedValue="_book.Review"/>
+                </MudItem>
+                <MudItem xs="12" >
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Ajouter</MudButton>
+                </MudItem>
+            </MudGrid>
             
         </EditForm>
             
