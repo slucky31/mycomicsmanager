@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using BlazorBarcodeScanner.ZXing.JS;
 using MyComicsManagerWeb.Services;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -24,16 +25,22 @@ namespace MyComicsManagerWeb.Pages
             var tmp = await BookService.SearchBookInfoAsync(_book.Id);
             if (tmp != null)
             {
-                Snackbar.Add("Recherche terminée avec succès !", Severity.Success);
+                _snackbar.Add("Recherche terminée avec succès !", Severity.Success);
                 await BookService.Update(tmp);
                 NavigationManager.NavigateTo("book", false);
             }
             else
             {
-                Snackbar.Add("Comic inconnu au bataillon !,", Severity.Warning);
+                _snackbar.Add("Comic inconnu au bataillon !,", Severity.Warning);
                 NavigationManager.NavigateTo("book", false);
             }
             
+        }
+        
+        private void LocalReceivedBarcodeText(BarcodeReceivedEventArgs args)
+        {
+            _book.Isbn = args.BarcodeText;
+            StateHasChanged();
         }
         
     }
