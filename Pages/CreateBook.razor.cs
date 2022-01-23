@@ -16,17 +16,17 @@ namespace MyComicsManagerWeb.Pages
         [Inject]
         private NavigationManager NavigationManager { get; set; }
 
-        private Book _book = new Book();
+        private Book Book { get;  } = new Book();
         
         private async Task Create()
         {
 
-            var tmp = await BookService.SearchBookInfoAsync(_book.Isbn);
+            var tmp = await BookService.SearchBookInfoAsync(Book.Isbn);
             if (tmp != null)
             {
                 _snackbar.Add("Recherche terminée avec succès !", Severity.Success);
                 tmp.Added = DateTime.Now;
-                tmp.Review = _book.Review;
+                tmp.Review = Book.Review;
                 await BookService.Create(tmp);
                 NavigationManager.NavigateTo("book", false);
             }
@@ -40,7 +40,7 @@ namespace MyComicsManagerWeb.Pages
         
         private void LocalReceivedBarcodeText(BarcodeReceivedEventArgs args)
         {
-            _book.Isbn = args.BarcodeText;
+            Book.Isbn = args.BarcodeText;
             StateHasChanged();
         }
         

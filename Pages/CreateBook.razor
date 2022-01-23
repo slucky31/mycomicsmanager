@@ -6,7 +6,7 @@
     
     
 
-    <EditForm Model="@_book" OnValidSubmit="Create">
+    <EditForm Model="@Book" OnValidSubmit="Create">
 
         <DataAnnotationsValidator/>
         <ValidationSummary/>
@@ -15,10 +15,10 @@
             <MudItem xs="12" md="12" lg="6">
                 <MudGrid >
                     <MudItem xs="12">
-                        <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="_book.Isbn"/>
+                        <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="Book.Isbn"/>
                     </MudItem>
                     <MudItem xs="12" Class="d-flex align-end">
-                        <MudRating @bind-SelectedValue="_book.Review"/>
+                        <MudRating @bind-SelectedValue="Book.Review"/>
                     </MudItem>
                     <MudItem xs="12">
                         <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Ajouter</MudButton>
