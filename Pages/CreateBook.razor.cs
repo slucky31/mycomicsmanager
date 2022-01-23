@@ -20,18 +20,19 @@ namespace MyComicsManagerWeb.Pages
         
         private async Task Create()
         {
-            _book.Added = DateTime.Now;
-            _book = await BookService.Create(_book);
-            var tmp = await BookService.SearchBookInfoAsync(_book.Id);
+
+            var tmp = await BookService.SearchBookInfoAsync(_book.Isbn);
             if (tmp != null)
             {
                 _snackbar.Add("Recherche terminée avec succès !", Severity.Success);
-                await BookService.Update(tmp);
+                tmp.Added = DateTime.Now;
+                tmp.Review = _book.Review;
+                await BookService.Create(tmp);
                 NavigationManager.NavigateTo("book", false);
             }
             else
             {
-                _snackbar.Add("Comic inconnu au bataillon !,", Severity.Warning);
+                _snackbar.Add("Comic inconnu au bataillon !", Severity.Warning);
                 NavigationManager.NavigateTo("book", false);
             }
             

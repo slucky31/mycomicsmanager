@@ -25,7 +25,10 @@
                     </MudItem>
                 </MudGrid>
             </MudItem>
+            
+            @* Erreur après le scan 
             <MudItem xs="12" md="12" lg="6">
+                
                 <BlazorBarcodeScanner.ZXing.JS.BarcodeReader
                     Title="Scan Barcode from Camera"
                     StartCameraAutomatically="true"
@@ -37,8 +40,9 @@
                     ShowToggleTorch="false"
                     ShowResult="true"
                     ShowVideoDeviceList="false"
-                />
+                />                
             </MudItem>
+            *@
         </MudGrid>
         
         
