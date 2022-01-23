@@ -1,0 +1,51 @@
+﻿@page "/book/create"
+
+@inject ISnackbar _snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    
+    
+
+    <EditForm Model="@Book" OnValidSubmit="Create">
+
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+
+        <MudGrid >
+            <MudItem xs="12" md="12" lg="6">
+                <MudGrid >
+                    <MudItem xs="12">
+                        <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="Book.Isbn"/>
+                    </MudItem>
+                    <MudItem xs="12" Class="d-flex align-end">
+                        <MudRating @bind-SelectedValue="Book.Review"/>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Ajouter</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+            
+            @* Erreur après le scan 
+            <MudItem xs="12" md="12" lg="6">
+                
+                <BlazorBarcodeScanner.ZXing.JS.BarcodeReader
+                    Title="Scan Barcode from Camera"
+                    StartCameraAutomatically="true"
+                    VideoWidth="640"
+                    VideoHeight="480"
+                    OnBarcodeReceived="LocalReceivedBarcodeText"
+                    ShowStart="false"
+                    ShowReset="false"
+                    ShowToggleTorch="false"
+                    ShowResult="true"
+                    ShowVideoDeviceList="false"
+                />                
+            </MudItem>
+            *@
+        </MudGrid>
+        
+        
+    </EditForm>
+
+</MudContainer>

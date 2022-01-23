@@ -37,6 +37,7 @@ namespace MyComicsManagerWeb
             
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddHttpClient<BookService>();
             services.AddHttpClient<ComicService>();
             services.AddHttpClient<LibraryService>();
             services.AddMudServices(config =>
