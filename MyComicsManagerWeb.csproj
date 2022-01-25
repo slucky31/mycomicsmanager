@@ -12,7 +12,7 @@
 		<PackageReference Include="MudBlazor" Version="6.0.5" />
 		<PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
 		<PackageReference Include="BlazorBarcodeScanner.ZXing.JS" Version="0.2.6" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="2.0.0-alpha.0.159" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="2.0.0-alpha.0.160" />
 		<!-- Dépendeces pour ImageThumnail.AspNetCore.Middleware -->
 		<!-- https://github.com/osprakash/ImageThumbnail-aspnetcore -->
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
