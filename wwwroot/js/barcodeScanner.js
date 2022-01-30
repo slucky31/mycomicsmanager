@@ -1,10 +1,12 @@
+/*global Quagga */
+
 function InitBarcodeScanner(dotnetHelper) {
 
     Quagga.init({
         inputStream: {
             name: "Live",
             type: "LiveStream",
-            target: document.querySelector('#barcodeScannerElement')
+            target: document.querySelector("#barcodeScannerElement")
         },
         decoder: {
             // This is the type of barcode we are scanning. 
@@ -13,10 +15,8 @@ function InitBarcodeScanner(dotnetHelper) {
         }
     }, function (err) {
         if (err) {
-            console.log(err);
-            return
+            return;
         }
-        console.log("Initialization finished. Ready to start");
         Quagga.start();
     });
 
