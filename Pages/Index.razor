@@ -5,40 +5,9 @@
 @inject ComicService _comicService
 @inject LibraryService _libraryService
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+<MudContainer MaxWidth="MaxWidth.False" >
     
-    <MudButton
-        Class="ma-2"
-        Link="/comics/import"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Material.Filled.UploadFile"
-        Color="Color.Primary">
-        Import
-    </MudButton>
-    <MudButton
-            Class="ma-2"
-            Link="/comics/table"
-            Variant="Variant.Filled"
-            EndIcon="@Icons.Material.Filled.TableView"
-            Color="Color.Primary">
-            TableView
-    </MudButton>
-    <MudButton
-        Class="ma-2"
-        Link="/comics/last-added"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Material.Filled.TableView"
-        Color="Color.Primary">
-        Last Added
-    </MudButton>
-    <MudButton
-        Class="ma-2"
-        Link="/book"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Filled.CalendarViewMonth"
-        Color="Color.Primary">
-        Livres / BD
-    </MudButton>
+    <NavMenu/>
     
     @if (ComicsRandom.Any())
     {
@@ -47,7 +16,6 @@
             @foreach (var comic in ComicsRandom)
             {
                 var coverPath = "/covers/" + @comic.CoverPath + "?size=250";
-                var viewHref = "/comics/view/" + @comic.Id;
                 var editHref = "/comics/edit/" + @comic.Id;
                 var downloadHref = "/download/" + _library.RelPath + "/" + @comic.EbookPath;
                 <MudItem xs="12" sm="4" lg="2">

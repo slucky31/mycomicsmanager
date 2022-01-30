@@ -12,7 +12,9 @@
     <p><em>Loading...</em></p>
 
 } else { 
-    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudContainer MaxWidth="MaxWidth.False" >
+        
+        <NavMenu/>
 
         <EditForm Model="@comic" OnValidSubmit="Update">
 
