@@ -59,6 +59,8 @@ namespace MyComicsManagerWeb.Models
 
         public double Review { get; set; }
         
+        public bool WebPFormated { get; set; } = false;
+        
         public List<ComicReview> ComicReviews { get; set; }
 
         public string FicheUrl { get; set; }
