@@ -10,15 +10,59 @@
     <NavMenu/>
     
     <MudPaper Class="pa-4 ma-2" Elevation="3">
-        <MudTextField  @bind-Value="Search" Label="Search" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" />
+        <MudTextField  @bind-Value="SearchValue" Label="Search" Variant="Variant.Outlined" Clearable="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search"  OnClearButtonClick="@Search" OnKeyDown="@Enter"/>
     </MudPaper>
     
-    
-    
-    <ViewComicsByLastAdded/>
+        @if (SearchResultsComics.Any() || !string.IsNullOrEmpty(SearchValue))
+        {
+            @if (SearchInProgress)
+            {
+                <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
+            }
+            <ViewComicsByLastAdded @bind-ComicsList="SearchResultsComics" Library="_library"/>
+        }
+        else
+        {
+            <ViewComicsByLastAdded @bind-ComicsList="LastAddedComics" Library="_library"/>
+        }
     
 </MudContainer>
 
 @code {
-    public string Search { get; set;}
+    
+    private string SearchValue { get; set;}
+    private List<Comic> SearchResultsComics { get; set; } = new();
+    private List<Comic> LastAddedComics { get; set; } = new();
+    private bool SearchInProgress { get; set; }
+    private Library _library;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        LastAddedComics = (List<Comic>) await _comicService.GetComicsOrderByLastAddedLimitBy(12);
+        _library = await _libraryService.GetSelectedLibrary();
+    }
+    
+    private async Task Search()
+    {
+        if (string.IsNullOrEmpty(SearchValue))
+        {
+            SearchResultsComics.Clear();
+            StateHasChanged();
+            return;
+        }
+
+        SearchInProgress = true;
+        StateHasChanged();
+        SearchResultsComics = (List<Comic>) await _comicService.Find(SearchValue,50);
+        SearchInProgress = false;
+        StateHasChanged();
+    }
+
+    private async Task Enter(KeyboardEventArgs e)
+    {
+        if (e.Code is "Enter" or "NumpadEnter")
+        {
+         await Search();
+        }
+    }
 }

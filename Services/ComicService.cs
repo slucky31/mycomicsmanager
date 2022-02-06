@@ -67,6 +67,17 @@ namespace MyComicsManagerWeb.Services {
             return await JsonSerializer.DeserializeAsync
                 <IEnumerable<Comic>>(responseStream);
         }
+        
+        public async Task<IEnumerable<Comic>> Find(string search, int limit)
+        {
+            var response = await _httpClient.GetAsync($"/api/Comics/find/{search}/limit/{limit}");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync
+                <IEnumerable<Comic>>(responseStream);
+        }
 
         public async Task<Comic> GetComic(string id)
         {
