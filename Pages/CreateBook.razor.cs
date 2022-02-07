@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BlazorBarcodeScanner.ZXing.JS;
 using MyComicsManagerWeb.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -42,14 +41,8 @@ namespace MyComicsManagerWeb.Pages
             }
             
         }
-        
-        private void LocalReceivedBarcodeText(BarcodeReceivedEventArgs args)
-        {
-            Book.Isbn = args.BarcodeText;
-            StateHasChanged();
-        }
-        
-        private async Task GetBookInformation(string isbn)
+
+        private void GetBookInformation(string isbn)
         {
             Book.Isbn = isbn;
             StateHasChanged();

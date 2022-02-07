@@ -10,7 +10,6 @@
 
     @if (Books.Any())
     {
-        var uri = "books/create";
         <MudTable Items="@Books" Hover="true" SortLabel="Sort By"
                   Dense="false"
                   Filter="new Func<Book,bool>(FilterFunc1)"
