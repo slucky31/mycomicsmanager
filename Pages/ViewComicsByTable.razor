@@ -5,28 +5,14 @@
 @inject ComicService _comicService
 @inject LibraryService _libraryService
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+<MudContainer MaxWidth="MaxWidth.False" >
     
-    <MudButton
-        Class="ma-2"
-        Link="/comics/import"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Material.Filled.UploadFile"
-        Color="Color.Primary">
-        Import
-    </MudButton>
-    <MudButton
-        Class="ma-2"
-        Link="/"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Filled.CalendarViewMonth"
-        Color="Color.Primary">
-        ImageView
-    </MudButton>
+    <NavMenu/>
 
     @if (Comics.Any())
     {
         <MudTable Items="@Comics" Hover="true" SortLabel="Sort By"
+                  RowsPerPage="50"
                   GroupBy="@_groupDefinition"
                   Dense="true"
                   GroupHeaderStyle="background-color:var(--mud-palette-background-grey)"
@@ -61,7 +47,7 @@
                 </MudTd>
             </RowTemplate>
             <PagerContent>
-                <MudTablePager PageSizeOptions="new int[] {50, 100}"/>
+                <MudTablePager  PageSizeOptions="new int[] {50, 100, 200}"/>
             </PagerContent>
         </MudTable>
     }
@@ -73,7 +59,7 @@
 </MudContainer>
 
 @code {
-
+    
     private List<Comic> Comics { get; set; } = new();
     private Library _library;
     

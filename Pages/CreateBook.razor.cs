@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BlazorBarcodeScanner.ZXing.JS;
 using MyComicsManagerWeb.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 using MyComicsManagerWeb.Models;
 
@@ -15,6 +15,10 @@ namespace MyComicsManagerWeb.Pages
         
         [Inject]
         private NavigationManager NavigationManager { get; set; }
+        
+        [Inject] IJSRuntime JS { get; set; }
+
+        [Parameter] public EventCallback<string> OnISBNDetected { get; set; }
 
         private Book Book { get;  } = new Book();
         
@@ -37,11 +41,29 @@ namespace MyComicsManagerWeb.Pages
             }
             
         }
-        
-        private void LocalReceivedBarcodeText(BarcodeReceivedEventArgs args)
+
+        private void GetBookInformation(string isbn)
         {
-            Book.Isbn = args.BarcodeText;
+            Book.Isbn = isbn;
             StateHasChanged();
+        }
+        
+        string barcodeScannerElementStyle;
+
+        private async Task InitializeBarcodeScanner()
+        {
+            barcodeScannerElementStyle = string.Empty;
+            var dotNetObjectReference = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("InitBarcodeScanner", dotNetObjectReference);
+        }
+
+        [JSInvokable]
+        public async Task OnDetected(string isbn)
+        {
+            barcodeScannerElementStyle = "display:none;";
+            Book.Isbn = isbn;
+            StateHasChanged();
+            await OnISBNDetected.InvokeAsync(isbn);
         }
         
     }

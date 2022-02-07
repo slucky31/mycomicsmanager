@@ -2,17 +2,18 @@
 
 @inject ISnackbar _snackbar
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+<MudContainer MaxWidth="MaxWidth.False">
     
     
 
-    <EditForm Model="@Book" OnValidSubmit="Create">
-
-        <DataAnnotationsValidator/>
-        <ValidationSummary/>
+        <NavMenu/>
 
         <MudGrid >
             <MudItem xs="12" md="12" lg="6">
+                <EditForm Model="@Book" OnValidSubmit="Create">
+                
+                        <DataAnnotationsValidator/>
+                        <ValidationSummary/>
                 <MudGrid >
                     <MudItem xs="12">
                         <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="Book.Isbn"/>
@@ -24,11 +25,17 @@
                         <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Ajouter</MudButton>
                     </MudItem>
                 </MudGrid>
+                </EditForm>
             </MudItem>
             
-            @* Erreur après le scan 
+            
             <MudItem xs="12" md="12" lg="6">
+                <MudText Typo="Typo.h6">BarcodeScanner</MudText>
                 
+                <button class="btn btn-primary" @onclick="InitializeBarcodeScanner">Scan</button>
+                
+                <div id="barcodeScannerElement" style="@barcodeScannerElementStyle"></div>
+                @* Erreur après le scan 
                 <BlazorBarcodeScanner.ZXing.JS.BarcodeReader
                     Title="Scan Barcode from Camera"
                     StartCameraAutomatically="true"
@@ -40,12 +47,10 @@
                     ShowToggleTorch="false"
                     ShowResult="true"
                     ShowVideoDeviceList="false"
-                />                
+                />
+                *@
             </MudItem>
-            *@
+            
         </MudGrid>
-        
-        
-    </EditForm>
 
 </MudContainer>

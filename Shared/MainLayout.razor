@@ -1,20 +1,16 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider Theme="currentTheme" />
+<MudThemeProvider Theme="_currentTheme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">MyComicsManager</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.TwoTone.BrightnessMedium" Color="Color.Inherit" Edge="Edge.End" OnClick="@((e) => DarkMode())" Title="Toggle Dark/Light Mode" />
+        <MudIconButton Icon="@Icons.Material.TwoTone.BrightnessMedium" Color="Color.Inherit" Edge="Edge.End" OnClick="@((_) => DarkMode())" Title="Toggle Dark/Light Mode" />
         <MudIconButton Icon="@Icons.Material.TwoTone.Settings" Color="Color.Inherit" Edge="Edge.End" Title="Settings" Link="/settings" />
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu />
-    </MudDrawer>
     <MudMainContent>
         @Body
     </MudMainContent>
@@ -24,32 +20,20 @@
 </MudLayout>
 
 @code {
-    bool _drawerOpen = true;
-
-    void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
-    }
-
+    
     protected override void OnInitialized()
     {
-        currentTheme = defaultTheme;
+        _currentTheme = _defaultTheme;
     }
 
     void DarkMode()
     {
-        if (currentTheme == defaultTheme)
-        {
-            currentTheme = darkTheme;
-        }
-        else
-        {
-            currentTheme = defaultTheme;
-        }
+        _currentTheme = (_currentTheme != _defaultTheme) ? _defaultTheme : _darkTheme;
     }
 
-    MudTheme currentTheme = new MudTheme();
-    MudTheme defaultTheme = new MudTheme()
+    MudTheme _currentTheme = new MudTheme();
+
+    readonly MudTheme _defaultTheme = new MudTheme()
     {
         Palette = new Palette()
         {
@@ -58,7 +42,7 @@
         }
     };
 
-    MudTheme darkTheme = new MudTheme()
+    readonly MudTheme _darkTheme = new MudTheme()
     {
         Palette = new Palette()
         {
