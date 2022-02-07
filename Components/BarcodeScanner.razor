@@ -1,0 +1,27 @@
+<MudText Typo="Typo.h6">BarcodeScanner</MudText>
+
+<button class="btn btn-primary" @onclick="InitializeBarcodeScanner">Scan</button>
+
+<div id="barcodeScannerElement" style="@barcodeScannerElementStyle"></div>
+
+@code {
+    [Inject] IJSRuntime JS { get; set; }
+
+    [Parameter] public EventCallback<string> OnISBNDetected { get; set; }
+
+    string barcodeScannerElementStyle;
+
+    private async Task InitializeBarcodeScanner()
+    {
+        barcodeScannerElementStyle = string.Empty;
+        var dotNetObjectReference = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("InitBarcodeScanner", dotNetObjectReference);
+    }
+
+    [JSInvokable]
+    public async Task OnDetected(string isbn)
+    {
+        barcodeScannerElementStyle = "display:none;";
+        await OnISBNDetected.InvokeAsync(isbn);
+    }
+}

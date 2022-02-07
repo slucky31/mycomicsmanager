@@ -4,36 +4,12 @@
 @using MyComicsManagerWeb.Services
 @inject BookService _bookService
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+<MudContainer MaxWidth="MaxWidth.False" >
     
-    <MudButton
-        Class="ma-2"
-        Link="/comics/import"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Material.Filled.UploadFile"
-        Color="Color.Primary">
-        Import
-    </MudButton>
-    <MudButton
-        Class="ma-2"
-        Link="/"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Filled.CalendarViewMonth"
-        Color="Color.Primary">
-        ImageView
-    </MudButton>
-    <MudButton
-        Class="ma-2"
-        Link="/book"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Filled.CalendarViewMonth"
-        Color="Color.Primary">
-        Livres / BD
-    </MudButton>
+    <NavMenu/>
 
     @if (Books.Any())
     {
-        var uri = "books/create";
         <MudTable Items="@Books" Hover="true" SortLabel="Sort By"
                   Dense="false"
                   Filter="new Func<Book,bool>(FilterFunc1)"

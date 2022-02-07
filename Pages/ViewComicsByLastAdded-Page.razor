@@ -20,16 +20,9 @@
     }
 </style>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+<MudContainer MaxWidth="MaxWidth.False" >
     
-    <MudButton
-        Link="/"
-        Class="mb-6"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Filled.CalendarViewMonth"
-        Color="Color.Primary">
-        Accueil
-    </MudButton>
+    <NavMenu/>
 
     @if (Comics.Any())
     {
@@ -38,6 +31,7 @@
             {
                 var coverPath = "/covers/" + @comic.CoverPath + "?size=150";
                 var viewHref = "/comics/view/" + @comic.Id;
+                
                 var editHref = "/comics/edit/" + @comic.Id;
                 var downloadHref = "/download/" + _library.RelPath + "/" + @comic.EbookPath;
                 <MudItem xs="12" md="6" lg="4">

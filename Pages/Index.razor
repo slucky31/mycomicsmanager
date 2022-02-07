@@ -5,114 +5,64 @@
 @inject ComicService _comicService
 @inject LibraryService _libraryService
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+<MudContainer MaxWidth="MaxWidth.False" >
     
-    <MudButton
-        Class="ma-2"
-        Link="/comics/import"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Material.Filled.UploadFile"
-        Color="Color.Primary">
-        Import
-    </MudButton>
-    <MudButton
-            Class="ma-2"
-            Link="/comics/table"
-            Variant="Variant.Filled"
-            EndIcon="@Icons.Material.Filled.TableView"
-            Color="Color.Primary">
-            TableView
-    </MudButton>
-    <MudButton
-        Class="ma-2"
-        Link="/comics/last-added"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Material.Filled.TableView"
-        Color="Color.Primary">
-        Last Added
-    </MudButton>
-    <MudButton
-        Class="ma-2"
-        Link="/book"
-        Variant="Variant.Filled"
-        EndIcon="@Icons.Filled.CalendarViewMonth"
-        Color="Color.Primary">
-        Livres / BD
-    </MudButton>
+    <NavMenu/>
     
-    @if (ComicsRandom.Any())
-    {
-        <MudText Typo="Typo.h5">Hasard</MudText>
-        <MudGrid>
-            @foreach (var comic in ComicsRandom)
+    <MudPaper Class="pa-4 ma-2" Elevation="3">
+        <MudTextField  @bind-Value="SearchValue" Label="Search" Variant="Variant.Outlined" Clearable="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search"  OnClearButtonClick="@Search" OnKeyDown="@Enter"/>
+    </MudPaper>
+    
+        @if (SearchResultsComics.Any() || !string.IsNullOrEmpty(SearchValue))
+        {
+            @if (SearchInProgress)
             {
-                var coverPath = "/covers/" + @comic.CoverPath + "?size=250";
-                var viewHref = "/comics/view/" + @comic.Id;
-                var editHref = "/comics/edit/" + @comic.Id;
-                var downloadHref = "/download/" + _library.RelPath + "/" + @comic.EbookPath;
-                <MudItem xs="12" sm="4" lg="2">
-                    <MudCard>
-                        <MudCardMedia Image="@coverPath" Style="/*background-color: white; background-size: contain; background-repeat: no-repeat; */"/>
-                        <MudCardContent>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref" Title="Edit" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Download" Link="@downloadHref" Title="Download"/>
-                        </MudCardContent>                        
-                    </MudCard>
-                </MudItem>
+                <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
             }
-        </MudGrid>
-    }
-    else
-    {
-        <MudProgressCircular Color="Color.Info" Indeterminate="true" />
-    }
-    @if (Comics.Any())
-    {
-        <MudText Typo="Typo.h5">Derniers Ajouts</MudText>
-        <MudGrid>
-            @foreach (var comic in Comics)
-            {
-                var coverPath = "/covers/" + @comic.CoverPath + "?size=250";
-                var viewHref = "/comics/view/" + @comic.Id;
-                var editHref = "/comics/edit/" + @comic.Id;
-                var downloadHref = "/download/" + _library.RelPath + "/" + @comic.EbookPath;
-                <MudItem xs="12" sm="4" lg="2">
-                    <MudCard>
-                        <MudCardMedia Image="@coverPath" Style="/*background-color: white; background-size: contain; background-repeat: no-repeat; */"/>
-                        <MudCardContent>
-                            <MudIconButton Icon="@Icons.Material.Filled.Search" Link="@viewHref" Title="View" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Link="@editHref" Title="Edit" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteComic(comic.Id)" Title="Delete" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Download" Link="@downloadHref" Title="Download"/>
-                        </MudCardContent>                        
-                    </MudCard>
-                </MudItem>
-            }
-        </MudGrid>
-    }
-    else
-    {
-        <MudProgressCircular Color="Color.Info" Indeterminate="true" />
-    }
+            <ViewComicsByLastAdded @bind-ComicsList="SearchResultsComics" Library="_library"/>
+        }
+        else
+        {
+            <ViewComicsByLastAdded @bind-ComicsList="LastAddedComics" Library="_library"/>
+        }
+    
 </MudContainer>
 
 @code {
-
-    private List<Comic> Comics { get; set; } = new();
-    private List<Comic> ComicsRandom { get; set; } = new();
     
+    private string SearchValue { get; set;}
+    private List<Comic> SearchResultsComics { get; set; } = new();
+    private List<Comic> LastAddedComics { get; set; } = new();
+    private bool SearchInProgress { get; set; }
     private Library _library;
-
+    
     protected override async Task OnInitializedAsync()
     {
-        ComicsRandom = (List<Comic>) await _comicService.GetComicsRandomLimitBy(10);
-        Comics = (List<Comic>) await _comicService.GetComicsOrderByLastAddedLimitBy(30);
+        LastAddedComics = (List<Comic>) await _comicService.GetComicsOrderByLastAddedLimitBy(12);
         _library = await _libraryService.GetSelectedLibrary();
     }
-
-    private async Task DeleteComic(string id)
+    
+    private async Task Search()
     {
-        await _comicService.DeleteComic(id);
-        Comics = (List<Comic>) await _comicService.GetComics();
+        if (string.IsNullOrEmpty(SearchValue))
+        {
+            SearchResultsComics.Clear();
+            StateHasChanged();
+            return;
+        }
+
+        SearchInProgress = true;
+        StateHasChanged();
+        SearchResultsComics = (List<Comic>) await _comicService.Find(SearchValue,50);
+        SearchInProgress = false;
+        StateHasChanged();
+    }
+
+    private async Task Enter(KeyboardEventArgs e)
+    {
+        if (e.Code is "Enter" or "NumpadEnter")
+        {
+         await Search();
+        }
     }
 }
