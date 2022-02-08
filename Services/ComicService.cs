@@ -138,7 +138,7 @@ namespace MyComicsManagerWeb.Services {
 
         public async Task<Comic> SearchComicInfoAsync(string id)
         {
-            using var httpResponse = await _httpClient.GetAsync($"api/books/getinfo/{id}");
+            using var httpResponse = await _httpClient.GetAsync($"api/Comics/searchcomicinfo/{id}");
 
             if (!httpResponse.IsSuccessStatusCode)
             {
