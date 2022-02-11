@@ -25,26 +25,34 @@
                 <MudCardContent>
                     <MudText Typo="Typo.h5">Données techniques</MudText>
                     <MudGrid Spacing="2">
-                        <MudItem xs="12" sm="6">
-                            <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="comic.Id" ReadOnly="true" />
+                        @{
+                            var coverPath = "/covers/" + @comic.CoverPath + "?size=300";
+                        }
+                        <MudItem xs="12" sm="2">
+                            <MudElement HtmlTag="img" src="@coverPath"/>
                         </MudItem>
-                        <MudItem xs="12" sm="6">
-                            <MudTextField Label="Library Id" Variant="Variant.Filled" @bind-Value="comic.LibraryId" ReadOnly="true" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6">
-                            <MudTextField Label="EbookName" Variant="Variant.Filled" @bind-Value="comic.EbookName" ReadOnly="true" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6">
-                            <MudTextField Label="EbookPath" Variant="Variant.Filled" @bind-Value="comic.EbookPath" ReadOnly="true" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6">
-                            <MudTextField Label="Date d'ajout" Variant="Variant.Filled" @bind-Value="comic.Added" ReadOnly="true" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6">
-                            <MudTextField Label="Date de modification" Variant="Variant.Filled" @bind-Value="comic.Edited" ReadOnly="true" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6">
-                            <MudTextField Label="Cover Path" Variant="Variant.Filled" @bind-Value="comic.CoverPath" ReadOnly="true" />
+                        <MudItem xs="12" sm="10">
+                            <MudItem>
+                                <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="comic.Id" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem >
+                                <MudTextField Label="Library Id" Variant="Variant.Filled" @bind-Value="comic.LibraryId" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="EbookName" Variant="Variant.Filled" @bind-Value="comic.EbookName" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="EbookPath" Variant="Variant.Filled" @bind-Value="comic.EbookPath" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="Date d'ajout" Variant="Variant.Filled" @bind-Value="comic.Added" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="Date de modification" Variant="Variant.Filled" @bind-Value="comic.Edited" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="Cover Path" Variant="Variant.Filled" @bind-Value="comic.CoverPath" ReadOnly="true"/>
+                            </MudItem>
                         </MudItem>
                     </MudGrid>
                 </MudCardContent>
@@ -123,6 +131,7 @@
                             <MudText Class="ms-2">Processing</MudText>
                         </MudButton>
                     }
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="FindIsbnGoogleBookAsync" Class="ml-auto">GoogleSearch</MudButton>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
                 </MudCardActions>
             </MudCard>
@@ -148,8 +157,9 @@
 
     protected string SelectedIsbn = "";
     
-    private bool ExtractIsbnComicAsyncStatus { get; set; } = false;
-    private bool SearchComicInfoAsyncStatus { get; set; } = false;
+    private bool ExtractIsbnComicAsyncStatus { get; set; }
+    private bool SearchComicInfoAsyncStatus { get; set; }
+    private bool FindIsbnGoogleBookAsyncStatus { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -191,6 +201,36 @@
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
 
         var dialog = DialogService.Show<DialogIsbnSelector>("Select ISBN", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            if ((null != result.Data.ToString()) && (result.Data.ToString().Contains(':')))
+            {
+                comic.Isbn = result.Data.ToString().Split(':')[1].Trim();
+            }
+            else
+            {
+                comic.Isbn = result.Data.ToString();    
+            }
+            
+            await ComicService.UpdateComicAsync(comic);
+            this.StateHasChanged();
+        }
+        ExtractIsbnComicAsyncStatus = false;
+
+    }
+    
+    private async Task FindIsbnGoogleBookAsync()
+    {
+
+        FindIsbnGoogleBookAsyncStatus = true;
+        var parameters = new DialogParameters();
+        parameters.Add("Title", comic.Title);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+
+        var dialog = DialogService.Show<DialogGoogleIsbnSelector>("Select ISBN", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Cancelled)

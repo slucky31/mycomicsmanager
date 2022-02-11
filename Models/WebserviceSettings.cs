@@ -9,6 +9,8 @@ namespace MyComicsManagerWeb.Models
         public string CoversDirRootPath { get; set; }
 
         public string LibrariesDirRootPath { get; set; }
+        
+        public string ApiGoogleKey { get; set; }
 
     }
 
@@ -21,5 +23,7 @@ namespace MyComicsManagerWeb.Models
         string CoversDirRootPath { get; set; }
         
         string LibrariesDirRootPath { get; set; }
+        
+        string ApiGoogleKey { get; set; }
     }
 }

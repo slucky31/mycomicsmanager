@@ -11,12 +11,13 @@
 		</PackageReference>
 		<PackageReference Include="MudBlazor" Version="6.0.6" />
 		<PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="2.0.0-alpha.0.173" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="2.0.0" />
 		<!-- Dépendeces pour ImageThumnail.AspNetCore.Middleware -->
 		<!-- https://github.com/osprakash/ImageThumbnail-aspnetcore -->
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+		<PackageReference Include="Google.Apis.Books.v1" Version="1.55.0.2231" />
 	</ItemGroup>
 
 	<ItemGroup>
