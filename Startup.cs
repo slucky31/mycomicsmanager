@@ -37,9 +37,14 @@ namespace MyComicsManagerWeb
             
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            
+            // Service Configuration
             services.AddHttpClient<BookService>();
             services.AddHttpClient<ComicService>();
             services.AddHttpClient<LibraryService>();
+            services.AddHttpClient<BookInformationService>();
+            
+            // MudBlazor Config
             services.AddMudServices(config =>
             {
                 config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopRight;
