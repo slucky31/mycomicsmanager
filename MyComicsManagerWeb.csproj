@@ -17,7 +17,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-		<PackageReference Include="Google.Apis.Books.v1" Version="1.55.0.2231" />
+		<PackageReference Include="Google.Apis.Books.v1" Version="1.56.0.2231" />
 	</ItemGroup>
 
 	<ItemGroup>
