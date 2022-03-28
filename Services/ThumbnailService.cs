@@ -17,8 +17,11 @@ namespace MyComicsManagerWeb.Services {
 
         public void ClearAll()
         {
-            
-            if (!Directory.Exists(_pathThumbs)) return;
+
+            if (!Directory.Exists(_pathThumbs))
+            {
+                return;
+            }
             
             //Delete all files from the Directory
             foreach (var file in Directory.GetFiles(_pathThumbs))
