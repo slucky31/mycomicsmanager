@@ -1,0 +1,20 @@
+@if (!Status)
+{
+    @ChildContent
+}
+else
+{
+    <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+        <MudText Class="ms-2">Processing</MudText>
+    </MudButton>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    
+    [Parameter]
+    public bool Status { get; set; }
+    
+}
