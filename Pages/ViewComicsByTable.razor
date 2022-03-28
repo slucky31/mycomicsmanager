@@ -73,7 +73,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Comics = (List<Comic>) await _comicService.GetComics();
+        Comics = (List<Comic>) await _comicService.GetComicsOrderBySerieLimitBy(100);
         _library = await _libraryService.GetSelectedLibrary();
     }
 

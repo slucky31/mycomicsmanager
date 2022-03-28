@@ -57,6 +57,17 @@ namespace MyComicsManagerWeb.Services {
                 <IEnumerable<Comic>>(responseStream);
         }
         
+        public async Task<IEnumerable<Comic>> GetComicsOrderBySerieLimitBy(int limit)
+        {
+            var response = await _httpClient.GetAsync($"/api/comics/orderBy/serie/limit/{limit}");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync
+                <IEnumerable<Comic>>(responseStream);
+        }
+        
         public async Task<IEnumerable<Comic>> GetComicsRandomLimitBy(int limit)
         {
             var response = await _httpClient.GetAsync($"/api/comics/random/limit/{limit}");
