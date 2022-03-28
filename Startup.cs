@@ -44,6 +44,9 @@ namespace MyComicsManagerWeb
             services.AddHttpClient<LibraryService>();
             services.AddHttpClient<BookInformationService>();
             
+            
+            services.AddSingleton<ThumbnailService>();
+            
             // MudBlazor Config
             services.AddMudServices(config =>
             {
@@ -79,6 +82,7 @@ namespace MyComicsManagerWeb
             Directory.CreateDirectory(settings.CoversDirRootPath);
 
             // Ajout du module Middleware pour gérer les thumnails à la volée
+            // TODO Github#117 : Thumbs et covers doivent être gérés dans le fichier de configuration
             var options = new ImageThumbnailOptions("covers", "thumbs");            
             app.UseImageThumbnail(settings.CoversDirRootPath, options);
             

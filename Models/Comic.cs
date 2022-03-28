@@ -21,6 +21,8 @@ namespace MyComicsManagerWeb.Models
         public string EbookPath { get; set; }
 
         public string CoverPath { get; set; }
+        
+        public CoverType CoverType { get; set; }
 
         // Book info
 
@@ -71,5 +73,12 @@ namespace MyComicsManagerWeb.Models
     {
         public DateTime? Reviewed { get; set; }
         public int Note { get; set; }
+    }
+    
+    public enum CoverType
+    {
+        PORTRAIT,
+        LANDSCAPE_LEFT,
+        LANDSCAPE_RIGHT
     }
 }

@@ -2,10 +2,12 @@
 
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
+@using System.Threading
 
-@inject ComicService ComicService
-@inject IDialogService DialogService
-@inject ISnackbar Snackbar
+@inject ComicService _comicService
+@inject ThumbnailService _thumbnailService
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
 
 @if (comic == null)
 {
@@ -104,35 +106,37 @@
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="URL Fiche" Variant="Variant.Text" @bind-Value="comic.FicheUrl" />
                         </MudItem>
+                        <MudSelect Label="Type de cover" Variant="Variant.Text" @bind-Value="comic.CoverType" >
+                            @foreach (CoverType item in Enum.GetValues(typeof(CoverType)))
+                            {
+                                <MudSelectItem Value="@item">@item</MudSelectItem>
+                            }
+                        </MudSelect>
                     </MudGrid>
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="EvaluateComicAsync">Evaluer</MudButton>
-                    @if (!ExtractIsbnComicAsyncStatus)
-                    {
+
+                    <WaitMudButton Status="ExtractIsbnComicAsyncStatus">
                         <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="ExtractIsbnComicAsync">Extraire ISBN</MudButton>
-                    }
-                    else
-                    {
-                        <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
-                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                            <MudText Class="ms-2">Processing</MudText>
-                        </MudButton>
-                    }
+                    </WaitMudButton>
                     
-                    @if (!SearchComicInfoAsyncStatus)
-                    {
+                    <WaitMudButton Status="SearchComicInfoAsyncStatus">
                         <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="SearchComicInfoAsync">Rechercher</MudButton>
-                    }
-                    else
-                    {
-                        <MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
-                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                            <MudText Class="ms-2">Processing</MudText>
-                        </MudButton>
-                    }
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="FindIsbnGoogleBookAsync" Class="ml-auto">GoogleSearch</MudButton>
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
+                    </WaitMudButton>
+                    
+                    <WaitMudButton Status="ExtractCoverAsyncStatus">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ExtractCover" Class="ml-auto">Cover</MudButton>
+                    </WaitMudButton>
+                    
+                    <WaitMudButton Status="FindIsbnGoogleBookAsyncStatus">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="FindIsbnGoogleBookAsync" Class="ml-auto">GoogleSearch</MudButton>
+                    </WaitMudButton>
+                    
+                    <WaitMudButton Status="UpdateComicAsyncStatus">
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
+                    </WaitMudButton>
+                    
                 </MudCardActions>
             </MudCard>
 
@@ -157,33 +161,37 @@
 
     protected string SelectedIsbn = "";
     
+    private bool UpdateComicAsyncStatus { get; set; }
     private bool ExtractIsbnComicAsyncStatus { get; set; }
     private bool SearchComicInfoAsyncStatus { get; set; }
     private bool FindIsbnGoogleBookAsyncStatus { get; set; }
+    private bool ExtractCoverAsyncStatus { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        comic = await ComicService.GetComic(Id);
+        comic = await _comicService.GetComic(Id);
     }
 
     private async Task Update()
     {
-        comic = await ComicService.UpdateComicAsync(comic);
+        UpdateComicAsyncStatus = true;
+        comic = await _comicService.UpdateComicAsync(comic);
+        UpdateComicAsyncStatus = false;
         this.StateHasChanged();
     }
 
     private async Task SearchComicInfoAsync()
     {
         SearchComicInfoAsyncStatus = true;
-        var tmpComic = await ComicService.SearchComicInfoAsync(comic.Id);
-        Snackbar.Clear();
+        var tmpComic = await _comicService.SearchComicInfoAsync(comic.Id);
+        _snackbar.Clear();
         if (null == tmpComic)
         {
-            Snackbar.Add("Comic inconnu au bataillon !,", Severity.Warning);
+            _snackbar.Add("Comic inconnu au bataillon !,", Severity.Warning);
         }
         else
         {
-            Snackbar.Add("Recherche terminée avec succès !", Severity.Success);
+            _snackbar.Add("Recherche terminée avec succès !", Severity.Success);
             comic = tmpComic;
         }
         
@@ -195,26 +203,27 @@
     {
 
         ExtractIsbnComicAsyncStatus = true;
-        var parameters = new DialogParameters();
-        parameters.Add("Id", comic.Id);
+        var parameters = new DialogParameters {{"Id", comic.Id}};
 
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
 
-        var dialog = DialogService.Show<DialogIsbnSelector>("Select ISBN", parameters, options);
+        var dialog = _dialogService.Show<DialogIsbnSelector>("Select ISBN", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Cancelled)
         {
-            if ((null != result.Data.ToString()) && (result.Data.ToString().Contains(':')))
+            var isbn = result.Data.ToString();
+            
+            if ((null != isbn) && (isbn.Contains(':')))
             {
-                comic.Isbn = result.Data.ToString().Split(':')[1].Trim();
+                comic.Isbn = isbn.Split(':')[1].Trim();
             }
             else
             {
-                comic.Isbn = result.Data.ToString();    
+                comic.Isbn = isbn;    
             }
             
-            await ComicService.UpdateComicAsync(comic);
+            await _comicService.UpdateComicAsync(comic);
             this.StateHasChanged();
         }
         ExtractIsbnComicAsyncStatus = false;
@@ -230,25 +239,36 @@
 
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
 
-        var dialog = DialogService.Show<DialogGoogleIsbnSelector>("Select ISBN", parameters, options);
+        var dialog = _dialogService.Show<DialogGoogleIsbnSelector>("Select ISBN", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Cancelled)
         {
-            if ((null != result.Data.ToString()) && (result.Data.ToString().Contains(':')))
+            var isbn = result.Data.ToString();
+            
+            if ((null != isbn) && (isbn.Contains(':')))
             {
-                comic.Isbn = result.Data.ToString().Split(':')[1].Trim();
+                comic.Isbn = isbn.Split(':')[1].Trim();
             }
             else
             {
-                comic.Isbn = result.Data.ToString();    
+                comic.Isbn = isbn;    
             }
             
-            await ComicService.UpdateComicAsync(comic);
+            await _comicService.UpdateComicAsync(comic);
             this.StateHasChanged();
         }
-        ExtractIsbnComicAsyncStatus = false;
+        FindIsbnGoogleBookAsyncStatus = false;
 
+    }
+    
+    private async Task ExtractCover()
+    {
+        ExtractCoverAsyncStatus = true;
+        await _comicService.ExtractCover(comic.Id).WaitAsync(CancellationToken.None);
+        _thumbnailService.Clear(comic.Id);
+        this.StateHasChanged();
+        ExtractCoverAsyncStatus = false;
     }
     
     private async Task EvaluateComicAsync()
@@ -259,7 +279,7 @@
 
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
 
-        var dialog = DialogService.Show<DialogReview>("Evaluation", parameters, options);
+        var dialog = _dialogService.Show<DialogReview>("Evaluation", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Cancelled)
@@ -272,7 +292,7 @@
                 // L'évaluation est ajoutée
                 comic.ComicReviews.Add((ComicReview)result.Data);
             }
-            await ComicService.UpdateComicAsync(comic);
+            await _comicService.UpdateComicAsync(comic);
             this.StateHasChanged();
         }
 
