@@ -9,7 +9,7 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="MudBlazor" Version="6.0.7" />
+		<PackageReference Include="MudBlazor" Version="6.0.8" />
 		<PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
 		<!-- Dépendeces pour ImageThumnail.AspNetCore.Middleware -->
@@ -17,7 +17,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-		<PackageReference Include="Google.Apis.Books.v1" Version="1.56.0.2633" />
+		<PackageReference Include="Google.Apis.Books.v1" Version="1.57.0.2633" />
 	</ItemGroup>
 
 	<ItemGroup>

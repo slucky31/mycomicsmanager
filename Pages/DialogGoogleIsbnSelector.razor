@@ -119,7 +119,7 @@
             var identifier = IndustryIdentifiers.Where(i => i.Type.Equals("ISBN_13")).First();
             return identifier.Identifier;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return "";
         }
