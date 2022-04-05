@@ -13,18 +13,18 @@
         <MudTextField  @bind-Value="SearchValue" Label="Search" Variant="Variant.Outlined" Clearable="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search"  OnClearButtonClick="@Search" OnKeyDown="@Enter"/>
     </MudPaper>
     
-        @if (SearchResultsComics.Any() || !string.IsNullOrEmpty(SearchValue))
+    @if (SearchResultsComics.Any() || !string.IsNullOrEmpty(SearchValue))
+    {
+        @if (SearchInProgress)
         {
-            @if (SearchInProgress)
-            {
-                <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
-            }
-            <ViewComicsByLastAdded @bind-ComicsList="SearchResultsComics" Library="_library"/>
+            <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
         }
-        else
-        {
-            <ViewComicsByLastAdded @bind-ComicsList="LastAddedComics" Library="_library"/>
-        }
+        <ViewComics @bind-ComicsList="SearchResultsComics" Library="_library"/>
+    }
+    else
+    {
+        <ViewComics @bind-ComicsList="LastAddedComics" Library="_library"/>
+    }
     
 </MudContainer>
 
