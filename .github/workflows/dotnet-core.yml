@@ -38,7 +38,7 @@ jobs:
             run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.csproj"
         - 
             name: MyComicsManagerApi Build
-            run: dotnet build "/MyComicsManagerApi./MyComicsManagerApi.csproj" --configuration Release --no-restore
+            run: dotnet build "./MyComicsManagerApi/MyComicsManagerApi.csproj" --configuration Release --no-restore
         - 
             name: MyComicsManagerApi.Tests Install dependencies
             run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj"
