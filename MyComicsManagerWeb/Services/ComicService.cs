@@ -141,7 +141,7 @@ namespace MyComicsManagerWeb.Services {
                 "application/json");
 
             using var httpResponse =
-                await _httpClient.PutAsync($"/api/Comics/{comicItem.Id}", comicItemJson);
+                await _httpClient.PutAsync($"/api/comics/{comicItem.Id}", comicItemJson);
 
             httpResponse.EnsureSuccessStatusCode();
 
