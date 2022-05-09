@@ -21,7 +21,9 @@ WORKDIR "/src/MyComicsManagerWeb"
 RUN dotnet build "MyComicsManagerWeb.csproj" -c Release -o /app/build -r linux-arm -v d
 
 FROM build AS publish
+WORKDIR "/src/MyComicsManagerApi"
 RUN dotnet publish "MyComicsManagerApi.csproj" -c Release -o /app/publish -r linux-arm
+WORKDIR "/src/MyComicsManagerWeb"
 RUN dotnet publish "MyComicsManagerWeb.csproj" -c Release -o /app/publish -r linux-arm
 
 # Build runtime image
