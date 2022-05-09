@@ -75,13 +75,26 @@ namespace MyComicsManagerWeb
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
             app.UseStaticFiles();
 
-            // Cr�ation du r�pertoire des covers si il n'existe pas
-            Directory.CreateDirectory(settings.CoversDirRootPath);
-
-            // Ajout du module Middleware pour gérer les thumnails à la volée
+            // Création du répertoire des covers si il n'existe pas
+            if (settings?.CoversDirRootPath != null)
+            {
+                Directory.CreateDirectory(settings.CoversDirRootPath);
+            }
+            else
+            {
+                if (settings == null)
+                {
+                    Log.Fatal("settings is null !");
+                }
+                else if (settings.CoversDirRootPath == null)
+                {
+                    Log.Fatal("settings.CoversDirRootPath is null !");
+                }
+            }
+            
+            // Ajout du module Middleware pour gérer les thumbnails à la volée
             // TODO Github#117 : Thumbs et covers doivent être gérés dans le fichier de configuration
             var options = new ImageThumbnailOptions("covers", "thumbs");            
             app.UseImageThumbnail(settings.CoversDirRootPath, options);
