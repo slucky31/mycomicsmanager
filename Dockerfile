@@ -18,7 +18,7 @@ COPY . .
 RUN dotnet build "MyComicsManagerApi.csproj" -c Release -o /app/build -r linux-arm -v d
 RUN dotnet build "MyComicsManagerWeb.csproj" -c Release -o /app/build -r linux-arm -v d
 
-FROM build AD publish
+FROM build AS publish
 RUN dotnet publish "MyComicsManagerApi.csproj" -c Release -o /app/publish -r linux-arm
 RUN dotnet publish "MyComicsManagerWeb.csproj" -c Release -o /app/publish -r linux-arm
 
