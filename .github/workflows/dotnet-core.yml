@@ -68,7 +68,7 @@ jobs:
             id: meta
             uses: docker/metadata-action@v3
             with:
-                images: ghcr.io/slucky31/mycomicsmanager-web
+                images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-web
 
         - 
             name: Build and push Docker image MyComicsManagerWeb
@@ -106,7 +106,7 @@ jobs:
             id: meta
             uses: docker/metadata-action@v3
             with:
-                images: ghcr.io/slucky31/mycomicsmanager-api
+                images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-api
 
         - 
             name: Build and push Docker image MyComicsManagerApi
