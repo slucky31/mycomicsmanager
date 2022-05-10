@@ -29,10 +29,9 @@ RUN dotnet publish "MyComicsManagerWeb.csproj" -c Release -o /app/publish -r lin
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/runtime:6.0-bullseye-slim-arm32v7
 WORKDIR /app
-RUN ls -la
 EXPOSE 5000
 EXPOSE 8080
 COPY --from=publish /app/publish .
-RUN ls -la
+RUN echo $(ls -la .)
 ENTRYPOINT ["dotnet", "MyComicsManagerApi.dll"]
 ENTRYPOINT ["dotnet", "MyComicsManagerWeb.dll"]
