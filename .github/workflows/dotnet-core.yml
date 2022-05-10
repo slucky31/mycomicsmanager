@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ main, develop, feature/* ]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -62,7 +59,7 @@ jobs:
             name: Log in to the Container registry
             uses: docker/login-action@v1
             with:
-                registry: ${{ env.REGISTRY }}
+                registry: ghcr.io
                 username: ${{ github.actor }}
                 password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -71,7 +68,7 @@ jobs:
             id: meta
             uses: docker/metadata-action@v3
             with:
-                images: ${{ env.REGISTRY }}/mycomicsmanager-web
+                images: ghcr.io/slucky31/mycomicsmanager-web
 
         - 
             name: Build and push Docker image MyComicsManagerWeb
@@ -100,7 +97,7 @@ jobs:
             name: Log in to the Container registry
             uses: docker/login-action@v1
             with:
-                registry: ${{ env.REGISTRY }}
+                registry: ghcr.io
                 username: ${{ github.actor }}
                 password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -109,7 +106,7 @@ jobs:
             id: meta
             uses: docker/metadata-action@v3
             with:
-                images: ${{ env.REGISTRY }}/mycomicsmanager-api
+                images: ghcr.io/slucky31/mycomicsmanager-api
 
         - 
             name: Build and push Docker image MyComicsManagerApi
