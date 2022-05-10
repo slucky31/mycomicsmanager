@@ -1,0 +1,51 @@
+﻿@page "/stats"
+
+@using MyComicsManager.Model.Shared
+@using MyComicsManagerWeb.Services
+@inject ComicService ComicService
+
+
+<MudContainer MaxWidth="MaxWidth.False" >
+    
+    <NavMenu/>
+    <MudGrid>
+        <MudItem xs="2">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Nombre de comics</MudText>
+                    <MudText Typo="Typo.body2">@_nbComics</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="2">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Nombre de comics sans série</MudText>
+                    <MudText Typo="Typo.body2">@_nbComicsWithoutSerie</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+    
+    
+    
+</MudContainer>
+
+@code {
+
+    private long _nbComics = 0;
+    private long _nbComicsWithoutSerie = 0;
+   
+    protected override async Task OnInitializedAsync()
+    {
+        _nbComics = await ComicService.GetNbComics();
+        _nbComicsWithoutSerie = await ComicService.GetNbComicsWithoutSerie();
+    }
+    
+}

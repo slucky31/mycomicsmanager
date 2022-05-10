@@ -216,6 +216,26 @@ namespace MyComicsManagerWeb.Services {
             var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
             return _extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
         }
+        
+        public async Task<long> GetNbComics()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comics");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsWithoutSerie()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsWithoutSeries");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
 
     }
 }
