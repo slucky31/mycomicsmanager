@@ -1,0 +1,129 @@
+﻿@using MyComicsManagerWeb.Services
+@using Google.Apis.Books.v1
+@using Google.Apis.Books.v1.Data
+@using Google.Apis.Services
+@using MyComicsManagerWeb.Models
+@using Serilog
+
+@inject BookInformationService _bookInfoService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Recherche via Google Books</MudText>
+
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="Query" Label="Search" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search" OnClearButtonClick="@Search" OnKeyDown="@Enter"/>
+        <MudContainer Style="max-height: 650px; overflow-y: scroll">
+            @if (_bookInfo.Items != null && _bookInfo.Items.Any())
+            {
+                <MudTable Items="@_bookInfo.Items" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_processing" LoadingProgressColor="Color.Info">
+                    <HeaderContent>
+                        <MudTh>Title</MudTh>
+                        <MudTh>ISBN</MudTh>
+                        <MudTh>Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Title">@context.VolumeInfo.Title</MudTd>
+                        @{var isbn = extractISBN(@context.VolumeInfo.IndustryIdentifiers);}
+                        <MudTd DataLabel="ISBN">@isbn</MudTd>
+                        <MudTd DataLabel="Actions">
+                            @{
+                                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Check" OnClick="() => SelectComic(isbn)" Title="Select"/>
+                            }
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="MudDialog.Cancel">Cancel</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    public string Query { get; set; }
+
+    [Inject]
+    private IWebserviceSettings Settings { get; set; }
+
+    private bool _processing;
+
+    private Volumes _bookInfo = new Volumes();
+
+    protected override void OnInitialized()
+    {
+        Query = Title;
+    }
+
+    private async Task Search()
+    {
+        Log.Information("Search");
+        if (!string.IsNullOrEmpty(Query))
+        {
+            _processing = true;
+
+
+            var service = new BooksService(new BaseClientService.Initializer
+            {
+    // https://console.developers.google.com/apis/credentials?project=mycomicsmanager
+                ApiKey = Settings.ApiGoogleKey,
+                ApplicationName = "mycomicsmanager"
+            });
+
+            var listRequest = new VolumesResource.ListRequest(service, Query)
+            {
+                MaxResults = 25,
+                ShowPreorders = false,
+                LangRestrict = "fr",
+                PrintType = VolumesResource.ListRequest.PrintTypeEnum.BOOKS,
+                OrderBy = VolumesResource.ListRequest.OrderByEnum.Relevance
+            };
+
+            _bookInfo = await listRequest.ExecuteAsync();
+            _processing = false;
+        }
+    }
+
+    private async Task Enter(KeyboardEventArgs e)
+    {
+        if (e.Code is "Enter" or "NumpadEnter")
+        {
+            await Search();
+        }
+    }
+
+    private void SelectComic(string selectedIsbn)
+    {
+        MudDialog.Close(DialogResult.Ok(selectedIsbn));
+    }
+
+    private string extractISBN(IList<Volume.VolumeInfoData.IndustryIdentifiersData> IndustryIdentifiers)
+    {
+        if (null == IndustryIdentifiers)
+        {
+            return "";
+        }
+    
+        try
+        {
+            var identifier = IndustryIdentifiers.Where(i => i.Type.Equals("ISBN_13")).First();
+            return identifier.Identifier;
+        }
+        catch (Exception)
+        {
+            return "";
+        }
+        
+    }
+
+}

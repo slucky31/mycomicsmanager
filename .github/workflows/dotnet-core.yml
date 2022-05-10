@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ main, develop, feature/* ]
 
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,53 +23,97 @@ jobs:
                 dotnet-version: 6.0.x
         - 
             name: MyComicsManagerWeb Install dependencies
-            run: dotnet restore "./MyComicsManagerWeb.csproj"
+            run: dotnet restore "./MyComicsManagerWeb/MyComicsManagerWeb.csproj"
         - 
             name: MyComicsManagerWeb Build
-            run: dotnet build "./MyComicsManagerWeb.csproj" --configuration Release --no-restore #-v d : pour log détaillé
+            run: dotnet build "./MyComicsManagerWeb/MyComicsManagerWeb.csproj" --configuration Release --no-restore #-v d : pour log détaillé
+        #- 
+        #    name: MyComicsManagerWeb Test
+        #    run: dotnet test "./MyComicsManagerWeb/MyComicsManagerWeb.csproj" --no-restore --verbosity normal                   
         - 
-            name: MyComicsManagerWeb Test
-            run: dotnet test "./MyComicsManagerWeb.csproj" --no-restore --verbosity normal
-  
+            name: MyComicsManagerApi Install dependencies
+            run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.csproj"
+        - 
+            name: MyComicsManagerApi Build
+            run: dotnet build "./MyComicsManagerApi/MyComicsManagerApi.csproj" --configuration Release --no-restore
+        - 
+            name: MyComicsManagerApi.Tests Install dependencies
+            run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj"
+        - 
+            name: MyComicsManagerApi.Tests Test
+            run: dotnet test "./MyComicsManagerApi/MyComicsManagerApi.Tests/MyComicsManagerApiTests.csproj" --no-restore --verbosity normal
             
   docker-web:
     needs: build
-    # if: ${{ (github.ref == 'refs/heads/main') || (github.ref == 'refs/heads/develop') }}
+    #if: ${{ (github.ref == 'refs/heads/main') || (github.ref == 'refs/heads/develop') }}
     runs-on: ubuntu-latest
-    steps:      
+    permissions:
+        contents: read
+        packages: write        
+    steps:
+        -
+            name : Checkout
+            uses: actions/checkout@v3
+
         - 
-            name: Check Out Repo 
-            uses: actions/checkout@v2
-            with:
-                fetch-depth: 0
-        -
-            name: Set up QEMU
-            uses: docker/setup-qemu-action@v1
-        -
-            name: Set up Docker Buildx
-            uses: docker/setup-buildx-action@v1
-        -
-            name: Docker meta
-            id: meta
-            uses: crazy-max/ghaction-docker-meta@v2
-            with:
-              images: ${{ secrets.DOCKERHUB_USERNAME }}/mycomicsmanager-web
-              tags: |
-                type=ref,event=branch
-                type=ref,event=pr
-                type=semver,pattern={{version}}
-                type=semver,pattern={{major}}.{{minor}}
-        -
-            name: Login to DockerHub
+            name: Log in to the Container registry
             uses: docker/login-action@v1
             with:
-              username: ${{ secrets.DOCKERHUB_USERNAME }}
-              password: ${{ secrets.DOCKERHUB_TOKEN }}
-        -
-            name: Build and push
+                registry: ghcr.io
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+
+        - 
+            name: Extract metadata (tags, labels) for Docker
+            id: meta
+            uses: docker/metadata-action@v3
+            with:
+                images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-web
+
+        - 
+            name: Build and push Docker image MyComicsManagerWeb
             uses: docker/build-push-action@v2
             with:
-              context: .
-              file: ./Dockerfile
-              push: true # ${{ github.event_name != 'pull_request' }}
-              tags: ${{ steps.meta.outputs.tags }}
+                context: .
+                file: ./MyComicsManagerWeb/Dockerfile
+                push: true
+                tags: ${{ steps.meta.outputs.tags }}
+                labels: ${{ steps.meta.outputs.labels }}
+
+
+  docker-api:
+    needs: build
+    #if: ${{ (github.ref == 'refs/heads/main') || (github.ref == 'refs/heads/develop') }}
+    runs-on: ubuntu-latest
+    permissions:
+        contents: read
+        packages: write        
+    steps:
+        -
+            name : Checkout
+            uses: actions/checkout@v3
+
+        - 
+            name: Log in to the Container registry
+            uses: docker/login-action@v1
+            with:
+                registry: ghcr.io
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+
+        - 
+            name: Extract metadata (tags, labels) for Docker
+            id: meta
+            uses: docker/metadata-action@v3
+            with:
+                images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-api
+
+        - 
+            name: Build and push Docker image MyComicsManagerApi
+            uses: docker/build-push-action@v2
+            with:
+                context: .
+                file: ./MyComicsManagerApi/Dockerfile
+                push: true
+                tags: ${{ steps.meta.outputs.tags }}
+                labels: ${{ steps.meta.outputs.labels }}
