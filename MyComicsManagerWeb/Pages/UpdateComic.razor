@@ -1,0 +1,301 @@
+﻿@page "/comics/edit/{id}"
+
+@using MyComicsManager.Model.Shared
+@using MyComicsManagerWeb.Services
+@using System.Threading
+
+@inject ComicService _comicService
+@inject ThumbnailService _thumbnailService
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+
+@if (comic == null)
+{
+    <p><em>Loading...</em></p>
+
+} else { 
+    <MudContainer MaxWidth="MaxWidth.False" >
+        
+        <NavMenu/>
+
+        <EditForm Model="@comic" OnValidSubmit="Update">
+
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <MudCard Class="mt-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Données techniques</MudText>
+                    <MudGrid Spacing="2">
+                        @{
+                            var coverPath = "/covers/" + @comic.CoverPath + "?size=300";
+                        }
+                        <MudItem xs="12" sm="2">
+                            <MudElement HtmlTag="img" src="@coverPath"/>
+                        </MudItem>
+                        <MudItem xs="12" sm="10">
+                            <MudItem>
+                                <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="comic.Id" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem >
+                                <MudTextField Label="Library Id" Variant="Variant.Filled" @bind-Value="comic.LibraryId" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="EbookName" Variant="Variant.Filled" @bind-Value="comic.EbookName" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="EbookPath" Variant="Variant.Filled" @bind-Value="comic.EbookPath" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="Date d'ajout" Variant="Variant.Filled" @bind-Value="comic.Added" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="Date de modification" Variant="Variant.Filled" @bind-Value="comic.Edited" ReadOnly="true"/>
+                            </MudItem>
+                            <MudItem>
+                                <MudTextField Label="Cover Path" Variant="Variant.Filled" @bind-Value="comic.CoverPath" ReadOnly="true"/>
+                            </MudItem>
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Informations sur le comic</MudText>
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Série" Variant="Variant.Text" @bind-Value="comic.Serie" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Titre" Variant="Variant.Text" @bind-Value="comic.Title" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="ISBN" Variant="Variant.Text" @bind-Value="comic.Isbn" />                            
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Volume" Variant="Variant.Text" @bind-Value="comic.Volume" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Prix" Variant="Variant.Text" @bind-Value="comic.Price" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Catégorie" Variant="Variant.Text" @bind-Value="comic.Category" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Date de publication" Variant="Variant.Text" @bind-Value="comic.Published" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Scénariste" Variant="Variant.Text" @bind-Value="comic.Writer" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Déssinateur" Variant="Variant.Text" @bind-Value="comic.Penciller" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Coloriste" Variant="Variant.Text" @bind-Value="comic.Colorist" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Editeur" Variant="Variant.Text" @bind-Value="comic.Editor" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Langue" Variant="Variant.Text" @bind-Value="comic.LanguageIso" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Pages" Variant="Variant.Text" @bind-Value="comic.PageCount" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Note" Variant="Variant.Text" @bind-Value="comic.Review" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="URL Fiche" Variant="Variant.Text" @bind-Value="comic.FicheUrl" />
+                        </MudItem>
+                        <MudSelect Label="Type de cover" Variant="Variant.Text" @bind-Value="comic.CoverType" >
+                            @foreach (CoverType item in Enum.GetValues(typeof(CoverType)))
+                            {
+                                <MudSelectItem Value="@item">@item</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudGrid>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="EvaluateComicAsync">Evaluer</MudButton>
+
+                    <WaitMudButton Status="ExtractIsbnComicAsyncStatus">
+                        <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="ExtractIsbnComicAsync">Extraire ISBN</MudButton>
+                    </WaitMudButton>
+                    
+                    <WaitMudButton Status="SearchComicInfoAsyncStatus">
+                        <MudButton  Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="SearchComicInfoAsync">Rechercher</MudButton>
+                    </WaitMudButton>
+                    
+                    <WaitMudButton Status="ExtractCoverAsyncStatus">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ExtractCover" Class="ml-auto">Cover</MudButton>
+                    </WaitMudButton>
+                    
+                    <WaitMudButton Status="FindIsbnGoogleBookAsyncStatus">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="FindIsbnGoogleBookAsync" Class="ml-auto">GoogleSearch</MudButton>
+                    </WaitMudButton>
+                    
+                    <WaitMudButton Status="UpdateComicAsyncStatus">
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Enregistrer</MudButton>
+                    </WaitMudButton>
+                    
+                </MudCardActions>
+            </MudCard>
+
+        </EditForm>
+
+        
+
+    </MudContainer>
+
+
+
+}
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    protected Comic comic;
+
+    protected List<string> ListIsbn = new List<string>();
+
+    protected string SelectedIsbn = "";
+    
+    private bool UpdateComicAsyncStatus { get; set; }
+    private bool ExtractIsbnComicAsyncStatus { get; set; }
+    private bool SearchComicInfoAsyncStatus { get; set; }
+    private bool FindIsbnGoogleBookAsyncStatus { get; set; }
+    private bool ExtractCoverAsyncStatus { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        comic = await _comicService.GetComic(Id);
+    }
+
+    private async Task Update()
+    {
+        UpdateComicAsyncStatus = true;
+        comic = await _comicService.UpdateComicAsync(comic);
+        UpdateComicAsyncStatus = false;
+        this.StateHasChanged();
+    }
+
+    private async Task SearchComicInfoAsync()
+    {
+        SearchComicInfoAsyncStatus = true;
+        var tmpComic = await _comicService.SearchComicInfoAsync(comic.Id);
+        _snackbar.Clear();
+        if (null == tmpComic)
+        {
+            _snackbar.Add("Comic inconnu au bataillon !,", Severity.Warning);
+        }
+        else
+        {
+            _snackbar.Add("Recherche terminée avec succès !", Severity.Success);
+            comic = tmpComic;
+        }
+        
+        SearchComicInfoAsyncStatus = false;
+        this.StateHasChanged();
+    }
+
+    private async Task ExtractIsbnComicAsync()
+    {
+
+        ExtractIsbnComicAsyncStatus = true;
+        var parameters = new DialogParameters {{"Id", comic.Id}};
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+
+        var dialog = _dialogService.Show<DialogIsbnSelector>("Select ISBN", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var isbn = result.Data.ToString();
+            
+            if ((null != isbn) && (isbn.Contains(':')))
+            {
+                comic.Isbn = isbn.Split(':')[1].Trim();
+            }
+            else
+            {
+                comic.Isbn = isbn;    
+            }
+            
+            await _comicService.UpdateComicAsync(comic);
+            this.StateHasChanged();
+        }
+        ExtractIsbnComicAsyncStatus = false;
+
+    }
+    
+    private async Task FindIsbnGoogleBookAsync()
+    {
+
+        FindIsbnGoogleBookAsyncStatus = true;
+        var parameters = new DialogParameters();
+        parameters.Add("Title", comic.Title);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+
+        var dialog = _dialogService.Show<DialogGoogleIsbnSelector>("Select ISBN", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var isbn = result.Data.ToString();
+            
+            if ((null != isbn) && (isbn.Contains(':')))
+            {
+                comic.Isbn = isbn.Split(':')[1].Trim();
+            }
+            else
+            {
+                comic.Isbn = isbn;    
+            }
+            
+            await _comicService.UpdateComicAsync(comic);
+            this.StateHasChanged();
+        }
+        FindIsbnGoogleBookAsyncStatus = false;
+
+    }
+    
+    private async Task ExtractCover()
+    {
+        ExtractCoverAsyncStatus = true;
+        await _comicService.ExtractCover(comic.Id).WaitAsync(CancellationToken.None);
+        _thumbnailService.Clear(comic.Id);
+        this.StateHasChanged();
+        ExtractCoverAsyncStatus = false;
+    }
+    
+    private async Task EvaluateComicAsync()
+    {
+
+        var parameters = new DialogParameters();
+        parameters.Add("Id", comic.Id);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+
+        var dialog = _dialogService.Show<DialogReview>("Evaluation", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+
+            if (result.Data != null)
+            {
+                // Si le champ est null, il est initialisé
+                comic.ComicReviews ??= new List<ComicReview>();
+                // L'évaluation est ajoutée
+                comic.ComicReviews.Add((ComicReview)result.Data);
+            }
+            await _comicService.UpdateComicAsync(comic);
+            this.StateHasChanged();
+        }
+
+    }
+
+}

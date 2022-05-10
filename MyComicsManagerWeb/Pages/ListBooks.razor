@@ -1,0 +1,107 @@
+﻿@page "/book"
+
+@using MyComicsManager.Model.Shared
+@using MyComicsManagerWeb.Services
+@inject BookService _bookService
+
+<MudContainer MaxWidth="MaxWidth.False" >
+    
+    <NavMenu/>
+
+    @if (Books.Any())
+    {
+        <MudTable Items="@Books" Hover="true" SortLabel="Sort By"
+                  Dense="false"
+                  Filter="new Func<Book,bool>(FilterFunc1)"
+                  RowStyle="background-color:var(--mud-palette-white)">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Livres lus</MudText>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Add" OnClick="() => NavigateToBookCreate()" Title="Add"/>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Serie)">Série</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Volume)">Tome</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Title)">Titre</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Isbn)">Isbn</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Added)">Date de lecture</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Review)">Note</MudTableSortLabel></MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <GroupHeaderTemplate>
+                <MudTh Class="mud-table-cell-custom-group" colspan="5">@($"{context.GroupName} : {context.Key}")</MudTh>
+            </GroupHeaderTemplate>
+            <RowTemplate>
+                <MudTd DataLabel="Id">@context.Id</MudTd>
+                <MudTd DataLabel="Série">@context.Serie</MudTd>
+                <MudTd DataLabel="Tome">@context.Volume</MudTd>
+                <MudTd DataLabel="Titre">@context.Title</MudTd>
+                <MudTd DataLabel="Tome">@context.Isbn</MudTd>
+                <MudTd DataLabel="Date de lecture">@context.Added</MudTd>
+                <MudTd DataLabel="Note"><MudRating ReadOnly="true" SelectedValue="@context.Review"/></MudTd>
+                <MudTd DataLabel="Actions">
+                    @{
+                        <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="() => Delete(context.Id)" Title="Delete"/>
+                    }
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new[] {50, 100}"/>
+            </PagerContent>
+        </MudTable>
+    }
+    else
+    {
+        <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
+    }
+
+</MudContainer>
+
+@code {
+    
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+    
+    private List<Book> Books { get; set; } = new();
+    private string _searchString1 = "";
+
+    private TableGroupDefinition<Book> _groupDefinition = new()
+    {
+        GroupName = "Série",
+        Indentation = false,
+        Expandable = false,
+        Selector = (e) => e.Serie
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        Books = (List<Book>) await _bookService.List();
+    }
+
+    private async Task Delete(string id)
+    {
+        await _bookService.Delete(id);
+        Books = (List<Book>) await _bookService.List();
+    }
+    
+    private bool FilterFunc1(Book b) => FilterFunc(b, _searchString1);
+
+    private bool FilterFunc(Book b, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (b.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (b.Serie.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+    
+    private void NavigateToBookCreate()
+    {
+        NavigationManager.NavigateTo("/book/create");
+    }
+}
+
