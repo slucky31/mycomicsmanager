@@ -14,7 +14,7 @@ RUN dotnet restore -r linux-arm "MyComicsManagerApi/MyComicsManagerApi.csproj"
 
 # copy and publish app and libraries
 COPY . .
-WORKDIR "/src/MyComicsManagerApi"
+WORKDIR /src/MyComicsManagerApi
 RUN dotnet build "MyComicsManagerApi.csproj" -c Release -o /app/build -r linux-arm -v d
 
 FROM build AS publish
