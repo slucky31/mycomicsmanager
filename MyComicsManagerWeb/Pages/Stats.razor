@@ -13,7 +13,7 @@
             <MudCard>
                 <MudCardContent>
                     <MudText Typo="Typo.h5">Nombre de comics</MudText>
-                    <MudText Typo="Typo.body2">@_nbComics</MudText>
+                    <MudText Typo="Typo.h1">@_nbComics</MudText>
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
@@ -24,7 +24,18 @@
             <MudCard>
                 <MudCardContent>
                     <MudText Typo="Typo.h5">Nombre de comics sans série</MudText>
-                    <MudText Typo="Typo.body2">@_nbComicsWithoutSerie</MudText>
+                    <MudText Typo="Typo.h1">@_nbComicsWithoutSerie</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="2">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Nombre de comics sans ISBN</MudText>
+                    <MudText Typo="Typo.h1">@_nbComicsWithoutIsbn</MudText>
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
@@ -41,11 +52,13 @@
 
     private long _nbComics = 0;
     private long _nbComicsWithoutSerie = 0;
+    private long _nbComicsWithoutIsbn = 0;
    
     protected override async Task OnInitializedAsync()
     {
         _nbComics = await ComicService.GetNbComics();
         _nbComicsWithoutSerie = await ComicService.GetNbComicsWithoutSerie();
+        _nbComicsWithoutIsbn = await ComicService.GetNbComicsWithoutIsbn();
     }
     
 }

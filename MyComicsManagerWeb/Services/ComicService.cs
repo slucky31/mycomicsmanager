@@ -236,6 +236,16 @@ namespace MyComicsManagerWeb.Services {
             await using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<long>(responseStream);
         }
+        
+        public async Task<long> GetNbComicsWithoutIsbn()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsWithoutIsbn");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
 
     }
 }

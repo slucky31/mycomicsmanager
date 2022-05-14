@@ -368,13 +368,13 @@ namespace MyComicsManagerApi.Services
         
         public long CountComicsWithoutSerie()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => comic.Serie != null);
+            var filter = Builders<Comic>.Filter.Where(comic => string.IsNullOrEmpty(comic.Serie));
             return CountComicsRequest(filter);
         }
         
         public long CountComicsWithoutIsbn()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => comic.Isbn != null);
+            var filter = Builders<Comic>.Filter.Where(comic => string.IsNullOrEmpty(comic.Isbn));
             return CountComicsRequest(filter);
         }
         
