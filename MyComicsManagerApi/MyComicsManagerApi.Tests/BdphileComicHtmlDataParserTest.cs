@@ -1,11 +1,6 @@
 ﻿using Xunit;
 using FluentAssertions;
 using MyComicsManagerApi.DataParser;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MyComicsManagerApiTests
 {
