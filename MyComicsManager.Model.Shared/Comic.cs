@@ -28,6 +28,8 @@ namespace MyComicsManager.Model.Shared
         public string CoverPath { get; set; }
 
         public CoverType CoverType { get; set; }
+        
+        public long Size { get; set; }
 
         // Book info
 

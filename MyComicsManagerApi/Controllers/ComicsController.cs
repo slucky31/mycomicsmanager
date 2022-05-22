@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using MyComicsManagerApi.Models;
 using MyComicsManager.Model.Shared;
 using MyComicsManagerApi.Services;
 using System.Collections.Generic;
@@ -62,7 +61,9 @@ namespace MyComicsManagerApi.Controllers
         [HttpPost]
         public ActionResult<Comic> Create(Comic comic)
         {
-            var createdComic = _comicService.Create(comic);
+            BackgroundJob.Enqueue(() => _comicService.Create(comic));
+            return Accepted();
+            /*var createdComic = _comicService.Create(comic);
 
             if (createdComic == null)
             {
@@ -72,6 +73,7 @@ namespace MyComicsManagerApi.Controllers
             {
                 return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic);
             }
+            */
         }
 
         [HttpPut("{id:length(24)}")]

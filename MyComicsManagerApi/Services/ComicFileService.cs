@@ -34,6 +34,8 @@ namespace MyComicsManagerApi.Services
         private readonly string[] _extensionsImageArchive = {".jpeg", ".jpg", ".png", ".gif", ".webp"};
         private readonly string[] _extensionsImageArchiveWithoutWebp = {".jpeg", ".jpg", ".png", ".gif"};
         
+        private readonly string[] _extensions = { "*.cbr", "*.cbz", "*.pdf", "*.zip", "*.rar" };
+        
         private const int ResizedWidth = 1400;
 
         public ComicFileService(LibraryService libraryService, ComputerVisionService computerVisionService)
@@ -630,5 +632,6 @@ namespace MyComicsManagerApi.Services
             File.Move(filePath, errorPath);
             Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", filePath, errorPath);
         }
+        
     }
 }

@@ -97,5 +97,15 @@ namespace MyComicsManagerWeb.Services {
 
             httpResponse.EnsureSuccessStatusCode();
         }
+        
+        public async Task<List<Comic>> GetUploadedFiles()
+        {
+            var response = await _httpClient.GetAsync("/api/Libraries/uploaded");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<List<Comic>>(responseStream);
+        }
     }
 }

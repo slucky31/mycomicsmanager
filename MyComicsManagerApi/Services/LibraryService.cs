@@ -105,7 +105,7 @@ namespace MyComicsManagerApi.Services
             return _libSettings.CoversDirRootPath.TrimEnd(_charsToTrim) + Path.DirectorySeparatorChar;
         }
         
-        public List<FileInfo> GetUploadedFiles()
+        public List<Comic> GetUploadedFiles()
         {
             var fileUploadDirRootPath = GetFileUploadDirRootPath();
             string[] extensions = { "*.cbr", "*.cbz", "*.pdf", "*.zip", "*.rar" };
@@ -117,7 +117,22 @@ namespace MyComicsManagerApi.Services
 
             // Lister les fichiers
             var directory = new DirectoryInfo(fileUploadDirRootPath);        
-            return extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories)).ToList();
+            var files =  extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories)).ToList();
+            
+            var comics = new List<Comic>();
+            foreach (var file in files)
+            {
+                Log.Information("Fichier trouvé {File}", file.FullName);
+                var comic = new Comic()
+                {
+                    EbookName = file.Name,
+                    EbookPath = file.FullName,
+                    Size = file.Length
+                };
+                comics.Add(comic);
+            }
+
+            return comics;
         }
 
     }
