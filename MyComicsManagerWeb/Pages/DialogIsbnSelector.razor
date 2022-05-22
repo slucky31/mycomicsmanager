@@ -133,7 +133,7 @@
             _imageIdProcessed = imageId;
             selectedISBN = "";
             listISBN.Clear();
-            listISBN = await _comicService.ExtractISBN(Id, imageId);
+            listISBN = await _comicService.ExtractIsbn(Id, imageId);
             if (listISBN.Count > 0)
             {
                 selectedISBN = listISBN[0];
