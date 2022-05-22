@@ -368,13 +368,13 @@ namespace MyComicsManagerApi.Services
         
         public long CountComicsWithoutSerie()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => comic.Serie != null);
+            var filter = Builders<Comic>.Filter.Where(comic => string.IsNullOrEmpty(comic.Serie));
             return CountComicsRequest(filter);
         }
         
         public long CountComicsWithoutIsbn()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => comic.Isbn != null);
+            var filter = Builders<Comic>.Filter.Where(comic => string.IsNullOrEmpty(comic.Isbn));
             return CountComicsRequest(filter);
         }
         
@@ -388,6 +388,12 @@ namespace MyComicsManagerApi.Services
         {
             var filter = Builders<Comic>.Filter.Where(comic => comic.ComicReviews == null || comic.ComicReviews.Count == 0 );
             return CountComicsRequest(filter);
+        }
+        
+        public long CountSeries()
+        {
+            var filter = Builders<Comic>.Filter.Ne(comic => comic.Serie, null);
+            return _comics.Distinct(comic => comic.Serie, filter).ToList().Count;
         }
 
         private void MoveComic(string origin, string destination)

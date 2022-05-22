@@ -44,6 +44,11 @@ namespace MyComicsManagerApi.Controllers
             return _comicService.CountComicsUnRead();
         }
         
+        [HttpGet("series")]
+        public ActionResult<long> GetNbSeries()
+        {
+            return _comicService.CountSeries();
+        }
         
     }
 }

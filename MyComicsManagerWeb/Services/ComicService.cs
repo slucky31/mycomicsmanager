@@ -97,7 +97,7 @@ namespace MyComicsManagerWeb.Services {
 
             response.EnsureSuccessStatusCode();
 
-            using var responseStream = await response.Content.ReadAsStreamAsync();
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<Comic>(responseStream);
         }
 
@@ -169,13 +169,13 @@ namespace MyComicsManagerWeb.Services {
             httpResponse.EnsureSuccessStatusCode();            
         }
 
-        public async Task<List<string>> ExtractISBN(string id, int indexImage)
+        public async Task<List<string>> ExtractIsbn(string id, int indexImage)
         {
             using var response = await _httpClient.GetAsync($"api/Comics/extractisbn/{id}&{indexImage}");
 
             response.EnsureSuccessStatusCode();
 
-            using var responseStream = await response.Content.ReadAsStreamAsync();
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<List<string>>(responseStream);
 
         }
@@ -186,7 +186,7 @@ namespace MyComicsManagerWeb.Services {
 
             response.EnsureSuccessStatusCode();
 
-            using var responseStream = await response.Content.ReadAsStreamAsync();
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<List<string>>(responseStream);
 
         }
@@ -207,7 +207,7 @@ namespace MyComicsManagerWeb.Services {
 
         public IEnumerable<FileInfo> ListImportingFiles()
         {
-            Log.Information("Recherche des fichiers dans {path}", _settings.FileUploadDirRootPath);
+            Log.Information("Recherche des fichiers dans {Path}", _settings.FileUploadDirRootPath);
             
             // Création du répertoire si il n'existe pas
             Directory.CreateDirectory(_settings.FileUploadDirRootPath);
@@ -215,6 +215,66 @@ namespace MyComicsManagerWeb.Services {
             // Lister les fichiers
             var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
             return _extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
+        }
+        
+        public async Task<long> GetNbComics()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comics");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsWithoutSerie()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsWithoutSeries");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsWithoutIsbn()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsWithoutIsbn");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsRead()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsRead");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsUnRead()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsUnRead");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbSeries()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/series");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
         }
 
     }
