@@ -389,6 +389,12 @@ namespace MyComicsManagerApi.Services
             var filter = Builders<Comic>.Filter.Where(comic => comic.ComicReviews == null || comic.ComicReviews.Count == 0 );
             return CountComicsRequest(filter);
         }
+        
+        public long CountSeries()
+        {
+            var filter = Builders<Comic>.Filter.Ne(comic => comic.Serie, null);
+            return _comics.Distinct(comic => comic.Serie, filter).ToList().Count;
+        }
 
         private void MoveComic(string origin, string destination)
         {

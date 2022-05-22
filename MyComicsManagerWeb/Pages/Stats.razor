@@ -1,6 +1,5 @@
 ﻿@page "/stats"
 
-@using MyComicsManager.Model.Shared
 @using MyComicsManagerWeb.Services
 @inject ComicService ComicService
 
@@ -9,10 +8,10 @@
     
     <NavMenu/>
     <MudGrid>
-        <MudItem xs="2">
+        <MudItem xs="12" sm="3">
             <MudCard>
                 <MudCardContent>
-                    <MudText Typo="Typo.h5">Nombre de comics</MudText>
+                    <MudText Typo="Typo.h5">Comics</MudText>
                     <MudText Typo="Typo.h1">@_nbComics</MudText>
                 </MudCardContent>
                 <MudCardActions>
@@ -20,10 +19,10 @@
                 </MudCardActions>
             </MudCard>
         </MudItem>
-        <MudItem xs="2">
+        <MudItem xs="12" sm="3">
             <MudCard>
                 <MudCardContent>
-                    <MudText Typo="Typo.h5">Nombre de comics sans série</MudText>
+                    <MudText Typo="Typo.h5">Comics sans série</MudText>
                     <MudText Typo="Typo.h1">@_nbComicsWithoutSerie</MudText>
                 </MudCardContent>
                 <MudCardActions>
@@ -31,10 +30,10 @@
                 </MudCardActions>
             </MudCard>
         </MudItem>
-        <MudItem xs="2">
+        <MudItem xs="12" sm="3">
             <MudCard>
                 <MudCardContent>
-                    <MudText Typo="Typo.h5">Nombre de comics sans ISBN</MudText>
+                    <MudText Typo="Typo.h5">Comics sans ISBN</MudText>
                     <MudText Typo="Typo.h1">@_nbComicsWithoutIsbn</MudText>
                 </MudCardContent>
                 <MudCardActions>
@@ -42,23 +41,59 @@
                 </MudCardActions>
             </MudCard>
         </MudItem>
+        <MudItem xs="12" sm="3">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Comics lus</MudText>
+                    <MudText Typo="Typo.h1">@_nbComicsRead</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="3">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Comics à lire</MudText>
+                    <MudText Typo="Typo.h1">@_nbComicsUnRead</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="3">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Séries</MudText>
+                    <MudText Typo="Typo.h1">@_nbSeries</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>        
     </MudGrid>
-    
-    
-    
 </MudContainer>
 
 @code {
 
-    private long _nbComics = 0;
-    private long _nbComicsWithoutSerie = 0;
-    private long _nbComicsWithoutIsbn = 0;
+    private long _nbComics;
+    private long _nbComicsWithoutSerie;
+    private long _nbComicsWithoutIsbn;
+    private long _nbComicsRead;
+    private long _nbComicsUnRead;
+    private long _nbSeries;
    
     protected override async Task OnInitializedAsync()
     {
         _nbComics = await ComicService.GetNbComics();
         _nbComicsWithoutSerie = await ComicService.GetNbComicsWithoutSerie();
         _nbComicsWithoutIsbn = await ComicService.GetNbComicsWithoutIsbn();
+        _nbComicsRead = await ComicService.GetNbComicsRead();
+        _nbComicsUnRead = await ComicService.GetNbComicsUnRead();
+        _nbSeries = await ComicService.GetNbSeries();
     }
     
 }
