@@ -1,5 +1,4 @@
 ﻿@page "/comics/import"
-@using System.Diagnostics.Eventing.Reader
 
 <MudContainer MaxWidth="MaxWidth.False" >
     
@@ -42,7 +41,7 @@
     <MudPaper @ondragenter="@(()=>DragElevation=10)"
               @ondragleave="@(()=>DragElevation=1)"
               @ondragend="@(()=>DragElevation=1)"
-              Class=@("drag-drop-zone ")  Elevation="@DragElevation">
+              Class=@("drag-drop-zone")  Elevation="@DragElevation">
 
         <InputFile OnChange="OnInputFileChanged" multiple accept="@(GetAllowedExtensions())" />
 
@@ -74,7 +73,19 @@
         </MudItem>
     </MudGrid>
     
-    @if ((!Listing)&&((UploadedFiles.Any()) || Uploading))
+    <MudText Typo="Typo.h5">Comics en cours d'import</MudText>
+    <MudTable Items="ImportingComics" Hover="true" Breakpoint="Breakpoint.Sm" >
+        <HeaderContent>
+            <MudTh>EbookName</MudTh>
+            <MudTh>ImportStatus</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="EbookName">@context.EbookName</MudTd>
+            <MudTd DataLabel="ImportStatus">@context.ImportStatus</MudTd>
+        </RowTemplate>
+    </MudTable>
+    
+    @if (UploadedFiles.Any())
     {
         <MudText Typo="Typo.h5">Comics uploadés</MudText>
         <MudTable Items="UploadedFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Uploading" LoadingProgressColor="Color.Info">
@@ -92,14 +103,10 @@
             </RowTemplate>
         </MudTable>
     }
-    else if (Listing)
-    {
-        <MudProgressCircular Size="Size.Small" Color="Color.Info" Indeterminate="true" /> <MudText Class="my-4" >En cours de chargement des fichiers à importer</MudText>
-    }
 
     @if (ImportingFiles.Any())
     {
-        <MudText Class="my-4" Typo="Typo.h5">Comics en attente de traitement (@ImportingFiles.Count)</MudText>
+        <MudText Class="my-4" Typo="Typo.h5">Comics en attente d'import (@ImportingFiles.Count)</MudText>
         <MudTd colspan="3"><MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.Add" OnClick="@(async () => await AddComics())">ADD ALL</MudButton></MudTd>
         <MudTable Items="ImportingFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Importing" LoadingProgressColor="Color.Info">
             <HeaderContent>
@@ -117,4 +124,8 @@
         </MudTable>
         <MudTd colspan="3"><MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.Add" OnClick="@(async () => await AddComics())">ADD ALL</MudButton></MudTd>
     }
+    
+    
+    
+    
 </MudContainer>

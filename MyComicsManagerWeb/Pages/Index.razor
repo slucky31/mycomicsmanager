@@ -2,28 +2,31 @@
 
 @using MyComicsManager.Model.Shared
 @using MyComicsManagerWeb.Services
-@inject ComicService _comicService
-@inject LibraryService _libraryService
+@inject ComicService ComicService
+@inject LibraryService LibraryService
 
 <MudContainer MaxWidth="MaxWidth.False" >
     
     <NavMenu/>
     
     <MudPaper Class="pa-4 ma-2" Elevation="3">
-        <MudTextField  @bind-Value="SearchValue" Label="Search" Variant="Variant.Outlined" Clearable="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search"  OnClearButtonClick="@Search" OnKeyDown="@Enter"/>
+        <MudTextField  @bind-Value="SearchValue" Label="Search" Variant="Variant.Outlined" Immediate="true" Clearable="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search" OnClearButtonClick="@Clear" OnKeyPress="@Enter"/>
     </MudPaper>
     
-    @if (SearchResultsComics.Any() || !string.IsNullOrEmpty(SearchValue))
+    @if (SearchInProgress)
     {
-        @if (SearchInProgress)
-        {
-            <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
-        }
-        <ViewComics @bind-ComicsList="SearchResultsComics" Library="_library"/>
+        <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
+    }
+    
+    @if (LastAddedComics.Any())
+    {
+        <ViewComics @bind-ComicsList="LastAddedComics" Library="_library"/>
     }
     else
     {
-        <ViewComics @bind-ComicsList="LastAddedComics" Library="_library"/>
+        <MudPaper Class="pa-4 ma-2" Elevation="3">
+            <MudText>Aucun comic trouvé</MudText>
+        </MudPaper>
     }
     
 </MudContainer>
@@ -31,38 +34,42 @@
 @code {
     
     private string SearchValue { get; set;}
-    private List<Comic> SearchResultsComics { get; set; } = new();
     private List<Comic> LastAddedComics { get; set; } = new();
     private bool SearchInProgress { get; set; }
     private Library _library;
+    private int _nbItemsPerPage = 50;
     
     protected override async Task OnInitializedAsync()
     {
-        LastAddedComics = (List<Comic>) await _comicService.GetComicsOrderByLastAddedLimitBy(12);
-        _library = await _libraryService.GetSelectedLibrary();
+        LastAddedComics = (List<Comic>) await ComicService.GetComicsOrderByLastAddedLimitBy(_nbItemsPerPage);
+        _library = await LibraryService.GetSelectedLibrary();
     }
     
     private async Task Search()
     {
-        if (string.IsNullOrEmpty(SearchValue))
-        {
-            SearchResultsComics.Clear();
-            StateHasChanged();
-            return;
-        }
-
         SearchInProgress = true;
-        StateHasChanged();
-        SearchResultsComics = (List<Comic>) await _comicService.Find(SearchValue,50);
+        if (!string.IsNullOrEmpty(SearchValue))
+        {
+            LastAddedComics = (List<Comic>) await ComicService.Find(SearchValue,_nbItemsPerPage);    
+        }
+        else
+        {
+            LastAddedComics = (List<Comic>) await ComicService.GetComicsOrderByLastAddedLimitBy(_nbItemsPerPage);
+        }
         SearchInProgress = false;
-        StateHasChanged();
     }
 
     private async Task Enter(KeyboardEventArgs e)
     {
         if (e.Code is "Enter" or "NumpadEnter")
         {
-         await Search();
+            await Search();
         }
+    }
+    
+    private async Task Clear()
+    {
+        SearchValue = "";
+        LastAddedComics = (List<Comic>) await ComicService.GetComicsOrderByLastAddedLimitBy(_nbItemsPerPage);
     }
 }

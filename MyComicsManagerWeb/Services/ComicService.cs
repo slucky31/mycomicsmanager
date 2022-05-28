@@ -20,7 +20,7 @@ namespace MyComicsManagerWeb.Services {
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly IWebserviceSettings _settings;
         private readonly LibraryService _libraryService;
-        private readonly string[] _extensions = { "*.cbr", "*.cbz", "*.pdf", "*.zip", "*.rar" };
+        
 
         public ComicService(HttpClient client, IWebserviceSettings settings, LibraryService libraryService)
         {
@@ -205,17 +205,7 @@ namespace MyComicsManagerWeb.Services {
             await stream.CopyToAsync(savedFile).ConfigureAwait(false);
         }
 
-        public IEnumerable<FileInfo> ListImportingFiles()
-        {
-            Log.Information("Recherche des fichiers dans {Path}", _settings.FileUploadDirRootPath);
-            
-            // Création du répertoire si il n'existe pas
-            Directory.CreateDirectory(_settings.FileUploadDirRootPath);
-
-            // Lister les fichiers
-            var directory = new DirectoryInfo(_settings.FileUploadDirRootPath);        
-            return _extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
-        }
+        
         
         public async Task<long> GetNbComics()
         {
@@ -275,6 +265,16 @@ namespace MyComicsManagerWeb.Services {
 
             await using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<List<Comic>> GetImportingComics()
+        {
+            var response = await _httpClient.GetAsync($"/api/comics/importing");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<List<Comic>>(responseStream);
         }
 
     }
