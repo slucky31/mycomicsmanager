@@ -73,8 +73,7 @@ namespace MyComicsManagerApi.Controllers
             }
             else
             {
-                //BackgroundJob.Enqueue(() => _comicService.Import(comic));
-                _comicService.Import(comic);
+                BackgroundJob.Enqueue(() => _comicService.Import(comic));
                 return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
             }
         }

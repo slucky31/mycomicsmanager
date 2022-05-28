@@ -7,6 +7,7 @@ using System.IO;
 using System;
 using System.Globalization;
 using System.Linq;
+using Hangfire;
 using MongoDB.Bson;
 using MyComicsManagerApi.DataParser;
 using MyComicsManagerApi.Exceptions;
@@ -167,15 +168,20 @@ namespace MyComicsManagerApi.Services
             // Calcul du nombre d'images dans le fichier CBZ
             _comicFileService.SetNumberOfImagesInCbz(comic);
             comic.ImportStatus = ImportStatus.NB_IMAGES_SET;
+            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
             _comics.ReplaceOne(c => c.Id == comic.Id, comic);
             
             // Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic       
             _comicFileService.SetAndExtractCoverImage(comic);
             comic.ImportStatus = ImportStatus.COVER_GENERATED;
+            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
             _comics.ReplaceOne(c => c.Id == comic.Id, comic);
             
             comic.ImportStatus = ImportStatus.IMPORTED;
+            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
             Update(comic.Id, comic);
+            
+            BackgroundJob.Enqueue(() => ConvertImagesToWebP(comic));
 
             return comic;
         }
