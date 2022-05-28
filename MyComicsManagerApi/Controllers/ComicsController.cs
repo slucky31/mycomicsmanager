@@ -44,6 +44,10 @@ namespace MyComicsManagerApi.Controllers
         [HttpGet("find/{item}/limit/{limit:int}")]
         public ActionResult<List<Comic>> FindBySerieOrTitle(string item, int limit) =>
             _comicService.Find(item, limit);
+        
+        [HttpGet("importing")]
+        public ActionResult<List<Comic>> GetImportingComics() =>
+            _comicService.GetImportingComics();
 
         [HttpGet("{id:length(24)}", Name = "GetComic")]
         public ActionResult<Comic> Get(string id)
@@ -61,9 +65,7 @@ namespace MyComicsManagerApi.Controllers
         [HttpPost]
         public ActionResult<Comic> Create(Comic comic)
         {
-            BackgroundJob.Enqueue(() => _comicService.Create(comic));
-            return Accepted();
-            /*var createdComic = _comicService.Create(comic);
+            var createdComic = _comicService.Create(comic);
 
             if (createdComic == null)
             {
@@ -71,9 +73,10 @@ namespace MyComicsManagerApi.Controllers
             }
             else
             {
-                return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic);
+                //BackgroundJob.Enqueue(() => _comicService.Import(comic));
+                _comicService.Import(comic);
+                return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
             }
-            */
         }
 
         [HttpPut("{id:length(24)}")]
@@ -126,7 +129,7 @@ namespace MyComicsManagerApi.Controllers
         }
 
         [HttpGet("extractisbn/{id:length(24)}&{indexImage:int}")]
-        public ActionResult<List<string>> ExtractISBN(string id, int indexImage)
+        public ActionResult<List<string>> ExtractIsbn(string id, int indexImage)
         {
             var comic = _comicService.Get(id);
 

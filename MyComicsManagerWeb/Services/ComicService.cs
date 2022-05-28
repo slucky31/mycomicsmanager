@@ -266,6 +266,16 @@ namespace MyComicsManagerWeb.Services {
             await using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<long>(responseStream);
         }
+        
+        public async Task<List<Comic>> GetImportingComics()
+        {
+            var response = await _httpClient.GetAsync($"/api/comics/importing");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<List<Comic>>(responseStream);
+        }
 
     }
 }

@@ -22,13 +22,18 @@
     {
         <ViewComics @bind-ComicsList="LastAddedComics" Library="_library"/>
     }
+    else
+    {
+        <MudPaper Class="pa-4 ma-2" Elevation="3">
+            <MudText>Aucun comic trouvé</MudText>
+        </MudPaper>
+    }
     
 </MudContainer>
 
 @code {
     
     private string SearchValue { get; set;}
-    //private List<Comic> SearchResultsComics { get; set; } = new();
     private List<Comic> LastAddedComics { get; set; } = new();
     private bool SearchInProgress { get; set; }
     private Library _library;
@@ -42,10 +47,16 @@
     
     private async Task Search()
     {
+        SearchInProgress = true;
         if (!string.IsNullOrEmpty(SearchValue))
         {
             LastAddedComics = (List<Comic>) await ComicService.Find(SearchValue,_nbItemsPerPage);    
         }
+        else
+        {
+            LastAddedComics = (List<Comic>) await ComicService.GetComicsOrderByLastAddedLimitBy(_nbItemsPerPage);
+        }
+        SearchInProgress = false;
     }
 
     private async Task Enter(KeyboardEventArgs e)

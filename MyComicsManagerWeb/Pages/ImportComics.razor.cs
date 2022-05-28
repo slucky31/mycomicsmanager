@@ -21,11 +21,12 @@ namespace MyComicsManagerWeb.Pages
         private LibraryService LibraryService { get; set; }
         private List<ComicFile> UploadedFiles { get; } = new();
         private List<ComicFile> ImportingFiles { get; }  = new();
+        
+        private List<Comic> ImportingComics { get; set; }  
         private int MaxAllowedFiles { get; } = 10;
         private bool Uploading { get; set; }
         private bool Importing { get; set; }
         
-        private bool Listing { get; set; }
         private IList<IBrowserFile> BrowserFiles { get; set; } = new List<IBrowserFile>();        
         private string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf", ".zip", ".rar" };
         private int DragElevation { get; set; }
@@ -34,6 +35,7 @@ namespace MyComicsManagerWeb.Pages
         protected override async Task OnInitializedAsync()
         {
             await ListImportingFiles();
+            ImportingComics = await ComicService.GetImportingComics();
         }
 
         private void OnInputFileChanged(InputFileChangeEventArgs e)
@@ -122,7 +124,6 @@ namespace MyComicsManagerWeb.Pages
 
         private async Task ListImportingFiles()
         {
-            Listing = true;
             var files = LibraryService.GetUploadedFiles();
             Library lib = await LibraryService.GetSelectedLibrary();
                    
@@ -140,24 +141,6 @@ namespace MyComicsManagerWeb.Pages
                 };
                 ImportingFiles.Add(uploadedFile);
             }
-            Listing = false;
-            this.StateHasChanged();
-        }
-
-        public class ComicFile
-        {
-
-            public string Name { get; init; }
-
-            public long Size { get; init; }
-
-            public string LibId { get; init; }
-            
-            public string Path { get; init; }
-
-            public double UploadDuration { get; init; }
-
-            public string ExceptionMessage { get; init; }
         }
 
         private string GetAllowedExtensions()

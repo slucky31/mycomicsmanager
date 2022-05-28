@@ -61,7 +61,7 @@ namespace MyComicsManagerApi.Services
         
         public Comic Get(string id) =>
             _comics.Find(comic => comic.Id == id).FirstOrDefault();
-
+        
         public Comic Create(Comic comic)
         {
             // Note du développeur : 
@@ -75,18 +75,35 @@ namespace MyComicsManagerApi.Services
                 Log.Here().Error("EbookPath : {Value}", comic.EbookPath);
                 return null;
             }
+            
+            // Insertion en base de données
+            comic.Title = Path.GetFileNameWithoutExtension(comic.EbookName);
+            comic.ImportStatus = ImportStatus.CREATED;
+            comic.CoverType = CoverType.PORTRAIT;
+            comic.Added = DateTime.Now;
+            comic.Edited = comic.Added;
+            _comics.InsertOne(comic);
 
-            // Conversion du fichier en CBZ et mise à jour du path car le nom du fichier peut avoir changer
+            return comic;
+        }
+        
+        private Comic ConvertToCbz(Comic comic)
+        {
             try
             {
                 _comicFileService.ConvertComicFileToCbz(comic);
+                comic.ImportStatus = ImportStatus.CBZ_CONVERTED;
             }
             catch (Exception e)
             {
                 Log.Here().Error(e, "Erreur lors de la conversion en CBZ");
-                return null;
+                comic.ImportStatus = ImportStatus.ERROR;
             }
-
+            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
+            
+            // Mise à jour en base de données
+            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+            
             // Déplacement du fichier vers la racine de la librairie sélectionnée
             var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
                               comic.EbookName;
@@ -96,8 +113,9 @@ namespace MyComicsManagerApi.Services
             {
                 Log.Here().Warning("Le fichier {File} existe déjà", destination);
                 comic.Title = Path.GetFileNameWithoutExtension(destination) + "-Rename";
+                Log.Here().Information("comic.Title = {Title}", comic.Title);
                 comic.EbookName = comic.Title + Path.GetExtension(destination);
-                Log.Here().Warning("Il va être renommé en {FileName}", comic.EbookName);
+                Log.Here().Information("comic.EbookName = {EbookName}", comic.EbookName);
                 destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
                               comic.EbookName;
             }
@@ -108,12 +126,27 @@ namespace MyComicsManagerApi.Services
             }
             catch (Exception)
             {
+                Log.Here().Error("Erreur lors du déplacement du fichier {File} vers {Destination}", comic.EbookPath, destination);
+                comic.ImportStatus = ImportStatus.ERROR;
+                _comics.ReplaceOne(c => c.Id == comic.Id, comic);
                 return null;
             }
 
             // A partir de ce point, EbookPath doit être le chemin relatif par rapport à la librairie
             comic.EbookPath = comic.EbookName;
+            Log.Here().Information("comic.EbookPath = {EbookPath}", comic.EbookPath);
+            
+            comic.ImportStatus = ImportStatus.MOVED_TO_LIB;
+            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+            
+            return comic;
+        }
 
+        public Comic Import(Comic comic)
+        {
+            
+            comic = ConvertToCbz(comic);
+            
             // Récupération des données du fichier ComicInfo.xml si il existe
             if (_comicFileService.HasComicInfoInComicFile(comic))
             {
@@ -124,28 +157,30 @@ namespace MyComicsManagerApi.Services
                 }
                 catch (Exception)
                 {
+                    Log.Here().Error("Erreur lors de la mise à jour de l'arborescence du fichier");
+                    comic.ImportStatus = ImportStatus.ERROR;
+                    _comics.ReplaceOne(c => c.Id == comic.Id, comic);
                     return null;
                 }
             }
 
             // Calcul du nombre d'images dans le fichier CBZ
             _comicFileService.SetNumberOfImagesInCbz(comic);
-
-            // Insertion en base de données
-            comic.CoverType = CoverType.PORTRAIT;
-            comic.Added = DateTime.Now;
-            comic.Edited = comic.Added;
-            _comics.InsertOne(comic);
-
+            comic.ImportStatus = ImportStatus.NB_IMAGES_SET;
+            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+            
             // Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic       
             _comicFileService.SetAndExtractCoverImage(comic);
+            comic.ImportStatus = ImportStatus.COVER_GENERATED;
+            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+            
+            comic.ImportStatus = ImportStatus.IMPORTED;
             Update(comic.Id, comic);
-
-            // Création du fichier ComicInfo.xml
-            _comicFileService.AddComicInfoInComicFile(comic);
 
             return comic;
         }
+        
+        
 
         public void Update(string id, Comic comic)
         {
@@ -174,6 +209,8 @@ namespace MyComicsManagerApi.Services
             return list.OrderBy(x => x.Serie).ThenBy(x => x.Title)
                 .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
         }
+        
+        
         
         private void UpdateDirectoryAndFileName(Comic comic)
         {
@@ -347,7 +384,7 @@ namespace MyComicsManagerApi.Services
                 }
                 _comicFileService.ConvertImagesToWebP(comic);
                 comic.WebPFormated = true;
-                this.Update(comic.Id, comic);
+                Update(comic.Id, comic);
             }
             catch (Exception e)
             {
@@ -355,6 +392,12 @@ namespace MyComicsManagerApi.Services
             }
         }
         
+        public List<Comic> GetImportingComics()
+        {
+            var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus != ImportStatus.IMPORTED);
+            return _comics.Find(filter).ToList();
+        }
+
         private long CountComicsRequest(FilterDefinition<Comic> filter)
         {
             return _comics.CountDocuments(filter);

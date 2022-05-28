@@ -30,6 +30,9 @@ namespace MyComicsManager.Model.Shared
         public CoverType CoverType { get; set; }
         
         public long Size { get; set; }
+        
+        [Required]
+        public ImportStatus ImportStatus { get; set; }
 
         // Book info
 
@@ -91,5 +94,16 @@ namespace MyComicsManager.Model.Shared
         PORTRAIT,
         LANDSCAPE_LEFT,
         LANDSCAPE_RIGHT
+    }
+    
+    public enum ImportStatus
+    {
+        CREATED = 0,
+        CBZ_CONVERTED = 1,
+        MOVED_TO_LIB = 2,
+        NB_IMAGES_SET = 3,
+        COVER_GENERATED = 4,
+        IMPORTED = 200,
+        ERROR = 500
     }
 }

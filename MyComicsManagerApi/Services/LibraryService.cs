@@ -123,7 +123,7 @@ namespace MyComicsManagerApi.Services
             foreach (var file in files)
             {
                 Log.Information("Fichier trouvé {File}", file.FullName);
-                var comic = new Comic()
+                var comic = new Comic
                 {
                     EbookName = file.Name,
                     EbookPath = file.FullName,
