@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using MyComicsManagerApi.Models;
 using MyComicsManager.Model.Shared;
 using MyComicsManagerApi.Services;
 using System.Collections.Generic;
@@ -45,6 +44,10 @@ namespace MyComicsManagerApi.Controllers
         [HttpGet("find/{item}/limit/{limit:int}")]
         public ActionResult<List<Comic>> FindBySerieOrTitle(string item, int limit) =>
             _comicService.Find(item, limit);
+        
+        [HttpGet("importing")]
+        public ActionResult<List<Comic>> GetImportingComics() =>
+            _comicService.GetImportingComics();
 
         [HttpGet("{id:length(24)}", Name = "GetComic")]
         public ActionResult<Comic> Get(string id)
@@ -70,7 +73,8 @@ namespace MyComicsManagerApi.Controllers
             }
             else
             {
-                return CreatedAtRoute("GetComic", new { id = comic.Id.ToString() }, comic);
+                BackgroundJob.Enqueue(() => _comicService.Import(comic));
+                return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
             }
         }
 
@@ -124,7 +128,7 @@ namespace MyComicsManagerApi.Controllers
         }
 
         [HttpGet("extractisbn/{id:length(24)}&{indexImage:int}")]
-        public ActionResult<List<string>> ExtractISBN(string id, int indexImage)
+        public ActionResult<List<string>> ExtractIsbn(string id, int indexImage)
         {
             var comic = _comicService.Get(id);
 

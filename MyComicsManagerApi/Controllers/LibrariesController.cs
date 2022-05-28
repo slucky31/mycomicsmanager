@@ -27,7 +27,7 @@ namespace MyComicsManagerApi.Controllers
             _libraryService.Get();
         
         [HttpGet("uploaded")]
-        public ActionResult<List<FileInfo>> GetUploadedFiles() =>
+        public ActionResult<List<Comic>> GetUploadedFiles() =>
             _libraryService.GetUploadedFiles();
 
         [HttpGet("{id:length(24)}", Name = "GetLibrary")]
