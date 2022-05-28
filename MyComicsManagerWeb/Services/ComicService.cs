@@ -276,6 +276,66 @@ namespace MyComicsManagerWeb.Services {
             await using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<List<Comic>>(responseStream);
         }
+        
+        public async Task<long> GetNbComics()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comics");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsWithoutSerie()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsWithoutSeries");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsWithoutIsbn()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsWithoutIsbn");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsRead()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsRead");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsUnRead()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsUnRead");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbSeries()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/series");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
 
     }
 }
