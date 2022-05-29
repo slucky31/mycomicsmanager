@@ -1,6 +1,6 @@
 using System;
-using System.Net.Http;
 using Hangfire;
+using Hangfire.Dashboard;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
@@ -106,7 +106,11 @@ namespace MyComicsManagerApi
             });
             
             // hangfire configuration
-            app.UseHangfireDashboard();
+            var options = new DashboardOptions()
+            {
+                Authorization = new[] { new MyAuthorizationFilter() }
+            };
+            app.UseHangfireDashboard("/hangfire", options);
 
             app.UseRouting();
 
@@ -119,6 +123,11 @@ namespace MyComicsManagerApi
                 endpoints.MapControllers();
             });
             
+        }
+        
+        public class MyAuthorizationFilter : IDashboardAuthorizationFilter
+        {
+            public bool Authorize(DashboardContext context) => true;
         }
     }
 }
