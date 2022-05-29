@@ -106,7 +106,7 @@ namespace MyComicsManagerApi
             });
             
             // hangfire configuration
-            var options = new DashboardOptions()
+            var options = new DashboardOptions
             {
                 Authorization = new[] { new MyAuthorizationFilter() }
             };
