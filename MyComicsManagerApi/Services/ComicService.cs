@@ -99,6 +99,7 @@ namespace MyComicsManagerApi.Services
             {
                 Log.Here().Error(e, "Erreur lors de la conversion en CBZ");
                 comic.ImportStatus = ImportStatus.ERROR;
+                return null;
             }
             Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
             
@@ -147,6 +148,10 @@ namespace MyComicsManagerApi.Services
         {
             
             comic = ConvertToCbz(comic);
+            if (comic == null)
+            {
+                return null;
+            }
             
             // Récupération des données du fichier ComicInfo.xml si il existe
             if (_comicFileService.HasComicInfoInComicFile(comic))
