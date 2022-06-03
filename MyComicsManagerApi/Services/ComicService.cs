@@ -35,6 +35,8 @@ namespace MyComicsManagerApi.Services
             _comicFileService = comicFileService;
             
         }
+        
+       
 
         public List<Comic> Get() =>
             _comics.Find(comic => true).ToList();
@@ -88,23 +90,29 @@ namespace MyComicsManagerApi.Services
             return comic;
         }
         
+        private Comic SetImportStatus(Comic comic, ImportStatus status)
+        {
+            comic.ImportStatus = status;
+            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
+            return comic;
+        }
+        
         private Comic ConvertToCbz(Comic comic)
         {
             try
             {
                 _comicFileService.ConvertComicFileToCbz(comic);
-                comic.ImportStatus = ImportStatus.CBZ_CONVERTED;
             }
             catch (Exception e)
             {
                 Log.Here().Error(e, "Erreur lors de la conversion en CBZ");
-                comic.ImportStatus = ImportStatus.ERROR;
+                SetImportStatus(comic, ImportStatus.ERROR);
                 return null;
             }
-            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
-            
-            // Mise à jour en base de données
-            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+
+            // Mise à jour du statut en base de données
+            comic = SetImportStatus(comic, ImportStatus.CBZ_CONVERTED);
             
             // Déplacement du fichier vers la racine de la librairie sélectionnée
             var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
@@ -129,8 +137,7 @@ namespace MyComicsManagerApi.Services
             catch (Exception)
             {
                 Log.Here().Error("Erreur lors du déplacement du fichier {File} vers {Destination}", comic.EbookPath, destination);
-                comic.ImportStatus = ImportStatus.ERROR;
-                _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+                SetImportStatus(comic, ImportStatus.ERROR);
                 return null;
             }
 
@@ -138,10 +145,7 @@ namespace MyComicsManagerApi.Services
             comic.EbookPath = comic.EbookName;
             Log.Here().Information("comic.EbookPath = {EbookPath}", comic.EbookPath);
             
-            comic.ImportStatus = ImportStatus.MOVED_TO_LIB;
-            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
-            
-            return comic;
+            return SetImportStatus(comic, ImportStatus.MOVED_TO_LIB);
         }
 
         public Comic Import(Comic comic)
@@ -164,26 +168,20 @@ namespace MyComicsManagerApi.Services
                 catch (Exception)
                 {
                     Log.Here().Error("Erreur lors de la mise à jour de l'arborescence du fichier");
-                    comic.ImportStatus = ImportStatus.ERROR;
-                    _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+                    SetImportStatus(comic, ImportStatus.ERROR);
                     return null;
                 }
             }
 
             // Calcul du nombre d'images dans le fichier CBZ
             _comicFileService.SetNumberOfImagesInCbz(comic);
-            comic.ImportStatus = ImportStatus.NB_IMAGES_SET;
-            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
-            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
-            
+            comic = SetImportStatus(comic, ImportStatus.NB_IMAGES_SET);
+
             // Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic       
-            _comicFileService.SetAndExtractCoverImage(comic);
-            comic.ImportStatus = ImportStatus.COVER_GENERATED;
-            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
-            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+            _comicFileService.SetAndExtractCoverImage(comic); 
+            comic = SetImportStatus(comic, ImportStatus.COVER_GENERATED); 
             
-            comic.ImportStatus = ImportStatus.IMPORTED;
-            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
+            comic = SetImportStatus(comic, ImportStatus.IMPORTED);
             Update(comic.Id, comic);
             
             BackgroundJob.Enqueue(() => ConvertImagesToWebP(comic));
