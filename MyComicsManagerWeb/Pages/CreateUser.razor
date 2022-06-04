@@ -1,11 +1,11 @@
 ﻿@page "/user/create"
+@attribute [AllowAnonymous]
 
 @using MyComicsManagerWeb.Models
 @using Microsoft.AspNetCore.Identity
 
 @inject ISnackbar Snackbar
 @inject UserManager<ApplicationUser> UserManager;
-
 
 <MudContainer MaxWidth="MaxWidth.False" >
     
