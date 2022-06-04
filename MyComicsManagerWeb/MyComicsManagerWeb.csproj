@@ -5,10 +5,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
 		<PackageReference Include="GitInfo" Version="2.2.0">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		
+		
 		<PackageReference Include="MudBlazor" Version="6.0.10" />
 		<PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="2.1.2" />
@@ -16,6 +19,7 @@
 		<!-- https://github.com/osprakash/ImageThumbnail-aspnetcore -->
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="Google.Apis.Books.v1" Version="1.57.0.2633" />
 	</ItemGroup>

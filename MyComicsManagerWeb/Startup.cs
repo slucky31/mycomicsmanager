@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -11,10 +12,12 @@ using ImageThumbnail.AspNetCore.Middleware;
 using MudBlazor.Services;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using MudBlazor;
 using MyComicsManagerWeb.Middleware.ImageThumbnail;
+using MyComicsManagerWeb.Settings;
 
 namespace MyComicsManagerWeb
 {
@@ -32,18 +35,28 @@ namespace MyComicsManagerWeb
         public void ConfigureServices(IServiceCollection services)
         {
             
+            services.Configure<DatabaseSettings>( Configuration.GetSection(nameof(DatabaseSettings)));
+            services.AddSingleton<IDatabaseSettings>(sp => sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
+            var mongoDbSettings  = Configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
+            
             services.Configure<WebserviceSettings>( Configuration.GetSection(nameof(WebserviceSettings)));
             services.AddSingleton<IWebserviceSettings>(sp => sp.GetRequiredService<IOptions<WebserviceSettings>>().Value);
             
+            services.AddIdentity<ApplicationUser, ApplicationRole>().AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
+            (
+                mongoDbSettings.ConnectionString, mongoDbSettings.Name
+            ).AddDefaultTokenProviders();           
+            
+            services.AddMvc(options => options.EnableEndpointRouting = false);
+            
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            
+            services.AddControllersWithViews();
+
             // Service Configuration
             services.AddHttpClient<BookService>();
             services.AddHttpClient<ComicService>();
             services.AddHttpClient<LibraryService>();
-            services.AddHttpClient<BookInformationService>();
-            
             
             services.AddSingleton<ThumbnailService>();
             
@@ -113,7 +126,13 @@ namespace MyComicsManagerWeb
             });
 
             app.UseRouting();
+            app.UseMvcWithDefaultRoute();
+            
             app.UseSerilogRequestLogging();
+            
+            app.UseAuthentication();
+            app.UseAuthorization();
+
 
             app.UseEndpoints(endpoints =>
             {

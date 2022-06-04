@@ -1,0 +1,59 @@
+﻿@page "/role/create"
+@attribute [Authorize]
+
+@using MyComicsManagerWeb.Models
+@using Microsoft.AspNetCore.Identity
+
+@inject ISnackbar Snackbar
+@inject RoleManager<ApplicationRole> RoleManager;
+
+
+     <MudContainer MaxWidth="MaxWidth.False" Context="test">
+
+         <NavMenu/>
+
+         <EditForm Model="_role" OnValidSubmit="Create" >
+
+             <DataAnnotationsValidator/>
+             <ValidationSummary/>
+
+             <MudCard>
+                 <MudCardContent>
+                     <MudText Typo="Typo.h4">Créer un rôle</MudText>
+                 </MudCardContent>
+             </MudCard>
+
+             <MudCard Class="mt-4">
+                 <MudCardContent>
+                     <MudText Typo="Typo.h5">Informations sur le rôle</MudText>
+                     <MudGrid Spacing="2">
+                         <MudItem xs="12" sm="6">
+                             <MudTextField Label="Nom" Variant="Variant.Text" @bind-Value="_role.Name"/>
+                         </MudItem>
+                     </MudGrid>
+                 </MudCardContent>
+                 <MudCardActions>
+                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Ajouter</MudButton>
+                 </MudCardActions>
+             </MudCard>
+
+         </EditForm>
+
+     </MudContainer>
+
+
+@code {
+    
+    private Role _role = new Role();
+    
+    private async Task Create()
+    {
+        var result = await RoleManager.CreateAsync(new ApplicationRole() { Name = _role.Name });
+        Snackbar.Add(result.Succeeded ? "Rôle créé" : "Erreur lors de la création du rôle", Severity.Success);
+        if (result.Succeeded)
+        {
+            _role = new Role();
+        }
+    }
+    
+}

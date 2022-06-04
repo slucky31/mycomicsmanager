@@ -1,0 +1,69 @@
+﻿@page "/user/create"
+@attribute [AllowAnonymous]
+
+@using MyComicsManagerWeb.Models
+@using Microsoft.AspNetCore.Identity
+
+@inject ISnackbar Snackbar
+@inject UserManager<ApplicationUser> UserManager;
+
+<MudContainer MaxWidth="MaxWidth.False" >
+    
+    <NavMenu/>
+
+    <EditForm Model="@_user" OnValidSubmit="Create">
+
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h4">Créer un utilisateur</MudText>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Class="mt-4">
+            <MudCardContent>
+                <MudText Typo="Typo.h5">Informations sur l'utilisateur</MudText>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Nom" Variant="Variant.Text" @bind-Value="_user.Name"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Email" Variant="Variant.Text" @bind-Value="_user.Email"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Password" Variant="Variant.Text" @bind-Value="_user.Password"/>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Ajouter</MudButton>
+            </MudCardActions>
+        </MudCard>
+
+    </EditForm>
+
+</MudContainer>
+
+@code {
+    
+    private User _user = new User();
+    
+    private async Task Create()
+    {
+        ApplicationUser appUser = new ApplicationUser
+        {
+            UserName = _user.Name,
+            Email = _user.Email
+        };
+ 
+        var result = await UserManager.CreateAsync(appUser, _user.Password);
+        Snackbar.Add(result.Succeeded ? "Utilisateur créé" : "Erreur lors de la création de l'utilisateur", Severity.Success);
+        if (result.Succeeded)
+        {
+            _user = new User();
+        }
+    }
+    
+}
