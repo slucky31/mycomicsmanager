@@ -58,7 +58,6 @@ namespace MyComicsManagerWeb
             services.AddHttpClient<ComicService>();
             services.AddHttpClient<LibraryService>();
             
-            //services.AddSingleton<OperationsService>();
             services.AddSingleton<ThumbnailService>();
             
             // MudBlazor Config
