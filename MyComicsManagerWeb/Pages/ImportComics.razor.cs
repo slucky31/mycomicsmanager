@@ -36,6 +36,7 @@ namespace MyComicsManagerWeb.Pages
         {
             await ListImportingFiles();
             ImportingComics = await ComicService.GetImportingComics();
+            StateHasChanged();
         }
 
         private void OnInputFileChanged(InputFileChangeEventArgs e)
@@ -46,6 +47,7 @@ namespace MyComicsManagerWeb.Pages
             {
                 BrowserFiles.Add(item);
             }
+            StateHasChanged();
         }
 
         private async Task UploadFiles()
@@ -78,7 +80,7 @@ namespace MyComicsManagerWeb.Pages
                         exceptionMessage = ex.Message;
                     }
 
-                    this.StateHasChanged();
+                    StateHasChanged();
                     stopWatch.Stop();
                 }
 
@@ -90,11 +92,11 @@ namespace MyComicsManagerWeb.Pages
                     ExceptionMessage = exceptionMessage
                 };
                 UploadedFiles.Add(uploadedFile);                
-                this.StateHasChanged();
+                StateHasChanged();
             }
             Uploading = false;
-            await this.ListImportingFiles();
-            this.StateHasChanged();
+            await ListImportingFiles();
+            StateHasChanged();
         }
 
         private async Task AddComic(ComicFile file)
@@ -111,6 +113,7 @@ namespace MyComicsManagerWeb.Pages
             await ComicService.CreateComicAsync(comic);
             Importing = false;  
             ImportingFiles.Remove(file);
+            StateHasChanged();
         }
 
         private async Task AddComics()
@@ -119,7 +122,7 @@ namespace MyComicsManagerWeb.Pages
             {
                 await AddComic(file);
             }
-            this.StateHasChanged();
+            StateHasChanged();
         }
 
         private async Task ListImportingFiles()
@@ -141,6 +144,7 @@ namespace MyComicsManagerWeb.Pages
                 };
                 ImportingFiles.Add(uploadedFile);
             }
+            StateHasChanged();
         }
 
         private string GetAllowedExtensions()
