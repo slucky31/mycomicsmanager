@@ -1,0 +1,80 @@
+﻿@page "/login"
+@attribute [AllowAnonymous]
+
+@using MyComicsManagerWeb.Models
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.DataProtection
+
+@inject ISnackbar Snackbar
+@inject UserManager<ApplicationUser> UserManager;
+@inject IDataProtectionProvider DataProtectionProvider
+@inject NavigationManager NavigationManager;
+
+<MudContainer MaxWidth="MaxWidth.False" >
+    
+    <EditForm Model="_form" OnValidSubmit="DoLogin" >
+
+        <DataAnnotationsValidator/>
+        
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h4">Connexion</MudText>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Class="mt-4">
+            <MudCardContent>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Email" Variant="Variant.Text" @bind-Value="_form.Email"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Password" Variant="Variant.Text" @bind-Value="_form.Password"/>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Connexion</MudButton>
+            </MudCardActions>
+        </MudCard>
+        <ValidationSummary/>
+
+    </EditForm>
+
+</MudContainer>
+
+
+@code {
+    
+    private LoginForm _form = new LoginForm();
+    
+    private async Task DoLogin()
+    {
+        var appUser = await UserManager.FindByEmailAsync(_form.Email);
+        if (appUser != null)
+        {
+            if (await UserManager.CheckPasswordAsync(appUser, _form.Password)) 
+            {
+                var token = await UserManager.GenerateUserTokenAsync(appUser, TokenOptions.DefaultProvider, "Login");
+                var data = $"{appUser.Id}|{token}|_model.RememberMe";
+                var protector = DataProtectionProvider.CreateProtector("Login");
+                var protectedData = protector.Protect(data);
+
+                NavigationManager.NavigateTo("/Account/LoginInternal?token=" + protectedData, true);
+            }
+
+        }
+    }
+
+    private class LoginForm
+    {
+        [Required]
+        [EmailAddress(ErrorMessage = "Invalid Email")]
+        public string Email { get; set; }
+        
+        [Required]
+        public string Password { get; set; }
+    }
+    
+}

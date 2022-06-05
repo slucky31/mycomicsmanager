@@ -1,4 +1,11 @@
-﻿@inherits LayoutComponentBase
+﻿@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@using MyComicsManagerWeb.Models
+@inherits LayoutComponentBase
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager;
+@inject SignInManager<ApplicationUser> SignInManager;
 
 <MudThemeProvider Theme="_currentTheme" />
 <MudDialogProvider />
@@ -8,8 +15,28 @@
     <MudAppBar Elevation="1">
         <MudText Typo="Typo.h5" Class="ml-3">MyComicsManager</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.TwoTone.BrightnessMedium" Color="Color.Inherit" Edge="Edge.End" OnClick="@((_) => DarkMode())" Title="Toggle Dark/Light Mode" />
-        <MudIconButton Icon="@Icons.Material.TwoTone.Settings" Color="Color.Inherit" Edge="Edge.End" Title="Settings" Link="/settings" />
+        
+        @if (_user.Identity.IsAuthenticated)
+        {
+            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                <ActivatorContent>
+                    <MudAvatar>
+                        <MudIcon Icon="@Icons.Filled.PersonPin" Size="Size.Large" />
+                    </MudAvatar>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudNavMenu Rounded="true" Margin="Margin.Dense" Color="Color.Primary" Class="pa-2">
+                        <MudText Typo="Typo.h6" Class="px-4">@_user.Identity.Name</MudText>
+                        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@_user.FindFirstValue(ClaimTypes.Email)</MudText>
+                        <MudDivider Class="my-2" />
+                        <MudNavLink Href="/profile" Icon="@Icons.TwoTone.ManageAccounts">Profile</MudNavLink>
+                        <MudNavLink OnClick="DarkMode" Icon="@Icons.Material.TwoTone.BrightnessMedium">Switch theme</MudNavLink>
+                        <MudNavLink Href="/settings" Icon="@Icons.TwoTone.Settings">Settings</MudNavLink>
+                        <MudNavLink OnClick="LogOut" Icon="@Icons.TwoTone.Logout">Log Out</MudNavLink>
+                    </MudNavMenu>
+                </ChildContent>
+            </MudMenu>
+        }
     </MudAppBar>
     <MudMainContent>
         @Body
@@ -20,15 +47,25 @@
 </MudLayout>
 
 @code {
+
+    private ClaimsPrincipal _user;
     
-    protected override void OnInitialized()
-    {
+    protected override async Task OnInitializedAsync()  
+    {  
         _currentTheme = _defaultTheme;
-    }
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();  
+        _user = authState.User;
+    } 
 
     void DarkMode()
     {
         _currentTheme = (_currentTheme != _defaultTheme) ? _defaultTheme : _darkTheme;
+    }
+
+    void LogOut()
+    {
+        NavigationManager.NavigateTo("/Account/LogoutInternal", true);
     }
 
     MudTheme _currentTheme = new MudTheme();
