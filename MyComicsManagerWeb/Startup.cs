@@ -114,8 +114,15 @@ namespace MyComicsManagerWeb
             
             // Set up custom content types -associating file extension to MIME type and Add new mappings
             // Source : https://docs.microsoft.com/en-us/aspnet/core/fundamentals/static-files?view=aspnetcore-5.0#fileextensioncontenttypeprovider
-            var provider = new FileExtensionContentTypeProvider();
-            provider.Mappings[".cbz"] = "application/zip";
+            var provider = new FileExtensionContentTypeProvider
+            {
+                Mappings =
+                {
+                    [".cbz"] = "application/zip",
+                    // Ajout de CBR pour permettre de télécharger les fichiers en erreur
+                    [".cbr"] = "application/zip"
+                }
+            };
 
             // Permettre de télécharger les fichiers en mode public
             app.UseStaticFiles(new StaticFileOptions

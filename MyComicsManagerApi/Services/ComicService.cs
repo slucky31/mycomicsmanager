@@ -33,31 +33,28 @@ namespace MyComicsManagerApi.Services
             _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
             _libraryService = libraryService;
             _comicFileService = comicFileService;
-            
         }
         
-       
-
         public List<Comic> Get() =>
             _comics.Find(comic => true).ToList();
         
         public List<Comic> GetOrderByLastAddedLimitBy(int limit) =>
-            _comics.Find(comic => true).SortByDescending(comic => comic.Added)
+            _comics.Find(comic => comic.ImportStatus == ImportStatus.IMPORTED).SortByDescending(comic => comic.Added)
                 .Limit(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
 
         public List<Comic> GetOrderBySerieAndTome(int limit) =>
-                    _comics.Find(comic => true)
+                    _comics.Find(comic => comic.ImportStatus == ImportStatus.IMPORTED)
                         .SortBy(comic => comic.Serie)
                         .ThenBy(comic => comic.Volume)
                         .Limit(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
         
         public List<Comic> GetWithoutIsbnLimitBy(int limit) =>
-            _comics.Find(comic => string.IsNullOrEmpty(comic.Isbn)).SortBy(comic => comic.Added)
+            _comics.Find(comic => comic.ImportStatus == ImportStatus.IMPORTED && string.IsNullOrEmpty(comic.Isbn)).SortBy(comic => comic.Added)
                 .Limit(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
 
         public List<Comic> GetRandomLimitBy(int limit)
         {
-            var list = _comics.Find(comic => true).ToList();
+            var list = _comics.Find(comic => comic.ImportStatus == ImportStatus.IMPORTED).ToList();
             return list.OrderBy(_ => Guid.NewGuid())
                 .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
         }
@@ -414,31 +411,31 @@ namespace MyComicsManagerApi.Services
         
         public long CountComics()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => true);
+            var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED);
             return CountComicsRequest(filter);
         }
         
         public long CountComicsWithoutSerie()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => string.IsNullOrEmpty(comic.Serie));
+            var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED && string.IsNullOrEmpty(comic.Serie));
             return CountComicsRequest(filter);
         }
         
         public long CountComicsWithoutIsbn()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => string.IsNullOrEmpty(comic.Isbn));
+            var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED && string.IsNullOrEmpty(comic.Isbn));
             return CountComicsRequest(filter);
         }
         
         public long CountComicsRead()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => comic.ComicReviews.Count > 0);
+            var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED && comic.ComicReviews.Count > 0);
             return CountComicsRequest(filter);
         }
         
         public long CountComicsUnRead()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => comic.ComicReviews == null || comic.ComicReviews.Count == 0 );
+            var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED && (comic.ComicReviews == null || comic.ComicReviews.Count == 0) );
             return CountComicsRequest(filter);
         }
         
@@ -461,7 +458,5 @@ namespace MyComicsManagerApi.Services
                 throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
             }
         }
-        
-
     }
 }

@@ -19,83 +19,19 @@ namespace MyComicsManagerWeb.Pages
         private ComicService ComicService { get; set; }
         [Inject]
         private LibraryService LibraryService { get; set; }
-        private List<ComicFile> UploadedFiles { get; } = new();
-        private List<ComicFile> ImportingFiles { get; }  = new();
+
+        private List<ComicFile> UploadedFiles { get; set; } = new();
+        private List<Comic> ImportingComics { get; set; } = new();
         
-        private List<Comic> ImportingComics { get; set; }  
-        private int MaxAllowedFiles { get; } = 10;
-        private bool Uploading { get; set; }
         private bool Importing { get; set; }
+
+        private Library Library { get; set; }
         
-        private IList<IBrowserFile> BrowserFiles { get; set; } = new List<IBrowserFile>();        
-        private string[] AllowedExtensions { get; } = new[] { ".cbr", ".cbz", ".pdf", ".zip", ".rar" };
-        private int DragElevation { get; set; }
-
-
         protected override async Task OnInitializedAsync()
         {
-            await ListImportingFiles();
+            UploadedFiles = await ComicService.ListUploadedFiles();
             ImportingComics = await ComicService.GetImportingComics();
-            StateHasChanged();
-        }
-
-        private void OnInputFileChanged(InputFileChangeEventArgs e)
-        {
-            BrowserFiles.Clear();
-            var temp = (IList<IBrowserFile>)e.GetMultipleFiles(MaxAllowedFiles);
-            foreach(var item in temp)
-            {
-                BrowserFiles.Add(item);
-            }
-            StateHasChanged();
-        }
-
-        private async Task UploadFiles()
-        {
-
-            UploadedFiles.Clear();
-            string exceptionMessage = string.Empty;
-            Uploading = true;
-
-            foreach (IBrowserFile file in BrowserFiles)
-            {
-                Stopwatch stopWatch = new Stopwatch();
-
-                // Check extension
-                var extension = Path.GetExtension(file.Name);
-                if (!AllowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
-                {
-                    exceptionMessage = "File must have one of the following extensions: " + string.Join(", ", AllowedExtensions);
-                }
-                else
-                {
-                    stopWatch.Start();
-
-                    try
-                    {
-                        await ComicService.UploadFile(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        exceptionMessage = ex.Message;
-                    }
-
-                    StateHasChanged();
-                    stopWatch.Stop();
-                }
-
-                ComicFile uploadedFile = new ComicFile
-                {
-                    Name = file.Name,
-                    Size = file.Size,
-                    UploadDuration = stopWatch.ElapsedMilliseconds / 1000.0,                    
-                    ExceptionMessage = exceptionMessage
-                };
-                UploadedFiles.Add(uploadedFile);                
-                StateHasChanged();
-            }
-            Uploading = false;
-            await ListImportingFiles();
+            Library = await LibraryService.GetSelectedLibrary();
             StateHasChanged();
         }
 
@@ -112,53 +48,23 @@ namespace MyComicsManagerWeb.Pages
             };
             await ComicService.CreateComicAsync(comic);
             Importing = false;  
-            ImportingFiles.Remove(file);
+            UploadedFiles.Remove(file);
             StateHasChanged();
         }
 
         private async Task AddComics()
         {
-            foreach(var file in ImportingFiles.ToList())
+            foreach(var file in UploadedFiles.ToList())
             {
                 await AddComic(file);
             }
             StateHasChanged();
         }
-
-        private async Task ListImportingFiles()
+        
+        private async Task Delete(string id)
         {
-            var files = LibraryService.GetUploadedFiles();
-            Library lib = await LibraryService.GetSelectedLibrary();
-                   
-            ImportingFiles.Clear();
-            foreach (var file in files.Result)
-            {
-                ComicFile uploadedFile = new ComicFile
-                {
-                    Name = file.EbookName,
-                    Size = file.Size,
-                    LibId = lib.Id,
-                    Path = file.EbookPath,
-                    UploadDuration = 0,
-                    ExceptionMessage = string.Empty
-                };
-                ImportingFiles.Add(uploadedFile);
-            }
-            StateHasChanged();
-        }
-
-        private string GetAllowedExtensions()
-        {
-            StringBuilder sb = new();
-            foreach (var ext in AllowedExtensions)
-            {
-                sb.Append(ext);
-                if (ext != AllowedExtensions.Last())
-                {
-                    sb.Append(", ");
-                }
-            }
-            return sb.ToString();
+            await ComicService.DeleteComic(id);
+            ImportingComics = await ComicService.GetImportingComics();
         }
 
         
