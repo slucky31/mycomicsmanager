@@ -277,6 +277,28 @@ namespace MyComicsManagerWeb.Services {
             return await JsonSerializer.DeserializeAsync<List<Comic>>(responseStream);
         }
         
+        public async Task<List<ComicFile>> ListUploadedFiles()
+        {
+            var files = await _libraryService.GetUploadedFiles();
+            Library lib = await _libraryService.GetSelectedLibrary();
+
+            var comicFiles = new List<ComicFile>();
+            foreach (var file in files)
+            {
+                ComicFile uploadedFile = new ComicFile
+                {
+                    Name = file.EbookName,
+                    Size = file.Size,
+                    LibId = lib.Id,
+                    Path = file.EbookPath,
+                    UploadDuration = 0,
+                    ExceptionMessage = string.Empty
+                };
+                comicFiles.Add(uploadedFile);
+            }
+            return comicFiles;
+        }
+        
         
 
     }
