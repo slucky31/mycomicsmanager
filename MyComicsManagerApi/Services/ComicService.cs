@@ -459,7 +459,7 @@ namespace MyComicsManagerApi.Services
 
             var monitoringApi = JobStorage.Current.GetMonitoringApi();
 
-            if (monitoringApi.ProcessingCount() != 0) return;
+            if (monitoringApi.ProcessingCount() > 1) return;
             
             foreach (var comic in comics)
             {
