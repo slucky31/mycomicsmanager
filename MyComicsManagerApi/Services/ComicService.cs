@@ -36,6 +36,7 @@ namespace MyComicsManagerApi.Services
             _libraryService = libraryService;
             _comicFileService = comicFileService;
             _notificationService = notificationService;
+
         }
         
         public List<Comic> Get() =>
@@ -457,8 +458,6 @@ namespace MyComicsManagerApi.Services
             }
         }
         
-        
-        
         private async Task<Comic> SetImportStatus(Comic comic, ImportStatus status)
         {
             comic.ImportStatus = status;
@@ -481,5 +480,6 @@ namespace MyComicsManagerApi.Services
             var title = $"{comic.Id} : {comic.Title}";
             await _notificationService.Send(title, message);
         }
+
     }
 }
