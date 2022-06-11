@@ -14,6 +14,7 @@ using MongoDB.Driver;
 using MyComicsManagerApi.ComputerVision;
 using MyComicsManagerApi.Models;
 using MyComicsManagerApi.Services;
+using MyComicsManagerWeb.Settings;
 using Serilog;
 
 namespace MyComicsManagerApi
@@ -40,6 +41,9 @@ namespace MyComicsManagerApi
             services.Configure<AzureSettings>(Configuration.GetSection(nameof(AzureSettings)));
             services.AddSingleton<IAzureSettings>(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value);
             
+            services.Configure<NotificationSettings>( Configuration.GetSection(nameof(NotificationSettings)));
+            services.AddSingleton<INotificationSettings>(sp => sp.GetRequiredService<IOptions<NotificationSettings>>().Value);
+            
             var settings = Configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
             
             var mongoUrlBuilder = new MongoUrlBuilder(settings.ConnectionString)
@@ -47,6 +51,8 @@ namespace MyComicsManagerApi
                 DatabaseName = "hangfire"
             };
             var mongoClient = new MongoClient(mongoUrlBuilder.ToMongoUrl());
+            
+            services.AddHttpClient<BookService>();
 
             // Add Hangfire services. Hangfire.AspNetCore nuget required
             services.AddHangfire(configuration => configuration
@@ -78,6 +84,9 @@ namespace MyComicsManagerApi
             services.AddSingleton<ComicFileService>();
             services.AddSingleton<BookService>();
             services.AddSingleton<ComputerVisionService>();
+            services.AddSingleton<NotificationService>();
+            
+            
 
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
 
