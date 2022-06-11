@@ -7,6 +7,7 @@ using System.IO;
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Hangfire;
 using MongoDB.Bson;
 using MyComicsManagerApi.DataParser;
@@ -22,10 +23,11 @@ namespace MyComicsManagerApi.Services
         private readonly IMongoCollection<Comic> _comics;
         private readonly LibraryService _libraryService;
         private readonly ComicFileService _comicFileService;
+        private readonly NotificationService _notificationService;
         private const int MaxComicsPerRequest = 100;
 
         public ComicService(IDatabaseSettings settings, LibraryService libraryService,
-            ComicFileService comicFileService)
+            ComicFileService comicFileService, NotificationService notificationService)
         {
             Log.Here().Debug("settings = {Settings}", settings);
             var client = new MongoClient(settings.ConnectionString);
@@ -33,6 +35,8 @@ namespace MyComicsManagerApi.Services
             _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
             _libraryService = libraryService;
             _comicFileService = comicFileService;
+            _notificationService = notificationService;
+
         }
         
         public List<Comic> Get() =>
@@ -87,15 +91,9 @@ namespace MyComicsManagerApi.Services
             return comic;
         }
         
-        private Comic SetImportStatus(Comic comic, ImportStatus status)
-        {
-            comic.ImportStatus = status;
-            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
-            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
-            return comic;
-        }
         
-        private Comic ConvertToCbz(Comic comic)
+        
+        private async Task<Comic> ConvertToCbz(Comic comic)
         {
             try
             {
@@ -104,12 +102,12 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Error(e, "Erreur lors de la conversion en CBZ");
-                SetImportStatus(comic, ImportStatus.ERROR);
+                await SetImportStatus(comic, ImportStatus.ERROR);
                 return null;
             }
 
             // Mise à jour du statut en base de données
-            comic = SetImportStatus(comic, ImportStatus.CBZ_CONVERTED);
+            comic = await SetImportStatus(comic, ImportStatus.CBZ_CONVERTED);
             
             // Déplacement du fichier vers la racine de la librairie sélectionnée
             var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
@@ -134,7 +132,7 @@ namespace MyComicsManagerApi.Services
             catch (Exception)
             {
                 Log.Here().Error("Erreur lors du déplacement du fichier {File} vers {Destination}", comic.EbookPath, destination);
-                SetImportStatus(comic, ImportStatus.ERROR);
+                await SetImportStatus(comic, ImportStatus.ERROR);
                 return null;
             }
 
@@ -142,13 +140,13 @@ namespace MyComicsManagerApi.Services
             comic.EbookPath = comic.EbookName;
             Log.Here().Information("comic.EbookPath = {EbookPath}", comic.EbookPath);
             
-            return SetImportStatus(comic, ImportStatus.MOVED_TO_LIB);
+            return await SetImportStatus(comic, ImportStatus.MOVED_TO_LIB);
         }
 
-        public Comic Import(Comic comic)
+        public async Task<Comic> Import(Comic comic)
         {
             
-            comic = ConvertToCbz(comic);
+            comic = await ConvertToCbz(comic);
             if (comic == null)
             {
                 return null;
@@ -165,20 +163,20 @@ namespace MyComicsManagerApi.Services
                 catch (Exception)
                 {
                     Log.Here().Error("Erreur lors de la mise à jour de l'arborescence du fichier");
-                    SetImportStatus(comic, ImportStatus.ERROR);
+                    await SetImportStatus(comic, ImportStatus.ERROR);
                     return null;
                 }
             }
 
             // Calcul du nombre d'images dans le fichier CBZ
             _comicFileService.SetNumberOfImagesInCbz(comic);
-            comic = SetImportStatus(comic, ImportStatus.NB_IMAGES_SET);
+            comic = await SetImportStatus(comic, ImportStatus.NB_IMAGES_SET);
 
             // Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic       
             _comicFileService.SetAndExtractCoverImage(comic); 
-            comic = SetImportStatus(comic, ImportStatus.COVER_GENERATED); 
+            comic = await SetImportStatus(comic, ImportStatus.COVER_GENERATED); 
             
-            comic = SetImportStatus(comic, ImportStatus.IMPORTED);
+            comic = await SetImportStatus(comic, ImportStatus.IMPORTED);
             Update(comic.Id, comic);
             
             BackgroundJob.Enqueue(() => ConvertImagesToWebP(comic));
@@ -380,7 +378,7 @@ namespace MyComicsManagerApi.Services
             return comic;
         }
 
-        public void ConvertImagesToWebP(Comic comic)
+        public async Task ConvertImagesToWebP(Comic comic)
         {
             try
             {
@@ -391,6 +389,7 @@ namespace MyComicsManagerApi.Services
                 _comicFileService.ConvertImagesToWebP(comic);
                 comic.WebPFormated = true;
                 Update(comic.Id, comic);
+                await SendNotificationMessage(comic, "Conversion WebP terminée");
             }
             catch (Exception e)
             {
@@ -458,5 +457,29 @@ namespace MyComicsManagerApi.Services
                 throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
             }
         }
+        
+        private async Task<Comic> SetImportStatus(Comic comic, ImportStatus status)
+        {
+            comic.ImportStatus = status;
+            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
+            await SendNotificationImportStatus(comic, status);
+            return comic;
+        }
+        
+        // Notifications
+        private async Task SendNotificationImportStatus(Comic comic, ImportStatus status)
+        {
+            var title = $"{comic.Id} : {comic.Title}"; 
+            var message = $"comic.ImportStatus = {status}";
+            await _notificationService.Send(title, message);
+        }
+        
+        private async Task SendNotificationMessage(Comic comic, string message)
+        {
+            var title = $"{comic.Id} : {comic.Title}";
+            await _notificationService.Send(title, message);
+        }
+
     }
 }
