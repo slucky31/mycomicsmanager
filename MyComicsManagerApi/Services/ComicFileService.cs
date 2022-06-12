@@ -309,15 +309,8 @@ namespace MyComicsManagerApi.Services
                     _extensionsImageArchiveWithoutWebp.Any(x => file.EndsWith(x, StringComparison.OrdinalIgnoreCase))).ToList();
             Log.Here().Information("Conversion des {NbFiles} images en WebP et resize à {Width} pixels de large",
                 filesToConvert.Count, ResizedWidth);
-
-            var opts = new ParallelOptions
-            {
-                // 75% (rounded up) of the processor count
-                // https://stackoverflow.com/questions/9290498/how-can-i-limit-parallel-foreach
-                MaxDegreeOfParallelism = Convert.ToInt32(Math.Ceiling((Environment.ProcessorCount * 0.75) * 1.0))
-            };
-            Log.Here().Information("MaxDegreeOfParallelism : {MaxDegreeOfParallelism}", opts.MaxDegreeOfParallelism);
-            Parallel.ForEach(filesToConvert, opts, file =>
+            
+            foreach(var file in filesToConvert)
             {
                 Log.Here().Debug("Conversion du fichier {File}", file);
                 var webpConvertedFile = Path.ChangeExtension(file, ".webp");
@@ -345,7 +338,7 @@ namespace MyComicsManagerApi.Services
 
                 // Suppression du fichier original
                 File.Delete(file);
-            });
+            }
             
             // Renommage de l'archive pour pouvoir construire la nouvelle archive
             var destBackUp = Path.ChangeExtension(zipPath, ".old");

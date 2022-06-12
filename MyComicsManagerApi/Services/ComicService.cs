@@ -36,7 +36,9 @@ namespace MyComicsManagerApi.Services
             _libraryService = libraryService;
             _comicFileService = comicFileService;
             _notificationService = notificationService;
-
+            
+            // https://www.freeformatter.com/cron-expression-generator-quartz.html
+            RecurringJob.AddOrUpdate("convertToWebP", () => ConvertComicsToWebP(), "0 */10 * ? * *");
         }
         
         public List<Comic> Get() =>
@@ -444,6 +446,27 @@ namespace MyComicsManagerApi.Services
             return _comics.Distinct(comic => comic.Serie, filter).ToList().Count;
         }
 
+        private IEnumerable<Comic> ListComicNotWebpConverted()
+        {
+            var filter = Builders<Comic>.Filter.Where(comic => ! comic.WebPFormated );
+            return _comics.Find(filter).ToList();
+        }
+
+        // ReSharper disable once MemberCanBePrivate.Global
+        public void ConvertComicsToWebP()
+        {
+            var comics = ListComicNotWebpConverted().Take(1);
+
+            var monitoringApi = JobStorage.Current.GetMonitoringApi();
+
+            if (monitoringApi.ProcessingCount() > 1) return;
+            
+            foreach (var comic in comics)
+            {
+                BackgroundJob.Enqueue(() => ConvertImagesToWebP(comic));
+            }
+        }
+
         private void MoveComic(string origin, string destination)
         {
             try
@@ -461,7 +484,7 @@ namespace MyComicsManagerApi.Services
         private async Task<Comic> SetImportStatus(Comic comic, ImportStatus status)
         {
             comic.ImportStatus = status;
-            _comics.ReplaceOne(c => c.Id == comic.Id, comic);
+            await _comics.ReplaceOneAsync(c => c.Id == comic.Id, comic);
             Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
             await SendNotificationImportStatus(comic, status);
             return comic;

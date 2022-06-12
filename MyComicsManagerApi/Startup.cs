@@ -85,8 +85,6 @@ namespace MyComicsManagerApi
             services.AddSingleton<BookService>();
             services.AddSingleton<ComputerVisionService>();
             services.AddSingleton<NotificationService>();
-            
-            
 
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
 

@@ -67,6 +67,10 @@ namespace MyComicsManagerWeb.Pages
             ImportingComics = await ComicService.GetImportingComics();
         }
 
-        
+
+        private async Task Refresh()
+        {
+            ImportingComics = await ComicService.GetImportingComics();
+        }
     }
 }

@@ -5,8 +5,11 @@
     <NavMenu/>
 
     <MudText Typo="Typo.h4">Import</MudText>
-
-    <MudText Typo="Typo.h5">Comics en cours d'import (@ImportingComics.Count)</MudText>
+    
+    <MudPaper Class="my-4" Elevation="0">
+        <MudText Class="d-inline" Typo="Typo.h5" >Comics en cours d'import (@ImportingComics.Count)</MudText>
+        <MudIconButton Class="d-inline" Title="Refresh" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Filled.Refresh" OnClick="Refresh">Refresh</MudIconButton>
+    </MudPaper>
     <MudTable Items="ImportingComics" Hover="true" Breakpoint="Breakpoint.Sm" >
         <HeaderContent>
             <MudTh>EbookName</MudTh>
@@ -26,7 +29,7 @@
     </MudTable>
     <MudPaper Class="my-4" Elevation="0">
         <MudText Class="d-inline" Typo="Typo.h5" >Comics en attente d'import (@UploadedFiles.Count)</MudText>
-        <MudIconButton Class="d-inline" Title="Import All" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Filled.AddComment" OnClick="@(async () => await AddComics())">ADD ALL</MudIconButton>
+        <MudIconButton Class="d-inline" Title="Import All" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Filled.AddComment" OnClick="AddComics">ADD ALL</MudIconButton>
     </MudPaper>
     <MudTable Items="UploadedFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Importing" LoadingProgressColor="Color.Info">
         <HeaderContent>
