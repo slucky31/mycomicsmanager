@@ -396,6 +396,8 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Warning("La conversion des images en WebP a échoué : {Exception}", e.Message);
+                await SetImportStatus(comic, ImportStatus.ERROR);
+                await SendNotificationMessage(comic, "La conversion des images en WebP a échoué");
             }
         }
         
