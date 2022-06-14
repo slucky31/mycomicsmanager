@@ -450,7 +450,7 @@ namespace MyComicsManagerApi.Services
 
         private IEnumerable<Comic> ListComicNotWebpConverted()
         {
-            var filter = Builders<Comic>.Filter.Where(comic => ! comic.WebPFormated );
+            var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED && ! comic.WebPFormated );
             return _comics.Find(filter).ToList();
         }
 
