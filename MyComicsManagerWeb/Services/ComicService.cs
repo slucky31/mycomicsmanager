@@ -7,7 +7,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using MyComicsManager.Model.Shared;
 using Microsoft.AspNetCore.Components.Forms;
-using System.Linq;
 using System.Text.Json.Serialization;
 using MyComicsManagerWeb.Models;
 using Serilog;
@@ -43,8 +42,7 @@ namespace MyComicsManagerWeb.Services {
             response.EnsureSuccessStatusCode();
 
             await using var responseStream = await response.Content.ReadAsStreamAsync();
-            return await JsonSerializer.DeserializeAsync
-                <IEnumerable<Comic>>(responseStream);
+            return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
         }
         
         public async Task<IEnumerable<Comic>> GetComicsOrderByLastAddedLimitBy(int limit)
@@ -54,8 +52,17 @@ namespace MyComicsManagerWeb.Services {
             response.EnsureSuccessStatusCode();
 
             await using var responseStream = await response.Content.ReadAsStreamAsync();
-            return await JsonSerializer.DeserializeAsync
-                <IEnumerable<Comic>>(responseStream);
+            return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
+        }
+        
+        public async Task<IEnumerable<string>> GetComicsSeries()
+        {
+            var response = await _httpClient.GetAsync($"/api/comics/series");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<IEnumerable<string>>(responseStream);
         }
         
         public async Task<IEnumerable<Comic>> GetComicsOrderBySerieLimitBy(int limit)
@@ -65,8 +72,7 @@ namespace MyComicsManagerWeb.Services {
             response.EnsureSuccessStatusCode();
 
             await using var responseStream = await response.Content.ReadAsStreamAsync();
-            return await JsonSerializer.DeserializeAsync
-                <IEnumerable<Comic>>(responseStream);
+            return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
         }
         
         public async Task<IEnumerable<Comic>> GetComicsRandomLimitBy(int limit)
@@ -76,8 +82,7 @@ namespace MyComicsManagerWeb.Services {
             response.EnsureSuccessStatusCode();
 
             await using var responseStream = await response.Content.ReadAsStreamAsync();
-            return await JsonSerializer.DeserializeAsync
-                <IEnumerable<Comic>>(responseStream);
+            return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
         }
         
         public async Task<IEnumerable<Comic>> Find(string search, int limit)
@@ -87,8 +92,17 @@ namespace MyComicsManagerWeb.Services {
             response.EnsureSuccessStatusCode();
 
             await using var responseStream = await response.Content.ReadAsStreamAsync();
-            return await JsonSerializer.DeserializeAsync
-                <IEnumerable<Comic>>(responseStream);
+            return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
+        }
+        
+        public async Task<IEnumerable<Comic>> FindBySerie(string serie, int limit)
+        {
+            var response = await _httpClient.GetAsync($"/api/Comics/find/serie/{serie}/limit/{limit}");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
         }
 
         public async Task<Comic> GetComic(string id)

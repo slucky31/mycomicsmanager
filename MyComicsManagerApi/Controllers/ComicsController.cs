@@ -45,6 +45,10 @@ namespace MyComicsManagerApi.Controllers
         public ActionResult<List<Comic>> FindBySerieOrTitle(string item, int limit) =>
             _comicService.Find(item, limit);
         
+        [HttpGet("find/serie/{item}/limit/{limit:int}")]
+        public ActionResult<List<Comic>> FindBySerie(string item, int limit) =>
+            _comicService.FindBySerie(item, limit);
+        
         [HttpGet("importing")]
         public ActionResult<List<Comic>> GetImportingComics() =>
             _comicService.GetImportingComics();
@@ -176,6 +180,12 @@ namespace MyComicsManagerApi.Controllers
             
         }
         
+        [HttpGet("series")]
+        public ActionResult<List<string>> Series()
+        {
+            return _comicService.GetSeries();
+        }
+
         [HttpPost("{id:length(24)}/convertImagesToWebP")]
         public ActionResult<Comic> ConvertImagesToWebP(string id)
         {

@@ -216,6 +216,15 @@ namespace MyComicsManagerApi.Services
                 .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
         }
         
+        public List<Comic> FindBySerie(string serie, int limit)
+        {
+            var filterSerie = Builders<Comic>.Filter.Regex(x => x.Serie, new BsonRegularExpression(serie, "i"));
+
+            var list = _comics.Find(filterSerie).ToList();
+            return list.OrderBy(x => x.Volume).ThenBy(x => x.Title)
+                .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
+        }
+        
         
         
         private void UpdateDirectoryAndFileName(Comic comic)
@@ -442,10 +451,15 @@ namespace MyComicsManagerApi.Services
             return CountComicsRequest(filter);
         }
         
-        public long CountSeries()
+        public List<string> GetSeries()
         {
             var filter = Builders<Comic>.Filter.Ne(comic => comic.Serie, null);
-            return _comics.Distinct(comic => comic.Serie, filter).ToList().Count;
+            return _comics.Distinct(comic => comic.Serie, filter).ToList();
+        }
+        
+        public long CountSeries()
+        {
+             return GetSeries().Count;
         }
 
         private IEnumerable<Comic> ListComicNotWebpConverted()
