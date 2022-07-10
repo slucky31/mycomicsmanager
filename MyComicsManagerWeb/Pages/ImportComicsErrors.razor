@@ -1,0 +1,43 @@
+﻿@page "/comics/import/errors"
+
+<MudContainer MaxWidth="MaxWidth.False" >
+    
+    <NavMenu/>
+
+    <MudText Typo="Typo.h4">Import</MudText>
+    
+    <MudPaper Class="my-4" Elevation="0">
+        <MudText Class="d-inline" Typo="Typo.h5" >Comics importés en erreur (@ImportingComics.Count)</MudText>
+        <MudIconButton Class="d-inline" Title="Refresh" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Filled.Refresh" OnClick="RefreshErrorComics">Refresh</MudIconButton>
+    </MudPaper>
+    <MudTable Items="ImportingComics" Hover="true" Breakpoint="Breakpoint.Sm" >
+        <HeaderContent>
+            <MudTh>EbookName</MudTh>
+            <MudTh>ImportStatus</MudTh>
+            <MudTh>ImportMessage</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="EbookName">
+                @{
+                    var downloadHref = "/download/errors/" + context.EbookName;
+                }
+                <MudLink Href="@downloadHref" Target="blank">
+                    @context.EbookName
+                </MudLink>
+            </MudTd>
+            <MudTd DataLabel="ImportStatus">@context.ImportStatus</MudTd>
+            <MudTd DataLabel="ImportMessage">
+                <MudText>@context.ImportMessage</MudText>
+            </MudTd>
+            <MudTd DataLabel="ImportStatus">
+                @{
+                    var editHref = "/comics/edit/" + context.Id;
+                }
+                <MudIconButton Class="object-right" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="() => Delete(context.Id)"/>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" Link="@editHref" Title="Edit"/>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+    
+</MudContainer>
