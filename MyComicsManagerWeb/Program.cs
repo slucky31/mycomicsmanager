@@ -27,7 +27,7 @@ namespace MyComicsManagerWeb
                 .WriteTo.File("logs/mcm-web-.log", 
                     rollingInterval: RollingInterval.Day,
                     outputTemplate: LogFormat,
-                    buffered:true)
+                    buffered:false)
                 .CreateLogger();
         
             try
