@@ -181,8 +181,6 @@ namespace MyComicsManagerApi.Services
             comic = await SetImportStatus(comic, ImportStatus.IMPORTED);
             Update(comic.Id, comic);
             
-            BackgroundJob.Enqueue(() => ConvertImagesToWebP(comic));
-
             return comic;
         }
         
@@ -509,15 +507,17 @@ namespace MyComicsManagerApi.Services
         // Notifications
         private async Task SendNotificationImportStatus(Comic comic, ImportStatus status)
         {
-            var title = $"{comic.Id} : {comic.Title}"; 
             var message = $"comic.ImportStatus = {status}";
-            await _notificationService.Send(title, message);
+            await SendNotificationMessage(comic, message);
         }
         
         private async Task SendNotificationMessage(Comic comic, string message)
         {
             var title = $"{comic.Id} : {comic.Title}";
             await _notificationService.Send(title, message);
+            
+            comic.ImportMessage = message;
+            await _comics.ReplaceOneAsync(c => c.Id == comic.Id, comic);
         }
 
     }
