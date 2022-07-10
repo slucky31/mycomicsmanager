@@ -76,7 +76,8 @@ namespace MyComicsManagerApi
             services.AddHangfireServer(serverOptions =>
             {
                 serverOptions.ServerName = "Hangfire.Mongo server 1";
-                serverOptions.WorkerCount = Environment.ProcessorCount * 2;
+                // Par défaut : Environment.ProcessorCount * 2
+                serverOptions.WorkerCount = Convert.ToInt32(Math.Ceiling((Environment.ProcessorCount * 0.75) * 1.0));
             });
 
             services.AddSingleton<ComicService>();
