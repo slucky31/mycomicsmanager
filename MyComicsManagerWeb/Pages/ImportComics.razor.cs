@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components.Forms;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Components;
 using MyComicsManagerWeb.Services;
 using MyComicsManager.Model.Shared;
 using System.IO;
-using System.Text;
 
 namespace MyComicsManagerWeb.Pages
 {

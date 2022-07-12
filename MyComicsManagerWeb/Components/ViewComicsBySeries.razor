@@ -1,45 +1,67 @@
-    @using MyComicsManager.Model.Shared
-    @using MyComicsManagerWeb.Services
-    @inject ComicService ComicService
-    @inject LibraryService LibraryService
+@using MyComicsManager.Model.Shared
+@using MyComicsManagerWeb.Services
+@using Newtonsoft.Json.Converters
+@inject ComicService ComicService
+@inject LibraryService LibraryService
+@using Serilog
 
-
-
-    @if (SeriesList.Any())
-    {
-        <MudStack>
-            @foreach (var kvp in _comics)
-            {
-                <MudText>@kvp.Key</MudText>
-                @foreach (var comic in kvp.Value)
-                {
-                    <MudText>@comic.Title</MudText>
-                }
-            }
-        </MudStack>
-    }
-    else
-    {
-        <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
-    }
-
-    @code {
-
-        [Parameter]
-        public List<string> SeriesList { get; set; }
+@if (SeriesList.Any())
+{
+    
+    <MudStack>
         
-        [Parameter]
-        public Library Library { get; set; }
-
-        private Dictionary<string, List<Comic>> _comics = new();
-        
-        protected override async Task OnInitializedAsync()
+        @foreach (var kvp in _comics)
         {
-            foreach (var serie in SeriesList)
-            {
-                var comicsList = (List<Comic>) await ComicService.FindBySerie(serie,100);
-                _comics.Add(serie, comicsList);
-            }
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">@kvp.Key</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    @{
+                        var comicsList = @kvp.Value;
+                    }
+                    <ViewSimpleComics @bind-ComicsList="comicsList" Library="Library"></ViewSimpleComics>    
+                </MudCardContent>
+            </MudCard>
         }
         
+    </MudStack>
+}
+else
+{
+    <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
+}
+
+@code {
+
+    [Parameter]
+    public List<string> SeriesList { get; set; }
+    
+    [Parameter]
+    public Library Library { get; set; }
+
+    private Dictionary<string, List<Comic>> _comics = new();
+    
+    private MudListItem selectedItem;
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var serie in SeriesList)
+        {
+            try
+            {
+                var comicsList = (List<Comic>) await ComicService.FindBySerie(serie, 100);
+                _comics.Add(serie, comicsList);
+            }
+            catch (HttpRequestException e)
+            {
+                Log.Warning(e,"L'appel au web service FindBySerie({Serie}) a renvoyé une erreur", serie);
+            }
+        }
     }
+}
