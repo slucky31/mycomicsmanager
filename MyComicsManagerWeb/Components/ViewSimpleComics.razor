@@ -1,0 +1,54 @@
+    @using MyComicsManager.Model.Shared
+    @using MyComicsManagerWeb.Services
+    @inject ComicService ComicService
+    @inject LibraryService LibraryService
+    
+    @if (ComicsList.Any())
+    {
+        <MudGrid Justify="Justify.FlexStart">
+            @foreach (var comic in ComicsList)
+            {
+                var coverPath = "/covers/" + @comic.CoverPath + "?size=150";
+                var editHref = "/comics/edit/" + @comic.Id;
+                var downloadHref = "/download/" + Library.RelPath + "/" + @comic.EbookPath;
+
+                <MudItem>
+                    <MudPaper>
+                        <MudStack Spacing="0">
+                            <MudLink Href="@downloadHref" Target="blank">
+                                <MudImage ObjectFit="ObjectFit.Cover" Width="100" Height="150" Src="@coverPath" Alt="@comic.Title" Elevation="25" Class="rounded-lg"/>
+                            </MudLink>
+                            <MudStack Row="true" Justify="Justify.Center">
+                                <MudIconButton  Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Link="@editHref"/>
+                                <MudIconButton  Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="() => DeleteComic(comic.Id)"/>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
+    }
+
+    @code {
+
+        [Parameter]
+        public List<Comic> ComicsList { get; set; }
+        
+        [Parameter]  
+        public EventCallback<List<Comic>> ComicsListChanged { get; set; }
+        
+        [Parameter]
+        public Library Library { get; set; }
+        
+        private async Task DeleteComic(string id)
+        {
+            var index = ComicsList.FindIndex(a => a.Id == id);
+            await ComicService.DeleteComic(id);
+            ComicsList.Remove(ComicsList[index]);
+            await ComicsListChanged.InvokeAsync(ComicsList);
+        }
+    }
