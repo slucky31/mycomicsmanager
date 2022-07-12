@@ -1,0 +1,31 @@
+﻿@ChildContent
+
+@code {
+    [Inject] IJSRuntime Js { get; set; }
+    
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string ObserverTargetId { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> ObservableTargetReached { get; set; }
+
+    private DotNetObjectReference<InfiniteScroll> _objectRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _objectRef = DotNetObjectReference.Create(this);
+            await Js.InvokeAsync<dynamic>("Observer.Initialize", _objectRef, ObserverTargetId);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnIntersection()
+    {
+        await ObservableTargetReached.InvokeAsync(true);
+    }
+}
