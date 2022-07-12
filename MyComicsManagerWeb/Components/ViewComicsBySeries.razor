@@ -12,9 +12,22 @@
         
         @foreach (var kvp in _comics)
         {
-            <MudText>@kvp.Key</MudText>
-            var comicsList = @kvp.Value;
-            <ViewSimpleComics @bind-ComicsList="comicsList" Library="Library"></ViewSimpleComics>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">@kvp.Key</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    @{
+                        var comicsList = @kvp.Value;
+                    }
+                    <ViewSimpleComics @bind-ComicsList="comicsList" Library="Library"></ViewSimpleComics>    
+                </MudCardContent>
+            </MudCard>
         }
         
     </MudStack>
