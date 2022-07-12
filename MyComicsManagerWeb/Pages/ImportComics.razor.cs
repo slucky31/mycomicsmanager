@@ -30,7 +30,7 @@ namespace MyComicsManagerWeb.Pages
         protected override async Task OnInitializedAsync()
         {
             UploadedFiles = await ComicService.ListUploadedFiles();
-            ImportingComics = await ComicService.GetImportingComics();
+            await RefreshImportingComics();
             Library = await LibraryService.GetSelectedLibrary();
             StateHasChanged();
         }
@@ -64,13 +64,14 @@ namespace MyComicsManagerWeb.Pages
         private async Task Delete(string id)
         {
             await ComicService.DeleteComic(id);
-            ImportingComics = await ComicService.GetImportingComics();
+            await RefreshImportingComics();
         }
-
-
-        private async Task Refresh()
+        
+        private async Task RefreshImportingComics()
         {
             ImportingComics = await ComicService.GetImportingComics();
+            ImportingComics = ImportingComics.Where(comic => comic.ImportStatus != ImportStatus.ERROR).ToList();
+            StateHasChanged();
         }
     }
 }

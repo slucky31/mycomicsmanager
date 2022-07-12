@@ -57,6 +57,7 @@ namespace MyComicsManagerWeb
             services.AddHttpClient<BookService>();
             services.AddHttpClient<ComicService>();
             services.AddHttpClient<LibraryService>();
+            services.AddHttpClient<BookInformationService>();
             
             services.AddSingleton<ThumbnailService>();
             

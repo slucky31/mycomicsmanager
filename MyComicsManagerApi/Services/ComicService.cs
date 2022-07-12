@@ -181,8 +181,6 @@ namespace MyComicsManagerApi.Services
             comic = await SetImportStatus(comic, ImportStatus.IMPORTED);
             Update(comic.Id, comic);
             
-            BackgroundJob.Enqueue(() => ConvertImagesToWebP(comic));
-
             return comic;
         }
         
@@ -213,6 +211,15 @@ namespace MyComicsManagerApi.Services
             
             var list = _comics.Find(filter).ToList();
             return list.OrderBy(x => x.Serie).ThenBy(x => x.Title)
+                .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
+        }
+        
+        public List<Comic> FindBySerie(string serie, int limit)
+        {
+            var filterSerie = Builders<Comic>.Filter.Regex(x => x.Serie, new BsonRegularExpression(serie, "i"));
+
+            var list = _comics.Find(filterSerie).ToList();
+            return list.OrderBy(x => x.Volume).ThenBy(x => x.Title)
                 .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
         }
         
@@ -442,10 +449,15 @@ namespace MyComicsManagerApi.Services
             return CountComicsRequest(filter);
         }
         
-        public long CountSeries()
+        public List<string> GetSeries()
         {
             var filter = Builders<Comic>.Filter.Ne(comic => comic.Serie, null);
-            return _comics.Distinct(comic => comic.Serie, filter).ToList().Count;
+            return _comics.Distinct(comic => comic.Serie, filter).ToList();
+        }
+        
+        public long CountSeries()
+        {
+             return GetSeries().Count;
         }
 
         private IEnumerable<Comic> ListComicNotWebpConverted()
@@ -495,15 +507,17 @@ namespace MyComicsManagerApi.Services
         // Notifications
         private async Task SendNotificationImportStatus(Comic comic, ImportStatus status)
         {
-            var title = $"{comic.Id} : {comic.Title}"; 
             var message = $"comic.ImportStatus = {status}";
-            await _notificationService.Send(title, message);
+            await SendNotificationMessage(comic, message);
         }
         
         private async Task SendNotificationMessage(Comic comic, string message)
         {
             var title = $"{comic.Id} : {comic.Title}";
             await _notificationService.Send(title, message);
+            
+            comic.ImportMessage = message;
+            await _comics.ReplaceOneAsync(c => c.Id == comic.Id, comic);
         }
 
     }

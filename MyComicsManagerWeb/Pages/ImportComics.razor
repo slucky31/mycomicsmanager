@@ -8,7 +8,7 @@
     
     <MudPaper Class="my-4" Elevation="0">
         <MudText Class="d-inline" Typo="Typo.h5" >Comics en cours d'import (@ImportingComics.Count)</MudText>
-        <MudIconButton Class="d-inline" Title="Refresh" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Filled.Refresh" OnClick="Refresh">Refresh</MudIconButton>
+        <MudIconButton Class="d-inline" Title="Refresh" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Filled.Refresh" OnClick="RefreshImportingComics">Refresh</MudIconButton>
     </MudPaper>
     <MudTable Items="ImportingComics" Hover="true" Breakpoint="Breakpoint.Sm" >
         <HeaderContent>
@@ -27,6 +27,7 @@
             <MudTd DataLabel="ImportStatus"><MudIconButton  Class="object-right" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="() => Delete(context.Id)"/></MudTd>
         </RowTemplate>
     </MudTable>
+    
     <MudPaper Class="my-4" Elevation="0">
         <MudText Class="d-inline" Typo="Typo.h5" >Comics en attente d'import (@UploadedFiles.Count)</MudText>
         <MudIconButton Class="d-inline" Title="Import All" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Filled.AddComment" OnClick="AddComics">ADD ALL</MudIconButton>

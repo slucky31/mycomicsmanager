@@ -32,7 +32,7 @@ namespace MyComicsManagerApi
                 .WriteTo.File("logs/mcm-api-.log", 
                     rollingInterval: RollingInterval.Day,
                     outputTemplate: LogFormat,
-                    buffered:true)
+                    buffered:false)
                 .CreateLogger();
         
             try
