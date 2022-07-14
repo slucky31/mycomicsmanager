@@ -32,12 +32,14 @@
             <div id="observerTarget"></div>
             <MudText Typo="Typo.h6">observerTarget - Fin</MudText>
         </InfiniteScroll>
+
     </MudStack>
 }
 else
 {
     <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
 }
+
 
 @code {
 
@@ -70,6 +72,7 @@ else
         _indexItem += countItem;
         
         foreach (var serie in fetchedSeries)
+
         {
             try
             {
