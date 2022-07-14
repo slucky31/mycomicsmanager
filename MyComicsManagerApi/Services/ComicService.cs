@@ -216,15 +216,13 @@ namespace MyComicsManagerApi.Services
         
         public List<Comic> FindBySerie(string serie, int limit)
         {
-            var filterSerie = Builders<Comic>.Filter.Regex(x => x.Serie, new BsonRegularExpression(serie, "i"));
-
+            var filterSerie = Builders<Comic>.Filter.Where(comic => comic.Serie == serie);
+            
             var list = _comics.Find(filterSerie).ToList();
             return list.OrderBy(x => x.Volume).ThenBy(x => x.Title)
                 .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
         }
-        
-        
-        
+
         private void UpdateDirectoryAndFileName(Comic comic)
         {
             // Mise à jour du nom du fichier

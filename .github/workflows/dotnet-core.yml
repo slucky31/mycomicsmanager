@@ -45,7 +45,7 @@ jobs:
             
   docker-web:
     needs: build
-    #if: ${{ (github.ref == 'refs/heads/main') || (github.ref == 'refs/heads/develop') }}
+    if: ${{ (github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-latest
     permissions:
         contents: read
@@ -83,7 +83,7 @@ jobs:
 
   docker-api:
     needs: build
-    #if: ${{ (github.ref == 'refs/heads/main') || (github.ref == 'refs/heads/develop') }}
+    if: ${{ (github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-latest
     permissions:
         contents: read

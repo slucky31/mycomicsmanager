@@ -6,30 +6,33 @@
 @using Serilog
 
 @if (SeriesList.Any())
-{
-    
-    <MudStack>
-        
-        @foreach (var kvp in _comics)
-        {
-            <MudCard>
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">@kvp.Key</MudText>
-                    </CardHeaderContent>
-                    <CardHeaderActions>
-                        <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
-                    </CardHeaderActions>
-                </MudCardHeader>
-                <MudCardContent>
-                    @{
-                        var comicsList = @kvp.Value;
-                    }
-                    <ViewSimpleComics @bind-ComicsList="comicsList" Library="Library"></ViewSimpleComics>    
-                </MudCardContent>
-            </MudCard>
-        }
-        
+{    
+    <MudStack>        
+        <InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="(e) => FetchSeries()">
+            @foreach (var kvp in _comics)
+            {
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@kvp.Key</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @{
+                            var comicsList = @kvp.Value;
+                        }
+                        <ViewSimpleComics @bind-ComicsList="comicsList" Library="Library"></ViewSimpleComics>    
+                    </MudCardContent>
+                </MudCard>
+            }
+            <MudText Typo="Typo.h6">observerTarget - Debut</MudText>
+            <div id="observerTarget"></div>
+            <MudText Typo="Typo.h6">observerTarget - Fin</MudText>
+        </InfiniteScroll>
+
     </MudStack>
 }
 else
@@ -37,21 +40,39 @@ else
     <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
 }
 
+
 @code {
 
     [Parameter]
     public List<string> SeriesList { get; set; }
     
+    private List<string> LimitedSeriesList { get; set; }
+    
     [Parameter]
     public Library Library { get; set; }
 
     private Dictionary<string, List<Comic>> _comics = new();
-    
-    private MudListItem selectedItem;
 
-    protected override async Task OnInitializedAsync()
+    private static int _maxItem = 10;
+    
+    private int _indexItem = 0;
+    
+    protected async Task FetchSeries()
     {
-        foreach (var serie in SeriesList)
+        Log.Information("-- FetchSeries");
+        Log.Information("-- FetchSeries : _indexItem = {Index}", _indexItem);
+        
+        var countItem = _maxItem;
+        if (_indexItem + _maxItem > SeriesList.Count)
+        {
+            countItem = SeriesList.Count - _indexItem;
+        }
+        Log.Information("-- FetchSeries : CountItem = {Count}", countItem);
+        var fetchedSeries = SeriesList.GetRange(_indexItem ,countItem);
+        _indexItem += countItem;
+        
+        foreach (var serie in fetchedSeries)
+
         {
             try
             {
