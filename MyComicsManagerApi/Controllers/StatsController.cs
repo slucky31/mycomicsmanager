@@ -44,11 +44,22 @@ namespace MyComicsManagerApi.Controllers
             return _comicService.CountComicsUnRead();
         }
         
+        [HttpGet("comicsUnWebpFormated")]
+        public ActionResult<long> GetNbComicsUnWebpFormated()
+        {
+            return _comicService.CountComicsUnWebpFormated();
+        }
+        
+        [HttpGet("comicsImportedWithErrors")]
+        public ActionResult<long> GetNbComicsImportedWithErrors()
+        {
+            return _comicService.CountComicsImportedWithErrors();
+        }
+        
         [HttpGet("series")]
         public ActionResult<long> GetNbSeries()
         {
             return _comicService.CountSeries();
         }
-        
     }
 }

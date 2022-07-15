@@ -202,7 +202,6 @@ namespace MyComicsManagerApi.Controllers
             
         }
 
-
         [HttpDelete("{id:length(24)}")]
         public IActionResult Delete(string id)
         {
@@ -224,6 +223,12 @@ namespace MyComicsManagerApi.Controllers
             _comicService.RemoveAllComicsFromLibrary(id);
 
             return NoContent();
+        }
+        
+        [HttpGet("findByPage")]
+        public ActionResult<PaginationComics> FindByPage(int pageId, int pageSize)
+        {
+            return _comicService.FindByPage(pageId,pageSize).Result;
         }
     }
 }

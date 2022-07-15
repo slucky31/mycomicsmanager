@@ -8,28 +8,16 @@
 <MudContainer MaxWidth="MaxWidth.False" >
     
     <NavMenu/>
-    
-    @if (Series.Any())
-    {
-        <ViewComicsBySeries SeriesList="Series" Library="_library"></ViewComicsBySeries>
-    }
-    else
-    {
-        <MudPaper Class="pa-4 ma-2" Elevation="3">
-            <MudText>Aucun comic trouvé</MudText>
-        </MudPaper>
-    }
-    
+    <ViewComicsBySeries Library="_library"></ViewComicsBySeries>
+
 </MudContainer>
 
 @code {
     
-    private List<string> Series { get; set; } = new();
     private Library _library;
 
     protected override async Task OnInitializedAsync()
     {
-        Series = (List<string>) await ComicService.GetComicsSeries();
         _library = await LibraryService.GetSelectedLibrary();
     }
 

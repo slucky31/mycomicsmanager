@@ -210,7 +210,7 @@ namespace MyComicsManagerApi.Services
             var filter = filterTitle|filterSerie;
             
             var list = _comics.Find(filter).ToList();
-            return list.OrderBy(x => x.Serie).ThenBy(x => x.Title)
+            return list.OrderBy(x => x.Serie).ThenBy(x => x.Volume).ThenBy(x => x.Title)
                 .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
         }
         
@@ -221,6 +221,21 @@ namespace MyComicsManagerApi.Services
             var list = _comics.Find(filterSerie).ToList();
             return list.OrderBy(x => x.Volume).ThenBy(x => x.Title)
                 .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
+        }
+        
+        public async Task<PaginationComics> FindByPage(int pageId, int pageSize)
+        {
+            var result =  await _comics.AggregateByPage(
+                Builders<Comic>.Filter.Empty,
+                Builders<Comic>.Sort.Ascending(x => x.Serie),
+                page: pageId,
+                pageSize: pageSize);
+
+            return  new PaginationComics()
+            {
+                TotalPages = result.totalPages,
+                Data = result.data
+            };
         }
 
         private void UpdateDirectoryAndFileName(Comic comic)
@@ -444,6 +459,18 @@ namespace MyComicsManagerApi.Services
         public long CountComicsUnRead()
         {
             var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED && (comic.ComicReviews == null || comic.ComicReviews.Count == 0) );
+            return CountComicsRequest(filter);
+        }
+        
+        public long CountComicsUnWebpFormated()
+        {
+            var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED && comic.WebPFormated == false );
+            return CountComicsRequest(filter);
+        }
+        
+        public long CountComicsImportedWithErrors()
+        {
+            var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.ERROR );
             return CountComicsRequest(filter);
         }
         
