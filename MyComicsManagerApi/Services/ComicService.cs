@@ -222,6 +222,7 @@ namespace MyComicsManagerApi.Services
             return list.OrderBy(x => x.Volume).ThenBy(x => x.Title)
                 .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
         }
+
         
         public async Task<PaginationComics> FindByPage(int pageId, int pageSize)
         {
@@ -237,6 +238,7 @@ namespace MyComicsManagerApi.Services
                 Data = result.data
             };
         }
+
 
         private void UpdateDirectoryAndFileName(Comic comic)
         {

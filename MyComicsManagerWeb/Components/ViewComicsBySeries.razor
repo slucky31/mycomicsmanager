@@ -5,9 +5,11 @@
 @inject LibraryService LibraryService
 @using Serilog
 
+
   
     <MudStack>        
         <InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="_ => FetchComics()">
+
             @foreach (var kvp in _comics)
             {
                 <MudCard>
@@ -40,10 +42,13 @@
     
     private List<string> LimitedSeriesList { get; set; }
     
+    private List<string> LimitedSeriesList { get; set; }
+    
     [Parameter]
     public Library Library { get; set; }
 
     private Dictionary<string, List<Comic>> _comics = new();
+
 
     private static int _maxItem = 40;
     
@@ -59,6 +64,7 @@
         Log.Information("-- FetchComics : result.data.count {Count}",result.Data.Count);
         
         foreach (var comic in result.Data)
+
         {
             Log.Information("-- FetchComics : {Comic}",comic);
             if (string.IsNullOrEmpty(comic.Serie))
