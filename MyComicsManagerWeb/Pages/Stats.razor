@@ -73,7 +73,29 @@
                     <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
                 </MudCardActions>
             </MudCard>
-        </MudItem>        
+        </MudItem>
+        <MudItem xs="12" sm="3">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Comics à convertir en Webp</MudText>
+                    <MudText Typo="Typo.h1">@_nbComicsUnWebpFormated</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="3">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Comics importés avec des erreurs</MudText>
+                    <MudText Typo="Typo.h1">@_nbComicsImportedWithErrors</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">Liste</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
     </MudGrid>
 </MudContainer>
 
@@ -85,6 +107,8 @@
     private long _nbComicsRead;
     private long _nbComicsUnRead;
     private long _nbSeries;
+    private long _nbComicsUnWebpFormated;
+    private long _nbComicsImportedWithErrors;
    
     protected override async Task OnInitializedAsync()
     {
@@ -94,6 +118,8 @@
         _nbComicsRead = await ComicService.GetNbComicsRead();
         _nbComicsUnRead = await ComicService.GetNbComicsUnRead();
         _nbSeries = await ComicService.GetNbSeries();
+        _nbComicsUnWebpFormated = await ComicService.GetNbComicsUnWebpFormated();
+        _nbComicsImportedWithErrors = await ComicService.GetNbComicsImportedWithErrors();
     }
     
 }

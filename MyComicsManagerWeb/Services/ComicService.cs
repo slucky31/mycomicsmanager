@@ -104,6 +104,16 @@ namespace MyComicsManagerWeb.Services {
             await using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
         }
+        
+        public async Task<PaginationComics> FindByPage(int pageId, int pageSize)
+        {
+            var response = await _httpClient.GetAsync($"/api/Comics/findByPage?pageId={pageId}&pageSize={pageSize}");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<PaginationComics>(responseStream);
+        }
 
         public async Task<Comic> GetComic(string id)
         {
@@ -274,6 +284,26 @@ namespace MyComicsManagerWeb.Services {
         public async Task<long> GetNbSeries()
         {
             var response = await _httpClient.GetAsync($"/api/stats/series");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsUnWebpFormated()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsUnWebpFormated");
+
+            response.EnsureSuccessStatusCode();
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<long>(responseStream);
+        }
+        
+        public async Task<long> GetNbComicsImportedWithErrors()
+        {
+            var response = await _httpClient.GetAsync($"/api/stats/comicsImportedWithErrors");
 
             response.EnsureSuccessStatusCode();
 

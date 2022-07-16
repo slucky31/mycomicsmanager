@@ -5,10 +5,11 @@
 @inject LibraryService LibraryService
 @using Serilog
 
-@if (SeriesList.Any())
-{    
+
+  
     <MudStack>        
-        <InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="(e) => FetchSeries()">
+        <InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="_ => FetchComics()">
+
             @foreach (var kvp in _comics)
             {
                 <MudCard>
@@ -34,17 +35,12 @@
         </InfiniteScroll>
 
     </MudStack>
-}
-else
-{
-    <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
-}
+
 
 
 @code {
-
-    [Parameter]
-    public List<string> SeriesList { get; set; }
+    
+    private List<string> LimitedSeriesList { get; set; }
     
     private List<string> LimitedSeriesList { get; set; }
     
@@ -53,36 +49,36 @@ else
 
     private Dictionary<string, List<Comic>> _comics = new();
 
-    private static int _maxItem = 10;
+
+    private static int _maxItem = 40;
     
-    private int _indexItem = 0;
-    
-    protected async Task FetchSeries()
+    private int _indexItem = 1;
+
+    protected async Task FetchComics()
     {
-        Log.Information("-- FetchSeries");
-        Log.Information("-- FetchSeries : _indexItem = {Index}", _indexItem);
+        Log.Information("-- FetchComics");
+        Log.Information("-- FetchComics : _indexItem = {Index}", _indexItem);
         
-        var countItem = _maxItem;
-        if (_indexItem + _maxItem > SeriesList.Count)
-        {
-            countItem = SeriesList.Count - _indexItem;
-        }
-        Log.Information("-- FetchSeries : CountItem = {Count}", countItem);
-        var fetchedSeries = SeriesList.GetRange(_indexItem ,countItem);
-        _indexItem += countItem;
+        var result = await ComicService.FindByPage(_indexItem++, _maxItem);
+        Log.Information("-- FetchComics : result.totalPages {Count}",result.TotalPages);
+        Log.Information("-- FetchComics : result.data.count {Count}",result.Data.Count);
         
-        foreach (var serie in fetchedSeries)
+        foreach (var comic in result.Data)
 
         {
-            try
+            Log.Information("-- FetchComics : {Comic}",comic);
+            if (string.IsNullOrEmpty(comic.Serie))
             {
-                var comicsList = (List<Comic>) await ComicService.FindBySerie(serie, 100);
-                _comics.Add(serie, comicsList);
+                comic.Serie = "Empty";
             }
-            catch (HttpRequestException e)
+            
+            if (!_comics.ContainsKey(comic.Serie))
             {
-                Log.Warning(e,"L'appel au web service FindBySerie({Serie}) a renvoyé une erreur", serie);
+                var list = new List<Comic>();
+                _comics.Add(comic.Serie,list);
             }
+            _comics[comic.Serie].Add(comic);
         }
+        this.StateHasChanged();
     }
 }
