@@ -7,6 +7,8 @@ using MongoDB.Driver;
 
 namespace MyComicsManagerApi.Utils;
 
+// Source : https://kevsoft.net/2020/01/27/paging-data-in-mongodb-with-csharp.html
+
 public static class MongoCollectionQueryByPageExtensions
 {
     public static async Task<(int totalPages, IReadOnlyList<TDocument> data)> AggregateByPage<TDocument>(

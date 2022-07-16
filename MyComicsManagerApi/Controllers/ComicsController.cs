@@ -225,10 +225,10 @@ namespace MyComicsManagerApi.Controllers
             return NoContent();
         }
         
-        [HttpGet("findByPage")]
-        public ActionResult<PaginationComics> FindByPage(int pageId, int pageSize)
+        [HttpGet("findbypageorderbyserie")]
+        public ActionResult<PaginationComics> FindByPage(string searchItem, int pageId, int pageSize)
         {
-            return _comicService.FindByPage(pageId,pageSize).Result;
+            return _comicService.FindByPageOrderBySerie(searchItem, pageId,pageSize).Result;
         }
     }
 }

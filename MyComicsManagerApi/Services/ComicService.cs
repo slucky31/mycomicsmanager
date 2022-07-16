@@ -223,11 +223,22 @@ namespace MyComicsManagerApi.Services
                 .Take(limit < MaxComicsPerRequest ? limit : MaxComicsPerRequest).ToList();
         }
 
-        
-        public async Task<PaginationComics> FindByPage(int pageId, int pageSize)
+        public async Task<PaginationComics> FindByPageOrderBySerie(string searchItem, int pageId, int pageSize)
         {
+            FilterDefinition<Comic> filter;
+            if (string.IsNullOrEmpty(searchItem))
+            {
+                filter = Builders<Comic>.Filter.Empty;
+            }
+            else
+            {
+                var filterTitle = Builders<Comic>.Filter.Regex(x => x.Title, new BsonRegularExpression(searchItem, "i"));
+                var filterSerie = Builders<Comic>.Filter.Regex(x => x.Serie, new BsonRegularExpression(searchItem, "i"));
+                filter = filterTitle|filterSerie;
+            }
+            
             var result =  await _comics.AggregateByPage(
-                Builders<Comic>.Filter.Empty,
+                filter,
                 Builders<Comic>.Sort.Ascending(x => x.Serie),
                 page: pageId,
                 pageSize: pageSize);
@@ -238,8 +249,7 @@ namespace MyComicsManagerApi.Services
                 Data = result.data
             };
         }
-
-
+        
         private void UpdateDirectoryAndFileName(Comic comic)
         {
             // Mise à jour du nom du fichier

@@ -5,11 +5,8 @@
 @inject LibraryService LibraryService
 @using Serilog
 
-
-  
     <MudStack>        
         <InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="_ => FetchComics()">
-
             @foreach (var kvp in _comics)
             {
                 <MudCard>
@@ -29,14 +26,10 @@
                     </MudCardContent>
                 </MudCard>
             }
-            <MudText Typo="Typo.h6">observerTarget - Debut</MudText>
             <div id="observerTarget"></div>
             <MudText Typo="Typo.h6">observerTarget - Fin</MudText>
         </InfiniteScroll>
-
     </MudStack>
-
-
 
 @code {
     
@@ -45,11 +38,14 @@
     [Parameter]
     public Library Library { get; set; }
 
+    [Parameter]
+    public int MaxItemsByPage { get; set; } = 50;
+    
+    [Parameter]
+    public string SearchItem { get; set; }    
+
     private Dictionary<string, List<Comic>> _comics = new();
 
-
-    private static int _maxItem = 40;
-    
     private int _indexItem = 1;
 
     protected async Task FetchComics()
@@ -57,7 +53,7 @@
         Log.Information("-- FetchComics");
         Log.Information("-- FetchComics : _indexItem = {Index}", _indexItem);
         
-        var result = await ComicService.FindByPage(_indexItem++, _maxItem);
+        var result = await ComicService.FindByPageOrderBySerie(SearchItem, _indexItem++, MaxItemsByPage);
         Log.Information("-- FetchComics : result.totalPages {Count}",result.TotalPages);
         Log.Information("-- FetchComics : result.data.count {Count}",result.Data.Count);
         

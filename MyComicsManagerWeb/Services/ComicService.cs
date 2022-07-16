@@ -84,30 +84,10 @@ namespace MyComicsManagerWeb.Services {
             await using var responseStream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
         }
-        
-        public async Task<IEnumerable<Comic>> Find(string search, int limit)
+
+        public async Task<PaginationComics> FindByPageOrderBySerie(string searchItem, int pageId, int pageSize)
         {
-            var response = await _httpClient.GetAsync($"/api/Comics/find/{search}/limit/{limit}");
-
-            response.EnsureSuccessStatusCode();
-
-            await using var responseStream = await response.Content.ReadAsStreamAsync();
-            return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
-        }
-        
-        public async Task<IEnumerable<Comic>> FindBySerie(string serie, int limit)
-        {
-            var response = await _httpClient.GetAsync($"/api/Comics/find/serie/{serie}/limit/{limit}");
-
-            response.EnsureSuccessStatusCode();
-
-            await using var responseStream = await response.Content.ReadAsStreamAsync();
-            return await JsonSerializer.DeserializeAsync<IEnumerable<Comic>>(responseStream);
-        }
-        
-        public async Task<PaginationComics> FindByPage(int pageId, int pageSize)
-        {
-            var response = await _httpClient.GetAsync($"/api/Comics/findByPage?pageId={pageId}&pageSize={pageSize}");
+            var response = await _httpClient.GetAsync($"/api/Comics/findbypageorderbyserie?searchItem={searchItem}&pageId={pageId}&pageSize={pageSize}");
 
             response.EnsureSuccessStatusCode();
 
