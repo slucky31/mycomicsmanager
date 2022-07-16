@@ -232,7 +232,7 @@ namespace MyComicsManagerApi.Services
                 page: pageId,
                 pageSize: pageSize);
 
-            return  new PaginationComics()
+            return  new PaginationComics
             {
                 TotalPages = result.totalPages,
                 Data = result.data
@@ -500,7 +500,10 @@ namespace MyComicsManagerApi.Services
 
             var monitoringApi = JobStorage.Current.GetMonitoringApi();
 
-            if (monitoringApi.ProcessingCount() > 1) return;
+            if (monitoringApi.ProcessingCount() > 1)
+            {
+                return;
+            }
             
             foreach (var comic in comics)
             {

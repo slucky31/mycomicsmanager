@@ -75,7 +75,6 @@ namespace MyComicsManagerApi
             // Add the processing server as IHostedService
             services.AddHangfireServer(serverOptions =>
             {
-                //serverOptions.ServerName = "Hangfire.Mongo.Server.1";
                 // Par défaut : Environment.ProcessorCount * 2
                 serverOptions.WorkerCount = 1;
             });
