@@ -13,7 +13,7 @@
                 var downloadHref = "/download/" + Library.RelPath + "/" + @comic.EbookPath;
 
                 <MudItem>
-                    <MudPaper>
+                    <MudPaper Class="px-1 pt-1 white" >
                         <MudStack Spacing="0">
                             <MudLink Href="@downloadHref" Target="blank">
                                 <MudImage ObjectFit="ObjectFit.Cover" Width="100" Height="150" Src="@coverPath" Alt="@comic.Title" Elevation="25" Class="rounded-lg"/>

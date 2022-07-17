@@ -1,9 +1,11 @@
 ﻿@page "/"
 
 @using MyComicsManager.Model.Shared
+@using MyComicsManagerWeb.Extensions
 @using MyComicsManagerWeb.Services
 @inject ComicService ComicService
 @inject LibraryService LibraryService
+@inject NavigationManager NavigationManager
 
 <MudContainer MaxWidth="MaxWidth.False" >
     
@@ -11,65 +13,41 @@
     
     <MudPaper Class="pa-4 ma-2" Elevation="3">
         <MudTextField  @bind-Value="SearchValue" Label="Search" Variant="Variant.Outlined" Immediate="true" Clearable="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search" OnClearButtonClick="@Clear" OnKeyPress="@Enter"/>
-    </MudPaper>
+    </MudPaper>    
     
-    @if (SearchInProgress)
-    {
-        <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
-    }
-    
-    @if (LastAddedComics.Any())
-    {
-        <ViewComics @bind-ComicsList="LastAddedComics" Library="_library"/>
-    }
-    else
-    {
-        <MudPaper Class="pa-4 ma-2" Elevation="3">
-            <MudText>Aucun comic trouvé</MudText>
-        </MudPaper>
-    }
+    <ViewComicsBySeries Library="_library" SearchItem="@SearchValue" />
     
 </MudContainer>
 
 @code {
     
-    private string SearchValue { get; set;}
-    private List<Comic> LastAddedComics { get; set; } = new();
-    private bool SearchInProgress { get; set; }
+    public string SearchValue { get; set;}
     private Library _library;
-    private int _nbItemsPerPage = 50;
+  
     
     protected override async Task OnInitializedAsync()
     {
-        LastAddedComics = (List<Comic>) await ComicService.GetComicsOrderByLastAddedLimitBy(_nbItemsPerPage);
         _library = await LibraryService.GetSelectedLibrary();
+        NavigationManager.TryGetQueryString("q", out string q);
+        SearchValue = q;
     }
     
-    private async Task Search()
+    private void Search()
     {
-        SearchInProgress = true;
-        if (!string.IsNullOrEmpty(SearchValue))
-        {
-            LastAddedComics = (List<Comic>) await ComicService.Find(SearchValue,_nbItemsPerPage);    
-        }
-        else
-        {
-            LastAddedComics = (List<Comic>) await ComicService.GetComicsOrderByLastAddedLimitBy(_nbItemsPerPage);
-        }
-        SearchInProgress = false;
+        NavigationManager.NavigateTo($"/?q={SearchValue}", true);
     }
 
-    private async Task Enter(KeyboardEventArgs e)
+    private void Enter(KeyboardEventArgs e)
     {
         if (e.Code is "Enter" or "NumpadEnter")
         {
-            await Search();
+            Search();
         }
     }
     
-    private async Task Clear()
+    private void Clear()
     {
         SearchValue = "";
-        LastAddedComics = (List<Comic>) await ComicService.GetComicsOrderByLastAddedLimitBy(_nbItemsPerPage);
+        Search();
     }
 }

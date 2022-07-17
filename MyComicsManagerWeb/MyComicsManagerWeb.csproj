@@ -6,10 +6,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
-		<PackageReference Include="GitInfo" Version="2.2.0">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
+		<PackageReference Include="GitInfo" Version="2.2.0" />
 		
 		
 		<PackageReference Include="MudBlazor" Version="6.0.10" />
