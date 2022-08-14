@@ -22,18 +22,26 @@
                         @{
                             var comicsList = @kvp.Value;
                         }
-                        <ViewSimpleComics @bind-ComicsList="comicsList" Library="Library"></ViewSimpleComics>    
+                        <ViewSimpleComics @bind-ComicsList="comicsList" Library="Library" />    
                     </MudCardContent>
                 </MudCard>
             }
-            <div id="observerTarget"></div>
-            <MudText Typo="Typo.h6">observerTarget - Fin</MudText>
+            <div id="observerTarget">
+                @if (ExistDataToDisplay)
+                {
+                    <MudProgressCircular Color="Color.Info" Indeterminate="true" />
+                    <MudText Typo="Typo.h6">Waiting data ...</MudText>    
+                }
+            </div>
+            
         </InfiniteScroll>
     </MudStack>
 
 @code {
     
     private List<string> LimitedSeriesList { get; set; }
+
+    private bool ExistDataToDisplay { get; set; } = true;
 
     [Parameter]
     public Library Library { get; set; }
@@ -56,9 +64,13 @@
         var result = await ComicService.FindByPageOrderBySerie(SearchItem, _indexItem++, MaxItemsByPage);
         Log.Information("-- FetchComics : result.totalPages {Count}",result.TotalPages);
         Log.Information("-- FetchComics : result.data.count {Count}",result.Data.Count);
+
+        if (result.Data.Count == 0)
+        {
+            ExistDataToDisplay = false;
+        }
         
         foreach (var comic in result.Data)
-
         {
             Log.Information("-- FetchComics : {Comic}",comic);
             if (string.IsNullOrEmpty(comic.Serie))
@@ -72,7 +84,11 @@
                 _comics.Add(comic.Serie,list);
             }
             _comics[comic.Serie].Add(comic);
+            
+            // Tri de la liste par Tome
+            _comics[comic.Serie].Sort((x, y) => x.Volume.CompareTo(y.Volume));
         }
+        
         this.StateHasChanged();
     }
 }
