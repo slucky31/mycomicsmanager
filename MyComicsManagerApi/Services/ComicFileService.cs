@@ -260,17 +260,9 @@ namespace MyComicsManagerApi.Services
                     Log.Here().Debug("{FullName} was compressed", entry.FullName);
                 }
             }
-
+            
             // Suppression du dossier temporaire
-            try
-            {
-                Directory.Delete(tempDir, true);
-                Log.Here().Information("Suppression du dossier temporaire");
-            }
-            catch (Exception e)
-            {
-                Log.Here().Error(e, "La suppression du répertoire temporaire a échoué");
-            }
+            CleanTempDirectory(tempDir);
 
             // Mise à jour de l'objet Comic avec le nouveau fichier CBZ et le nouveau chemin
             comic.EbookName = Path.GetFileName(comic.EbookPath);
@@ -366,6 +358,9 @@ namespace MyComicsManagerApi.Services
                 Log.Here().Debug("{FullName} was compressed", entry.FullName);
             }
             
+            // Suppression du dossier temporaire
+            CleanTempDirectory(tempDir);
+            
             // Suppression de l'archive backup
             File.Delete(destBackUp);
             
@@ -456,6 +451,9 @@ namespace MyComicsManagerApi.Services
             {
                 isbnList.Add(match.Value);
             }
+            
+            // Suppression du dossier temporaire
+            CleanTempDirectory(tempDir);
 
             return isbnList;
         }
@@ -471,6 +469,9 @@ namespace MyComicsManagerApi.Services
 
             var extractedText = await _computerVisionService.ReadTextFromLocalImage(imagePath);
             Log.Here().Information("extractedText : {Text}", extractedText);
+            
+            // Suppression du dossier temporaire
+            CleanTempDirectory(tempDir);
 
             return extractedText;
         }
@@ -579,6 +580,20 @@ namespace MyComicsManagerApi.Services
             }
 
             return tempDir;
+        }
+
+        private static void CleanTempDirectory(string tempDir)
+        {
+            // Suppression du dossier temporaire
+            try
+            {
+                Directory.Delete(tempDir, true);
+                Log.Here().Information("Suppression du dossier temporaire {Path}",tempDir);
+            }
+            catch (Exception e)
+            {
+                Log.Here().Error(e, "La suppression du répertoire temporaire {Path} a échoué",tempDir);
+            }
         }
 
         public string GetComicEbookPath(Comic comic, LibraryService.PathType pathType)
