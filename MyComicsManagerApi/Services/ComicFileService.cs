@@ -293,6 +293,8 @@ namespace MyComicsManagerApi.Services
             {
                 Log.Here().Error("Erreur lors de l'extraction des images à partir du fichier CBZ {File}",
                     comic.EbookPath);
+                // Suppression du dossier temporaire
+                CleanTempDirectory(tempDir);
                 throw;
             }
             
@@ -308,24 +310,35 @@ namespace MyComicsManagerApi.Services
                 var webpConvertedFile = Path.ChangeExtension(file, ".webp");
                 using (var image = Image.Load(file, out _))
                 {
-                    // Resize de l'image
-                    if (image.Width > ResizedWidth)
+                    try
                     {
-                        if (image.Width > image.Height)
+                        // Resize de l'image
+                        if (image.Width > ResizedWidth)
                         {
-                            // Cas d'une double page
-                            image.Mutate(x => x.Resize(2 * ResizedWidth, 0));
+                            if (image.Width > image.Height)
+                            {
+                                // Cas d'une double page
+                                image.Mutate(x => x.Resize(2 * ResizedWidth, 0));
+                            }
+                            else
+                            {
+                                // Cas d'une page simple
+                                image.Mutate(x => x.Resize(ResizedWidth, 0));
+                            }
                         }
-                        else
-                        {
-                            // Cas d'une page simple
-                            image.Mutate(x => x.Resize(ResizedWidth, 0));
-                        }
-                    }
 
-                    // Conversion en WebP
-                    image.SaveAsWebp(webpConvertedFile, new WebpEncoder {FileFormat = WebpFileFormatType.Lossy});
-                    Log.Here().Debug("Image {Image} was converted into WebP {WebpImage}", file, webpConvertedFile);
+                        // Conversion en WebP
+                        image.SaveAsWebp(webpConvertedFile, new WebpEncoder {FileFormat = WebpFileFormatType.Lossy});
+                        Log.Here().Debug("Image {Image} was converted into WebP {WebpImage}", file, webpConvertedFile);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Here().Error("Erreur lors de l'extraction de l'image {Image} à partir du fichier CBZ {File}",
+                            file, comic.EbookPath);
+                        // Suppression du dossier temporaire
+                        CleanTempDirectory(tempDir);
+                        throw;
+                    }
                 }
 
                 // Suppression du fichier original
