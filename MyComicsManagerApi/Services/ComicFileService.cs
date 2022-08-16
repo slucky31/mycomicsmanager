@@ -211,8 +211,11 @@ namespace MyComicsManagerApi.Services
                     File.Delete(comic.EbookPath);
                 }
             }
-
-            comic.EbookPath = Path.ChangeExtension(comic.EbookPath, ".cbz");
+            
+            // Changement de l'extension du fichier de destination
+            // Nettoyage du nom de destination : Suppression des accents, (), {}, [], ...
+            comic.EbookPath = Path.GetDirectoryName(comic.EbookPath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(comic.EbookPath).ToCamlCase() + ".cbz";
+            
             Log.Here().Information("comic.EbookPath = {Path}", comic.EbookPath);
 
             // Déplacement des images au même niveau dans un répertoire archive
