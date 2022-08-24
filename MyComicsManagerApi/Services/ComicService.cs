@@ -38,7 +38,8 @@ namespace MyComicsManagerApi.Services
             _notificationService = notificationService;
             
             // https://www.freeformatter.com/cron-expression-generator-quartz.html
-            RecurringJob.AddOrUpdate("convertToWebP", () => ConvertComicsToWebP(), "0 */10 * ? * *");
+            // At second :00 of minute :00 of every hour
+            RecurringJob.AddOrUpdate("convertToWebP", () => ConvertComicsToWebP(), "0 0 * ? * * *");
         }
         
         public List<Comic> Get() =>

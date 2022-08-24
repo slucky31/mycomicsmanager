@@ -306,10 +306,11 @@ namespace MyComicsManagerApi.Services
                     _extensionsImageArchiveWithoutWebp.Any(x => file.EndsWith(x, StringComparison.OrdinalIgnoreCase))).ToList();
             Log.Here().Information("Conversion des {NbFiles} images en WebP et resize à {Width} pixels de large",
                 filesToConvert.Count, ResizedWidth);
-            
+
+            var index = 1;
             foreach(var file in filesToConvert)
             {
-                Log.Here().Debug("Conversion du fichier {File}", file);
+                Log.Here().Information("[{Index}/{NbFiles}] Conversion du fichier {File}", index++,filesToConvert.Count, file);
                 var webpConvertedFile = Path.ChangeExtension(file, ".webp");
                 using (var image = Image.Load(file, out _))
                 {
@@ -334,7 +335,7 @@ namespace MyComicsManagerApi.Services
                         image.SaveAsWebp(webpConvertedFile, new WebpEncoder {FileFormat = WebpFileFormatType.Lossy});
                         Log.Here().Debug("Image {Image} was converted into WebP {WebpImage}", file, webpConvertedFile);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         Log.Here().Error("Erreur lors de l'extraction de l'image {Image} à partir du fichier CBZ {File}",
                             file, comic.EbookPath);
@@ -379,6 +380,7 @@ namespace MyComicsManagerApi.Services
             
             // Suppression de l'archive backup
             File.Delete(destBackUp);
+            Log.Here().Information("Suppression du fichier origine {Dest}", destBackUp);
             
         }
 
