@@ -38,8 +38,9 @@ namespace MyComicsManagerApi.Services
             _notificationService = notificationService;
             
             // https://www.freeformatter.com/cron-expression-generator-quartz.html
-            // At second :00 of minute :00 of every hour
-            RecurringJob.AddOrUpdate("convertToWebP", () => ConvertComicsToWebP(), "0 0 * ? * * *");
+            // Remarque : Supprimer l'étoile des années car ne semble par gérer par HangFire
+            // At second :00, at minute :00, every hour starting at 00am, of every day
+            RecurringJob.AddOrUpdate("convertToWebP", () => ConvertComicsToWebP(), "0 0 0/1 ? * *");
         }
         
         public List<Comic> Get() =>
