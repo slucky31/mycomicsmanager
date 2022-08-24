@@ -3,6 +3,7 @@
 @using MyComicsManager.Model.Shared
 @using MyComicsManagerWeb.Services
 @using System.Threading
+@using MyComicsManagerWeb.Models
 
 @inject ComicService _comicService
 @inject ThumbnailService _thumbnailService
@@ -250,17 +251,21 @@
 
         if (!result.Cancelled)
         {
-            var isbn = result.Data.ToString();
-            
-            if ((null != isbn) && (isbn.Contains(':')))
-            {
-                comic.Isbn = isbn.Split(':')[1].Trim();
-            }
-            else
-            {
-                comic.Isbn = isbn;    
-            }
-            
+            var tmp = (GoogleBookInfo)result.Data;
+
+            comic.Isbn = tmp.searchComic.Isbn;
+            comic.Penciller = tmp.searchComic.Penciller;
+            comic.Serie = tmp.searchComic.Serie;
+            comic.Title = tmp.searchComic.Title;
+            comic.Writer = tmp.searchComic.Writer;
+            comic.FicheUrl = tmp.searchComic.FicheUrl;
+            comic.Colorist = tmp.searchComic.Colorist;
+            comic.LanguageIso = tmp.searchComic.LanguageIso;
+            comic.Published = tmp.searchComic.Published;
+            comic.Volume = tmp.searchComic.Volume;
+            comic.Review = tmp.searchComic.Review;
+            comic.Price = tmp.searchComic.Price;
+
             await _comicService.UpdateComicAsync(comic);
             this.StateHasChanged();
         }

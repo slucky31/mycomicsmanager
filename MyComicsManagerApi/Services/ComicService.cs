@@ -336,7 +336,7 @@ namespace MyComicsManagerApi.Services
             }
         }
 
-        public Comic SearchComicInfoAndUpdate(Comic comic)
+        public Comic SearchComicInfo(Comic comic, bool update)
         {
             if (string.IsNullOrEmpty(comic.Isbn))
             {
@@ -407,10 +407,14 @@ namespace MyComicsManagerApi.Services
             {
                 Log.Here().Warning("Une erreur est apparue lors de l'analyse du prix : {Prix}",
                     results[ComicDataEnum.PRIX]);
-                comic.Review = -1;
+                comic.Price = -1;
             }
 
-            Update(comic.Id, comic);
+            if (update)
+            {
+                Update(comic.Id, comic);    
+            }
+            
             return comic;
         }
 

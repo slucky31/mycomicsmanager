@@ -106,7 +106,7 @@ namespace MyComicsManagerApi.Controllers
                 return NotFound();
             }
 
-            comic = _comicService.SearchComicInfoAndUpdate(comic);
+            comic = _comicService.SearchComicInfo(comic, true);
             if (comic == null)
             {
                 return NotFound();
