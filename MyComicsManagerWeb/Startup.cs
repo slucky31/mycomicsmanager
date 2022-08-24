@@ -101,10 +101,12 @@ namespace MyComicsManagerWeb
                 if (settings == null)
                 {
                     Log.Fatal("settings is null !");
+                    return;
                 }
                 else if (settings.CoversDirRootPath == null)
                 {
                     Log.Fatal("settings.CoversDirRootPath is null !");
+                    return;
                 }
             }
             
