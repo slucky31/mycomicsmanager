@@ -163,6 +163,7 @@ namespace MyComicsManagerApi.Services
 
         public void ConvertComicFileToCbz(Comic comic)
         {
+            Log.Here().Information("Comic : {Path}",comic.EbookPath);
             var tempDir = CreateTempDirectory();
 
             // Extraction des images
@@ -211,8 +212,11 @@ namespace MyComicsManagerApi.Services
                     File.Delete(comic.EbookPath);
                 }
             }
-
-            comic.EbookPath = Path.ChangeExtension(comic.EbookPath, ".cbz");
+            
+            // Changement de l'extension du fichier de destination
+            // Nettoyage du nom de destination : Suppression des accents, (), {}, [], ...
+            comic.EbookPath = Path.GetDirectoryName(comic.EbookPath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(comic.EbookPath).ToCamlCase() + ".cbz";
+            
             Log.Here().Information("comic.EbookPath = {Path}", comic.EbookPath);
 
             // Déplacement des images au même niveau dans un répertoire archive
@@ -270,6 +274,8 @@ namespace MyComicsManagerApi.Services
 
         public void ConvertImagesToWebP(Comic comic)
         {
+            Log.Here().Information("Comic : {Path}",comic.EbookPath);
+            
             if (comic.EbookPath == null)
             {
                 Log.Here().Warning("Il n'y a pas d'archive à convertir");
@@ -284,7 +290,6 @@ namespace MyComicsManagerApi.Services
             }
             
             var tempDir = CreateTempDirectory();
-            Log.Here().Information("ExtractImagesFromCbz");
             try
             {
                 ExtractImagesFromCbz(zipPath, tempDir);
@@ -293,6 +298,8 @@ namespace MyComicsManagerApi.Services
             {
                 Log.Here().Error("Erreur lors de l'extraction des images à partir du fichier CBZ {File}",
                     comic.EbookPath);
+                // Suppression du dossier temporaire
+                CleanTempDirectory(tempDir);
                 throw;
             }
             
@@ -301,31 +308,43 @@ namespace MyComicsManagerApi.Services
                     _extensionsImageArchiveWithoutWebp.Any(x => file.EndsWith(x, StringComparison.OrdinalIgnoreCase))).ToList();
             Log.Here().Information("Conversion des {NbFiles} images en WebP et resize à {Width} pixels de large",
                 filesToConvert.Count, ResizedWidth);
-            
+
+            var index = 1;
             foreach(var file in filesToConvert)
             {
-                Log.Here().Debug("Conversion du fichier {File}", file);
+                Log.Here().Information("[{Index}/{NbFiles}] Conversion du fichier {File}", index++,filesToConvert.Count, file);
                 var webpConvertedFile = Path.ChangeExtension(file, ".webp");
                 using (var image = Image.Load(file, out _))
                 {
-                    // Resize de l'image
-                    if (image.Width > ResizedWidth)
+                    try
                     {
-                        if (image.Width > image.Height)
+                        // Resize de l'image
+                        if (image.Width > ResizedWidth)
                         {
-                            // Cas d'une double page
-                            image.Mutate(x => x.Resize(2 * ResizedWidth, 0));
+                            if (image.Width > image.Height)
+                            {
+                                // Cas d'une double page
+                                image.Mutate(x => x.Resize(2 * ResizedWidth, 0));
+                            }
+                            else
+                            {
+                                // Cas d'une page simple
+                                image.Mutate(x => x.Resize(ResizedWidth, 0));
+                            }
                         }
-                        else
-                        {
-                            // Cas d'une page simple
-                            image.Mutate(x => x.Resize(ResizedWidth, 0));
-                        }
-                    }
 
-                    // Conversion en WebP
-                    image.SaveAsWebp(webpConvertedFile, new WebpEncoder {FileFormat = WebpFileFormatType.Lossy});
-                    Log.Here().Debug("Image {Image} was converted into WebP {WebpImage}", file, webpConvertedFile);
+                        // Conversion en WebP
+                        image.SaveAsWebp(webpConvertedFile, new WebpEncoder {FileFormat = WebpFileFormatType.Lossy});
+                        Log.Here().Debug("Image {Image} was converted into WebP {WebpImage}", file, webpConvertedFile);
+                    }
+                    catch (Exception)
+                    {
+                        Log.Here().Error("Erreur lors de l'extraction de l'image {Image} à partir du fichier CBZ {File}",
+                            file, comic.EbookPath);
+                        // Suppression du dossier temporaire
+                        CleanTempDirectory(tempDir);
+                        throw;
+                    }
                 }
 
                 // Suppression du fichier original
@@ -363,6 +382,7 @@ namespace MyComicsManagerApi.Services
             
             // Suppression de l'archive backup
             File.Delete(destBackUp);
+            Log.Here().Information("Suppression du fichier origine {Dest}", destBackUp);
             
         }
 
@@ -484,6 +504,19 @@ namespace MyComicsManagerApi.Services
             using var archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update);
             var entry = archive.GetEntry("ComicInfo.xml");
             return (entry != null);
+        }
+        
+        public void DeleteFilesBeginningWithDots(Comic comic)
+        {
+            Log.Here().Information("Traitement du fichier : {Path}", comic.EbookPath);
+            var zipPath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
+            using var archive = ZipFile.Open(zipPath,ZipArchiveMode.Update);
+            var entriesWithDots = archive.Entries.Where(file => file.Name[0] == '.').ToList();
+            Log.Here().Information("Détection de {Count} fichier(s) commençant par un . à supprimer", entriesWithDots.Count);
+            foreach (var entry in entriesWithDots)
+            {
+                entry.Delete();
+            }
         }
 
         public void AddComicInfoInComicFile(Comic comic)

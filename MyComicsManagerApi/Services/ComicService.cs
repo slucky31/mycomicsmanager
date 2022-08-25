@@ -38,7 +38,9 @@ namespace MyComicsManagerApi.Services
             _notificationService = notificationService;
             
             // https://www.freeformatter.com/cron-expression-generator-quartz.html
-            RecurringJob.AddOrUpdate("convertToWebP", () => ConvertComicsToWebP(), "0 */10 * ? * *");
+            // Remarque : Supprimer l'étoile des années car ne semble par gérer par HangFire
+            // At second :00, at minute :00, every hour starting at 00am, of every day
+            RecurringJob.AddOrUpdate("convertToWebP", () => ConvertComicsToWebP(), "0 0 0/1 ? * *");
         }
         
         public List<Comic> Get() =>
@@ -72,7 +74,8 @@ namespace MyComicsManagerApi.Services
         {
             // Note du développeur : 
             // EbookPath est en absolu au début du traitement pour localiser le fichier dans le répertoire d'upload
-            Log.Here().Information("Traitement du fichier {File}", comic.EbookPath);
+            Log.Here().Information("############# Création d'un nouveau comic #############", comic.EbookPath);
+            Log.Here().Information("Traitement du fichier : {File}", comic.EbookPath);
 
             if (comic.EbookName == null || comic.EbookPath == null)
             {
@@ -334,7 +337,7 @@ namespace MyComicsManagerApi.Services
             }
         }
 
-        public Comic SearchComicInfoAndUpdate(Comic comic)
+        public Comic SearchComicInfo(Comic comic, bool update)
         {
             if (string.IsNullOrEmpty(comic.Isbn))
             {
@@ -405,10 +408,14 @@ namespace MyComicsManagerApi.Services
             {
                 Log.Here().Warning("Une erreur est apparue lors de l'analyse du prix : {Prix}",
                     results[ComicDataEnum.PRIX]);
-                comic.Review = -1;
+                comic.Price = -1;
             }
 
-            Update(comic.Id, comic);
+            if (update)
+            {
+                Update(comic.Id, comic);    
+            }
+            
             return comic;
         }
 
@@ -504,20 +511,26 @@ namespace MyComicsManagerApi.Services
         }
 
         // ReSharper disable once MemberCanBePrivate.Global
-        public void ConvertComicsToWebP()
+        public async Task ConvertComicsToWebP()
         {
             var comics = ListComicNotWebpConverted().Take(1);
 
             var monitoringApi = JobStorage.Current.GetMonitoringApi();
 
-            if (monitoringApi.ProcessingCount() > 1)
+            if (monitoringApi.ProcessingCount() != 0)
             {
                 return;
             }
             
-            foreach (var comic in comics)
+            await ConvertImagesToWebP(comics.First());
+        }
+
+        public void DeleteDotFiles()
+        {
+            var list = _comics.Find(comic => true).ToList();
+            foreach (var comic in list)
             {
-                BackgroundJob.Enqueue(() => ConvertImagesToWebP(comic));
+                _comicFileService.DeleteFilesBeginningWithDots(comic);
             }
         }
 

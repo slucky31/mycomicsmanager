@@ -2,6 +2,7 @@
 @using Google.Apis.Books.v1
 @using Google.Apis.Books.v1.Data
 @using Google.Apis.Services
+@using MyComicsManager.Model.Shared
 @using MyComicsManagerWeb.Models
 @using Serilog
 
@@ -15,21 +16,28 @@
     <DialogContent>
         <MudTextField @bind-Value="Query" Label="Search" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search" OnClearButtonClick="@Search" OnKeyDown="@Enter"/>
         <MudContainer Style="max-height: 650px; overflow-y: scroll">
-            @if (_bookInfo.Items != null && _bookInfo.Items.Any())
+            @if (_bookInfo != null && _bookInfo.Any())
             {
-                <MudTable Items="@_bookInfo.Items" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_processing" LoadingProgressColor="Color.Info">
+                <MudTable Items="@_bookInfo" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_processing" LoadingProgressColor="Color.Info">
                     <HeaderContent>
                         <MudTh>Title</MudTh>
                         <MudTh>ISBN</MudTh>
                         <MudTh>Actions</MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="Title">@context.VolumeInfo.Title</MudTd>
-                        @{var isbn = extractISBN(@context.VolumeInfo.IndustryIdentifiers);}
-                        <MudTd DataLabel="ISBN">@isbn</MudTd>
+                        <MudTd DataLabel="Title">@context.Title</MudTd>
+                        <MudTd DataLabel="ISBN">@context.Isbn</MudTd>
                         <MudTd DataLabel="Actions">
                             @{
-                                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Check" OnClick="() => SelectComic(isbn)" Title="Select"/>
+                                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Search" OnClick="() => SearchIsbn(context)" Title="Search ISBN"/>
+                                @if (@context.IsIsbnChecked)
+                                {
+                                    <MudIconButton Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.Check" OnClick="() => SelectComic(context)" Title="@context.ToString()"/>
+                                }
+                                else
+                                {
+                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Check" Title="Select" Disabled="true"/>
+                                }
                             }
                         </MudTd>
                     </RowTemplate>
@@ -58,7 +66,9 @@
 
     private bool _processing;
 
-    private Volumes _bookInfo = new Volumes();
+    private List<GoogleBookInfo> _bookInfo = new();
+
+    private bool _waitingIsbnSearchStatuts = false;
 
     protected override void OnInitialized()
     {
@@ -71,25 +81,28 @@
         if (!string.IsNullOrEmpty(Query))
         {
             _processing = true;
-
-
+            
             var service = new BooksService(new BaseClientService.Initializer
             {
-    // https://console.developers.google.com/apis/credentials?project=mycomicsmanager
+                // https://console.developers.google.com/apis/credentials?project=mycomicsmanager
                 ApiKey = Settings.ApiGoogleKey,
                 ApplicationName = "mycomicsmanager"
             });
 
             var listRequest = new VolumesResource.ListRequest(service, Query)
             {
-                MaxResults = 25,
+                MaxResults = 10,
                 ShowPreorders = false,
                 LangRestrict = "fr",
                 PrintType = VolumesResource.ListRequest.PrintTypeEnum.BOOKS,
                 OrderBy = VolumesResource.ListRequest.OrderByEnum.Relevance
             };
 
-            _bookInfo = await listRequest.ExecuteAsync();
+            var volumes = await listRequest.ExecuteAsync();
+            foreach (var volume in volumes.Items)
+            {
+                _bookInfo.Add(new GoogleBookInfo(volume));
+            }
             _processing = false;
         }
     }
@@ -101,29 +114,29 @@
             await Search();
         }
     }
-
-    private void SelectComic(string selectedIsbn)
-    {
-        MudDialog.Close(DialogResult.Ok(selectedIsbn));
-    }
-
-    private string extractISBN(IList<Volume.VolumeInfoData.IndustryIdentifiersData> IndustryIdentifiers)
-    {
-        if (null == IndustryIdentifiers)
-        {
-            return "";
-        }
     
-        try
+    private async Task SearchIsbn(GoogleBookInfo googleBookInfo)
+    {
+        _waitingIsbnSearchStatuts = true;
+        var tmpComic = await _bookInfoService.SearchBookInfoAsync(googleBookInfo.Isbn);
+    
+        if (null == tmpComic)
         {
-            var identifier = IndustryIdentifiers.Where(i => i.Type.Equals("ISBN_13")).First();
-            return identifier.Identifier;
+            googleBookInfo.IsIsbnChecked = false;
         }
-        catch (Exception)
+        else
         {
-            return "";
+            googleBookInfo.IsIsbnChecked = true;
+            googleBookInfo.searchComic = tmpComic;
         }
         
+        _waitingIsbnSearchStatuts = false;
+        this.StateHasChanged();
     }
 
+    private void SelectComic(GoogleBookInfo googleBookInfo)
+    {
+        MudDialog.Close(DialogResult.Ok(googleBookInfo));
+    }
+    
 }

@@ -55,8 +55,7 @@ namespace MyComicsManagerApi
                 .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {                    
-                    webBuilder
-                    .UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>();
                 });
     }
 }

@@ -76,7 +76,7 @@ namespace MyComicsManagerApi
             services.AddHangfireServer(serverOptions =>
             {
                 // Par défaut : Environment.ProcessorCount * 2
-                serverOptions.WorkerCount = 1;
+                serverOptions.WorkerCount = 2;
             });
 
             services.AddSingleton<ComicService>();
