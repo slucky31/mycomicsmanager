@@ -163,6 +163,7 @@ namespace MyComicsManagerApi.Services
 
         public void ConvertComicFileToCbz(Comic comic)
         {
+            Log.Here().Information("Comic : {Path}",comic.EbookPath);
             var tempDir = CreateTempDirectory();
 
             // Extraction des images
@@ -273,6 +274,8 @@ namespace MyComicsManagerApi.Services
 
         public void ConvertImagesToWebP(Comic comic)
         {
+            Log.Here().Information("Comic : {Path}",comic.EbookPath);
+            
             if (comic.EbookPath == null)
             {
                 Log.Here().Warning("Il n'y a pas d'archive à convertir");
@@ -287,7 +290,6 @@ namespace MyComicsManagerApi.Services
             }
             
             var tempDir = CreateTempDirectory();
-            Log.Here().Information("ExtractImagesFromCbz");
             try
             {
                 ExtractImagesFromCbz(zipPath, tempDir);
@@ -502,6 +504,19 @@ namespace MyComicsManagerApi.Services
             using var archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update);
             var entry = archive.GetEntry("ComicInfo.xml");
             return (entry != null);
+        }
+        
+        public void DeleteFilesBeginningWithDots(Comic comic)
+        {
+            Log.Here().Information("Traitement du fichier : {Path}", comic.EbookPath);
+            var zipPath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
+            using var archive = ZipFile.Open(zipPath,ZipArchiveMode.Update);
+            var entriesWithDots = archive.Entries.Where(file => file.Name[0] == '.').ToList();
+            Log.Here().Information("Détection de {Count} fichier(s) commençant par un . à supprimer", entriesWithDots.Count);
+            foreach (var entry in entriesWithDots)
+            {
+                entry.Delete();
+            }
         }
 
         public void AddComicInfoInComicFile(Comic comic)

@@ -201,6 +201,15 @@ namespace MyComicsManagerApi.Controllers
             return Ok();
             
         }
+        
+        [HttpGet("deleteDotFiles")]
+        public ActionResult<Comic> ConvertImagesToWebP()
+        {
+            BackgroundJob.Enqueue(() => _comicService.DeleteDotFiles());
+            
+            // TODO : gérer le retour 202 et la méthode de vérification
+            return Ok();
+        }
 
         [HttpDelete("{id:length(24)}")]
         public IActionResult Delete(string id)
