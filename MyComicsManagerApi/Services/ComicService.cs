@@ -74,7 +74,8 @@ namespace MyComicsManagerApi.Services
         {
             // Note du développeur : 
             // EbookPath est en absolu au début du traitement pour localiser le fichier dans le répertoire d'upload
-            Log.Here().Information("Traitement du fichier {File}", comic.EbookPath);
+            Log.Here().Information("############# Création d'un nouveau comic #############", comic.EbookPath);
+            Log.Here().Information("Traitement du fichier : {File}", comic.EbookPath);
 
             if (comic.EbookName == null || comic.EbookPath == null)
             {
@@ -510,20 +511,26 @@ namespace MyComicsManagerApi.Services
         }
 
         // ReSharper disable once MemberCanBePrivate.Global
-        public void ConvertComicsToWebP()
+        public async Task ConvertComicsToWebP()
         {
             var comics = ListComicNotWebpConverted().Take(1);
 
             var monitoringApi = JobStorage.Current.GetMonitoringApi();
 
-            if (monitoringApi.ProcessingCount() > 1)
+            if (monitoringApi.ProcessingCount() != 0)
             {
                 return;
             }
             
-            foreach (var comic in comics)
+            await ConvertImagesToWebP(comics.First());
+        }
+
+        public void DeleteDotFiles()
+        {
+            var list = _comics.Find(comic => true).ToList();
+            foreach (var comic in list)
             {
-                BackgroundJob.Enqueue(() => ConvertImagesToWebP(comic));
+                _comicFileService.DeleteFilesBeginningWithDots(comic);
             }
         }
 
