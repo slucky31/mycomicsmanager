@@ -21,7 +21,7 @@ namespace MyComicsManagerApi.Services {
             _token = settings.Token;
         }
         
-        public async Task Send(string title, string message)
+        private async Task Send(string title, string message)
         {
             var content = new FormUrlEncodedContent(new[]
             {
@@ -34,6 +34,18 @@ namespace MyComicsManagerApi.Services {
                 await _httpClient.PostAsync($"/message?token={_token}", content);
 
             httpResponse.EnsureSuccessStatusCode();
+        }
+        
+        public async Task SendNotificationImportStatus(Comic comic, ImportStatus status)
+        {
+            var message = $"comic.ImportStatus = {status}";
+            await SendNotificationMessage(comic, message);
+        }
+        
+        public async Task SendNotificationMessage(Comic comic, string message)
+        {
+            var title = $"{comic.Id} : {comic.Title}";
+            await Send(title, message);
         }
         
     }
