@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using MyComicsManager.Model.Shared;
 using MyComicsManagerWeb.Settings;
+using Serilog;
 
 namespace MyComicsManagerApi.Services {
     
@@ -30,10 +29,17 @@ namespace MyComicsManagerApi.Services {
                 new KeyValuePair<string, string>("priority", "5")
             });
 
-            using var httpResponse =
-                await _httpClient.PostAsync($"/message?token={_token}", content);
-
-            httpResponse.EnsureSuccessStatusCode();
+            try
+            {
+                using var httpResponse =
+                    await _httpClient.PostAsync($"/message?token={_token}", content);
+                httpResponse.EnsureSuccessStatusCode();
+            }
+            catch (Exception)
+            {
+                Log.Error("L'envoi de la notification a échoué : Vérifier si le service est démarré");
+            }
+            
         }
         
         public async Task SendNotificationImportStatus(Comic comic, ImportStatus status)
