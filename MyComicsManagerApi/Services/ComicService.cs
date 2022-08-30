@@ -513,16 +513,14 @@ namespace MyComicsManagerApi.Services
         // ReSharper disable once MemberCanBePrivate.Global
         public async Task ConvertComicsToWebP()
         {
-            var comics = ListComicNotWebpConverted().Take(1);
+            var comic = ListComicNotWebpConverted().Take(1).First();
 
             var monitoringApi = JobStorage.Current.GetMonitoringApi();
 
-            if (monitoringApi.ProcessingCount() != 0)
+            if (monitoringApi.ProcessingCount() == 1)
             {
-                return;
+                await ConvertImagesToWebP(comic);
             }
-            
-            await ConvertImagesToWebP(comics.First());
         }
 
         public void DeleteDotFiles()
