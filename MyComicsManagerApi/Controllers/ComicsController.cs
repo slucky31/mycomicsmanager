@@ -77,11 +77,9 @@ namespace MyComicsManagerApi.Controllers
             {
                 return NotFound();
             }
-            else
-            {
-                BackgroundJob.Enqueue(() => _importService.Import(comic));
-                return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
-            }
+
+            BackgroundJob.Enqueue(() => _importService.Import(comic));
+            return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
         }
 
         [HttpPut("{id:length(24)}")]
@@ -116,6 +114,21 @@ namespace MyComicsManagerApi.Controllers
 
             return _comicService.Get(id);
         }
+        
+        [HttpGet("reimport/{id:length(24)}")]
+        public async Task<ActionResult<Comic>> ReImport(string id)
+        {
+            var comic = _comicService.Get(id);
+            if (comic == null)
+            {
+                return NotFound();
+            }
+            
+            comic = await _importService.ResetImportStatus(comic);
+
+            BackgroundJob.Enqueue(() => _importService.Import(comic));
+            return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
+        }
 
         [HttpGet("extractcover/{id:length(24)}")]
         public ActionResult<Comic> SetAndExtractCoverImage(string id)
@@ -147,7 +160,7 @@ namespace MyComicsManagerApi.Controllers
 
             // Evitement de l'utilisation de await / async
             // https://visualstudiomagazine.com/Blogs/Tool-Tracker/2019/10/calling-methods-async.aspx
-            Task<List<string>> task = _comicFileService.ExtractIsbnFromCbz(comic, indexImage);
+            var task = _comicFileService.ExtractIsbnFromCbz(comic, indexImage);
             var isbnList = task.Result;
 
             return isbnList;

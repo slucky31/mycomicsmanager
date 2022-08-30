@@ -1,17 +1,12 @@
 ﻿using MyComicsManagerApi.Models;
 using MyComicsManager.Model.Shared;
 using MongoDB.Driver;
-using System.Collections.Generic;
 using Serilog;
 using System.IO;
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
-using MongoDB.Bson;
-using MyComicsManagerApi.DataParser;
-using MyComicsManagerApi.Exceptions;
 using MyComicsManagerApi.Utils;
 
 namespace MyComicsManagerApi.Services
@@ -41,13 +36,13 @@ namespace MyComicsManagerApi.Services
             // https://www.freeformatter.com/cron-expression-generator-quartz.html
             // Remarque : Supprimer l'étoile des années car ne semble par gérer par HangFire
             // At second :00, at minute :00, every hour starting at 00am, of every day
-            RecurringJob.AddOrUpdate("convertToWebP", () => ConvertComicsToWebP(), "0 0 0/1 ? * *");
+            RecurringJob.AddOrUpdate("ConvertComicsToWebP", () => ConvertComicsToWebP(), "0 0 0/1 ? * *");
         }
         
         public async Task<Comic> Import(Comic comic)
         {
             
-            Log.Here().Information("############# Import d'un nouveau comic #############", comic.EbookPath);
+            Log.Here().Information("############# Import d'un nouveau comic #############");
             Log.Here().Information("Traitement du fichier : {File}", comic.EbookPath);
             
             comic = await ConvertToCbz(comic);
@@ -105,7 +100,7 @@ namespace MyComicsManagerApi.Services
             var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
                               comic.EbookName;
 
-            // Gestion du cas où le fichier uploadé existe déjà dans la lib
+            // Gestion du cas où le fichier importé existe déjà dans la lib
             while (File.Exists(destination))
             {
                 Log.Here().Warning("Le fichier {File} existe déjà", destination);
@@ -134,10 +129,8 @@ namespace MyComicsManagerApi.Services
             
             return await SetImportStatus(comic, ImportStatus.MOVED_TO_LIB);
         }
-
         
-
-        public async Task ConvertImagesToWebP(Comic comic)
+        private async Task ConvertImagesToWebP(Comic comic)
         {
             try
             {
@@ -179,6 +172,12 @@ namespace MyComicsManagerApi.Services
             {
                 _comicFileService.DeleteFilesBeginningWithDots(comic);
             }
+        }
+
+        public async Task<Comic> ResetImportStatus(Comic comic)
+        {
+            await SetImportStatus(comic, ImportStatus.CREATED);
+            return comic;
         }
         
         private async Task<Comic> SetImportStatus(Comic comic, ImportStatus status)
