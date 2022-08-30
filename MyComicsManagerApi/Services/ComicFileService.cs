@@ -650,6 +650,20 @@ namespace MyComicsManagerApi.Services
                 return Path.GetExtension(comic.EbookPath);
             }
         }
+        
+        public void MoveComic(string origin, string destination)
+        {
+            try
+            {
+                File.Move(origin, destination);
+            }
+            catch (Exception e)
+            {
+                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", origin, destination);
+                MoveInErrorsDir(origin, e);
+                throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
+            }
+        }
 
         public void MoveInErrorsDir(string filePath, Exception e)
         {

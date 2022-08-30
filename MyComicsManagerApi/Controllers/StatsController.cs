@@ -7,59 +7,59 @@ namespace MyComicsManagerApi.Controllers
     [ApiController]
     public class StatsController : ControllerBase
     {
-        private readonly ComicService _comicService;
+        private readonly StatisticService _statisticService;
         
-        public StatsController(ComicService comicService)
+        public StatsController(StatisticService statisticService)
         {
-            _comicService = comicService;
+            _statisticService = statisticService;
         }
         
         [HttpGet("comics")]
         public ActionResult<long> GetNbComics()
         {
-            return _comicService.CountComics();
+            return _statisticService.CountComics();
         }
         
         [HttpGet("comicsWithoutSeries")]
         public ActionResult<long> GetNbComicsWithoutSeries()
         {
-            return _comicService.CountComicsWithoutSerie();
+            return _statisticService.CountComicsWithoutSerie();
         }
         
         [HttpGet("comicsWithoutIsbn")]
         public ActionResult<long> GetNbComicsWithoutIsbn()
         {
-            return _comicService.CountComicsWithoutIsbn();
+            return _statisticService.CountComicsWithoutIsbn();
         }
         
         [HttpGet("comicsRead")]
         public ActionResult<long> GetNbComicsRead()
         {
-            return _comicService.CountComicsRead();
+            return _statisticService.CountComicsRead();
         }
         
         [HttpGet("comicsUnRead")]
         public ActionResult<long> GetNbComicsUnRead()
         {
-            return _comicService.CountComicsUnRead();
+            return _statisticService.CountComicsUnRead();
         }
         
         [HttpGet("comicsUnWebpFormated")]
         public ActionResult<long> GetNbComicsUnWebpFormated()
         {
-            return _comicService.CountComicsUnWebpFormated();
+            return _statisticService.CountComicsUnWebpFormated();
         }
         
         [HttpGet("comicsImportedWithErrors")]
         public ActionResult<long> GetNbComicsImportedWithErrors()
         {
-            return _comicService.CountComicsImportedWithErrors();
+            return _statisticService.CountComicsImportedWithErrors();
         }
         
         [HttpGet("series")]
         public ActionResult<long> GetNbSeries()
         {
-            return _comicService.CountSeries();
+            return _statisticService.CountSeries();
         }
     }
 }

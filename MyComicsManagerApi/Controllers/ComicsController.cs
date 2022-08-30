@@ -14,11 +14,13 @@ namespace MyComicsManagerApi.Controllers
         private readonly ComicService _comicService;
         // TODO : ne devrait pas être utilisé mais encapsulé dans le service ComicService
         private readonly ComicFileService _comicFileService;
+        private readonly ImportService _importService;
 
-        public ComicsController(ComicService comicService, ComicFileService comicFileService)
+        public ComicsController(ComicService comicService, ComicFileService comicFileService, ImportService importService)
         {
             _comicService = comicService;
             _comicFileService = comicFileService;
+            _importService = importService;
         }
 
         [HttpGet]
@@ -77,7 +79,7 @@ namespace MyComicsManagerApi.Controllers
             }
             else
             {
-                BackgroundJob.Enqueue(() => _comicService.Import(comic));
+                BackgroundJob.Enqueue(() => _importService.Import(comic));
                 return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
             }
         }
@@ -186,22 +188,6 @@ namespace MyComicsManagerApi.Controllers
             return _comicService.GetSeries();
         }
 
-        [HttpPost("{id:length(24)}/convertImagesToWebP")]
-        public ActionResult<Comic> ConvertImagesToWebP(string id)
-        {
-            var comic = _comicService.Get(id);
-            if (comic == null)
-            {
-                return NotFound();
-            }
-            
-            BackgroundJob.Enqueue(() => _comicService.ConvertImagesToWebP(comic));
-            
-            // TODO : gérer le retour 202 et la méthode de vérification
-            return Ok();
-            
-        }
-        
         [HttpGet("deleteDotFiles")]
         public ActionResult<Comic> ConvertImagesToWebP()
         {
