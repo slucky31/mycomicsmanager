@@ -92,7 +92,7 @@ namespace MyComicsManagerApi.Controllers
                 return NotFound();
             }
 
-            _comicService.Update(id, comicIn);
+            _comicService.Update(id, comicIn, true);
 
             return NoContent();
         }
@@ -141,7 +141,7 @@ namespace MyComicsManagerApi.Controllers
             }
 
             _comicFileService.SetAndExtractCoverImage(comic);
-            _comicService.Update(id, comic);
+            _comicService.Update(id, comic, true);
 
             return _comicService.Get(id);
         }

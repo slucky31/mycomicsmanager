@@ -74,10 +74,6 @@ namespace MyComicsManagerApi.Services
             Directory.CreateDirectory(extractPath);
 
             var lastImages = new List<string>();
-            if (comic.PageCount == 0)
-            {
-                SetNumberOfImagesInCbz(comic);
-            }
 
             for (var i = comic.PageCount - nbImagesToExtract; i < comic.PageCount; i++)
             {
@@ -176,7 +172,7 @@ namespace MyComicsManagerApi.Services
                     Log.Here().Information("ExtractImagesFromCbz");
                     try
                     {
-                        ExtractImagesFromCbz(comic.EbookPath, tempDir);
+                        ExtractImagesFromCbz(comic, tempDir);
                     }
                     catch (Exception)
                     {
@@ -292,7 +288,7 @@ namespace MyComicsManagerApi.Services
             var tempDir = CreateTempDirectory();
             try
             {
-                ExtractImagesFromCbz(zipPath, tempDir);
+                ExtractImagesFromCbz(comic, tempDir);
             }
             catch (Exception)
             {
@@ -386,18 +382,17 @@ namespace MyComicsManagerApi.Services
             
         }
 
-        private void ExtractImagesFromCbz(string comicEbookPath, string tempDir)
+        private void ExtractImagesFromCbz(Comic comic, string tempDir)
         {
             try
             {
-                ZipFile.ExtractToDirectory(comicEbookPath, tempDir, overwriteFiles: true);
+                ZipFile.ExtractToDirectory(comic.EbookPath, tempDir, overwriteFiles: true);
             }
             catch (Exception e)
             {
-                Log.Here().Error("Erreur lors de l'extraction de l'archive {Archive}", comicEbookPath);
-                MoveInErrorsDir(comicEbookPath, e);
-                throw new ComicIoException("Erreur lors de l'extraction de l'archive. Consulter le répertoire errors.",
-                    e);
+                Log.Here().Error("Erreur lors de l'extraction de l'archive {Archive}", comic.EbookPath);
+                MoveInErrorsDir(comic);
+                throw new ComicIoException("Erreur lors de l'extraction de l'archive. Consulter le répertoire errors.", e);
             }
         }
 
@@ -442,13 +437,13 @@ namespace MyComicsManagerApi.Services
             }
         }
 
-        public void SetNumberOfImagesInCbz(Comic comic)
+        public int GetNumberOfImagesInCbz(Comic comic)
         {
             var zipPath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
             using var archive = ZipFile.OpenRead(zipPath);
             var images = archive.Entries.Where(file =>
                 _extensionsImageArchive.Any(x => file.FullName.EndsWith(x, StringComparison.OrdinalIgnoreCase)));
-            comic.PageCount = images.Count();
+            return images.Count();
         }
 
         public async Task<List<string>> ExtractIsbnFromCbz(Comic comic, int imageIndex)
@@ -651,27 +646,50 @@ namespace MyComicsManagerApi.Services
             }
         }
         
-        public void MoveComic(string origin, string destination)
+        public void MoveComic(Comic comic, string destination)
         {
+            var absoluthPath = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
+                               comic.EbookPath;
             try
             {
-                File.Move(origin, destination);
+                File.Move(absoluthPath, destination);
             }
             catch (Exception e)
             {
-                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", origin, destination);
-                MoveInErrorsDir(origin, e);
+                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", absoluthPath, destination);
+                MoveInErrorsDir(comic);
                 throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
             }
         }
+        
+        public void MoveInLib(Comic comic)
+        {
+            // Déplacement du fichier vers la racine de la librairie sélectionnée
+            var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
+                              comic.EbookName;
 
-        public void MoveInErrorsDir(string filePath, Exception e)
+            // Gestion du cas où le fichier importé existe déjà dans la lib
+            while (File.Exists(destination))
+            {
+                Log.Here().Warning("Le fichier {File} existe déjà", destination);
+                comic.Title = Path.GetFileNameWithoutExtension(destination) + "-Rename";
+                Log.Here().Information("comic.Title = {Title}", comic.Title);
+                comic.EbookName = comic.Title + Path.GetExtension(destination);
+                Log.Here().Information("comic.EbookName = {EbookName}", comic.EbookName);
+                destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
+                              comic.EbookName;
+            }
+            
+            MoveComic(comic, destination);
+        }
+
+        public void MoveInErrorsDir(Comic comic)
         {
             // Création du répertoire de destination
             var errorPath = _libraryService.GetLibrairiesDirRootPath() + "errors";
             Directory.CreateDirectory(errorPath);
 
-            errorPath += Path.DirectorySeparatorChar + Path.GetFileName(filePath);
+            errorPath += Path.DirectorySeparatorChar + Path.GetFileName(comic.EbookPath);
             while (File.Exists(errorPath))
             {
                 Log.Warning("Le fichier {File} existe déjà", errorPath);
@@ -682,8 +700,8 @@ namespace MyComicsManagerApi.Services
                             fileName;
             }
 
-            File.Move(filePath, errorPath);
-            Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", filePath, errorPath);
+            File.Move(comic.EbookPath, errorPath);
+            Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", comic.EbookPath, errorPath);
         }
         
     }

@@ -8,10 +8,8 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Hangfire;
 using MongoDB.Bson;
 using MyComicsManagerApi.DataParser;
-using MyComicsManagerApi.Exceptions;
 using MyComicsManagerApi.Utils;
 
 namespace MyComicsManagerApi.Services
@@ -88,7 +86,7 @@ namespace MyComicsManagerApi.Services
             return comic;
         }
 
-        public void Update(string id, Comic comic)
+        public void Update(string id, Comic comic, bool addComicInfo)
         {
             Log.Here().Information("Mise à jour du comic {Comic}", id.Replace(Environment.NewLine, ""));
             
@@ -99,7 +97,10 @@ namespace MyComicsManagerApi.Services
             comic.Edited = DateTime.Now;
             
             // Mise à jour du fichier ComicInfo.xml
-            _comicFileService.AddComicInfoInComicFile(comic);
+            if (addComicInfo)
+            {
+                _comicFileService.AddComicInfoInComicFile(comic);
+            }
             
             // Mise à jour en base de données
             _comics.ReplaceOne(c => c.Id == id, comic);
@@ -129,7 +130,7 @@ namespace MyComicsManagerApi.Services
                                      comic.EbookName;
 
                 // Renommage du fichier (si le fichier existe déjà, on ne fait rien, car il est déjà présent !)
-                _comicFileService.MoveComic(origin, libraryPath + comicEbookPath);
+                _comicFileService.MoveComic(comic, libraryPath + comicEbookPath);
 
                 // Mise à jour du chemin relatif avec le nouveau nom du fichier 
                 comic.EbookPath = comicEbookPath;
@@ -147,7 +148,7 @@ namespace MyComicsManagerApi.Services
                 Directory.CreateDirectory(libraryPath + eBookPath);
 
                 // Déplacement du fichier (si le fichier existe déjà, on ne fait rien, car il est déjà présent !)
-                _comicFileService.MoveComic(origin, libraryPath + eBookPath + comic.EbookName);
+                _comicFileService.MoveComic(comic, libraryPath + eBookPath + comic.EbookName);
                 comic.EbookPath = eBookPath + comic.EbookName;
             }
         }
@@ -314,7 +315,7 @@ namespace MyComicsManagerApi.Services
 
             if (update)
             {
-                Update(comic.Id, comic);    
+                Update(comic.Id, comic, true);    
             }
             
             return comic;

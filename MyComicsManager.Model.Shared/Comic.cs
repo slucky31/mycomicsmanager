@@ -117,7 +117,7 @@ namespace MyComicsManager.Model.Shared
     public enum ImportStatus
     {
         CREATED = 0,
-        CBZ_CONVERTED = 1,
+        COMICINFO_ADDED = 1, // DO NOT USE
         MOVED_TO_LIB = 2,
         NB_IMAGES_SET = 3,
         COVER_GENERATED = 4,
