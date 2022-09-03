@@ -87,7 +87,6 @@ namespace MyComicsManagerApi.Services
         // https://docs.microsoft.com/fr-fr/dotnet/standard/io/how-to-compress-and-extract-files
         private string ExtractImageFromCbz(Comic comic, string extractPath, int imageIndex)
         {
-            var zipPath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
             Log.Here().Information("Les fichiers seront extraits dans {Path}", extractPath);
 
             // Ensures that the last character on the extraction path
@@ -99,6 +98,7 @@ namespace MyComicsManagerApi.Services
                 extractPath += Path.DirectorySeparatorChar;
             }
 
+            var zipPath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
             using var archive = ZipFile.OpenRead(zipPath);
             if (imageIndex < 0 || imageIndex >= archive.Entries.Count)
             {
@@ -648,15 +648,36 @@ namespace MyComicsManagerApi.Services
         
         public void MoveComic(Comic comic, string destination)
         {
-            var absoluthPath = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
-                               comic.EbookPath;
+            string absolutePath;
+            switch (comic.ImportStatus)
+            {
+                case ImportStatus.CREATED:
+                    // Le fichier est dans /tmp et EbookPath est déjà en absolute
+                    absolutePath = comic.EbookPath;
+                    break;
+                case ImportStatus.ERROR:
+                    // le fichier est dans /error
+                    // TODO
+                    absolutePath = comic.EbookPath;
+                    break;
+                case ImportStatus.COMICINFO_ADDED:
+                case ImportStatus.MOVED_TO_LIB:
+                case ImportStatus.NB_IMAGES_SET:
+                case ImportStatus.COVER_GENERATED:
+                case ImportStatus.IMPORTED:
+                default:
+                    // Le fichier est dans /lib
+                    absolutePath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
+                    break;
+            }
+            
             try
             {
-                File.Move(absoluthPath, destination);
+                File.Move(absolutePath, destination);
             }
             catch (Exception e)
             {
-                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", absoluthPath, destination);
+                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", absolutePath, destination);
                 MoveInErrorsDir(comic);
                 throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
             }

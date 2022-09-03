@@ -37,6 +37,7 @@ namespace MyComicsManagerApi.Services
             RecurringJob.AddOrUpdate("ConvertComicsToWebP", () => ConvertComicsToWebP(), "0 0 0/1 ? * *");
         }
         
+        [AutomaticRetry(Attempts = 0)]
         public async Task<Comic> Import(Comic comic)
         {
             // Mise à jour des données du comic (utile dans le cas d'un retry de job...)
@@ -51,8 +52,10 @@ namespace MyComicsManagerApi.Services
 
             try
             {
-                await ConvertToCbz(comic);
-                await UpdateFromComicInfo(comic);
+                comic = await ConvertToCbz(comic);
+                comic = await UpdateFromComicInfo(comic);
+                comic = await SetComicPageCount(comic);
+                comic = await ExtractCoverImage(comic);
             }
             catch (Exception e)
             {
@@ -60,23 +63,12 @@ namespace MyComicsManagerApi.Services
                 throw;
             }
             
-            // Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic       
-            _comicFileService.SetAndExtractCoverImage(comic); 
-            comic = await SetImportStatus(comic, ImportStatus.COVER_GENERATED, true); 
-            
             return await SetImportStatus(comic, ImportStatus.IMPORTED, true);
             
         }
         
         private async Task<Comic> ConvertToCbz(Comic comic)
         {
-            // Mise à jour des données du comic (utile dans le cas d'un retry de job...)
-            comic = _comicService.Get(comic.Id);
-            if (comic == null)
-            {
-                throw new ComicImportException("Comic is null");
-            }
-            
             // Vérification du statut d'import
             if (comic.ImportStatus >= ImportStatus.MOVED_TO_LIB)
             {
@@ -99,18 +91,12 @@ namespace MyComicsManagerApi.Services
                 throw new ComicImportException("Erreur lors de la conversion en CBZ");
             }
             
+            // Mise à jour du statut et du comic
             return await SetImportStatus(comic, ImportStatus.MOVED_TO_LIB, false);
         }
         
         private async Task<Comic> UpdateFromComicInfo(Comic comic)
         {
-            // Mise à jour des données du comic (utile dans le cas d'un retry de job...)
-            comic = _comicService.Get(comic.Id);
-            if (comic == null)
-            {
-                throw new ComicImportException("Comic is null");
-            }
-            
             // Vérification du statut d'import
             if (comic.ImportStatus >= ImportStatus.COMICINFO_ADDED)
             {
@@ -122,7 +108,8 @@ namespace MyComicsManagerApi.Services
             {
                 comic = _comicFileService.ExtractDataFromComicInfo(comic);
             }
-
+            
+            // Mise à jour du statut et du comic
             return await SetImportStatus(comic, ImportStatus.COMICINFO_ADDED, true);
         }
 
@@ -136,7 +123,22 @@ namespace MyComicsManagerApi.Services
             // Calcul du nombre d'images dans le fichier CBZ
             comic.PageCount = _comicFileService.GetNumberOfImagesInCbz(comic);
             
+            // Mise à jour du statut et du comic
             return await SetImportStatus(comic, ImportStatus.NB_IMAGES_SET, true);
+        }
+        
+        private async Task<Comic> ExtractCoverImage(Comic comic)
+        {
+            if (comic.ImportStatus >= ImportStatus.COVER_GENERATED)
+            {
+                return comic;
+            }
+            
+            /// Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic       
+            _comicFileService.SetAndExtractCoverImage(comic);
+
+            // Mise à jour du statut et du comic
+            return await SetImportStatus(comic, ImportStatus.COVER_GENERATED, true);
         }
 
         private async Task ConvertImagesToWebP(Comic comic)
@@ -159,8 +161,7 @@ namespace MyComicsManagerApi.Services
                 await _notificationService.SendNotificationMessage(comic, "La conversion des images en WebP a échoué");
             }
         }
-
-        // ReSharper disable once MemberCanBePrivate.Global
+        
         public async Task ConvertComicsToWebP()
         {
             var comic = _comicService.ListComicNotWebpConverted().Take(1).First();
@@ -170,16 +171,6 @@ namespace MyComicsManagerApi.Services
             if (monitoringApi.ProcessingCount() == 1)
             {
                 await ConvertImagesToWebP(comic);
-            }
-            
-        }
-
-        public void DeleteDotFiles()
-        {
-            var list = _comics.Find(comic => true).ToList();
-            foreach (var comic in list)
-            {
-                _comicFileService.DeleteFilesBeginningWithDots(comic);
             }
         }
 
