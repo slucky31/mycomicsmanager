@@ -34,23 +34,7 @@ namespace MyComicsManager.Model.Shared
         [Required]
         public ImportStatus ImportStatus { get; set; }
 
-        private string _importMessage;
-        public string ImportMessage
-        {
-            get => _importMessage;
-            
-            set
-            {
-                if (string.IsNullOrEmpty(_importMessage))
-                {
-                    _importMessage = value;
-                }
-                else
-                {
-                    _importMessage += Environment.NewLine + value;
-                }
-            }
-        }
+        public string ImportErrorMessage { get; set; }
 
         // Book info
 

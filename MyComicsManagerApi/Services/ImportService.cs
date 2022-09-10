@@ -30,11 +30,6 @@ namespace MyComicsManagerApi.Services
             _comicFileService = comicFileService;
             _notificationService = notificationService;
             _comicService = comicService;
-            
-            // https://www.freeformatter.com/cron-expression-generator-quartz.html
-            // Remarque : Supprimer l'étoile des années car ne semble par gérer par HangFire
-            // At second :00, at minute :00, every hour starting at 00am, of every day
-            RecurringJob.AddOrUpdate("ConvertComicsToWebP", () => ConvertComicsToWebP(), "0 0 0/1 ? * *");
         }
         
         [AutomaticRetry(Attempts = 0)]
@@ -59,7 +54,8 @@ namespace MyComicsManagerApi.Services
             }
             catch (Exception e)
             {
-                Log.Here().Error("Erreur lors de l'import {File}", comic.EbookPath);
+                Log.Here().Error(e,"Erreur lors de l'import {File}", comic.EbookPath);
+                await ManageImportError(comic, e);
                 throw;
             }
             
@@ -87,7 +83,7 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Error(e, "Erreur lors de la conversion en CBZ");
-                await SetImportStatus(comic, ImportStatus.ERROR, false);
+                await ManageImportError(comic, e);
                 throw new ComicImportException("Erreur lors de la conversion en CBZ");
             }
             
@@ -134,9 +130,17 @@ namespace MyComicsManagerApi.Services
                 return comic;
             }
             
-            /// Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic       
-            _comicFileService.SetAndExtractCoverImage(comic);
-
+            // Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic
+            try
+            {
+                _comicFileService.SetAndExtractCoverImage(comic);
+            }
+            catch
+            {
+                Log.Here().Error("Erreur lors de l'extraction de l'image de couverture");
+                throw;
+            }
+            
             // Mise à jour du statut et du comic
             return await SetImportStatus(comic, ImportStatus.COVER_GENERATED, true);
         }
@@ -157,25 +161,19 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Warning("La conversion des images en WebP a échoué : {Exception}", e.Message);
-                await SetImportStatus(comic, ImportStatus.ERROR, false);
+                await ManageImportError(comic, e);
                 await _notificationService.SendNotificationMessage(comic, "La conversion des images en WebP a échoué");
             }
         }
         
-        public async Task ConvertComicsToWebP()
-        {
-            var comic = _comicService.ListComicNotWebpConverted().Take(1).First();
-
-            var monitoringApi = JobStorage.Current.GetMonitoringApi();
-
-            if (monitoringApi.ProcessingCount() == 1)
-            {
-                await ConvertImagesToWebP(comic);
-            }
-        }
-
         public async Task<Comic> ResetImportStatus(Comic comic)
         {
+            if (comic.ImportStatus == ImportStatus.IMPORTED)
+            {
+                return comic;
+            }
+
+            comic.ImportErrorMessage = "";
             await SetImportStatus(comic, ImportStatus.CREATED, false);
             return comic;
         }
@@ -183,11 +181,21 @@ namespace MyComicsManagerApi.Services
         private async Task<Comic> SetImportStatus(Comic comic, ImportStatus status, bool addComicInfo)
         {
             comic.ImportStatus = status;
-            comic.ImportMessage = $"comic.ImportStatus = {status}";
             _comicService.Update(comic.Id, comic, addComicInfo);
             
             Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
             await _notificationService.SendNotificationImportStatus(comic, status);
+            return comic;
+        }
+        
+        private async Task<Comic> ManageImportError(Comic comic, Exception error)
+        {
+            comic.ImportStatus = ImportStatus.ERROR;
+            comic.ImportErrorMessage = error.Message + " : " + Environment.NewLine + error.StackTrace;
+            _comicService.Update(comic.Id, comic, false);
+            
+            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
+            await _notificationService.SendNotificationImportStatus(comic, comic.ImportStatus);
             return comic;
         }
 

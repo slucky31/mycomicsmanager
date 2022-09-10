@@ -47,8 +47,16 @@ namespace MyComicsManagerApi.Services
             // Normalizes the path.
             string extractPath = Path.GetFullPath(_libraryService.GetCoversDirRootPath());
 
-            // Update comic with file
-            comic.CoverPath = Path.GetFileName(ExtractImageFromCbz(comic, extractPath, 0));
+            try
+            {
+                // Update comic with file
+                comic.CoverPath = Path.GetFileName(ExtractImageFromCbz(comic, extractPath, 0));    
+            }
+            catch (ComicIoException e)
+            {
+                Log.Here().Error(e, "Le format de l'image n'est pas supporté");
+                throw;
+            }
         }
 
         public List<string> ExtractFirstImages(Comic comic, int nbImagesToExtract)
@@ -129,26 +137,33 @@ namespace MyComicsManagerApi.Services
                 // TODO : Créer une image plus petite
 
                 // Resize de l'image
-                using var image = Image.Load(destinationPath, out _);
-                Rectangle rectangle;
-                switch (comic.CoverType)
+                try
                 {
-                    case CoverType.LANDSCAPE_LEFT:
-                        rectangle = new Rectangle(0, 0, image.Width / 2, image.Height);
-                        image.Mutate(context => context.Crop(rectangle));
-                        image.Save(destinationPath);
-                        break;
-                    case CoverType.LANDSCAPE_RIGHT:
-                        rectangle = new Rectangle(image.Width / 2, 0, image.Width / 2, image.Height);
-                        image.Mutate(context => context.Crop(rectangle));
-                        image.Save(destinationPath);
-                        break;
-                    case CoverType.PORTRAIT:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    using var image = Image.Load(destinationPath, out _);
+                    Rectangle rectangle;
+                    switch (comic.CoverType)
+                    {
+                        case CoverType.LANDSCAPE_LEFT:
+                            rectangle = new Rectangle(0, 0, image.Width / 2, image.Height);
+                            image.Mutate(context => context.Crop(rectangle));
+                            image.Save(destinationPath);
+                            break;
+                        case CoverType.LANDSCAPE_RIGHT:
+                            rectangle = new Rectangle(image.Width / 2, 0, image.Width / 2, image.Height);
+                            image.Mutate(context => context.Crop(rectangle));
+                            image.Save(destinationPath);
+                            break;
+                        case CoverType.PORTRAIT:
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
                 }
-                
+                catch (Exception e)
+                {
+                    Log.Here().Error(e, "Le format de l'image n'est pas supporté");
+                    throw new ComicIoException("Le format de l'image n'est pas supporté", e);
+                }
             }
             else
             {
@@ -724,6 +739,5 @@ namespace MyComicsManagerApi.Services
             File.Move(comic.EbookPath, errorPath);
             Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", comic.EbookPath, errorPath);
         }
-        
     }
 }

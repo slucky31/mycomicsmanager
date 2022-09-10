@@ -1,4 +1,3 @@
-using System;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.Mongo;
@@ -87,7 +86,10 @@ namespace MyComicsManagerApi
             services.AddSingleton<NotificationService>();
             services.AddSingleton<StatisticService>();
             services.AddSingleton<ImportService>();
-
+            services.AddSingleton<RecurringJobsService>();
+            
+            
+            
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
 
             // Register the Swagger generator, defining 1 or more Swagger documents

@@ -8,6 +8,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Hangfire;
 using MongoDB.Bson;
 using MyComicsManagerApi.DataParser;
 using MyComicsManagerApi.Utils;
@@ -347,6 +348,24 @@ namespace MyComicsManagerApi.Services
             foreach (var comic in list)
             {
                 _comicFileService.DeleteFilesBeginningWithDots(comic);
+            }
+        }
+        
+        public void ConvertComicsToWebP(Comic comic)
+        {
+            _comicFileService.ConvertImagesToWebP(comic);
+        }
+        
+        public void RecurringJobConvertComicsToWebP()
+        {
+            var comic = ListComicNotWebpConverted().Take(1).First();
+            ConvertComicsToWebP(comic);
+
+            var monitoringApi = JobStorage.Current.GetMonitoringApi();
+
+            if (monitoringApi.ProcessingCount() == 1)
+            {
+                _comicFileService.ConvertImagesToWebP(comic);
             }
         }
 
