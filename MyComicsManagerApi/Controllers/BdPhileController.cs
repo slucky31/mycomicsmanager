@@ -1,6 +1,6 @@
 ﻿using MyComicsManagerApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
 
 namespace MyComicsManagerApi.Controllers
 {

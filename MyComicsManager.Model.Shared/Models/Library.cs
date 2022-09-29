@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace MyComicsManager.Model.Shared
+namespace MyComicsManager.Model.Shared.Models
 {
     public class Library
     {

@@ -4,7 +4,7 @@ using MyComicsManagerWeb.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
 
 namespace MyComicsManagerWeb.Pages
 {

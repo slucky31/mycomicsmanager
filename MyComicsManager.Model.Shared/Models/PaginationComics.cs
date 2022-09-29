@@ -1,4 +1,4 @@
-﻿namespace MyComicsManager.Model.Shared;
+﻿namespace MyComicsManager.Model.Shared.Models;
 
 public class PaginationComics
 {

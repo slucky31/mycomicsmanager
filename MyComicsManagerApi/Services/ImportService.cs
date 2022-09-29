@@ -1,12 +1,16 @@
 ﻿using MyComicsManagerApi.Models;
-using MyComicsManager.Model.Shared;
 using MongoDB.Driver;
 using Serilog;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
+using MyComicsManager.Model.Shared.Models;
+using MyComicsManager.Model.Shared.Services;
 using MyComicsManagerApi.Exceptions;
+using MyComicsManagerApi.Settings;
 using MyComicsManagerApi.Utils;
 
 namespace MyComicsManagerApi.Services
@@ -19,9 +23,10 @@ namespace MyComicsManagerApi.Services
         private readonly ComicService _comicService;
         private readonly ComicFileService _comicFileService;
         private readonly NotificationService _notificationService;
+        private readonly ApplicationConfigurationService _applicationConfigurationService;
 
         public ImportService(IDatabaseSettings settings,
-            ComicFileService comicFileService, NotificationService notificationService, ComicService comicService)
+            ComicFileService comicFileService, NotificationService notificationService, ComicService comicService, ApplicationConfigurationService applicationConfigurationService)
         {
             Log.Here().Debug("settings = {Settings}", settings);
             var client = new MongoClient(settings.ConnectionString);
@@ -30,6 +35,37 @@ namespace MyComicsManagerApi.Services
             _comicFileService = comicFileService;
             _notificationService = notificationService;
             _comicService = comicService;
+            _applicationConfigurationService = applicationConfigurationService;
+        }
+        
+        public List<Comic> GetUploadedFiles()
+        {
+            var fileUploadDirRootPath = _applicationConfigurationService.GetPathFileImport();
+            var extensions = _applicationConfigurationService.GetAuthorizedExtension();
+            
+            Log.Information("Recherche des fichiers dans {Path}", fileUploadDirRootPath);
+            
+            // Création du répertoire si il n'existe pas
+            Directory.CreateDirectory(fileUploadDirRootPath);
+
+            // Lister les fichiers
+            var directory = new DirectoryInfo(fileUploadDirRootPath);        
+            var files =  extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories)).ToList();
+            
+            var comics = new List<Comic>();
+            foreach (var file in files)
+            {
+                Log.Information("Fichier trouvé {File}", file.FullName);
+                var comic = new Comic
+                {
+                    EbookName = file.Name,
+                    EbookPath = file.FullName,
+                    Size = file.Length
+                };
+                comics.Add(comic);
+            }
+            
+            return comics;
         }
         
         [AutomaticRetry(Attempts = 0)]
@@ -55,6 +91,7 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Error(e,"Erreur lors de l'import {File}", comic.EbookPath);
+                MoveInErrorsDir(comic);
                 await ManageImportError(comic, e);
                 throw;
             }
@@ -143,6 +180,24 @@ namespace MyComicsManagerApi.Services
             
             // Mise à jour du statut et du comic
             return await SetImportStatus(comic, ImportStatus.COVER_GENERATED, true);
+        }
+        
+        private void MoveInErrorsDir(Comic comic)
+        {
+            var errorPath = _applicationConfigurationService.GetPathFileUploadError();
+
+            var errorFilePath = errorPath + Path.GetFileName(comic.EbookPath);
+            while (File.Exists(errorFilePath))
+            {
+                Log.Warning("Le fichier {File} existe déjà", errorFilePath);
+                string fileName = Path.GetFileNameWithoutExtension(errorFilePath) + "-Duplicate";
+                fileName += Path.GetExtension(errorFilePath);
+                Log.Warning("Il va être renommé en {FileName}", fileName);
+                errorFilePath = errorPath + fileName;
+            }
+
+            File.Move(comic.EbookPath ?? throw new InvalidOperationException(), errorPath);
+            Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", comic.EbookPath, errorPath);
         }
 
         private async Task ConvertImagesToWebP(Comic comic)

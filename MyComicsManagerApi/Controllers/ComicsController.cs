@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using MyComicsManager.Model.Shared;
 using MyComicsManagerApi.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hangfire;
+using MyComicsManager.Model.Shared.Models;
 
 namespace MyComicsManagerApi.Controllers
 {
@@ -202,7 +202,7 @@ namespace MyComicsManagerApi.Controllers
         }
 
         [HttpGet("deleteDotFiles")]
-        public ActionResult<Comic> ConvertImagesToWebP()
+        public ActionResult<Comic> DeleteDotFiles()
         {
             BackgroundJob.Enqueue(() => _comicService.DeleteDotFiles());
             

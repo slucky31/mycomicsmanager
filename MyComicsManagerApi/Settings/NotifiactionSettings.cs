@@ -1,4 +1,4 @@
-﻿namespace MyComicsManagerWeb.Settings;
+﻿namespace MyComicsManagerApi.Settings;
 
 public class NotificationSettings : INotificationSettings
 {

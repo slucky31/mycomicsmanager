@@ -5,9 +5,10 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using MyComicsManager.Model.Shared;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Text.Json.Serialization;
+using MyComicsManager.Model.Shared.Models;
+using MyComicsManager.Model.Shared.Services;
 using MyComicsManagerWeb.Models;
 using Serilog;
 
@@ -17,11 +18,11 @@ namespace MyComicsManagerWeb.Services {
         private readonly HttpClient _httpClient;
 
         private readonly JsonSerializerOptions _jsonSerializerOptions;
-        private readonly IWebserviceSettings _settings;
         private readonly LibraryService _libraryService;
+        private readonly ApplicationConfigurationService _applicationConfigurationService;
         
 
-        public ComicService(HttpClient client, IWebserviceSettings settings, LibraryService libraryService)
+        public ComicService(HttpClient client, IWebserviceSettings settings, LibraryService libraryService, ApplicationConfigurationService applicationConfigurationService)
         {
             _jsonSerializerOptions = new JsonSerializerOptions
             {
@@ -29,10 +30,11 @@ namespace MyComicsManagerWeb.Services {
                 WriteIndented = true
             };
             
-            _settings = settings;
             _libraryService = libraryService;
             client.BaseAddress = new Uri(settings.WebserviceUri);
             _httpClient = client;
+
+            _applicationConfigurationService = applicationConfigurationService;
         }
 
         public async Task<IEnumerable<Comic>> GetComics()
@@ -200,11 +202,8 @@ namespace MyComicsManagerWeb.Services {
             long maxFileSize = 1024 * 1024 * 400; // 400 Mo
             await _libraryService.GetSelectedLibrary();
 
-            // Création du répertoire si il n'existe pas
-            Directory.CreateDirectory(_settings.FileUploadDirRootPath);
-            
             // Upload du fichier
-            await using var savedFile = File.OpenWrite(Path.Combine(_settings.FileUploadDirRootPath, file.Name));
+            await using var savedFile = File.OpenWrite(Path.Combine(_applicationConfigurationService.GetPathFileImport(), file.Name));
             await using var stream = file.OpenReadStream(maxFileSize);
             await stream.CopyToAsync(savedFile).ConfigureAwait(false);
         }

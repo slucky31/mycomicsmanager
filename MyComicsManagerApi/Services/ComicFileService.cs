@@ -1,6 +1,4 @@
-﻿using MyComicsManagerApi.ComputerVision;
-using MyComicsManagerApi.Models;
-using MyComicsManager.Model.Shared;
+﻿using MyComicsManagerApi.Models;
 using SharpCompress.Common;
 using SharpCompress.Readers;
 using System;
@@ -12,6 +10,8 @@ using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using MyComicsManager.Model.Shared.Models;
+using MyComicsManager.Model.Shared.Services;
 using MyComicsManagerApi.Exceptions;
 using MyComicsManagerApi.Utils;
 using Serilog;
@@ -29,6 +29,7 @@ namespace MyComicsManagerApi.Services
         
         private readonly LibraryService _libraryService;
         private readonly ComputerVisionService _computerVisionService;
+        private readonly ApplicationConfigurationService _applicationConfigurationService;
 
         private readonly string[] _extensionsFileArchive = {".jpeg", ".jpg", ".png", ".gif", ".webp", ".xml"};
         private readonly string[] _extensionsImageArchive = {".jpeg", ".jpg", ".png", ".gif", ".webp"};
@@ -36,16 +37,17 @@ namespace MyComicsManagerApi.Services
 
         private const int ResizedWidth = 1400;
 
-        public ComicFileService(LibraryService libraryService, ComputerVisionService computerVisionService)
+        public ComicFileService(LibraryService libraryService, ComputerVisionService computerVisionService, ApplicationConfigurationService applicationConfigurationService)
         {
             _libraryService = libraryService;
             _computerVisionService = computerVisionService;
+            _applicationConfigurationService = applicationConfigurationService;
         }
 
         public void SetAndExtractCoverImage(Comic comic)
         {
             // Normalizes the path.
-            string extractPath = Path.GetFullPath(_libraryService.GetCoversDirRootPath());
+            string extractPath = Path.GetFullPath(_applicationConfigurationService.GetPathCovers());
 
             try
             {
@@ -62,7 +64,7 @@ namespace MyComicsManagerApi.Services
         public List<string> ExtractFirstImages(Comic comic, int nbImagesToExtract)
         {
             // Normalizes the path.
-            string extractPath = Path.GetFullPath(_libraryService.GetCoversDirRootPath() + "/isbn/");
+            var extractPath = Path.GetFullPath(_applicationConfigurationService.GetPathIsbn());
             Directory.CreateDirectory(extractPath);
 
             List<string> firstImages = new List<string>();
@@ -78,7 +80,7 @@ namespace MyComicsManagerApi.Services
         public List<string> ExtractLastImages(Comic comic, int nbImagesToExtract)
         {
             // Normalizes the path.
-            var extractPath = Path.GetFullPath(_libraryService.GetCoversDirRootPath() + "/isbn/");
+            var extractPath = Path.GetFullPath(_applicationConfigurationService.GetPathIsbn());
             Directory.CreateDirectory(extractPath);
 
             var lastImages = new List<string>();
@@ -406,7 +408,6 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Error("Erreur lors de l'extraction de l'archive {Archive}", comic.EbookPath);
-                MoveInErrorsDir(comic);
                 throw new ComicIoException("Erreur lors de l'extraction de l'archive. Consulter le répertoire errors.", e);
             }
         }
@@ -472,7 +473,7 @@ namespace MyComicsManagerApi.Services
             var extractedText = await _computerVisionService.ReadTextFromLocalImage(imagePath);
             Log.Here().Information("extractedText : {Text}", extractedText);
 
-            // https://regexlib.com/Search.aspx?k=isbn - Author : Churk
+            // Reference : https://regexlib.com/Search.aspx?k=isbn
             const string isbnPattern = "(ISBN[-]*(1[03])*[ ]*(: ){0,1})*(([0-9Xx][- ]*){13}|([0-9Xx][- ]*){10})";
             var rgx = new Regex(isbnPattern);
 
@@ -693,7 +694,6 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", absolutePath, destination);
-                MoveInErrorsDir(comic);
                 throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
             }
         }
@@ -719,25 +719,6 @@ namespace MyComicsManagerApi.Services
             MoveComic(comic, destination);
         }
 
-        public void MoveInErrorsDir(Comic comic)
-        {
-            // Création du répertoire de destination
-            var errorPath = _libraryService.GetLibrairiesDirRootPath() + "errors";
-            Directory.CreateDirectory(errorPath);
-
-            errorPath += Path.DirectorySeparatorChar + Path.GetFileName(comic.EbookPath);
-            while (File.Exists(errorPath))
-            {
-                Log.Warning("Le fichier {File} existe déjà", errorPath);
-                string fileName = Path.GetFileNameWithoutExtension(errorPath) + "-Duplicate";
-                fileName += Path.GetExtension(errorPath);
-                Log.Warning("Il va être renommé en {FileName}", fileName);
-                errorPath = _libraryService.GetLibrairiesDirRootPath() + "errors" + Path.DirectorySeparatorChar +
-                            fileName;
-            }
-
-            File.Move(comic.EbookPath, errorPath);
-            Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", comic.EbookPath, errorPath);
-        }
+        
     }
 }

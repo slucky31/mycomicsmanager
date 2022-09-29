@@ -1,9 +1,9 @@
-@using MyComicsManager.Model.Shared
 @using MyComicsManagerWeb.Services
 @using Newtonsoft.Json.Converters
 @inject ComicService ComicService
 @inject LibraryService LibraryService
 @using Serilog
+@using MyComicsManager.Model.Shared.Models
 
     <MudStack>        
         <InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="_ => FetchComics()">

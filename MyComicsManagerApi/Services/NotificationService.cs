@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using MyComicsManager.Model.Shared;
-using MyComicsManagerWeb.Settings;
+using MyComicsManager.Model.Shared.Models;
+using MyComicsManagerApi.Settings;
 using Serilog;
 
 namespace MyComicsManagerApi.Services {

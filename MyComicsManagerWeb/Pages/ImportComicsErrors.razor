@@ -20,7 +20,7 @@
         <RowTemplate>
             <MudTd DataLabel="EbookName">
                 @{
-                    var downloadHref = "/download/errors/" + context.EbookName;
+                    var downloadHref = "/import/errors/" + context.EbookName;
                 }
                 <MudLink Href="@downloadHref" Target="blank">
                     @context.EbookName
@@ -36,7 +36,7 @@
                 }
                 <MudIconButton Size="Size.Small" Class="object-right" Icon="@Icons.Material.Filled.Delete"  Title="Delete" OnClick="() => Delete(context.Id)"/>
                 <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" Title="Edit" Link="@editHref" />
-                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Refresh" Title="Retry Import" OnClick="() => Delete(context.Id)" />
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Refresh" Title="Retry Import" OnClick="() => RetryImport(context.Id)" />
             </MudTd>
         </RowTemplate>
     </MudTable>

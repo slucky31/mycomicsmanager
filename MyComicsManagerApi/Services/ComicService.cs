@@ -1,5 +1,3 @@
-using MyComicsManagerApi.Models;
-using MyComicsManager.Model.Shared;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using Serilog;
@@ -10,7 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
 using MongoDB.Bson;
+using MyComicsManager.Model.Shared.Models;
 using MyComicsManagerApi.DataParser;
+using MyComicsManagerApi.Settings;
 using MyComicsManagerApi.Utils;
 
 namespace MyComicsManagerApi.Services
@@ -189,6 +189,10 @@ namespace MyComicsManagerApi.Services
                 var filterSerie = Builders<Comic>.Filter.Regex(x => x.Serie, new BsonRegularExpression(searchItem, "i"));
                 filter = filterTitle|filterSerie;
             }
+            
+            // On garde uniquement les comics qui sont correctement importés
+            var filterStatus = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED);
+            filter &= filterStatus;
             
             var result =  await _comics.AggregateByPage(
                 filter,

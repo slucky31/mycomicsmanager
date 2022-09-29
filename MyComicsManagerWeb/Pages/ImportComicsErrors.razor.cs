@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using MyComicsManager.Model.Shared.Models;
 using MyComicsManagerWeb.Services;
-using MyComicsManager.Model.Shared;
 
 namespace MyComicsManagerWeb.Pages
 {
@@ -32,6 +32,11 @@ namespace MyComicsManagerWeb.Pages
             ImportingComics = await ComicService.GetImportingComics();
             ImportingComics = ImportingComics.Where(comic => comic.ImportStatus == ImportStatus.ERROR).ToList();
             StateHasChanged();
+        }
+        
+        private async Task RetryImport(string id)
+        {
+            await RefreshErrorComics();
         }
     }
 }

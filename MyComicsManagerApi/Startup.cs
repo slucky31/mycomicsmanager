@@ -10,10 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using MyComicsManagerApi.ComputerVision;
-using MyComicsManagerApi.Models;
+using MyComicsManager.Model.Shared.Services;
+using MyComicsManager.Model.Shared.Settings;
 using MyComicsManagerApi.Services;
-using MyComicsManagerWeb.Settings;
+using MyComicsManagerApi.Settings;
 using Serilog;
 
 namespace MyComicsManagerApi
@@ -30,12 +30,12 @@ namespace MyComicsManagerApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ApplicationSettings>( Configuration.GetSection(nameof(ApplicationSettings)));
+            services.AddSingleton<IApplicationSettings>(sp => sp.GetRequiredService<IOptions<ApplicationSettings>>().Value);
+            
             // requires using Microsoft.Extensions.Options
             services.Configure<DatabaseSettings>( Configuration.GetSection(nameof(DatabaseSettings)));
             services.AddSingleton<IDatabaseSettings>(sp => sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
-
-            services.Configure<LibrairiesSettings>( Configuration.GetSection(nameof(LibrairiesSettings)));
-            services.AddSingleton<ILibrairiesSettings>(sp => sp.GetRequiredService<IOptions<LibrairiesSettings>>().Value);
 
             services.Configure<AzureSettings>(Configuration.GetSection(nameof(AzureSettings)));
             services.AddSingleton<IAzureSettings>(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value);
@@ -86,10 +86,8 @@ namespace MyComicsManagerApi
             services.AddSingleton<NotificationService>();
             services.AddSingleton<StatisticService>();
             services.AddSingleton<ImportService>();
-            services.AddSingleton<RecurringJobsService>();
-            
-            
-            
+            services.AddSingleton<ApplicationConfigurationService>();
+
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
 
             // Register the Swagger generator, defining 1 or more Swagger documents
@@ -122,6 +120,16 @@ namespace MyComicsManagerApi
                 Authorization = new[] { new MyAuthorizationFilter() }
             };
             app.UseHangfireDashboard("/hangfire", options);
+            
+            // Création de la structure de répertoire
+            var applicationConfiguration = Configuration.GetSection(nameof(ApplicationSettings)).Get<ApplicationSettings>();
+            var  applicationService = app.ApplicationServices.GetService<ApplicationConfigurationService>();
+            applicationService?.CreateApplicationDirectories();
+            
+            // Lancement des jobs périodiques
+            // Docs : https://stackoverflow.com/questions/32459670/resolving-instances-with-asp-net-core-di-from-within-configureservices
+            var comicService = app.ApplicationServices.GetService<ComicService>();
+            RecurringJob.AddOrUpdate("ConvertComicsToWebP", () => comicService.RecurringJobConvertComicsToWebP(), Cron.Hourly);
 
             app.UseRouting();
 

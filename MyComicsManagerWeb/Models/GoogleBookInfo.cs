@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Google.Apis.Books.v1.Data;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
 
 namespace MyComicsManagerWeb.Models;
 

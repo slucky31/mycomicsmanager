@@ -1,4 +1,4 @@
-namespace MyComicsManagerApi.Models
+namespace MyComicsManagerApi.Settings
 {
     public class DatabaseSettings : IDatabaseSettings
     {

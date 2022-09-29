@@ -1,10 +1,11 @@
 ﻿@page "/settings"
-
-@using MyComicsManager.Model.Shared
 @using MyComicsManagerWeb.Models
 @using MyComicsManagerWeb.Services
+@using MyComicsManager.Model.Shared.Models
+@using MyComicsManager.Model.Shared.Services
 @inject ComicService ComicService
 @inject IWebserviceSettings  WebserviceSettings
+@inject ApplicationConfigurationService ApplicationConfigurationService
 
 
 <MudContainer MaxWidth="MaxWidth.False" >
@@ -50,10 +51,10 @@
                     <MudField Label="WebserviceUri" Variant="Variant.Filled">@WebserviceSettings.WebserviceUri</MudField>
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudField Label="FileUploadDirRootPath" Variant="Variant.Filled">@WebserviceSettings.FileUploadDirRootPath</MudField>                    
+                    <MudField Label="FileUploadDirRootPath" Variant="Variant.Filled">@ApplicationConfigurationService.GetPathFileImport()</MudField>                    
                 </MudItem>
                 <MudItem xs="12" sm="6">                    
-                    <MudField Label="CoversDirRootPath" Variant="Variant.Filled">@WebserviceSettings.CoversDirRootPath</MudField>
+                    <MudField Label="CoversDirRootPath" Variant="Variant.Filled">@ApplicationConfigurationService.GetPathCovers()</MudField>
                 </MudItem>
             </MudGrid>
         </MudCardContent>

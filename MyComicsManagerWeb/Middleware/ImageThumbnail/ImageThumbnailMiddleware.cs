@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ImageThumbnail.AspNetCore.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
+using MyComicsManager.Model.Shared.Services;
 using MyComicsManagerWeb.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
@@ -20,18 +21,19 @@ namespace MyComicsManagerWeb.Middleware.ImageThumbnail
         private readonly RequestDelegate _next;
         private readonly ImageThumbnailOptions _options;
         private readonly IWebserviceSettings _settings;
+        private readonly ApplicationConfigurationService _applicationConfigurationService;
 
-        public ImageThumbnailMiddleware(RequestDelegate next, ImageThumbnailOptions options, IWebserviceSettings settings)
+        public ImageThumbnailMiddleware(RequestDelegate next, ImageThumbnailOptions options, IWebserviceSettings settings, ApplicationConfigurationService applicationConfigurationService)
         {
             _next = next;
             _options = options;
             _settings = settings;
-            CreateThumbnailCacheDir();
+            _applicationConfigurationService = applicationConfigurationService;
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var isValid = context.Request.Path.StartsWithSegments("/" + _options.ImagesDirectory);
+            var isValid = context.Request.Path.StartsWithSegments("/covers");
 
             if (isValid)
             {
@@ -176,7 +178,7 @@ namespace MyComicsManagerWeb.Middleware.ImageThumbnail
 
         private string GetPhysicalPath(string path)
         {
-            var provider = new PhysicalFileProvider(Path.Combine(_settings.CoversDirRootPath));
+            var provider = new PhysicalFileProvider(Path.Combine(_applicationConfigurationService.GetPathApplication()));
             var fileInfo = provider.GetFileInfo(path);
 
             return fileInfo.PhysicalPath;
@@ -195,17 +197,10 @@ namespace MyComicsManagerWeb.Middleware.ImageThumbnail
             //ex : sample.jpg -> sample_256x256.jpg
             fileName = string.Format("{0}_{1}x{2}{3}", fileName, size.Value.Width, size.Value.Height, ext);
 
-            var provider = new PhysicalFileProvider(Path.Combine(_settings.CoversDirRootPath, _options.ImagesDirectory, _options.CacheDirectoryName));
+            var provider = new PhysicalFileProvider(_applicationConfigurationService.GetPathThumbs());
             var fileInfo = provider.GetFileInfo(fileName);
 
             return fileInfo.PhysicalPath;
-        }
-        private void CreateThumbnailCacheDir()
-        {
-            if (!string.IsNullOrEmpty(_options.CacheDirectoryName))
-            {
-                Directory.CreateDirectory(Path.Combine(_settings.CoversDirRootPath, _options.ImagesDirectory, _options.CacheDirectoryName));
-            }
         }
 
         private async Task WriteFromCache(ThumbnailRequest request, Stream stream)
