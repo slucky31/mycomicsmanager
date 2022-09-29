@@ -676,11 +676,6 @@ namespace MyComicsManagerApi.Services
                     // TODO
                     absolutePath = comic.EbookPath;
                     break;
-                case ImportStatus.COMICINFO_ADDED:
-                case ImportStatus.MOVED_TO_LIB:
-                case ImportStatus.NB_IMAGES_SET:
-                case ImportStatus.COVER_GENERATED:
-                case ImportStatus.IMPORTED:
                 default:
                     // Le fichier est dans /lib
                     absolutePath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
