@@ -284,6 +284,8 @@ namespace MyComicsManagerApi.Services
             // Mise à jour de l'objet Comic avec le nouveau fichier CBZ et le nouveau chemin
             comic.EbookName = Path.GetFileName(comic.EbookPath);
         }
+        
+
 
         public void ConvertImagesToWebP(Comic comic)
         {
@@ -403,12 +405,15 @@ namespace MyComicsManagerApi.Services
         {
             try
             {
-                ZipFile.ExtractToDirectory(comic.EbookPath, tempDir, overwriteFiles: true);
+                var comicEbookPath = GetComicFileAbsolutePath(comic);
+                Log.Here().Information("Absolute comic File Path : {Path}",comicEbookPath);
+                
+                ZipFile.ExtractToDirectory(comicEbookPath, tempDir, overwriteFiles: true);
             }
             catch (Exception e)
             {
                 Log.Here().Error("Erreur lors de l'extraction de l'archive {Archive}", comic.EbookPath);
-                throw new ComicIoException("Erreur lors de l'extraction de l'archive. Consulter le répertoire errors.", e);
+                throw new ComicIoException("Erreur lors de l'extraction de l'archive", e);
             }
         }
 
@@ -661,58 +666,69 @@ namespace MyComicsManagerApi.Services
                 return Path.GetExtension(comic.EbookPath);
             }
         }
-        
-        public void MoveComic(Comic comic, string destination)
+
+        public string GetComicFileAbsolutePath(Comic comic)
         {
-            string absolutePath;
             switch (comic.ImportStatus)
             {
                 case ImportStatus.CREATED:
-                    // Le fichier est dans /tmp et EbookPath est déjà en absolute
-                    absolutePath = comic.EbookPath;
-                    break;
-                case ImportStatus.ERROR:
-                    // le fichier est dans /error
-                    // TODO
-                    absolutePath = comic.EbookPath;
-                    break;
-                default:
+                case ImportStatus.ERROR :
+                    // CREATED : Le fichier est dans /import et EbookPath est déjà en absolute
+                    // ERROR : Le fichier est dans /import/errors et EbookPath est déjà en absolute
+                    return comic.EbookPath;
+                case ImportStatus.COMICINFO_ADDED:
+                case ImportStatus.MOVED_TO_LIB:
+                case ImportStatus.NB_IMAGES_SET:
+                case ImportStatus.COVER_GENERATED:
+                case ImportStatus.IMPORTED:
                     // Le fichier est dans /lib
-                    absolutePath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
-                    break;
+                    return GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            
+        }
+        
+        public Comic Move(Comic comic, string destinationDirectory)
+        {
             try
             {
-                File.Move(absolutePath, destination);
+                var absolutePath = GetComicFileAbsolutePath(comic);
+                
+                var destinationPath = destinationDirectory + comic.EbookName;
+                while (File.Exists(destinationPath))
+                {
+                    Log.Warning("Le fichier {File} existe déjà", destinationPath);
+                    string fileName = Path.GetFileNameWithoutExtension(destinationPath) + "-Duplicate";
+                    fileName += Path.GetExtension(destinationPath);
+                    Log.Warning("Il va être renommé en {FileName}", fileName);
+                    destinationPath = destinationDirectory + fileName;
+                }
+            
+                Log.Here().Information("Origine : {Origine}", absolutePath);
+                Log.Here().Information("Destination : {Destination}", destinationPath);
+
+                File.Move(absolutePath, destinationPath);
+                Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", absolutePath, destinationPath);
+                comic.EbookPath = destinationPath;
             }
             catch (Exception e)
             {
-                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", absolutePath, destination);
+                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", comic.EbookPath, destinationDirectory);
                 throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
             }
+
+            return comic;
         }
         
         public void MoveInLib(Comic comic)
         {
             // Déplacement du fichier vers la racine de la librairie sélectionnée
-            var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
-                              comic.EbookName;
-
-            // Gestion du cas où le fichier importé existe déjà dans la lib
-            while (File.Exists(destination))
-            {
-                Log.Here().Warning("Le fichier {File} existe déjà", destination);
-                comic.Title = Path.GetFileNameWithoutExtension(destination) + "-Rename";
-                Log.Here().Information("comic.Title = {Title}", comic.Title);
-                comic.EbookName = comic.Title + Path.GetExtension(destination);
-                Log.Here().Information("comic.EbookName = {EbookName}", comic.EbookName);
-                destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
-                              comic.EbookName;
-            }
+            var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH);
             
-            MoveComic(comic, destination);
+            Move(comic, destination);
         }
+        
+        
 
         
     }

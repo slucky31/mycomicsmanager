@@ -1,6 +1,4 @@
-﻿using MyComicsManagerApi.Models;
-using MongoDB.Driver;
-using Serilog;
+﻿using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +17,6 @@ namespace MyComicsManagerApi.Services
     {
         private static ILogger Log => Serilog.Log.ForContext<ComicService>();
         
-        private readonly IMongoCollection<Comic> _comics;
         private readonly ComicService _comicService;
         private readonly ComicFileService _comicFileService;
         private readonly NotificationService _notificationService;
@@ -29,9 +26,6 @@ namespace MyComicsManagerApi.Services
             ComicFileService comicFileService, NotificationService notificationService, ComicService comicService, ApplicationConfigurationService applicationConfigurationService)
         {
             Log.Here().Debug("settings = {Settings}", settings);
-            var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
-            _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
             _comicFileService = comicFileService;
             _notificationService = notificationService;
             _comicService = comicService;
@@ -62,7 +56,12 @@ namespace MyComicsManagerApi.Services
                     EbookPath = file.FullName,
                     Size = file.Length
                 };
-                comics.Add(comic);
+                
+                // Les fichiers en erreurs ne sont pas considérés
+                if (!file.FullName.Contains(Path.DirectorySeparatorChar + "errors" + Path.DirectorySeparatorChar))
+                {
+                    comics.Add(comic);    
+                }
             }
             
             return comics;
@@ -91,7 +90,7 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Error(e,"Erreur lors de l'import {File}", comic.EbookPath);
-                MoveInErrorsDir(comic);
+                comic = _comicFileService.Move(comic, _applicationConfigurationService.GetPathImportErrors());
                 await ManageImportError(comic, e);
                 throw;
             }
@@ -120,8 +119,7 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Error(e, "Erreur lors de la conversion en CBZ");
-                await ManageImportError(comic, e);
-                throw new ComicImportException("Erreur lors de la conversion en CBZ");
+                throw;
             }
             
             // Mise à jour du statut et du comic
@@ -148,7 +146,7 @@ namespace MyComicsManagerApi.Services
 
         private async Task<Comic> SetComicPageCount(Comic comic)
         {
-            if (comic.ImportStatus >= ImportStatus.MOVED_TO_LIB)
+            if (comic.ImportStatus >= ImportStatus.NB_IMAGES_SET)
             {
                 return comic;
             }
@@ -181,55 +179,19 @@ namespace MyComicsManagerApi.Services
             // Mise à jour du statut et du comic
             return await SetImportStatus(comic, ImportStatus.COVER_GENERATED, true);
         }
-        
-        private void MoveInErrorsDir(Comic comic)
-        {
-            var errorPath = _applicationConfigurationService.GetPathFileUploadError();
 
-            var errorFilePath = errorPath + Path.GetFileName(comic.EbookPath);
-            while (File.Exists(errorFilePath))
-            {
-                Log.Warning("Le fichier {File} existe déjà", errorFilePath);
-                string fileName = Path.GetFileNameWithoutExtension(errorFilePath) + "-Duplicate";
-                fileName += Path.GetExtension(errorFilePath);
-                Log.Warning("Il va être renommé en {FileName}", fileName);
-                errorFilePath = errorPath + fileName;
-            }
-
-            File.Move(comic.EbookPath ?? throw new InvalidOperationException(), errorPath);
-            Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", comic.EbookPath, errorPath);
-        }
-
-        private async Task ConvertImagesToWebP(Comic comic)
-        {
-            try
-            {
-                if (comic.WebPFormated)
-                {
-                    return;
-                }
-                _comicFileService.ConvertImagesToWebP(comic);
-                comic.WebPFormated = true;
-                _comicService.Update(comic.Id, comic, false);
-                await _notificationService.SendNotificationMessage(comic, "Conversion WebP terminée");
-            }
-            catch (Exception e)
-            {
-                Log.Here().Warning("La conversion des images en WebP a échoué : {Exception}", e.Message);
-                await ManageImportError(comic, e);
-                await _notificationService.SendNotificationMessage(comic, "La conversion des images en WebP a échoué");
-            }
-        }
-        
         public async Task<Comic> ResetImportStatus(Comic comic)
         {
+            Log.Here().Warning("Begin");
             if (comic.ImportStatus == ImportStatus.IMPORTED)
             {
                 return comic;
             }
 
             comic.ImportErrorMessage = "";
+            comic = _comicFileService.Move(comic, _applicationConfigurationService.GetPathFileImport());
             await SetImportStatus(comic, ImportStatus.CREATED, false);
+            Log.Here().Warning("End");
             return comic;
         }
         
@@ -243,7 +205,7 @@ namespace MyComicsManagerApi.Services
             return comic;
         }
         
-        private async Task<Comic> ManageImportError(Comic comic, Exception error)
+        private async Task ManageImportError(Comic comic, Exception error)
         {
             comic.ImportStatus = ImportStatus.ERROR;
             comic.ImportErrorMessage = error.Message + " : " + Environment.NewLine + error.StackTrace;
@@ -251,7 +213,6 @@ namespace MyComicsManagerApi.Services
             
             Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
             await _notificationService.SendNotificationImportStatus(comic, comic.ImportStatus);
-            return comic;
         }
 
         

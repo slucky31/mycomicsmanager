@@ -31,9 +31,9 @@ public class ApplicationConfigurationService
         return _applicationRootPath + ApplicationConfiguration.ImportPath + Path.DirectorySeparatorChar;
     }
     
-    public string GetPathFileUploadError()
+    public string GetPathImportErrors()
     {
-        return _applicationRootPath + ApplicationConfiguration.ErrorsPath + Path.DirectorySeparatorChar;
+        return _applicationRootPath + ApplicationConfiguration.ImportErrorsPath + Path.DirectorySeparatorChar;
     }
 
     public string GetPathIsbn()
@@ -60,7 +60,7 @@ public class ApplicationConfigurationService
         Directory.CreateDirectory(_applicationRootPath + ApplicationConfiguration.LibsPath);
         
         Directory.CreateDirectory(_applicationRootPath + ApplicationConfiguration.ImportPath);
-        Directory.CreateDirectory(_applicationRootPath + ApplicationConfiguration.ErrorsPath);
+        Directory.CreateDirectory(_applicationRootPath + ApplicationConfiguration.ImportErrorsPath);
     }
 
     public string[] GetAuthorizedExtension()

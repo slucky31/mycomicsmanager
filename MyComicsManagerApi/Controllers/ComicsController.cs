@@ -115,7 +115,7 @@ namespace MyComicsManagerApi.Controllers
             return _comicService.Get(id);
         }
         
-        [HttpGet("reimport/{id:length(24)}")]
+        [HttpGet("reset-import-status/{id:length(24)}")]
         public async Task<ActionResult<Comic>> ReImport(string id)
         {
             var comic = _comicService.Get(id);
@@ -124,10 +124,8 @@ namespace MyComicsManagerApi.Controllers
                 return NotFound();
             }
             
-            comic = await _importService.ResetImportStatus(comic);
-
-            BackgroundJob.Enqueue(() => _importService.Import(comic));
-            return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
+            await _importService.ResetImportStatus(comic);
+            return _comicService.Get(id);
         }
 
         [HttpGet("extractcover/{id:length(24)}")]

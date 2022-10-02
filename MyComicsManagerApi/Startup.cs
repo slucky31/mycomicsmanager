@@ -122,7 +122,6 @@ namespace MyComicsManagerApi
             app.UseHangfireDashboard("/hangfire", options);
             
             // Création de la structure de répertoire
-            var applicationConfiguration = Configuration.GetSection(nameof(ApplicationSettings)).Get<ApplicationSettings>();
             var  applicationService = app.ApplicationServices.GetService<ApplicationConfigurationService>();
             applicationService?.CreateApplicationDirectories();
             

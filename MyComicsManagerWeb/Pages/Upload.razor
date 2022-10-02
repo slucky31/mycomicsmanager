@@ -77,13 +77,14 @@
         <MudTable Items="UploadedFiles" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@Uploading" LoadingProgressColor="Color.Info">
             <HeaderContent>
                 <MudTh>Fichier</MudTh>
-                <MudTh>Taille</MudTh>
+                <MudTh>Taille (Mo)</MudTh>
                 <MudTh>Temps Upload</MudTh>
                 <MudTh>Exception Message</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Fichier">@context.Name</MudTd>
-                <MudTd DataLabel="Taille">@context.Size</MudTd>
+                @{ var size = @context.Size / 1024 / 1024; }
+                <MudTd DataLabel="Taille">@size</MudTd>
                 <MudTd DataLabel="Temps Upload">@context.UploadDuration</MudTd>
                 <MudTd DataLabel="Exception Message">@context.ExceptionMessage</MudTd>
             </RowTemplate>
