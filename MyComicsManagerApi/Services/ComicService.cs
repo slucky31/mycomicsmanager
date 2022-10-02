@@ -357,7 +357,10 @@ namespace MyComicsManagerApi.Services
             var comic = ListComicNotWebpConverted().Take(1).First();
             
             var monitoringApi = JobStorage.Current.GetMonitoringApi();
-            if (monitoringApi.ProcessingCount() != 1) return;
+            if (monitoringApi.ProcessingCount() != 1)
+            {
+                return;
+            }
             
             try
             {
