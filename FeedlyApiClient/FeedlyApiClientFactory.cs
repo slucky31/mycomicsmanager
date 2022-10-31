@@ -2,7 +2,7 @@
 
 namespace FeedlyApiClient;
 
-public class FeedlyApiClientFactory
+public static class FeedlyApiClientFactory
 {
     public static IFeedlyApiClient Create(
         HttpClient httpClient,

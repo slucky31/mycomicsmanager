@@ -1,6 +1,6 @@
 ﻿namespace FeedlyApiClient.Constants;
 
-public class ApiUrlConstants
+public static class ApiUrlConstants
 {
-    public const string GetTagsList = "/v3/streams/contents?streamId=";
+    public static string GetTagsList => "/v3/streams/contents?streamId=";
 }
