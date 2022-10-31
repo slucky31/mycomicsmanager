@@ -338,8 +338,6 @@ namespace MyComicsManagerApi.Services
             return _comics.Find(filter).ToList();
         }
 
-        
-
         public void DeleteDotFiles()
         {
             var list = _comics.Find(comic => true).ToList();
@@ -348,40 +346,6 @@ namespace MyComicsManagerApi.Services
                 _comicFileService.DeleteFilesBeginningWithDots(comic);
             }
         }
-
         
-        [AutomaticRetry(Attempts = 0)]
-        public async Task RecurringJobConvertComicsToWebP()
-        {
-            var comic = ListComicNotWebpConverted().Take(1).First();
-            
-            var monitoringApi = JobStorage.Current.GetMonitoringApi();
-            if (monitoringApi.ProcessingCount() != 1)
-            {
-                return;
-            }
-            
-            try
-            {
-                if (comic.WebPFormated)
-                {
-                    return;
-                }
-                _comicFileService.ConvertImagesToWebP(comic);
-                comic.WebPFormated = true;
-                Update(comic.Id, comic, false);
-                await _notificationService.SendNotificationMessage(comic, "Conversion en WebP terminée");
-            }
-            catch (Exception e)
-            {
-                Log.Here().Warning("La conversion des images en WebP a échoué : {Exception}", e.Message);
-                
-                await _notificationService.SendNotificationMessage(comic, "La conversion des images en WebP a échoué");
-            }
-        }
-        
-        
-
-
     }
 }

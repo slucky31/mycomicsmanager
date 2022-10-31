@@ -159,6 +159,7 @@ namespace MyComicsManagerApi.Services
         }
 
         // ReSharper disable once MemberCanBePrivate.Global
+        [AutomaticRetry(Attempts = 0)]
         public async Task ConvertComicsToWebP()
         {
             var comic = _comicService.ListComicNotWebpConverted().Take(1).First();
