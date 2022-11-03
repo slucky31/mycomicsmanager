@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace MyComicsManager.Model.Shared
+namespace MyComicsManager.Model.Shared.Models
 {
     public class Library
     {
@@ -16,11 +16,6 @@ namespace MyComicsManager.Model.Shared
         [Required]
         [RegularExpression(@"^[a-zA-Z0-9\s]{1,40}$")]
         public string RelPath { get; set; }
-
-        public string TmpPath()
-        {
-            return RelPath + "/tmp";
-        }
-
+        
     }
 }

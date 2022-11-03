@@ -1,5 +1,3 @@
-using MyComicsManagerApi.Models;
-using MyComicsManager.Model.Shared;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using Serilog;
@@ -10,8 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
 using MongoDB.Bson;
+using MyComicsManager.Model.Shared.Models;
 using MyComicsManagerApi.DataParser;
-using MyComicsManagerApi.Exceptions;
+using MyComicsManagerApi.Settings;
 using MyComicsManagerApi.Utils;
 
 namespace MyComicsManagerApi.Services
@@ -23,11 +22,12 @@ namespace MyComicsManagerApi.Services
         private readonly IMongoCollection<Comic> _comics;
         private readonly LibraryService _libraryService;
         private readonly ComicFileService _comicFileService;
+        private readonly NotificationService _notificationService;
 
         private const int MaxComicsPerRequest = 100;
 
         public ComicService(IDatabaseSettings settings, LibraryService libraryService,
-            ComicFileService comicFileService)
+            ComicFileService comicFileService, NotificationService notificationService)
         {
             Log.Here().Debug("settings = {Settings}", settings);
             var client = new MongoClient(settings.ConnectionString);
@@ -35,6 +35,7 @@ namespace MyComicsManagerApi.Services
             _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
             _libraryService = libraryService;
             _comicFileService = comicFileService;
+            _notificationService = notificationService;
 
         }
         
@@ -88,7 +89,7 @@ namespace MyComicsManagerApi.Services
             return comic;
         }
 
-        public void Update(string id, Comic comic)
+        public void Update(string id, Comic comic, bool addComicInfo)
         {
             Log.Here().Information("Mise à jour du comic {Comic}", id.Replace(Environment.NewLine, ""));
             
@@ -99,7 +100,10 @@ namespace MyComicsManagerApi.Services
             comic.Edited = DateTime.Now;
             
             // Mise à jour du fichier ComicInfo.xml
-            _comicFileService.AddComicInfoInComicFile(comic);
+            if (addComicInfo)
+            {
+                _comicFileService.AddComicInfoInComicFile(comic);
+            }
             
             // Mise à jour en base de données
             _comics.ReplaceOne(c => c.Id == id, comic);
@@ -110,9 +114,6 @@ namespace MyComicsManagerApi.Services
             // Mise à jour du nom du fichier
             if (!string.IsNullOrEmpty(comic.Serie) && comic.Volume > 0)
             {
-                // Calcul de l'origine
-                var origin = _comicFileService.GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
-
                 // Mise à jour du nom du fichier pour le calcul de la destination
                 if (comic.Serie == "One shot")
                 {
@@ -129,7 +130,7 @@ namespace MyComicsManagerApi.Services
                                      comic.EbookName;
 
                 // Renommage du fichier (si le fichier existe déjà, on ne fait rien, car il est déjà présent !)
-                _comicFileService.MoveComic(origin, libraryPath + comicEbookPath);
+                _comicFileService.Move(comic, libraryPath + comicEbookPath);
 
                 // Mise à jour du chemin relatif avec le nouveau nom du fichier 
                 comic.EbookPath = comicEbookPath;
@@ -138,7 +139,6 @@ namespace MyComicsManagerApi.Services
             // Mise à jour de l'arborescence du fichier
             if (!string.IsNullOrEmpty(comic.Serie))
             {
-                var origin = _comicFileService.GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
                 var libraryPath =
                     _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH);
                 var eBookPath = comic.Serie.ToPascalCase() + Path.DirectorySeparatorChar;
@@ -147,12 +147,10 @@ namespace MyComicsManagerApi.Services
                 Directory.CreateDirectory(libraryPath + eBookPath);
 
                 // Déplacement du fichier (si le fichier existe déjà, on ne fait rien, car il est déjà présent !)
-                _comicFileService.MoveComic(origin, libraryPath + eBookPath + comic.EbookName);
+                _comicFileService.Move(comic, libraryPath + eBookPath + comic.EbookName);
                 comic.EbookPath = eBookPath + comic.EbookName;
             }
         }
-        
-        
         
         public List<Comic> Find(string item, int limit)
         {
@@ -187,6 +185,10 @@ namespace MyComicsManagerApi.Services
                 var filterSerie = Builders<Comic>.Filter.Regex(x => x.Serie, new BsonRegularExpression(searchItem, "i"));
                 filter = filterTitle|filterSerie;
             }
+            
+            // On garde uniquement les comics qui sont correctement importés
+            var filterStatus = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED);
+            filter &= filterStatus;
             
             var result =  await _comics.AggregateByPage(
                 filter,
@@ -314,7 +316,7 @@ namespace MyComicsManagerApi.Services
 
             if (update)
             {
-                Update(comic.Id, comic);    
+                Update(comic.Id, comic, true);    
             }
             
             return comic;
@@ -348,11 +350,36 @@ namespace MyComicsManagerApi.Services
                 _comicFileService.DeleteFilesBeginningWithDots(comic);
             }
         }
-
         
+        [AutomaticRetry(Attempts = 0)]
+        public async Task RecurringJobConvertComicsToWebP()
+        {
+            var comic = ListComicNotWebpConverted().Take(1).First();
+            
+            var monitoringApi = JobStorage.Current.GetMonitoringApi();
+            if (monitoringApi.ProcessingCount() != 1)
+            {
+                return;
+            }
+            
+            try
+            {
+                if (comic.WebPFormated)
+                {
+                    return;
+                }
+                _comicFileService.ConvertImagesToWebP(comic);
+                comic.WebPFormated = true;
+                Update(comic.Id, comic, false);
+                await _notificationService.SendNotificationMessage(comic, "Conversion en WebP terminée");
+            }
+            catch (Exception e)
+            {
+                Log.Here().Warning("La conversion des images en WebP a échoué : {Exception}", e.Message);
+                
+                await _notificationService.SendNotificationMessage(comic, "La conversion des images en WebP a échoué");
+            }
+        }
         
-        
-
-
     }
 }

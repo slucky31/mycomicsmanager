@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using MudBlazor;
+using MyComicsManager.Model.Shared.Services;
+using MyComicsManager.Model.Shared.Settings;
 using MyComicsManagerWeb.Middleware.ImageThumbnail;
 using MyComicsManagerWeb.Settings;
 
@@ -34,6 +36,8 @@ namespace MyComicsManagerWeb
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ApplicationSettings>( Configuration.GetSection(nameof(ApplicationSettings)));
+            services.AddSingleton<IApplicationSettings>(sp => sp.GetRequiredService<IOptions<ApplicationSettings>>().Value);
             
             services.Configure<DatabaseSettings>( Configuration.GetSection(nameof(DatabaseSettings)));
             services.AddSingleton<IDatabaseSettings>(sp => sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
@@ -60,6 +64,7 @@ namespace MyComicsManagerWeb
             services.AddHttpClient<BookInformationService>();
             
             services.AddSingleton<ThumbnailService>();
+            services.AddSingleton<ApplicationConfigurationService>();
             
             // MudBlazor Config
             services.AddMudServices(config =>
@@ -90,30 +95,12 @@ namespace MyComicsManagerWeb
                 app.UseHsts();
             }
             app.UseStaticFiles();
-
-            // Création du répertoire des covers si il n'existe pas
-            if (settings?.CoversDirRootPath != null)
-            {
-                Directory.CreateDirectory(settings.CoversDirRootPath);
-            }
-            else
-            {
-                if (settings == null)
-                {
-                    Log.Fatal("settings is null !");
-                    return;
-                }
-                else if (settings.CoversDirRootPath == null)
-                {
-                    Log.Fatal("settings.CoversDirRootPath is null !");
-                    return;
-                }
-            }
             
             // Ajout du module Middleware pour gérer les thumbnails à la volée
             // TODO Github#117 : Thumbs et covers doivent être gérés dans le fichier de configuration
-            var options = new ImageThumbnailOptions("covers", "thumbs");            
-            app.UseImageThumbnail(settings.CoversDirRootPath, options);
+            var options = new ImageThumbnailOptions();
+            var  applicationConfigurationService = app.ApplicationServices.GetService<ApplicationConfigurationService>();
+            app.UseImageThumbnail(applicationConfigurationService?.GetPathCovers(), options);
             
             // Set up custom content types -associating file extension to MIME type and Add new mappings
             // Source : https://docs.microsoft.com/en-us/aspnet/core/fundamentals/static-files?view=aspnetcore-5.0#fileextensioncontenttypeprovider
@@ -130,8 +117,15 @@ namespace MyComicsManagerWeb
             // Permettre de télécharger les fichiers en mode public
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new PhysicalFileProvider(Path.Combine(settings.LibrariesDirRootPath)),
+                FileProvider = new PhysicalFileProvider(applicationConfigurationService?.GetPathLibrairies()),
                 RequestPath = new PathString("/download"),
+                ContentTypeProvider = provider
+            });
+            
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(applicationConfigurationService?.GetPathFileImport()),
+                RequestPath = new PathString("/import"),
                 ContentTypeProvider = provider
             });
 

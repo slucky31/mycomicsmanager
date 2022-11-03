@@ -2,7 +2,7 @@ using MyComicsManagerApi.Models;
 using MyComicsManagerApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
 using MyComicsManagerApi.Utils;
 using Serilog;
 

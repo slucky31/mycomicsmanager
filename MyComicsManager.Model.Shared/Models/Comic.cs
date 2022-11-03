@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace MyComicsManager.Model.Shared
+namespace MyComicsManager.Model.Shared.Models
 {
     public class Comic
     {
@@ -34,23 +32,7 @@ namespace MyComicsManager.Model.Shared
         [Required]
         public ImportStatus ImportStatus { get; set; }
 
-        private string _importMessage;
-        public string ImportMessage
-        {
-            get => _importMessage;
-            
-            set
-            {
-                if (string.IsNullOrEmpty(_importMessage))
-                {
-                    _importMessage = value;
-                }
-                else
-                {
-                    _importMessage += Environment.NewLine + value;
-                }
-            }
-        }
+        public string ImportErrorMessage { get; set; }
 
         // Book info
 
@@ -117,7 +99,7 @@ namespace MyComicsManager.Model.Shared
     public enum ImportStatus
     {
         CREATED = 0,
-        CBZ_CONVERTED = 1,
+        COMICINFO_ADDED = 1, // DO NOT USE
         MOVED_TO_LIB = 2,
         NB_IMAGES_SET = 3,
         COVER_GENERATED = 4,

@@ -1,6 +1,4 @@
-﻿using MyComicsManagerApi.ComputerVision;
-using MyComicsManagerApi.Models;
-using MyComicsManager.Model.Shared;
+﻿using MyComicsManagerApi.Models;
 using SharpCompress.Common;
 using SharpCompress.Readers;
 using System;
@@ -12,6 +10,8 @@ using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using MyComicsManager.Model.Shared.Models;
+using MyComicsManager.Model.Shared.Services;
 using MyComicsManagerApi.Exceptions;
 using MyComicsManagerApi.Utils;
 using Serilog;
@@ -29,6 +29,7 @@ namespace MyComicsManagerApi.Services
         
         private readonly LibraryService _libraryService;
         private readonly ComputerVisionService _computerVisionService;
+        private readonly ApplicationConfigurationService _applicationConfigurationService;
 
         private readonly string[] _extensionsFileArchive = {".jpeg", ".jpg", ".png", ".gif", ".webp", ".xml"};
         private readonly string[] _extensionsImageArchive = {".jpeg", ".jpg", ".png", ".gif", ".webp"};
@@ -36,25 +37,34 @@ namespace MyComicsManagerApi.Services
 
         private const int ResizedWidth = 1400;
 
-        public ComicFileService(LibraryService libraryService, ComputerVisionService computerVisionService)
+        public ComicFileService(LibraryService libraryService, ComputerVisionService computerVisionService, ApplicationConfigurationService applicationConfigurationService)
         {
             _libraryService = libraryService;
             _computerVisionService = computerVisionService;
+            _applicationConfigurationService = applicationConfigurationService;
         }
 
         public void SetAndExtractCoverImage(Comic comic)
         {
             // Normalizes the path.
-            string extractPath = Path.GetFullPath(_libraryService.GetCoversDirRootPath());
+            string extractPath = Path.GetFullPath(_applicationConfigurationService.GetPathCovers());
 
-            // Update comic with file
-            comic.CoverPath = Path.GetFileName(ExtractImageFromCbz(comic, extractPath, 0));
+            try
+            {
+                // Update comic with file
+                comic.CoverPath = Path.GetFileName(ExtractImageFromCbz(comic, extractPath, 0));    
+            }
+            catch (ComicIoException e)
+            {
+                Log.Here().Error(e, "Le format de l'image n'est pas supporté");
+                throw;
+            }
         }
 
         public List<string> ExtractFirstImages(Comic comic, int nbImagesToExtract)
         {
             // Normalizes the path.
-            string extractPath = Path.GetFullPath(_libraryService.GetCoversDirRootPath() + "/isbn/");
+            var extractPath = Path.GetFullPath(_applicationConfigurationService.GetPathIsbn());
             Directory.CreateDirectory(extractPath);
 
             List<string> firstImages = new List<string>();
@@ -70,14 +80,10 @@ namespace MyComicsManagerApi.Services
         public List<string> ExtractLastImages(Comic comic, int nbImagesToExtract)
         {
             // Normalizes the path.
-            var extractPath = Path.GetFullPath(_libraryService.GetCoversDirRootPath() + "/isbn/");
+            var extractPath = Path.GetFullPath(_applicationConfigurationService.GetPathIsbn());
             Directory.CreateDirectory(extractPath);
 
             var lastImages = new List<string>();
-            if (comic.PageCount == 0)
-            {
-                SetNumberOfImagesInCbz(comic);
-            }
 
             for (var i = comic.PageCount - nbImagesToExtract; i < comic.PageCount; i++)
             {
@@ -91,7 +97,6 @@ namespace MyComicsManagerApi.Services
         // https://docs.microsoft.com/fr-fr/dotnet/standard/io/how-to-compress-and-extract-files
         private string ExtractImageFromCbz(Comic comic, string extractPath, int imageIndex)
         {
-            var zipPath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
             Log.Here().Information("Les fichiers seront extraits dans {Path}", extractPath);
 
             // Ensures that the last character on the extraction path
@@ -103,6 +108,7 @@ namespace MyComicsManagerApi.Services
                 extractPath += Path.DirectorySeparatorChar;
             }
 
+            var zipPath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
             using var archive = ZipFile.OpenRead(zipPath);
             if (imageIndex < 0 || imageIndex >= archive.Entries.Count)
             {
@@ -133,26 +139,33 @@ namespace MyComicsManagerApi.Services
                 // TODO : Créer une image plus petite
 
                 // Resize de l'image
-                using var image = Image.Load(destinationPath, out _);
-                Rectangle rectangle;
-                switch (comic.CoverType)
+                try
                 {
-                    case CoverType.LANDSCAPE_LEFT:
-                        rectangle = new Rectangle(0, 0, image.Width / 2, image.Height);
-                        image.Mutate(context => context.Crop(rectangle));
-                        image.Save(destinationPath);
-                        break;
-                    case CoverType.LANDSCAPE_RIGHT:
-                        rectangle = new Rectangle(image.Width / 2, 0, image.Width / 2, image.Height);
-                        image.Mutate(context => context.Crop(rectangle));
-                        image.Save(destinationPath);
-                        break;
-                    case CoverType.PORTRAIT:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    using var image = Image.Load(destinationPath, out _);
+                    Rectangle rectangle;
+                    switch (comic.CoverType)
+                    {
+                        case CoverType.LANDSCAPE_LEFT:
+                            rectangle = new Rectangle(0, 0, image.Width / 2, image.Height);
+                            image.Mutate(context => context.Crop(rectangle));
+                            image.Save(destinationPath);
+                            break;
+                        case CoverType.LANDSCAPE_RIGHT:
+                            rectangle = new Rectangle(image.Width / 2, 0, image.Width / 2, image.Height);
+                            image.Mutate(context => context.Crop(rectangle));
+                            image.Save(destinationPath);
+                            break;
+                        case CoverType.PORTRAIT:
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
                 }
-                
+                catch (Exception e)
+                {
+                    Log.Here().Error(e, "Le format de l'image n'est pas supporté");
+                    throw new ComicIoException("Le format de l'image n'est pas supporté", e);
+                }
             }
             else
             {
@@ -176,7 +189,7 @@ namespace MyComicsManagerApi.Services
                     Log.Here().Information("ExtractImagesFromCbz");
                     try
                     {
-                        ExtractImagesFromCbz(comic.EbookPath, tempDir);
+                        ExtractImagesFromCbz(comic, tempDir);
                     }
                     catch (Exception)
                     {
@@ -271,6 +284,8 @@ namespace MyComicsManagerApi.Services
             // Mise à jour de l'objet Comic avec le nouveau fichier CBZ et le nouveau chemin
             comic.EbookName = Path.GetFileName(comic.EbookPath);
         }
+        
+
 
         public void ConvertImagesToWebP(Comic comic)
         {
@@ -292,7 +307,7 @@ namespace MyComicsManagerApi.Services
             var tempDir = CreateTempDirectory();
             try
             {
-                ExtractImagesFromCbz(zipPath, tempDir);
+                ExtractImagesFromCbz(comic, tempDir);
             }
             catch (Exception)
             {
@@ -386,18 +401,19 @@ namespace MyComicsManagerApi.Services
             
         }
 
-        private void ExtractImagesFromCbz(string comicEbookPath, string tempDir)
+        private void ExtractImagesFromCbz(Comic comic, string tempDir)
         {
             try
             {
+                var comicEbookPath = GetComicFileAbsolutePath(comic);
+                Log.Here().Information("Absolute comic File Path : {Path}",comicEbookPath);
+                
                 ZipFile.ExtractToDirectory(comicEbookPath, tempDir, overwriteFiles: true);
             }
             catch (Exception e)
             {
-                Log.Here().Error("Erreur lors de l'extraction de l'archive {Archive}", comicEbookPath);
-                MoveInErrorsDir(comicEbookPath, e);
-                throw new ComicIoException("Erreur lors de l'extraction de l'archive. Consulter le répertoire errors.",
-                    e);
+                Log.Here().Error("Erreur lors de l'extraction de l'archive {Archive}", comic.EbookPath);
+                throw new ComicIoException("Erreur lors de l'extraction de l'archive", e);
             }
         }
 
@@ -442,13 +458,13 @@ namespace MyComicsManagerApi.Services
             }
         }
 
-        public void SetNumberOfImagesInCbz(Comic comic)
+        public int GetNumberOfImagesInCbz(Comic comic)
         {
             var zipPath = GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
             using var archive = ZipFile.OpenRead(zipPath);
             var images = archive.Entries.Where(file =>
                 _extensionsImageArchive.Any(x => file.FullName.EndsWith(x, StringComparison.OrdinalIgnoreCase)));
-            comic.PageCount = images.Count();
+            return images.Count();
         }
 
         public async Task<List<string>> ExtractIsbnFromCbz(Comic comic, int imageIndex)
@@ -462,7 +478,7 @@ namespace MyComicsManagerApi.Services
             var extractedText = await _computerVisionService.ReadTextFromLocalImage(imagePath);
             Log.Here().Information("extractedText : {Text}", extractedText);
 
-            // https://regexlib.com/Search.aspx?k=isbn - Author : Churk
+            // Reference : https://regexlib.com/Search.aspx?k=isbn
             const string isbnPattern = "(ISBN[-]*(1[03])*[ ]*(: ){0,1})*(([0-9Xx][- ]*){13}|([0-9Xx][- ]*){10})";
             var rgx = new Regex(isbnPattern);
 
@@ -650,41 +666,70 @@ namespace MyComicsManagerApi.Services
                 return Path.GetExtension(comic.EbookPath);
             }
         }
+
+        public string GetComicFileAbsolutePath(Comic comic)
+        {
+            switch (comic.ImportStatus)
+            {
+                case ImportStatus.CREATED:
+                case ImportStatus.ERROR :
+                    // CREATED : Le fichier est dans /import et EbookPath est déjà en absolute
+                    // ERROR : Le fichier est dans /import/errors et EbookPath est déjà en absolute
+                    return comic.EbookPath;
+                case ImportStatus.COMICINFO_ADDED:
+                case ImportStatus.MOVED_TO_LIB:
+                case ImportStatus.NB_IMAGES_SET:
+                case ImportStatus.COVER_GENERATED:
+                case ImportStatus.IMPORTED:
+                    // Le fichier est dans /lib
+                    return GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
         
-        public void MoveComic(string origin, string destination)
+        public Comic Move(Comic comic, string destinationDirectory)
         {
             try
             {
-                File.Move(origin, destination);
+                var absolutePath = GetComicFileAbsolutePath(comic);
+                
+                var destinationPath = destinationDirectory + comic.EbookName;
+                while (File.Exists(destinationPath))
+                {
+                    Log.Warning("Le fichier {File} existe déjà", destinationPath);
+                    string fileName = Path.GetFileNameWithoutExtension(destinationPath) + "-Duplicate";
+                    fileName += Path.GetExtension(destinationPath);
+                    Log.Warning("Il va être renommé en {FileName}", fileName);
+                    destinationPath = destinationDirectory + fileName;
+                }
+            
+                Log.Here().Information("Origine : {Origine}", absolutePath);
+                Log.Here().Information("Destination : {Destination}", destinationPath);
+
+                File.Move(absolutePath, destinationPath);
+                Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", absolutePath, destinationPath);
+                comic.EbookPath = destinationPath;
             }
             catch (Exception e)
             {
-                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", origin, destination);
-                MoveInErrorsDir(origin, e);
+                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", comic.EbookPath, destinationDirectory);
                 throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
             }
-        }
 
-        public void MoveInErrorsDir(string filePath, Exception e)
+            return comic;
+        }
+        
+        public void MoveInLib(Comic comic)
         {
-            // Création du répertoire de destination
-            var errorPath = _libraryService.GetLibrairiesDirRootPath() + "errors";
-            Directory.CreateDirectory(errorPath);
-
-            errorPath += Path.DirectorySeparatorChar + Path.GetFileName(filePath);
-            while (File.Exists(errorPath))
-            {
-                Log.Warning("Le fichier {File} existe déjà", errorPath);
-                string fileName = Path.GetFileNameWithoutExtension(errorPath) + "-Duplicate";
-                fileName += Path.GetExtension(errorPath);
-                Log.Warning("Il va être renommé en {FileName}", fileName);
-                errorPath = _libraryService.GetLibrairiesDirRootPath() + "errors" + Path.DirectorySeparatorChar +
-                            fileName;
-            }
-
-            File.Move(filePath, errorPath);
-            Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", filePath, errorPath);
+            // Déplacement du fichier vers la racine de la librairie sélectionnée
+            var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH);
+            
+            Move(comic, destination);
         }
+        
+        
+
         
     }
 }

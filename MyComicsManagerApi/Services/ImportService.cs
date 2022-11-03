@@ -1,17 +1,14 @@
-﻿using MyComicsManagerApi.Models;
-using MyComicsManager.Model.Shared;
-using MongoDB.Driver;
-using System.Collections.Generic;
-using Serilog;
-using System.IO;
+﻿using Serilog;
 using System;
-using System.Globalization;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
-using MongoDB.Bson;
-using MyComicsManagerApi.DataParser;
+using MyComicsManager.Model.Shared.Models;
+using MyComicsManager.Model.Shared.Services;
 using MyComicsManagerApi.Exceptions;
+using MyComicsManagerApi.Settings;
 using MyComicsManagerApi.Utils;
 
 namespace MyComicsManagerApi.Services
@@ -20,176 +17,216 @@ namespace MyComicsManagerApi.Services
     {
         private static ILogger Log => Serilog.Log.ForContext<ComicService>();
         
-        private readonly IMongoCollection<Comic> _comics;
         private readonly ComicService _comicService;
-        private readonly LibraryService _libraryService;
         private readonly ComicFileService _comicFileService;
         private readonly NotificationService _notificationService;
+        private readonly ApplicationConfigurationService _applicationConfigurationService;
+        private readonly LibraryService _libraryService;
 
-        public ImportService(IDatabaseSettings settings, LibraryService libraryService,
-            ComicFileService comicFileService, NotificationService notificationService, ComicService comicService)
+        public ImportService(IDatabaseSettings settings,
+            ComicFileService comicFileService, NotificationService notificationService, ComicService comicService, ApplicationConfigurationService applicationConfigurationService, LibraryService libraryService)
         {
             Log.Here().Debug("settings = {Settings}", settings);
-            var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
-            _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
-            _libraryService = libraryService;
             _comicFileService = comicFileService;
             _notificationService = notificationService;
             _comicService = comicService;
-            
-            // https://www.freeformatter.com/cron-expression-generator-quartz.html
-            // Remarque : Supprimer l'étoile des années car ne semble par gérer par HangFire
-            // At second :00, at minute :00, every hour starting at 00am, of every day
-            RecurringJob.AddOrUpdate("convertToWebP", () => ConvertComicsToWebP(), "0 0 0/1 ? * *");
+            _applicationConfigurationService = applicationConfigurationService;
+            _libraryService = libraryService;
         }
         
+        public List<Comic> GetUploadedFiles()
+        {
+            var fileUploadDirRootPath = _applicationConfigurationService.GetPathFileImport();
+            var extensions = _applicationConfigurationService.GetAuthorizedExtension();
+            
+            Log.Information("Recherche des fichiers dans {Path}", fileUploadDirRootPath);
+            
+            // Création du répertoire si il n'existe pas
+            Directory.CreateDirectory(fileUploadDirRootPath);
+
+            // Lister les fichiers
+            var directory = new DirectoryInfo(fileUploadDirRootPath);        
+            var files =  extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories)).ToList();
+            
+            var comics = new List<Comic>();
+            foreach (var file in files)
+            {
+                Log.Information("Fichier trouvé {File}", file.FullName);
+                var comic = new Comic
+                {
+                    EbookName = file.Name,
+                    EbookPath = file.FullName,
+                    Size = file.Length
+                };
+                
+                // Les fichiers en erreurs ne sont pas considérés
+                if (!file.FullName.Contains(Path.DirectorySeparatorChar + "errors" + Path.DirectorySeparatorChar))
+                {
+                    comics.Add(comic);    
+                }
+            }
+            
+            return comics;
+        }
+        
+        [AutomaticRetry(Attempts = 0)]
         public async Task<Comic> Import(Comic comic)
         {
-            
-            Log.Here().Information("############# Import d'un nouveau comic #############", comic.EbookPath);
-            Log.Here().Information("Traitement du fichier : {File}", comic.EbookPath);
-            
-            comic = await ConvertToCbz(comic);
+            // Mise à jour des données du comic (utile dans le cas d'un retry de job...)
+            comic = _comicService.Get(comic.Id);
             if (comic == null)
             {
-                return null;
+                throw new ComicImportException("Comic is null");
             }
             
-            // Récupération des données du fichier ComicInfo.xml si il existe
-            if (_comicFileService.HasComicInfoInComicFile(comic))
+            Log.Here().Information("############# Import d'un nouveau comic #############");
+            Log.Here().Information("Traitement du fichier : {File}", comic.EbookPath);
+
+            try
             {
-                comic = _comicFileService.ExtractDataFromComicInfo(comic);
-                try
-                {
-                    _comicService.Update(comic.Id, comic);
-                }
-                catch (Exception)
-                {
-                    Log.Here().Error("Erreur lors de la mise à jour de l'arborescence du fichier");
-                    await SetImportStatus(comic, ImportStatus.ERROR);
-                    return null;
-                }
+                comic = await ConvertToCbz(comic);
+                comic = await UpdateFromComicInfo(comic);
+                comic = await SetComicPageCount(comic);
+                comic = await ExtractCoverImage(comic);
             }
-
-            // Calcul du nombre d'images dans le fichier CBZ
-            _comicFileService.SetNumberOfImagesInCbz(comic);
-            comic = await SetImportStatus(comic, ImportStatus.NB_IMAGES_SET);
-
-            // Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic       
-            _comicFileService.SetAndExtractCoverImage(comic); 
-            comic = await SetImportStatus(comic, ImportStatus.COVER_GENERATED); 
+            catch (Exception e)
+            {
+                Log.Here().Error(e,"Erreur lors de l'import {File}", comic.EbookPath);
+                comic = _comicFileService.Move(comic, _applicationConfigurationService.GetPathImportErrors());
+                await ManageImportError(comic, e);
+                throw;
+            }
             
-            comic = await SetImportStatus(comic, ImportStatus.IMPORTED);
+            return await SetImportStatus(comic, ImportStatus.IMPORTED, true);
             
-            return comic;
         }
         
         private async Task<Comic> ConvertToCbz(Comic comic)
         {
+            // Vérification du statut d'import
+            if (comic.ImportStatus >= ImportStatus.MOVED_TO_LIB)
+            {
+                return comic;
+            }
+            
             try
             {
                 _comicFileService.ConvertComicFileToCbz(comic);
+                _comicFileService.MoveInLib(comic);
+                
+                // A partir de ce point, EbookPath doit être le chemin relatif par rapport à la librairie
+                comic.EbookPath = comic.EbookName;
+                Log.Here().Information("comic.EbookPath = {EbookPath}", comic.EbookPath);
             }
             catch (Exception e)
             {
                 Log.Here().Error(e, "Erreur lors de la conversion en CBZ");
-                await SetImportStatus(comic, ImportStatus.ERROR);
-                return null;
-            }
-
-            // Mise à jour du statut en base de données
-            comic = await SetImportStatus(comic, ImportStatus.CBZ_CONVERTED);
-            
-            // Déplacement du fichier vers la racine de la librairie sélectionnée
-            var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
-                              comic.EbookName;
-
-            // Gestion du cas où le fichier uploadé existe déjà dans la lib
-            while (File.Exists(destination))
-            {
-                Log.Here().Warning("Le fichier {File} existe déjà", destination);
-                comic.Title = Path.GetFileNameWithoutExtension(destination) + "-Rename";
-                Log.Here().Information("comic.Title = {Title}", comic.Title);
-                comic.EbookName = comic.Title + Path.GetExtension(destination);
-                Log.Here().Information("comic.EbookName = {EbookName}", comic.EbookName);
-                destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH) +
-                              comic.EbookName;
-            }
-
-            try
-            {
-                _comicFileService.MoveComic(comic.EbookPath, destination);
-            }
-            catch (Exception)
-            {
-                Log.Here().Error("Erreur lors du déplacement du fichier {File} vers {Destination}", comic.EbookPath, destination);
-                await SetImportStatus(comic, ImportStatus.ERROR);
-                return null;
-            }
-
-            // A partir de ce point, EbookPath doit être le chemin relatif par rapport à la librairie
-            comic.EbookPath = comic.EbookName;
-            Log.Here().Information("comic.EbookPath = {EbookPath}", comic.EbookPath);
-            
-            return await SetImportStatus(comic, ImportStatus.MOVED_TO_LIB);
-        }
-
-        
-
-        public async Task ConvertImagesToWebP(Comic comic)
-        {
-            try
-            {
-                if (comic.WebPFormated)
-                {
-                    return;
-                }
-                _comicFileService.ConvertImagesToWebP(comic);
-                comic.WebPFormated = true;
-                _comicService.Update(comic.Id, comic);
-                await _notificationService.SendNotificationMessage(comic, "Conversion WebP terminée");
-            }
-            catch (Exception e)
-            {
-                Log.Here().Warning("La conversion des images en WebP a échoué : {Exception}", e.Message);
-                await SetImportStatus(comic, ImportStatus.ERROR);
-                await _notificationService.SendNotificationMessage(comic, "La conversion des images en WebP a échoué");
-            }
-        }
-
-        // ReSharper disable once MemberCanBePrivate.Global
-        public async Task ConvertComicsToWebP()
-        {
-            var comic = _comicService.ListComicNotWebpConverted().Take(1).First();
-
-            var monitoringApi = JobStorage.Current.GetMonitoringApi();
-
-            if (monitoringApi.ProcessingCount() == 1)
-            {
-                await ConvertImagesToWebP(comic);
+                throw;
             }
             
-        }
-
-        public void DeleteDotFiles()
-        {
-            var list = _comics.Find(comic => true).ToList();
-            foreach (var comic in list)
-            {
-                _comicFileService.DeleteFilesBeginningWithDots(comic);
-            }
+            // Mise à jour du statut et du comic
+            return await SetImportStatus(comic, ImportStatus.MOVED_TO_LIB, false);
         }
         
-        private async Task<Comic> SetImportStatus(Comic comic, ImportStatus status)
+        private async Task<Comic> UpdateFromComicInfo(Comic comic)
+        {
+            // Vérification du statut d'import
+            if (comic.ImportStatus >= ImportStatus.COMICINFO_ADDED)
+            {
+                return comic;
+            }
+
+            // Récupération des données du fichier ComicInfo.xml si il existe
+            if (_comicFileService.HasComicInfoInComicFile(comic))
+            {
+                comic = _comicFileService.ExtractDataFromComicInfo(comic);
+            }
+            
+            // Mise à jour du statut et du comic
+            return await SetImportStatus(comic, ImportStatus.COMICINFO_ADDED, true);
+        }
+
+        private async Task<Comic> SetComicPageCount(Comic comic)
+        {
+            if (comic.ImportStatus >= ImportStatus.NB_IMAGES_SET)
+            {
+                return comic;
+            }
+            
+            // Calcul du nombre d'images dans le fichier CBZ
+            comic.PageCount = _comicFileService.GetNumberOfImagesInCbz(comic);
+            
+            // Mise à jour du statut et du comic
+            return await SetImportStatus(comic, ImportStatus.NB_IMAGES_SET, true);
+        }
+        
+        private async Task<Comic> ExtractCoverImage(Comic comic)
+        {
+            if (comic.ImportStatus >= ImportStatus.COVER_GENERATED)
+            {
+                return comic;
+            }
+            
+            // Extraction de l'image de couverture après enregistrement car nommé avec l'id du comic
+            try
+            {
+                _comicFileService.SetAndExtractCoverImage(comic);
+            }
+            catch
+            {
+                Log.Here().Error("Erreur lors de l'extraction de l'image de couverture");
+                throw;
+            }
+            
+            // Mise à jour du statut et du comic
+            return await SetImportStatus(comic, ImportStatus.COVER_GENERATED, true);
+        }
+
+        public async Task ResetImportStatus(Comic comic)
+        {
+            if (comic.ImportStatus == ImportStatus.IMPORTED)
+            {
+                return;
+            }
+
+            Log.Here().Information("Reset ImportMessage et ImportStatus : CREATED");
+            comic.ImportErrorMessage = "";
+            comic = await SetImportStatus(comic, ImportStatus.CREATED, false);
+            
+            Log.Here().Information("Recherche du fichier dans la librairie");
+            var path = _libraryService.Search(comic.LibraryId, Path.GetFileName(comic.EbookPath));
+            if (comic.EbookPath != null)
+            {
+                Log.Here().Information("Le fichier recherché a été trouvé dans la bibliothèque : {File}", path);
+                comic.EbookPath = path;
+                comic = _comicFileService.Move(comic, _applicationConfigurationService.GetPathFileImport());
+                _comicService.Remove(comic);
+                return;
+            }
+
+            Log.Here().Warning("Le fichier recherché est introuvable : {File}", Path.GetFileName(comic.EbookPath));
+            comic.ImportErrorMessage = "Le fichier recherché est introuvable";
+            await SetImportStatus(comic, ImportStatus.ERROR, false);
+        }
+        
+        private async Task<Comic> SetImportStatus(Comic comic, ImportStatus status, bool addComicInfo)
         {
             comic.ImportStatus = status;
-            comic.ImportMessage = $"comic.ImportStatus = {status}";
-            _comicService.Update(comic.Id, comic);
+            _comicService.Update(comic.Id, comic, addComicInfo);
             
             Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
             await _notificationService.SendNotificationImportStatus(comic, status);
             return comic;
+        }
+        
+        private async Task ManageImportError(Comic comic, Exception error)
+        {
+            comic.ImportStatus = ImportStatus.ERROR;
+            comic.ImportErrorMessage = error.Message + " : " + Environment.NewLine + error.StackTrace;
+            _comicService.Update(comic.Id, comic, false);
+            
+            Log.Here().Information("comic.ImportStatus = {Status}", comic.ImportStatus);
+            await _notificationService.SendNotificationImportStatus(comic, comic.ImportStatus);
         }
 
         

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
 using MyComicsManagerWeb.Models;
 
 namespace MyComicsManagerWeb.Services {
@@ -100,7 +100,7 @@ namespace MyComicsManagerWeb.Services {
         
         public async Task<List<Comic>> GetUploadedFiles()
         {
-            var response = await _httpClient.GetAsync("/api/Libraries/uploaded");
+            var response = await _httpClient.GetAsync("/api/Import");
 
             response.EnsureSuccessStatusCode();
 

@@ -1,12 +1,10 @@
 ﻿@using MyComicsManagerWeb.Services
 @using Google.Apis.Books.v1
-@using Google.Apis.Books.v1.Data
 @using Google.Apis.Services
-@using MyComicsManager.Model.Shared
 @using MyComicsManagerWeb.Models
 @using Serilog
 
-@inject BookInformationService _bookInfoService
+@inject BookInformationService BookInfoService
 
 <MudDialog>
     <TitleContent>
@@ -68,8 +66,6 @@
 
     private List<GoogleBookInfo> _bookInfo = new();
 
-    private bool _waitingIsbnSearchStatuts = false;
-
     protected override void OnInitialized()
     {
         Query = Title;
@@ -117,8 +113,7 @@
     
     private async Task SearchIsbn(GoogleBookInfo googleBookInfo)
     {
-        _waitingIsbnSearchStatuts = true;
-        var tmpComic = await _bookInfoService.SearchBookInfoAsync(googleBookInfo.Isbn);
+        var tmpComic = await BookInfoService.SearchBookInfoAsync(googleBookInfo.Isbn);
     
         if (null == tmpComic)
         {
@@ -129,8 +124,6 @@
             googleBookInfo.IsIsbnChecked = true;
             googleBookInfo.searchComic = tmpComic;
         }
-        
-        _waitingIsbnSearchStatuts = false;
         this.StateHasChanged();
     }
 

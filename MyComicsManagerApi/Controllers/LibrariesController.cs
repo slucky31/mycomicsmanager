@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Extensions.Logging;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
 
 
 namespace MyComicsManagerApi.Controllers
@@ -26,9 +26,6 @@ namespace MyComicsManagerApi.Controllers
         public ActionResult<List<Library>> Get() =>
             _libraryService.Get();
         
-        [HttpGet("uploaded")]
-        public ActionResult<List<Comic>> GetUploadedFiles() =>
-            _libraryService.GetUploadedFiles();
 
         [HttpGet("{id:length(24)}", Name = "GetLibrary")]
         public ActionResult<Library> Get(string id)

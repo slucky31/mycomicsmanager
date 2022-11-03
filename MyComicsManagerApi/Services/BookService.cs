@@ -1,8 +1,8 @@
-using MyComicsManagerApi.Models;
 using MongoDB.Driver;
 using System.Collections.Generic;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
 using MyComicsManagerApi.DataParser;
+using MyComicsManagerApi.Settings;
 using MyComicsManagerApi.Utils;
 using Serilog;
 

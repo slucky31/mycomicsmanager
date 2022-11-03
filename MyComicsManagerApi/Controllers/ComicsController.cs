@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using MyComicsManager.Model.Shared;
 using MyComicsManagerApi.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hangfire;
+using MyComicsManager.Model.Shared.Models;
 
 namespace MyComicsManagerApi.Controllers
 {
@@ -77,11 +77,9 @@ namespace MyComicsManagerApi.Controllers
             {
                 return NotFound();
             }
-            else
-            {
-                BackgroundJob.Enqueue(() => _importService.Import(comic));
-                return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
-            }
+
+            BackgroundJob.Enqueue(() => _importService.Import(comic));
+            return CreatedAtRoute("GetComic", new { id = comic.Id }, comic);
         }
 
         [HttpPut("{id:length(24)}")]
@@ -94,7 +92,7 @@ namespace MyComicsManagerApi.Controllers
                 return NotFound();
             }
 
-            _comicService.Update(id, comicIn);
+            _comicService.Update(id, comicIn, true);
 
             return NoContent();
         }
@@ -116,6 +114,34 @@ namespace MyComicsManagerApi.Controllers
 
             return _comicService.Get(id);
         }
+        
+        [HttpDelete("{id:length(24)}")]
+        public IActionResult Delete(string id)
+        {
+            var comic = _comicService.Get(id);
+            if (comic == null)
+            {
+                return NotFound();
+            }
+
+            _comicService.Remove(comic);
+
+            return NoContent();
+        }
+        
+        [HttpDelete("reset-import-status/{id:length(24)}")]
+        public async Task<IActionResult> ReImport(string id)
+        {
+            var comic = _comicService.Get(id);
+            if (comic == null)
+            {
+                return NotFound();
+            }
+            
+            await _importService.ResetImportStatus(comic);
+            
+            return NoContent();
+        }
 
         [HttpGet("extractcover/{id:length(24)}")]
         public ActionResult<Comic> SetAndExtractCoverImage(string id)
@@ -128,7 +154,7 @@ namespace MyComicsManagerApi.Controllers
             }
 
             _comicFileService.SetAndExtractCoverImage(comic);
-            _comicService.Update(id, comic);
+            _comicService.Update(id, comic, true);
 
             return _comicService.Get(id);
         }
@@ -147,7 +173,7 @@ namespace MyComicsManagerApi.Controllers
 
             // Evitement de l'utilisation de await / async
             // https://visualstudiomagazine.com/Blogs/Tool-Tracker/2019/10/calling-methods-async.aspx
-            Task<List<string>> task = _comicFileService.ExtractIsbnFromCbz(comic, indexImage);
+            var task = _comicFileService.ExtractIsbnFromCbz(comic, indexImage);
             var isbnList = task.Result;
 
             return isbnList;
@@ -189,7 +215,7 @@ namespace MyComicsManagerApi.Controllers
         }
 
         [HttpGet("deleteDotFiles")]
-        public ActionResult<Comic> ConvertImagesToWebP()
+        public ActionResult<Comic> DeleteDotFiles()
         {
             BackgroundJob.Enqueue(() => _comicService.DeleteDotFiles());
             
@@ -197,20 +223,7 @@ namespace MyComicsManagerApi.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id:length(24)}")]
-        public IActionResult Delete(string id)
-        {
-            var comic = _comicService.Get(id);
-
-            if (comic == null)
-            {
-                return NotFound();
-            }
-
-            _comicService.Remove(comic);
-
-            return NoContent();
-        }
+        
 
         [HttpDelete("deleteallcomicsfromlib/{id:length(24)}")]
         public IActionResult DeleteAllComicsFromLib(string id)

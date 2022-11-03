@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using MyComicsManager.Model.Shared.Services;
 using MyComicsManagerWeb.Models;
 
 
@@ -9,10 +10,10 @@ namespace MyComicsManagerWeb.Services {
     public class ThumbnailService
     {
         private readonly string _pathThumbs;
-        
-        public ThumbnailService(IWebserviceSettings settings)
+
+        public ThumbnailService(ApplicationConfigurationService applicationConfigurationService)
         {
-            _pathThumbs = settings.CoversDirRootPath + "/" + "covers/thumbs";
+            _pathThumbs = applicationConfigurationService.GetPathThumbs();
         }
 
         public void ClearAll()

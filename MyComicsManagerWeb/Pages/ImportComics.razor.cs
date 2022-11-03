@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using MyComicsManagerWeb.Services;
-using MyComicsManager.Model.Shared;
 using System.IO;
+using MyComicsManager.Model.Shared.Models;
 
 namespace MyComicsManagerWeb.Pages
 {

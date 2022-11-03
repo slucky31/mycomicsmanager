@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Google.Apis.Books.v1.Data;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
 using MyComicsManagerWeb.Models;
 using Serilog;
 

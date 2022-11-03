@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
-using MyComicsManagerApi.ComputerVision;
 using MyComicsManagerApi.Models;
 using System.Threading.Tasks;
+using MyComicsManagerApi.Services;
 using Xunit;
 
 namespace MyComicsManagerApiTests

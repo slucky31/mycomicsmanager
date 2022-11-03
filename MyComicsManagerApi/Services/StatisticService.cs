@@ -1,7 +1,7 @@
-﻿using MyComicsManagerApi.Models;
-using MyComicsManager.Model.Shared;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using System.Collections.Generic;
+using MyComicsManager.Model.Shared.Models;
+using MyComicsManagerApi.Settings;
 using Serilog;
 using MyComicsManagerApi.Utils;
 
@@ -12,15 +12,13 @@ namespace MyComicsManagerApi.Services
         private static ILogger Log => Serilog.Log.ForContext<ComicService>();
         
         private readonly IMongoCollection<Comic> _comics;
-        private readonly LibraryService _libraryService;
 
-        public StatisticService(IDatabaseSettings settings, LibraryService libraryService)
+        public StatisticService(IDatabaseSettings settings)
         {
             Log.Here().Debug("settings = {Settings}", settings);
             var client = new MongoClient(settings.ConnectionString);
             var database = client.GetDatabase(settings.DatabaseName);
             _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
-            _libraryService = libraryService;
         }
         
         private long CountComicsRequest(FilterDefinition<Comic> filter)

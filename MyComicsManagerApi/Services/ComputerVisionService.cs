@@ -1,14 +1,14 @@
-﻿using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
-using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
-using System;
+﻿using System;
 using System.IO;
-using System.Threading.Tasks;
 using System.Text;
-using MyComicsManagerApi.Models;
+using System.Threading.Tasks;
+using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
+using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
+using MyComicsManagerApi.Settings;
 using MyComicsManagerApi.Utils;
 using Serilog;
 
-namespace MyComicsManagerApi.ComputerVision
+namespace MyComicsManagerApi.Services
 {
     public class ComputerVisionService
     {

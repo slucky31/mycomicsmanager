@@ -4,23 +4,15 @@ namespace ImageThumbnail.AspNetCore.Middleware
 {
     public class ImageThumbnailOptions
     {
-        public ImageThumbnailOptions(string imagesDirectory, string cacheDirectoryName)
+        public ImageThumbnailOptions()
         {
-            this.ImagesDirectory = imagesDirectory;
-            this.CacheDirectoryName = cacheDirectoryName;
             this.ThumbnailBackground = Color.White;
             this.ImageQuality = 90L;
             this.DefaultSize = new Size(256, 256);
         }
-        /// <summary>
-        /// Gets or sets Images directory. 
-        /// </summary>
-        public string ImagesDirectory { get; set; }
 
-        /// <summary>
-        /// Gets or sets thumbnail cache directory. 
-        /// </summary>
-        public string CacheDirectoryName { get; set; }
+
+
 
         /// <summary>
         /// Background color. Default : White

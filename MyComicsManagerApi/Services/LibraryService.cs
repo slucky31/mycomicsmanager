@@ -1,10 +1,10 @@
-using MyComicsManagerApi.Models;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
+using MyComicsManager.Model.Shared.Services;
+using MyComicsManagerApi.Settings;
 using MyComicsManagerApi.Utils;
 using Serilog;
 
@@ -15,8 +15,9 @@ namespace MyComicsManagerApi.Services
         private static ILogger Log => Serilog.Log.ForContext<LibraryService>();
         
         private readonly IMongoCollection<Library> _libraries;
-        private readonly ILibrairiesSettings _libSettings;
         private readonly char[] _charsToTrim = {'/', '\\'};
+        private readonly ApplicationConfigurationService _applicationConfigurationService;
+        private Dictionary<string,Dictionary<string, string>> _listOfLibraryFiles = new(); 
 
         public enum PathType
         {
@@ -24,13 +25,13 @@ namespace MyComicsManagerApi.Services
             ABSOLUTE_PATH
         }
 
-        public LibraryService(IDatabaseSettings dbSettings, ILibrairiesSettings libSettings)
+        public LibraryService(IDatabaseSettings dbSettings, ApplicationConfigurationService applicationConfigurationService)
         {
             Log.Here().Debug("settings = {@Settings}", dbSettings);
             var client = new MongoClient(dbSettings.ConnectionString);
             var database = client.GetDatabase(dbSettings.DatabaseName);
             _libraries = database.GetCollection<Library>(dbSettings.LibrariesCollectionName);
-            _libSettings = libSettings;
+            _applicationConfigurationService = applicationConfigurationService;
         }
 
         public List<Library> Get() =>
@@ -46,9 +47,6 @@ namespace MyComicsManagerApi.Services
 
             // Création de la librairie dans libs
             Directory.CreateDirectory(GetLibraryPath(libraryIn.Id, PathType.ABSOLUTE_PATH));
-            
-            // Création du répertoire d'upload si il n'est pas déjà créé
-            GetFileUploadDirRootPath();
 
             return libraryIn;
         }
@@ -73,7 +71,7 @@ namespace MyComicsManagerApi.Services
 
         public string GetLibraryPath(string id, PathType type)
         {    
-            Library lib = this.Get(id);
+            var lib = this.Get(id);
             if (lib == null)
             {
                 return null;
@@ -81,59 +79,37 @@ namespace MyComicsManagerApi.Services
                 string path = "";
                 if (type == PathType.ABSOLUTE_PATH)
                 {
-                    path = GetLibrairiesDirRootPath();
+                    path = _applicationConfigurationService.GetPathLibrairies();
+
                 }
                 return path + lib.RelPath.TrimEnd(_charsToTrim) + Path.DirectorySeparatorChar; 
             }
         }
 
-        public string GetLibrairiesDirRootPath() {
-
-            Directory.CreateDirectory(_libSettings.LibrairiesDirRootPath.TrimEnd(_charsToTrim));
-            return _libSettings.LibrairiesDirRootPath.TrimEnd(_charsToTrim) + Path.DirectorySeparatorChar;
-        }
-
-        public string GetFileUploadDirRootPath() {
-
-            Directory.CreateDirectory(_libSettings.FileUploadDirRootPath.TrimEnd(_charsToTrim));
-            return _libSettings.FileUploadDirRootPath.TrimEnd(_charsToTrim) + Path.DirectorySeparatorChar;
-        }
-
-        public string GetCoversDirRootPath()
+        private void Scan(string id)
         {
-            Directory.CreateDirectory(_libSettings.CoversDirRootPath.TrimEnd(_charsToTrim));
-            return _libSettings.CoversDirRootPath.TrimEnd(_charsToTrim) + Path.DirectorySeparatorChar;
+            var absoluteLibPath = GetLibraryPath(id, PathType.ABSOLUTE_PATH);
+            var directory = new DirectoryInfo(absoluteLibPath);
+
+            var extensions = _applicationConfigurationService.GetAuthorizedExtension();
+            var files =  extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories)).ToList();
+            var libraryFiles = files.ToDictionary(file => file.Name, file => file.FullName);
+
+            if (_listOfLibraryFiles.ContainsKey(id))
+            {
+                _listOfLibraryFiles[id] = libraryFiles;
+            }
+            else
+            {
+                _listOfLibraryFiles.Add(id, libraryFiles);    
+            }
+        }
+
+        public string Search(string id, string fileName)
+        {
+            Scan(id);
+            return _listOfLibraryFiles[id].TryGetValue(fileName, out var fullPath) ? fullPath : null;
         }
         
-        public List<Comic> GetUploadedFiles()
-        {
-            var fileUploadDirRootPath = GetFileUploadDirRootPath();
-            string[] extensions = { "*.cbr", "*.cbz", "*.pdf", "*.zip", "*.rar" };
-            
-            Log.Information("Recherche des fichiers dans {Path}", fileUploadDirRootPath);
-            
-            // Création du répertoire si il n'existe pas
-            Directory.CreateDirectory(fileUploadDirRootPath);
-
-            // Lister les fichiers
-            var directory = new DirectoryInfo(fileUploadDirRootPath);        
-            var files =  extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories)).ToList();
-            
-            var comics = new List<Comic>();
-            foreach (var file in files)
-            {
-                Log.Information("Fichier trouvé {File}", file.FullName);
-                var comic = new Comic
-                {
-                    EbookName = file.Name,
-                    EbookPath = file.FullName,
-                    Size = file.Length
-                };
-                comics.Add(comic);
-            }
-
-            return comics;
-        }
-
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using MyComicsManager.Model.Shared;
+using MyComicsManager.Model.Shared.Models;
 using MyComicsManagerWeb.Models;
 using Serilog;
 
