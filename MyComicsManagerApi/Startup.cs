@@ -127,8 +127,8 @@ namespace MyComicsManagerApi
             
             // Lancement des jobs périodiques
             // Docs : https://stackoverflow.com/questions/32459670/resolving-instances-with-asp-net-core-di-from-within-configureservices
-            var comicService = app.ApplicationServices.GetService<ComicService>();
-            RecurringJob.AddOrUpdate("ConvertComicsToWebP", () => comicService.RecurringJobConvertComicsToWebP(), Cron.Hourly);
+            // TODO : var comicService = app.ApplicationServices.GetService<ComicService>();
+            // TODO : RecurringJob.AddOrUpdate("ConvertComicsToWebP", () => comicService.RecurringJobConvertComicsToWebP(), Cron.Hourly);
 
             app.UseRouting();
 
