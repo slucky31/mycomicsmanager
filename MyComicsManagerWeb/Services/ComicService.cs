@@ -115,15 +115,11 @@ namespace MyComicsManagerWeb.Services {
 
         }
         
-        public async Task<Comic> ResetImportStatus(String itemId)
+        public async Task ResetImportStatus(String itemId)
         {
-            using var httpResponse = await _httpClient.GetAsync($"/api/Comics/reset-import-status/{itemId}");
+            using var httpResponse = await _httpClient.DeleteAsync($"/api/Comics/reset-import-status/{itemId}");
 
             httpResponse.EnsureSuccessStatusCode();
-            
-            await using var responseStream = await httpResponse.Content.ReadAsStreamAsync();
-            return await JsonSerializer.DeserializeAsync<Comic>(responseStream);
-
         }
 
         public async Task DeleteAllComicsFromLib(String libId)

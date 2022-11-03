@@ -115,8 +115,22 @@ namespace MyComicsManagerApi.Controllers
             return _comicService.Get(id);
         }
         
-        [HttpGet("reset-import-status/{id:length(24)}")]
-        public async Task<ActionResult<Comic>> ReImport(string id)
+        [HttpDelete("{id:length(24)}")]
+        public IActionResult Delete(string id)
+        {
+            var comic = _comicService.Get(id);
+            if (comic == null)
+            {
+                return NotFound();
+            }
+
+            _comicService.Remove(comic);
+
+            return NoContent();
+        }
+        
+        [HttpDelete("reset-import-status/{id:length(24)}")]
+        public async Task<IActionResult> ReImport(string id)
         {
             var comic = _comicService.Get(id);
             if (comic == null)
@@ -125,7 +139,8 @@ namespace MyComicsManagerApi.Controllers
             }
             
             await _importService.ResetImportStatus(comic);
-            return _comicService.Get(id);
+            
+            return NoContent();
         }
 
         [HttpGet("extractcover/{id:length(24)}")]
@@ -208,20 +223,7 @@ namespace MyComicsManagerApi.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id:length(24)}")]
-        public IActionResult Delete(string id)
-        {
-            var comic = _comicService.Get(id);
-
-            if (comic == null)
-            {
-                return NotFound();
-            }
-
-            _comicService.Remove(comic);
-
-            return NoContent();
-        }
+        
 
         [HttpDelete("deleteallcomicsfromlib/{id:length(24)}")]
         public IActionResult DeleteAllComicsFromLib(string id)

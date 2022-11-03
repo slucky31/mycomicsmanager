@@ -17,6 +17,7 @@ namespace MyComicsManagerApi.Services
         private readonly IMongoCollection<Library> _libraries;
         private readonly char[] _charsToTrim = {'/', '\\'};
         private readonly ApplicationConfigurationService _applicationConfigurationService;
+        private Dictionary<string,Dictionary<string, string>> _listOfLibraryFiles = new(); 
 
         public enum PathType
         {
@@ -85,7 +86,30 @@ namespace MyComicsManagerApi.Services
             }
         }
 
-        
+        private void Scan(string id)
+        {
+            var absoluteLibPath = GetLibraryPath(id, PathType.ABSOLUTE_PATH);
+            var directory = new DirectoryInfo(absoluteLibPath);
 
+            var extensions = _applicationConfigurationService.GetAuthorizedExtension();
+            var files =  extensions.AsParallel().SelectMany(searchPattern  => directory.EnumerateFiles(searchPattern, SearchOption.AllDirectories)).ToList();
+            var libraryFiles = files.ToDictionary(file => file.Name, file => file.FullName);
+
+            if (_listOfLibraryFiles.ContainsKey(id))
+            {
+                _listOfLibraryFiles[id] = libraryFiles;
+            }
+            else
+            {
+                _listOfLibraryFiles.Add(id, libraryFiles);    
+            }
+        }
+
+        public string Search(string id, string fileName)
+        {
+            Scan(id);
+            return _listOfLibraryFiles[id].TryGetValue(fileName, out var fullPath) ? fullPath : null;
+        }
+        
     }
 }

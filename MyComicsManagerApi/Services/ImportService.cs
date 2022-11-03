@@ -21,15 +21,17 @@ namespace MyComicsManagerApi.Services
         private readonly ComicFileService _comicFileService;
         private readonly NotificationService _notificationService;
         private readonly ApplicationConfigurationService _applicationConfigurationService;
+        private readonly LibraryService _libraryService;
 
         public ImportService(IDatabaseSettings settings,
-            ComicFileService comicFileService, NotificationService notificationService, ComicService comicService, ApplicationConfigurationService applicationConfigurationService)
+            ComicFileService comicFileService, NotificationService notificationService, ComicService comicService, ApplicationConfigurationService applicationConfigurationService, LibraryService libraryService)
         {
             Log.Here().Debug("settings = {Settings}", settings);
             _comicFileService = comicFileService;
             _notificationService = notificationService;
             _comicService = comicService;
             _applicationConfigurationService = applicationConfigurationService;
+            _libraryService = libraryService;
         }
         
         public List<Comic> GetUploadedFiles()
@@ -180,19 +182,31 @@ namespace MyComicsManagerApi.Services
             return await SetImportStatus(comic, ImportStatus.COVER_GENERATED, true);
         }
 
-        public async Task<Comic> ResetImportStatus(Comic comic)
+        public async Task ResetImportStatus(Comic comic)
         {
-            Log.Here().Warning("Begin");
             if (comic.ImportStatus == ImportStatus.IMPORTED)
             {
-                return comic;
+                return;
             }
 
+            Log.Here().Information("Reset ImportMessage et ImportStatus : CREATED");
             comic.ImportErrorMessage = "";
-            comic = _comicFileService.Move(comic, _applicationConfigurationService.GetPathFileImport());
-            await SetImportStatus(comic, ImportStatus.CREATED, false);
-            Log.Here().Warning("End");
-            return comic;
+            comic = await SetImportStatus(comic, ImportStatus.CREATED, false);
+            
+            Log.Here().Information("Recherche du fichier dans la librairie");
+            var path = _libraryService.Search(comic.LibraryId, Path.GetFileName(comic.EbookPath));
+            if (comic.EbookPath != null)
+            {
+                Log.Here().Information("Le fichier recherché a été trouvé dans la bibliothèque : {File}", path);
+                comic.EbookPath = path;
+                comic = _comicFileService.Move(comic, _applicationConfigurationService.GetPathFileImport());
+                _comicService.Remove(comic);
+                return;
+            }
+
+            Log.Here().Warning("Le fichier recherché est introuvable : {File}", Path.GetFileName(comic.EbookPath));
+            comic.ImportErrorMessage = "Le fichier recherché est introuvable";
+            await SetImportStatus(comic, ImportStatus.ERROR, false);
         }
         
         private async Task<Comic> SetImportStatus(Comic comic, ImportStatus status, bool addComicInfo)

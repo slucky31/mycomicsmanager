@@ -16,11 +16,6 @@ namespace MyComicsManager.Model.Shared.Models
         [Required]
         [RegularExpression(@"^[a-zA-Z0-9\s]{1,40}$")]
         public string RelPath { get; set; }
-
-        public string TmpPath()
-        {
-            return RelPath + "/tmp";
-        }
-
+        
     }
 }
