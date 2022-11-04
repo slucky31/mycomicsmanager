@@ -9,6 +9,7 @@
     <MudPaper Class="my-4" Elevation="0">
         <MudText Class="d-inline" Typo="Typo.h5" >Comics importés en erreur (@ImportingComics.Count)</MudText>
         <MudIconButton Class="d-inline" Title="Refresh" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Filled.Refresh" OnClick="RefreshErrorComics">Refresh</MudIconButton>
+        <MudIconButton Class="d-inline" Title="Retry Import" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Filled.ArrowCircleDown" OnClick="RetryImport">Retry Import</MudIconButton>
     </MudPaper>
     <MudTable Items="ImportingComics" Hover="true" Breakpoint="Breakpoint.Sm" >
         <HeaderContent>
@@ -36,7 +37,7 @@
                 }
                 <MudIconButton Size="Size.Small" Class="object-right" Icon="@Icons.Material.Filled.Delete"  Title="Delete" OnClick="() => Delete(context.Id)"/>
                 <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" Title="Edit" Link="@editHref" />
-                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Refresh" Title="Retry Import" OnClick="() => RetryImport(context.Id)" />
+                <MudIconButton Size="Size.Small" Icon="@Icons.Filled.ArrowCircleDown" Title="Retry Import" OnClick="() => RetryImport(context.Id)" />
             </MudTd>
         </RowTemplate>
     </MudTable>

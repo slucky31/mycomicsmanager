@@ -39,5 +39,13 @@ namespace MyComicsManagerWeb.Pages
             await ComicService.ResetImportStatus(id);
             await RefreshErrorComics();
         }
+        
+        private async Task RetryImport()
+        {
+            foreach (var comic in ImportingComics)
+            {
+                await RetryImport(comic.Id);
+            }
+        }
     }
 }

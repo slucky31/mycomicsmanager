@@ -138,8 +138,8 @@ namespace MyComicsManagerApi.Controllers
                 return NotFound();
             }
             
-            await _importService.ResetImportStatus(comic);
-            
+            BackgroundJob.Enqueue(() => _importService.ResetImportStatus(comic));
+
             return NoContent();
         }
 
