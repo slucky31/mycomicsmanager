@@ -182,6 +182,7 @@ namespace MyComicsManagerApi.Services
             return await SetImportStatus(comic, ImportStatus.COVER_GENERATED, true);
         }
 
+        [AutomaticRetry(Attempts = 0)]
         public async Task ResetImportStatus(Comic comic)
         {
             if (comic.ImportStatus == ImportStatus.IMPORTED)
