@@ -188,22 +188,21 @@ namespace MyComicsManagerApi.Services
             {
                 return;
             }
-
-            Log.Here().Information("Reset ImportMessage et ImportStatus : CREATED");
-            comic.ImportErrorMessage = "";
-            comic = await SetImportStatus(comic, ImportStatus.CREATED, false);
             
             Log.Here().Information("Recherche du fichier dans la librairie");
             var path = _libraryService.Search(comic.LibraryId, Path.GetFileName(comic.EbookPath));
             if (comic.EbookPath != null)
             {
                 Log.Here().Information("Le fichier recherché a été trouvé dans la bibliothèque : {File}", path);
+                Log.Here().Information("Reset ImportMessage et ImportStatus : CREATED");
+                comic.ImportErrorMessage = "";
                 comic.EbookPath = path;
+                comic = await SetImportStatus(comic, ImportStatus.CREATED, false);
                 comic = _comicFileService.Move(comic, _applicationConfigurationService.GetPathFileImport());
                 _comicService.Remove(comic);
                 return;
             }
-
+            
             Log.Here().Warning("Le fichier recherché est introuvable : {File}", Path.GetFileName(comic.EbookPath));
             comic.ImportErrorMessage = "Le fichier recherché est introuvable";
             await SetImportStatus(comic, ImportStatus.ERROR, false);
