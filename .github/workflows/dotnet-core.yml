@@ -44,17 +44,13 @@ jobs:
         #    run: dotnet test "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj" --no-restore --verbosity normal
         - 
             name : coverlet
-            uses: b3b00/coverlet-action@1.1.9
-            with:
-              testProject: 'MyComicsManagerApi.Tests/MyComicsManagerApiTests.csproj'
-              output: 'lcov.info'
-              outputFormat: 'lcov'
+            run:  dotnet test --collect:"XPlat Code Coverage"            
         - 
             name: coveralls      
             uses: coverallsapp/github-action@v1.1.1
             with:
               github-token: ${{secrets.GITHUB_TOKEN }} 
-              path-to-lcov: ${{steps.coverlet.outputs.coverageFile}}
+              path-to-lcov: "./MyComicsManagerApi/MyComicsManagerApi.Tests/TestResults"
             
   docker-web:
     needs: build
