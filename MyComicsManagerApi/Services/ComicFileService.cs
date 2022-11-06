@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using MyComicsManager.Model.Shared.Models;
 using MyComicsManager.Model.Shared.Services;
@@ -567,9 +568,12 @@ namespace MyComicsManagerApi.Services
 
             // Ajout du fichier ComicInfo.xml dans l'archive
             var comicInfoEntry = archive.CreateEntry("ComicInfo.xml");
+            var xmlWriterSettings = new XmlWriterSettings() { Indent = true };
             using var writer = new StreamWriter(comicInfoEntry.Open());
+            
+            
             var mySerializer = new XmlSerializer(typeof(ComicInfo));
-            mySerializer.Serialize(writer, comicInfo);
+            mySerializer.Serialize(XmlWriter.Create(writer, xmlWriterSettings), comicInfo);
             writer.Close();
         }
 
@@ -688,48 +692,80 @@ namespace MyComicsManagerApi.Services
             }
         }
         
-        public Comic Move(Comic comic, string destinationDirectory)
+        private Comic Move(Comic comic, string destination)
         {
+            if (string.IsNullOrEmpty(destination))
+            {
+                return comic;
+            }
+
             try
             {
                 var absolutePath = GetComicFileAbsolutePath(comic);
-                
-                var destinationPath = destinationDirectory + comic.EbookName;
-                while (File.Exists(destinationPath))
+                if (absolutePath == destination)
                 {
-                    Log.Warning("Le fichier {File} existe déjà", destinationPath);
-                    string fileName = Path.GetFileNameWithoutExtension(destinationPath) + "-Duplicate";
-                    fileName += Path.GetExtension(destinationPath);
+                    // Le fichier est déjà au bon endroit, pas besoin de le déplacer
+                    return comic;
+                }
+                
+                while (File.Exists(destination))
+                {
+                    Log.Warning("Le fichier {File} existe déjà", destination);
+                    string fileName = Path.GetFileNameWithoutExtension(destination) + "-Duplicate";
+                    fileName += Path.GetExtension(destination);
                     Log.Warning("Il va être renommé en {FileName}", fileName);
-                    destinationPath = destinationDirectory + fileName;
+                    destination = destination + fileName;
                 }
             
                 Log.Here().Information("Origine : {Origine}", absolutePath);
-                Log.Here().Information("Destination : {Destination}", destinationPath);
+                Log.Here().Information("Destination : {Destination}", destination);
 
-                File.Move(absolutePath, destinationPath);
-                Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", absolutePath, destinationPath);
-                comic.EbookPath = destinationPath;
+                File.Move(absolutePath, destination);
+                Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", absolutePath, destination);
+                comic.EbookPath = destination;
             }
             catch (Exception e)
             {
-                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", comic.EbookPath, destinationDirectory);
+                Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", comic.EbookPath, destination);
                 throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
             }
 
             return comic;
         }
-        
-        public void MoveInLib(Comic comic)
+
+        public Comic MoveToLib(Comic comic, string relPathinLib)
         {
-            // Déplacement du fichier vers la racine de la librairie sélectionnée
-            var destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH);
+            // Déplacement du fichier dans la librairie
+            string destination = _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH);
+            Directory.CreateDirectory(destination + Path.GetDirectoryName(relPathinLib));
+            var ebookPath = relPathinLib + comic.EbookName;
+            destination += ebookPath;
             
-            Move(comic, destination);
+            comic = Move(comic, destination);
+            comic.EbookPath = ebookPath;
+            return comic;
+        }
+
+        public Comic MoveToError(Comic comic)
+        {
+            // Déplacement du fichier vers le répertoire d'erreurs d'import
+            var destination = _applicationConfigurationService.GetPathImportErrors();
+            destination += comic.EbookName;
+            
+            comic = Move(comic, destination);
+            comic.EbookPath = destination;
+            return comic;
         }
         
-        
-
-        
+        public Comic MoveToImport(Comic comic)
+        {
+            // Déplacement du fichier vers le répertoire d'erreurs d'import
+            var destination = _applicationConfigurationService.GetPathFileImport();
+            destination += comic.EbookName;
+            
+            comic = Move(comic, destination);
+            comic.EbookPath = destination;
+            return comic;
+        }
     }
 }

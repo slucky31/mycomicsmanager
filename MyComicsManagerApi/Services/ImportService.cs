@@ -92,7 +92,7 @@ namespace MyComicsManagerApi.Services
             catch (Exception e)
             {
                 Log.Here().Error(e,"Erreur lors de l'import {File}", comic.EbookPath);
-                comic = _comicFileService.Move(comic, _applicationConfigurationService.GetPathImportErrors());
+                comic = _comicFileService.MoveToError(comic);
                 await ManageImportError(comic, e);
                 throw;
             }
@@ -112,7 +112,7 @@ namespace MyComicsManagerApi.Services
             try
             {
                 _comicFileService.ConvertComicFileToCbz(comic);
-                _comicFileService.MoveInLib(comic);
+                comic = _comicFileService.MoveToLib(comic,Path.DirectorySeparatorChar.ToString());
                 
                 // A partir de ce point, EbookPath doit être le chemin relatif par rapport à la librairie
                 comic.EbookPath = comic.EbookName;
@@ -192,14 +192,12 @@ namespace MyComicsManagerApi.Services
             
             Log.Here().Information("Recherche du fichier dans la librairie");
             var path = _libraryService.Search(comic.LibraryId, Path.GetFileName(comic.EbookPath));
-            if (comic.EbookPath != null)
+            if (path != null)
             {
                 Log.Here().Information("Le fichier recherché a été trouvé dans la bibliothèque : {File}", path);
-                Log.Here().Information("Reset ImportMessage et ImportStatus : CREATED");
-                comic.ImportErrorMessage = "";
                 comic.EbookPath = path;
-                comic = await SetImportStatus(comic, ImportStatus.CREATED, false);
-                comic = _comicFileService.Move(comic, _applicationConfigurationService.GetPathFileImport());
+                comic = _comicFileService.MoveToImport(comic);
+                Log.Here().Information("Suppression du comic à recréer lors de l'import : {Comic}", comic.EbookName);
                 _comicService.Remove(comic);
                 return;
             }
