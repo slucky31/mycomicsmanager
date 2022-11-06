@@ -130,7 +130,7 @@ namespace MyComicsManagerApi.Controllers
         }
         
         [HttpDelete("reset-import-status/{id:length(24)}")]
-        public async Task<IActionResult> ReImport(string id)
+        public IActionResult ReImport(string id)
         {
             var comic = _comicService.Get(id);
             if (comic == null)

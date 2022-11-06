@@ -20,20 +20,18 @@ namespace MyComicsManagerApi.Services
         private static ILogger Log => Serilog.Log.ForContext<ComicService>();
         
         private readonly IMongoCollection<Comic> _comics;
-        private readonly LibraryService _libraryService;
         private readonly ComicFileService _comicFileService;
         private readonly NotificationService _notificationService;
 
         private const int MaxComicsPerRequest = 100;
 
-        public ComicService(IDatabaseSettings settings, LibraryService libraryService,
+        public ComicService(IDatabaseSettings settings,
             ComicFileService comicFileService, NotificationService notificationService)
         {
             Log.Here().Debug("settings = {Settings}", settings);
             var client = new MongoClient(settings.ConnectionString);
             var database = client.GetDatabase(settings.DatabaseName);
             _comics = database.GetCollection<Comic>(settings.ComicsCollectionName);
-            _libraryService = libraryService;
             _comicFileService = comicFileService;
             _notificationService = notificationService;
 
@@ -124,31 +122,17 @@ namespace MyComicsManagerApi.Services
                     comic.EbookName = comic.Serie.ToPascalCase() + "_T" + comic.Volume.ToString("000") + ".cbz";
                 }
                 
-                var libraryPath =
-                    _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH);
-                var comicEbookPath = Path.GetDirectoryName(comic.EbookPath) + Path.DirectorySeparatorChar +
-                                     comic.EbookName;
+                var comicEbookPath = Path.GetDirectoryName(comic.EbookPath) + Path.DirectorySeparatorChar;
 
                 // Renommage du fichier (si le fichier existe déjà, on ne fait rien, car il est déjà présent !)
-                _comicFileService.Move(comic, libraryPath + comicEbookPath);
-
-                // Mise à jour du chemin relatif avec le nouveau nom du fichier 
-                comic.EbookPath = comicEbookPath;
+                comic = _comicFileService.MoveToLib(comic, comicEbookPath);
             }
 
             // Mise à jour de l'arborescence du fichier
             if (!string.IsNullOrEmpty(comic.Serie))
             {
-                var libraryPath =
-                    _libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH);
                 var eBookPath = comic.Serie.ToPascalCase() + Path.DirectorySeparatorChar;
-
-                // Création du répertoire de destination
-                Directory.CreateDirectory(libraryPath + eBookPath);
-
-                // Déplacement du fichier (si le fichier existe déjà, on ne fait rien, car il est déjà présent !)
-                _comicFileService.Move(comic, libraryPath + eBookPath + comic.EbookName);
-                comic.EbookPath = eBookPath + comic.EbookName;
+                _comicFileService.MoveToLib(comic, eBookPath);
             }
         }
         
