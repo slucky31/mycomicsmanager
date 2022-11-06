@@ -46,7 +46,7 @@ jobs:
             name : coverlet
             uses: b3b00/coverlet-action@1.1.9
             with:
-              testProject: './MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj'
+              testProject: './MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj'
               output: 'lcov.info'
               outputFormat: 'lcov'
               excludes: '[program]*,[test]test.*'
