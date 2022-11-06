@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyComicsManagerWeb", ".\MyC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyComicsManagerApi", ".\MyComicsManagerApi\MyComicsManagerApi.csproj", "{F5879FDF-5F72-4082-9C90-0F9523DE5E80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyComicsManagerApiTests", "MyComicsManagerApi\MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj", "{0CB71BCA-7DCB-4805-AD45-3E2944776554}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyComicsManagerApiTests", "MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj", "{0CB71BCA-7DCB-4805-AD45-3E2944776554}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
