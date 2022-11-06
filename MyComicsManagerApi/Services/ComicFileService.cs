@@ -568,7 +568,7 @@ namespace MyComicsManagerApi.Services
 
             // Ajout du fichier ComicInfo.xml dans l'archive
             var comicInfoEntry = archive.CreateEntry("ComicInfo.xml");
-            var xmlWriterSettings = new XmlWriterSettings() { Indent = true };
+            var xmlWriterSettings = new XmlWriterSettings { Indent = true };
             using var writer = new StreamWriter(comicInfoEntry.Open());
             
             
@@ -711,10 +711,9 @@ namespace MyComicsManagerApi.Services
                 while (File.Exists(destination))
                 {
                     Log.Warning("Le fichier {File} existe déjà", destination);
-                    string fileName = Path.GetFileNameWithoutExtension(destination) + "-Duplicate";
-                    fileName += Path.GetExtension(destination);
+                    var fileName = Path.GetFileNameWithoutExtension(destination) + "-Duplicate" + Path.GetExtension(destination);
                     Log.Warning("Il va être renommé en {FileName}", fileName);
-                    destination = destination + fileName;
+                    destination = Path.GetPathRoot(destination) + fileName;
                 }
             
                 Log.Here().Information("Origine : {Origine}", absolutePath);
