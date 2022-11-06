@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MyComicsManagerApi.csproj" />
+    <ProjectReference Include="..\MyComicsManagerApi\MyComicsManagerApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>
