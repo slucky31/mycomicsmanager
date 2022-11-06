@@ -12,11 +12,11 @@ namespace MyComicsManagerApi.Controllers
     [ApiController]
     public class LibrariesController : ControllerBase
     {
-        private readonly LibraryService _libraryService;
+        private readonly ILibraryService _libraryService;
 
         private readonly ILogger<LibrariesController> _logger;
 
-        public LibrariesController(ILogger<LibrariesController> logger, LibraryService libraryService)
+        public LibrariesController(ILogger<LibrariesController> logger, ILibraryService libraryService)
         {
             _libraryService = libraryService;
             _logger = logger;
