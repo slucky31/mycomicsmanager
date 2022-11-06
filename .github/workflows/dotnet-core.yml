@@ -48,7 +48,7 @@ jobs:
         -
             name: Copy Coverage to Predictable Location
         #   run: cp ./coverage/*/coverage.cobertura.xml coverage/coverage.cobertura.xml
-            run: ls ./coverage/
+            run: ls -R
         - 
             name: coveralls
             uses: coverallsapp/github-action@v1.1.1
