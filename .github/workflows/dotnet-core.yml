@@ -41,12 +41,12 @@ jobs:
         #    run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj"
         #- 
         #    name: MyComicsManagerApi.Tests Test
-        #    run: dotnet test "./MyComicsManagerApi/MyComicsManagerApi.Tests/MyComicsManagerApiTests.csproj" --no-restore --verbosity normal
+        #    run: dotnet test "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj" --no-restore --verbosity normal
         - 
             name : coverlet
             uses: b3b00/coverlet-action@1.1.9
             with:
-              testProject: '.\MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj'
+              testProject: './MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj
               output: 'lcov.info'
               outputFormat: 'lcov'
               excludes: '[program]*,[test]test.*'
