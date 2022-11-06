@@ -44,13 +44,16 @@ jobs:
         #    run: dotnet test "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj" --no-restore --verbosity normal
         - 
             name : coverlet
-            run:  dotnet test --collect:"XPlat Code Coverage"            
+            run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory coverage
+        -
+            name: Copy Coverage to Predictable Location
+            run: cp coverage/*/coverage.cobertura.xml coverage/coverage.cobertura.xml
         - 
             name: coveralls      
             uses: coverallsapp/github-action@v1.1.1
             with:
               github-token: ${{secrets.GITHUB_TOKEN }} 
-              path-to-lcov: "./MyComicsManagerApi/MyComicsManagerApi.Tests/TestResults"
+              path-to-lcov: coverage/coverage.cobertura.xml
             
   docker-web:
     needs: build
