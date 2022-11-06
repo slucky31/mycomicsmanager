@@ -3,7 +3,7 @@ using MyComicsManager.Model.Shared.Models;
 
 namespace MyComicsManagerApiTests.MockData;
 
-public class LibraryMockData
+public static class LibraryMockData
 {
     public static List<Library> Get()
     {
