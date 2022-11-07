@@ -44,10 +44,7 @@ jobs:
         #    run: dotnet test "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj" --no-restore --verbosity normal
         - 
             name : coverlet
-            run: dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./coverage
-        -
-            name: Copy Coverage to Predictable Location
-            run: cp ./coverage/**/coverage.cobertura.xml coverage/cobertura.xml
+            run: dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx        
         - 
             name: Run codacy-coverage-reporter
             uses: codacy/codacy-coverage-reporter-action@v1
