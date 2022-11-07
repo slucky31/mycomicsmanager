@@ -44,13 +44,13 @@ jobs:
         #    run: dotnet test "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj" --no-restore --verbosity normal
         - 
             name : coverlet
-            run: dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx        
+            run: dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./coverage      
         - 
             name: Run codacy-coverage-reporter
             uses: codacy/codacy-coverage-reporter-action@v1
             with:
               project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
-              coverage-reports: cobertura.xml
+              coverage-reports: coverage/**/coverage.cobertura.xml
             
   docker-web:
     needs: build
