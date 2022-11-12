@@ -43,9 +43,15 @@ namespace MyComicsManagerApi.Controllers
         [HttpPost]
         public ActionResult<Library> Create(Library library)
         {   
+            if (library is null)
+            {
+                _logger.LogError("Library object sent from client is null");
+                return BadRequest("Library object is null");
+            }
+            
             _libraryService.Create(library);
             
-            return CreatedAtRoute("GetLibrary", new { id = library.Id.ToString() }, library);
+            return CreatedAtRoute("GetLibrary", new { id = library.Id }, library);
         }
 
         [HttpPut("{id:length(24)}")]

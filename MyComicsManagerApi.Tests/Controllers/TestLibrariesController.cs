@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ namespace MyComicsManagerApiTests.Controllers;
 public class TestLibrariesController
 {
     [Fact]
-    public Task GetAll_ShouldReturn200Status()
+    public void GetAll_ShouldReturn200Status()
     {
         // Arrange
         var libService = new Mock<ILibraryService>();
@@ -29,11 +30,10 @@ public class TestLibrariesController
         actionResult.Should().NotBeNull();
         actionResult.Value.Should().NotBeNull();
         actionResult.Value!.Count.Should().Be(4);
-        return Task.CompletedTask;
     }
     
     [Fact]
-    public Task GetId_ShouldReturn200Status()
+    public void GetId_ShouldReturn200Status()
     {
         // Arrange
         var libService = new Mock<ILibraryService>();
@@ -51,11 +51,10 @@ public class TestLibrariesController
         lib!.Id.Should().Be("1");
         lib!.RelPath.Should().Be("lib1");
         lib!.Name.Should().Be("Library 1");
-        return Task.CompletedTask;
     }
     
     [Fact]
-    public Task GetId_ShouldReturn404Status()
+    public void GetId_ShouldReturn404Status()
     {
         // Arrange
         var libService = new Mock<ILibraryService>();
@@ -72,6 +71,50 @@ public class TestLibrariesController
         actionResult.Result.Should().BeOfType<NotFoundResult>();
         var res = (NotFoundResult)actionResult.Result;
         res!.StatusCode.Should().Be(404);
-        return Task.CompletedTask;
+    }
+    
+    [Fact]
+    public void Create_ShouldReturn201Status()
+    {
+        // Arrange
+        var libService = new Mock<ILibraryService>();
+        var mockLogger = new Mock<ILogger<LibrariesController>>();
+        var lib = new Library
+        {
+            Id = "1",
+            Name = "Lib1",
+            RelPath = "relPath1"
+        };
+
+        var controller = new LibrariesController(mockLogger.Object, libService.Object);
+ 
+        // Act
+        var actionResult = controller.Create(lib);
+        
+        // Assert
+        actionResult.Should().NotBeNull();
+        actionResult.Result.Should().BeOfType<CreatedAtRouteResult>();
+        var res = (CreatedAtRouteResult)actionResult.Result;
+        res!.StatusCode.Should().Be((int)HttpStatusCode.Created);
+        res.RouteName.Should().Be("GetLibrary");
+    }
+    
+    [Fact]
+    public void Create_ShouldReturn400Status()
+    {
+        // Arrange
+        var libService = new Mock<ILibraryService>();
+        var mockLogger = new Mock<ILogger<LibrariesController>>();
+
+        var controller = new LibrariesController(mockLogger.Object, libService.Object);
+ 
+        // Act
+        var actionResult = controller.Create(null);
+        
+        // Assert
+        actionResult.Should().NotBeNull();
+        actionResult.Result.Should().BeOfType<BadRequestObjectResult>();
+        var res = (BadRequestObjectResult)actionResult.Result;
+        res!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
     }
 }
