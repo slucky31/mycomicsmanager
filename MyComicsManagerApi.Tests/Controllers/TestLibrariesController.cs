@@ -105,6 +105,7 @@ public class TestLibrariesController
         // Arrange
         var libService = new Mock<ILibraryService>();
         var mockLogger = new Mock<ILogger<LibrariesController>>();
+        
 
         var controller = new LibrariesController(mockLogger.Object, libService.Object);
  
@@ -116,5 +117,57 @@ public class TestLibrariesController
         actionResult.Result.Should().BeOfType<BadRequestObjectResult>();
         var res = (BadRequestObjectResult)actionResult.Result;
         res!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+    }
+    
+    [Fact]
+    public void Update_ShouldReturn204Status()
+    {
+        // Arrange
+        var libService = new Mock<ILibraryService>();
+        var mockLogger = new Mock<ILogger<LibrariesController>>();
+        var lib = new Library
+        {
+            Id = "1",
+            Name = "Lib1",
+            RelPath = "relPath1"
+        };
+        
+        libService.Setup(_ => _.Get("1")).Returns(lib);
+
+        var controller = new LibrariesController(mockLogger.Object, libService.Object);
+ 
+        // Act
+        var actionResult = controller.Update(lib.Id, lib) as NoContentResult;
+        
+        // Assert
+        actionResult.Should().NotBeNull();
+        actionResult.Should().BeOfType<NoContentResult>();
+        actionResult!.StatusCode.Should().Be((int) HttpStatusCode.NoContent);
+    }
+    
+    [Fact]
+    public void Update_ShouldReturn404Status()
+    {
+        // Arrange
+        var libService = new Mock<ILibraryService>();
+        var mockLogger = new Mock<ILogger<LibrariesController>>();
+        var lib = new Library
+        {
+            Id = "1",
+            Name = "Lib1",
+            RelPath = "relPath1"
+        };
+        
+        libService.Setup(_ => _.Get("1")).Returns((Library) null);
+
+        var controller = new LibrariesController(mockLogger.Object, libService.Object);
+ 
+        // Act
+        var actionResult = controller.Update(lib.Id, lib) as NotFoundResult;
+        
+        // Assert
+        actionResult.Should().NotBeNull();
+        actionResult.Should().BeOfType<NotFoundResult>();
+        actionResult!.StatusCode.Should().Be((int) HttpStatusCode.NotFound);
     }
 }
