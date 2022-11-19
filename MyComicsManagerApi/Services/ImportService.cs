@@ -192,6 +192,12 @@ namespace MyComicsManagerApi.Services
             
             Log.Here().Information("Recherche du fichier dans la librairie");
             var path = _libraryService.Search(comic.LibraryId, Path.GetFileName(comic.EbookPath));
+            if (path == null)
+            {
+                comic.EbookPath = Path.GetFileNameWithoutExtension(comic.EbookPath).ToCamlCase() + ".cbz";
+                path = _libraryService.Search(comic.LibraryId, Path.GetFileName(comic.EbookPath));
+            }
+            
             if (path != null)
             {
                 Log.Here().Information("Le fichier recherché a été trouvé dans la bibliothèque : {File}", path);
