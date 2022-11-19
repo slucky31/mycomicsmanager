@@ -18,7 +18,7 @@ public class ApplicationConfigurationService
     
     public string GetPathApplication()
     {
-        return _applicationRootPath + Path.DirectorySeparatorChar;
+        return _applicationRootPath;
     }
     
     public string GetPathLibrairies()
