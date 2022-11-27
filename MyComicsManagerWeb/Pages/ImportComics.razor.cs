@@ -39,8 +39,8 @@ namespace MyComicsManagerWeb.Pages
                 EbookName = file.Name,
                 EbookPath = file.Path,
                 Title = Path.GetFileNameWithoutExtension(file.Name),
-                LibraryId = file.LibId
-
+                LibraryId = file.LibId,
+                Size = file.Size
             };
             await ComicService.CreateComicAsync(comic);
             Importing = false;  
