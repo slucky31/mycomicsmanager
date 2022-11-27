@@ -103,6 +103,9 @@ namespace MyComicsManagerApi.Services
                 _comicFileService.AddComicInfoInComicFile(comic);
             }
             
+            // mise à jour de la taille du fichier
+            comic.Size =  _comicFileService.GetComicFileSize(comic);
+            
             // Mise à jour en base de données
             _comics.ReplaceOne(c => c.Id == id, comic);
         }
@@ -334,6 +337,17 @@ namespace MyComicsManagerApi.Services
             foreach (var comic in list)
             {
                 _comicFileService.DeleteFilesBeginningWithDots(comic);
+            }
+        }
+        
+        public void UpdateSize()
+        {
+            var list = _comics.Find(comic => true).ToList();
+            foreach (var comic in list)
+            {
+                Log.Here().Information("Traitement du fichier {File}", comic.EbookPath);
+                comic.Size = _comicFileService.GetComicFileSize(comic);
+                Update(comic.Id, comic, false);
             }
         }
         

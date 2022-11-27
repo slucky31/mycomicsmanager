@@ -222,6 +222,15 @@ namespace MyComicsManagerApi.Controllers
             // TODO : gérer le retour 202 et la méthode de vérification
             return Ok();
         }
+        
+        [HttpGet("updateSize")]
+        public ActionResult<Comic> UpdateSize()
+        {
+            BackgroundJob.Enqueue(() => _comicService.UpdateSize());
+            
+            // TODO : gérer le retour 202 et la méthode de vérification
+            return Ok();
+        }
 
         
 

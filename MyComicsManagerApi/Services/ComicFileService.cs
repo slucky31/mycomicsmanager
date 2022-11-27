@@ -766,5 +766,25 @@ namespace MyComicsManagerApi.Services
             comic.EbookPath = destination;
             return comic;
         }
+
+        public long GetComicFileSize(Comic comic)
+        {
+            var absolutePath = GetComicFileAbsolutePath(comic);
+            try
+            {
+                return new FileInfo(absolutePath).Length;
+            }
+            catch (FileNotFoundException e)
+            {
+                Log.Here().Error("FileNotFoundException : Le fichier {File} n'a pas été trouvé (Id : {Id})", absolutePath, comic.Id);
+                return 0;
+            }
+            catch (IOException e)
+            {
+                Log.Here().Error("IOException : Le traitement du fichier {File} a échoué (Id : {Id})", absolutePath, comic.Id);
+                return 0;
+            }
+            
+        }
     }
 }
