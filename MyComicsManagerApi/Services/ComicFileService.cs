@@ -776,12 +776,12 @@ namespace MyComicsManagerApi.Services
             }
             catch (FileNotFoundException e)
             {
-                Log.Here().Error("FileNotFoundException : Le fichier {File} n'a pas été trouvé", absolutePath);
+                Log.Here().Error("FileNotFoundException : Le fichier {File} n'a pas été trouvé (Id : {Id})", absolutePath, comic.Id);
                 return 0;
             }
             catch (IOException e)
             {
-                Log.Here().Error("IOException : Le traitement du fichier {File} a échoué", absolutePath);
+                Log.Here().Error("IOException : Le traitement du fichier {File} a échoué (Id : {Id})", absolutePath, comic.Id);
                 return 0;
             }
             
