@@ -68,7 +68,7 @@ namespace MyComicsManagerApi.Services
             var extractPath = Path.GetFullPath(_applicationConfigurationService.GetPathIsbn());
             Directory.CreateDirectory(extractPath);
 
-            List<string> firstImages = new List<string>();
+            List<string> firstImages = new();
             for (int i = 0; i < nbImagesToExtract; i++)
             {
                 string fileName = Path.GetFileName(ExtractImageFromCbz(comic, extractPath, i));
@@ -673,23 +673,19 @@ namespace MyComicsManagerApi.Services
 
         public string GetComicFileAbsolutePath(Comic comic)
         {
-            switch (comic.ImportStatus)
+            return comic.ImportStatus switch
             {
-                case ImportStatus.CREATED:
-                case ImportStatus.ERROR :
-                    // CREATED : Le fichier est dans /import et EbookPath est déjà en absolute
-                    // ERROR : Le fichier est dans /import/errors et EbookPath est déjà en absolute
-                    return comic.EbookPath;
-                case ImportStatus.COMICINFO_ADDED:
-                case ImportStatus.MOVED_TO_LIB:
-                case ImportStatus.NB_IMAGES_SET:
-                case ImportStatus.COVER_GENERATED:
-                case ImportStatus.IMPORTED:
-                    // Le fichier est dans /lib
-                    return GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                // CREATED : Le fichier est dans /import et EbookPath est déjà en absolute
+                // ERROR : Le fichier est dans /import/errors et EbookPath est déjà en absolute
+                ImportStatus.CREATED or ImportStatus.ERROR => comic.EbookPath,
+                
+                // Cas nominaux
+                ImportStatus.COMICINFO_ADDED or ImportStatus.MOVED_TO_LIB or ImportStatus.NB_IMAGES_SET or ImportStatus.COVER_GENERATED or ImportStatus.IMPORTED => 
+                    GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH),// Le fichier est dans /lib
+                
+                // Autres cas
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
         
         private Comic Move(Comic comic, string destination)
@@ -774,12 +770,12 @@ namespace MyComicsManagerApi.Services
             {
                 return new FileInfo(absolutePath).Length;
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
                 Log.Here().Error("FileNotFoundException : Le fichier {File} n'a pas été trouvé (Id : {Id})", absolutePath, comic.Id);
                 return 0;
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 Log.Here().Error("IOException : Le traitement du fichier {File} a échoué (Id : {Id})", absolutePath, comic.Id);
                 return 0;
