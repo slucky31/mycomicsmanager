@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,21 +13,27 @@ namespace MyComicsManagerApiTests.Controllers;
 
 public class TestLibrariesController
 {
+    private readonly LibrariesController _controller;
+    private readonly Mock<ILibraryService> _mockLibraryService;
+    private readonly Mock<ILogger<LibrariesController>> _mockLogger;
+    
+    public TestLibrariesController()
+    {
+        _mockLibraryService = new Mock<ILibraryService>();
+        _mockLogger = new Mock<ILogger<LibrariesController>>();
+        _controller = new LibrariesController(_mockLogger.Object, _mockLibraryService.Object);
+    }
+    
     [Fact]
     public void GetAll_ShouldReturn200Status()
     {
         // Arrange
-        var libService = new Mock<ILibraryService>();
-        var mockLogger = new Mock<ILogger<LibrariesController>>();
-        libService.Setup(_ => _.Get()).Returns(LibraryMockData.Get());
-        var sut = new LibrariesController(mockLogger.Object, libService.Object);
- 
+        _mockLibraryService.Setup(_ => _.Get()).Returns(LibraryMockData.Get());
+
         // Act
-        var actionResult = sut.Get();
+        var actionResult = _controller.Get();
         
         // Assert
-        actionResult.Should().NotBeNull();
-        actionResult.Value.Should().NotBeNull();
         actionResult.Value!.Count.Should().Be(4);
     }
     
@@ -36,17 +41,13 @@ public class TestLibrariesController
     public void GetId_ShouldReturn200Status()
     {
         // Arrange
-        var libService = new Mock<ILibraryService>();
-        var mockLogger = new Mock<ILogger<LibrariesController>>();
-        libService.Setup(_ => _.Get("1")).Returns(LibraryMockData.GetId("1"));
-        var sut = new LibrariesController(mockLogger.Object, libService.Object);
+        _mockLibraryService.Setup(_ => _.Get("1")).Returns(LibraryMockData.GetId("1"));
+        var sut = new LibrariesController(_mockLogger.Object, _mockLibraryService.Object);
  
         // Act
         var actionResult = sut.Get("1");
         
         // Assert
-        actionResult.Should().NotBeNull();
-        actionResult.Value.Should().NotBeNull();
         var lib = actionResult.Value;
         lib!.Id.Should().Be("1");
         lib!.RelPath.Should().Be("lib1");
@@ -57,17 +58,13 @@ public class TestLibrariesController
     public void GetId_ShouldReturn404Status()
     {
         // Arrange
-        var libService = new Mock<ILibraryService>();
-        var mockLogger = new Mock<ILogger<LibrariesController>>();
-        libService.Setup(_ => _.Get("1")).Returns((Library) null);
-        var sut = new LibrariesController(mockLogger.Object, libService.Object);
+        _mockLibraryService.Setup(_ => _.Get("1")).Returns((Library) null);
+        var sut = new LibrariesController(_mockLogger.Object, _mockLibraryService.Object);
  
         // Act
         var actionResult = sut.Get("1");
         
         // Assert
-        actionResult.Should().NotBeNull();
-        actionResult.Result.Should().NotBeNull();
         actionResult.Result.Should().BeOfType<NotFoundResult>();
         var res = (NotFoundResult)actionResult.Result;
         res!.StatusCode.Should().Be(404);
@@ -77,22 +74,18 @@ public class TestLibrariesController
     public void Create_ShouldReturn201Status()
     {
         // Arrange
-        var libService = new Mock<ILibraryService>();
-        var mockLogger = new Mock<ILogger<LibrariesController>>();
         var lib = new Library
         {
             Id = "1",
             Name = "Lib1",
             RelPath = "relPath1"
         };
-
-        var controller = new LibrariesController(mockLogger.Object, libService.Object);
+        var controller = new LibrariesController(_mockLogger.Object, _mockLibraryService.Object);
  
         // Act
         var actionResult = controller.Create(lib);
         
         // Assert
-        actionResult.Should().NotBeNull();
         actionResult.Result.Should().BeOfType<CreatedAtRouteResult>();
         var res = (CreatedAtRouteResult)actionResult.Result;
         res!.StatusCode.Should().Be((int)HttpStatusCode.Created);
@@ -103,14 +96,9 @@ public class TestLibrariesController
     public void Create_ShouldReturn400Status()
     {
         // Arrange
-        var libService = new Mock<ILibraryService>();
-        var mockLogger = new Mock<ILogger<LibrariesController>>();
-        
 
-        var controller = new LibrariesController(mockLogger.Object, libService.Object);
- 
         // Act
-        var actionResult = controller.Create(null);
+        var actionResult = _controller.Create(null);
         
         // Assert
         actionResult.Should().NotBeNull();
@@ -123,21 +111,16 @@ public class TestLibrariesController
     public void Update_ShouldReturn204Status()
     {
         // Arrange
-        var libService = new Mock<ILibraryService>();
-        var mockLogger = new Mock<ILogger<LibrariesController>>();
         var lib = new Library
         {
             Id = "1",
             Name = "Lib1",
             RelPath = "relPath1"
         };
-        
-        libService.Setup(_ => _.Get("1")).Returns(lib);
+        _mockLibraryService.Setup(_ => _.Get("1")).Returns(lib);
 
-        var controller = new LibrariesController(mockLogger.Object, libService.Object);
- 
         // Act
-        var actionResult = controller.Update(lib.Id, lib) as NoContentResult;
+        var actionResult = _controller.Update(lib.Id, lib) as NoContentResult;
         
         // Assert
         actionResult.Should().NotBeNull();
@@ -149,25 +132,48 @@ public class TestLibrariesController
     public void Update_ShouldReturn404Status()
     {
         // Arrange
-        var libService = new Mock<ILibraryService>();
-        var mockLogger = new Mock<ILogger<LibrariesController>>();
         var lib = new Library
         {
             Id = "1",
             Name = "Lib1",
             RelPath = "relPath1"
         };
+        _mockLibraryService.Setup(_ => _.Get("1")).Returns((Library) null);
         
-        libService.Setup(_ => _.Get("1")).Returns((Library) null);
-
-        var controller = new LibrariesController(mockLogger.Object, libService.Object);
- 
         // Act
-        var actionResult = controller.Update(lib.Id, lib) as NotFoundResult;
+        var actionResult = _controller.Update(lib.Id, lib) as NotFoundResult;
         
         // Assert
-        actionResult.Should().NotBeNull();
         actionResult.Should().BeOfType<NotFoundResult>();
-        actionResult!.StatusCode.Should().Be((int) HttpStatusCode.NotFound);
+    }
+    
+    [Fact]
+    public void ShouldReturnNotFound_WhenLibraryDoesNotExist()
+    {
+        // Arrange
+        var id = "nonexistent-id";
+        _mockLibraryService.Setup(s => s.Get(id)).Returns((Library)null);
+
+        // Act
+        var response = _controller.Delete(id);
+
+        // Assert
+        response.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public void ShouldReturnNoContent_WhenLibraryExists()
+    {
+        // Arrange
+        var id = "existing-id";
+        var library = new Library { Id = id };
+        _mockLibraryService.Setup(s => s.Get(id)).Returns(library);
+
+        // Act
+        var response = _controller.Delete(id);
+
+        // Assert
+        response.Should().BeOfType<NoContentResult>();
+        _mockLibraryService.Verify(s => s.Remove(library), Times.Once);
     }
 }

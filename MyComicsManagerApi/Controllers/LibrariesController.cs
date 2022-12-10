@@ -1,7 +1,6 @@
 using MyComicsManagerApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.Extensions.Logging;
 using MyComicsManager.Model.Shared.Models;
 

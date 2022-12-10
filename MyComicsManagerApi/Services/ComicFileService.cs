@@ -28,7 +28,7 @@ namespace MyComicsManagerApi.Services
     {
         private static ILogger Log => Serilog.Log.ForContext<ComicFileService>();
         
-        private readonly LibraryService _libraryService;
+        private readonly ILibraryService _libraryService;
         private readonly ComputerVisionService _computerVisionService;
         private readonly ApplicationConfigurationService _applicationConfigurationService;
 
@@ -38,7 +38,7 @@ namespace MyComicsManagerApi.Services
 
         private const int ResizedWidth = 1400;
 
-        public ComicFileService(LibraryService libraryService, ComputerVisionService computerVisionService, ApplicationConfigurationService applicationConfigurationService)
+        public ComicFileService(ILibraryService libraryService, ComputerVisionService computerVisionService, ApplicationConfigurationService applicationConfigurationService)
         {
             _libraryService = libraryService;
             _computerVisionService = computerVisionService;

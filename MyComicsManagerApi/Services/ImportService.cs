@@ -21,10 +21,10 @@ namespace MyComicsManagerApi.Services
         private readonly ComicFileService _comicFileService;
         private readonly NotificationService _notificationService;
         private readonly ApplicationConfigurationService _applicationConfigurationService;
-        private readonly LibraryService _libraryService;
+        private readonly ILibraryService _libraryService;
 
         public ImportService(IDatabaseSettings settings,
-            ComicFileService comicFileService, NotificationService notificationService, ComicService comicService, ApplicationConfigurationService applicationConfigurationService, LibraryService libraryService)
+            ComicFileService comicFileService, NotificationService notificationService, ComicService comicService, ApplicationConfigurationService applicationConfigurationService, ILibraryService libraryService)
         {
             Log.Here().Debug("settings = {Settings}", settings);
             _comicFileService = comicFileService;
