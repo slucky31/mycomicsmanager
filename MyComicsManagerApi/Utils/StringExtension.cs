@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -59,7 +60,15 @@ namespace MyComicsManagerApi.Utils
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
 
         }
+
+        public static string Subtract(this string str2, string str1)
+        {
+            return str2.Replace(str1, "");
+        }
+
     }
+    
+    
     
     
 }
