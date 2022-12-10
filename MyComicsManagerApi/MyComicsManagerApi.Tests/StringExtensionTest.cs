@@ -38,6 +38,12 @@ namespace MyComicsManagerApiTests
             const string myString = "éèàîôùûê";
             myString.RemoveDiacritics().Should().Be("eeaiouue");
         }
+
+        [Fact]
+        public void SubstractTest()
+        {
+            "C:\\mcm\\libs\\dev\\LaCelluleFantome_T001.cbz".Subtract("C:\\mcm\\libs\\dev\\").Should().Be("LaCelluleFantome_T001.cbz");
+        }
         
         
     }
