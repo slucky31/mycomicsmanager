@@ -709,7 +709,7 @@ namespace MyComicsManagerApi.Services
                     Log.Warning("Le fichier {File} existe déjà", destination);
                     var fileName = Path.GetFileNameWithoutExtension(destination) + "-Duplicate" + Path.GetExtension(destination);
                     Log.Warning("Il va être renommé en {FileName}", fileName);
-                    destination = Path.GetPathRoot(destination) + fileName;
+                    destination = Path.GetDirectoryName(destination) + Path.DirectorySeparatorChar + fileName;
                 }
             
                 Log.Here().Information("Origine : {Origine}", absolutePath);
@@ -717,14 +717,15 @@ namespace MyComicsManagerApi.Services
 
                 File.Move(absolutePath, destination);
                 Log.Warning("Le fichier {Origin} a été déplacé dans {Destination}", absolutePath, destination);
-                comic.EbookPath = destination;
+                
             }
             catch (Exception e)
             {
                 Log.Here().Error("Erreur lors du déplacement du fichier {Origin} vers {Destination}", comic.EbookPath, destination);
                 throw new ComicIoException("Erreur lors du déplacement du fichier. Consulter le répertoire errors.", e);
             }
-
+            
+            comic.EbookPath = destination.Subtract(_libraryService.GetLibraryPath(comic.LibraryId, LibraryService.PathType.ABSOLUTE_PATH));
             return comic;
         }
 
@@ -737,7 +738,6 @@ namespace MyComicsManagerApi.Services
             destination += ebookPath;
             
             comic = Move(comic, destination);
-            comic.EbookPath = ebookPath;
             return comic;
         }
 
@@ -748,7 +748,6 @@ namespace MyComicsManagerApi.Services
             destination += comic.EbookName;
             
             comic = Move(comic, destination);
-            comic.EbookPath = destination;
             return comic;
         }
         
@@ -759,7 +758,6 @@ namespace MyComicsManagerApi.Services
             destination += comic.EbookName;
             
             comic = Move(comic, destination);
-            comic.EbookPath = destination;
             return comic;
         }
 
