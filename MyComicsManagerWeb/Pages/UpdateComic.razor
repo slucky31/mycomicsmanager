@@ -34,36 +34,41 @@
                             <MudElement HtmlTag="img" src="@coverPath"/>
                         </MudItem>
                         <MudItem xs="12" sm="10">
-                            <MudItem>
-                                <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="_comic.Id" ReadOnly="true"/>
-                            </MudItem>
-                            <MudItem >
-                                <MudTextField Label="Library Id" Variant="Variant.Filled" @bind-Value="_comic.LibraryId" ReadOnly="true"/>
-                            </MudItem>
-                            <MudItem>
-                                <MudTextField Label="EbookName" Variant="Variant.Filled" @bind-Value="_comic.EbookName" ReadOnly="true"/>
-                            </MudItem>
-                            <MudItem>
-                                <MudTextField Label="EbookPath" Variant="Variant.Filled" @bind-Value="_comic.EbookPath" ReadOnly="true"/>
-                            </MudItem>
-                            <MudItem>
-                                <MudTextField Label="Date d'ajout" Variant="Variant.Filled" @bind-Value="_comic.Added" ReadOnly="true"/>
-                            </MudItem>
-                            <MudItem>
-                                <MudTextField Label="Date de modification" Variant="Variant.Filled" @bind-Value="_comic.Edited" ReadOnly="true"/>
-                            </MudItem>
-                            <MudItem>
-                                <MudTextField Label="Cover Path" Variant="Variant.Filled" @bind-Value="_comic.CoverPath" ReadOnly="true"/>
-                            </MudItem>
-                            <MudItem>
-                                <MudTextField Label="Import Status" Variant="Variant.Filled" @bind-Value="_comic.ImportStatus" ReadOnly="true"/>
-                            </MudItem>
-                            <MudItem>
-                                <MudTextField Label="Import Message" Variant="Variant.Filled" @bind-Value="_comic.ImportErrorMessage" ReadOnly="true"/>
-                            </MudItem>
-                            <MudItem>
-                                <MudTextField Label="WebPFormatted" Variant="Variant.Filled" @bind-Value="_comic.WebPFormated" ReadOnly="true"/>
-                            </MudItem>
+                            <MudGrid Spacing="1">
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Id" Variant="Variant.Filled" @bind-Value="_comic.Id" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Library Id" Variant="Variant.Filled" @bind-Value="_comic.LibraryId" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="EbookName" Variant="Variant.Filled" @bind-Value="_comic.EbookName" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="EbookPath" Variant="Variant.Filled" @bind-Value="_comic.EbookPath" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Date d'ajout" Variant="Variant.Filled" @bind-Value="_comic.Added" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Date de modification" Variant="Variant.Filled" @bind-Value="_comic.Edited" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Cover Path" Variant="Variant.Filled" @bind-Value="_comic.CoverPath" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Import Status" Variant="Variant.Filled" @bind-Value="_comic.ImportStatus" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Import Message" Variant="Variant.Filled" @bind-Value="_comic.ImportErrorMessage" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="WebPFormatted" Variant="Variant.Filled" @bind-Value="_comic.WebPFormated" ReadOnly="true"/>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Mask="@(new PatternMask("000 000 000 000"))" Label="Size" Variant="Variant.Filled" @bind-Value="_comic.Size" ReadOnly="true"/>
+                                </MudItem>
+                            </MudGrid>
                         </MudItem>
                     </MudGrid>
                 </MudCardContent>

@@ -92,7 +92,7 @@ namespace MyComicsManagerApi.Services
             Log.Here().Information("Mise à jour du comic {Comic}", id.Replace(Environment.NewLine, ""));
             
             // Mise à jour du nom du fichier et du chemin si titre et série ont été modifiés
-            UpdateDirectoryAndFileName(comic);
+            comic = UpdateDirectoryAndFileName(comic);
 
             // Mise à jour de la date de dernière modification
             comic.Edited = DateTime.Now;
@@ -103,11 +103,14 @@ namespace MyComicsManagerApi.Services
                 _comicFileService.AddComicInfoInComicFile(comic);
             }
             
+            // mise à jour de la taille du fichier
+            comic.Size =  _comicFileService.GetComicFileSize(comic);
+            
             // Mise à jour en base de données
             _comics.ReplaceOne(c => c.Id == id, comic);
         }
         
-        private void UpdateDirectoryAndFileName(Comic comic)
+        private Comic UpdateDirectoryAndFileName(Comic comic)
         {
             // Mise à jour du nom du fichier
             if (!string.IsNullOrEmpty(comic.Serie) && comic.Volume > 0)
@@ -132,8 +135,10 @@ namespace MyComicsManagerApi.Services
             if (!string.IsNullOrEmpty(comic.Serie))
             {
                 var eBookPath = comic.Serie.ToPascalCase() + Path.DirectorySeparatorChar;
-                _comicFileService.MoveToLib(comic, eBookPath);
+                comic = _comicFileService.MoveToLib(comic, eBookPath);
             }
+
+            return comic;
         }
         
         public List<Comic> Find(string item, int limit)
@@ -332,6 +337,17 @@ namespace MyComicsManagerApi.Services
             foreach (var comic in list)
             {
                 _comicFileService.DeleteFilesBeginningWithDots(comic);
+            }
+        }
+        
+        public void UpdateSize()
+        {
+            var list = _comics.Find(comic => true).ToList();
+            foreach (var comic in list)
+            {
+                Log.Here().Information("Traitement du fichier {File}", comic.EbookPath);
+                comic.Size = _comicFileService.GetComicFileSize(comic);
+                Update(comic.Id, comic, false);
             }
         }
         

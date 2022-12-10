@@ -88,7 +88,7 @@ namespace MyComicsManagerApi.Services
 
         private void Scan(string id)
         {
-            var absoluteLibPath = GetLibraryPath(id, PathType.ABSOLUTE_PATH);
+            var absoluteLibPath = _applicationConfigurationService.GetPathApplication();
             var directory = new DirectoryInfo(absoluteLibPath);
 
             var extensions = _applicationConfigurationService.GetAuthorizedExtension();
