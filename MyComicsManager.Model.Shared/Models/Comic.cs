@@ -38,7 +38,7 @@ namespace MyComicsManager.Model.Shared.Models
 
         public string Serie { get; set; }
 
-        public bool IsOneShot { get; set; } = false;
+        public bool IsOneShot { get; set; }
 
         [Required]
         public string Title { get; set; }
