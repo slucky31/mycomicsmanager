@@ -116,7 +116,7 @@ namespace MyComicsManagerApi.Services
             if (!string.IsNullOrEmpty(comic.Serie) && comic.Volume > 0)
             {
                 // Mise à jour du nom du fichier pour le calcul de la destination
-                if (comic.Serie == "One shot")
+                if (comic.Serie == ApplicationConfiguration.ONE_SHOT_SERIE)
                 {
                     comic.EbookName = comic.Title + ".cbz";
                 }

@@ -76,7 +76,12 @@
                     <MudText Typo="Typo.h5">Informations sur le comic</MudText>
                     <MudGrid Spacing="2">
                         <MudItem xs="12" sm="6">
-                            <MudTextField Label="Série" Variant="Variant.Text" @bind-Value="_comic.Serie" />
+                            <MudStack Row="true">
+                                <MudTextField Label="Série" Variant="Variant.Text" @bind-Value="_comic.Serie" Disabled="_disableSerie"/>
+                                <MudToggleIconButton Toggled="@_comic.IsOneShot" ToggledChanged="OnToggledChangedOneShot"
+                                                     Icon="@Icons.Filled.FileCopy" Title="Not OneShot"
+                                                     ToggledIcon="@Icons.Filled.InsertDriveFile"  ToggledTitle="Is OneShot"/>
+                            </MudStack>
                         </MudItem>
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="Titre" Variant="Variant.Text" @bind-Value="_comic.Title" />
@@ -170,6 +175,7 @@
     public string Id { get; set; }
 
     private Comic _comic;
+    private bool _disableSerie;
 
     protected List<string> ListIsbn = new List<string>();
 
@@ -184,6 +190,7 @@
     protected override async Task OnInitializedAsync()
     {
         _comic = await ComicService.GetComic(Id);
+        _disableSerie = _comic.IsOneShot;
     }
 
     private async Task Update()
@@ -314,6 +321,13 @@
             this.StateHasChanged();
         }
 
+    }
+
+    private void OnToggledChangedOneShot()
+    {
+        _comic.IsOneShot = !(_comic.IsOneShot);
+        _disableSerie = _comic.IsOneShot;
+        _comic.Serie = _comic.IsOneShot ? ApplicationConfiguration.ONE_SHOT_SERIE : "";
     }
 
 }
