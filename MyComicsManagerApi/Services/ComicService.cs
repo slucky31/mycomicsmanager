@@ -302,6 +302,17 @@ namespace MyComicsManagerApi.Services
                     results[ComicDataEnum.PRIX]);
                 comic.Price = -1;
             }
+            
+            if (bool.TryParse(results[ComicDataEnum.ONESHOT], out var isOneShot))
+            {
+                comic.IsOneShot = isOneShot;
+            }
+            else
+            {
+                Log.Here().Warning("Une erreur est apparue lors de l'analyse du champ OneShot : {OneShot}",
+                    results[ComicDataEnum.ONESHOT]);
+                comic.IsOneShot = false;
+            }
 
             if (update)
             {
@@ -323,14 +334,13 @@ namespace MyComicsManagerApi.Services
             return _comics.Distinct(comic => comic.Serie, filter).ToList();
         }
 
-        public IEnumerable<Comic> ListComicNotWebpConverted()
+        private IEnumerable<Comic> ListComicNotWebpConverted()
         {
             var filter = Builders<Comic>.Filter.Where(comic => comic.ImportStatus == ImportStatus.IMPORTED && ! comic.WebPFormated );
             return _comics.Find(filter).ToList();
         }
 
         
-
         public void DeleteDotFiles()
         {
             var list = _comics.Find(comic => true).ToList();
