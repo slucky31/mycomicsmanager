@@ -1,7 +1,6 @@
 using MyComicsManagerApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.Extensions.Logging;
 using MyComicsManager.Model.Shared.Models;
 
@@ -12,11 +11,11 @@ namespace MyComicsManagerApi.Controllers
     [ApiController]
     public class LibrariesController : ControllerBase
     {
-        private readonly LibraryService _libraryService;
+        private readonly ILibraryService _libraryService;
 
         private readonly ILogger<LibrariesController> _logger;
 
-        public LibrariesController(ILogger<LibrariesController> logger, LibraryService libraryService)
+        public LibrariesController(ILogger<LibrariesController> logger, ILibraryService libraryService)
         {
             _libraryService = libraryService;
             _logger = logger;
@@ -43,9 +42,15 @@ namespace MyComicsManagerApi.Controllers
         [HttpPost]
         public ActionResult<Library> Create(Library library)
         {   
+            if (library is null)
+            {
+                _logger.LogError("Library object sent from client is null");
+                return BadRequest("Library object is null");
+            }
+            
             _libraryService.Create(library);
             
-            return CreatedAtRoute("GetLibrary", new { id = library.Id.ToString() }, library);
+            return CreatedAtRoute("GetLibrary", new { id = library.Id }, library);
         }
 
         [HttpPut("{id:length(24)}")]

@@ -10,7 +10,7 @@ using Serilog;
 
 namespace MyComicsManagerApi.Services
 {
-    public class LibraryService
+    public class LibraryService : ILibraryService
     {
         private static ILogger Log => Serilog.Log.ForContext<LibraryService>();
         
@@ -110,6 +110,24 @@ namespace MyComicsManagerApi.Services
             Scan(id);
             return _listOfLibraryFiles[id].TryGetValue(fileName, out var fullPath) ? fullPath : null;
         }
+        
+    }
+
+    public interface ILibraryService
+    {
+        public List<Library> Get();
+
+        public Library Get(string id);
+
+        public Library Create(Library libraryIn);
+        
+        public void Update(string id, Library libraryIn);
+
+        public void Remove(Library libraryIn);
+
+        public string GetLibraryPath(string id, LibraryService.PathType type);
+
+        public string Search(string id, string fileName);
         
     }
 }
