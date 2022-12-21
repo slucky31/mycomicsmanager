@@ -6,19 +6,41 @@ namespace MyComicsManager.Model.Shared.Services;
 public class ApplicationConfigurationService
 {
     private readonly string _applicationRootPath;
+    private readonly IApplicationSettings _applicationSettings;
 
     public ApplicationConfigurationService(IApplicationSettings applicationSettings)
     {
-        _applicationRootPath = applicationSettings.ApplicationRootPath;
+        _applicationSettings = applicationSettings;
+        _applicationRootPath = _applicationSettings.ApplicationRootPath;
         if (!_applicationRootPath.EndsWith(Path.DirectorySeparatorChar))
         {
             _applicationRootPath += Path.DirectorySeparatorChar;
         }
     }
     
-    public string GetPathApplication()
+    public string GetApplicationRootPath()
     {
         return _applicationRootPath;
+    }
+    
+    public string GetEnvironmentName()
+    {
+        return _applicationSettings.EnvironmentName;
+    }
+    
+    public string GetCloudinaryName()
+    {
+        return _applicationSettings.CloudinaryName;
+    }
+    
+    public string GetCloudinaryApiKey()
+    {
+        return _applicationSettings.CloudinaryApiKey;
+    }
+    
+    public string GetCloudinaryApiSecret()
+    {
+        return _applicationSettings.CloudinaryApiSecret;
     }
     
     public string GetPathLibrairies()

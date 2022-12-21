@@ -1,7 +1,9 @@
 @using MyComicsManagerWeb.Services
 @using MyComicsManager.Model.Shared.Models
-    @inject ComicService ComicService
-    @inject LibraryService LibraryService
+@using MyComicsManager.Model.Shared.Services
+@inject ComicService ComicService
+@inject LibraryService LibraryService
+@inject ApplicationConfigurationService ApplicationConfigurationService
 
     
     @if (ComicsList.Any())
@@ -9,7 +11,7 @@
         <MudGrid>
             @foreach (var comic in ComicsList)
             {
-                var coverPath = "/covers/" + @comic.CoverPath + "?size=150";
+                var coverPath = "https://res.cloudinary.com/mcm-ndt/image/upload/c_scale,h_150/" + ApplicationConfigurationService.GetEnvironmentName() + "/" + @comic.Id + "-0";
                 var viewHref = "/comics/view/" + @comic.Id;
                 var editHref = "/comics/edit/" + @comic.Id;
                 var downloadHref = "/download/" + Library.RelPath + "/" + @comic.EbookPath;
@@ -21,7 +23,7 @@
                         <MudGrid >
                             <MudItem xs="3" sm="2" md="3" lg="3" xl="2">
                                 <MudLink Href="@downloadHref" Target="blank">
-                                    <MudImage ObjectFit="ObjectFit.Cover" Width="100"Height="150" Src="@coverPath" Alt="@comic.Title" Elevation="25" Class="rounded-lg"/>
+                                    <MudImage ObjectFit="ObjectFit.Cover" Width="100" Height="150" Src="@coverPath" Alt="@comic.Title" Elevation="25" Class="rounded-lg"/>
                                 </MudLink>
                             </MudItem>
                             <MudItem xs="7" sm="9" md="8" lg="8" xl="9">
