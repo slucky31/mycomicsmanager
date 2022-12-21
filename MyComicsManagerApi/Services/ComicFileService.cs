@@ -63,7 +63,7 @@ namespace MyComicsManagerApi.Services
 
                 var cloudinary = new Cloudinary(account);
                 
-                var uploadParams = new ImageUploadParams()
+                var uploadParams = new ImageUploadParams
                 {
                     File = new FileDescription(coverImagePath),
                     PublicId = _applicationConfigurationService.GetEnvironmentName() + "/" + Path.GetFileNameWithoutExtension(coverImagePath),
