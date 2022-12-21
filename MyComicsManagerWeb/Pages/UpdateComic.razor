@@ -2,12 +2,14 @@
 @using MyComicsManagerWeb.Services
 @using System.Threading
 @using MyComicsManager.Model.Shared.Models
+@using MyComicsManager.Model.Shared.Services
 @using MyComicsManagerWeb.Models
 
 @inject ComicService ComicService
 @inject ThumbnailService ThumbnailService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject ApplicationConfigurationService ApplicationConfigurationService
 
 @if (_comic == null)
 {
@@ -28,7 +30,7 @@
                     <MudText Typo="Typo.h5">Données techniques</MudText>
                     <MudGrid Spacing="2">
                         @{
-                            var coverPath = "/covers/" + _comic.CoverPath + "?size=300";
+                            var coverPath = "https://res.cloudinary.com/mcm-ndt/image/upload/c_scale,w_300/" + ApplicationConfigurationService.GetEnvironmentName() + "/" + _comic.Id + "-0";
                         }
                         <MudItem xs="12" sm="2">
                             <MudElement HtmlTag="img" src="@coverPath"/>

@@ -178,7 +178,7 @@ namespace MyComicsManagerWeb.Middleware.ImageThumbnail
 
         private string GetPhysicalPath(string path)
         {
-            var provider = new PhysicalFileProvider(Path.Combine(_applicationConfigurationService.GetPathApplication()));
+            var provider = new PhysicalFileProvider(Path.Combine(_applicationConfigurationService.GetApplicationRootPath()));
             var fileInfo = provider.GetFileInfo(path);
 
             return fileInfo.PhysicalPath;

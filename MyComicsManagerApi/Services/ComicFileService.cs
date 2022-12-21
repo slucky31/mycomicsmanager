@@ -11,6 +11,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using MyComicsManager.Model.Shared.Models;
 using MyComicsManager.Model.Shared.Services;
 using MyComicsManagerApi.Exceptions;
@@ -52,8 +54,26 @@ namespace MyComicsManagerApi.Services
 
             try
             {
+                var coverImagePath = ExtractImageFromCbz(comic, extractPath, 0);
+                
+                var account = new Account(
+                    _applicationConfigurationService.GetCloudinaryName(),
+                    _applicationConfigurationService.GetCloudinaryApiKey(),
+                    _applicationConfigurationService.GetCloudinaryApiSecret());
+
+                var cloudinary = new Cloudinary(account);
+                
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(coverImagePath),
+                    PublicId = _applicationConfigurationService.GetEnvironmentName() + "/" + Path.GetFileNameWithoutExtension(coverImagePath),
+                    Transformation = new Transformation().Width(ResizedWidth).FetchFormat("webp")
+                };
+                var uploadResult = cloudinary.Upload(uploadParams);
+                Log.Here().Information("uploadResult : {@UploadResult}",uploadResult);
+                
                 // Update comic with file
-                comic.CoverPath = Path.GetFileName(ExtractImageFromCbz(comic, extractPath, 0));    
+                comic.CoverPath = Path.GetFileName(coverImagePath);    
             }
             catch (ComicIoException e)
             {

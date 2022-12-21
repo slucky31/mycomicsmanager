@@ -1,14 +1,16 @@
 @using MyComicsManagerWeb.Services
 @using MyComicsManager.Model.Shared.Models
-    @inject ComicService ComicService
-    @inject LibraryService LibraryService
+@using MyComicsManager.Model.Shared.Services
+@inject ComicService ComicService
+@inject LibraryService LibraryService
+@inject ApplicationConfigurationService ApplicationConfigurationService
     
     @if (ComicsList.Any())
     {
         <MudGrid Justify="Justify.FlexStart">
             @foreach (var comic in ComicsList)
             {
-                var coverPath = "/covers/" + @comic.CoverPath + "?size=150";
+                var coverPath = "https://res.cloudinary.com/mcm-ndt/image/upload/c_scale,h_150/" + ApplicationConfigurationService.GetEnvironmentName() + "/" + @comic.Id + "-0";
                 var editHref = "/comics/edit/" + @comic.Id;
                 var downloadHref = "/download/" + Library.RelPath + "/" + @comic.EbookPath;
 
