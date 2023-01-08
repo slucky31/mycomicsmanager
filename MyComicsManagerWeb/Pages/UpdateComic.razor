@@ -81,8 +81,8 @@
                             <MudStack Row="true">
                                 <MudTextField Label="Série" Variant="Variant.Text" @bind-Value="_comic.Serie" Disabled="_disableSerie"/>
                                 <MudToggleIconButton Toggled="@_comic.IsOneShot" ToggledChanged="OnToggledChangedOneShot"
-                                                     Icon="@Icons.Filled.FileCopy" Title="Not OneShot"
-                                                     ToggledIcon="@Icons.Filled.InsertDriveFile"  ToggledTitle="Is OneShot"/>
+                                                     Icon="@Icons.Material.Filled.FileCopy" Title="Not OneShot"
+                                                     ToggledIcon="@Icons.Material.Filled.InsertDriveFile"  ToggledTitle="Is OneShot"/>
                             </MudStack>
                         </MudItem>
                         <MudItem xs="12" sm="6">
@@ -233,7 +233,7 @@
         var dialog = DialogService.Show<DialogIsbnSelector>("Select ISBN", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Cancelled)
+        if (!result.Canceled)
         {
             var isbn = result.Data.ToString();
             
@@ -265,7 +265,7 @@
         var dialog = DialogService.Show<DialogGoogleIsbnSelector>("Select ISBN", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Cancelled)
+        if (!result.Canceled)
         {
             var tmp = (GoogleBookInfo)result.Data;
 
@@ -309,7 +309,7 @@
         var dialog = DialogService.Show<DialogReview>("Evaluation", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Cancelled)
+        if (!result.Canceled)
         {
 
             if (result.Data != null)

@@ -12,7 +12,7 @@
 
     </TitleContent>
     <DialogContent>
-        <MudTextField @bind-Value="Query" Label="Search" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search" OnClearButtonClick="@Search" OnKeyDown="@Enter"/>
+        <MudTextField @bind-Value="Query" Label="Search" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search" OnClearButtonClick="@Search" OnKeyDown="@Enter"/>
         <MudContainer Style="max-height: 650px; overflow-y: scroll">
             @if (_bookInfo != null && _bookInfo.Any())
             {
