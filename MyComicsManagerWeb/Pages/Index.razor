@@ -11,7 +11,7 @@
     <NavMenu/>
     
     <MudPaper Class="pa-4 ma-2" Elevation="3">
-        <MudTextField  @bind-Value="SearchValue" Label="Search" Variant="Variant.Outlined" Immediate="true" Clearable="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search" OnClearButtonClick="@Clear" OnKeyPress="@Enter"/>
+        <MudTextField  @bind-Value="SearchValue" Label="Search" Variant="Variant.Outlined" Immediate="true" Clearable="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" OnAdornmentClick="@Search" OnClearButtonClick="@Clear" OnKeyPress="@Enter"/>
     </MudPaper>    
     
     <ViewComicsBySeries Library="_library" SearchItem="@SearchValue" />
