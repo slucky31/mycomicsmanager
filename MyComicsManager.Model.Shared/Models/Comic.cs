@@ -101,10 +101,10 @@ namespace MyComicsManager.Model.Shared.Models
     public enum ImportStatus
     {
         CREATED = 0,
-        COMICINFO_ADDED = 1, // DO NOT USE
-        MOVED_TO_LIB = 2,
-        NB_IMAGES_SET = 3,
-        COVER_GENERATED = 4,
+        MOVED_TO_LIB = 10,
+        COMICINFO_ADDED = 20,
+        NB_IMAGES_SET = 30,
+        COVER_GENERATED = 40,
         IMPORTED = 200,
         ERROR = 500
     }
