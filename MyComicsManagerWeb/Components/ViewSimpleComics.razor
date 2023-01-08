@@ -4,53 +4,82 @@
 @inject ComicService ComicService
 @inject LibraryService LibraryService
 @inject ApplicationConfigurationService ApplicationConfigurationService
-    
-    @if (ComicsList.Any())
-    {
-        <MudGrid Justify="Justify.FlexStart">
-            @foreach (var comic in ComicsList)
-            {
-                var coverPath = "https://res.cloudinary.com/mcm-ndt/image/upload/c_scale,h_150/" + ApplicationConfigurationService.GetEnvironmentName() + "/" + @comic.Id + "-0";
-                var editHref = "/comics/edit/" + @comic.Id;
-                var downloadHref = "/download/" + Library.RelPath + "/" + @comic.EbookPath;
 
-                <MudItem>
-                    <MudPaper Class="px-1 pt-1 white" >
-                        <MudStack Spacing="0">
+<style>
+    .isbn-icon 
+    {
+       position: absolute;
+       z-index: 1;
+       bottom: 7%;
+       left: 5%;
+       background-color: white;
+    }
+    
+    .tome-icon 
+    {
+       position: absolute;
+       z-index: 1;
+       top: 2%;
+       right: 2%;
+       background-color: white;
+    }
+
+    
+</style>
+
+@if (ComicsList.Any())
+{
+    <MudGrid Justify="Justify.FlexStart">
+        @foreach (var comic in ComicsList)
+        {
+            var coverPath = "https://res.cloudinary.com/mcm-ndt/image/upload/c_scale,h_150/" + ApplicationConfigurationService.GetEnvironmentName() + "/" + @comic.Id + "-0";
+            var editHref = "/comics/edit/" + @comic.Id;
+            var downloadHref = "/download/" + Library.RelPath + "/" + @comic.EbookPath;
+
+            <MudItem>
+                <MudPaper Class="px-1 pt-1 white">
+                    <MudStack Spacing="0">
+                        <div style="position:relative">
                             <MudLink Href="@downloadHref" Target="blank">
                                 <MudImage ObjectFit="ObjectFit.Cover" Width="100" Height="150" Src="@coverPath" Alt="@comic.Title" Elevation="25" Class="rounded-lg"/>
+                                @if (!string.IsNullOrEmpty(comic.Isbn))
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" Title="@comic.Isbn" Size="Size.Small" Class="isbn-icon"/>
+                                }
+                                @if (comic.Volume > 0)
+                                {
+                                    <MudAvatar Size="Size.Small" Color="Color.Info" Class="tome-icon">@comic.Volume</MudAvatar>
+                                }
                             </MudLink>
-                            <MudStack Row="true" Justify="Justify.Center">
-                                <MudIconButton  Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Link="@editHref"/>
-                                <MudIconButton  Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="() => DeleteComic(comic.Id)"/>
-                            </MudStack>
+                        </div>
+                        <MudStack Row="true" Justify="Justify.Center">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Link="@editHref"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="() => DeleteComic(comic.Id)"/>
                         </MudStack>
-                    </MudPaper>
-                </MudItem>
-            }
-        </MudGrid>
-    }
-    else
-    {
-        <MudProgressCircular Color="Color.Info" Indeterminate="true"/>
-    }
-
-    @code {
-
-        [Parameter]
-        public List<Comic> ComicsList { get; set; }
-        
-        [Parameter]  
-        public EventCallback<List<Comic>> ComicsListChanged { get; set; }
-        
-        [Parameter]
-        public Library Library { get; set; }
-        
-        private async Task DeleteComic(string id)
-        {
-            var index = ComicsList.FindIndex(a => a.Id == id);
-            await ComicService.DeleteComic(id);
-            ComicsList.Remove(ComicsList[index]);
-            await ComicsListChanged.InvokeAsync(ComicsList);
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
         }
+    </MudGrid>
+}
+
+@code {
+
+    [Parameter]
+    public List<Comic> ComicsList { get; set; }
+
+    [Parameter]
+    public EventCallback<List<Comic>> ComicsListChanged { get; set; }
+
+    [Parameter]
+    public Library Library { get; set; }
+
+    private async Task DeleteComic(string id)
+    {
+        var index = ComicsList.FindIndex(a => a.Id == id);
+        await ComicService.DeleteComic(id);
+        ComicsList.Remove(ComicsList[index]);
+        await ComicsListChanged.InvokeAsync(ComicsList);
     }
+
+}

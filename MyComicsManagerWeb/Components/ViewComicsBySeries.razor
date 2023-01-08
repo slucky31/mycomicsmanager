@@ -57,14 +57,14 @@
 
     protected async Task FetchComics()
     {
+        var result = await ComicService.FindByPageOrderBySerie(SearchItem, _indexItem++, MaxItemsByPage);
+        
         Log.Information("-- FetchComics");
         Log.Information("-- FetchComics : _indexItem = {Index}", _indexItem);
-        
-        var result = await ComicService.FindByPageOrderBySerie(SearchItem, _indexItem++, MaxItemsByPage);
         Log.Information("-- FetchComics : result.totalPages {Count}",result.TotalPages);
         Log.Information("-- FetchComics : result.data.count {Count}",result.Data.Count);
 
-        if (result.Data.Count == 0)
+        if ((result.Data.Count == 0) || (_indexItem >= result.TotalPages))
         {
             ExistDataToDisplay = false;
         }
