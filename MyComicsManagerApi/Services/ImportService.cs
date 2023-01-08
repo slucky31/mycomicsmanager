@@ -125,6 +125,7 @@ namespace MyComicsManagerApi.Services
             }
             
             // Mise à jour du statut et du comic
+            // AddComicInfo n'est pas mis à jour pour ne pas écraser les informations importées si le fichier existe
             return await SetImportStatus(comic, ImportStatus.MOVED_TO_LIB, false);
         }
         
