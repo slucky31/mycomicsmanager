@@ -20,7 +20,9 @@ using MyComicsManagerApi.Utils;
 using Serilog;
 using SharpCompress.Archives.Rar;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using UglyToad.PdfPig;
 
@@ -420,6 +422,33 @@ namespace MyComicsManagerApi.Services
             File.Delete(destBackUp);
             Log.Here().Information("Suppression du fichier origine {Dest}", destBackUp);
             
+        }
+
+        public bool IsWebPConverted(Comic comic)
+        {
+            // Ouvrir l'archive zip en lecture
+            var comicEbookPath = GetComicFileAbsolutePath(comic);
+            var archive = ZipFile.OpenRead(comicEbookPath);
+
+            // Pour chaque fichier dans l'archive zip
+            foreach (var entry in archive.Entries)
+            {
+                // Si le fichier est une image
+                if (!entry.FullName.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)) continue;
+                // Ouvrir le fichier image
+                using Stream stream = entry.Open();
+                // Charger l'image en mémoire
+                using var image = Image.Load(stream, out IImageFormat format);
+                // Vérifier que le format de l'image est bien webp
+                if (format.Name != "WebP")
+                {
+                    return false;
+                }
+            }
+
+            // Fermer l'archive zip
+            archive.Dispose();
+            return true;
         }
 
         private void ExtractImagesFromCbz(Comic comic, string tempDir)

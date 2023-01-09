@@ -88,6 +88,7 @@ namespace MyComicsManagerApi.Services
                 comic = await UpdateFromComicInfo(comic);
                 comic = await SetComicPageCount(comic);
                 comic = await ExtractCoverImage(comic);
+                comic = await CheckWebPFormat(comic);
             }
             catch (Exception e)
             {
@@ -182,6 +183,30 @@ namespace MyComicsManagerApi.Services
             // Mise à jour du statut et du comic
             return await SetImportStatus(comic, ImportStatus.COVER_GENERATED, true);
         }
+        
+        private async Task<Comic> CheckWebPFormat(Comic comic)
+        {
+            if (comic.ImportStatus >= ImportStatus.WEBP_CHECKED)
+            {
+                return comic;
+            }
+            
+            // Vérification si les images de l'archives sont bien au format WebP
+            try
+            {
+                comic.WebPFormated = _comicFileService.IsWebPConverted(comic);
+            }
+            catch
+            {
+                Log.Here().Error("Erreur lors de la vérification du format des images de l'archive");
+                throw;
+            }
+            
+            // Mise à jour du statut et du comic
+            return await SetImportStatus(comic, ImportStatus.WEBP_CHECKED, true);
+        }
+        
+        
 
         [AutomaticRetry(Attempts = 0)]
         public async Task ResetImportStatus(Comic comic)

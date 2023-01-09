@@ -105,6 +105,7 @@ namespace MyComicsManager.Model.Shared.Models
         COMICINFO_ADDED = 20,
         NB_IMAGES_SET = 30,
         COVER_GENERATED = 40,
+        WEBP_CHECKED = 50,
         IMPORTED = 200,
         ERROR = 500
     }
