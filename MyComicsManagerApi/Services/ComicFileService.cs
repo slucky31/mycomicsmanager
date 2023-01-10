@@ -22,7 +22,6 @@ using SharpCompress.Archives.Rar;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Webp;
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using UglyToad.PdfPig;
 
@@ -434,14 +433,18 @@ namespace MyComicsManagerApi.Services
             foreach (var entry in archive.Entries)
             {
                 // Si le fichier est une image
-                if (!entry.FullName.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)) continue;
+                if (!entry.FullName.EndsWith(".webp", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
                 // Ouvrir le fichier image
                 using Stream stream = entry.Open();
                 // Charger l'image en mémoire
                 using var image = Image.Load(stream, out IImageFormat format);
                 // Vérifier que le format de l'image est bien webp
-                if (format.Name != "WebP")
+                if (format.Name != "Webp")
                 {
+                    archive.Dispose();
                     return false;
                 }
             }
@@ -729,7 +732,7 @@ namespace MyComicsManagerApi.Services
                 ImportStatus.CREATED or ImportStatus.ERROR => comic.EbookPath,
                 
                 // Cas nominaux
-                ImportStatus.COMICINFO_ADDED or ImportStatus.MOVED_TO_LIB or ImportStatus.NB_IMAGES_SET or ImportStatus.COVER_GENERATED or ImportStatus.IMPORTED => 
+                ImportStatus.COMICINFO_ADDED or ImportStatus.MOVED_TO_LIB or ImportStatus.NB_IMAGES_SET or ImportStatus.COVER_GENERATED or ImportStatus.IMPORTED or ImportStatus.WEBP_CHECKED => 
                     GetComicEbookPath(comic, LibraryService.PathType.ABSOLUTE_PATH),// Le fichier est dans /lib
                 
                 // Autres cas
