@@ -1,5 +1,7 @@
 ﻿using HtmlAgilityPack;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using MyComicsManagerApi.Utils;
 using Serilog;
 
@@ -58,6 +60,14 @@ namespace MyComicsManagerApi.DataParser
                 return selectedNode.Attributes[attribut].Value.Trim();
             }
             return null;
+        }
+        
+        public string ExtractLinkHref(string patern)
+        {
+            var hashSet = new HashSet<string>();
+            var nodes = Doc.DocumentNode.SelectNodes("//a[@href]");
+
+            return nodes.Select(n => n.Attributes["href"].Value).FirstOrDefault(href => href.ToLower().Trim().Contains(patern.ToLower().Trim()));
         }
     }
 }
