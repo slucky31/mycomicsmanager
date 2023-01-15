@@ -34,18 +34,30 @@ namespace MyComicsManagerApi.DataParser
         public string ExtractTextValue(string htmlPath)
         {
             var selectedNode = Doc.DocumentNode.SelectSingleNode(htmlPath);
-            if (selectedNode != null)
-            {
-                return selectedNode.InnerText.Trim();
-            }
-            return null;
+            return ExtractTextValue(selectedNode);
+        }
+        
+        public static string ExtractTextValue(HtmlNode selectedNode)
+        {
+            return selectedNode?.InnerText.Trim();
         }
 
-        public string ExtractTextValueAndSplitOnSeparator(string htmlPath, string separator, int id)
+        public string ExtractTextValueAndSplitOnSeparatorFromDocument(string htmlPath, string separator, int id)
         {
             var extractedText = ExtractTextValue(htmlPath);
-            string splitExtractedText = extractedText;
-            if (!String.IsNullOrEmpty(extractedText) && extractedText.Contains(separator))
+            return ExtractTextValueAndSplitOnSeparator(extractedText, separator, id);
+        }
+        
+        public string ExtractTextValueAndSplitOnSeparatorFromNode(HtmlNode selectedNode, string separator, int id)
+        {
+            var extractedText = ExtractTextValue(selectedNode);
+            return ExtractTextValueAndSplitOnSeparator(extractedText, separator, id);
+        }
+
+        private string ExtractTextValueAndSplitOnSeparator(string extractedText, string separator, int id)
+        {
+            var splitExtractedText = extractedText;
+            if (!string.IsNullOrEmpty(extractedText) && extractedText.Contains(separator))
             {
                 splitExtractedText = extractedText.Split(separator)[id].Trim();
             }

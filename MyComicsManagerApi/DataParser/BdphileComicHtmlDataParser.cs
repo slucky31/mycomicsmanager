@@ -55,7 +55,7 @@ namespace MyComicsManagerApi.DataParser
 
         protected override string ExtractNote()
         {
-            return ExtractTextValueAndSplitOnSeparator("/html/body/div[1]/section[1]/div/div[3]/div/div[1]", "/", 0);
+            return ExtractTextValueAndSplitOnSeparatorFromDocument("/html/body/div[1]/section[1]/div/div[3]/div/div[1]", "/", 0);
         }
 
         protected override string ExtractOneShot()
@@ -106,7 +106,7 @@ namespace MyComicsManagerApi.DataParser
             }
             else
             {
-                return ExtractTextValueAndSplitOnSeparator("/html/body/div[1]/section[1]/div/section/h2", ":", 1);
+                return ExtractTextValueAndSplitOnSeparatorFromDocument("/html/body/div[1]/section[1]/div/section/h2", ":", 1);
             }
         }
 
@@ -118,7 +118,7 @@ namespace MyComicsManagerApi.DataParser
             }
             else
             {
-                var tome = ExtractTextValueAndSplitOnSeparator("/html/body/div[1]/section[1]/div/section/h2", ":", 0);
+                var tome = ExtractTextValueAndSplitOnSeparatorFromDocument("/html/body/div[1]/section[1]/div/section/h2", ":", 0);
 
                 // Suppression de tous les caractères sauf les chiffres de 0 à 9
                 Regex regexObj = new Regex(@"[^\d]");

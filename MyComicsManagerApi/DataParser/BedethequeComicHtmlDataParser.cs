@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Google.Apis.CustomSearchAPI.v1.Data;
 using Google.Apis.Services;
 using MyComicsManagerApi.Exceptions;
@@ -12,13 +13,52 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
 {
     private static ILogger Log => Serilog.Log.ForContext<BedethequeComicHtmlDataParser>();
     
+    private Dictionary<string, string> ExtractedInfo { get; set; }
+    
+    private string FicheUrl { get; set; }
+    
+    private bool IsOneShot { get; set; }
+    
+    public BedethequeComicHtmlDataParser()
+    {
+        ExtractedInfo = new Dictionary<string, string>();
+        IsOneShot = false;
+    }
+    
     protected override void Search(string isbn)
     {
         // Recherche sur Google via API car la recherche sur Bedetheque est protégée
         // On recherche un lien qui contient __10000.html
-        var link = SearchISBNInGoogleBedethequeSearchEngine(isbn, "BD-");
+        FicheUrl = SearchISBNInGoogleBedethequeSearchEngine(isbn, "__10000.html");
+        
+        // Récupération de la page liée à l'ISBN recherché
+        LoadDocument(FicheUrl);
+        
+        // Récupération du tableau contenant les informations (les éléments sans valeurs ne sont pas affichés)
+        ExtractDataTable();
+        
         
     }
+    
+    protected void ExtractDataTable()
+    {
+        ExtractedInfo.Clear();
+
+        var selectedNode = ExtractSingleNode("/html/body/div[8]/div[2]/div[2]/div[1]/ul/li[1]/div[2]/ul");
+        
+        // Recherche des informations à extraires
+        var liNodes = selectedNode.SelectNodes(".//li");
+
+        foreach (var liNode in liNodes)
+        {
+            var libelle = ExtractTextValueAndSplitOnSeparatorFromNode(liNode, ":", 0);
+            var valeur = ExtractTextValueAndSplitOnSeparatorFromNode(liNode, ":", 1);
+            ExtractedInfo.Add(libelle, valeur);
+        }
+        
+    }
+    
+    
 
     private string SearchISBNInGoogleBedethequeSearchEngine(string isbn, string pattern)
     {
@@ -27,11 +67,13 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
         // https://programmablesearchengine.google.com/controlpanel/all
         string cx = "a094949e8b0b44aa7";
 
+        // Initialisation de l'appel au WebService
         var svc = new Google.Apis.CustomSearchAPI.v1.CustomSearchAPIService(new BaseClientService.Initializer { ApiKey = apiKey });
         var listRequest = svc.Cse.List();
         listRequest.Cx = cx;
         listRequest.Q = isbn;
-            
+        
+        // Récupération des résultats
         IList<Result> paging = new List<Result>();
         var count = 0; 
         while (paging != null)

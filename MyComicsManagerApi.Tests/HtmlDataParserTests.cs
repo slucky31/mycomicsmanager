@@ -26,7 +26,7 @@ namespace MyComicsManagerApiTests
         {
             Parser = new HtmlDataParser();
             Parser.LoadDocument("https://opensource.org/licenses/MS-PL");
-            var title = Parser.ExtractTextValueAndSplitOnSeparator(TitleXPath,"(",0);
+            var title = Parser.ExtractTextValueAndSplitOnSeparatorFromDocument(TitleXPath,"(",0);
             title.Should().Be("Microsoft Public License");
         }
 
