@@ -33,6 +33,8 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
         
         // Récupération de la page liée à l'ISBN recherché
         LoadDocument(FicheUrl);
+
+        ExtractOneShot();
         
         // Récupération du tableau contenant les informations (les éléments sans valeurs ne sont pas affichés)
         ExtractDataTable();
@@ -98,81 +100,93 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
     
     protected override string ExtractColoriste()
     {
-        throw new System.NotImplementedException();
+        return ExtractedInfo.GetValueOrDefault("Couleurs", "").Trim();
     }
 
     protected override string ExtractOneShot()
     {
-        throw new System.NotImplementedException();
+        IsOneShot = "One shot".Equals(ExtractTextValue("/html/body/div[8]/div[2]/article/div[1]/div/h3/span[3]"));
+        return IsOneShot.ToString();
     }
     
     protected override string ExtractTitre()
     {
-        throw new System.NotImplementedException();
+        // TODO
+        return "Rien que de la misère";
     }
 
     protected override string ExtractSerie()
     {
-        throw new System.NotImplementedException();
+        if (IsOneShot)
+        {
+            return "One shot";
+        }
+        else
+        {
+            return ExtractTextValue("/html/body/div[8]/div[2]/article/div[1]/div/h1/a");
+        }
     }
 
     protected override string ExtractSerieUrl()
     {
-        throw new System.NotImplementedException();
+        return FicheUrl;
     }
 
     protected override string ExtractScenariste()
     {
-        throw new System.NotImplementedException();
+        return ExtractedInfo.GetValueOrDefault("Scénario", "").Trim();
     }
 
     protected override string ExtractDessinateur()
     {
-        throw new System.NotImplementedException();
+        return  ExtractedInfo.GetValueOrDefault("Dessin", "").Trim();
     }
 
     protected override string ExtractTome()
     {
-        throw new System.NotImplementedException();
+        // TODO
+        return "1";
     }
 
     protected override string ExtractDateParution()
     {
-        throw new System.NotImplementedException();
+        return ExtractedInfo.GetValueOrDefault("Dépot légal", "").Trim();
     }
 
     protected override string ExtractISBN()
     {
-        throw new System.NotImplementedException();
+        return ExtractedInfo.GetValueOrDefault("ISBN", "").Trim();
     }
 
     protected override string ExtractURL()
     {
-        throw new System.NotImplementedException();
+        // TODO
+        return "https://www.bedetheque.com/BD-Goon-Tome-1-Rien-que-de-la-misere-46851.html";
     }
 
     protected override string ExtractEditeur()
     {
-        throw new System.NotImplementedException();
+        return ExtractedInfo.GetValueOrDefault("Editeur", "").Trim();
     }
 
     protected override string ExtractNote()
     {
-        throw new System.NotImplementedException();
+        // TODO
+        return "4.0";
     }
 
     protected override string ExtractLangage()
     {
-        throw new System.NotImplementedException();
+        return ExtractTextValue("/html/body/div[8]/div[2]/article/div[1]/div/h3/span[9]");
     }
 
     protected override string ExtractPrix()
     {
-        throw new System.NotImplementedException();
+        return ExtractedInfo.GetValueOrDefault("Estimation", "").Trim();
     }
 
     protected override string ExtractSerieStatus()
     {
-        throw new System.NotImplementedException();
+        return ExtractTextValue("/html/body/div[8]/div[2]/article/div[1]/div/h3/span[3]");   
     }
 }
