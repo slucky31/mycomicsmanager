@@ -490,14 +490,7 @@ namespace MyComicsManagerApi.Services
 
         public async Task<List<string>> ExtractIsbnFromCbz(Comic comic, int imageIndex)
         {
-            var tempDir = CreateTempDirectory();
-            Log.Here().Information("tempDir : {Dir}", tempDir);
-
-            var imagePath = ExtractImageFromCbz(comic, tempDir, imageIndex);
-            Log.Here().Information("imagePath : {Path}", imagePath);
-
-            var extractedText = await _computerVisionService.ReadTextFromLocalImage(imagePath);
-            Log.Here().Information("extractedText : {Text}", extractedText);
+            var extractedText = await ReadInfoFromPage(comic,0);
 
             // Reference : https://regexlib.com/Search.aspx?k=isbn
             const string isbnPattern = "(ISBN[-]*(1[03])*[ ]*(: ){0,1})*(([0-9Xx][- ]*){13}|([0-9Xx][- ]*){10})";
@@ -508,28 +501,32 @@ namespace MyComicsManagerApi.Services
             {
                 isbnList.Add(match.Value);
             }
-            
-            // Suppression du dossier temporaire
-            CleanTempDirectory(tempDir);
 
             return isbnList;
         }
 
         public async Task<string> ExtractTitleFromCbz(Comic comic)
         {
+            var extractedText = await ReadInfoFromPage(comic, 0);
+            
+            return extractedText;
+        }
+
+        private async Task<string> ReadInfoFromPage(Comic comic, int pageId)
+        {
             var tempDir = CreateTempDirectory();
             Log.Here().Information("tempDir : {Dir}", tempDir);
 
             // Extraction des infos de la page de couverture
-            var imagePath = ExtractImageFromCbz(comic, tempDir, 0);
+            var imagePath = ExtractImageFromCbz(comic, tempDir, pageId);
             Log.Here().Information("imagePath : {Path}", imagePath);
-
+            
             var extractedText = await _computerVisionService.ReadTextFromLocalImage(imagePath);
             Log.Here().Information("extractedText : {Text}", extractedText);
             
             // Suppression du dossier temporaire
             CleanTempDirectory(tempDir);
-
+            
             return extractedText;
         }
 

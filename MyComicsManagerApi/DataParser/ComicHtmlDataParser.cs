@@ -59,8 +59,8 @@ namespace MyComicsManagerApi.DataParser
             ExtractedData.Add(ComicDataEnum.COLORISTE, ExtractColoriste());
             ExtractedData.Add(ComicDataEnum.TOME, ExtractTome());
             ExtractedData.Add(ComicDataEnum.DATE_PARUTION, ExtractDateParution());
-            ExtractedData.Add(ComicDataEnum.ISBN, ExtractISBN());
-            ExtractedData.Add(ComicDataEnum.URL, ExtractURL());
+            ExtractedData.Add(ComicDataEnum.ISBN, ExtractIsbn());
+            ExtractedData.Add(ComicDataEnum.URL, ExtractUrl());
             ExtractedData.Add(ComicDataEnum.EDITEUR, ExtractEditeur());
             ExtractedData.Add(ComicDataEnum.NOTE, ExtractNote());
             ExtractedData.Add(ComicDataEnum.ONESHOT, ExtractOneShot());
@@ -90,9 +90,9 @@ namespace MyComicsManagerApi.DataParser
 
         protected abstract string ExtractDateParution();
 
-        protected abstract string ExtractISBN();
+        protected abstract string ExtractIsbn();
 
-        protected abstract string ExtractURL();
+        protected abstract string ExtractUrl();
 
         protected abstract string ExtractEditeur();
 

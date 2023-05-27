@@ -40,6 +40,9 @@ namespace MyComicsManagerApi
             services.Configure<AzureSettings>(Configuration.GetSection(nameof(AzureSettings)));
             services.AddSingleton<IAzureSettings>(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value);
             
+            services.Configure<GoogleSearchSettings>(Configuration.GetSection(nameof(GoogleSearchSettings)));
+            services.AddSingleton<IGoogleSearchSettings>(sp => sp.GetRequiredService<IOptions<GoogleSearchSettings>>().Value);
+            
             services.Configure<NotificationSettings>( Configuration.GetSection(nameof(NotificationSettings)));
             services.AddSingleton<INotificationSettings>(sp => sp.GetRequiredService<IOptions<NotificationSettings>>().Value);
             

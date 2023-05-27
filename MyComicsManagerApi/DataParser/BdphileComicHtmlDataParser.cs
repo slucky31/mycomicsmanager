@@ -48,7 +48,7 @@ namespace MyComicsManagerApi.DataParser
             return ExtractedInfo.GetValueOrDefault("Éditeur", "").Trim();
         }
 
-        protected override string ExtractISBN()
+        protected override string ExtractIsbn()
         {
             return ExtractedInfo.GetValueOrDefault("EAN", "").Trim();
         }
@@ -143,7 +143,7 @@ namespace MyComicsManagerApi.DataParser
             return ExtractedInfo.GetValueOrDefault("Format", "").Split('-').Last().Trim(); // TODO : Risque de plantage !!
         }
 
-        protected override string ExtractURL()
+        protected override string ExtractUrl()
         {
             return FicheUrl;
         }

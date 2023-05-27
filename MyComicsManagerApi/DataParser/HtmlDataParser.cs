@@ -30,6 +30,11 @@ namespace MyComicsManagerApi.DataParser
         {
             return Doc.DocumentNode.SelectSingleNode(htmlPath);
         }
+        
+        public HtmlNode ExtractSingleNodeFromCssClass(string balise, string cssClass)
+        {
+            return Doc.DocumentNode.SelectSingleNode("//"+balise+"[contains(@class, '"+cssClass+"')]");
+        }
 
         public string ExtractTextValue(string htmlPath)
         {
