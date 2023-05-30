@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MyComicsManager.Model.Shared.Services;
 using MyComicsManager.Model.Shared.Settings;
+using MyComicsManagerApi.DataParser;
 using MyComicsManagerApi.Services;
 using MyComicsManagerApi.Settings;
 using Serilog;
@@ -90,6 +91,7 @@ namespace MyComicsManagerApi
             services.AddSingleton<StatisticService>();
             services.AddSingleton<ImportService>();
             services.AddSingleton<ApplicationConfigurationService>();
+            services.AddSingleton<GoogleSearchService>();
 
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
 

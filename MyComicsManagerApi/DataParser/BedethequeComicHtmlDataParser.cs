@@ -12,8 +12,8 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
 {
     private static ILogger Log => Serilog.Log.ForContext<BedethequeComicHtmlDataParser>();
     
-    private readonly IGoogleSearchSettings _googleSearchSettings;
-    
+    private readonly IGoogleSearchService _searchService;
+
     private Dictionary<string, string> ExtractedInfo { get; set; }
     
     private string FicheUrl { get; set; }
@@ -22,9 +22,9 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
     
     private int Rank { get; set; }
     
-    public BedethequeComicHtmlDataParser(IGoogleSearchSettings googleSearchSettings)
+    public BedethequeComicHtmlDataParser(IGoogleSearchService searchService)
     {
-        _googleSearchSettings = googleSearchSettings;
+        _searchService = searchService;
         ExtractedInfo = new Dictionary<string, string>();
         IsOneShot = false;
     }
@@ -33,7 +33,7 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
     {
         // Recherche sur Google via API car la recherche sur Bédéthèque est protégée
         // On recherche un lien qui contient __10000.html
-        FicheUrl = SearchIsbnInGoogleBedethequeSearchEngine(isbn, "__10000.html");
+        FicheUrl = _searchService.SearchLinkFromIsbnAndPattern(isbn, "__10000.html");
         
         // Récupération de la page liée à l'ISBN recherché
         LoadDocument(FicheUrl);
@@ -75,40 +75,7 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
         }
     }
     
-    private string SearchIsbnInGoogleBedethequeSearchEngine(string isbn, string pattern)
-    {
-
-        var apiKey = _googleSearchSettings.ApiKey;
-        var cx = _googleSearchSettings.Cx;
-
-        // Initialisation de l'appel au WebService
-        var svc = new Google.Apis.CustomSearchAPI.v1.CustomSearchAPIService(new BaseClientService.Initializer { ApiKey = apiKey });
-        var listRequest = svc.Cse.List();
-        listRequest.Cx = cx;
-        listRequest.Q = isbn;
-        
-        // Récupération des résultats
-        IList<Result> paging = new List<Result>();
-        var count = 0; 
-        while (paging != null)
-        {
-            listRequest.Start = count * 10 + 1;
-            paging = listRequest.Execute().Items; 
-            if (paging != null)
-            {
-                foreach (var item in paging)
-                {
-                    Log.Here().Information("Link: {Link}", item.Link);
-                    if (item.Link.ToLower().Trim().Contains(pattern.ToLower().Trim()))
-                    {
-                        return item.Link;
-                    }
-                }
-            }
-            count++;
-        }
-        return null;
-    }
+    
     
     protected override string ExtractColoriste()
     {

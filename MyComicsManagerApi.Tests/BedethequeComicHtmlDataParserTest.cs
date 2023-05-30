@@ -14,18 +14,10 @@ namespace MyComicsManagerApiTests
 
         public BedethequeComicHtmlDataParserTest()
         {
-            var mockGoogleSearchSettings = new Mock<IGoogleSearchSettings>();
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .Build();
-            var apiKey = configuration.GetValue<string>("GoogleSearchSettings:ApiKey");
-            var cx = configuration.GetValue<string>("GoogleSearchSettings:Cx");
+            var mockGoogleSearch = new Mock<IGoogleSearchService>();
             
-            mockGoogleSearchSettings.Setup(_ => _.ApiKey).Returns(apiKey);
-            mockGoogleSearchSettings.Setup(_ => _.Cx).Returns(cx);
-
-            _parser = new BedethequeComicHtmlDataParser(mockGoogleSearchSettings.Object);
+            mockGoogleSearch.Setup(_ => _.SearchLinkFromIsbnAndPattern("2847897666", "__10000.html")).Returns("https://www.bedetheque.com/serie-11609-BD-Goon-The-Delcourt__10000.html");
+            _parser = new BedethequeComicHtmlDataParser(mockGoogleSearch.Object);
         }
 
         [Fact]
