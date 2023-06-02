@@ -81,10 +81,8 @@ namespace MyComicsManagerApi.DataParser
         
         public string ExtractLinkHref(string patern)
         {
-            var hashSet = new HashSet<string>();
             var nodes = Doc.DocumentNode.SelectNodes("//a[@href]");
-
-            return nodes.Select(n => n.Attributes["href"].Value).FirstOrDefault(href => href.ToLower().Trim().Contains(patern.ToLower().Trim()));
+            return nodes.Select(n => n.Attributes["href"].Value).FirstOrDefault(href => href.ToLowerInvariant().Trim().Contains(patern.ToLower().Trim()));
         }
     }
 }

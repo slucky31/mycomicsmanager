@@ -263,13 +263,13 @@ namespace MyComicsManagerApi.Services
             foreach (var comic in comics)
             {
                 // Si volume nul ou négatif, arrêt
-                if (comic.Volume <= 0) continue;
+                if (comic.Volume <= 0) {continue;}
                 
                 // Recherche des infos pour le comic
                 var results = parser.SearchComicInfoFromSerieUrl(url, comic.Volume);
                     
                 // Si volume pas de résultat, arrêt
-                if (!results.Any()) continue;
+                if (!results.Any()) {continue;}
                     
                 UpdateComicInfo(comic, results);
                 Update(comic.Id, comic, true);
