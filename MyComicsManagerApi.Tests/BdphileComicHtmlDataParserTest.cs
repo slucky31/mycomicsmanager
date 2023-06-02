@@ -12,7 +12,7 @@ namespace MyComicsManagerApiTests
         public void Parse()
         {
             Parser = new BdphileComicHtmlDataParser();
-            var results = Parser.Parse("9782203001169");
+            var results = Parser.SearchComicInfoFromIsbn("9782203001169");
             results[ComicDataEnum.TITRE].Should().Be("On a marché sur la lune");
             results[ComicDataEnum.SERIE].Should().Be("Les Aventures de Tintin");
             results[ComicDataEnum.SERIE_URL].Should().Be("https://www.bdphile.info/series/bd/809-les-aventures-de-tintin");

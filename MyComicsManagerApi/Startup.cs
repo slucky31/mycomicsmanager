@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MyComicsManager.Model.Shared.Services;
 using MyComicsManager.Model.Shared.Settings;
+using MyComicsManagerApi.DataParser;
 using MyComicsManagerApi.Services;
 using MyComicsManagerApi.Settings;
 using Serilog;
@@ -39,6 +40,9 @@ namespace MyComicsManagerApi
 
             services.Configure<AzureSettings>(Configuration.GetSection(nameof(AzureSettings)));
             services.AddSingleton<IAzureSettings>(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value);
+            
+            services.Configure<GoogleSearchSettings>(Configuration.GetSection(nameof(GoogleSearchSettings)));
+            services.AddSingleton<IGoogleSearchSettings>(sp => sp.GetRequiredService<IOptions<GoogleSearchSettings>>().Value);
             
             services.Configure<NotificationSettings>( Configuration.GetSection(nameof(NotificationSettings)));
             services.AddSingleton<INotificationSettings>(sp => sp.GetRequiredService<IOptions<NotificationSettings>>().Value);
@@ -87,6 +91,7 @@ namespace MyComicsManagerApi
             services.AddSingleton<StatisticService>();
             services.AddSingleton<ImportService>();
             services.AddSingleton<ApplicationConfigurationService>();
+            services.AddSingleton<IGoogleSearchService, GoogleSearchService>();
 
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
 

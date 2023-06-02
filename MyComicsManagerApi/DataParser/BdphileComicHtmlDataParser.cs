@@ -48,14 +48,14 @@ namespace MyComicsManagerApi.DataParser
             return ExtractedInfo.GetValueOrDefault("Éditeur", "").Trim();
         }
 
-        protected override string ExtractISBN()
+        protected override string ExtractIsbn()
         {
             return ExtractedInfo.GetValueOrDefault("EAN", "").Trim();
         }
 
         protected override string ExtractNote()
         {
-            return ExtractTextValueAndSplitOnSeparator("/html/body/div[1]/section[1]/div/div[3]/div/div[1]", "/", 0);
+            return ExtractTextValueAndSplitOnSeparatorFromDocument("/html/body/div[1]/section[1]/div/div[3]/div/div[1]", "/", 0);
         }
 
         protected override string ExtractOneShot()
@@ -98,6 +98,18 @@ namespace MyComicsManagerApi.DataParser
             }
         }
 
+        protected override void SearchSerie(string serie, int tome)
+        {
+            // TODO : One Day...
+            throw new NotImplementedException();
+        }
+
+        protected override void SearchSerieFromUrl(string url, int tome)
+        {
+            // TODO : One Day...
+            throw new NotImplementedException();
+        }
+
         protected override string ExtractTitre()
         {
             if (IsOneShot)
@@ -106,7 +118,7 @@ namespace MyComicsManagerApi.DataParser
             }
             else
             {
-                return ExtractTextValueAndSplitOnSeparator("/html/body/div[1]/section[1]/div/section/h2", ":", 1);
+                return ExtractTextValueAndSplitOnSeparatorFromDocument("/html/body/div[1]/section[1]/div/section/h2", ":", 1);
             }
         }
 
@@ -118,7 +130,7 @@ namespace MyComicsManagerApi.DataParser
             }
             else
             {
-                var tome = ExtractTextValueAndSplitOnSeparator("/html/body/div[1]/section[1]/div/section/h2", ":", 0);
+                var tome = ExtractTextValueAndSplitOnSeparatorFromDocument("/html/body/div[1]/section[1]/div/section/h2", ":", 0);
 
                 // Suppression de tous les caractères sauf les chiffres de 0 à 9
                 Regex regexObj = new Regex(@"[^\d]");
@@ -143,7 +155,7 @@ namespace MyComicsManagerApi.DataParser
             return ExtractedInfo.GetValueOrDefault("Format", "").Split('-').Last().Trim(); // TODO : Risque de plantage !!
         }
 
-        protected override string ExtractURL()
+        protected override string ExtractUrl()
         {
             return FicheUrl;
         }

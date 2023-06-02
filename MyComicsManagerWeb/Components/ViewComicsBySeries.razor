@@ -4,8 +4,12 @@
 @inject LibraryService LibraryService
 @using Serilog
 @using MyComicsManager.Model.Shared.Models
+@using MyComicsManagerWeb.Pages
 
-    <MudStack>        
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudStack>        
         <InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="_ => FetchComics()">
             @foreach (var kvp in _comics)
             {
@@ -15,7 +19,7 @@
                             <MudText Typo="Typo.h6">@kvp.Key</MudText>
                         </CardHeaderContent>
                         <CardHeaderActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" OnClick="() => UpdateComicinfoFromSerieUrl(kvp.Key)"/>
                         </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardContent>
@@ -90,4 +94,22 @@
         
         this.StateHasChanged();
     }
+
+    private async Task UpdateComicinfoFromSerieUrl(string serie)
+    {
+        var parameters = new DialogParameters {{"serie", serie}};
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<DialogComicInfoFormSerieUrl>("Complete the fields", parameters, options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            var fields = (List<string>)result.Data;
+            await ComicService.SearchComicInfoFromUrlAsync(fields[0], fields[1]);
+            Snackbar.Add("Recherche terminée avec succès !", Severity.Success);
+        }
+    }
+
 }

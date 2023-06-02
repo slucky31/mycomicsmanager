@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MyComicsManagerApi.Services;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using Hangfire;
 using MyComicsManager.Model.Shared.Models;
@@ -113,6 +114,15 @@ namespace MyComicsManagerApi.Controllers
             }
 
             return _comicService.Get(id);
+        }
+
+        [HttpGet("UpdateComicsInfoFromSerieUrl/{serie}&{url}")]
+        public IActionResult UpdateComicsInfoFromSerieUrl(string serie, string url)
+        {
+            // TODO : Vérification de l'URL
+            var decodeUrl = WebUtility.UrlDecode(url);
+            _comicService.SearchComicsInfoFromSerieUrl(serie, decodeUrl);
+            return Ok();
         }
         
         [HttpDelete("{id:length(24)}")]

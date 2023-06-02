@@ -12,12 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.CustomSearchAPI.v1" Version="1.58.0.2455" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.16" />
     <PackageReference Include="Microsoft.Azure.CognitiveServices.Vision.ComputerVision" Version="7.0.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.18.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="PdfPig" Version="0.1.7" />
     <PackageReference Include="sharpcompress" Version="0.32.2" />
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
