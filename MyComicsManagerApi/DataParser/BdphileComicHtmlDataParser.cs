@@ -98,6 +98,18 @@ namespace MyComicsManagerApi.DataParser
             }
         }
 
+        protected override void SearchSerie(string serie, int tome)
+        {
+            // TODO : One Day...
+            throw new NotImplementedException();
+        }
+
+        protected override void SearchSerieFromUrl(string url, int tome)
+        {
+            // TODO : One Day...
+            throw new NotImplementedException();
+        }
+
         protected override string ExtractTitre()
         {
             if (IsOneShot)

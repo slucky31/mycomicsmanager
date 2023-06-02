@@ -55,7 +55,7 @@ namespace MyComicsManagerApi.Services
             var book = new Book();
 
             var parser = new BdphileComicHtmlDataParser();
-            var results = parser.Parse(isbn);
+            var results = parser.SearchComicInfoFromIsbn(isbn);
 
             if (results.Count > 0)
             {

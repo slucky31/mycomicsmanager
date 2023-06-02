@@ -32,26 +32,58 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
     protected override void Search(string isbn)
     {
         // Recherche sur Google via API car la recherche sur Bédéthèque est protégée
-        // On recherche un lien qui contient __10000.html
-        FicheUrl = _searchService.SearchLinkFromIsbnAndPattern(isbn, "__10000.html");
-        
-        // Récupération de la page liée à l'ISBN recherché
+        // On recherche un lien qui contient l'isbn
+        SearchSerieDataFromKeyWordAndUrlPattern(isbn);
+        Rank = SearchRankFromIsbn(isbn);
+    }
+    
+    protected override void SearchSerie(string serie, int tome)
+    {
+        // Recherche sur Google via API car la recherche sur Bédéthèque est protégée
+        // On recherche un lien qui contient l'isbn
+        if (ExtractedInfo.Count == 0)
+        {
+            SearchSerieDataFromKeyWordAndUrlPattern(serie);    
+        }
+        Rank = tome;
+    }
+    
+    protected override void SearchSerieFromUrl(string url, int tome)
+    {
+        // Recherche sur Google via API car la recherche sur Bédéthèque est protégée
+        // On recherche un lien qui contient l'isbn
+        if (ExtractedInfo.Count == 0)
+        {
+            FicheUrl = url;
+            ExtractComicDataFromUrl();    
+        }
+        Rank = tome;
+    }
+    
+    private void SearchSerieDataFromKeyWordAndUrlPattern(string keyword)
+    {
+        FicheUrl = _searchService.SearchLinkFromKeywordAndPattern(keyword);
+
+        ExtractComicDataFromUrl();
+    }
+
+    private void ExtractComicDataFromUrl()
+    {
+        // Récupération de la page liée à la série recherchée
         LoadDocument(FicheUrl);
 
         ExtractOneShot();
-        
+
         // Récupération du tableau contenant les informations (les éléments sans valeurs ne sont pas affichés)
         ExtractDataTable();
-
-        Rank = SearchRankFromIsbn(isbn);
     }
 
-    protected int SearchRankFromIsbn(string isbn)
+    private int SearchRankFromIsbn(string isbn)
     {
         var key = ExtractedInfo.FirstOrDefault(x => x.Value == isbn).Key;
         return int.Parse(key.Split("-")[0]);
     }
-    
+
     protected void ExtractDataTable()
     {
         ExtractedInfo.Clear();
@@ -74,9 +106,7 @@ public class BedethequeComicHtmlDataParser : ComicHtmlDataParser
             rank++;
         }
     }
-    
-    
-    
+
     protected override string ExtractColoriste()
     {
         return ExtractedInfo.GetValueOrDefault(Rank+"-Couleurs", "").Trim();

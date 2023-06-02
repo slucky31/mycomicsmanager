@@ -1,0 +1,45 @@
+﻿@using Microsoft.AspNetCore.Components
+@using MyComicsManager.Model.Shared.Models
+
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="@Serie" Label="Serie" Variant="Variant.Text" />
+        <MudTextField @bind-Value="@Url" Label="Url" Variant="Variant.Text" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Ok">Ok</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string Serie { get; set; }
+    
+    public string Url { get; set; }
+    
+    private readonly List<string> _resultList = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void Ok()
+    {
+        _resultList.Add(Serie);
+        _resultList.Add(Url);
+        MudDialog.Close(DialogResult.Ok(_resultList));
+    }
+
+}

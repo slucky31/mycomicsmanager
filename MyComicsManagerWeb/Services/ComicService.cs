@@ -1,6 +1,7 @@
 using System.IO;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -173,6 +174,18 @@ namespace MyComicsManagerWeb.Services {
 
             await using var responseStream = await httpResponse.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<Comic>(responseStream);
+        }
+        
+        public async Task SearchComicInfoFromUrlAsync(string serie, string url)
+        {
+            var urlEncoded = Uri.EscapeDataString(url);
+            
+            using var httpResponse = await _httpClient.GetAsync($"api/Comics/UpdateComicsInfoFromSerieUrl/{serie}&{urlEncoded}");
+
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                Log.Warning("Erreur");
+            }
         }
 
         public async Task ExtractCover(string id)

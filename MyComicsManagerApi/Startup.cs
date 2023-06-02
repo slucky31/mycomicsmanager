@@ -91,7 +91,7 @@ namespace MyComicsManagerApi
             services.AddSingleton<StatisticService>();
             services.AddSingleton<ImportService>();
             services.AddSingleton<ApplicationConfigurationService>();
-            services.AddSingleton<GoogleSearchService>();
+            services.AddSingleton<IGoogleSearchService, GoogleSearchService>();
 
             services.AddControllers().AddNewtonsoftJson(options => options.UseMemberCasing());
 
