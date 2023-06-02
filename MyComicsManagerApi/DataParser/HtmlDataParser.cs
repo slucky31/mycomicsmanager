@@ -82,7 +82,7 @@ namespace MyComicsManagerApi.DataParser
         public string ExtractLinkHref(string patern)
         {
             var nodes = Doc.DocumentNode.SelectNodes("//a[@href]");
-            return nodes.Select(n => n.Attributes["href"].Value).FirstOrDefault(href => href.ToLowerInvariant().Trim().Contains(patern.ToLower().Trim()));
+            return nodes.Select(n => n.Attributes["href"].Value).FirstOrDefault(href => href.ToLowerInvariant().Trim().Contains(patern.ToLowerInvariant().Trim()));
         }
     }
 }
