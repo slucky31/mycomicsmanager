@@ -162,7 +162,7 @@ namespace MyComicsManagerApi.Services
                 // Resize de l'image
                 try
                 {
-                    using var image = Image.Load(destinationPath, out _);
+                    using var image = Image.Load(destinationPath);
                     Rectangle rectangle;
                     switch (comic.CoverType)
                     {
@@ -350,7 +350,7 @@ namespace MyComicsManagerApi.Services
             {
                 Log.Here().Information("[{Index}/{NbFiles}] Conversion du fichier {File}", index++,filesToConvert.Count, file);
                 var webpConvertedFile = Path.ChangeExtension(file, ".webp");
-                using (var image = Image.Load(file, out _))
+                using (var image = Image.Load(file))
                 {
                     try
                     {
