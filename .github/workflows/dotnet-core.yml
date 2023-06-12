@@ -81,7 +81,7 @@ jobs:
 
         - 
             name: Build and push Docker image MyComicsManagerWeb
-            uses: docker/build-push-action@v2
+            uses: docker/build-push-action@v4
             with:
                 context: .
                 file: ./MyComicsManagerWeb/Dockerfile
@@ -119,7 +119,7 @@ jobs:
 
         - 
             name: Build and push Docker image MyComicsManagerApi
-            uses: docker/build-push-action@v2
+            uses: docker/build-push-action@v4
             with:
                 context: .
                 file: ./MyComicsManagerApi/Dockerfile
