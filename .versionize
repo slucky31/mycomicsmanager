@@ -1,7 +1,7 @@
 {
-  "changelogAll": true,
+  "changelogAll": false,
   "changelog": {
-    "header": "My Changelog",
+    "header": "My Comics Manager Changelog",
     "sections": [
       {
         "type": "feat",
@@ -11,7 +11,7 @@
       {
         "type": "fix",
         "section": "🐛 Bug Fixes",
-        "hidden": true
+        "hidden": false
       },
       {
         "type": "perf",
