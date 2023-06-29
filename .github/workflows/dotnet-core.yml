@@ -66,7 +66,7 @@ jobs:
 
         - 
             name: Log in to the Container registry
-            uses: docker/login-action@v1
+            uses: docker/login-action@v2
             with:
                 registry: ghcr.io
                 username: ${{ github.actor }}
@@ -75,13 +75,13 @@ jobs:
         - 
             name: Extract metadata (tags, labels) for Docker
             id: meta
-            uses: docker/metadata-action@v3
+            uses: docker/metadata-action@v4
             with:
                 images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-web
 
         - 
             name: Build and push Docker image MyComicsManagerWeb
-            uses: docker/build-push-action@v2
+            uses: docker/build-push-action@v4
             with:
                 context: .
                 file: ./MyComicsManagerWeb/Dockerfile
@@ -119,7 +119,7 @@ jobs:
 
         - 
             name: Build and push Docker image MyComicsManagerApi
-            uses: docker/build-push-action@v2
+            uses: docker/build-push-action@v4
             with:
                 context: .
                 file: ./MyComicsManagerApi/Dockerfile
