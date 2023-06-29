@@ -1,6 +1,5 @@
 {
   "changelogAll": false,
-  "skipCommit": true,
   "changelog": {
     "header": "My Comics Manager Changelog",
     "sections": [

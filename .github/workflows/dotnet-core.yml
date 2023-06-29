@@ -21,27 +21,49 @@ jobs:
             uses: actions/setup-dotnet@v3
             with:
                 dotnet-version: 6.0.x
+        -
+            name: Install Versionize
+            run: dotnet tool install --global Versionize
+        -
+            name: Setup git
+            run: |
+              git config --local user.email "nicolas.dufaut@gmail.com"
+              git config --local user.name "AutoVersion"              
         - 
             name: MyComicsManagerWeb Install dependencies
             run: dotnet restore "./MyComicsManagerWeb/MyComicsManagerWeb.csproj"
+        -
+            name: MyComicsManagerApi Install dependencies
+            run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.csproj"
+        -
+            name: MyComicsManagerApi Install dependencies
+            run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.csproj"        
+        -
+            name: Versionize Release
+            id: versionize
+            run: versionize --exit-insignificant-commits
+            continue-on-error: true
+        -
+            name: No release required
+            if: steps.versionize.outcome != 'success'
+            run: echo "Skipping Release. No release required."
+        -
+            name: Push changes to GitHub
+            if: steps.versionize.outcome == 'success'
+            uses: ad-m/github-push-action@master
+            with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              branch: ${{ github.ref }}
+              tags: true        
         - 
             name: MyComicsManagerWeb Build
             run: dotnet build "./MyComicsManagerWeb/MyComicsManagerWeb.csproj" --configuration Release --no-restore #-v d : pour log détaillé
         #- 
         #    name: MyComicsManagerWeb Test
-        #    run: dotnet test "./MyComicsManagerWeb/MyComicsManagerWeb.csproj" --no-restore --verbosity normal                   
-        - 
-            name: MyComicsManagerApi Install dependencies
-            run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.csproj"
+        #    run: dotnet test "./MyComicsManagerWeb/MyComicsManagerWeb.csproj" --no-restore --verbosity normal                           
         - 
             name: MyComicsManagerApi Build
-            run: dotnet build "./MyComicsManagerApi/MyComicsManagerApi.csproj" --configuration Release --no-restore
-        #- 
-        #    name: MyComicsManagerApi.Tests Install dependencies
-        #    run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj"
-        #- 
-        #    name: MyComicsManagerApi.Tests Test
-        #    run: dotnet test "./MyComicsManagerApi/MyComicsManagerApi.Tests\MyComicsManagerApiTests.csproj" --no-restore --verbosity normal
+            run: dotnet build "./MyComicsManagerApi/MyComicsManagerApi.csproj" --configuration Release --no-restore        
         - 
             name : coverlet
             run: dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./coverage      
