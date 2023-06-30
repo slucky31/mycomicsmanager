@@ -2,7 +2,7 @@ My Comics Manager Changelog
 <a name="1.3.0"></a>
 ## [1.3.0](https://www.github.com/slucky31/mycomicsmanager-web/releases/tag/v1.3.0) (2023-6-30)
 
-### Other
+### Others
 
 * .2.0: Ajout try - catch ([08ad204](https://www.github.com/slucky31/mycomicsmanager-web/commit/08ad2048c3e4a233fafba6d84b61da8e74a144f0))
 * .gitignore is now working ([bd40924](https://www.github.com/slucky31/mycomicsmanager-web/commit/bd4092439d325d721e369c04ae876593dc687c1f))
