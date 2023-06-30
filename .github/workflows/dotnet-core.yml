@@ -152,26 +152,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         -
-            name: "Create release"
-            if: steps.versionize.outcome == 'success'
-            uses: "actions/github-script@v5"
+            name: Bump version and push tag
+            id: tag_version
+            uses: mathieudutour/github-tag-action@v6.1
             with:
-              github-token: "${{ secrets.GITHUB_TOKEN }}"
-              script: |
-                  try {
-                    const tags_url = context.payload.repository.tags_url + "?per_page=1"
-                    const result = await github.request(tags_url)
-                    const current_tag = result.data[0].name
-                    await github.rest.repos.createRelease({
-                      draft: false,
-                      generate_release_notes: true,
-                      name: current_tag,
-                      owner: context.repo.owner,
-                      prerelease: false,
-                      repo: context.repo.repo,
-                      tag_name: current_tag,
-                    });
-                  } catch (error) {
-                    core.setFailed(error.message);
-                  }
+                github_token: ${{ secrets.GITHUB_TOKEN }}
+        -
+            name: Create a GitHub release
+            uses: ncipollo/release-action@v1
+            with:
+              tag: ${{ steps.tag_version.outputs.new_tag }}
+              name: Release ${{ steps.tag_version.outputs.new_tag }}
+              body: ${{ steps.tag_version.outputs.changelog }}
     
