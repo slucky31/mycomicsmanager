@@ -2,7 +2,10 @@
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
+		<PackageId>MyComicsManagerWeb</PackageId>
 		<Version>1.3.0</Version>
+		<Authors>Nicolas DUFAUT</Authors>
+		<PackageLicenseUrl>https://github.com/slucky31/mycomicsmanager-web/blob/main/LICENSE</PackageLicenseUrl>
 	</PropertyGroup>
 
 	<ItemGroup>

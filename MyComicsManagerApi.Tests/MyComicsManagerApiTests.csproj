@@ -3,8 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <LangVersion>10</LangVersion>
     <Version>1.3.0</Version>
+    <PackageId>MyComicsManagerApi</PackageId>
+    <Version>1.3.0</Version>
+    <Authors>Nicolas DUFAUT</Authors>
+    <PackageLicenseUrl>https://github.com/slucky31/mycomicsmanager-web/blob/main/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
 
   <ItemGroup>
