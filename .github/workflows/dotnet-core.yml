@@ -28,7 +28,7 @@ jobs:
             name: Setup git
             run: |
               git config --local user.email "nicolas.dufaut@gmail.com"
-              git config --local user.name "AutoVersion"              
+              git config --local user.name "AutoVersion"
         - 
             name: MyComicsManagerWeb Install dependencies
             run: dotnet restore "./MyComicsManagerWeb/MyComicsManagerWeb.csproj"
@@ -85,7 +85,6 @@ jobs:
         -
             name : Checkout
             uses: actions/checkout@v3
-
         - 
             name: Log in to the Container registry
             uses: docker/login-action@v2
@@ -93,14 +92,12 @@ jobs:
                 registry: ghcr.io
                 username: ${{ github.actor }}
                 password: ${{ secrets.GITHUB_TOKEN }}
-
         - 
             name: Extract metadata (tags, labels) for Docker
             id: meta
             uses: docker/metadata-action@v4
             with:
                 images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-web
-
         - 
             name: Build and push Docker image MyComicsManagerWeb
             uses: docker/build-push-action@v4
@@ -110,7 +107,6 @@ jobs:
                 push: true
                 tags: ${{ steps.meta.outputs.tags }}
                 labels: ${{ steps.meta.outputs.labels }}
-
 
   docker-api:
     needs: build
@@ -123,7 +119,6 @@ jobs:
         -
             name : Checkout
             uses: actions/checkout@v3
-
         - 
             name: Log in to the Container registry
             uses: docker/login-action@v2
@@ -131,7 +126,6 @@ jobs:
                 registry: ghcr.io
                 username: ${{ github.actor }}
                 password: ${{ secrets.GITHUB_TOKEN }}
-
         - 
             name: Extract metadata (tags, labels) for Docker
             id: meta
