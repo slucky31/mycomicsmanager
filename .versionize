@@ -1,5 +1,5 @@
 {
-  "changelogAll": false,
+  "changelogAll": true,
   "changelog": {
     "header": "My Comics Manager Changelog",
     "sections": [
