@@ -23,9 +23,11 @@ jobs:
                 dotnet-version: 6.0.x
         -
             name: Install Versionize
+            if: ${{ (github.ref == 'refs/heads/main') }}
             run: dotnet tool install --global Versionize
         -
             name: Setup git
+            if: ${{ (github.ref == 'refs/heads/main') }}
             run: |
               git config --local user.email "nicolas.dufaut@gmail.com"
               git config --local user.name "AutoVersion"
@@ -40,16 +42,17 @@ jobs:
             run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.csproj"        
         -
             name: Versionize Release
+            if: ${{ (github.ref == 'refs/heads/main') }}
             id: versionize
             run: versionize --exit-insignificant-commits
             continue-on-error: true
         -
             name: No release required
-            if: steps.versionize.outcome != 'success'
+            if: ${{ (github.ref == 'refs/heads/main') && (steps.versionize.outcome != 'success') }}            
             run: echo "Skipping Release. No release required."
         -
             name: Push changes to GitHub
-            if: steps.versionize.outcome == 'success'
+            if: ${{ (github.ref == 'refs/heads/main') && (steps.versionize.outcome == 'success') }}            
             uses: ad-m/github-push-action@master
             with:
               github_token: ${{ secrets.GITHUB_TOKEN }}
