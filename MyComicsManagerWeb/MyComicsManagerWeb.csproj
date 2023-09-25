@@ -10,13 +10,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
-		<PackageReference Include="GitInfo" Version="2.3.0" />
+		<PackageReference Include="GitInfo" Version="3.3.3" />
 		<PackageReference Include="MudBlazor" Version="6.6.0" />
 		<PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="7.0.0" />
-		<PackageReference Include="Google.Apis.Books.v1" Version="1.60.0.2955" />
+		<PackageReference Include="Google.Apis.Books.v1" Version="1.62.0.2955" />
 	</ItemGroup>
 
 	<ItemGroup>
