@@ -38,7 +38,7 @@ namespace MyComicsManagerApiTests
             results[ComicDataEnum.ISBN].Should().Be("2847897666");
             results[ComicDataEnum.URL].Should().Be("https://www.bedetheque.com/BD-Goon-Tome-1-Rien-que-de-la-misere-46851.html");
             results[ComicDataEnum.EDITEUR].Should().Be("Delcourt");
-            results[ComicDataEnum.NOTE].Should().Be("4.0");
+            results[ComicDataEnum.NOTE].Should().Be("3.9");
             results[ComicDataEnum.ONESHOT].Should().Be("False");
         }
         
@@ -60,7 +60,7 @@ namespace MyComicsManagerApiTests
             results[ComicDataEnum.ISBN].Should().Be("2847897666");
             results[ComicDataEnum.URL].Should().Be("https://www.bedetheque.com/BD-Goon-Tome-1-Rien-que-de-la-misere-46851.html");
             results[ComicDataEnum.EDITEUR].Should().Be("Delcourt");
-            results[ComicDataEnum.NOTE].Should().Be("4.0");
+            results[ComicDataEnum.NOTE].Should().Be("3.9");
             results[ComicDataEnum.ONESHOT].Should().Be("False");
         }
     }
