@@ -83,7 +83,12 @@ namespace MyComicsManagerApi
             });
 
             services.AddSingleton<ComicService>();
-            services.AddSingleton<ILibraryService, LibraryService>();
+
+            // .NET Core DI : ways of passing parameters to constructor
+            // Source : https://stackoverflow.com/questions/53884417/net-core-di-ways-of-passing-parameters-to-constructor
+            services.AddSingleton<ILibraryService>(x =>
+                new LibraryService (mongoClient.GetDatabase(settings.ConnectionString), x.GetRequiredService<ApplicationConfigurationService>(), settings.LibrariesCollectionName)
+            );
             services.AddSingleton<ComicFileService>();
             services.AddSingleton<BookService>();
             services.AddSingleton<ComputerVisionService>();
