@@ -25,12 +25,9 @@ namespace MyComicsManagerApi.Services
             ABSOLUTE_PATH
         }
 
-        public LibraryService(IDatabaseSettings dbSettings, ApplicationConfigurationService applicationConfigurationService)
-        {
-            Log.Here().Debug("settings = {@Settings}", dbSettings);
-            var client = new MongoClient(dbSettings.ConnectionString);
-            var database = client.GetDatabase(dbSettings.DatabaseName);
-            _libraries = database.GetCollection<Library>(dbSettings.LibrariesCollectionName);
+        public LibraryService(IMongoDatabase database, ApplicationConfigurationService applicationConfigurationService, string librariesCollectionName)
+        {            
+            _libraries = database.GetCollection<Library>(librariesCollectionName);
             _applicationConfigurationService = applicationConfigurationService;
         }
 
