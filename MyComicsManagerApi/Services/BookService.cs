@@ -11,9 +11,13 @@ namespace MyComicsManagerApi.Services
     public class BookService
     {
         private static ILogger Log => Serilog.Log.ForContext<BookService>();
-        
+
         private readonly IMongoCollection<Book> _books;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BookService"/> class.
+        /// </summary>
+        /// <param name="dbSettings">The database settings.</param>
         public BookService(IDatabaseSettings dbSettings)
         {
             Log.Here().Debug("settings = {@Settings}", dbSettings);
@@ -22,29 +26,56 @@ namespace MyComicsManagerApi.Services
             _books = database.GetCollection<Book>(dbSettings.BooksCollectionName);
         }
 
+        /// <summary>
+        /// Retrieves all books from the 'Book' collection.
+        /// </summary>
+        /// <returns>A list of all books.</returns>
         public List<Book> Get() =>
             _books.Find(book => true).SortByDescending(book => book.Added).ToList();
 
+        /// <summary>
+        /// Retrieves a book by its ID from the 'Book' collection.
+        /// </summary>
+        /// <param name="id">The ID of the book.</param>
+        /// <returns>The book with the specified ID.</returns>
         public Book Get(string id) =>
             _books.Find(book => book.Id == id).FirstOrDefault();
 
+        /// <summary>
+        /// Creates a new book in the 'Book' collection.
+        /// </summary>
+        /// <param name="bookIn">The book to create.</param>
+        /// <returns>The created book.</returns>
         public Book Create(Book bookIn)
         {
-            // Création de la librairie dans MangoDB
             _books.InsertOne(bookIn);
             return bookIn;
         }
 
-        public void Update(string id, Book bookIn) {
+        /// <summary>
+        /// Updates a book in the 'Book' collection.
+        /// </summary>
+        /// <param name="id">The ID of the book to update.</param>
+        /// <param name="bookIn">The updated book.</param>
+        public void Update(string id, Book bookIn)
+        {
             _books.ReplaceOne(book => book.Id == id, bookIn);
         }
 
+        /// <summary>
+        /// Removes a book from the 'Book' collection.
+        /// </summary>
+        /// <param name="bookIn">The book to remove.</param>
         public void Remove(Book bookIn)
         {
-            // Suppression de la référence en base de données
             _books.DeleteOne(book => book.Id == bookIn.Id);
         }
-        
+
+        /// <summary>
+        /// Searches for comic book information using an ISBN and updates the book record with the retrieved information.
+        /// </summary>
+        /// <param name="isbn">The ISBN to search for.</param>
+        /// <returns>The book with the updated comic book information.</returns>
         public Book SearchComicInfoAndUpdate(string isbn)
         {
             if (string.IsNullOrEmpty(isbn))
@@ -71,18 +102,16 @@ namespace MyComicsManagerApi.Services
                 }
                 else
                 {
-                    Log.Here().Warning("Une erreur est apparue lors de l'analyse du volume : {Tome}",
-                        results[ComicDataEnum.TOME]);
+                    Log.Here().Warning("An error occurred while parsing the volume: {Tome}", results[ComicDataEnum.TOME]);
                 }
             }
             else
             {
                 book.Isbn = isbn;
             }
-            
+
             Update(book.Id, book);
             return book;
         }
-        
     }
 }
