@@ -15,9 +15,12 @@ namespace MyComicsManagerApi.Services
         private static ILogger Log => Serilog.Log.ForContext<LibraryService>();
         
         private readonly IMongoCollection<Library> _libraries;
-        private readonly char[] _charsToTrim = {'/', '\\'};
+       
         private readonly ApplicationConfigurationService _applicationConfigurationService;
-        private readonly Dictionary<string,Dictionary<string, string>> _listOfLibraryFiles = new(); 
+
+        private readonly Dictionary<string,Dictionary<string, string>> _listOfLibraryFiles = new();
+
+        private readonly char[] _charsToTrim = { '/', '\\' };
 
         public enum PathType
         {
