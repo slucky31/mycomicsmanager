@@ -3,7 +3,6 @@ using System.Linq;
 using Google.Apis.CustomSearchAPI.v1.Data;
 using Google.Apis.Services;
 using MyComicsManagerApi.Settings;
-using MyComicsManagerApi.Utils;
 using Serilog;
 
 namespace MyComicsManagerApi.DataParser;

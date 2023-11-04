@@ -1,4 +1,7 @@
 My Comics Manager Changelog
+<a name="1.3.2"></a>
+## [1.3.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v1.3.2) (2023-11-04)
+
 <a name="1.3.0"></a>
 ## [1.3.0](https://www.github.com/slucky31/mycomicsmanager-web/releases/tag/v1.3.0) (2023-6-30)
 

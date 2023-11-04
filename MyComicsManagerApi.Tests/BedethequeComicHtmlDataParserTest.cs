@@ -1,30 +1,27 @@
-﻿using System.IO;
-using Xunit;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-using Moq;
+﻿using FluentAssertions;
 using MyComicsManagerApi.DataParser;
-using MyComicsManagerApi.Settings;
+using NSubstitute;
+using Xunit;
 
 namespace MyComicsManagerApiTests
 {
     public class BedethequeComicHtmlDataParserTest
     {
         private readonly BedethequeComicHtmlDataParser _parser;
-        
-        private readonly Mock<IGoogleSearchService> _mockGoogleSearch;
+
+        private readonly IGoogleSearchService _subGoogleSearch;
 
         public BedethequeComicHtmlDataParserTest()
         {
-            _mockGoogleSearch = new Mock<IGoogleSearchService>();
-            _parser = new BedethequeComicHtmlDataParser(_mockGoogleSearch.Object);
+            _subGoogleSearch = Substitute.For<IGoogleSearchService>();
+            _parser = new BedethequeComicHtmlDataParser(_subGoogleSearch);
         }
 
         [Fact]
         public void Parse()
         {
-            _mockGoogleSearch.Setup(_ => _.SearchLinkFromKeywordAndPattern("2847897666")).Returns("https://www.bedetheque.com/serie-11609-BD-Goon-The-Delcourt__10000.html");
-            
+            _subGoogleSearch.SearchLinkFromKeywordAndPattern("2847897666").Returns("https://www.bedetheque.com/serie-11609-BD-Goon-The-Delcourt__10000.html");
+
             var results = _parser.SearchComicInfoFromIsbn("2847897666");
 
             results.Count.Should().BeGreaterThan(0);
@@ -41,12 +38,12 @@ namespace MyComicsManagerApiTests
             results[ComicDataEnum.NOTE].Should().Be("3.9");
             results[ComicDataEnum.ONESHOT].Should().Be("False");
         }
-        
+
         [Fact]
         public void ParseSerie()
         {
-            _mockGoogleSearch.Setup(_ => _.SearchLinkFromKeywordAndPattern("The goon")).Returns("https://www.bedetheque.com/serie-11609-BD-Goon-The-Delcourt__10000.html");
-            
+            _subGoogleSearch.SearchLinkFromKeywordAndPattern("The goon").Returns("https://www.bedetheque.com/serie-11609-BD-Goon-The-Delcourt__10000.html");
+
             var results = _parser.SearchComicInfoFromSerie("The goon", 1);
 
             results.Count.Should().BeGreaterThan(0);

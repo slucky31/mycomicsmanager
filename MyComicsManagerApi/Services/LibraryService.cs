@@ -15,9 +15,12 @@ namespace MyComicsManagerApi.Services
         private static ILogger Log => Serilog.Log.ForContext<LibraryService>();
         
         private readonly IMongoCollection<Library> _libraries;
-        private readonly char[] _charsToTrim = {'/', '\\'};
+       
         private readonly ApplicationConfigurationService _applicationConfigurationService;
-        private readonly Dictionary<string,Dictionary<string, string>> _listOfLibraryFiles = new(); 
+
+        private readonly Dictionary<string,Dictionary<string, string>> _listOfLibraryFiles = new();
+
+        private readonly char[] _charsToTrim = { '/', '\\' };
 
         public enum PathType
         {
@@ -25,12 +28,9 @@ namespace MyComicsManagerApi.Services
             ABSOLUTE_PATH
         }
 
-        public LibraryService(IDatabaseSettings dbSettings, ApplicationConfigurationService applicationConfigurationService)
-        {
-            Log.Here().Debug("settings = {@Settings}", dbSettings);
-            var client = new MongoClient(dbSettings.ConnectionString);
-            var database = client.GetDatabase(dbSettings.DatabaseName);
-            _libraries = database.GetCollection<Library>(dbSettings.LibrariesCollectionName);
+        public LibraryService(IMongoDatabase database, ApplicationConfigurationService applicationConfigurationService, string librariesCollectionName)
+        {            
+            _libraries = database.GetCollection<Library>(librariesCollectionName);
             _applicationConfigurationService = applicationConfigurationService;
         }
 

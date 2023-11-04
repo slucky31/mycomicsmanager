@@ -21,60 +21,26 @@ jobs:
         with:
           dotnet-version: 6.0.x
       -
-        name: Install Versionize
-        if: ${{ (github.ref == 'refs/heads/main') }}
-        run: dotnet tool install --global Versionize
-      -
-        name: Setup git
-        if: ${{ (github.ref == 'refs/heads/main') }}
-        run: |
-          git config --local user.email "nicolas.dufaut@gmail.com"
-          git config --local user.name "AutoVersion"
-      -
         name: MyComicsManagerWeb Install dependencies
         run: dotnet restore "./MyComicsManagerWeb/MyComicsManagerWeb.csproj"
       -
         name: MyComicsManagerApi Install dependencies
         run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.csproj"
       -
-        name: MyComicsManagerApi Install dependencies
-        run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.csproj"
-      -
-        name: Versionize Release
-        if: ${{ (github.ref == 'refs/heads/main') }}
-        id: versionize
-        run: versionize --exit-insignificant-commits
-        continue-on-error: true
-      -
-        name: No release required
-        if: ${{ (github.ref == 'refs/heads/main') && (steps.versionize.outcome != 'success') }}
-        run: echo "Skipping Release. No release required."
-      -
-        name: Push changes to GitHub
-        if: ${{ (github.ref == 'refs/heads/main') && (steps.versionize.outcome == 'success') }}
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
-          tags: true
-      -
         name: MyComicsManagerWeb Build
-        run: dotnet build "./MyComicsManagerWeb/MyComicsManagerWeb.csproj" --configuration Release --no-restore #-v d : pour log détaillé
-      #- 
-      #    name: MyComicsManagerWeb Test
-      #    run: dotnet test "./MyComicsManagerWeb/MyComicsManagerWeb.csproj" --no-restore --verbosity normal                           
+        run: dotnet build "./MyComicsManagerWeb/MyComicsManagerWeb.csproj" --configuration Release --no-restore #-v d : pour log détaillé                          
       -
         name: MyComicsManagerApi Build
         run: dotnet build "./MyComicsManagerApi/MyComicsManagerApi.csproj" --configuration Release --no-restore
       -
         name : coverlet
         run: dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./coverage
-        #- 
-        #    name: Run codacy-coverage-reporter
-        #    uses: codacy/codacy-coverage-reporter-action@v1
-        #    with:
-        #      project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
-        #      coverage-reports: coverage/**/coverage.cobertura.xml
+      - 
+        name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
+          coverage-reports: coverage/**/coverage.cobertura.xml
   
   docker-web:
     needs: build
@@ -144,23 +110,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-  
-  release:
-    needs: [docker-api, docker-web]
-    if: ${{ (github.ref == 'refs/heads/main') }}
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Get Previous tag
-        id: previoustag
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
-        with:
-          fallback: 1.0.0 # Optional fallback tag to use when no tag can be found
-      -
-        name: Create a GitHub release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ steps.previoustag.outputs.tag  }}
-          name: Release ${{ steps.previoustag.outputs.tag  }}
-          bodyFile: "CHANGELOG.md"
     
