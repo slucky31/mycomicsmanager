@@ -19,19 +19,18 @@ jobs:
         name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 6.0.x
+          dotnet-version: 8.0.x
       -
-        name: MyComicsManagerWeb Install dependencies
-        run: dotnet restore "./MyComicsManagerWeb/MyComicsManagerWeb.csproj"
+        name: Setup Testcontainers Cloud Client
+        uses: atomicjar/testcontainers-cloud-setup-action@v1
+        with:
+          token: ${{ secrets.TC_CLOUD_TOKEN }}      
       -
         name: MyComicsManagerApi Install dependencies
-        run: dotnet restore "./MyComicsManagerApi/MyComicsManagerApi.csproj"
-      -
-        name: MyComicsManagerWeb Build
-        run: dotnet build "./MyComicsManagerWeb/MyComicsManagerWeb.csproj" --configuration Release --no-restore #-v d : pour log détaillé                          
+        run: dotnet restore ".src/WebAPI/WebAPI.csproj"                            
       -
         name: MyComicsManagerApi Build
-        run: dotnet build "./MyComicsManagerApi/MyComicsManagerApi.csproj" --configuration Release --no-restore
+        run: dotnet build ".src/WebAPI/WebAPI.csproj" --configuration Release --no-restore
       -
         name : coverlet
         run: dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./coverage
@@ -41,44 +40,9 @@ jobs:
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
           coverage-reports: coverage/**/coverage.cobertura.xml
-  
-  docker-web:
-    needs: build
-    if: ${{ (github.ref == 'refs/heads/main') }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      -
-        name : Checkout
-        uses: actions/checkout@v4
-      -
-        name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-web
-      -
-        name: Build and push Docker image MyComicsManagerWeb
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./MyComicsManagerWeb/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
 
   docker-api:
     needs: build
-    if: ${{ (github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -106,7 +70,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./MyComicsManagerApi/Dockerfile
+          file: ./src/WebAPI/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
