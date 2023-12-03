@@ -27,10 +27,10 @@ jobs:
           token: ${{ secrets.TC_CLOUD_TOKEN }}      
       -
         name: MyComicsManagerApi Install dependencies
-        run: dotnet restore ".src/WebAPI/WebAPI.csproj"                            
+        run: dotnet restore "./src/WebAPI/WebAPI.csproj"                            
       -
         name: MyComicsManagerApi Build
-        run: dotnet build ".src/WebAPI/WebAPI.csproj" --configuration Release --no-restore
+        run: dotnet build "./src/WebAPI/WebAPI.csproj" --configuration Release --no-restore
       -
         name : coverlet
         run: dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./coverage
@@ -74,4 +74,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-    
