@@ -9,8 +9,6 @@ namespace Domain.Libraries;
 
 public class Library : Entity<LibraryId>
 {
-    public Library()
-    { }
 
     public string Name { get; private set; } = String.Empty;
 

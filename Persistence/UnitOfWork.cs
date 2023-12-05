@@ -12,7 +12,7 @@ public class UnitOfWork : IUnitOfWork
         _dbContext = dbContext;
     }
 
-    public Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    public Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         UpdateAuditableEntities();
         return _dbContext.SaveChangesAsync(cancellationToken);
