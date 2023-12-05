@@ -9,24 +9,13 @@ namespace Persistence;
 public static class ProjectDependencyInjection
 {
 
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
-    {
-        var connectionString = "mongodb+srv://api-rest-dev:cyKVB7Jc2oKsympb@dev.dvd91.azure.mongodb.net/";
-        var dataBaseName = "Dev";
-
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, string dataBaseName)
+    {            
         var mongoDataBase = new MongoClient(connectionString).GetDatabase(dataBaseName);
-        var dbContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseMongoDB(mongoDataBase.Client, mongoDataBase.DatabaseNamespace.DatabaseName);
 
-        /*
-        using (var db = new ApplicationDbContext(dbContextOptions.Options))
-        {
-            var library = Library.Create("Mongo");
-            db.Libraries.Add(library);
-            db.SaveChanges();
-        }
-        */
-               
+        // TODO
+        ApplicationDbContext.Create(mongoDataBase);
+
         return services;
     }
 }

@@ -10,9 +10,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCarter();
 
+var connectionString = "mongodb+srv://api-rest-dev:cyKVB7Jc2oKsympb@dev.dvd91.azure.mongodb.net/";
+var dataBaseName = "Dev";
+
 builder.Services
     .AddApplication()
-    .AddInfrastructure()
+    .AddInfrastructure(connectionString, dataBaseName)
     .AddPresentation();
 
 builder.Host.UseSerilog((context, configuration) =>
