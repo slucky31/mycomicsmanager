@@ -23,6 +23,7 @@ public class LibrariesMinimalApi : ICarterModule
         app.MapPut("libraries/{id:guid}", async (Guid id, [FromBody] UpdateLibraryRequest request, ISender sender) =>
         {
             var command = new UpdateLibraryCommand(new LibraryId(id), request.Name);
+            
 
             await sender.Send(command);
 
@@ -41,7 +42,7 @@ public class LibrariesMinimalApi : ICarterModule
             catch (LibraryNotFoundException ex)
             {
                 return Results.NotFound(ex.Message);
-            }                       
+            }
         });
     }
 }

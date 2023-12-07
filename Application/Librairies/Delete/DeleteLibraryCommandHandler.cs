@@ -1,6 +1,6 @@
-﻿using Domain.Libraries;
-using Persistence.Primitives;
-using Persistence;
+﻿using Application.Data;
+using Domain.Libraries;
+using Domain.Primitives;
 using MediatR;
 
 namespace Application.Librairies.Delete;

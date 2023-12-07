@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Domain.Primitives;
+using Application.Data;
 
 namespace Persistence;
 public class UnitOfWork : IUnitOfWork

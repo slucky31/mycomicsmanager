@@ -1,9 +1,7 @@
-﻿using Application.Librairies.Delete;
+﻿using Application.Data;
 using Domain.Libraries;
+using Domain.Primitives;
 using MediatR;
-using Persistence.Primitives;
-using Persistence;
-using System.Net.Http.Headers;
 
 namespace Application.Librairies.Update;
 

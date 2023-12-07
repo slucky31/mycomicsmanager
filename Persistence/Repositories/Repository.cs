@@ -1,6 +1,6 @@
-﻿using Domain.Primitives;
+﻿using Application;
+using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
-using Persistence.Primitives;
 
 namespace Persistence.Repositories;
 public class Repository<TEntity, TEntityId> : IRepository<TEntity, TEntityId>

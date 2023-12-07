@@ -12,24 +12,12 @@ using MongoDB.EntityFrameworkCore.Extensions;
 namespace Persistence;
 
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     public DbSet<Library> Libraries { get; set; } 
     
     public ApplicationDbContext(DbContextOptions options) : base(options)
     {
-    }
-
-    public static ApplicationDbContext? Create(IMongoDatabase database)
-    {
-        if (database == null)
-        {
-            return null;
-        }
-
-        return new(new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseMongoDB(database.Client, database.DatabaseNamespace.DatabaseName)
-            .Options);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

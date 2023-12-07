@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Domain.Libraries;
-using Persistence.Primitives;
-using Persistence;
+using Domain.Primitives;
+using Application.Data;
 
 namespace Application.Librairies.Create;
 
