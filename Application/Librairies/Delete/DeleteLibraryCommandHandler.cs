@@ -6,10 +6,10 @@ using MediatR;
 namespace Application.Librairies.Delete;
 internal sealed class DeleteLibraryCommandHandler : IRequestHandler<DeleteLibraryCommand>
 {
-    private readonly IRepository<Library, LibraryId> _librayRepository;
+    private readonly IRepository<Library, string> _librayRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteLibraryCommandHandler(IRepository<Library, LibraryId> librayRepository, IUnitOfWork unitOfWork)
+    public DeleteLibraryCommandHandler(IRepository<Library, string> librayRepository, IUnitOfWork unitOfWork)
     {
         _librayRepository = librayRepository;
         _unitOfWork = unitOfWork;

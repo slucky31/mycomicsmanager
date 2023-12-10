@@ -1,4 +1,5 @@
 ﻿using Domain.Libraries;
+using MongoDB.Bson;
 
 namespace Application;
 
@@ -8,7 +9,7 @@ public class LibraryNotFoundException : Exception
     {
     }
 
-    public LibraryNotFoundException(LibraryId libraryId) : base($"The library with the ID = {libraryId.Value} was not found")
+    public LibraryNotFoundException(LibraryId libraryId) : base($"The library with the ID = {libraryId.Id} was not found")
     {
     }
 

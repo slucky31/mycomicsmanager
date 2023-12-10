@@ -10,7 +10,7 @@ public abstract class Entity<TEntityId> : IAuditable
     protected Entity()
     { }
 
-    public TEntityId? Id { get; init; }
+    public TEntityId? Id { get; set; }
     public DateTime CreatedOnUtc { get ; set; }
     public DateTime? ModifiedOnUtc { get; set; }
 }

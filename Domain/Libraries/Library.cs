@@ -1,14 +1,10 @@
-﻿// <copyright file="Library.cs" company="PlaceholderCompany">
-// Copyright (c) PlaceholderCompany. All rights reserved.
-// </copyright>
-
-using Domain.Primitives;
+﻿using Domain.Primitives;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Domain.Libraries;
 
-public class Library : Entity<LibraryId>
-{
+public class Library : Entity<string> {
 
     public string Name { get; private set; } = String.Empty;
 
@@ -16,7 +12,7 @@ public class Library : Entity<LibraryId>
     {
         var library = new Library
         {
-            Id = new LibraryId(Guid.NewGuid()),
+            Id = Guid.NewGuid().ToString(),
             Name = name
         };
         return library;

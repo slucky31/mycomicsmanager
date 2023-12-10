@@ -7,10 +7,10 @@ namespace Application.Librairies.Update;
 
 internal sealed class UpdateLibraryCommandHandler : IRequestHandler<UpdateLibraryCommand>
 {
-    private readonly IRepository<Library, LibraryId> _librayRepository;
+    private readonly IRepository<Library, string> _librayRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateLibraryCommandHandler(IRepository<Library, LibraryId> librayRepository, IUnitOfWork unitOfWork)
+    public UpdateLibraryCommandHandler(IRepository<Library, string> librayRepository, IUnitOfWork unitOfWork)
     {
         _librayRepository = librayRepository;
         _unitOfWork = unitOfWork;

@@ -7,10 +7,10 @@ namespace Application.Librairies.Create;
 
 internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibraryCommand>
 {
-    private readonly IRepository<Library, LibraryId> _librayRepository;
+    private readonly IRepository<Library, string> _librayRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateLibraryCommandHandler(IRepository<Library, LibraryId> librayRepository, IUnitOfWork unitOfWork)
+    public CreateLibraryCommandHandler(IRepository<Library, string> librayRepository, IUnitOfWork unitOfWork)
     {
         _librayRepository = librayRepository;
         _unitOfWork = unitOfWork;
