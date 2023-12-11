@@ -4,8 +4,11 @@ using Microsoft.OpenApi.Models;
 using Persistence;
 using Presentation;
 using Serilog;
+using WebAPI.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(nameof(MongoDbOptions)));
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -22,12 +25,15 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddCarter();
 
-var connectionString = "mongodb+srv://api-rest-dev:xJjXHAYdkDzITEX3@dev.dvd91.azure.mongodb.net/";
-var dataBaseName = "Dev";
+var options = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
+if (options is null)
+{
+    return;
+}
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure(connectionString, dataBaseName)
+    .AddInfrastructure(options.ConnectionString, options.DatabaseName)
     .AddPresentation();
 
 builder.Host.UseSerilog((context, configuration) =>
