@@ -6,7 +6,4 @@
     <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>    
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="SonarAnalyzer.CSharp" PrivateAssets="all" Condition="$(MsBuildProjectExtension) == '.csproj'" />
-  </ItemGroup>
 </Project>

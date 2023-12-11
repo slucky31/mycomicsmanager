@@ -5,7 +5,7 @@ using Application.Data;
 
 namespace Application.Librairies.Create;
 
-internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibraryCommand>
+internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibraryCommand, Result<string>>
 {
     private readonly IRepository<Library, string> _librayRepository;
     private readonly IUnitOfWork _unitOfWork;
@@ -16,13 +16,15 @@ internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibrar
         _unitOfWork = unitOfWork;
     }
 
-    public async Task Handle(CreateLibraryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<string>> Handle(CreateLibraryCommand command, CancellationToken cancellationToken)
     {
-        var library = Library.Create(request.Name);
+        var library = Library.Create(command.Name);
         
         _librayRepository.Add(library);
          
-        await _unitOfWork.SaveChangesAsync(cancellationToken);                
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return library.Id;        
     }
     
 }

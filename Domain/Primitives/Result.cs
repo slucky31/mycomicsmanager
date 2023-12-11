@@ -36,4 +36,6 @@ public readonly struct Result<TValue>
     public static Result<TValue> Failure(TError error) => new(error);
 
     public static implicit operator Result<TValue>(TError error) => Result<TValue>.Failure(error);
+
+    public static implicit operator Result<TValue>(TValue value) => Result<TValue>.Success(value);
 }
