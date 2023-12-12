@@ -1,5 +1,4 @@
-﻿using Application;
-using Domain.Primitives;
+﻿using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Repositories;

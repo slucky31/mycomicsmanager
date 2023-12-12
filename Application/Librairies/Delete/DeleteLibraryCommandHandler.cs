@@ -1,10 +1,11 @@
 ﻿using Application.Data;
+using Domain.Errors;
 using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
 
 namespace Application.Librairies.Delete;
-internal sealed class DeleteLibraryCommandHandler : IRequestHandler<DeleteLibraryCommand>
+internal sealed class DeleteLibraryCommandHandler : IRequestHandler<DeleteLibraryCommand, Result>
 {
     private readonly IRepository<Library, string> _librayRepository;
     private readonly IUnitOfWork _unitOfWork;
@@ -15,17 +16,19 @@ internal sealed class DeleteLibraryCommandHandler : IRequestHandler<DeleteLibrar
         _unitOfWork = unitOfWork;
     }
 
-    public async Task Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {
         var library = await _librayRepository.GetByIdAsync(request.libraryId);
 
         if (library is null) 
         {
-            throw new LibraryNotFoundException(request.libraryId);
+            return LibrariesErrors.NotFound;
         }
 
         _librayRepository.Remove(library);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
     }
 }

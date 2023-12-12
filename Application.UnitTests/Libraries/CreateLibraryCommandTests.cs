@@ -4,6 +4,7 @@ using Domain.Libraries;
 using Domain.Primitives;
 using FluentAssertions;
 using NSubstitute;
+using NSubstitute.ReceivedExtensions;
 
 namespace Application.UnitTests.Libraries;
 public class CreateLibraryCommandTests
@@ -32,7 +33,24 @@ public class CreateLibraryCommandTests
         var result = await _handler.Handle(Command, default);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull(); // TODO : Guard
+        if (result.Value is not null)
+        {
+            result.Value.Name.Should().Be(Command.Name);
+        }
+    }
+
+    [Fact]
+    public async Task Handle_Should_ExecuteSaveChangeAsyncOnce()
+    {
+        // Arrange
+        _librayRepositoryMock.Add(Arg.Any<Library>());
+
+        // Act
+        await _handler.Handle(Command, default);
+
+        // Assert
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
 }

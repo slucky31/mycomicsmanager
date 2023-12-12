@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application;
+﻿using Application;
 using Domain.Libraries;
-using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
-using MongoDB.Bson.Serialization;
-using MongoDB.Driver;
 using MongoDB.EntityFrameworkCore.Extensions;
 
 namespace Persistence;

@@ -79,27 +79,5 @@ public class ArchitectureTests
 
         // Assert
         testResult.IsSuccessful.Should().BeTrue();
-    }
-
-    [Fact]
-    public void Presentation_Should_Not_HaveDependencyOnOtherProjects()
-    {
-        // Arrange
-        var assembly = typeof(Presentation.ProjectDependencyInjection).Assembly;
-
-        var otherProjects = new[]
-        {
-            PersistenceNamespace,
-            WebApiNamespace,
-        };
-
-        // Act
-        var testResult = Types.InAssembly(assembly)
-            .ShouldNot()
-            .HaveDependencyOnAll(otherProjects)
-            .GetResult();
-
-        // Assert
-        testResult.IsSuccessful.Should().BeTrue();
-    }
+    }    
 }

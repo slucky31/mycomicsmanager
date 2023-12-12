@@ -2,7 +2,6 @@
 using Carter;
 using Microsoft.OpenApi.Models;
 using Persistence;
-using Presentation;
 using Serilog;
 using WebAPI.Options;
 
@@ -28,13 +27,13 @@ builder.Services.AddCarter();
 var options = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
 if (options is null)
 {
+    // TODO Log erreur
     return;
 }
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure(options.ConnectionString, options.DatabaseName)
-    .AddPresentation();
+    .AddInfrastructure(options.ConnectionString, options.DatabaseName);
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));

@@ -1,6 +1,6 @@
 ﻿using Domain.Libraries;
+using Domain.Primitives;
 using MediatR;
-using MongoDB.Bson;
 
 namespace Application.Librairies.Delete;
-public record DeleteLibraryCommand(string libraryId) : IRequest;
+public record DeleteLibraryCommand(string libraryId) : IRequest<Result>;
