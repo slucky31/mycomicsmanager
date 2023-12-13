@@ -45,7 +45,7 @@ public class Result<TValue> : ResultBase<Result<TValue>>, IResult<TValue>
     private Result(TError error)
     {
         Value = default;
-        IsSuccess = true;
+        IsSuccess = false;
         Error = error;
     }
 

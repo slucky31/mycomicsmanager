@@ -1,5 +1,4 @@
 ﻿using Application.Data;
-using Domain.Errors;
 using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;

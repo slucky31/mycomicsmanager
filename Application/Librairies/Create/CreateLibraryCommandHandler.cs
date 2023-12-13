@@ -7,24 +7,27 @@ namespace Application.Librairies.Create;
 
 internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibraryCommand, Result<Library>>
 {
-    private readonly IRepository<Library, string> _librayRepository;
+    private readonly IRepository<Library, string> _libraryRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateLibraryCommandHandler(IRepository<Library, string> librayRepository, IUnitOfWork unitOfWork)
+    public CreateLibraryCommandHandler(IRepository<Library, string> libraryRepository, IUnitOfWork unitOfWork)
     {
-        _librayRepository = librayRepository;
+        _libraryRepository = libraryRepository;
         _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<Library>> Handle(CreateLibraryCommand command, CancellationToken cancellationToken)
     {
-        var library = Library.Create(command.Name);
+        // Test si Name est nul
         
-        _librayRepository.Add(library);
-         
+        var library = Library.Create(command.Name);
+
+        // TODO: Test uniqueness of the name
+
+        _libraryRepository.Add(library);
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return library;        
+        return Result<Library>.Success(library);
     }
-    
 }

@@ -1,4 +1,6 @@
 ﻿
+using Domain.Interfaces;
+
 namespace Domain.Primitives;
 public abstract class Entity<TEntityId> : IAuditable
 {    

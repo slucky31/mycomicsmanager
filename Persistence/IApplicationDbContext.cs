@@ -1,11 +1,9 @@
 ﻿using Domain.Libraries;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
-namespace Application;
+namespace Persistence;
 
 public interface IApplicationDbContext
 {
     DbSet<Library> Libraries { get; set; }
-    // TODO : Move to Persistence
 }

@@ -23,8 +23,8 @@ public static class ProjectDependencyInjection
         services.AddScoped<UnitOfWork>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UnitOfWork>());
 
-        services.AddScoped<LibraryRepository>();
-        services.AddScoped<IRepository<Library, string>>(sp => sp.GetRequiredService<LibraryRepository>());
+        services.AddScoped<Repository<Library, string>>();
+        services.AddScoped<IRepository<Library, string>>(sp => sp.GetRequiredService<Repository<Library, string>>());
         
         return services;
     }

@@ -1,6 +1,5 @@
 ﻿using Application.Data;
 using Application.Librairies.Delete;
-using Domain.Errors;
 using Domain.Libraries;
 using Domain.Primitives;
 using FluentAssertions;

@@ -1,5 +1,6 @@
 ﻿using Application.Data;
 using Application.Librairies.Create;
+using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
 using FluentAssertions;
@@ -31,13 +32,13 @@ public class CreateLibraryCommandTests
 
         // Act
         var result = await _handler.Handle(Command, default);
+        Guard.Against.Null(result.Value);
 
         // Assert
-        result.Value.Should().NotBeNull(); // TODO : Guard
-        if (result.Value is not null)
-        {
-            result.Value.Name.Should().Be(Command.Name);
-        }
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Name.Should().Be(Command.Name);
+        _librayRepositoryMock.Received(1).Add(Arg.Any<Library>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
     }
 
     [Fact]

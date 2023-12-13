@@ -30,10 +30,4 @@ public abstract class ResultBase : IResultBase
     
 }
 
-public abstract class ResultBase<TResult> : ResultBase
-        where TResult : ResultBase<TResult>
-{
-   
-}
-
-
+public abstract class ResultBase<TResult> : ResultBase where TResult : ResultBase<TResult>;

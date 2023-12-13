@@ -30,8 +30,7 @@ public class LibrariesMinimalApi : ICarterModule
                 return Results.Ok(await sender.Send(new GetLibraryQuery(id)));
             }
             catch (ArgumentNullException ex) 
-            {
-                // TODO
+            {                
                 return Results.NotFound(ex.Message);
             }
 
@@ -41,7 +40,6 @@ public class LibrariesMinimalApi : ICarterModule
         {
             var command = new UpdateLibraryCommand(id, request.Name);
             
-
             await sender.Send(command);
 
             return Results.NoContent();
