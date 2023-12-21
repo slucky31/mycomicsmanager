@@ -48,8 +48,7 @@ public class GetLibraryCommandTests
     [Fact]
     public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
     {
-        // Arrange
-        var libraryDto = LibraryDto.Create(Library.Create("test", libraryId));
+        // Arrange        
         _librayRepositoryMock.GetByIdAsync(libraryId).ReturnsNull();
         var Query = new GetLibraryQuery(libraryId);
 
