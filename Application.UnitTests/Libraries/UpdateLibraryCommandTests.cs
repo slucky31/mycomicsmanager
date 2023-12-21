@@ -37,6 +37,8 @@ public class UpdateLibraryCommandTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesErrors.NotFound);
+        _librayRepositoryMock.Received(0).Update(Arg.Any<LibraryDto>());
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(CancellationToken.None);
     }
 
     [Fact]
@@ -50,6 +52,8 @@ public class UpdateLibraryCommandTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        _librayRepositoryMock.Received(1).Update(Arg.Any<LibraryDto>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
     }
 
 }

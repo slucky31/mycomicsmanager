@@ -37,6 +37,8 @@ public class DeleteLibraryCommandTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesErrors.NotFound);
+        _librayRepositoryMock.Received(0).Remove(Arg.Any<LibraryDto>());
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(CancellationToken.None);
     }
 
     [Fact]
@@ -50,6 +52,9 @@ public class DeleteLibraryCommandTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        _librayRepositoryMock.Received(1).Remove(Arg.Any<LibraryDto>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        
     }
 
 }
