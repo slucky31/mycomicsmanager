@@ -24,7 +24,7 @@ public class Repository<TEntity, TEntityId> : IRepository<TEntity, TEntityId>
         return await DbContext.Set<TEntity>().SingleOrDefaultAsync(p => p.Id == objId);
     }
 
-    public async Task<List<TEntity>> GetAllAsync()
+    public async Task<List<TEntity>> GetListAsync()
     {
         return await DbContext.Set<TEntity>().ToListAsync();
     }

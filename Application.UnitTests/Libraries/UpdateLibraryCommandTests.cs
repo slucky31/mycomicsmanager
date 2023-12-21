@@ -5,7 +5,7 @@ using NSubstitute;
 using Application.Interfaces;
 using MongoDB.Bson;
 using Domain.Dto;
-using Application.Librairies.Update;
+using Application.Libraries.Update;
 
 namespace Application.UnitTests.Libraries;
 public class UpdateLibraryCommandTests

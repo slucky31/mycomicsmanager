@@ -1,4 +1,5 @@
-﻿using Domain.Dto;
+﻿using Application.Interfaces;
+using Domain.Dto;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.EntityFrameworkCore.Extensions;
 

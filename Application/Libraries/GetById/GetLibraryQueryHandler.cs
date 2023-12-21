@@ -4,7 +4,7 @@ using MediatR;
 using Application.Interfaces;
 using Domain.Dto;
 
-namespace Application.Librairies.Get;
+namespace Application.Libraries.GetById;
 
 internal sealed class GetLibraryQueryHandler : IRequestHandler<GetLibraryQuery, Result<Library>>
 {

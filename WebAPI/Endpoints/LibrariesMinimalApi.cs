@@ -1,9 +1,10 @@
 ﻿using Amazon.Util;
 using Application;
-using Application.Librairies.Create;
-using Application.Librairies.Delete;
-using Application.Librairies.Get;
-using Application.Librairies.Update;
+using Application.Libraries.Create;
+using Application.Libraries.Delete;
+using Application.Libraries.Get;
+using Application.Libraries.GetById;
+using Application.Libraries.Update;
 using Carter;
 using Domain.Libraries;
 using MediatR;
@@ -21,6 +22,21 @@ public class LibrariesMinimalApi : ICarterModule
             await sender.Send(command);
 
             return Results.Ok();
+        });
+
+        app.MapGet("libraries", async (
+            string? searchTerm,
+            string? sortColumn,
+            string? sortOrder,
+            int page,
+            int pageSize,
+            ISender sender) =>
+        {
+            var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize);
+
+            var libraries = await sender.Send(query);
+
+            return Results.Ok(libraries);
         });
 
         app.MapGet("libraries/{id}", async (string id, ISender sender) =>

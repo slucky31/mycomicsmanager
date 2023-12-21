@@ -1,15 +1,15 @@
 ﻿using Application.Data;
-using Application.Librairies.Create;
+using Application.Libraries.Create;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using FluentAssertions;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Application.Interfaces;
-using Application.Librairies.Get;
 using Domain.Dto;
 using MongoDB.Bson;
 using NSubstitute.ReturnsExtensions;
+using Application.Libraries.GetById;
 
 namespace Application.UnitTests.Libraries;
 public class GetLibraryCommandTests

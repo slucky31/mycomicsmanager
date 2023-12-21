@@ -4,6 +4,7 @@ using Carter;
 using Microsoft.OpenApi.Models;
 using Persistence;
 using Serilog;
+using WebAPI;
 using WebAPI.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,9 @@ builder.Services
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -44,6 +48,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
+
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 

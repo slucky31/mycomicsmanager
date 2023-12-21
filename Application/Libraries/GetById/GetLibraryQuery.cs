@@ -2,7 +2,7 @@
 using Domain.Primitives;
 using MediatR;
 
-namespace Application.Librairies.Get;
+namespace Application.Libraries.GetById;
 public record GetLibraryQuery(LibraryId Id) : IRequest<Result<Library>>;
 
 public record LibraryResponse(

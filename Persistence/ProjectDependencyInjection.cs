@@ -18,7 +18,7 @@ public static class ProjectDependencyInjection
                 .UseMongoDB(connectionString, dataBaseName)
                 .EnableDetailedErrors(true)
         );
-        services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<IApplicationDbContext>(sp => (IApplicationDbContext)sp.GetRequiredService<ApplicationDbContext>());
 
         services.AddScoped<UnitOfWork>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UnitOfWork>());

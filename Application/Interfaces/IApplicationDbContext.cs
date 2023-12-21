@@ -1,7 +1,7 @@
 ﻿using Domain.Dto;
 using Microsoft.EntityFrameworkCore;
 
-namespace Persistence;
+namespace Application.Interfaces;
 
 public interface IApplicationDbContext
 {

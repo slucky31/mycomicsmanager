@@ -1,5 +1,5 @@
 ﻿using Application.Data;
-using Application.Librairies.Create;
+using Application.Libraries.Create;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using FluentAssertions;
