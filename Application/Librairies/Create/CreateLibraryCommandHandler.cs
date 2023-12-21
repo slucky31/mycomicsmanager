@@ -2,15 +2,17 @@
 using Domain.Libraries;
 using Domain.Primitives;
 using Application.Data;
+using Application.Interfaces;
+using Domain.Dto;
 
 namespace Application.Librairies.Create;
 
 internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibraryCommand, Result<Library>>
 {
-    private readonly IRepository<Library, string> _libraryRepository;
+    private readonly IRepository<LibraryDto, LibraryId> _libraryRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateLibraryCommandHandler(IRepository<Library, string> libraryRepository, IUnitOfWork unitOfWork)
+    public CreateLibraryCommandHandler(IRepository<LibraryDto, LibraryId> libraryRepository, IUnitOfWork unitOfWork)
     {
         _libraryRepository = libraryRepository;
         _unitOfWork = unitOfWork;
@@ -18,16 +20,16 @@ internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibrar
 
     public async Task<Result<Library>> Handle(CreateLibraryCommand command, CancellationToken cancellationToken)
     {
-        // Test si Name est nul
+        // TODO : Test si Name est nul
         
-        var library = Library.Create(command.Name);
+        var libraryDto = LibraryDto.Create(Library.Create(command.Name));
 
         // TODO: Test uniqueness of the name
 
-        _libraryRepository.Add(library);
+        _libraryRepository.Add(libraryDto);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result<Library>.Success(library);
+        return libraryDto.ToLibrary();
     }
 }

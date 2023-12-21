@@ -2,14 +2,16 @@
 using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
+using Application.Interfaces;
+using Domain.Dto;
 
 namespace Application.Librairies.Delete;
 internal sealed class DeleteLibraryCommandHandler : IRequestHandler<DeleteLibraryCommand, Result>
 {
-    private readonly IRepository<Library, string> _librayRepository;
+    private readonly IRepository<LibraryDto, LibraryId> _librayRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteLibraryCommandHandler(IRepository<Library, string> librayRepository, IUnitOfWork unitOfWork)
+    public DeleteLibraryCommandHandler(IRepository<LibraryDto, LibraryId> librayRepository, IUnitOfWork unitOfWork)
     {
         _librayRepository = librayRepository;
         _unitOfWork = unitOfWork;
@@ -17,7 +19,7 @@ internal sealed class DeleteLibraryCommandHandler : IRequestHandler<DeleteLibrar
 
     public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {
-        var library = await _librayRepository.GetByIdAsync(request.libraryId);
+        var library = await _librayRepository.GetByIdAsync(request.Id);
 
         if (library is null) 
         {

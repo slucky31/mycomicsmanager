@@ -1,4 +1,4 @@
-﻿namespace Domain.Primitives;
+﻿namespace Application.Interfaces;
 
 public interface IRepository<TEntity, TEntityId>
 {
@@ -12,3 +12,4 @@ public interface IRepository<TEntity, TEntityId>
 
     void Remove(TEntity entity);
 }
+

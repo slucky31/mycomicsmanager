@@ -1,32 +1,32 @@
 ﻿using Application.Data;
-using Application.Librairies.Delete;
 using Domain.Libraries;
 using FluentAssertions;
 using NSubstitute;
 using Application.Interfaces;
 using MongoDB.Bson;
 using Domain.Dto;
+using Application.Librairies.Update;
 
 namespace Application.UnitTests.Libraries;
-public class DeleteLibraryCommandTests
+public class UpdateLibraryCommandTests
 {
-    private static DeleteLibraryCommand Command = new(new LibraryId(new ObjectId()));
-    private static LibraryDto library = LibraryDto.Create(Library.Create("test"));
+    private static UpdateLibraryCommand Command = new(new LibraryId(new ObjectId()), "library");
+    private static LibraryDto library = LibraryDto.Create(Library.Create("library"));
 
-    private readonly DeleteLibraryCommandHandler _handler;
+    private readonly UpdateLibraryCommandHandler _handler;
     private readonly IRepository<LibraryDto, LibraryId> _librayRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
 
-    public DeleteLibraryCommandTests()
+    public UpdateLibraryCommandTests()
     {
         _librayRepositoryMock = Substitute.For<IRepository<LibraryDto, LibraryId>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
-        _handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock);
+        _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock);
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenLibraryIsNull()
+    public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(Command.Id).Returns((LibraryDto?)null);

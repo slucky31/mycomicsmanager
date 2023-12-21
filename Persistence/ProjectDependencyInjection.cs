@@ -1,7 +1,7 @@
-﻿using Application;
-using Application.Data;
+﻿using Application.Data;
+using Domain.Dto;
+using Application.Interfaces;
 using Domain.Libraries;
-using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Repositories;
@@ -23,9 +23,9 @@ public static class ProjectDependencyInjection
         services.AddScoped<UnitOfWork>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UnitOfWork>());
 
-        services.AddScoped<Repository<Library, string>>();
-        services.AddScoped<IRepository<Library, string>>(sp => sp.GetRequiredService<Repository<Library, string>>());
-        
+        services.AddScoped<Repository<LibraryDto, LibraryId>>();
+        services.AddScoped<IRepository<LibraryDto, LibraryId>>(sp => sp.GetRequiredService<Repository<LibraryDto, LibraryId>>());
+
         return services;
     }
 }

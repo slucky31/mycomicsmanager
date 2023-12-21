@@ -3,9 +3,9 @@ using Domain.Primitives;
 using MediatR;
 
 namespace Application.Librairies.Get;
-public record GetLibraryQuery(string LibraryId) : IRequest<Result<Library>>;
+public record GetLibraryQuery(LibraryId Id) : IRequest<Result<Library>>;
 
 public record LibraryResponse(
-    string Id,
+    LibraryId Id,
     string Name
 );

@@ -3,4 +3,4 @@ using Domain.Primitives;
 using MediatR;
 
 namespace Application.Librairies.Delete;
-public record DeleteLibraryCommand(string libraryId) : IRequest<Result>;
+public record DeleteLibraryCommand(LibraryId Id) : IRequest<Result>;

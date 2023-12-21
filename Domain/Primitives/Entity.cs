@@ -1,18 +1,20 @@
 ﻿
+using Ardalis.GuardClauses;
 using Domain.Interfaces;
 
 namespace Domain.Primitives;
 public abstract class Entity<TEntityId> : IAuditable
 {    
-    protected Entity(TEntityId id)
-    {  
-        Id = id;
+    public TEntityId? Id { get; protected set; }
+    public DateTime CreatedOnUtc { get ;  set; }
+    public DateTime? ModifiedOnUtc { get;  set; }
+
+    public void CloneAuditable(IAuditable auditable)
+    {
+        Guard.Against.Null(auditable);
+        CreatedOnUtc = auditable.CreatedOnUtc;
+        ModifiedOnUtc = auditable.ModifiedOnUtc;
     }
 
-    protected Entity()
-    { }
 
-    public TEntityId? Id { get; set; }
-    public DateTime CreatedOnUtc { get ; set; }
-    public DateTime? ModifiedOnUtc { get; set; }
 }

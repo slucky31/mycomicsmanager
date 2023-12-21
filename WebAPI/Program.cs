@@ -1,4 +1,5 @@
 ﻿using Application;
+using Ardalis.GuardClauses;
 using Carter;
 using Microsoft.OpenApi.Models;
 using Persistence;
@@ -25,11 +26,7 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddCarter();
 
 var options = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
-if (options is null)
-{
-    // TODO Log erreur
-    return;
-}
+Guard.Against.Null(options);
 
 builder.Services
     .AddApplication()

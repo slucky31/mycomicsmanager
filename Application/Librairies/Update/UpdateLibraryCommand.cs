@@ -1,7 +1,9 @@
-﻿using MediatR;
+﻿using Domain.Libraries;
+using Domain.Primitives;
+using MediatR;
 
 namespace Application.Librairies.Update;
 
-public record UpdateLibraryCommand (string libraryId, string Name) : IRequest;
+public record UpdateLibraryCommand (LibraryId Id, string Name) : IRequest<Result>;
 
 public record UpdateLibraryRequest(string Name);

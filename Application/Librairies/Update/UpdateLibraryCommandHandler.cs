@@ -2,33 +2,37 @@
 using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
+using Application.Interfaces;
+using Domain.Dto;
 
 namespace Application.Librairies.Update;
 
-internal sealed class UpdateLibraryCommandHandler : IRequestHandler<UpdateLibraryCommand>
+internal sealed class UpdateLibraryCommandHandler : IRequestHandler<UpdateLibraryCommand, Result>
 {
-    private readonly IRepository<Library, string> _librayRepository;
+    private readonly IRepository<LibraryDto, LibraryId> _librayRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateLibraryCommandHandler(IRepository<Library, string> librayRepository, IUnitOfWork unitOfWork)
+    public UpdateLibraryCommandHandler(IRepository<LibraryDto, LibraryId> librayRepository, IUnitOfWork unitOfWork)
     {
         _librayRepository = librayRepository;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
     {
-        var library = await _librayRepository.GetByIdAsync(request.libraryId);
+        var libraryDto = await _librayRepository.GetByIdAsync(request.Id);
 
-        if (library is null)
+        if (libraryDto is null)
         {
-            throw new LibraryNotFoundException(request.libraryId);
+            return LibrariesErrors.NotFound;
         }
 
-        library.Update(request.Name);
+        libraryDto.Update(request.Name);
         
-        _librayRepository.Update(library);
+        _librayRepository.Update(libraryDto);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
     }
 }

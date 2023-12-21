@@ -1,27 +1,28 @@
 ﻿using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+using Application.Interfaces;
+using Domain.Dto;
 
 namespace Application.Librairies.Get;
 
 internal sealed class GetLibraryQueryHandler : IRequestHandler<GetLibraryQuery, Result<Library>>
 {
-    private readonly IRepository<Library, string> _librayRepository;
+    private readonly IRepository<LibraryDto, LibraryId> _librayRepository;
 
-    public GetLibraryQueryHandler(IRepository<Library, string> librayRepository)
+    public GetLibraryQueryHandler(IRepository<LibraryDto, LibraryId> librayRepository)
     {
         _librayRepository = librayRepository;
     }
 
     public async Task<Result<Library>> Handle(GetLibraryQuery request, CancellationToken cancellationToken)
     {
-        var library = await _librayRepository.GetByIdAsync(request.LibraryId);
-        if (library is null)
+        var libraryDto = await _librayRepository.GetByIdAsync(request.Id);
+        if (libraryDto is null)
         {
             return LibrariesErrors.NotFound;
         }
 
-        return library;
+        return libraryDto.ToLibrary();
     }
 }

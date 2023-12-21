@@ -1,9 +1,9 @@
-﻿using Domain.Libraries;
+﻿using Domain.Dto;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
 
 public interface IApplicationDbContext
 {
-    DbSet<Library> Libraries { get; set; }
+    DbSet<LibraryDto> Libraries { get; set; }
 }

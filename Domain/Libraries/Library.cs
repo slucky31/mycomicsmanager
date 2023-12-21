@@ -1,23 +1,22 @@
 ﻿using Domain.Primitives;
+using MongoDB.Bson;
 
 namespace Domain.Libraries;
 
-public class Library : Entity<string> {
+public class Library : Entity<LibraryId> {
 
-    public string Name { get; private set; } = String.Empty;
+    public string Name { get; protected set; } = String.Empty;
 
-    public static Library Create(string name)
+    public static Library Create(string name, LibraryId? id = null)
     {
         var library = new Library
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = id ?? new LibraryId(new ObjectId()),
             Name = name
         };
         return library;
     }
 
-    public void Update(string name)
-    {
-        Name = name;
-    }
 }
+
+public record LibraryId(ObjectId Id) : StronglyObjectIdTypedId(Id);
