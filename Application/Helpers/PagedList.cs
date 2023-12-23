@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Collections.ObjectModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Helpers;
 
 public class PagedList<T>
 {
-    private PagedList(List<T> items, int page, int pageSize, int totalCount)
+    private PagedList(Collection<T> items, int page, int pageSize, int totalCount)
     {
         Items = items;
         Page = page;
@@ -12,7 +13,7 @@ public class PagedList<T>
         TotalCount = totalCount;
     }
 
-    public List<T> Items { get;  }
+    public Collection<T> Items { get;  }
 
     public int Page { get; }
 

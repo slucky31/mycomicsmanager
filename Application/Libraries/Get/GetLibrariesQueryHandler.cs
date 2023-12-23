@@ -25,13 +25,14 @@ internal sealed class GetLibrariesQueryHandler : IRequestHandler<GetLibrariesQue
             librariesDtoQuery = librariesDtoQuery.Where(l => l.Name.Contains(request.SearchTerm));
         }
 
-        Expression<Func<LibraryDto, object>> keySelector = request.SortColumn?.ToLowerInvariant() switch
+        Expression<Func<LibraryDto, object>> keySelector = request.SortColumn?.ToUpperInvariant() switch
         {
-            "name" => Library => Library.Name,            
+            "name" => Library => Library.Name,
+            "id" => Library => Library.Id,
             _ => Library => Library.Id
         };
 
-        if (request.SortOrder?.ToLower() == "desc")
+        if (request.SortOrder?.ToUpperInvariant() == "desc")
         {
             librariesDtoQuery = librariesDtoQuery.OrderByDescending(keySelector);
         }
