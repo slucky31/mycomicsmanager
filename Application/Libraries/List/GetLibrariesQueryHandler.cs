@@ -6,7 +6,7 @@ using MediatR;
 
 // Source : https://www.youtube.com/watch?v=X8zRvXbirMU
 
-namespace Application.Libraries.Get;
+namespace Application.Libraries.List;
 internal sealed class GetLibrariesQueryHandler : IRequestHandler<GetLibrariesQuery, PagedList<LibraryDto>>
 {
     private readonly IApplicationDbContext _context;
