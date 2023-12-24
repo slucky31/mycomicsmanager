@@ -16,7 +16,6 @@ using MongoDB.Driver.Core.Configuration;
 namespace Application.IntegrationTests;
 public class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private IConfiguration? _configuration;
     private MongoDbOptions? _mongoDbOptions;
 
     Task IAsyncLifetime.InitializeAsync()
@@ -27,14 +26,14 @@ public class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsync
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
 
-        builder.ConfigureAppConfiguration((context, conf) =>
+        builder.ConfigureAppConfiguration((_, conf) =>
         {
             // expand default config
             conf.AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"));
             conf.AddEnvironmentVariables();
 
             // here we can "compile" the settings. Api.Setup will do the same, it doesn't matter.
-            _configuration = conf.Build();
+            var _configuration = conf.Build();
 
             _mongoDbOptions = _configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
         });

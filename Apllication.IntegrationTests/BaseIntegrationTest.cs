@@ -7,8 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Application.IntegrationTests;
 
 public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>
-{
-    private readonly IServiceScope _scope;
+{    
     protected readonly ISender Sender;
     protected readonly IApplicationDbContext Context;
     protected readonly IUnitOfWork UnitOfWork;
@@ -16,7 +15,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
         Guard.Against.Null(factory);
-        _scope = factory.Services.CreateScope();
+        var _scope = factory.Services.CreateScope();
 
         Sender = _scope.ServiceProvider.GetRequiredService<ISender>();
 
