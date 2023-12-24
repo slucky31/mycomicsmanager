@@ -63,17 +63,17 @@ public class LibrariesMinimalApi : ICarterModule
         });
 
         app.MapDelete("libraries/{id}", async (string id, ISender sender) =>
-        {
-            try
-            {
-                await sender.Send(new DeleteLibraryCommand(new LibraryId(new ObjectId(id))));
+        {            
+            var result = await sender.Send(new DeleteLibraryCommand(new LibraryId(new ObjectId(id))));
 
+            if (result.IsSuccess)
+            {
                 return Results.NoContent();
             }
-            catch (LibraryNotFoundException ex)
+            else
             {
-                return Results.NotFound(ex.Message);
-            }
+                return Results.NotFound();
+            }                                        
         });
     }
 }

@@ -22,7 +22,7 @@ jobs:
           dotnet-version: 8.0.x     
       - 
         name: App Settings Variable Substitution
-        uses: microsoft/variable-substitution@v1
+        uses: im-open/variable-substitution@v2.0.5
         with:
           files: './WebAPI/appsettings.json'
         env:
