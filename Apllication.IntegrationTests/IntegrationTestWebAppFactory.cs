@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence;
 using WebAPI.Options;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Configuration;
 
 // Source : https://www.youtube.com/watch?v=tj5ZCtvgXKY&t=358s
 // Source 2 : https://stackoverflow.com/questions/69990675/change-config-values-in-appsettings-json-githubactions
@@ -17,9 +19,8 @@ public class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsync
     private IConfiguration? _configuration;
     private MongoDbOptions? _mongoDbOptions;
 
-    public Task InitializeAsync()
+    Task IAsyncLifetime.InitializeAsync()
     {
-        // TODO : delete previous tests db
         return Task.CompletedTask;
     }
 
@@ -46,10 +47,8 @@ public class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsync
             {
                 services.Remove(descriptor);
             }
-
             
             Guard.Against.Null(_mongoDbOptions);
-
             var databaseName = _mongoDbOptions.DatabaseName + "_tests_" + DateTimeOffset.Now.ToString("yyyyMMddHHmmss");
 
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -60,8 +59,16 @@ public class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsync
         });
     }
 
-    Task IAsyncLifetime.DisposeAsync()
-    {
-        return Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync()
+    {        
+        Guard.Against.Null(_mongoDbOptions);
+        var client = new MongoClient(_mongoDbOptions.ConnectionString);
+
+        var databases = client.ListDatabaseNames().ToList();        
+        var databaseToDelete = databases.Where(item => item.Contains("db_tests_")).ToList();
+        foreach (var database in databaseToDelete)
+        {
+            await client.DropDatabaseAsync(database);
+        }
     }
 }
