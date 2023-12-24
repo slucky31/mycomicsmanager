@@ -17,9 +17,9 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Description = "Carter Sample API",
+        Description = "MCM API",
         Version = "v1",
-        Title = "A Carter API to manage Actors/Films/Crew etc"
+        Title = "An API to manage CBZ comic books"
     });
 
 });
