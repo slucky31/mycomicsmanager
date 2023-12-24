@@ -159,9 +159,17 @@ csharp_style_expression_bodied_local_functions = false:silent
 ###############################
 # C# Code Quality             #
 ###############################
+
+# CA1000: Do not declare static members on generic types
+dotnet_diagnostic.CA1000.severity = none
+
+# CA1707: Identifiers should not contain underscores
+dotnet_diagnostic.CA1707.severity = none
+
+# CA2007: Consider calling ConfigureAwait on the awaited task
+dotnet_diagnostic.CA2007.severity = none
 dotnet_code_quality.CA2007.exclude_async_void_methods = true
 dotnet_code_quality.CA2007.skip_async_void_methods = true
 
-# CA2007: Consider calling ConfigureAwait on the awaited task
-dotnet_diagnostic.CA2007.severity = suggestion
-dotnet_diagnostic.CA1707.severity = none
+# IDE0290: Identifiers should not contain underscores
+dotnet_diagnostic.IDE0290.severity = none
