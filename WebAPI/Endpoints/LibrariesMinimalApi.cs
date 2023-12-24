@@ -32,7 +32,7 @@ public class LibrariesMinimalApi : ICarterModule
             int pageSize,
             ISender sender) =>
         {
-            var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize);
+            var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize); ;
 
             var libraries = await sender.Send(query);
 

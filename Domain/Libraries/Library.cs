@@ -1,4 +1,5 @@
-﻿using Domain.Primitives;
+﻿using Domain.Dto;
+using Domain.Primitives;
 using MongoDB.Bson;
 
 namespace Domain.Libraries;
@@ -11,7 +12,7 @@ public class Library : Entity<LibraryId> {
     {
         var library = new Library
         {
-            Id = new LibraryId(new ObjectId()),
+            Id = new LibraryId(ObjectId.GenerateNewId()),
             Name = name
         };
         return library;
@@ -26,6 +27,8 @@ public class Library : Entity<LibraryId> {
         };
         return library;
     }
+
+
 }
 
 public record LibraryId(ObjectId Id) : StronglyObjectIdTypedId(Id);
