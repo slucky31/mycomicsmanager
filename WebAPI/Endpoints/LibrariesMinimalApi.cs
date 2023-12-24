@@ -2,7 +2,7 @@
 using Application;
 using Application.Libraries.Create;
 using Application.Libraries.Delete;
-using Application.Libraries.List;
+using Application.Libraries.Get;
 using Application.Libraries.GetById;
 using Application.Libraries.Update;
 using Carter;
@@ -32,7 +32,7 @@ public class LibrariesMinimalApi : ICarterModule
             int pageSize,
             ISender sender) =>
         {
-            var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize);
+            var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize); ;
 
             var libraries = await sender.Send(query);
 

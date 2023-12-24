@@ -63,9 +63,8 @@ public class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsync
         Guard.Against.Null(_mongoDbOptions);
         var client = new MongoClient(_mongoDbOptions.ConnectionString);
 
-        // TODO : Use ASync ... avec iterator...
         var databases = client.ListDatabaseNames().ToList();        
-        var databaseToDelete = databases.Where(item => item.Contains("db_tests_", StringComparison.InvariantCultureIgnoreCase)).ToList();
+        var databaseToDelete = databases.Where(item => item.Contains("db_tests_")).ToList();
         foreach (var database in databaseToDelete)
         {
             await client.DropDatabaseAsync(database);

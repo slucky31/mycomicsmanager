@@ -8,9 +8,9 @@ namespace Application.IntegrationTests;
 
 public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>
 {    
-    protected ISender Sender {  get; }
-    protected  IApplicationDbContext Context {  get; }
-    protected  IUnitOfWork UnitOfWork {  get; }
+    protected readonly ISender Sender;
+    protected readonly IApplicationDbContext Context;
+    protected readonly IUnitOfWork UnitOfWork;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {

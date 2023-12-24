@@ -2,7 +2,6 @@
 using MongoDB.Bson;
 using Domain.Dto;
 using Application.Interfaces;
-using Ardalis.GuardClauses;
 
 
 namespace Persistence.Repositories;
@@ -20,7 +19,7 @@ public class Repository<TEntity, TEntityId> : IRepository<TEntity, TEntityId>
     public async Task<TEntity?> GetByIdAsync(TEntityId id)
     {
         // TODO : check if id = null
-        Guard.Against.Null(id);
+        
         var objId = new ObjectId(id.ToString());
         return await DbContext.Set<TEntity>().SingleOrDefaultAsync(p => p.Id == objId);
     }
