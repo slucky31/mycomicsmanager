@@ -14,7 +14,7 @@ using MongoDB.Driver.Core.Configuration;
 // Source 2 : https://stackoverflow.com/questions/69990675/change-config-values-in-appsettings-json-githubactions
 
 namespace Application.IntegrationTests;
-public class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsyncLifetime
+public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsyncLifetime
 {
     private MongoDbOptions? _mongoDbOptions;
 
@@ -25,7 +25,7 @@ public class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsync
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-
+        Guard.Against.Null(builder);
         builder.ConfigureAppConfiguration((_, conf) =>
         {
             // expand default config
@@ -63,8 +63,9 @@ public class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsync
         Guard.Against.Null(_mongoDbOptions);
         var client = new MongoClient(_mongoDbOptions.ConnectionString);
 
+        // TODO : manage Async and iterator
         var databases = client.ListDatabaseNames().ToList();        
-        var databaseToDelete = databases.Where(item => item.Contains("db_tests_")).ToList();
+        var databaseToDelete = databases.Where(item => item.Contains("db_tests_", StringComparison.InvariantCultureIgnoreCase)).ToList();
         foreach (var database in databaseToDelete)
         {
             await client.DropDatabaseAsync(database);

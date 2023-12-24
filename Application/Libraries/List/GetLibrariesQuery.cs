@@ -4,7 +4,7 @@ using Application.Libraries.GetById;
 using Domain.Dto;
 using MediatR;
 
-namespace Application.Libraries.Get;
+namespace Application.Libraries.List;
 public record GetLibrariesQuery(
     string? SearchTerm, 
     string? SortColumn, 

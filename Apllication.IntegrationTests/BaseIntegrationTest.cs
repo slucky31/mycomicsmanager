@@ -8,19 +8,17 @@ namespace Application.IntegrationTests;
 
 public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>
 {    
-    protected readonly ISender Sender;
-    protected readonly IApplicationDbContext Context;
-    protected readonly IUnitOfWork UnitOfWork;
+    protected ISender Sender { get; }
+    protected IApplicationDbContext Context { get; }
+    protected IUnitOfWork UnitOfWork { get; }
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
         Guard.Against.Null(factory);
-        var _scope = factory.Services.CreateScope();
-
+        
+        using var _scope = factory.Services.CreateScope();
         Sender = _scope.ServiceProvider.GetRequiredService<ISender>();
-
         Context = _scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
-
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
     }
 }

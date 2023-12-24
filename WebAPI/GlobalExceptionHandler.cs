@@ -14,7 +14,7 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
     
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Exceptionoccured:{message}", exception.Message);
+        _logger.LogError(exception, "Exceptionoccured:{Message}", exception.Message);
 
         var problemDetails = new ProblemDetails
         {
