@@ -28,6 +28,8 @@ public class Result : ResultBase<Result>
 
     public static implicit operator Result(TError error) => Result.Failure(error);
 
+    public static Result<TError> ToResult(TError error) => Result<TError>.Failure(error);
+
 }
 
 public class Result<TValue> : ResultBase<Result<TValue>>, IResult<TValue>
@@ -56,4 +58,8 @@ public class Result<TValue> : ResultBase<Result<TValue>>, IResult<TValue>
     public static implicit operator Result<TValue>(TError error) => Result<TValue>.Failure(error);
 
     public static implicit operator Result<TValue>(TValue value) => Result<TValue>.Success(value);
+
+    public static Result<TValue> ToResult(TValue value) => Result<TValue>.Success(value);
+
+    public static Result<TValue> ToResult(TError error) => Result<TValue>.Failure(error);
 }

@@ -9,6 +9,7 @@ using Persistence;
 using WebAPI.Options;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Configuration;
+using System.Globalization;
 
 // Source : https://www.youtube.com/watch?v=tj5ZCtvgXKY&t=358s
 // Source 2 : https://stackoverflow.com/questions/69990675/change-config-values-in-appsettings-json-githubactions
@@ -48,7 +49,7 @@ public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>,
             }
             
             Guard.Against.Null(_mongoDbOptions);
-            var databaseName = _mongoDbOptions.DatabaseName + "_tests_" + DateTimeOffset.Now.ToString("yyyyMMddHHmmss");
+            var databaseName = _mongoDbOptions.DatabaseName + "_tests_" + DateTimeOffset.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
 
             services.AddDbContext<ApplicationDbContext>(options =>
             options
@@ -64,8 +65,9 @@ public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>,
         var client = new MongoClient(_mongoDbOptions.ConnectionString);
 
         // TODO : manage Async and iterator
-        var databases = client.ListDatabaseNames().ToList();        
-        var databaseToDelete = databases.Where(item => item.Contains("db_tests_", StringComparison.InvariantCultureIgnoreCase)).ToList();
+        var databases = await client.ListDatabaseNamesAsync();
+        var databasesNames = await databases.ToListAsync();
+        var databaseToDelete = databasesNames.Where(item => item.Contains("db_tests_", StringComparison.InvariantCultureIgnoreCase)).ToList();
         foreach (var database in databaseToDelete)
         {
             await client.DropDatabaseAsync(database);

@@ -4,7 +4,7 @@ namespace Application.Helpers;
 
 public class PagedList<T>
 {
-    private PagedList(List<T> items, int page, int pageSize, int totalCount)
+    private PagedList(IReadOnlyCollection<T> items, int page, int pageSize, int totalCount)
     {
         Items = items;
         Page = page;
@@ -12,7 +12,7 @@ public class PagedList<T>
         TotalCount = totalCount;
     }
 
-    public List<T> Items { get;  }
+    public IReadOnlyCollection<T> Items { get;  }
 
     public int Page { get; }
 

@@ -168,8 +168,9 @@ dotnet_diagnostic.CA1707.severity = none
 
 # CA2007: Consider calling ConfigureAwait on the awaited task
 dotnet_diagnostic.CA2007.severity = none
-dotnet_code_quality.CA2007.exclude_async_void_methods = true
-dotnet_code_quality.CA2007.skip_async_void_methods = true
+
+# CA1848: For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+dotnet_diagnostic.CA1848.severity = none
 
 # IDE0290: Identifiers should not contain underscores
 dotnet_diagnostic.IDE0290.severity = none

@@ -3,8 +3,6 @@ using Application.Interfaces;
 using Ardalis.GuardClauses;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Reflection.Metadata;
 
 namespace Application.IntegrationTests;
 
@@ -14,7 +12,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
     protected ISender Sender { get; }
     protected IApplicationDbContext Context { get; }
     protected IUnitOfWork UnitOfWork { get; }
-    private bool disposed = false;
+    private bool disposed;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {

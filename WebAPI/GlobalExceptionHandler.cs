@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI;
 
+#pragma warning disable CA1812 // Avoid uninstantiated internal classes
 internal sealed class GlobalExceptionHandler : IExceptionHandler
+#pragma warning restore CA1812 // Avoid uninstantiated internal classes
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
 
@@ -14,7 +16,7 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
     
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Exceptionoccured:{Message}", exception.Message);
+        _logger.LogError(exception, "Exceptionoccured: {Message}", exception.Message);
 
         var problemDetails = new ProblemDetails
         {
