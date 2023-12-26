@@ -33,15 +33,7 @@ jobs:
       -
         name: MyComicsManagerApi Build
         run: dotnet build "./WebAPI/WebAPI.csproj" --configuration Release --no-restore
-      -
-        name : coverlet
-        run: dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./coverage
-      - 
-        name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@v1
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
-          coverage-reports: coverage/**/coverage.cobertura.xml
+
 
   sonar:
     needs: build
@@ -94,12 +86,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          $branch = git branch --show-current
-          Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  branch is $branch !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"slucky31_mycomicsmanager" /o:"slucky31" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.coverage.exclusions="**Test*.cs" /d:sonar.branch.name="$branch"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"slucky31_mycomicsmanager" /o:"slucky31" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.coverage.exclusions="**Test*.cs"
           dotnet tool install --global dotnet-coverage
           dotnet build "./WebAPI/WebAPI.csproj" --configuration Release --no-incremental
-          dotnet-coverage collect "dotnet test --configuration Release --verbosity normal --no-build --no-restore" -f xml -o "coverage.xml"
+          dotnet-coverage collect "dotnet test --configuration Release --verbosity normal" -f xml -o "coverage.xml"
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   docker-api:
