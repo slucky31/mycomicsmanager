@@ -94,10 +94,12 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"slucky31_mycomicsmanager" /o:"slucky31" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-          dotnet restore "./WebAPI/WebAPI.csproj"
-          dotnet build "./WebAPI/WebAPI.csproj" --configuration Release --no-restore
-          dotnet test --configuration Release --verbosity normal --collect "Code Coverage"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"slucky31_mycomicsmanager" /o:"slucky31" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+          #dotnet restore "./WebAPI/WebAPI.csproj"
+          dotnet tool install --global dotnet-coverage
+          dotnet build "./WebAPI/WebAPI.csproj" --configuration Release --no-incremental
+          dotnet-coverage collect "dotnet test --configuration Release --verbosity normal" -f xml -o "coverage.xml"
+          # dotnet test --configuration Release --verbosity normal --collect "Code Coverage"
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   docker-api:
