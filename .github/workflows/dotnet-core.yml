@@ -2,19 +2,19 @@ name: .NET Core
 
 on:
   push:
-    branches: [ main, develop, feature/* ]
+    branches: [ main ]
   pull_request:
     branches: [ main, develop, feature/* ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
+    steps:      
       -
         name : Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0      
       -
         name: Setup .NET Core
         uses: actions/setup-dotnet@v4
@@ -42,6 +42,65 @@ jobs:
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
           coverage-reports: coverage/**/coverage.cobertura.xml
+
+  sonar:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'zulu'
+      -
+        name : Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~\sonar\cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache SonarCloud scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v3
+        with:
+          path: .\.sonar\scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
+      - name: Install SonarCloud scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        shell: powershell
+        run: |
+          New-Item -Path .\.sonar\scanner -ItemType Directory
+          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+      -
+        name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x     
+      - 
+        name: App Settings Variable Substitution
+        uses: im-open/variable-substitution@v2.0.5
+        with:
+          files: './WebAPI/appsettings.json'
+        env:
+          MongoDbOptions.ConnectionString: ${{ secrets.MONGODBOPTIONS_CONNECTIONSTRING }}          
+      -
+        name: MyComicsManagerApi Install dependencies
+        run: dotnet restore "./WebAPI/WebAPI.csproj"                            
+      - name: Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"slucky31_mycomicsmanager" /o:"slucky31" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          dotnet build "./WebAPI/WebAPI.csproj" --configuration Release --no-restore
+          dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./coverage
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   docker-api:
     needs: build
