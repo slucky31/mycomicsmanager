@@ -74,18 +74,12 @@ jobs:
         name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x     
-      - 
-        name: App Settings Variable Substitution
-        uses: im-open/variable-substitution@v2.0.5
-        with:
-          files: './WebAPI/appsettings.json'
-        env:
-          MongoDbOptions.ConnectionString: ${{ secrets.MONGODBOPTIONS_CONNECTIONSTRING }}                                          
+          dotnet-version: 8.0.x           
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          MongoDbOptions__ConnectionString: ${{ secrets.MONGODBOPTIONS_CONNECTIONSTRING }}
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"slucky31_mycomicsmanager" /o:"slucky31" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.coverage.exclusions="**Test*.cs" /d:sonar.dotnet.excludeTestProjects=true
@@ -93,7 +87,7 @@ jobs:
           dotnet build "./WebAPI/WebAPI.csproj" --configuration Release --no-incremental
           dotnet-coverage collect "dotnet test --configuration Release --verbosity normal" -f xml -o "coverage.xml"
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-
+         
   docker-api:
     needs: sonar
     if: ${{ (github.ref == 'refs/heads/main') }}
