@@ -26,16 +26,11 @@ jobs:
       -
         name: Api Build
         run: dotnet build "./WebAPI/WebAPI.csproj" --configuration Release --no-restore
-      - 
-        name: App Settings Variable Substitution
-        uses: im-open/variable-substitution@v2.0.5
-        with:
-          files: './WebAPI/appsettings.json'
-        env:
-          MongoDbOptions.ConnectionString: ${{ secrets.MONGODBOPTIONS_CONNECTIONSTRING }}
       -
         name: Api Test
         run: dotnet test --configuration Release
+        env:        
+          MongoDbOptions__ConnectionString: ${{ secrets.MONGODBOPTIONS_CONNECTIONSTRING }}
 
   sonar:
     needs: build
