@@ -12,7 +12,7 @@ WORKDIR /src
 COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
 RUN dotnet restore "./WebAPI/./WebAPI.csproj"
 RUN echo $(ls -R)
-COPY ./WebAPI ./WebAPI
+COPY . .
 WORKDIR /src/WebAPI
 RUN dotnet build "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
 
