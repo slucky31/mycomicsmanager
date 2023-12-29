@@ -3,7 +3,6 @@
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0-jammy-arm64v8 AS build
 WORKDIR /source
-
 # copy csproj and restore as distinct layers
 COPY WebAPI/*.csproj .
 RUN dotnet restore
@@ -11,7 +10,6 @@ RUN dotnet restore
 # copy everything else and build app
 COPY WebAPI/. .
 RUN dotnet publish --no-restore -o /app
-
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-arm64v8
