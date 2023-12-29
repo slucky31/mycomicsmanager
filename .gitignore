@@ -361,3 +361,4 @@ MyComicsManagerWeb/Covers/**
 
 # VS Code
 .vscode/
+/WebAPI/appsettings.Development.json
