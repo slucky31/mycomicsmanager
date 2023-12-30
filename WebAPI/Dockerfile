@@ -11,19 +11,19 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
-RUN echo $(ls)
+RUN ls
 RUN dotnet restore "./WebAPI/WebAPI.csproj" -a "$TARGETARCH"
-RUN echo $(ls)
+RUN ls
 COPY . .
-RUN echo $(ls)
+RUN ls
 RUN dotnet publish "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -a "$TARGETARCH" -o /app /p:UseAppHost=false
-RUN echo $(ls)
+RUN ls
 
 # Rootless user: https://devblogs.microsoft.com/dotnet/securing-containers-with-rootless/
 FROM base AS final
 WORKDIR /app
-RUN echo $(ls)
+RUN ls
 USER $APP_UID
 COPY --from=build /app .
-RUN echo $(ls)
+RUN ls
 ENTRYPOINT ["dotnet", "WebAPI.dll"]
