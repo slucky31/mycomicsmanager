@@ -18,10 +18,10 @@ RUN ls
 # copy and publish app and libraries
 COPY . .
 WORKDIR /src/WebAPI
-RUN dotnet build "WebAPI.csproj" -c Release -o /app/build -r linux-arm -v d
+RUN dotnet build "WebAPI.csproj" -c Release -o /app/build -r linux-arm64 -v d
 
 FROM build AS publish
-RUN dotnet publish "WebAPI.csproj" -c Release -o /app/publish -r linux-arm
+RUN dotnet publish "WebAPI.csproj" -c Release -o /app/publish -r linux-arm64
 
 FROM base AS final
 WORKDIR /app
