@@ -13,7 +13,7 @@ WORKDIR /src
 COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
 RUN dotnet restore "./WebAPI/./WebAPI.csproj" -a "$TARGETARCH"
 COPY . .
-RUN dotnet publish "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" --no-restore -a "$TARGETARCH" -o /app /p:UseAppHost=false
+RUN dotnet publish "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -a "$TARGETARCH" -o /app /p:UseAppHost=false
 
 # Rootless user : https://devblogs.microsoft.com/dotnet/securing-containers-with-rootless/
 FROM base AS final
