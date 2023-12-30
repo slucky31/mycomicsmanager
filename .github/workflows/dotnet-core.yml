@@ -91,28 +91,28 @@ jobs:
       contents: read
       packages: write
     steps:
-      -
-        name : Checkout
+      - name : Checkout
         uses: actions/checkout@v4
-      -
-        name: Log in to the Container registry
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Extract metadata (tags, labels) for Docker
+      - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-api
-
-      -
-        name: Build and push Docker image MyComicsManagerApi
+      - name: Build and push Docker image MyComicsManagerApi
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: linux/arm64
           file: ./WebAPI/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
