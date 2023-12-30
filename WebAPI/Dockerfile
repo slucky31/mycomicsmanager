@@ -2,27 +2,26 @@
 
 # A tester : https://gist.github.com/ptupitsyn/1c0f4d6186f63c0f09689745242ebee5
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-ARG TARGETARCH
+FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy-arm64v8 AS base
 WORKDIR /app
 EXPOSE 5000
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
-RUN ls
-RUN dotnet restore "./WebAPI/WebAPI.csproj" -a "$TARGETARCH"
-RUN ls
-COPY . .
-RUN ls
-RUN dotnet publish "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -a "$TARGETARCH" -o /app /p:UseAppHost=false
-RUN ls
 
-# Rootless user: https://devblogs.microsoft.com/dotnet/securing-containers-with-rootless/
+# copy csproj and restore as distinct layers
+COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
+RUN dotnet restore -r linux-arm "WebAPI/WebAPI.csproj"
+
+# copy and publish app and libraries
+COPY . .
+WORKDIR /src/WebAPI
+RUN dotnet build "WebAPI.csproj" -c Release -o /app/build -r linux-arm -v d
+
+FROM build AS publish
+RUN dotnet publish "WebAPI.csproj" -c Release -o /app/publish -r linux-arm
+
 FROM base AS final
 WORKDIR /app
-USER $APP_UID
-COPY --from=build /app .
-RUN ls
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "WebAPI.dll"]
