@@ -13,6 +13,7 @@ WORKDIR /src
 COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
 COPY ["Directory.Packages.props", "WebAPI/"]
 RUN dotnet restore -r linux-arm "WebAPI/WebAPI.csproj"
+RUN ls
 
 # copy and publish app and libraries
 COPY . .
