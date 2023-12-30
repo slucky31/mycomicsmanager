@@ -84,7 +84,7 @@ jobs:
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
          
   docker-api:
-    needs: sonar
+    needs: build
     #if: ${{ (github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-latest
     permissions:
