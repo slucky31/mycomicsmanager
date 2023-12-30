@@ -17,7 +17,7 @@ RUN dotnet publish "./WebAPI/WebAPI.csproj" -a $TARGETARCH -o /app
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy
-EXPOSE 5000
+EXPOSE 8080
 WORKDIR /app
 COPY --from=build /app .
 USER $APP_UID
