@@ -11,6 +11,7 @@ WORKDIR /src
 
 # copy csproj and restore as distinct layers
 COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
+COPY ["Directory.Packages.props", "WebAPI/"]
 RUN dotnet restore -r linux-arm "WebAPI/WebAPI.csproj"
 
 # copy and publish app and libraries
