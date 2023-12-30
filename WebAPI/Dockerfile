@@ -9,7 +9,7 @@ RUN dotnet restore -a $TARGETARCH
 
 # copy everything else and build app
 COPY WebAPI/. .
-RUN dotnet publish -a $TARGETARCH --no-restore -o /app
+RUN dotnet publish -a $TARGETARCH -o /app
 
 
 # final stage/image
