@@ -3,16 +3,17 @@ ARG TARGETARCH
 WORKDIR /source
 
 # copy csproj and restore as distinct layers
-COPY Domain/Domain.csproj Domain/
-COPY Application/Application.csproj Application/
-COPY Persistence/Persistence.csproj Persistence/
-COPY WebAPI/WebAPI.csproj WebAPI/
+COPY $.sln .
+COPY Domain/Domain.csproj ./Domain/
+COPY Application/Application.csproj ./Application/
+COPY Persistence/Persistence.csproj ./Persistence/
+COPY WebAPI/WebAPI.csproj ./WebAPI/
 COPY Directory.Packages.props .
-RUN dotnet restore -a $TARGETARCH "WebAPI.csproj"
+RUN dotnet restore -a $TARGETARCH "/WebAPI/WebAPI.csproj"
 
 # copy everything else and build app
 COPY . .
-RUN dotnet publish -a $TARGETARCH -o /app
+RUN dotnet publish "/WebAPI/WebAPI.csproj" -a $TARGETARCH -o /app
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy
