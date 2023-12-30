@@ -1,26 +1,24 @@
-#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
+ARG TARGETARCH
+WORKDIR /source
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled-arm64v8 AS base
-USER app
-WORKDIR /app
-EXPOSE 5000
+# copy csproj and restore as distinct layers
+COPY MyComicsManager.sln .
+COPY Domain/Domain.csproj ./Domain/
+COPY Application/Application.csproj ./Application/
+COPY Persistence/Persistence.csproj ./Persistence/
+COPY WebAPI/WebAPI.csproj ./WebAPI/
+COPY Directory.Packages.props .
+RUN dotnet restore "./WebAPI/WebAPI.csproj" -a $TARGETARCH
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
-RUN dotnet restore "./WebAPI/./WebAPI.csproj"
+# copy everything else and build app
 COPY . .
-WORKDIR /src/WebAPI
-RUN dotnet build "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
+RUN dotnet publish "./WebAPI/WebAPI.csproj" -a $TARGETARCH -o /app
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
-
-# Rootless user : https://devblogs.microsoft.com/dotnet/securing-containers-with-rootless/
-FROM base AS final
+# final stage/image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy
+EXPOSE 8080
 WORKDIR /app
-USER app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "WebAPI.dll"]
+COPY --from=build /app .
+USER $APP_UID
+ENTRYPOINT ["./WebAPI"]
