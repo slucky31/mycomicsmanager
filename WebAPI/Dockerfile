@@ -2,12 +2,12 @@
 
 # A tester : https://gist.github.com/ptupitsyn/1c0f4d6186f63c0f09689745242ebee5
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 ARG TARGETARCH
 WORKDIR /app
 EXPOSE 5000
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
