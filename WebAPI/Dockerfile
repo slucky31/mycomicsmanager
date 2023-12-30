@@ -1,25 +1,23 @@
 #See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-arm64v8 AS base
+# A tester : https://gist.github.com/ptupitsyn/1c0f4d6186f63c0f09689745242ebee5
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS base
+ARG TARGETARCH
 WORKDIR /app
 EXPOSE 5000
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
-RUN dotnet restore "./WebAPI/./WebAPI.csproj"
-COPY . .
-WORKDIR /src/WebAPI
-RUN dotnet build "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
-
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
+RUN dotnet restore "./WebAPI/./WebAPI.csproj" -a $TARGETARCH
+COPY WebAPI/. .
+RUN dotnet publish "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -a $TARGETARCH -o /app /p:UseAppHost=false
 
 # Rootless user : https://devblogs.microsoft.com/dotnet/securing-containers-with-rootless/
 FROM base AS final
 WORKDIR /app
-# USER app
-COPY --from=publish /app/publish .
+USER $APP_UID
+COPY --from=build /app .
 ENTRYPOINT ["dotnet", "WebAPI.dll"]
