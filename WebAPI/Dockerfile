@@ -19,7 +19,7 @@ RUN echo $(ls -l /src)
 RUN dotnet publish "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -a "$TARGETARCH" -o /app /p:UseAppHost=false
 RUN echo $(ls -l /app)
 
-# Rootless user : https://devblogs.microsoft.com/dotnet/securing-containers-with-rootless/
+# Rootless user: https://devblogs.microsoft.com/dotnet/securing-containers-with-rootless/
 FROM base AS final
 WORKDIR /app
 RUN echo $(ls -l /app)
