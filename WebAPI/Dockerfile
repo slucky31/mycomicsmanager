@@ -15,15 +15,15 @@ RUN echo $(ls -l /src)
 RUN dotnet restore "./WebAPI/WebAPI.csproj" -a "$TARGETARCH"
 RUN echo $(ls -l /src)
 COPY . .
-RUN echo $(ls -l)
+RUN echo $(ls -l /src)
 RUN dotnet publish "./WebAPI.csproj" -c "$BUILD_CONFIGURATION" -a "$TARGETARCH" -o /app /p:UseAppHost=false
-RUN echo $(ls -l)
+RUN echo $(ls -l /app)
 
 # Rootless user : https://devblogs.microsoft.com/dotnet/securing-containers-with-rootless/
 FROM base AS final
 WORKDIR /app
-RUN echo $(ls -l)
+RUN echo $(ls -l /app)
 USER $APP_UID
 COPY --from=build /app .
-RUN echo $(ls -l)
+RUN echo $(ls -l /app)
 ENTRYPOINT ["dotnet", "WebAPI.dll"]
