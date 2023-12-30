@@ -6,11 +6,11 @@ WORKDIR /source
 COPY WebAPI/WebAPI.csproj .
 COPY Directory.Packages.props .
 RUN dotnet restore -a $TARGETARCH "WebAPI.csproj"
+RUN dotnet build "WebAPI.csproj" -c Release -o /app/build -r linux-arm64 -v d
 
 # copy everything else and build app
-COPY WebAPI/. .
+COPY . .
 RUN dotnet publish -a $TARGETARCH -o /app
-
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy
