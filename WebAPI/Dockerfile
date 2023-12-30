@@ -5,7 +5,7 @@ WORKDIR /source
 # copy csproj and restore as distinct layers
 COPY WebAPI/WebAPI.csproj .
 COPY Directory.Packages.props .
-RUN dotnet restore -a $TARGETARCH
+RUN dotnet restore -a $TARGETARCH "WebAPI/WebAPI.csproj"
 
 # copy everything else and build app
 COPY WebAPI/. .
