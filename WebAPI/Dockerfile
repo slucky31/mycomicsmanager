@@ -3,10 +3,12 @@ ARG TARGETARCH
 WORKDIR /source
 
 # copy csproj and restore as distinct layers
+COPY Domain/Domain.csproj .
+COPY Application/Application.csproj .
+COPY Persistence/Persistence.csproj .
 COPY WebAPI/WebAPI.csproj .
 COPY Directory.Packages.props .
 RUN dotnet restore -a $TARGETARCH "WebAPI.csproj"
-RUN dotnet build "WebAPI.csproj" -c Release -o /app/build -r linux-arm64 -v d
 
 # copy everything else and build app
 COPY . .
