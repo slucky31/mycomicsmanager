@@ -9,11 +9,11 @@ COPY Application/Application.csproj ./Application/
 COPY Persistence/Persistence.csproj ./Persistence/
 COPY WebAPI/WebAPI.csproj ./WebAPI/
 COPY Directory.Packages.props .
-RUN dotnet restore -a $TARGETARCH "/WebAPI/WebAPI.csproj"
+RUN dotnet restore "./WebAPI/WebAPI.csproj" -a $TARGETARCH
 
 # copy everything else and build app
 COPY . .
-RUN dotnet publish "/WebAPI/WebAPI.csproj" -a $TARGETARCH -o /app
+RUN dotnet publish "./WebAPI/WebAPI.csproj" -a $TARGETARCH -o /app
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy
