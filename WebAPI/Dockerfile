@@ -22,7 +22,6 @@ RUN ls
 # Rootless user: https://devblogs.microsoft.com/dotnet/securing-containers-with-rootless/
 FROM base AS final
 WORKDIR /app
-RUN ls
 USER $APP_UID
 COPY --from=build /app .
 RUN ls
