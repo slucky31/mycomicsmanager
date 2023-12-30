@@ -3,10 +3,10 @@ ARG TARGETARCH
 WORKDIR /source
 
 # copy csproj and restore as distinct layers
-COPY Domain/Domain.csproj .
-COPY Application/Application.csproj .
-COPY Persistence/Persistence.csproj .
-COPY WebAPI/WebAPI.csproj .
+COPY Domain/Domain.csproj Domain/
+COPY Application/Application.csproj Application/
+COPY Persistence/Persistence.csproj Persistence/
+COPY WebAPI/WebAPI.csproj WebAPI/
 COPY Directory.Packages.props .
 RUN dotnet restore -a $TARGETARCH "WebAPI.csproj"
 
