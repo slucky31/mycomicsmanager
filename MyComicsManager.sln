@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain.UnitTests", "Domain.
 		{E8EC4431-1756-4298-B286-679FCD2D75C0} = {E8EC4431-1756-4298-B286-679FCD2D75C0}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.IntegrationTests", "Apllication.IntegrationTests\Application.IntegrationTests.csproj", "{CF4FD0CF-1A8E-4B53-B409-AAD2EA1C820C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.IntegrationTests", "Apllication.IntegrationTests\Application.IntegrationTests.csproj", "{CF4FD0CF-1A8E-4B53-B409-AAD2EA1C820C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{EF67CE8A-7004-4C75-8FCA-28507600E460} = {EF67CE8A-7004-4C75-8FCA-28507600E460}
 	EndProjectSection
