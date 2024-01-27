@@ -3,8 +3,9 @@ using Application.Interfaces;
 using Ardalis.GuardClauses;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
-namespace Application.IntegrationTests;
+namespace Base.Integration.Tests;
 
 public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>, IDisposable
 {

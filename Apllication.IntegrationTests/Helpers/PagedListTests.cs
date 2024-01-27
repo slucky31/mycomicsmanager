@@ -1,8 +1,8 @@
 ﻿using Application.Helpers;
-using Application.IntegrationTests;
+using Base.Integration.Tests;
 using Domain.Dto;
 using Domain.Libraries;
-using FluentAssertions;
+
 
 namespace Application.UnitTests.Helpers;
 
@@ -10,9 +10,7 @@ public class PagedListTests : BaseIntegrationTest
 {
     
     public PagedListTests(IntegrationTestWebAppFactory factory) : base(factory)
-    {
-
-    }
+    {}
 
     [Fact]
     public async Task CreateAsync_Should_ReturnPagedList()

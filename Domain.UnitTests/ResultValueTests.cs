@@ -72,4 +72,36 @@ public class ResultValueTests
         result.Value.Should().BeNull();
     }
 
+    [Fact]
+    public void ToResult_Should_ConvertFromTError()
+    {
+        // Arrange
+        TError error = new TError("500", "BSOD");
+
+        // Act
+        var result = Result<string>.ToResult(error);
+
+        // Assert
+        result.IsSuccess.Should().Be(false);
+        result.IsFailure.Should().Be(true);
+        result.Error.Should().Be(error);
+        result.Value.Should().BeNull();
+    }
+
+    [Fact]
+    public void ToResult_Should_ConvertFromValue()
+    {
+        // Arrange
+        var value = "the tested value";
+
+        // Act
+        var result = Result<string>.ToResult(value);
+
+        // Assert
+        result.IsSuccess.Should().Be(true);
+        result.IsFailure.Should().Be(false);
+        result.Value.Should().Be(value);
+        result.Error.Should().BeNull();
+    }
+
 }

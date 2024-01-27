@@ -28,7 +28,7 @@ public class ResultTests
         TError error = new TError("500", "BSOD");
 
         // Act
-        Result result = Result.Failure(error);
+        var result = Result.Failure(error);
 
         // Assert
         result.IsSuccess.Should().Be(false);
@@ -44,6 +44,21 @@ public class ResultTests
 
         // Act
         Result result = error;
+
+        // Assert
+        result.IsSuccess.Should().Be(false);
+        result.IsFailure.Should().Be(true);
+        result.Error.Should().Be(error);
+    }
+
+    [Fact]
+    public void ToResult_Should_ConvertFromTError()
+    {
+        // Arrange
+        TError error = new TError("500", "BSOD");
+
+        // Act
+        var result = Result.ToResult(error);
 
         // Assert
         result.IsSuccess.Should().Be(false);
