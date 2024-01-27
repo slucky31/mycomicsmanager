@@ -34,7 +34,7 @@ public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>,
 
             conf.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.Development.json");
+                .AddJsonFile("appsettings.Development.json", optional: true);
 
             conf.AddEnvironmentVariables();
 
