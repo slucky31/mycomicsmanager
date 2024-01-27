@@ -6,6 +6,7 @@ using Domain.Libraries;
 
 namespace Application.UnitTests.Helpers;
 
+[CollectionDefinition("PagedListTests")]
 public class PagedListTests : BaseIntegrationTest
 {
     

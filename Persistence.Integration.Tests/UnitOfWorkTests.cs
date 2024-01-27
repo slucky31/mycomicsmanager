@@ -6,6 +6,7 @@ using Domain.Libraries;
 
 namespace Persistence.Integration.Tests;
 
+[CollectionDefinition("UnitOfWorkTests")]
 public class UnitOfWorkTests : BaseIntegrationTest
 {
 
