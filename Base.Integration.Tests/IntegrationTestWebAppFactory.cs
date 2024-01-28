@@ -62,6 +62,6 @@ public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>
     {        
         Guard.Against.Null(_mongoDbOptions);
         var client = new MongoClient(_mongoDbOptions.ConnectionString);
-        //client.DropDatabase(_databaseName);
+        client.DropDatabase(_databaseName);
     }
 }
