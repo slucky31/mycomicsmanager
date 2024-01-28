@@ -12,7 +12,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
 {
     private readonly IServiceScope _scope;
     protected ISender Sender { get; }
-    protected ApplicationDbContext? Context { get; }
+    protected ApplicationDbContext Context { get; }
     protected IUnitOfWork UnitOfWork { get; }
     private bool disposed;
 
@@ -22,11 +22,10 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         
         _scope = factory.Services.CreateScope();
         Sender = _scope.ServiceProvider.GetRequiredService<ISender>();
-        Context = (ApplicationDbContext?)_scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        Context = (ApplicationDbContext)_scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         // Clear all MongoDb Collections berfore tests
-        Guard.Against.Null(Context);
         Context.Libraries.RemoveRange(Context.Libraries);
         Context.SaveChanges();
     }
