@@ -19,15 +19,16 @@ public class UnitOfWorkTests : BaseIntegrationTest
     {
         // Arrange
         var libName = Guid.NewGuid().ToString();
-        var lib = LibraryDto.Create(Library.Create(libName));
-        lib.CreatedOnUtc.Should().NotBe(null);
+        var lib = LibraryDto.Create(Library.Create(libName));        
         Context.Libraries.Add(lib);
 
         // Act
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Assert
-        var savedLib = Context.Libraries.FirstOrDefault(l => l.Name == libName);
+        var list = Context.Libraries.Where(l => l.Name == libName).ToList();
+        list.Should().HaveCount(1);
+        var savedLib = list.First();
         Guard.Against.Null(savedLib);
         savedLib.CreatedOnUtc.Should().NotBe(null);
     }
@@ -49,7 +50,9 @@ public class UnitOfWorkTests : BaseIntegrationTest
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Assert
-        var savedLib = Context.Libraries.FirstOrDefault(l => l.Name == libName);
+        var list = Context.Libraries.Where(l => l.Name == libName).ToList();
+        list.Should().HaveCount(1);
+        var savedLib = list.First();        
         Guard.Against.Null(savedLib);
         savedLib.CreatedOnUtc.Should().NotBe(null);
         savedLib.ModifiedOnUtc.Should().NotBe(null);
