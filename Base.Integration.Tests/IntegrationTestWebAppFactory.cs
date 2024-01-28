@@ -46,8 +46,7 @@ public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>
                 services.Remove(descriptor);
             }
             
-            Guard.Against.Null(_mongoDbOptions);
-            //_databaseName =  DateTimeOffset.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+            Guard.Against.Null(_mongoDbOptions);            
             _databaseName = Guid.NewGuid().ToString();
 
             services.AddDbContext<ApplicationDbContext>(options =>
