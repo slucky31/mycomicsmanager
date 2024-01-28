@@ -10,28 +10,24 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.TestHost;
 using Persistence;
+using System.Runtime.CompilerServices;
+using static MongoDB.Driver.WriteConcern;
 
 // Source : https://www.youtube.com/watch?v=tj5ZCtvgXKY&t=358s
 // Source 2 : https://stackoverflow.com/questions/69990675/change-config-values-in-appsettings-json-githubactions
 
 namespace Base.Integration.Tests;
-public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IAsyncLifetime
+public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IDisposable
 {
     private MongoDbOptions? _mongoDbOptions;
     private string? _databaseName;
-
-    Task IAsyncLifetime.InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         Guard.Against.Null(builder);
         builder.ConfigureAppConfiguration((_, conf) =>
         {
-            // expand default config      
-
+            // Expand default config      
             conf.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile("appsettings.Development.json", optional: true);
@@ -64,10 +60,10 @@ public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>,
         });
     }
 
-    async Task IAsyncLifetime.DisposeAsync()
+    public new void Dispose()
     {        
         Guard.Against.Null(_mongoDbOptions);
         var client = new MongoClient(_mongoDbOptions.ConnectionString);
-        await client.DropDatabaseAsync(_databaseName);       
+        client.DropDatabase(_databaseName);
     }
 }

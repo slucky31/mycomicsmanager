@@ -11,7 +11,9 @@ public class PagedListTests : BaseIntegrationTest
 {
     
     public PagedListTests(IntegrationTestWebAppFactory factory) : base(factory)
-    {}
+    {
+        Context.Libraries.RemoveRange(Context.Libraries);
+    }
 
     [Fact]
     public async Task CreateAsync_Should_ReturnPagedList()

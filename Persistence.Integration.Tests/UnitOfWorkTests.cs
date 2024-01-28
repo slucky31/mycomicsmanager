@@ -6,13 +6,12 @@ using Domain.Libraries;
 
 namespace Persistence.Integration.Tests;
 
-[CollectionDefinition("UnitOfWorkTests")]
 public class UnitOfWorkTests : BaseIntegrationTest
 {
 
     public UnitOfWorkTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
-
+        Context.Libraries.RemoveRange(Context.Libraries);
     }
 
     [Fact]
@@ -57,5 +56,6 @@ public class UnitOfWorkTests : BaseIntegrationTest
         Guard.Against.Null(savedLib.ModifiedOnUtc);
         savedLib.CreatedOnUtc.Should().BeBefore(savedLib.ModifiedOnUtc.Value);
     }
+
 
 }
