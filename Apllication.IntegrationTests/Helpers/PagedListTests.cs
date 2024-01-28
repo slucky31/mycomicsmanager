@@ -11,7 +11,6 @@ public class PagedListTests : BaseIntegrationTest
     
     public PagedListTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
-        Context.Libraries.RemoveRange(Context.Libraries);
     }
 
     [Fact]
@@ -31,6 +30,6 @@ public class PagedListTests : BaseIntegrationTest
 
         // Assert
         pagedList.Page.Should().Be(1);
-        pagedList.TotalCount.Should().Be(50);
+        pagedList.TotalCount.Should().Be(nbItems);
     }
 }

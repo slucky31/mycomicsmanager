@@ -4,20 +4,17 @@ using Microsoft.Extensions.DependencyInjection;
 using WebAPI.Options;
 using MongoDB.Driver;
 using System.Globalization;
-using Xunit;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.TestHost;
 using Persistence;
-using System.Runtime.CompilerServices;
-using static MongoDB.Driver.WriteConcern;
 
 // Source : https://www.youtube.com/watch?v=tj5ZCtvgXKY&t=358s
 // Source 2 : https://stackoverflow.com/questions/69990675/change-config-values-in-appsettings-json-githubactions
 
 namespace Base.Integration.Tests;
-public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>, IDisposable
+public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>
 {
     private MongoDbOptions? _mongoDbOptions;
     private string? _databaseName;
@@ -64,6 +61,6 @@ public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>,
     {        
         Guard.Against.Null(_mongoDbOptions);
         var client = new MongoClient(_mongoDbOptions.ConnectionString);
-        client.DropDatabase(_databaseName);
+        //client.DropDatabase(_databaseName);
     }
 }

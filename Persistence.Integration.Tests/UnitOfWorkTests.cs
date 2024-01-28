@@ -6,19 +6,19 @@ using Domain.Libraries;
 
 namespace Persistence.Integration.Tests;
 
+
 public class UnitOfWorkTests : BaseIntegrationTest
 {
 
     public UnitOfWorkTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
-        Context.Libraries.RemoveRange(Context.Libraries);
     }
 
     [Fact]
     public async Task Savechanges_Create()
     {
         // Arrange
-        var libName = Guid.NewGuid().ToString();
+        var libName = "Create_" + Guid.NewGuid().ToString();
         var lib = LibraryDto.Create(Library.Create(libName));        
         Context.Libraries.Add(lib);
 
@@ -37,12 +37,12 @@ public class UnitOfWorkTests : BaseIntegrationTest
     public async Task Savechanges_Modify()
     {
         // Arrange
-        var libName = Guid.NewGuid().ToString();
+        var libName = "Modify_" + Guid.NewGuid().ToString();
         var lib = LibraryDto.Create(Library.Create(libName));
         lib.CreatedOnUtc.Should().NotBe(null);
         Context.Libraries.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
-        libName = Guid.NewGuid().ToString();
+        libName += "_modified";
         lib.Update(libName);
         Context.Libraries.Update(lib);
 

@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Ardalis.GuardClauses;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Persistence;
 using Xunit;
 
 namespace Base.Integration.Tests;
@@ -11,7 +12,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
 {
     private readonly IServiceScope _scope;
     protected ISender Sender { get; }
-    protected IApplicationDbContext Context { get; }
+    protected ApplicationDbContext? Context { get; }
     protected IUnitOfWork UnitOfWork { get; }
     private bool disposed;
 
@@ -21,8 +22,13 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         
         _scope = factory.Services.CreateScope();
         Sender = _scope.ServiceProvider.GetRequiredService<ISender>();
-        Context = _scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        Context = (ApplicationDbContext?)_scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+        // Clear all MongoDb Collections berfore tests
+        Guard.Against.Null(Context);
+        Context.Libraries.RemoveRange(Context.Libraries);
+        Context.SaveChanges();
     }
 
     public void Dispose()
