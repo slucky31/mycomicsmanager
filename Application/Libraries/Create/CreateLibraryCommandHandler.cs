@@ -3,16 +3,16 @@ using Domain.Libraries;
 using Domain.Primitives;
 using Application.Data;
 using Application.Interfaces;
-using Domain.Dto;
+using MongoDB.Bson;
 
 namespace Application.Libraries.Create;
 
 internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibraryCommand, Result<Library>>
 {
-    private readonly IRepository<LibraryDto, LibraryId> _libraryRepository;
+    private readonly IRepository<Library, ObjectId> _libraryRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateLibraryCommandHandler(IRepository<LibraryDto, LibraryId> libraryRepository, IUnitOfWork unitOfWork)
+    public CreateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork)
     {
         _libraryRepository = libraryRepository;
         _unitOfWork = unitOfWork;
@@ -22,14 +22,14 @@ internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibrar
     {
         // TODO : Test si Name est nul
         
-        var libraryDto = LibraryDto.Create(Library.Create(command.Name));
+        var library = Library.Create(command.Name);
 
         // TODO: Test uniqueness of the name
 
-        _libraryRepository.Add(libraryDto);
+        _libraryRepository.Add(library);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return libraryDto.ToLibrary();
+        return library;
     }
 }

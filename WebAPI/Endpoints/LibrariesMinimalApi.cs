@@ -42,7 +42,7 @@ public class LibrariesMinimalApi : ICarterModule
         {
             try
             {
-                return Results.Ok(await sender.Send(new GetLibraryQuery(new LibraryId(new ObjectId(id)))));
+                return Results.Ok(await sender.Send(new GetLibraryQuery(new ObjectId(id))));
             }
             catch (ArgumentNullException ex) 
             {                
@@ -53,7 +53,7 @@ public class LibrariesMinimalApi : ICarterModule
 
         app.MapPut("libraries/{id}", async (string id, [FromBody] UpdateLibraryRequest request, ISender sender) =>
         {
-            var command = new UpdateLibraryCommand(new LibraryId(new ObjectId(id)), request.Name);
+            var command = new UpdateLibraryCommand(new ObjectId(id), request.Name);
             
             await sender.Send(command);
 
@@ -63,7 +63,7 @@ public class LibrariesMinimalApi : ICarterModule
 
         app.MapDelete("libraries/{id}", async (string id, ISender sender) =>
         {            
-            var result = await sender.Send(new DeleteLibraryCommand(new LibraryId(new ObjectId(id))));
+            var result = await sender.Send(new DeleteLibraryCommand(new ObjectId(id)));
 
             if (result.IsSuccess)
             {

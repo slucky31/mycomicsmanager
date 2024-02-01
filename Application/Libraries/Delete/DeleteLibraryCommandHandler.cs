@@ -3,15 +3,15 @@ using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
 using Application.Interfaces;
-using Domain.Dto;
+using MongoDB.Bson;
 
 namespace Application.Libraries.Delete;
 internal sealed class DeleteLibraryCommandHandler : IRequestHandler<DeleteLibraryCommand, Result>
 {
-    private readonly IRepository<LibraryDto, LibraryId> _librayRepository;
+    private readonly IRepository<Library, ObjectId> _librayRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteLibraryCommandHandler(IRepository<LibraryDto, LibraryId> librayRepository, IUnitOfWork unitOfWork)
+    public DeleteLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork)
     {
         _librayRepository = librayRepository;
         _unitOfWork = unitOfWork;

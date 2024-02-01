@@ -1,6 +1,5 @@
 ﻿using Application.Helpers;
 using Base.Integration.Tests;
-using Domain.Dto;
 using Domain.Libraries;
 
 
@@ -21,13 +20,13 @@ public class PagedListTests : BaseIntegrationTest
         int count = Context.Libraries.Count();
         for (int i = 0; i < nbItems; i++)
         {
-            var lib = LibraryDto.Create(Library.Create("lib-"+i));
+            var lib = Library.Create("lib-"+i);
             Context.Libraries.Add(lib);            
         }
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         
         // Act
-        PagedList<LibraryDto> pagedList = await PagedList<LibraryDto>.CreateAsync((IQueryable<LibraryDto>)Context.Libraries, 1, 5);
+        PagedList<Library> pagedList = await PagedList<Library>.CreateAsync((IQueryable<Library>)Context.Libraries, 1, 5);
 
         // Assert
         pagedList.Page.Should().Be(1);        

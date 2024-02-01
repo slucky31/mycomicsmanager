@@ -1,7 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-using Application.Helpers;
-using Application.Libraries.GetById;
-using Domain.Dto;
+﻿using Application.Helpers;
+using Domain.Libraries;
 using MediatR;
 
 namespace Application.Libraries.List;
@@ -10,4 +8,4 @@ public record GetLibrariesQuery(
     string? SortColumn, 
     string? SortOrder, 
     int Page, 
-    int PageSize) : IRequest<PagedList<LibraryDto>>;
+    int PageSize) : IRequest<PagedList<Library>>;

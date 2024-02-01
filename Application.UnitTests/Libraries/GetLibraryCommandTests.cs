@@ -6,7 +6,6 @@ using FluentAssertions;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Application.Interfaces;
-using Domain.Dto;
 using MongoDB.Bson;
 using NSubstitute.ReturnsExtensions;
 using Application.Libraries.GetById;
@@ -16,13 +15,13 @@ public class GetLibraryCommandTests
 {
  
     private readonly GetLibraryQueryHandler _handler;
-    private readonly IRepository<LibraryDto, LibraryId> _librayRepositoryMock;
-    private readonly LibraryId libraryId = new LibraryId(new ObjectId());
+    private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
+    private readonly ObjectId libraryId = new ObjectId();
 
 
     public GetLibraryCommandTests()
     {
-        _librayRepositoryMock = Substitute.For<IRepository<LibraryDto, LibraryId>>();
+        _librayRepositoryMock = Substitute.For<IRepository<Library, ObjectId>>();
         _handler = new GetLibraryQueryHandler(_librayRepositoryMock);
     }
 
@@ -30,8 +29,8 @@ public class GetLibraryCommandTests
     public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
-        var libraryDto = LibraryDto.Create(Library.Create("test", libraryId));
-        _librayRepositoryMock.GetByIdAsync(libraryId).Returns(libraryDto);
+        var library = Library.Create("test", libraryId);
+        _librayRepositoryMock.GetByIdAsync(libraryId).Returns(library);
         var Query = new GetLibraryQuery(libraryId);       
 
         // Act
@@ -41,8 +40,8 @@ public class GetLibraryCommandTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Id.Should().Be(libraryId);        
-        result.Value.Name.Should().Be(libraryDto.Name);
-        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<LibraryId>());        
+        result.Value.Name.Should().Be(library.Name);
+        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<ObjectId>());        
     }
 
     [Fact]
@@ -58,7 +57,7 @@ public class GetLibraryCommandTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesErrors.NotFound);
-        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<LibraryId>());
+        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<ObjectId>());
     }
 
 

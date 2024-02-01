@@ -1,7 +1,6 @@
 ﻿
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
-using Domain.Dto;
 using Domain.Libraries;
 
 namespace Persistence.Integration.Tests;
@@ -19,7 +18,7 @@ public class UnitOfWorkTests : BaseIntegrationTest
     {
         // Arrange
         var libName = "Create_" + Guid.NewGuid().ToString();
-        var lib = LibraryDto.Create(Library.Create(libName));        
+        var lib = Library.Create(libName);        
         Context.Libraries.Add(lib);
 
         // Act
@@ -38,7 +37,7 @@ public class UnitOfWorkTests : BaseIntegrationTest
     {
         // Arrange
         var libName = "Modify_" + Guid.NewGuid().ToString();
-        var lib = LibraryDto.Create(Library.Create(libName));
+        var lib = Library.Create(libName);
         lib.CreatedOnUtc.Should().NotBe(null);
         Context.Libraries.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);

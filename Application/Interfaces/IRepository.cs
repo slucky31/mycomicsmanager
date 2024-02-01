@@ -1,4 +1,6 @@
-﻿namespace Application.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace Application.Interfaces;
 
 public interface IRepository<TEntity, TEntityId>
 {
@@ -9,5 +11,8 @@ public interface IRepository<TEntity, TEntityId>
     void Update(TEntity entity);
 
     void Remove(TEntity entity);
+
+    public Task<List<TEntity>> GetListAsync();
+    
 }
 

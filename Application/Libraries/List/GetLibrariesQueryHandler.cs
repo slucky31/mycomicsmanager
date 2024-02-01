@@ -1,13 +1,13 @@
 ﻿using System.Linq.Expressions;
 using Application.Helpers;
 using Application.Interfaces;
-using Domain.Dto;
+using Domain.Libraries;
 using MediatR;
 
 // Source : https://www.youtube.com/watch?v=X8zRvXbirMU
 
 namespace Application.Libraries.List;
-internal sealed class GetLibrariesQueryHandler : IRequestHandler<GetLibrariesQuery, PagedList<LibraryDto>>
+internal sealed class GetLibrariesQueryHandler : IRequestHandler<GetLibrariesQuery, PagedList<Library>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -16,16 +16,16 @@ internal sealed class GetLibrariesQueryHandler : IRequestHandler<GetLibrariesQue
         _context = context;
     }
 
-    public async Task<PagedList<LibraryDto>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
+    public async Task<PagedList<Library>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<LibraryDto> librariesDtoQuery = _context.Libraries;
+        IQueryable<Library> librariesQuery = _context.Libraries;
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            librariesDtoQuery = librariesDtoQuery.Where(l => l.Name.Contains(request.SearchTerm));
+            librariesQuery = librariesQuery.Where(l => l.Name.Contains(request.SearchTerm));
         }
 
-        Expression<Func<LibraryDto, object>> keySelector = request.SortColumn?.ToUpperInvariant() switch
+        Expression<Func<Library, object>> keySelector = request.SortColumn?.ToUpperInvariant() switch
         {
             "name" => Library => Library.Name,
             "id" => Library => Library.Id,
@@ -34,14 +34,14 @@ internal sealed class GetLibrariesQueryHandler : IRequestHandler<GetLibrariesQue
 
         if (request.SortOrder?.ToUpperInvariant() == "desc")
         {
-            librariesDtoQuery = librariesDtoQuery.OrderByDescending(keySelector);
+            librariesQuery = librariesQuery.OrderByDescending(keySelector);
         }
         else
         {
-            librariesDtoQuery = librariesDtoQuery.OrderBy(keySelector);
+            librariesQuery = librariesQuery.OrderBy(keySelector);
         }
 
-        var librariesDtoPagedList = await PagedList<LibraryDto>.CreateAsync(librariesDtoQuery, request.Page, request.PageSize);
+        var librariesDtoPagedList = await PagedList<Library>.CreateAsync(librariesQuery, request.Page, request.PageSize);
 
         // Normalement, on devrait retourner un type Librairie Response
         // Mais MongoDb Entity Framework ne supporte pas (encore) la fonction Select ...

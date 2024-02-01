@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces;
-using Domain.Dto;
+using Domain.Libraries;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.EntityFrameworkCore.Extensions;
 
@@ -8,7 +8,7 @@ namespace Persistence;
 
 public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
-    public DbSet<LibraryDto> Libraries { get; set; } 
+    public DbSet<Library> Libraries { get; set; } 
     
     public ApplicationDbContext(DbContextOptions options) : base(options)
     {
@@ -19,7 +19,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         base.OnModelCreating(modelBuilder);
         if (modelBuilder !=null)
         {
-            modelBuilder.Entity<LibraryDto>().ToCollection("libraries");
+            modelBuilder.Entity<Library>().ToCollection("libraries");            
         }
     }
 

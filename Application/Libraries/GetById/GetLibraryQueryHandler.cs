@@ -2,27 +2,27 @@
 using Domain.Primitives;
 using MediatR;
 using Application.Interfaces;
-using Domain.Dto;
+using MongoDB.Bson;
 
 namespace Application.Libraries.GetById;
 
 internal sealed class GetLibraryQueryHandler : IRequestHandler<GetLibraryQuery, Result<Library>>
 {
-    private readonly IRepository<LibraryDto, LibraryId> _librayRepository;
+    private readonly IRepository<Library, ObjectId> _librayRepository;
 
-    public GetLibraryQueryHandler(IRepository<LibraryDto, LibraryId> librayRepository)
+    public GetLibraryQueryHandler(IRepository<Library, ObjectId> librayRepository)
     {
         _librayRepository = librayRepository;
     }
 
     public async Task<Result<Library>> Handle(GetLibraryQuery request, CancellationToken cancellationToken)
     {
-        var libraryDto = await _librayRepository.GetByIdAsync(request.Id);
-        if (libraryDto is null)
+        var library = await _librayRepository.GetByIdAsync(request.Id);
+        if (library is null)
         {
             return LibrariesErrors.NotFound;
         }
 
-        return libraryDto.ToLibrary();
+        return library;
     }
 }

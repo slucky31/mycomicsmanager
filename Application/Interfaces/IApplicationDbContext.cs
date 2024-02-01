@@ -1,9 +1,9 @@
-﻿using Domain.Dto;
+﻿using Domain.Libraries;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Interfaces;
 
 public interface IApplicationDbContext
 {
-    DbSet<LibraryDto> Libraries { get; set; }
+    DbSet<Library> Libraries { get; set; }
 }
