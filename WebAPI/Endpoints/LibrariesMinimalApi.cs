@@ -1,11 +1,9 @@
-﻿using Application;
-using Application.Libraries.Create;
+﻿using Application.Libraries.Create;
 using Application.Libraries.Delete;
 using Application.Libraries.List;
 using Application.Libraries.GetById;
 using Application.Libraries.Update;
 using Carter;
-using Domain.Libraries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;

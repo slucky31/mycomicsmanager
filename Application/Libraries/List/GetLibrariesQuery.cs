@@ -1,4 +1,4 @@
-﻿using Application.Helpers;
+﻿using Application.Interfaces;
 using Domain.Libraries;
 using MediatR;
 
@@ -8,4 +8,5 @@ public record GetLibrariesQuery(
     string? SortColumn, 
     string? SortOrder, 
     int Page, 
-    int PageSize) : IRequest<PagedList<Library>>;
+    int PageSize) : IRequest<IPagedList<Library>>;
+

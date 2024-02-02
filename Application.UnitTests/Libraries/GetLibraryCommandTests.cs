@@ -16,7 +16,7 @@ public class GetLibraryCommandTests
  
     private readonly GetLibraryQueryHandler _handler;
     private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
-    private readonly ObjectId libraryId = new ObjectId();
+    private readonly ObjectId libraryId = ObjectId.GenerateNewId();
 
 
     public GetLibraryCommandTests()

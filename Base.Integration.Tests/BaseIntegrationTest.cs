@@ -22,7 +22,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         
         _scope = factory.Services.CreateScope();
         Sender = _scope.ServiceProvider.GetRequiredService<ISender>();
-        Context = (ApplicationDbContext)_scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        Context = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         // Clear all MongoDb Collections berfore tests

@@ -6,7 +6,7 @@ using MongoDB.EntityFrameworkCore.Extensions;
 namespace Persistence;
 
 
-public class ApplicationDbContext : DbContext, IApplicationDbContext
+public class ApplicationDbContext : DbContext
 {
     public DbSet<Library> Libraries { get; set; } 
     

@@ -1,10 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace Application.Interfaces;
+﻿namespace Application.Interfaces;
 
 public interface IRepository<TEntity, TEntityId>
 {
-    public Task<TEntity?> GetByIdAsync(TEntityId id);
+    Task<TEntity?> GetByIdAsync(TEntityId id);
 
     void Add(TEntity entity);
 
@@ -12,7 +10,7 @@ public interface IRepository<TEntity, TEntityId>
 
     void Remove(TEntity entity);
 
-    public Task<List<TEntity>> GetListAsync();
+    Task<List<TEntity>> GetListAsync();
     
 }
 
