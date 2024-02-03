@@ -17,8 +17,9 @@ public class UnitOfWorkTests : BaseIntegrationTest
     public async Task Savechanges_Create()
     {
         // Arrange
-        var libName = "Create_" + Guid.NewGuid().ToString();
-        var lib = Library.Create(libName);        
+        var guid = Guid.NewGuid().ToString();
+        var libName = "Create_" + guid;
+        var lib = Library.Create(libName, guid);        
         Context.Libraries.Add(lib);
 
         // Act
@@ -36,8 +37,9 @@ public class UnitOfWorkTests : BaseIntegrationTest
     public async Task Savechanges_Modify()
     {
         // Arrange
-        var libName = "Modify_" + Guid.NewGuid().ToString();
-        var lib = Library.Create(libName);
+        var guid = Guid.NewGuid().ToString();
+        var libName = "Create_" + guid;
+        var lib = Library.Create(libName, guid);
         lib.CreatedOnUtc.Should().NotBe(null);
         Context.Libraries.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);

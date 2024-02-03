@@ -24,7 +24,7 @@ public class PagedListTests : BaseIntegrationTest
         int count = Context.Libraries.Count();
         for (int i = 0; i < nbItems; i++)
         {
-            var lib = Library.Create("lib-"+i);
+            var lib = Library.Create("lib-"+i,"relpath-"+i);
             Context.Libraries.Add(lib);            
         }
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);

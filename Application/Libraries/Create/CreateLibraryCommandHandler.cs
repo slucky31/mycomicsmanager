@@ -22,7 +22,7 @@ internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibrar
     {
         // TODO : Test si Name est nul
         
-        var library = Library.Create(command.Name);
+        var library = Library.Create(command.Name, command.RelPath);
 
         // TODO: Test uniqueness of the name
 

@@ -7,12 +7,15 @@ public class Library : Entity<ObjectId> {
 
     public string Name { get; protected set; } = String.Empty;
 
-    public static Library Create(string name)
+    public string RelativePath { get; private set; } = String.Empty;
+
+    public static Library Create(string name, string relPath)
     {
         var library = new Library
         {
             Id = ObjectId.GenerateNewId(),
-            Name = name
+            Name = name,
+            RelativePath = relPath
         };
         return library;
     }

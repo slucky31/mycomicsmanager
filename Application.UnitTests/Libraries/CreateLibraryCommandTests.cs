@@ -11,7 +11,7 @@ using MongoDB.Bson;
 namespace Application.UnitTests.Libraries;
 public class CreateLibraryCommandTests
 {
-    private static CreateLibraryCommand Command = new("test");
+    private static CreateLibraryCommand Command = new("test-name", "test-relpath");
 
     private readonly CreateLibraryCommandHandler _handler;
     private readonly IRepository<Library, ObjectId> _librayRepositoryMock;

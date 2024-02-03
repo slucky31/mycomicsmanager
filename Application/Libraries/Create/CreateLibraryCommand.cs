@@ -4,4 +4,4 @@ using MediatR;
 
 namespace Application.Libraries.Create;
 
-public record CreateLibraryCommand(string Name) : IRequest<Result<Library>>;
+public record CreateLibraryCommand(string Name, string RelPath) : IRequest<Result<Library>>;
