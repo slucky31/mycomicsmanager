@@ -20,18 +20,9 @@ public class Library : Entity<ObjectId> {
         return library;
     }
 
-    public static Library Create(string name, ObjectId id)
-    {
-        var library = new Library
-        {
-            Id = id,
-            Name = name
-        };
-        return library;
-    }
-
-    public void Update(string name)
+    public void Update(string name, string relPath)
     {
         Name = name;
+        RelativePath = relPath;
     }
 }

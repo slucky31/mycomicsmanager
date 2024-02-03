@@ -51,7 +51,7 @@ public class LibrariesMinimalApi : ICarterModule
 
         app.MapPut("libraries/{id}", async (string id, [FromBody] UpdateLibraryRequest request, ISender sender) =>
         {
-            var command = new UpdateLibraryCommand(new ObjectId(id), request.Name);
+            var command = new UpdateLibraryCommand(new ObjectId(id), request.Name, request.relPath);
             
             await sender.Send(command);
 

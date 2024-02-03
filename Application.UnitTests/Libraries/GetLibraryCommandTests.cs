@@ -16,7 +16,6 @@ public class GetLibraryCommandTests
  
     private readonly GetLibraryQueryHandler _handler;
     private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
-    private readonly ObjectId libraryId = ObjectId.GenerateNewId();
 
 
     public GetLibraryCommandTests()
@@ -29,7 +28,8 @@ public class GetLibraryCommandTests
     public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
-        var library = Library.Create("test", libraryId);
+        var library = Library.Create("test", "relpath");
+        var libraryId = library.Id;
         _librayRepositoryMock.GetByIdAsync(libraryId).Returns(library);
         var Query = new GetLibraryQuery(libraryId);       
 
@@ -47,7 +47,8 @@ public class GetLibraryCommandTests
     [Fact]
     public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
     {
-        // Arrange        
+        // Arrange
+        var libraryId = ObjectId.GenerateNewId();
         _librayRepositoryMock.GetByIdAsync(libraryId).ReturnsNull();
         var Query = new GetLibraryQuery(libraryId);
 

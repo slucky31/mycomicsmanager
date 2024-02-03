@@ -44,7 +44,7 @@ public class UnitOfWorkTests : BaseIntegrationTest
         Context.Libraries.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         libName += "_modified";
-        lib.Update(libName);
+        lib.Update(libName, guid);
         Context.Libraries.Update(lib);
 
         // Act

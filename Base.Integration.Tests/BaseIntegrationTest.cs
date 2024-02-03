@@ -1,9 +1,12 @@
 ﻿using Application.Data;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
+using Domain.Libraries;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using Persistence;
+using Persistence.Repositories;
 using Xunit;
 
 namespace Base.Integration.Tests;
@@ -13,6 +16,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
     private readonly IServiceScope _scope;
     protected ISender Sender { get; }
     protected ApplicationDbContext Context { get; }
+    protected IRepository<Library, ObjectId> LibraryRepository { get; }
     protected IUnitOfWork UnitOfWork { get; }
     private bool disposed;
 
@@ -24,6 +28,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         Sender = _scope.ServiceProvider.GetRequiredService<ISender>();
         Context = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        LibraryRepository = _scope.ServiceProvider.GetRequiredService<IRepository<Library, ObjectId>>();
 
         // Clear all MongoDb Collections berfore tests
         Context.Libraries.RemoveRange(Context.Libraries);

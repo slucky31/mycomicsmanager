@@ -10,7 +10,9 @@ public interface IRepository<TEntity, TEntityId>
 
     void Remove(TEntity entity);
 
-    Task<List<TEntity>> GetListAsync();
+    Task<List<TEntity>> ListAsync();
+
+    int Count();
     
 }
 

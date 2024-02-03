@@ -35,7 +35,12 @@ public class LibraryRepository : IRepository<Library, ObjectId>
         DbContext.Set<Library>().Remove(entity);
     }
 
-    public async Task<List<Library>> GetListAsync()
+    public int Count()
+    {
+        return DbContext.Set<Library>().Count();
+    }
+
+    public async Task<List<Library>> ListAsync()
     {
         return await DbContext.Set<Library>().ToListAsync();
     }
