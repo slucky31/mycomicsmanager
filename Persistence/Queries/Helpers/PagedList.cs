@@ -7,14 +7,14 @@ public class PagedList<T> : IPagedList<T>
 {
     public PagedList(IQueryable<T> query)
     {
-        Query = query;
+        _query = query;
         Page = -1;
         PageSize = -1;
         TotalCount = -1;
         Items = null;
     }
 
-    private IQueryable<T> Query;
+    private readonly IQueryable<T> _query;
 
     public IReadOnlyCollection<T>? Items { get; private set; }
 
@@ -24,16 +24,16 @@ public class PagedList<T> : IPagedList<T>
 
     public int TotalCount { get; private set; }
 
-    public bool HasNextPage => TotalCount == -1 ? false : Page * PageSize < TotalCount;
+    public bool HasNextPage => TotalCount != -1 && Page * PageSize < TotalCount;
 
-    public bool HasPreviousPage => TotalCount == -1 ? false : Page > 1;
+    public bool HasPreviousPage => TotalCount != -1 && Page > 1;
 
     public async Task ExecuteQueryAsync(int page, int pageSize)
     {
         Page = page;
         PageSize = pageSize;
-        TotalCount = await Query.CountAsync();
-        Items = await Query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        TotalCount = await _query.CountAsync();
+        Items = await _query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
     }
 
 }

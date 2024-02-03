@@ -9,8 +9,8 @@ using Application.Libraries.Delete;
 namespace Application.UnitTests.Libraries;
 public class DeleteLibraryCommandTests
 {
-    private static DeleteLibraryCommand Command = new(new ObjectId());
-    private static Library library = Library.Create("test", "relpath");
+    private static readonly DeleteLibraryCommand Command = new(new ObjectId());
+    private static readonly Library library = Library.Create("test", "relpath");
 
     private readonly DeleteLibraryCommandHandler _handler;
     private readonly IRepository<Library, ObjectId> _librayRepositoryMock;

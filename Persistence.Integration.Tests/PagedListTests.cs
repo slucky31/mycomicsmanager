@@ -45,10 +45,7 @@ public class PagedListTests : BaseIntegrationTest
     // Mock IQueryable with NSubstitute
     // https://sinairv.github.io/blog/2015/10/04/mock-entity-framework-dbset-with-nsubstitute/
 
-    private readonly List<string> list = new()
-    {
-        "1","2", "3", "4", "5", "6", "7", "8", "9", "10"
-    };
+    private readonly List<string> list = ["1","2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
     [Fact]
     public async Task PagedList_TotalCountAsync()

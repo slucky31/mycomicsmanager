@@ -9,7 +9,7 @@ namespace Domain.Extensions;
 
 public static class StringExtension
 {
-    public static string? ToPascalCase(this string? str)
+    public static string ToPascalCase(this string str)
     {
         if (string.IsNullOrEmpty(str) || str.Length <= 1)
         {
@@ -29,7 +29,7 @@ public static class StringExtension
         return stripStr.RemoveDiacritics();
     }
     
-    public static string? ToCamlCase(this string? str)
+    public static string ToCamlCase(this string str)
     {
         if (string.IsNullOrEmpty(str) || str.Length <= 1)
         {
@@ -41,7 +41,7 @@ public static class StringExtension
         return char.ToLowerInvariant(caml[0]) + caml[1..];
     }
     
-    public static string? RemoveDiacritics(this string? str) 
+    public static string RemoveDiacritics(this string str) 
     {
         if (string.IsNullOrEmpty(str))
         {
@@ -63,7 +63,7 @@ public static class StringExtension
         return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
     }
 
-    public static string? Substract(this string? str2, string? str1)
+    public static string Substract(this string str2, string? str1)
     {
         if (string.IsNullOrEmpty(str2) || string.IsNullOrEmpty(str1))
         {

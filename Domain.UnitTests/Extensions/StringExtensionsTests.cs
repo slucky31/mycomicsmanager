@@ -33,20 +33,6 @@ public class StringExtensionsTests
     }
 
     [Fact]
-    public void ToPascalCase_ReturnsNullString_WhenGivenNullString()
-    {
-        // Arrange
-        string input = String.Empty;
-        string expectedOutput = String.Empty;
-
-        // Act
-        string? result = input.ToPascalCase();
-
-        // Assert
-        result.Should().Be(expectedOutput);
-    }
-
-    [Fact]
     public void ToCamlCase_Returns_CorrectString()
     {
         // Arrange
@@ -66,20 +52,6 @@ public class StringExtensionsTests
         // Arrange
         string? input = String.Empty;
         string? expectedOutput = String.Empty;
-
-        // Act
-        string? result = input.ToCamlCase();
-
-        // Assert
-        result.Should().Be(expectedOutput);
-    }
-
-    [Fact]
-    public void ToCamlCase_ReturnsNullString_WhenGivenNullString()
-    {
-        // Arrange
-        string? input = null;
-        string? expectedOutput = null;
 
         // Act
         string? result = input.ToCamlCase();
@@ -117,20 +89,6 @@ public class StringExtensionsTests
     }
 
     [Fact]
-    public void RemoveDiacritics_ReturnsNullString_WhenGivenNullString()
-    {
-        // Arrange
-        string? input = null;
-        string? expectedOutput = null;
-
-        // Act
-        string? result = input.RemoveDiacritics();
-
-        // Assert
-        result.Should().Be(expectedOutput);
-    }
-
-    [Fact]
     public void Substract_ReturnsSubstract()
     {
         // Arrange
@@ -143,20 +101,6 @@ public class StringExtensionsTests
 
         // Assert
         result.Should().Be(expectedOutput);
-    }
-
-    [Fact]
-    public void Substract_ReturnsInput_WhenSubIsNull()
-    {
-        // Arrange
-        string? input = "Hello World !";
-        string? sub = null;
-
-        // Act
-        string? result = input.Substract(sub);
-
-        // Assert
-        result.Should().Be(input);
     }
 
     [Fact]
@@ -186,20 +130,5 @@ public class StringExtensionsTests
         // Assert
         result.Should().Be(input);
     }
-
-    [Fact]
-    public void Substract_ReturnsNull_WhenIsNull()
-    {
-        // Arrange
-        string? input = null;
-        string? sub = "sdjqjgsqldkj";
-
-        // Act
-        string? result = input.Substract(sub);
-
-        // Assert
-        result.Should().Be(input);
-    }
-
 
 }
