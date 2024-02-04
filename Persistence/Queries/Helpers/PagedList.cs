@@ -28,12 +28,13 @@ public class PagedList<T> : IPagedList<T>
 
     public bool HasPreviousPage => TotalCount != -1 && Page > 1;
 
-    public async Task ExecuteQueryAsync(int page, int pageSize)
+    public async Task<PagedList<T>> ExecuteQueryAsync(int page, int pageSize)
     {
         Page = page;
         PageSize = pageSize;
         TotalCount = await _query.CountAsync();
         Items = await _query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        return this;
     }
 
 }

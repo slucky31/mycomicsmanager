@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain.UnitTests", "Domain.
 		{E8EC4431-1756-4298-B286-679FCD2D75C0} = {E8EC4431-1756-4298-B286-679FCD2D75C0}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persistence.Integration.Tests", "Persistence.Integration.Tests\Persistence.Integration.Tests.csproj", "{186E3BEB-5248-43BA-A82C-4FBB3149AF93}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persistence.Tests", "Persistence.Integration.Tests\Persistence.Tests.csproj", "{186E3BEB-5248-43BA-A82C-4FBB3149AF93}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Base.Integration.Tests", "Base.Integration.Tests\Base.Integration.Tests.csproj", "{2EC1DDEB-E940-4C81-8B5C-8B880FA57BD5}"
 EndProject

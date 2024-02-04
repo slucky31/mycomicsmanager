@@ -1,9 +1,11 @@
 ﻿using Application.Data;
 using Application.Interfaces;
+using Application.Libraries;
 using Domain.Libraries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
+using Persistence.Queries;
 using Persistence.Repositories;
 
 namespace Persistence;
@@ -27,7 +29,9 @@ public static class ProjectDependencyInjection
         services.AddScoped<UnitOfWork>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UnitOfWork>());
 
-        services.AddScoped<IRepository<Library, ObjectId>, LibraryRepository>();       
+        services.AddScoped<IRepository<Library, ObjectId>, LibraryRepository>();
+
+        services.AddScoped<ILibraryReadService, LibraryReadService>();
 
         return services;
     }

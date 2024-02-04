@@ -3,7 +3,7 @@ using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Libraries;
 
-namespace Persistence.Integration.Tests.Repositories;
+namespace Persistence.Tests.Integration.Repositories;
 
 public sealed class LibraryRepositoriesTests : BaseIntegrationTest
 {
@@ -41,7 +41,7 @@ public sealed class LibraryRepositoriesTests : BaseIntegrationTest
 
         // Act && Assert
         Guard.Against.Null(action);
-        await action.Should().ThrowAsync<Exception>();        
+        await action.Should().ThrowAsync<Exception>();
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public sealed class LibraryRepositoriesTests : BaseIntegrationTest
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var list = await LibraryRepository.ListAsync();        
+        var list = await LibraryRepository.ListAsync();
 
         // Assert
         LibraryRepository.Count().Should().Be(3);
