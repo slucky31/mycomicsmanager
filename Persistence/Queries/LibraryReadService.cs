@@ -31,13 +31,13 @@ public class LibraryReadService : ILibraryReadService
 
         Expression<Func<Library, object>> keySelector = SortColumn?.ToUpperInvariant() switch
         {
-            "id" => Library => Library.Id,
-            "name" => Library => Library.Name,
-            "relpath" => Library => Library.RelativePath,
+            "ID" => Library => Library.Id,
+            "NAME" => Library => Library.Name,
+            "RELPATH" => Library => Library.RelativePath,
             _ => Library => Library.Id
         };
 
-        if (SortOrder?.ToUpperInvariant() == "desc")
+        if (SortOrder?.ToUpperInvariant() == "DESC")
         {
             librariesQuery = librariesQuery.OrderByDescending(keySelector);
         }
