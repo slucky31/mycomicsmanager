@@ -10,7 +10,7 @@ namespace Application.UnitTests.Libraries;
 public class UpdateLibraryCommandTests
 {
     private static readonly UpdateLibraryCommand Command = new(new ObjectId(), "library", "relpath");
-    private static readonly Library library = Library.Create("library", "relpath");
+    private static readonly Library library = Library.Create("library");
 
     private readonly UpdateLibraryCommandHandler _handler;
     private readonly IRepository<Library, ObjectId> _librayRepositoryMock;

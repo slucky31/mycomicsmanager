@@ -19,7 +19,7 @@ public class UnitOfWorkTests : BaseIntegrationTest
         // Arrange
         var guid = Guid.NewGuid().ToString();
         var libName = "Create_" + guid;
-        var lib = Library.Create(libName, guid);        
+        var lib = Library.Create(libName);        
         Context.Libraries.Add(lib);
 
         // Act
@@ -39,12 +39,12 @@ public class UnitOfWorkTests : BaseIntegrationTest
         // Arrange
         var guid = Guid.NewGuid().ToString();
         var libName = "Create_" + guid;
-        var lib = Library.Create(libName, guid);
+        var lib = Library.Create(libName);
         lib.CreatedOnUtc.Should().NotBe(null);
         Context.Libraries.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         libName += "_modified";
-        lib.Update(libName, guid);
+        lib.Update(libName);
         Context.Libraries.Update(lib);
 
         // Act

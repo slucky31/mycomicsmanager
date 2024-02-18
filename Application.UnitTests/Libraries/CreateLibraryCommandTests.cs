@@ -7,22 +7,28 @@ using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Application.Interfaces;
 using MongoDB.Bson;
+using Persistence.Queries.Helpers;
+using MockQueryable.NSubstitute;
+using Persistence.Queries;
+using Application.Libraries.ReadService;
 
 namespace Application.UnitTests.Libraries;
 public class CreateLibraryCommandTests
 {
-    private static readonly CreateLibraryCommand Command = new("test-name", "test-relpath");
+    private static readonly CreateLibraryCommand Command = new("test-name");
 
     private readonly CreateLibraryCommandHandler _handler;
     private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
+    private readonly ILibraryReadService _libraryReadServiceMock;
 
     public CreateLibraryCommandTests()
     {
         _librayRepositoryMock = Substitute.For<IRepository<Library, ObjectId>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+        _libraryReadServiceMock = Substitute.For<ILibraryReadService>();
 
-        _handler = new CreateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock);
+        _handler = new CreateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock);
     }
 
     [Fact]
@@ -53,6 +59,38 @@ public class CreateLibraryCommandTests
 
         // Assert
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnBadREquest_WhenCommandNameIsEmpty()
+    {
+        // Arrange
+        CreateLibraryCommand Command = new("");
+
+        // Act
+        var result = await _handler.Handle(Command, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesErrors.BadRequest);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExist()
+    {
+        // Arrange
+        List<Library> list = [Library.Create(Command.Name)];
+        var query = list.AsQueryable().BuildMock();
+        var pagedList = new PagedList<Library>(query);
+        await pagedList.ExecuteQueryAsync(1, 2);
+        _libraryReadServiceMock.GetLibrariesAsync(Command.Name, LibrariesColumn.Name, null, 1, 1).Returns(pagedList);
+
+        // Act
+        var result = await _handler.Handle(Command, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesErrors.Duplicate);
     }
 
 }

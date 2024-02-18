@@ -27,7 +27,7 @@ internal sealed class UpdateLibraryCommandHandler : IRequestHandler<UpdateLibrar
             return LibrariesErrors.NotFound;
         }
 
-        library.Update(request.Name, request.relPath);
+        library.Update(request.Name);
         
         _librayRepository.Update(library);
 

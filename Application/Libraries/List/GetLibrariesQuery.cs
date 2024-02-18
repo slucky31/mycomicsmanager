@@ -1,12 +1,13 @@
 ﻿using Application.Interfaces;
 using Domain.Libraries;
+using Domain.Primitives;
 using MediatR;
 
 namespace Application.Libraries.List;
 public record GetLibrariesQuery(
-    string? SearchTerm, 
-    string? SortColumn, 
-    string? SortOrder, 
-    int Page, 
-    int PageSize) : IRequest<IPagedList<Library>>;
+    string? searchTerm, 
+    LibrariesColumn? sortColumn, 
+    SortOrder? sortOrder, 
+    int page, 
+    int pageSize) : IRequest<IPagedList<Library>>;
 

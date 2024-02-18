@@ -1,6 +1,6 @@
 ﻿using Application.Data;
 using Application.Interfaces;
-using Application.Libraries;
+using Application.Libraries.ReadService;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using MediatR;

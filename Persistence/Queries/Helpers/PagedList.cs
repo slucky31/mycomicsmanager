@@ -28,7 +28,7 @@ public class PagedList<T> : IPagedList<T>
 
     public bool HasPreviousPage => TotalCount != -1 && Page > 1;
 
-    public async Task<PagedList<T>> ExecuteQueryAsync(int page, int pageSize)
+    public async Task<IPagedList<T>> ExecuteQueryAsync(int page, int pageSize)
     {
         Page = page;
         PageSize = pageSize;

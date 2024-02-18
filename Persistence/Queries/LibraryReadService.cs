@@ -5,8 +5,9 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Application.Interfaces;
-using Application.Libraries;
+using Application.Libraries.ReadService;
 using Domain.Libraries;
+using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Queries.Helpers;
 
@@ -20,24 +21,23 @@ public class LibraryReadService : ILibraryReadService
         _context = context;
     }
     
-    public async Task<IPagedList<Library>> GetLibrariesAsync(string? SearchTerm, string? SortColumn, string? SortOrder, int Page, int PageSize)
+    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
     {
         IQueryable<Library> librariesQuery = _context.Libraries.AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            librariesQuery = librariesQuery.Where(l => l.Name.Contains(SearchTerm));
+            librariesQuery = librariesQuery.Where(l => l.Name.Contains(searchTerm));
         }
 
-        Expression<Func<Library, object>> keySelector = SortColumn?.ToUpperInvariant() switch
+        Expression<Func<Library, object>> keySelector = sortColumn switch
         {
-            "ID" => Library => Library.Id,
-            "NAME" => Library => Library.Name,
-            "RELPATH" => Library => Library.RelativePath,
+            LibrariesColumn.Id => Library => Library.Id,
+            LibrariesColumn.Name => Library => Library.Name,
             _ => Library => Library.Id
         };
 
-        if (SortOrder?.ToUpperInvariant() == "DESC")
+        if (sortOrder == SortOrder.Descending)
         {
             librariesQuery = librariesQuery.OrderByDescending(keySelector);
         }
@@ -47,6 +47,6 @@ public class LibraryReadService : ILibraryReadService
         }
 
         var librariesPagedList = new PagedList<Library>(librariesQuery);
-        return await librariesPagedList.ExecuteQueryAsync(Page, PageSize);        
+        return await librariesPagedList.ExecuteQueryAsync(page, pageSize);        
     }
 }

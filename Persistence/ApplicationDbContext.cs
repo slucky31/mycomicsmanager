@@ -19,7 +19,8 @@ public class ApplicationDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         if (modelBuilder !=null)
         {
-            modelBuilder.Entity<Library>().ToCollection("libraries");            
+            modelBuilder.Entity<Library>().ToCollection("libraries");
+            modelBuilder.Entity<Library>().Ignore("RelativePath");
         }
     }
 

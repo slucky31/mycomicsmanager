@@ -7,6 +7,8 @@ using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using Domain.Libraries;
+using Domain.Primitives;
 
 namespace WebAPI.Endpoints;
 
@@ -23,8 +25,8 @@ public class LibrariesMinimalApi : ICarterModule
 
         app.MapGet("libraries", async (
             string? searchTerm,
-            string? sortColumn,
-            string? sortOrder,
+            LibrariesColumn? sortColumn,
+            SortOrder? sortOrder,
             int page,
             int pageSize,
             ISender sender) =>

@@ -1,11 +1,8 @@
-﻿using Application.Interfaces;
-using Base.Integration.Tests;
+﻿using Base.Integration.Tests;
 using Domain.Libraries;
 using Persistence.Queries.Helpers;
 using MockQueryable.NSubstitute;
-using FluentAssertions;
 using Ardalis.GuardClauses;
-
 
 namespace Persistence.Integration.Tests;
 
@@ -24,7 +21,7 @@ public class PagedListTests : BaseIntegrationTest
         int count = Context.Libraries.Count();
         for (int i = 0; i < nbItems; i++)
         {
-            var lib = Library.Create("lib-"+i,"relpath-"+i);
+            var lib = Library.Create("lib-"+i);
             Context.Libraries.Add(lib);            
         }
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
