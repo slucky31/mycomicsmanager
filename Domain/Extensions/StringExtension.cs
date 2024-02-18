@@ -70,7 +70,8 @@ public static class StringExtension
             return str2;
         }
 
-        Guard.Against.NullOrEmpty(str2, str1);
+        Guard.Against.NullOrEmpty(str2);
+        Guard.Against.NullOrEmpty(str1);
         return str2.Replace(str1, "", StringComparison.InvariantCultureIgnoreCase);
     }
 

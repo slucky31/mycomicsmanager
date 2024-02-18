@@ -10,7 +10,8 @@ public class LibraryLocalStorage
 
     public void Create(string rootPath, string folderName)
     {
-        Guard.Against.Null(rootPath, folderName);
+        Guard.Against.Null(rootPath);
+        Guard.Against.Null(folderName);
 
         var path = new StringBuilder();
         path.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(folderName.RemoveDiacritics());
@@ -20,7 +21,8 @@ public class LibraryLocalStorage
 
     public void Delete(string rootPath, string folderName) 
     {
-        Guard.Against.Null(rootPath, folderName);
+        Guard.Against.Null(rootPath);
+        Guard.Against.Null(folderName);
 
         var path = new StringBuilder();
         path.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(folderName.RemoveDiacritics());
