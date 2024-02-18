@@ -65,10 +65,10 @@ public class CreateLibraryCommandTests
     public async Task Handle_ShouldReturnBadREquest_WhenCommandNameIsEmpty()
     {
         // Arrange
-        CreateLibraryCommand Command = new("");
+        CreateLibraryCommand commandWithEmptyName = new("");
 
         // Act
-        var result = await _handler.Handle(Command, default);
+        var result = await _handler.Handle(commandWithEmptyName, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();
