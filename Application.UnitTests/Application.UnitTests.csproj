@@ -5,7 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
+    <IsTestProject>true</IsTestProject>    
+    <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
   </PropertyGroup>
 
   <ItemGroup>

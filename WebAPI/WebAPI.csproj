@@ -7,6 +7,11 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <UserSecretsId>f4c77515-bccb-4fdc-965b-35cfac5050d6</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <PackageId>mcm.WebAPI</PackageId>
+    <!-- x-release-please-start-version -->
+    <Version>8.0.0</Version>
+    <!-- x-release-please-end -->
+    <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
   </PropertyGroup>
 
   <ItemGroup>
