@@ -6,5 +6,6 @@
     ":separateMultipleMajorReleases",    
     ":semanticCommitTypeAll(fix)"
   ],
-  "prConcurrentLimit": 10
+  "prConcurrentLimit": 10,
+  "baseBranches": ["main","net6"]
 }
