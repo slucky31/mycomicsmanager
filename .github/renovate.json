@@ -1,0 +1,11 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":label(renovate)",
+    ":separateMultipleMajorReleases",    
+    ":semanticCommitTypeAll(fix)"
+  ],
+  "prConcurrentLimit": 10,
+  "baseBranches": ["main","net6"]
+}

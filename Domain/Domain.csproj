@@ -4,6 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>mcm.Domain</PackageId>
+    <!-- x-release-please-start-version -->
+    <Version>8.0.0</Version>
+    <!-- x-release-please-end -->
+    <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
   </PropertyGroup>
 
   <ItemGroup>
