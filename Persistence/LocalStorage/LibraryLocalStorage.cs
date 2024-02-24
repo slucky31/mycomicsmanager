@@ -26,43 +26,57 @@ public static class LibraryLocalStorage
         return Result.Success();        
     }
 
-    public static Result Move(string rootPath, string oldFolderName, string newFolderName)
+    public static Result Move(string rootPath, string originFolderName, string destinationFolderName)
     {
         Guard.Against.Null(rootPath);
-        Guard.Against.Null(oldFolderName);
-        Guard.Against.Null(newFolderName);
+        Guard.Against.Null(originFolderName);
+        Guard.Against.Null(destinationFolderName);
 
-        if (String.IsNullOrEmpty(rootPath) || String.IsNullOrEmpty(oldFolderName) || String.IsNullOrEmpty(newFolderName))
+        if (String.IsNullOrEmpty(rootPath) || String.IsNullOrEmpty(originFolderName) || String.IsNullOrEmpty(destinationFolderName))
         {
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
         }        
 
-        var oldPath = new StringBuilder();
-        oldPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(oldFolderName.RemoveDiacritics());
+        var originPath = new StringBuilder();
+        originPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(originFolderName.RemoveDiacritics());
 
-        if (!Directory.Exists(oldPath.ToString()))
+        if (!Directory.Exists(originPath.ToString()))
         {
             return LibraryLocalStorageError.UnknownFolder;
         }
 
-        var newPath = new StringBuilder();
-        newPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(newFolderName.RemoveDiacritics());
+        var destinationPath = new StringBuilder();
+        destinationPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(destinationFolderName.RemoveDiacritics());
 
-        //TODO : Move to an existing folder
+        if (Directory.Exists(destinationPath.ToString()))
+        {
+            return LibraryLocalStorageError.AlreadyExistingFolder;
+        }
 
-        Directory.Move(oldPath.ToString(), newPath.ToString());
+        Directory.Move(originPath.ToString(), destinationPath.ToString());
         return Result.Success();
     }
 
-    public static void Delete(string rootPath, string folderName) 
+    public static Result Delete(string rootPath, string folderName) 
     {
         Guard.Against.Null(rootPath);
         Guard.Against.Null(folderName);
 
+        if (String.IsNullOrEmpty(rootPath) || String.IsNullOrEmpty(folderName))
+        {
+            return LibraryLocalStorageError.ArgumentNullOrEmpty;
+        }
+
         var path = new StringBuilder();
         path.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(folderName.RemoveDiacritics());
 
-        Directory.Delete(path.ToString());
+        if (!Directory.Exists(path.ToString()))
+        {
+            return LibraryLocalStorageError.UnknownFolder;
+        }
+
+        Directory.Delete(path.ToString(), true);
+        return Result.Success();
     }
 
 }
