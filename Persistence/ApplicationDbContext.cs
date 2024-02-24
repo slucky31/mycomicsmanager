@@ -6,13 +6,9 @@ using MongoDB.EntityFrameworkCore.Extensions;
 namespace Persistence;
 
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
 {
-    public DbSet<Library> Libraries { get; set; } 
-    
-    public ApplicationDbContext(DbContextOptions options) : base(options)
-    {
-    }
+    public DbSet<Library> Libraries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

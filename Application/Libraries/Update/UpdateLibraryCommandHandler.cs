@@ -7,31 +7,22 @@ using MongoDB.Bson;
 
 namespace Application.Libraries.Update;
 
-internal sealed class UpdateLibraryCommandHandler : IRequestHandler<UpdateLibraryCommand, Result>
+internal sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork) : IRequestHandler<UpdateLibraryCommand, Result>
 {
-    private readonly IRepository<Library, ObjectId> _librayRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork)
-    {
-        _librayRepository = librayRepository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
     {
-        var library = await _librayRepository.GetByIdAsync(request.Id);
+        var library = await librayRepository.GetByIdAsync(request.Id);
 
         if (library is null)
         {
-            return LibrariesErrors.NotFound;
+            return LibrariesError.NotFound;
         }
 
         library.Update(request.Name);
         
-        _librayRepository.Update(library);
+        librayRepository.Update(library);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

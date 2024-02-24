@@ -6,13 +6,8 @@ using Ardalis.GuardClauses;
 
 namespace Persistence.Integration.Tests;
 
-public class PagedListTests : BaseIntegrationTest
+public class PagedListTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
-    
-    public PagedListTests(IntegrationTestWebAppFactory factory) : base(factory)
-    {
-    }
-
     [Fact]
     public async Task CreateAsync_Should_ReturnPagedList()
     {        

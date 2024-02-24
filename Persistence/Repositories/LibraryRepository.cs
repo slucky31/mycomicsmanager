@@ -5,43 +5,36 @@ using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 
 namespace Persistence.Repositories;
-public class LibraryRepository : IRepository<Library, ObjectId>
+public class LibraryRepository(ApplicationDbContext dbContext) : IRepository<Library, ObjectId>
 {
-    private readonly ApplicationDbContext DbContext;
-
-    public LibraryRepository(ApplicationDbContext dbContext)
-    {
-        DbContext = dbContext;
-    }
-
     public async Task<Library?> GetByIdAsync(ObjectId id)
     {        
         Guard.Against.Null(id);        
-        return await DbContext.Set<Library>().SingleOrDefaultAsync(p => p.Id == id);
+        return await dbContext.Set<Library>().SingleOrDefaultAsync(p => p.Id == id);
     }
 
     public void Add(Library entity)
     {
-        DbContext.Set<Library>().Add(entity);
+        dbContext.Set<Library>().Add(entity);
     }
 
     public void Update(Library entity)
     {
-        DbContext.Set<Library>().Update(entity);
+        dbContext.Set<Library>().Update(entity);
     }
 
     public void Remove(Library entity)
     {
-        DbContext.Set<Library>().Remove(entity);
+        dbContext.Set<Library>().Remove(entity);
     }
 
     public int Count()
     {
-        return DbContext.Set<Library>().Count();
+        return dbContext.Set<Library>().Count();
     }
 
     public async Task<List<Library>> ListAsync()
     {
-        return await DbContext.Set<Library>().ToListAsync();
+        return await dbContext.Set<Library>().ToListAsync();
     }
 }

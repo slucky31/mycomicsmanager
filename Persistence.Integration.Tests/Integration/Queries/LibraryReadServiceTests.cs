@@ -4,7 +4,7 @@ using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Persistence.Tests.Integration.Queries;
-public class LibraryReadServiceTests : BaseIntegrationTest
+public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
     private readonly Library lib1 = Library.Create("Bande dessinées");
     private readonly Library lib2 = Library.Create("comics");
@@ -14,10 +14,6 @@ public class LibraryReadServiceTests : BaseIntegrationTest
     private readonly Library lib6 = Library.Create("graphics novels");
     private readonly Library lib7 = Library.Create("comics strips");
     private readonly List<Library> libs = [];
-
-    public LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : base(factory)
-    {
-    }
 
     private async Task CreateLibraries()
     {

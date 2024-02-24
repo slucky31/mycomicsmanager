@@ -57,4 +57,6 @@ app.UseHttpsRedirection();
 app.MapCarter();
 app.Run();
 
+#pragma warning disable S1118 // Utility classes should not have public constructors
 public partial class Program { }
+#pragma warning restore S1118 // Utility classes should not have public constructors

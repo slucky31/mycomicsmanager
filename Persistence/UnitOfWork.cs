@@ -5,26 +5,19 @@ using Domain.Interfaces;
 using Domain.Primitives;
 
 namespace Persistence;
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
 {
-    private readonly ApplicationDbContext _dbContext;
-
-    public UnitOfWork(ApplicationDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken)
     {
         UpdateAuditableEntities();
-        int changesNb = await _dbContext.SaveChangesAsync(cancellationToken);
+        int changesNb = await dbContext.SaveChangesAsync(cancellationToken);
         return changesNb;
     }
 
     private void UpdateAuditableEntities()
     {
         IEnumerable<EntityEntry<IAuditable>> entries =
-            _dbContext.ChangeTracker
+            dbContext.ChangeTracker
             .Entries<IAuditable>();
 
         foreach (var entry in entries) 

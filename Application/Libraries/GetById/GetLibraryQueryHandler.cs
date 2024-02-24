@@ -6,21 +6,14 @@ using MongoDB.Bson;
 
 namespace Application.Libraries.GetById;
 
-internal sealed class GetLibraryQueryHandler : IRequestHandler<GetLibraryQuery, Result<Library>>
+internal sealed class GetLibraryQueryHandler(IRepository<Library, ObjectId> librayRepository) : IRequestHandler<GetLibraryQuery, Result<Library>>
 {
-    private readonly IRepository<Library, ObjectId> _librayRepository;
-
-    public GetLibraryQueryHandler(IRepository<Library, ObjectId> librayRepository)
-    {
-        _librayRepository = librayRepository;
-    }
-
     public async Task<Result<Library>> Handle(GetLibraryQuery request, CancellationToken cancellationToken)
     {
-        var library = await _librayRepository.GetByIdAsync(request.Id);
+        var library = await librayRepository.GetByIdAsync(request.Id);
         if (library is null)
         {
-            return LibrariesErrors.NotFound;
+            return LibrariesError.NotFound;
         }
 
         return library;

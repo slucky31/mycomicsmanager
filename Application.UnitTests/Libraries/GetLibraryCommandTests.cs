@@ -57,7 +57,7 @@ public class GetLibraryCommandTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibrariesErrors.NotFound);
+        result.Error.Should().Be(LibrariesError.NotFound);
         await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<ObjectId>());
     }
 

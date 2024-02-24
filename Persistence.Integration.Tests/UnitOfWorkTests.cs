@@ -6,13 +6,8 @@ using Domain.Libraries;
 namespace Persistence.Integration.Tests;
 
 
-public class UnitOfWorkTests : BaseIntegrationTest
+public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
-
-    public UnitOfWorkTests(IntegrationTestWebAppFactory factory) : base(factory)
-    {
-    }
-
     [Fact]
     public async Task Savechanges_Create()
     {
@@ -28,7 +23,7 @@ public class UnitOfWorkTests : BaseIntegrationTest
         // Assert
         var list = Context.Libraries.Where(l => l.Name == libName).ToList();
         list.Should().HaveCount(1);
-        var savedLib = list.First();
+        var savedLib = list[0];
         Guard.Against.Null(savedLib);
         savedLib.CreatedOnUtc.Should().NotBe(null);
     }
@@ -53,7 +48,7 @@ public class UnitOfWorkTests : BaseIntegrationTest
         // Assert
         var list = Context.Libraries.Where(l => l.Name == libName).ToList();
         list.Should().HaveCount(1);
-        var savedLib = list.First();        
+        var savedLib = list[0];
         Guard.Against.Null(savedLib);
         savedLib.CreatedOnUtc.Should().NotBe(null);
         savedLib.ModifiedOnUtc.Should().NotBe(null);

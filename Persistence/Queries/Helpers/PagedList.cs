@@ -3,26 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Queries.Helpers;
 
-public class PagedList<T> : IPagedList<T>
+public class PagedList<T>(IQueryable<T> query) : IPagedList<T>
 {
-    public PagedList(IQueryable<T> query)
-    {
-        _query = query;
-        Page = -1;
-        PageSize = -1;
-        TotalCount = -1;
-        Items = null;
-    }
-
-    private readonly IQueryable<T> _query;
-
     public IReadOnlyCollection<T>? Items { get; private set; }
 
-    public int Page { get; private set; }
+    public int Page { get; private set; } = -1;
 
-    public int PageSize { get; private set; }
+    public int PageSize { get; private set; } = -1;
 
-    public int TotalCount { get; private set; }
+    public int TotalCount { get; private set; } = -1;
 
     public bool HasNextPage => TotalCount != -1 && Page * PageSize < TotalCount;
 
@@ -32,8 +21,8 @@ public class PagedList<T> : IPagedList<T>
     {
         Page = page;
         PageSize = pageSize;
-        TotalCount = await _query.CountAsync();
-        Items = await _query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        TotalCount = await query.CountAsync();
+        Items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         return this;
     }
 

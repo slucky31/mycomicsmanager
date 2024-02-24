@@ -12,18 +12,11 @@ using Microsoft.EntityFrameworkCore;
 using Persistence.Queries.Helpers;
 
 namespace Persistence.Queries;
-public class LibraryReadService : ILibraryReadService
+public class LibraryReadService(ApplicationDbContext context) : ILibraryReadService
 {
-    private readonly ApplicationDbContext _context;
-
-    public LibraryReadService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-    
     public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
     {
-        IQueryable<Library> librariesQuery = _context.Libraries.AsNoTracking();
+        IQueryable<Library> librariesQuery = context.Libraries.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {

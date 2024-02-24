@@ -72,7 +72,7 @@ public class CreateLibraryCommandTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibrariesErrors.BadRequest);
+        result.Error.Should().Be(LibrariesError.BadRequest);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class CreateLibraryCommandTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibrariesErrors.Duplicate);
+        result.Error.Should().Be(LibrariesError.Duplicate);
     }
 
 }

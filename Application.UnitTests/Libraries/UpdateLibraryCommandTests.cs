@@ -1,6 +1,5 @@
 ﻿using Application.Data;
 using Domain.Libraries;
-using FluentAssertions;
 using NSubstitute;
 using Application.Interfaces;
 using MongoDB.Bson;
@@ -35,7 +34,7 @@ public class UpdateLibraryCommandTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibrariesErrors.NotFound);
+        result.Error.Should().Be(LibrariesError.NotFound);
         _librayRepositoryMock.Received(0).Update(Arg.Any<Library>());
         await _unitOfWorkMock.Received(0).SaveChangesAsync(CancellationToken.None);
     }

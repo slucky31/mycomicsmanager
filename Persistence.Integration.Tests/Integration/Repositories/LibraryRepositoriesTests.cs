@@ -6,12 +6,8 @@ using Domain.Libraries;
 
 namespace Persistence.Tests.Integration.Repositories;
 
-public sealed class LibraryRepositoriesTests : BaseIntegrationTest
+public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
-    public LibraryRepositoriesTests(IntegrationTestWebAppFactory factory) : base(factory)
-    {
-    }
-
     [Fact]
     public async Task Add_ShouldAddLib()
     {

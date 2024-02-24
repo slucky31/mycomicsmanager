@@ -35,7 +35,7 @@ public class DeleteLibraryCommandTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibrariesErrors.NotFound);
+        result.Error.Should().Be(LibrariesError.NotFound);
         _librayRepositoryMock.Received(0).Remove(Arg.Any<Library>());
         await _unitOfWorkMock.Received(0).SaveChangesAsync(CancellationToken.None);
     }

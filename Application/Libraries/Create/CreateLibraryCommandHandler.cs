@@ -9,39 +9,28 @@ using Application.Libraries.ReadService;
 
 namespace Application.Libraries.Create;
 
-internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibraryCommand, Result<Library>>
+internal sealed class CreateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService) : IRequestHandler<CreateLibraryCommand, Result<Library>>
 {
-    private readonly IRepository<Library, ObjectId> _libraryRepository;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ILibraryReadService _libraryReadService;
-
-    public CreateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService)
-    {
-        _libraryRepository = libraryRepository;
-        _unitOfWork = unitOfWork;
-        _libraryReadService = libraryReadService;
-    }
-
     public async Task<Result<Library>> Handle(CreateLibraryCommand command, CancellationToken cancellationToken)
     {
         // Check if parameter are not null or empty
         if (string.IsNullOrEmpty(command.Name))
         {
-            return LibrariesErrors.BadRequest;
+            return LibrariesError.BadRequest;
         }
 
         // Check if a library with the same name doesn't already exist
-        var pagedList = await _libraryReadService.GetLibrariesAsync(command.Name, LibrariesColumn.Name, null, 1, 1);        
+        var pagedList = await libraryReadService.GetLibrariesAsync(command.Name, LibrariesColumn.Name, null, 1, 1);        
         Guard.Against.Null(pagedList);
         if ( pagedList.TotalCount > 0)
         {
-            return LibrariesErrors.Duplicate;
+            return LibrariesError.Duplicate;
         }
 
         // Create Library
         var library = Library.Create(command.Name);      
-        _libraryRepository.Add(library);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        libraryRepository.Add(library);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return library;
     }
