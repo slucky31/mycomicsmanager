@@ -1,0 +1,10 @@
+ci/cd:
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: '.github/workflows/*'
+
+docs:
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: 'README.md'
+      - any-glob-to-any-file: '**/*.md'
