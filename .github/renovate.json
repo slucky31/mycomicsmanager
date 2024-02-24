@@ -7,13 +7,5 @@
     ":semanticCommitTypeAll(fix)"
   ],
   "prConcurrentLimit": 10,
-  "baseBranches": ["main","net6"],
-  "packageRules": [
-    {
-      "matchUpdateTypes": ["major"],
-      "matchBaseBranches": ["main","net6"],
-      "enabled": false
-    }
-  ]
-
+  "baseBranches": ["main","net6"]
 }
