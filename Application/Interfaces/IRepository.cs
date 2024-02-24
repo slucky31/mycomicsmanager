@@ -2,12 +2,17 @@
 
 public interface IRepository<TEntity, TEntityId>
 {
-    public Task<TEntity?> GetByIdAsync(TEntityId id);
+    Task<TEntity?> GetByIdAsync(TEntityId id);
 
     void Add(TEntity entity);
 
     void Update(TEntity entity);
 
     void Remove(TEntity entity);
+
+    Task<List<TEntity>> ListAsync();
+
+    int Count();
+    
 }
 

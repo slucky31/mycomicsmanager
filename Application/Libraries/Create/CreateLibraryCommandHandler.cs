@@ -3,33 +3,35 @@ using Domain.Libraries;
 using Domain.Primitives;
 using Application.Data;
 using Application.Interfaces;
-using Domain.Dto;
+using MongoDB.Bson;
+using Ardalis.GuardClauses;
+using Application.Libraries.ReadService;
 
 namespace Application.Libraries.Create;
 
-internal sealed class CreateLibraryCommandHandler : IRequestHandler<CreateLibraryCommand, Result<Library>>
+internal sealed class CreateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService) : IRequestHandler<CreateLibraryCommand, Result<Library>>
 {
-    private readonly IRepository<LibraryDto, LibraryId> _libraryRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CreateLibraryCommandHandler(IRepository<LibraryDto, LibraryId> libraryRepository, IUnitOfWork unitOfWork)
-    {
-        _libraryRepository = libraryRepository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result<Library>> Handle(CreateLibraryCommand command, CancellationToken cancellationToken)
     {
-        // TODO : Test si Name est nul
-        
-        var libraryDto = LibraryDto.Create(Library.Create(command.Name));
+        // Check if parameter are not null or empty
+        if (string.IsNullOrEmpty(command.Name))
+        {
+            return LibrariesError.BadRequest;
+        }
 
-        // TODO: Test uniqueness of the name
+        // Check if a library with the same name doesn't already exist
+        var pagedList = await libraryReadService.GetLibrariesAsync(command.Name, LibrariesColumn.Name, null, 1, 1);        
+        Guard.Against.Null(pagedList);
+        if ( pagedList.TotalCount > 0)
+        {
+            return LibrariesError.Duplicate;
+        }
 
-        _libraryRepository.Add(libraryDto);
+        // Create Library
+        var library = Library.Create(command.Name);      
+        libraryRepository.Add(library);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return libraryDto.ToLibrary();
+        return library;
     }
 }

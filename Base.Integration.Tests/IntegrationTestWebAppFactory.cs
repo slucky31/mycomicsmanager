@@ -14,7 +14,9 @@ using Persistence;
 // Source 2 : https://stackoverflow.com/questions/69990675/change-config-values-in-appsettings-json-githubactions
 
 namespace Base.Integration.Tests;
-public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>
+#pragma warning disable CA1063 // Implement IDisposable Correctly
+public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IDisposable
+#pragma warning restore CA1063 // Implement IDisposable Correctly
 {
     private MongoDbOptions? _mongoDbOptions;
     private string? _databaseName;
@@ -62,5 +64,6 @@ public sealed class IntegrationTestWebAppFactory:WebApplicationFactory<Program>
         Guard.Against.Null(_mongoDbOptions);
         var client = new MongoClient(_mongoDbOptions.ConnectionString);
         client.DropDatabase(_databaseName);
+        base.Dispose();
     }
 }

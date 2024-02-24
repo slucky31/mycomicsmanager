@@ -3,32 +3,23 @@ using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
 using Application.Interfaces;
-using Domain.Dto;
+using MongoDB.Bson;
 
 namespace Application.Libraries.Delete;
-internal sealed class DeleteLibraryCommandHandler : IRequestHandler<DeleteLibraryCommand, Result>
+internal sealed class DeleteLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork) : IRequestHandler<DeleteLibraryCommand, Result>
 {
-    private readonly IRepository<LibraryDto, LibraryId> _librayRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public DeleteLibraryCommandHandler(IRepository<LibraryDto, LibraryId> librayRepository, IUnitOfWork unitOfWork)
-    {
-        _librayRepository = librayRepository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {
-        var library = await _librayRepository.GetByIdAsync(request.Id);
+        var library = await librayRepository.GetByIdAsync(request.Id);
 
         if (library is null)
         {
-            return LibrariesErrors.NotFound;
+            return LibrariesError.NotFound;
         }
 
-        _librayRepository.Remove(library);
+        librayRepository.Remove(library);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

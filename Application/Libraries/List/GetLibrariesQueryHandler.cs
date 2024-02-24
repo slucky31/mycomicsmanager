@@ -1,52 +1,19 @@
 ﻿using System.Linq.Expressions;
-using Application.Helpers;
 using Application.Interfaces;
-using Domain.Dto;
+using Application.Libraries.List;
+using Application.Libraries.ReadService;
+using Domain.Libraries;
+using Domain.Primitives;
 using MediatR;
 
 // Source : https://www.youtube.com/watch?v=X8zRvXbirMU
 
-namespace Application.Libraries.List;
-internal sealed class GetLibrariesQueryHandler : IRequestHandler<GetLibrariesQuery, PagedList<LibraryDto>>
+namespace Persistence.Queries.Libraries;
+internal sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadService) : IRequestHandler<GetLibrariesQuery, IPagedList<Library>>
 {
-    private readonly IApplicationDbContext _context;
-
-    public GetLibrariesQueryHandler(IApplicationDbContext context)
+    public async Task<IPagedList<Library>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
     {
-        _context = context;
-    }
+        return await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize);
 
-    public async Task<PagedList<LibraryDto>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
-    {
-        IQueryable<LibraryDto> librariesDtoQuery = _context.Libraries;
-
-        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-        {
-            librariesDtoQuery = librariesDtoQuery.Where(l => l.Name.Contains(request.SearchTerm));
-        }
-
-        Expression<Func<LibraryDto, object>> keySelector = request.SortColumn?.ToUpperInvariant() switch
-        {
-            "name" => Library => Library.Name,
-            "id" => Library => Library.Id,
-            _ => Library => Library.Id
-        };
-
-        if (request.SortOrder?.ToUpperInvariant() == "desc")
-        {
-            librariesDtoQuery = librariesDtoQuery.OrderByDescending(keySelector);
-        }
-        else
-        {
-            librariesDtoQuery = librariesDtoQuery.OrderBy(keySelector);
-        }
-
-        var librariesDtoPagedList = await PagedList<LibraryDto>.CreateAsync(librariesDtoQuery, request.Page, request.PageSize);
-
-        // Normalement, on devrait retourner un type Librairie Response
-        // Mais MongoDb Entity Framework ne supporte pas (encore) la fonction Select ...
-        // Donc pour l'instant, on fait avec le DTO
-
-        return librariesDtoPagedList;        
     }
 }

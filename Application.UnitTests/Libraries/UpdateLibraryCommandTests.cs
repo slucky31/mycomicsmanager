@@ -1,25 +1,23 @@
 ﻿using Application.Data;
 using Domain.Libraries;
-using FluentAssertions;
 using NSubstitute;
 using Application.Interfaces;
 using MongoDB.Bson;
-using Domain.Dto;
 using Application.Libraries.Update;
 
 namespace Application.UnitTests.Libraries;
 public class UpdateLibraryCommandTests
 {
-    private static UpdateLibraryCommand Command = new(new LibraryId(new ObjectId()), "library");
-    private static LibraryDto library = LibraryDto.Create(Library.Create("library"));
+    private static readonly UpdateLibraryCommand Command = new(new ObjectId(), "library");
+    private static readonly Library library = Library.Create("library");
 
     private readonly UpdateLibraryCommandHandler _handler;
-    private readonly IRepository<LibraryDto, LibraryId> _librayRepositoryMock;
+    private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
 
     public UpdateLibraryCommandTests()
     {
-        _librayRepositoryMock = Substitute.For<IRepository<LibraryDto, LibraryId>>();
+        _librayRepositoryMock = Substitute.For<IRepository<Library, ObjectId>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
         _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock);
@@ -29,15 +27,15 @@ public class UpdateLibraryCommandTests
     public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
     {
         // Arrange
-        _librayRepositoryMock.GetByIdAsync(Command.Id).Returns((LibraryDto?)null);
+        _librayRepositoryMock.GetByIdAsync(Command.Id).Returns((Library?)null);
 
         // Act
         var result = await _handler.Handle(Command, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibrariesErrors.NotFound);
-        _librayRepositoryMock.Received(0).Update(Arg.Any<LibraryDto>());
+        result.Error.Should().Be(LibrariesError.NotFound);
+        _librayRepositoryMock.Received(0).Update(Arg.Any<Library>());
         await _unitOfWorkMock.Received(0).SaveChangesAsync(CancellationToken.None);
     }
 
@@ -52,7 +50,7 @@ public class UpdateLibraryCommandTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _librayRepositoryMock.Received(1).Update(Arg.Any<LibraryDto>());
+        _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
     }
 

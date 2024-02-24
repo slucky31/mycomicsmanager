@@ -1,25 +1,20 @@
 ﻿
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
-using Domain.Dto;
 using Domain.Libraries;
 
 namespace Persistence.Integration.Tests;
 
 
-public class UnitOfWorkTests : BaseIntegrationTest
+public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
-
-    public UnitOfWorkTests(IntegrationTestWebAppFactory factory) : base(factory)
-    {
-    }
-
     [Fact]
     public async Task Savechanges_Create()
     {
         // Arrange
-        var libName = "Create_" + Guid.NewGuid().ToString();
-        var lib = LibraryDto.Create(Library.Create(libName));        
+        var guid = Guid.NewGuid().ToString();
+        var libName = "Create_" + guid;
+        var lib = Library.Create(libName);        
         Context.Libraries.Add(lib);
 
         // Act
@@ -28,7 +23,7 @@ public class UnitOfWorkTests : BaseIntegrationTest
         // Assert
         var list = Context.Libraries.Where(l => l.Name == libName).ToList();
         list.Should().HaveCount(1);
-        var savedLib = list.First();
+        var savedLib = list[0];
         Guard.Against.Null(savedLib);
         savedLib.CreatedOnUtc.Should().NotBe(null);
     }
@@ -37,8 +32,9 @@ public class UnitOfWorkTests : BaseIntegrationTest
     public async Task Savechanges_Modify()
     {
         // Arrange
-        var libName = "Modify_" + Guid.NewGuid().ToString();
-        var lib = LibraryDto.Create(Library.Create(libName));
+        var guid = Guid.NewGuid().ToString();
+        var libName = "Create_" + guid;
+        var lib = Library.Create(libName);
         lib.CreatedOnUtc.Should().NotBe(null);
         Context.Libraries.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
@@ -52,7 +48,7 @@ public class UnitOfWorkTests : BaseIntegrationTest
         // Assert
         var list = Context.Libraries.Where(l => l.Name == libName).ToList();
         list.Should().HaveCount(1);
-        var savedLib = list.First();        
+        var savedLib = list[0];
         Guard.Against.Null(savedLib);
         savedLib.CreatedOnUtc.Should().NotBe(null);
         savedLib.ModifiedOnUtc.Should().NotBe(null);

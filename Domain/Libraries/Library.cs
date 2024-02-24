@@ -1,34 +1,27 @@
-﻿using Domain.Dto;
+﻿using Domain.Extensions;
 using Domain.Primitives;
 using MongoDB.Bson;
 
 namespace Domain.Libraries;
 
-public class Library : Entity<LibraryId> {
+public class Library : Entity<ObjectId> {
 
     public string Name { get; protected set; } = String.Empty;
+
+    public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 
     public static Library Create(string name)
     {
         var library = new Library
         {
-            Id = new LibraryId(ObjectId.GenerateNewId()),
-            Name = name
+            Id = ObjectId.GenerateNewId(),
+            Name = name,
         };
         return library;
     }
 
-    public static Library Create(string name, LibraryId id)
+    public void Update(string name)
     {
-        var library = new Library
-        {
-            Id = id,
-            Name = name
-        };
-        return library;
+        Name = name;        
     }
-
-
 }
-
-public record LibraryId(ObjectId Id) : StronglyObjectIdTypedId(Id);

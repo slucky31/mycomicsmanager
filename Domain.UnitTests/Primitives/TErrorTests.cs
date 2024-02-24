@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Domain.Primitives;
 
-namespace Domain.UnitTests;
+namespace Domain.UnitTests.Primitives;
 public class TErrorTests
 {
     // Arrange
@@ -16,11 +16,11 @@ public class TErrorTests
     public void Create_Error()
     {
         // Arrange
-        string code = "123";
-        string description = "Test error";
+        var code = "123";
+        var description = "Test error";
 
         // Act
-        TError error = new TError(code, description);
+        var error = new TError(code, description);
 
         // Assert
         error.Code.Should().Be(code);
@@ -32,7 +32,7 @@ public class TErrorTests
     {
         // Arrange
         // Act
-        TError error = TError.None;
+        var error = TError.None;
 
         // Assert
         error.Code.Should().BeEmpty();

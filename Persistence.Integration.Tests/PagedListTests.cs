@@ -1,10 +1,35 @@
-﻿using Application.Helpers;
-using FluentAssertions;
+﻿using Base.Integration.Tests;
+using Domain.Libraries;
+using Persistence.Queries.Helpers;
 using MockQueryable.NSubstitute;
+using Ardalis.GuardClauses;
 
-namespace Application.UnitTests.Helpers;
-public class PagedListTests
+namespace Persistence.Integration.Tests;
+
+public class PagedListTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
+    [Fact]
+    public async Task CreateAsync_Should_ReturnPagedList()
+    {        
+        // Arrange
+        var nbItems = 50;
+        int count = Context.Libraries.Count();
+        for (int i = 0; i < nbItems; i++)
+        {
+            var lib = Library.Create("lib-"+i);
+            Context.Libraries.Add(lib);            
+        }
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var pagedList = new PagedList<Library>((IQueryable<Library>)Context.Libraries);
+        await pagedList.ExecuteQueryAsync(1, 5);
+
+        // Assert
+        pagedList.Page.Should().Be(1);        
+        pagedList.TotalCount.Should().Be(count + nbItems);
+    }
+
     // Arrange
     // Act
     // Assert
@@ -12,19 +37,17 @@ public class PagedListTests
     // Mock IQueryable with NSubstitute
     // https://sinairv.github.io/blog/2015/10/04/mock-entity-framework-dbset-with-nsubstitute/
 
-    private readonly List<string> list = new()
-    {
-        "1","2", "3", "4", "5", "6", "7", "8", "9", "10"
-    };
+    private readonly List<string> list = ["1","2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
     [Fact]
     public async Task PagedList_TotalCountAsync()
     {
         // Arrange : https://github.com/romantitov/MockQueryable
-        var query = list.AsQueryable().BuildMock();       
+        var query = list.AsQueryable().BuildMock();
 
         // Act
-        var pagedList = await PagedList<string>.CreateAsync(query, 1, 2);
+        var pagedList = new PagedList<string>(query);
+        await pagedList.ExecuteQueryAsync(1, 2);
 
         // Assert
         pagedList.TotalCount.Should().Be(10);
@@ -37,7 +60,8 @@ public class PagedListTests
         var query = list.AsQueryable().BuildMock();
 
         // Act
-        var pagedList = await PagedList<string>.CreateAsync(query, 1, 2);
+        var pagedList = new PagedList<string>(query);
+        await pagedList.ExecuteQueryAsync(1, 2);        
 
         // Assert
         pagedList.HasNextPage.Should().BeTrue();
@@ -52,11 +76,13 @@ public class PagedListTests
         var query = list.AsQueryable().BuildMock();
 
         // Act
-        var pagedList = await PagedList<string>.CreateAsync(query, 2, 2);
+        var pagedList = new PagedList<string>(query);
+        await pagedList.ExecuteQueryAsync(2, 2);        
 
         // Assert
         pagedList.HasNextPage.Should().BeTrue();
         pagedList.HasPreviousPage.Should().BeTrue();
+        Guard.Against.Null(pagedList.Items);
         pagedList.Items.Count.Should().Be(2);
 
     }
@@ -68,11 +94,13 @@ public class PagedListTests
         var query = list.AsQueryable().BuildMock();
 
         // Act
-        var pagedList = await PagedList<string>.CreateAsync(query, 5, 2);
+        var pagedList = new PagedList<string>(query);
+        await pagedList.ExecuteQueryAsync(5, 2);        
 
         // Assert
         pagedList.HasNextPage.Should().BeFalse();
         pagedList.HasPreviousPage.Should().BeTrue();
+        Guard.Against.Null(pagedList.Items);
         pagedList.Items.Count.Should().Be(2);
     }
 
@@ -83,15 +111,13 @@ public class PagedListTests
         var query = list.AsQueryable().BuildMock();
 
         // Act
-        var pagedList = await PagedList<string>.CreateAsync(query, 6, 2);
+        var pagedList = new PagedList<string>(query);
+        await pagedList.ExecuteQueryAsync(6, 2);
 
         // Assert
         pagedList.HasNextPage.Should().BeFalse();
         pagedList.HasPreviousPage.Should().BeTrue();
+        Guard.Against.Null(pagedList.Items);
         pagedList.Items.Count.Should().Be(0);
     }
-
-
-
-
 }

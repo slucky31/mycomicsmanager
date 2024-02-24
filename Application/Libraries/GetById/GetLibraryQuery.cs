@@ -1,6 +1,7 @@
 ﻿using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
+using MongoDB.Bson;
 
 namespace Application.Libraries.GetById;
-public record GetLibraryQuery(LibraryId Id) : IRequest<Result<Library>>;
+public record GetLibraryQuery(ObjectId Id) : IRequest<Result<Library>>;

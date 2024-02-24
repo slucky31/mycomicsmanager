@@ -1,14 +1,14 @@
-﻿using Application;
-using Application.Libraries.Create;
+﻿using Application.Libraries.Create;
 using Application.Libraries.Delete;
 using Application.Libraries.List;
 using Application.Libraries.GetById;
 using Application.Libraries.Update;
 using Carter;
-using Domain.Libraries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using Domain.Libraries;
+using Domain.Primitives;
 
 namespace WebAPI.Endpoints;
 
@@ -25,8 +25,8 @@ public class LibrariesMinimalApi : ICarterModule
 
         app.MapGet("libraries", async (
             string? searchTerm,
-            string? sortColumn,
-            string? sortOrder,
+            LibrariesColumn? sortColumn,
+            SortOrder? sortOrder,
             int page,
             int pageSize,
             ISender sender) =>
@@ -42,7 +42,7 @@ public class LibrariesMinimalApi : ICarterModule
         {
             try
             {
-                return Results.Ok(await sender.Send(new GetLibraryQuery(new LibraryId(new ObjectId(id)))));
+                return Results.Ok(await sender.Send(new GetLibraryQuery(new ObjectId(id))));
             }
             catch (ArgumentNullException ex) 
             {                
@@ -53,7 +53,7 @@ public class LibrariesMinimalApi : ICarterModule
 
         app.MapPut("libraries/{id}", async (string id, [FromBody] UpdateLibraryRequest request, ISender sender) =>
         {
-            var command = new UpdateLibraryCommand(new LibraryId(new ObjectId(id)), request.Name);
+            var command = new UpdateLibraryCommand(new ObjectId(id), request.Name);
             
             await sender.Send(command);
 
@@ -63,7 +63,7 @@ public class LibrariesMinimalApi : ICarterModule
 
         app.MapDelete("libraries/{id}", async (string id, ISender sender) =>
         {            
-            var result = await sender.Send(new DeleteLibraryCommand(new LibraryId(new ObjectId(id))));
+            var result = await sender.Send(new DeleteLibraryCommand(new ObjectId(id)));
 
             if (result.IsSuccess)
             {

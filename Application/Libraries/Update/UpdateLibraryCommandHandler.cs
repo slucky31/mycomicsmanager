@@ -3,35 +3,26 @@ using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
 using Application.Interfaces;
-using Domain.Dto;
+using MongoDB.Bson;
 
 namespace Application.Libraries.Update;
 
-internal sealed class UpdateLibraryCommandHandler : IRequestHandler<UpdateLibraryCommand, Result>
+internal sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork) : IRequestHandler<UpdateLibraryCommand, Result>
 {
-    private readonly IRepository<LibraryDto, LibraryId> _librayRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateLibraryCommandHandler(IRepository<LibraryDto, LibraryId> librayRepository, IUnitOfWork unitOfWork)
-    {
-        _librayRepository = librayRepository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
     {
-        var libraryDto = await _librayRepository.GetByIdAsync(request.Id);
+        var library = await librayRepository.GetByIdAsync(request.Id);
 
-        if (libraryDto is null)
+        if (library is null)
         {
-            return LibrariesErrors.NotFound;
+            return LibrariesError.NotFound;
         }
 
-        libraryDto.Update(request.Name);
+        library.Update(request.Name);
         
-        _librayRepository.Update(libraryDto);
+        librayRepository.Update(library);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
