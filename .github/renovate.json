@@ -12,7 +12,6 @@
     {
       "matchUpdateTypes": ["minor"],
       "matchBaseBranches": ["main","net6"],
-      "enabled": false
     }
   ]
 
