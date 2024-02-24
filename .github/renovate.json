@@ -10,8 +10,9 @@
   "baseBranches": ["main","net6"],
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor"],
-      "matchBaseBranches": ["main","net6"]
+      "matchUpdateTypes": ["major"],
+      "matchBaseBranches": ["main","net6"],
+      "enabled": false
     }
   ]
 
