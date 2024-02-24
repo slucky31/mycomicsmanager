@@ -11,7 +11,7 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["minor"],
-      "matchBaseBranches": ["main","net6"],
+      "matchBaseBranches": ["main","net6"]
     }
   ]
 
