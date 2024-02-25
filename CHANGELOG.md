@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.0.2"></a>
+## [8.0.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.0.2) (2024-02-25)
+
+### Bug Fixes
+
+* **deps:** fix dotnet version in docker ([#495](https://www.github.com/slucky31/mycomicsmanager/issues/495)) ([a6bdf6a](https://www.github.com/slucky31/mycomicsmanager/commit/a6bdf6a300a619318a2949e5f83b42cdb08bdfb3))
+
 <a name="8.0.1"></a>
 ## [8.0.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.0.1) (2024-02-24)
 
