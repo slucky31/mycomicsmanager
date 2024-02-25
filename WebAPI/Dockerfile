@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0.2-jammy AS build
 ARG TARGETARCH
 WORKDIR /source
 
@@ -16,7 +16,7 @@ COPY . .
 RUN dotnet publish "./WebAPI/WebAPI.csproj" -a $TARGETARCH -o /app
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.2-jammy
 EXPOSE 8080
 WORKDIR /app
 COPY --from=build /app .
