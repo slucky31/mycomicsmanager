@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.0.4"></a>
+## [8.0.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.0.4) (2024-02-27)
+
+### Bug Fixes
+
+* **deps:** update dependency ardalis.guardclauses to v4.5.0 ([#499](https://www.github.com/slucky31/mycomicsmanager/issues/499)) ([8f41cca](https://www.github.com/slucky31/mycomicsmanager/commit/8f41cca2acc0b2acf1763890b9537955cf3be77b))
+
 <a name="8.0.3"></a>
 ## [8.0.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.0.3) (2024-02-26)
 
