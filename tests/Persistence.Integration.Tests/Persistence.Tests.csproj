@@ -1,24 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>    
+    <IsTestProject>true</IsTestProject>
     <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Ardalis.GuardClauses" />
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="MockQueryable.NSubstitute" />
-    <PackageReference Include="NSubstitute" />
-    <PackageReference Include="NSubstitute.Analyzers.CSharp">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -31,8 +28,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Application\Application.csproj" />
-    <ProjectReference Include="..\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\..\WebAPI\WebAPI.csproj" />
+    <ProjectReference Include="..\..\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\..\Application\Application.csproj" />
+    <ProjectReference Include="..\Base.Integration.Tests\Base.Integration.Tests.csproj" />    
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="UnitTests\" />
   </ItemGroup>
 
 </Project>

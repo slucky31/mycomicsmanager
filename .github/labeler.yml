@@ -1,10 +1,40 @@
 ci/cd:
   - any:
     - changed-files:
-      - any-glob-to-any-file: '.github/workflows/*'
+      - any-glob-to-any-file: '.github/*'
 
 docs:
   - any:
     - changed-files:
       - any-glob-to-any-file: 'README.md'
       - any-glob-to-any-file: '**/*.md'
+
+test:
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: 'tests/*'
+
+appli:
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: 'Application/*'
+
+domain:
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: 'Domain/*'
+
+db:
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: 'Persistence/*'
+
+api:
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: 'WebAPI/*'
+
+web:
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: 'Web/*' 
