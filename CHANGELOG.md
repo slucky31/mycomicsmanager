@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.1.1"></a>
+## [8.1.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.1) (2024-03-01)
+
+### Bug Fixes
+
+* Reorg file architecture ([#503](https://www.github.com/slucky31/mycomicsmanager/issues/503)) ([0d26d6d](https://www.github.com/slucky31/mycomicsmanager/commit/0d26d6d53d907305f51f2b3e40961a776463582d))
+
 <a name="8.1.0"></a>
 ## [8.1.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.0) (2024-03-01)
 
