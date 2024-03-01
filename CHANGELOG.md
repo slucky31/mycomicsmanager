@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.1.0"></a>
+## [8.1.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.0) (2024-03-01)
+
+### Features
+
+* Init Web UI Blazor .net 8 ([#501](https://www.github.com/slucky31/mycomicsmanager/issues/501)) ([2186e5d](https://www.github.com/slucky31/mycomicsmanager/commit/2186e5d0eb9bf48f08cec56f5ed73c7e09c321ac))
+
 <a name="8.0.4"></a>
 ## [8.0.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.0.4) (2024-02-27)
 
