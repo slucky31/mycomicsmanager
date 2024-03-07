@@ -16,7 +16,7 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageVersion Include="MockQueryable.NSubstitute" Version="7.0.0" />
+    <PackageVersion Include="MockQueryable.NSubstitute" Version="7.0.1" />
     <PackageVersion Include="MongoDB.Bson" Version="2.24.0" />
     <PackageVersion Include="MongoDB.Driver" Version="2.24.0" />
     <PackageVersion Include="MongoDB.EntityFrameworkCore" Version="7.0.0-preview.1" />
