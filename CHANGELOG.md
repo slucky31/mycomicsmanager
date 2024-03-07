@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.1.3"></a>
+## [8.1.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.3) (2024-03-07)
+
+### Bug Fixes
+
+* **deps:** update dependency mockqueryable.nsubstitute to v7.0.1 ([#508](https://www.github.com/slucky31/mycomicsmanager/issues/508)) ([7ef543f](https://www.github.com/slucky31/mycomicsmanager/commit/7ef543fb815290f20292ce3ee792286f352743d6))
+
 <a name="8.1.2"></a>
 ## [8.1.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.2) (2024-03-05)
 
