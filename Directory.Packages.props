@@ -17,7 +17,7 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageVersion Include="MockQueryable.NSubstitute" Version="7.0.0" />
+    <PackageVersion Include="MockQueryable.NSubstitute" Version="7.0.1" />
     <PackageVersion Include="MongoDB.Bson" Version="2.24.0" />
     <PackageVersion Include="MongoDB.Driver" Version="2.24.0" />
     <PackageVersion Include="MongoDB.EntityFrameworkCore" Version="7.0.0-preview.1" />
@@ -25,7 +25,7 @@
     <PackageVersion Include="NSubstitute" Version="5.1.0" />
     <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
     <PackageVersion Include="Serilog.AspNetCore" Version="8.0.1" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.20.0.85982" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.21.0.86780" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageVersion Include="xunit" Version="2.7.0" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.7.0" />
