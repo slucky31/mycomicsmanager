@@ -2,8 +2,21 @@
 using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using Web.Configuration;
+using Ardalis.GuardClauses;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var configuration = builder.Configuration;
+
+// Load Auth0 Configuration
+var config = configuration.GetSection("Auth0");
+builder.Services.Configure<Auth0Configuration>(config);
+builder.Services.AddSingleton<IAuth0Configuration>(sp => sp.GetRequiredService<IOptions<Auth0Configuration>>().Value);
+var auth0Config = config.Get<Auth0Configuration>();
+Guard.Against.Null(auth0Config);
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -11,8 +24,8 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 // Add Auth0 services
 builder.Services
     .AddAuth0WebAppAuthentication(options => {
-        options.Domain = builder.Configuration["Auth0:Domain"];
-        options.ClientId = builder.Configuration["Auth0:ClientId"];
+        options.Domain = auth0Config.Domain;
+        options.ClientId = auth0Config.ClientId;
     });
 
 builder.Services.AddAuthorization();
