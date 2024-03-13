@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.1.5"></a>
+## [8.1.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.5) (2024-03-13)
+
+### Bug Fixes
+
+* **deps:** update dependency coverlet.collector to v6.0.2 ([#511](https://www.github.com/slucky31/mycomicsmanager/issues/511)) ([3e783e8](https://www.github.com/slucky31/mycomicsmanager/commit/3e783e81137f376a46ebd67cec7a56816a224198))
+
 <a name="8.1.4"></a>
 ## [8.1.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.4) (2024-03-12)
 
