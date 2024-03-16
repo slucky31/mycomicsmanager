@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.1.6"></a>
+## [8.1.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.6) (2024-03-15)
+
+### Bug Fixes
+
+* **deps:** update mcr.microsoft.com/dotnet/sdk docker tag to v8.0.203 ([#515](https://www.github.com/slucky31/mycomicsmanager/issues/515)) ([4f4dbae](https://www.github.com/slucky31/mycomicsmanager/commit/4f4dbae239b085f7738cbfcc25f87f5e8e908a33))
+
+<a name="8.1.5"></a>
+## [8.1.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.5) (2024-03-13)
+
+### Bug Fixes
+
+* **deps:** update dependency coverlet.collector to v6.0.2 ([#511](https://www.github.com/slucky31/mycomicsmanager/issues/511)) ([3e783e8](https://www.github.com/slucky31/mycomicsmanager/commit/3e783e81137f376a46ebd67cec7a56816a224198))
+
+<a name="8.1.4"></a>
+## [8.1.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.4) (2024-03-12)
+
+### Bug Fixes
+
+* **deps:** update dotnet monorepo ([#510](https://www.github.com/slucky31/mycomicsmanager/issues/510)) ([1cca385](https://www.github.com/slucky31/mycomicsmanager/commit/1cca3859806356c10bbd34c91fb34e7953ec94a1))
+
 <a name="8.1.3"></a>
 ## [8.1.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.3) (2024-03-07)
 
