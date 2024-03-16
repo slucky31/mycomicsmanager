@@ -1,4 +1,5 @@
-﻿using Domain.Primitives;
+﻿using System.Xml.Linq;
+using Domain.Primitives;
 using MongoDB.Bson;
 
 namespace Domain.Users;
@@ -18,6 +19,12 @@ public class User : Entity<ObjectId>
             AuthId = authId
         };
         return user;
+    }
+
+    public void Update(string email, string authId)
+    {
+        Email = email;
+        AuthId = authId;
     }
 
 }
