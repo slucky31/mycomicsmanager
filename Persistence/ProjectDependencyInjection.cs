@@ -1,7 +1,9 @@
 ﻿using Application.Data;
 using Application.Interfaces;
-using Application.Libraries.ReadService;
+using Application.Libraries;
+using Application.Users;
 using Domain.Libraries;
+using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -30,8 +32,10 @@ public static class ProjectDependencyInjection
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UnitOfWork>());
 
         services.AddScoped<IRepository<Library, ObjectId>, LibraryRepository>();
+        services.AddScoped<IRepository<User, ObjectId>, UserRepository>();
 
         services.AddScoped<ILibraryReadService, LibraryReadService>();
+        services.AddScoped<IUserReadService, UserReadService>();
 
         return services;
     }

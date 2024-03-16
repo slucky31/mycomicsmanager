@@ -10,7 +10,7 @@ using MongoDB.Bson;
 using Persistence.Queries.Helpers;
 using MockQueryable.NSubstitute;
 using Persistence.Queries;
-using Application.Libraries.ReadService;
+using Application.Libraries;
 
 namespace Application.UnitTests.Libraries;
 public class CreateLibraryCommandTests

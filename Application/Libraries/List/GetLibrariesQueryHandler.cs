@@ -1,9 +1,7 @@
-﻿using System.Linq.Expressions;
-using Application.Interfaces;
+﻿using Application.Interfaces;
+using Application.Libraries;
 using Application.Libraries.List;
-using Application.Libraries.ReadService;
 using Domain.Libraries;
-using Domain.Primitives;
 using MediatR;
 
 // Source : https://www.youtube.com/watch?v=X8zRvXbirMU
