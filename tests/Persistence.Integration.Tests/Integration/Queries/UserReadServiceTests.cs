@@ -206,4 +206,98 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
 
     }
 
+    [Fact]
+    public async Task GetUserByAuthIdOrEmail_WithValidData_ReturnsUser()
+    {
+        // Arrange
+        var user = User.Create("test@test.com", "123456");
+        UserRepository.Add(user);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await UserReadService.GetUserByAuthIdOrEmail(user.Email, user.AuthId);
+
+        // Assert        
+        Guard.Against.Null(result.Value);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Email.Should().Be(user.Email);
+        result.Value.AuthId.Should().Be(user.AuthId);
+    }
+
+    [Fact]
+    public async Task GetUserByAuthIdOrEmail_WithInvalidData_ReturnsBadRequest()
+    {
+        // Arrange
+        var email = "";
+        var authId = "123456";
+
+        // Act
+        var result = await UserReadService.GetUserByAuthIdOrEmail(email, authId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetUserByAuthIdOrEmail_WithNonExistingUser_ReturnsNotFound()
+    {
+        // Arrange
+        var user = User.Create("test@test.com", "123456");
+
+        // Act
+        var result = await UserReadService.GetUserByAuthIdOrEmail(user.Email, user.AuthId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+    }
+
+    [Fact]
+    public async Task GetUserByEmail_WhenEmailIsEmpty_ReturnsBadRequest()
+    {
+        // Arrange
+        string email = string.Empty;
+
+        // Act
+        var result = await UserReadService.GetUserByEmail(email);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetUserByEmail_WhenUserNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        string email = "test@example.com";
+
+        // Act
+        var result = await UserReadService.GetUserByEmail(email);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+    }
+
+    [Fact]
+    public async Task GetUserByEmail_WhenUserFound_ReturnsUser()
+    {
+        // Arrange
+        string email = "test@example.com";
+        var user = User.Create(email, "123456");
+        UserRepository.Add(user);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await UserReadService.GetUserByEmail(email);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();        
+        Guard.Against.Null(result.Value);
+        result.Value.Email.Should().Be(user.Email);
+        result.Value.AuthId.Should().Be(user.AuthId);
+    }
+
 }
