@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Web.Configuration;
 using Ardalis.GuardClauses;
+using Microsoft.AspNetCore.Components.Authorization;
+using Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,9 @@ builder.Services.Configure<Auth0Configuration>(config);
 builder.Services.AddSingleton<IAuth0Configuration>(sp => sp.GetRequiredService<IOptions<Auth0Configuration>>().Value);
 var auth0Config = config.Get<Auth0Configuration>();
 Guard.Against.Null(auth0Config);
+
+// Register CustomAuthenticationStateProvider
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
