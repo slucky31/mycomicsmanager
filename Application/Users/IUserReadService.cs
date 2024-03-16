@@ -11,6 +11,6 @@ public interface IUserReadService
 
     Task<Result<User>> GetUserByEmail(string? email);
 
-    Task<Result<User>> GetUserByAuthIdOrEmail(string? email, string? authId);
+    Task<Result<User>> GetUserByAuthIdAndEmail(string? email, string? authId);
 
 }

@@ -40,7 +40,7 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
         return await librariesPagedList.ExecuteQueryAsync(page, pageSize);        
     }
 
-    public async Task<Result<User>> GetUserByAuthIdOrEmail(string? email, string? authId)
+    public async Task<Result<User>> GetUserByAuthIdAndEmail(string? email, string? authId)
     {        
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(authId)) 
         {
@@ -48,7 +48,7 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
         }
 
         IQueryable<User> query = context.Users.AsNoTracking();
-        User? user = await query.Where(u => u.Email == email || u.AuthId == authId).SingleOrDefaultAsync();
+        User? user = await query.Where(u => u.Email == email && u.AuthId == authId).SingleOrDefaultAsync();
 
         if (user is null)
         {

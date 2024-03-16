@@ -215,7 +215,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await UserReadService.GetUserByAuthIdOrEmail(user.Email, user.AuthId);
+        var result = await UserReadService.GetUserByAuthIdAndEmail(user.Email, user.AuthId);
 
         // Assert        
         Guard.Against.Null(result.Value);
@@ -232,7 +232,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
         var authId = "123456";
 
         // Act
-        var result = await UserReadService.GetUserByAuthIdOrEmail(email, authId);
+        var result = await UserReadService.GetUserByAuthIdAndEmail(email, authId);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -246,7 +246,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
         var user = User.Create("test@test.com", "123456");
 
         // Act
-        var result = await UserReadService.GetUserByAuthIdOrEmail(user.Email, user.AuthId);
+        var result = await UserReadService.GetUserByAuthIdAndEmail(user.Email, user.AuthId);
 
         // Assert
         result.IsFailure.Should().BeTrue();

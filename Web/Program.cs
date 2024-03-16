@@ -2,16 +2,25 @@
 using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Web.Configuration;
 using Ardalis.GuardClauses;
 using Microsoft.AspNetCore.Components.Authorization;
 using Web;
+using Application;
+using Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var configuration = builder.Configuration;
+
+builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(nameof(MongoDbOptions)));
+var options = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
+Guard.Against.Null(options);
+
+builder.Services
+    .AddApplication()
+    .AddInfrastructure(options.ConnectionString, options.DatabaseName);
 
 // Load Auth0 Configuration
 var config = configuration.GetSection("Auth0");

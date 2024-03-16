@@ -22,7 +22,7 @@ internal sealed class CreateUserCommandHandler(IRepository<User, ObjectId> userR
         }
 
         // Check if a user with the same email or AuthId doesn't already exist
-        var user = await userReadService.GetUserByAuthIdOrEmail(command.email, command.authId);        
+        var user = await userReadService.GetUserByAuthIdAndEmail(command.email, command.authId);        
         if (user is not null)
         {
             return UsersError.Duplicate;

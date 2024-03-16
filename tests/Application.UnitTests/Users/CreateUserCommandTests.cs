@@ -78,7 +78,7 @@ public class CreateUserCommandHandlerTests
     {
         // Arrange
         User user = User.Create(Command.email, Command.authId);        
-        _userReadServiceMock.GetUserByAuthIdOrEmail(Command.email, Command.authId).Returns(user);            
+        _userReadServiceMock.GetUserByAuthIdAndEmail(Command.email, Command.authId).Returns(user);            
 
         // Act
         var result = await _handler.Handle(Command, default);
