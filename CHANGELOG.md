@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.2.0"></a>
+## [8.2.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.2.0) (2024-03-23)
+
+### Features
+
+* Auth0 Authentication ([#504](https://www.github.com/slucky31/mycomicsmanager/issues/504)) ([227235b](https://www.github.com/slucky31/mycomicsmanager/commit/227235b479dd8c43fea00487fac604729a8bacd7))
+
 <a name="8.1.7"></a>
 ## [8.1.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.1.7) (2024-03-20)
 

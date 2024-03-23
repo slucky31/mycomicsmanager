@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>mcm.Domain</PackageId>
     <!-- x-release-please-start-version -->
-    <Version>8.1.7</Version>
+    <Version>8.2.0</Version>
     <!-- x-release-please-end -->
     <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
   </PropertyGroup>
