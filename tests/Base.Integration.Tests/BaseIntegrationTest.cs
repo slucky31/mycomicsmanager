@@ -1,8 +1,10 @@
 ﻿using Application.Data;
 using Application.Interfaces;
-using Application.Libraries.ReadService;
+using Application.Libraries;
+using Application.Users;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
+using Domain.Users;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -18,10 +20,15 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
     private readonly IServiceScope _scope;
     protected ISender Sender { get; }
     protected ApplicationDbContext Context { get; }
+
     protected IRepository<Library, ObjectId> LibraryRepository { get; }
+    protected IRepository<User, ObjectId> UserRepository { get; }
 
     protected ILibraryReadService LibraryReadService { get; }
+    protected IUserReadService UserReadService { get; }
+
     protected IUnitOfWork UnitOfWork { get; }
+
     private bool disposed;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
@@ -32,11 +39,17 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         Sender = _scope.ServiceProvider.GetRequiredService<ISender>();
         Context = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        
         LibraryRepository = _scope.ServiceProvider.GetRequiredService<IRepository<Library, ObjectId>>();
+        UserRepository = _scope.ServiceProvider.GetRequiredService<IRepository<User, ObjectId>>();
+        
         LibraryReadService = _scope.ServiceProvider.GetRequiredService<ILibraryReadService>();
+        UserReadService = _scope.ServiceProvider.GetRequiredService<IUserReadService>();
 
         // Clear all MongoDb Collections before tests
         Context.Libraries.RemoveRange(Context.Libraries);
+        Context.Users.RemoveRange(Context.Users);
+
         Context.SaveChanges();
     }
 

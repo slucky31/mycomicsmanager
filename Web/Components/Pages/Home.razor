@@ -1,7 +1,18 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<div class="container-fluid p-0">
+    <div class="row no-gutters vh-100 align-items-center" style="background-image: url('your-image-url'); background-size: cover;">
+        <div class="col-12 text-center">
+            <h1 class="display-4">Welcome to Our Site</h1>
+            <p class="lead">This is a simple landing page.</p>
+            <button class="btn btn-primary" @>Connect</button>
+        </div>
+    </div>
+</div>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+@code {
+    private void Connect()
+    {
+        // Your connect logic here
+    }
+}

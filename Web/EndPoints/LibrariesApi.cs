@@ -12,18 +12,18 @@ using Domain.Primitives;
 
 namespace WebAPI.Endpoints;
 
-public class LibrariesMinimalApi : ICarterModule
+public class LibrariesApi : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("libraries", async (CreateLibraryCommand command, ISender sender) =>
+        app.MapPost("/libraries", async (CreateLibraryCommand command, ISender sender) =>
         {
             await sender.Send(command);
 
             return Results.Ok();
         });
 
-        app.MapGet("libraries", async (
+        app.MapGet("/libraries", async (
             string? searchTerm,
             LibrariesColumn? sortColumn,
             SortOrder? sortOrder,
@@ -38,7 +38,7 @@ public class LibrariesMinimalApi : ICarterModule
             return Results.Ok(libraries);
         });
 
-        app.MapGet("libraries/{id}", async (string id, ISender sender) =>
+        app.MapGet("/libraries/{id}", async (string id, ISender sender) =>
         {
             try
             {
@@ -51,7 +51,7 @@ public class LibrariesMinimalApi : ICarterModule
 
         });
 
-        app.MapPut("libraries/{id}", async (string id, [FromBody] UpdateLibraryRequest request, ISender sender) =>
+        app.MapPut("/libraries/{id}", async (string id, [FromBody] UpdateLibraryRequest request, ISender sender) =>
         {
             var command = new UpdateLibraryCommand(new ObjectId(id), request.Name);
             
@@ -61,7 +61,7 @@ public class LibrariesMinimalApi : ICarterModule
 
         });
 
-        app.MapDelete("libraries/{id}", async (string id, ISender sender) =>
+        app.MapDelete("/libraries/{id}", async (string id, ISender sender) =>
         {            
             var result = await sender.Send(new DeleteLibraryCommand(new ObjectId(id)));
 
