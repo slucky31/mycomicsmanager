@@ -1,14 +1,15 @@
 ﻿using Web.Components;
 using Auth0.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using Web.Configuration;
 using Ardalis.GuardClauses;
 using Microsoft.AspNetCore.Components.Authorization;
+using Serilog;
 using Web;
 using Application;
 using Persistence;
+using WebAPI;
+using Carter;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +19,22 @@ builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(name
 var options = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
 Guard.Against.Null(options);
 
+// Config Global Exception Management
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+// Config API
+builder.Services.AddCarter();
+
 builder.Services
     .AddApplication()
     .AddInfrastructure(options.ConnectionString, options.DatabaseName);
 
-// Load Auth0 Configuration
+// Config Serilog
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
+
+// Config Auth0
 var config = configuration.GetSection("Auth0");
 builder.Services.Configure<Auth0Configuration>(config);
 builder.Services.AddSingleton<IAuth0Configuration>(sp => sp.GetRequiredService<IOptions<Auth0Configuration>>().Value);
@@ -46,6 +58,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+app.UseSerilogRequestLogging();
+app.UseExceptionHandler();
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -63,25 +78,12 @@ app.UseAuthorization();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapGet("/Account/Login", async (HttpContext httpContext, string redirectUri = "/") =>
-{
-    var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
-            .WithRedirectUri(redirectUri)
-            .Build();
-
-    await httpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-});
-
-app.MapGet("/Account/Logout", async (HttpContext httpContext, string redirectUri = "/") =>
-{
-    var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
-            .WithRedirectUri(redirectUri)
-            .Build();
-
-    await httpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-    await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-});
-
 app.MapRazorComponents<App>();
 
+app.MapCarter();
+
 app.Run();
+
+#pragma warning disable S1118 // Utility classes should not have public constructors
+public partial class Program { }
+#pragma warning restore S1118 // Util
