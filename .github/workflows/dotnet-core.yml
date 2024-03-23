@@ -25,13 +25,7 @@ jobs:
         run: dotnet restore "./Web/Web.csproj"                            
       -
         name: Web Build
-        run: dotnet build "./Web/Web.csproj" --configuration Release --no-restore              
-      -
-        name: Api Install dependencies
-        run: dotnet restore "./WebAPI/WebAPI.csproj"                            
-      -
-        name: Api Build
-        run: dotnet build "./WebAPI/WebAPI.csproj" --configuration Release --no-restore
+        run: dotnet build "./Web/Web.csproj" --configuration Release --no-restore                    
       -
         name: Tests
         run: dotnet test --configuration Release
@@ -85,8 +79,7 @@ jobs:
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"slucky31_mycomicsmanager" /o:"slucky31" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.coverage.exclusions="**Test*.cs" /d:sonar.dotnet.excludeTestProjects=true
           dotnet tool install --global dotnet-coverage
-          dotnet build "./Web/Web.csproj" --configuration Release --no-incremental
-          dotnet build "./WebAPI/WebAPI.csproj" --configuration Release --no-incremental
+          dotnet build "./Web/Web.csproj" --configuration Release --no-incremental          
           dotnet-coverage collect "dotnet test --configuration Release --verbosity normal" -f xml -o "coverage.xml"
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
@@ -151,41 +144,6 @@ jobs:
             } catch (error) {
               core.setFailed(error.message);
             }
-  
-  docker-api:
-    needs: publish
-    if: ${{ (github.ref == 'refs/heads/main') }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name : Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-api
-      - name: Build and push Docker image MyComicsManagerApi
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: linux/arm64
-          file: ./WebAPI/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
 
   docker-web:
     needs: publish
