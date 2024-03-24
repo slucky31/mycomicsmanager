@@ -69,8 +69,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseRouting();
 app.UseAuthorization();
