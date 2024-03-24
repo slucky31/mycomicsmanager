@@ -169,7 +169,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-web
+          images: ghcr.io/slucky31/mcm
       - name: Build and push Docker image MyComicsManagerWeb
         uses: docker/build-push-action@v5
         with:
