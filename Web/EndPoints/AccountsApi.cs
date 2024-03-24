@@ -15,6 +15,8 @@ public class AccountsApi : ICarterModule
                     .WithRedirectUri(redirectUri)
                     .Build();
 
+            // To Allow SSL offloading : Github Issue #522
+            httpContext.Request.IsHttps = true;
             await httpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
         });
 
@@ -24,6 +26,8 @@ public class AccountsApi : ICarterModule
                     .WithRedirectUri(redirectUri)
                     .Build();
 
+            // To Allow SSL offloading : Github Issue #522
+            httpContext.Request.IsHttps = true;
             await httpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
             await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         });
