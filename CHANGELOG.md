@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.2.2"></a>
+## [8.2.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.2.2) (2024-03-24)
+
+### Bug Fixes
+
+* force https for callback ([#523](https://www.github.com/slucky31/mycomicsmanager/issues/523)) ([9b0498a](https://www.github.com/slucky31/mycomicsmanager/commit/9b0498a953d937ccb3e2ecd3f34a6eda98ab09ef))
+
 <a name="8.2.1"></a>
 ## [8.2.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.2.1) (2024-03-24)
 
