@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="Ardalis.GuardClauses" />
+    <PackageReference Include="AspNetCore.HealthChecks.ApplicationStatus" />
+    <PackageReference Include="AspNetCore.HealthChecks.MongoDb" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
     <PackageReference Include="Auth0.AspNetCore.Authentication" />
     <PackageReference Include="Carter" />    
     <PackageReference Include="Serilog.AspNetCore" />
