@@ -12,7 +12,8 @@
     <PackageReference Include="AspNetCore.HealthChecks.MongoDb" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
     <PackageReference Include="Auth0.AspNetCore.Authentication" />
-    <PackageReference Include="Carter" />    
+    <PackageReference Include="Carter" />
+    <PackageReference Include="MudBlazor" />    
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>

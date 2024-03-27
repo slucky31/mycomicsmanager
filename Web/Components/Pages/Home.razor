@@ -1,18 +1,10 @@
-﻿@page "/"
+﻿@page "/home"
 
-<div class="container-fluid p-0">
-    <div class="row no-gutters vh-100 align-items-center" style="background-image: url('your-image-url'); background-size: cover;">
-        <div class="col-12 text-center">
-            <h1 class="display-4">Welcome to Our Site</h1>
-            <p class="lead">This is a simple landing page.</p>
-            <button class="btn btn-primary" @>Connect</button>
-        </div>
-    </div>
-</div>
-
-@code {
-    private void Connect()
-    {
-        // Your connect logic here
-    }
-}
+<AuthorizeView>
+    <Authorized>
+        <a href="Account/Logout">Log out</a>
+    </Authorized>
+    <NotAuthorized>
+        
+    </NotAuthorized>
+</AuthorizeView>
