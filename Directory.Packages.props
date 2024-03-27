@@ -5,6 +5,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Ardalis.GuardClauses" Version="4.5.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.ApplicationStatus" Version="8.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.MongoDb" Version="8.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.0" />
     <PackageVersion Include="Auth0.AspNetCore.Authentication" Version="1.4.1" />
     <PackageVersion Include="Carter" Version="8.0.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
@@ -16,6 +19,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="7.0.17" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageVersion Include="MockQueryable.NSubstitute" Version="7.0.1" />
     <PackageVersion Include="MongoDB.Bson" Version="2.24.0" />

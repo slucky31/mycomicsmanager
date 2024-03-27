@@ -10,6 +10,9 @@ using Application;
 using Persistence;
 using WebAPI;
 using Carter;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HealthChecks.UI.Client;
+using HealthChecks.ApplicationStatus.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +59,11 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// Config HealthChecks
+builder.Services.AddHealthChecks()
+    .AddApplicationStatus()
+    .AddMongoDb(options.ConnectionString);
+
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -79,6 +87,11 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>();
 
 app.MapCarter();
+
+app.MapHealthChecks("health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.Run();
 
