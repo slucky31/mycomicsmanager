@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.3.2"></a>
+## [8.3.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.3.2) (2024-04-03)
+
+### Bug Fixes
+
+* **deps:** update dependency sonaranalyzer.csharp to v9.23.1.88495 ([#532](https://www.github.com/slucky31/mycomicsmanager/issues/532)) ([52a5d68](https://www.github.com/slucky31/mycomicsmanager/commit/52a5d68c0023b27d0595db65fcffff32440e1059))
+
 <a name="8.3.1"></a>
 ## [8.3.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.3.1) (2024-04-03)
 
