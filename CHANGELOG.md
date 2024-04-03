@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.3.1"></a>
+## [8.3.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.3.1) (2024-04-03)
+
+### Bug Fixes
+
+* **deps:** update aspnet-health-checks monorepo to v8.0.1 ([#531](https://www.github.com/slucky31/mycomicsmanager/issues/531)) ([6b9941a](https://www.github.com/slucky31/mycomicsmanager/commit/6b9941a7404e78d8471f054d81f54c69fa699b13))
+
 <a name="8.3.0"></a>
 ## [8.3.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.3.0) (2024-03-27)
 
