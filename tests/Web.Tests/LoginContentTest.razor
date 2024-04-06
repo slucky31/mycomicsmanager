@@ -4,17 +4,22 @@
 @code {
 
     [Fact]
-    public void CounterStartsAtZero()
+    public void RenderLoginContent()
     {
         // Arrange, Act
         var comp = RenderComponent<LoginContent>();
         var button = comp.FindComponent<MudButton>();
+
         var texts = comp.FindComponents<MudText>();
 
         // Assert
         comp.Should().NotBeNull();
         button.Should().NotBeNull();
+        var buttonText = button.Find("span").TextContent;
+        buttonText.Should().Be("Start Now");
+
         texts.Should().HaveCount(2);
-	}
+                
+    }
     
 }
