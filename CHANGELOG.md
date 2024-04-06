@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.3.2"></a>
+## [8.3.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.3.2) (2024-04-03)
+
+### Bug Fixes
+
+* **deps:** update dependency sonaranalyzer.csharp to v9.23.1.88495 ([#532](https://www.github.com/slucky31/mycomicsmanager/issues/532)) ([52a5d68](https://www.github.com/slucky31/mycomicsmanager/commit/52a5d68c0023b27d0595db65fcffff32440e1059))
+
+<a name="8.3.1"></a>
+## [8.3.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.3.1) (2024-04-03)
+
+### Bug Fixes
+
+* **deps:** update aspnet-health-checks monorepo to v8.0.1 ([#531](https://www.github.com/slucky31/mycomicsmanager/issues/531)) ([6b9941a](https://www.github.com/slucky31/mycomicsmanager/commit/6b9941a7404e78d8471f054d81f54c69fa699b13))
+
+<a name="8.3.0"></a>
+## [8.3.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.3.0) (2024-03-27)
+
+### Features
+
+* health check ([#527](https://www.github.com/slucky31/mycomicsmanager/issues/527)) ([1ce3da2](https://www.github.com/slucky31/mycomicsmanager/commit/1ce3da25058ddb313911c1c7ea760600d5e5a2c6))
+
 <a name="8.2.3"></a>
 ## [8.2.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.2.3) (2024-03-25)
 

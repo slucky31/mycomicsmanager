@@ -5,9 +5,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Ardalis.GuardClauses" Version="4.5.0" />
-    <PackageVersion Include="AspNetCore.HealthChecks.ApplicationStatus" Version="8.0.0" />
-    <PackageVersion Include="AspNetCore.HealthChecks.MongoDb" Version="8.0.0" />
-    <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.ApplicationStatus" Version="8.0.1" />
+    <PackageVersion Include="AspNetCore.HealthChecks.MongoDb" Version="8.0.1" />
+    <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
     <PackageVersion Include="Auth0.AspNetCore.Authentication" Version="1.4.1" />
     <PackageVersion Include="bunit" Version="1.27.17" />
     <PackageVersion Include="Carter" Version="8.0.0" />
@@ -31,7 +31,7 @@
     <PackageVersion Include="NSubstitute" Version="5.1.0" />
     <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
     <PackageVersion Include="Serilog.AspNetCore" Version="8.0.1" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.23.0.88079" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.23.1.88495" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageVersion Include="xunit" Version="2.7.0" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.7.0" />
