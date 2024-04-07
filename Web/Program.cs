@@ -13,6 +13,7 @@ using Carter;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HealthChecks.UI.Client;
 using HealthChecks.ApplicationStatus.DependencyInjection;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +64,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddHealthChecks()
     .AddApplicationStatus()
     .AddMongoDb(options.ConnectionString);
+
+// Config MudBlazor Services
+builder.Services.AddMudServices();
 
 var app = builder.Build();
 

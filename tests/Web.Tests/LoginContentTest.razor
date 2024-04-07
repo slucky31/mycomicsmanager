@@ -1,0 +1,34 @@
+@using MudBlazor
+@using FluentValidation.TestHelper
+@inherits TestContext
+
+@code {
+
+    [Fact]
+    public void LoginContentRendersCorrectlyComponents()
+    {
+        // Arrange, Act
+        var comp = RenderComponent<LoginContent>();
+        var button = comp.FindComponent<MudButton>();
+
+        var texts = comp.FindComponents<MudText>();
+
+        // Assert
+        comp.Should().NotBeNull();
+        button.Should().NotBeNull();
+        texts.Should().HaveCount(2);               
+    }
+
+    [Fact]
+    public void LoginContentRendersCorrectlyTexts()
+    {
+        // Arrange
+        var cut = RenderComponent<LoginContent>();
+
+        // Assert
+        cut.Markup.Should().Contain("My Comics Manager");
+        cut.Markup.Should().Contain("MCM - Because superheroes should not be in disorder");
+        cut.Markup.Should().Contain("Start Now");
+    }
+    
+}
