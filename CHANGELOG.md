@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.4.0"></a>
+## [8.4.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.4.0) (2024-04-07)
+
+### Features
+
+* Login page ([#529](https://www.github.com/slucky31/mycomicsmanager/issues/529)) ([55e120c](https://www.github.com/slucky31/mycomicsmanager/commit/55e120c83ac577d21a51d6026b049ec1e023328e))
+
 <a name="8.3.2"></a>
 ## [8.3.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.3.2) (2024-04-03)
 
