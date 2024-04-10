@@ -1,0 +1,30 @@
+﻿@using Application.Libraries.Create
+@using Domain.Libraries
+@using MediatR
+@inject IMediator Mediator
+@rendermode InteractiveServer
+
+@page "/libraries/create"
+
+<h3>Create Library</h3>
+
+
+<MudForm @ref="form">
+    <MudTextField T="string" Label="Name" Required="true" RequiredError="User name is required!" @bind-Value="LibraryName" />
+</MudForm>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(async ()=>await CreateLibrary())">Validate</MudButton>
+
+        
+
+@code {
+
+    MudTextField<string> pwField1;
+    MudForm form;
+    public string LibraryName { get; set; }
+
+    private async Task CreateLibrary()
+    {
+        await Mediator.Send(new CreateLibraryCommand(LibraryName));        
+    }
+
+}

@@ -1,0 +1,31 @@
+﻿@using Application.Libraries.List
+@using Domain.Libraries
+@using MediatR
+@inject IMediator Mediator
+
+@page "/libraries/list"
+
+<h3>LibrairiesList</h3>
+
+<MudDataGrid Items="@Libraries">
+    <Columns>
+        <PropertyColumn Property="x => x.Name" Title="Name" />
+        <PropertyColumn  Title="Actions" >
+            <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Edit" />
+        </PropertyColumn>
+    </Columns>
+</MudDataGrid>
+
+@code {
+
+    private IEnumerable<Library> Libraries = new List<Library>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var query = new GetLibrariesQuery("", null, null, 1, 20);
+
+        var result = await Mediator.Send(query);
+        Libraries = result.Items.ToList();
+    }
+
+}
