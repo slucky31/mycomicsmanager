@@ -2,27 +2,74 @@
 @using Domain.Libraries
 @using MediatR
 @inject IMediator Mediator
+@rendermode InteractiveServer
 
 @page "/libraries/list"
 
-<h3>LibrairiesList</h3>
+<MudStack>
+    <div class=" py-4 px-6 mx-4 rounded-t-lg">
+        <MudPaper Elevation="0" Align="Align.Center">
+            <MudGrid Class="d-flex align-center">
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.h5">Libraries</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="8">
+                    <div class="mud-background-gray rounded-xl">
+                        <style>
+                            .mcm-border-none > .mud-input-control-input-container > .mud-input.mud-input-outlined > .mud-input-outlined-border {
+                                border-style: none;
+                            }
+                        </style>
+                        <MudTextField class="rounded-xl mcm-border-none" @bind-Value="Search" Margin=" Margin.Dense" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+                    </div>
+                </MudItem>
+                <MudItem xs="12" sm="2" Class="d-flex justify-end">
+                    <MudButton class="rounded" StartIcon="@Icons.Material.Filled.AddCircleOutline" Color=Color.Primary Variant="Variant.Filled">Create</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </div>
 
-<MudDataGrid Items="@Libraries">
-    <Columns>
-        <PropertyColumn Property="x => x.Name" Title="Name" />
-    </Columns>
-</MudDataGrid>
+    <div class=" py-4 px-6 mx-4 rounded-t-lg">
+        <MudTable Items="@Libraries" Hover="true" Breakpoint="Breakpoint.None">
+            <ColGroup>
+                <col style="width: 90%;" />
+                <col style="width: 10%;" />        
+            </ColGroup>
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit"  Title="Edit" />
+                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" Title="Delete" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </div>
+
+</MudStack>
 
 @code {
 
     private IEnumerable<Library> Libraries = new List<Library>();
+    public string? Search { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {
         var query = new GetLibrariesQuery("", null, null, 1, 20);
 
         var result = await Mediator.Send(query);
-        Libraries = result.Items.ToList();
+        if (result is not null)
+        {
+            if (result.Items is not null)
+            {
+                Libraries = result.Items.ToList();
+            }            
+        }        
     }
 
 }

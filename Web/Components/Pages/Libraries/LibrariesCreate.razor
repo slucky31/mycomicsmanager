@@ -18,12 +18,12 @@
 
 @code {
 
-    MudTextField<string> pwField1;
-    MudForm form;
-    public string LibraryName { get; set; }
+    MudForm? form;
+    public string? LibraryName { get; set; }
 
     private async Task CreateLibrary()
     {
+        Guard.Against.Null(LibraryName);
         await Mediator.Send(new CreateLibraryCommand(LibraryName));        
     }
 
