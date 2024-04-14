@@ -24,7 +24,6 @@
     // Source : https://stackoverflow.com/questions/65801224/mudblazor-ui-library-colours
     // Source : https://mudblazor.com/customization/overview#watch-system-preference
     
-    bool _drawerOpen = true;
     private bool _isDarkMode;
     private MudThemeProvider? _mudThemeProvider;
 
@@ -52,7 +51,6 @@
         }
     }
 
-    void DrawerToggle() => _drawerOpen = !_drawerOpen;
     void ThemeToggle() => _isDarkMode = !_isDarkMode;
 }
 

@@ -6,9 +6,9 @@
 
 @page "/libraries/list"
 
-<MudStack>
-    <div class=" py-4 px-6 mx-4 rounded-t-lg">
-        <MudPaper Elevation="0" Align="Align.Center">
+<MudStack Spacing="1" Class="mt-2">
+
+        <MudPaper class=" py-4 px-6 mx-4 rounded"  Elevation="0" Align="Align.Center">
             <MudGrid Class="d-flex align-center">
                 <MudItem xs="12" sm="2">
                     <MudText Typo="Typo.h5">Libraries</MudText>
@@ -20,18 +20,26 @@
                                 border-style: none;
                             }
                         </style>
-                        <MudTextField class="rounded-xl mcm-border-none" @bind-Value="Search" Margin=" Margin.Dense" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+                        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Clearable="true" class="rounded-xl mcm-border-none" Margin=" Margin.Dense" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
                     </div>
                 </MudItem>
                 <MudItem xs="12" sm="2" Class="d-flex justify-end">
-                    <MudButton class="rounded" StartIcon="@Icons.Material.Filled.AddCircleOutline" Color=Color.Primary Variant="Variant.Filled">Create</MudButton>
+                    <MudButton Href="/libraries/create" class="rounded" StartIcon="@Icons.Material.Filled.AddCircleOutline" Color=Color.Primary Variant="Variant.Filled">Create</MudButton>
                 </MudItem>
             </MudGrid>
         </MudPaper>
-    </div>
 
-    <div class=" py-4 px-6 mx-4 rounded-t-lg">
-        <MudTable Items="@Libraries" Hover="true" Breakpoint="Breakpoint.None">
+    <MudPaper class=" py-4 px-6 mx-4 rounded"  Elevation="0" Align="Align.Center">
+        <style>
+            .mud-table-header {
+                background-color: #0078d2;
+            }
+
+            .mud-table-header .mud-table-cell {
+                color: white !important;
+            }
+        </style>
+        <MudTable @ref="table" class="mx-4 rounded" ServerData="@(new Func<TableState, Task<TableData<Library>>>(ServerReload))" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.None" HeaderClass="mud-table-header">
             <ColGroup>
                 <col style="width: 90%;" />
                 <col style="width: 10%;" />        
@@ -47,29 +55,44 @@
                     <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" Title="Delete" />
                 </MudTd>
             </RowTemplate>
+            <NoRecordsContent>
+                <MudText>No matching records found</MudText>
+            </NoRecordsContent>
+            <LoadingContent>
+                <MudText>Loading...</MudText>
+            </LoadingContent>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
         </MudTable>
-    </div>
+    </MudPaper>
+
 
 </MudStack>
 
 @code {
 
-    private IEnumerable<Library> Libraries = new List<Library>();
-    public string? Search { get; set; }
+    private MudTable<Library>? table;
+    private string searchString = "";
 
-
-    protected override async Task OnInitializedAsync()
+    private async Task<TableData<Library>> ServerReload(TableState state)
     {
-        var query = new GetLibrariesQuery("", null, null, 1, 20);
+        var query = new GetLibrariesQuery(searchString, null, null, state.Page+1, state.PageSize);
 
         var result = await Mediator.Send(query);
-        if (result is not null)
+        if (result is not null && result.Items is not null)
         {
-            if (result.Items is not null)
-            {
-                Libraries = result.Items.ToList();
-            }            
-        }        
+            return new TableData<Library>() { TotalItems = result.TotalCount, Items = result.Items.ToList() };
+        }
+
+        return new TableData<Library>() { TotalItems = 0, Items = new List<Library>() };
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        Guard.Against.Null(table);
+        table.ReloadServerData();
     }
 
 }

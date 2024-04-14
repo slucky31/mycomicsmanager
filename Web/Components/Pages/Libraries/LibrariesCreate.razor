@@ -2,6 +2,7 @@
 @using Domain.Libraries
 @using MediatR
 @inject IMediator Mediator
+@inject NavigationManager MyNavigationManager
 @rendermode InteractiveServer
 
 @page "/libraries/create"
@@ -24,7 +25,8 @@
     private async Task CreateLibrary()
     {
         Guard.Against.Null(LibraryName);
-        await Mediator.Send(new CreateLibraryCommand(LibraryName));        
+        await Mediator.Send(new CreateLibraryCommand(LibraryName));
+        MyNavigationManager.NavigateTo("/libraries/list");
     }
 
 }
