@@ -1,5 +1,6 @@
 ﻿@using Application.Libraries.List
 @using Domain.Libraries
+@using Domain.Primitives
 @using MediatR
 @inject IMediator Mediator
 @rendermode InteractiveServer
@@ -45,7 +46,7 @@
                 <col style="width: 10%;" />        
             </ColGroup>
             <HeaderContent>
-                <MudTh>Name</MudTh>
+                <MudTh><MudTableSortLabel SortLabel="name_field" T="Library">Name</MudTableSortLabel></MudTh>
                 <MudTh>Actions</MudTh>
             </HeaderContent>
             <RowTemplate>
@@ -77,7 +78,19 @@
 
     private async Task<TableData<Library>> ServerReload(TableState state)
     {
-        var query = new GetLibrariesQuery(searchString, null, null, state.Page+1, state.PageSize);
+        LibrariesColumn sortColumn = LibrariesColumn.Id;
+        if (state.SortLabel == "name_field")
+        {
+            sortColumn = LibrariesColumn.Name;
+        }
+
+        SortOrder sortOrder = SortOrder.Ascending;
+        if (state.SortDirection == SortDirection.Descending)
+        {
+            sortOrder = SortOrder.Descending;
+        }
+        
+        var query = new GetLibrariesQuery(searchString, sortColumn, sortOrder, state.Page + 1, state.PageSize);
 
         var result = await Mediator.Send(query);
         if (result is not null && result.Items is not null)
