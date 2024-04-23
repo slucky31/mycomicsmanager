@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.4.7"></a>
+## [8.4.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.4.7) (2024-04-23)
+
+### Bug Fixes
+
+* **deps:** update dependency fluentvalidation.dependencyinjectionextensions to v11.9.1 ([#554](https://www.github.com/slucky31/mycomicsmanager/issues/554)) ([8d7685f](https://www.github.com/slucky31/mycomicsmanager/commit/8d7685f648637c9ddec35357558b59f41ac3439d))
+
 <a name="8.4.6"></a>
 ## [8.4.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.4.6) (2024-04-20)
 
