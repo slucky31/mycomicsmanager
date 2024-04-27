@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>mcm.Application</PackageId>
     <!-- x-release-please-start-version -->
-    <Version>8.4.8</Version>
+    <Version>8.4.9</Version>
     <!-- x-release-please-end -->
     <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
   </PropertyGroup>
