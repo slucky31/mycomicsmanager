@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
 
@@ -12,8 +11,6 @@ public static class ProjectDependencyInjection
 
         services.AddMediatR(configuration =>
             configuration.RegisterServicesFromAssembly(assembly));
-
-        services.AddValidatorsFromAssembly(assembly);
         
         return services;
     }

@@ -19,11 +19,11 @@
         </MudGrid>
     </MudPaper>
 
-    @if (errors.Count() > 0)
+    @if (Errors.Any())
     {
         <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
             <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
-                @foreach (var error in errors)
+                @foreach (var error in Errors)
                 {
                     <MudText>@error</MudText>
                 }
@@ -32,7 +32,7 @@
     }
 
     <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
-        <MudForm @ref="form">
+        <MudForm>
             <MudTextField T="string" Label="Name" Required="true" RequiredError="User name is required!" @bind-Value="LibraryName" />
         </MudForm>
     </MudPaper>
@@ -49,9 +49,9 @@
     [Parameter]
     public string? LibraryId { get; set; }
 
-    MudForm? form;
     public string? LibraryName { get; set; }
-    List<string> errors = new();
+
+    private List<string> Errors { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,7 +73,7 @@
 
     private async Task CreateOrUpdateLibrary()
     {
-        errors.Clear();
+        Errors.Clear();
 
         Result<Library> result;
         if (string.IsNullOrWhiteSpace(LibraryId))
@@ -89,15 +89,15 @@
         {
             if (result.Error == LibrariesError.Duplicate)
             {
-                errors.Add("Library name already exists");
+                Errors.Add("Library name already exists");
             }
             else if (result.Error == LibrariesError.BadRequest)
             {
-                errors.Add("Invalid library name");
+                Errors.Add("Invalid library name");
             }
             else
             {
-                errors.Add("Invalid library name");
+                Errors.Add("Invalid library name");
             }
         }
         else
