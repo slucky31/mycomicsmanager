@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.4.10"></a>
+## [8.4.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.4.10) (2024-05-04)
+
+### Bug Fixes
+
+* **deps:** update dependency mongodb.entityframeworkcore to v8 (main) ([#563](https://www.github.com/slucky31/mycomicsmanager/issues/563)) ([b131b7d](https://www.github.com/slucky31/mycomicsmanager/commit/b131b7d47ab51a03d2785dff287787616704b946))
+
 <a name="8.4.9"></a>
 ## [8.4.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.4.9) (2024-04-27)
 
