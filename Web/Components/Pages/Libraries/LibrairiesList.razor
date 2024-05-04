@@ -1,8 +1,12 @@
-﻿@using Application.Libraries.List
+﻿@using Application.Libraries.Delete
+@using Application.Libraries.List
 @using Domain.Libraries
 @using Domain.Primitives
 @using MediatR
+@using MongoDB.Bson
 @inject IMediator Mediator
+@inject ISnackbar Snackbar
+@inject NavigationManager MyNavigationManager
 @rendermode InteractiveServer
 
 @page "/libraries/list"
@@ -52,8 +56,8 @@
             <RowTemplate>
                 <MudTd DataLabel="Name">@context.Name</MudTd>
                 <MudTd DataLabel="Actions">
-                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit"  Title="Edit" />
-                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" Title="Delete" />
+                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" Title="Edit" OnClick="@(e => OnClickEdit(@context.Id))" />
+                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" Title="Delete" OnClick="@(e => OnClickDelete(@context.Id))" />
                 </MudTd>
             </RowTemplate>
             <NoRecordsContent>
@@ -89,7 +93,7 @@
         {
             sortOrder = SortOrder.Descending;
         }
-        
+
         var query = new GetLibrariesQuery(searchString, sortColumn, sortOrder, state.Page + 1, state.PageSize);
 
         var result = await Mediator.Send(query);
@@ -99,6 +103,37 @@
         }
 
         return new TableData<Library>() { TotalItems = 0, Items = new List<Library>() };
+    }
+
+    private async Task OnClickDelete(ObjectId id)
+    {
+        var query = new DeleteLibraryCommand(id);
+
+        var result = await Mediator.Send(query);
+
+        Guard.Against.Null(result);
+        if (result.IsFailure)
+        {
+            var message = "An unkwown error occurred";
+            if (result.Error == LibrariesError.NotFound)
+            {
+                message = "Library not found";                
+            };
+            Snackbar.Add(message, Severity.Error);            
+        }
+        else
+        {
+            Snackbar.Add("The library was correctly deleted", Severity.Success);
+            if (table is not null)
+            {
+                await table.ReloadServerData();
+            }            
+        }        
+    }
+
+    private void OnClickEdit(ObjectId id)
+    {
+        MyNavigationManager.NavigateTo($"/libraries/update/{id}");
     }
 
     private void OnSearch(string text)
