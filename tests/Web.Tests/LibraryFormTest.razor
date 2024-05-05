@@ -1,0 +1,58 @@
+﻿@using AngleSharp.Dom
+@using Domain.Libraries
+@using NSubstitute
+@using Web.Services
+@inherits TestContext
+
+@code {
+
+    private readonly ILibrariesService _librariesServiceMock;
+
+    public LibraryFormTest()
+    {
+        _librariesServiceMock = Substitute.For<ILibrariesService>();
+    }
+
+    [Fact]
+    public void LibraryFormRendersCorrectlyComponents()
+    {                
+        // Arrange, Act
+        Services.AddSingleton(_librariesServiceMock);
+
+        var comp = RenderComponent<LibraryForm>(parameters => 
+            parameters.Add(p => p.LibraryId, null)          
+        );
+
+        var alerts = comp.FindComponents<MudAlert>();
+
+        // Assert
+        comp.Should().NotBeNull();
+        alerts.Should().HaveCount(0);
+    }
+
+    [Fact]
+    public async Task LibraryForm_ShowAlert_when_NoNameProvided()
+    {
+        // Arrange, Act
+        _librariesServiceMock.Create(Arg.Any<string>()).Returns(LibrariesError.BadRequest);
+        Services.AddSingleton(_librariesServiceMock);
+
+        var comp = RenderComponent<LibraryForm>(parameters =>
+            parameters.Add(p => p.LibraryId, null)
+        );
+
+        var buttons = comp.FindComponents<MudButton>();
+
+        var validateButton = buttons.Where(b => b.Nodes[0].TextContent == "Validate").FirstOrDefault();
+        Guard.Against.Null(validateButton);
+        await ((IElement)validateButton.Find("button")).ClickAsync(new MouseEventArgs());
+
+        var alerts = comp.FindComponents<MudAlert>();
+
+        // Assert
+        comp.Should().NotBeNull();
+        alerts.Should().HaveCount(1);
+        alerts[0].Nodes[0].TextContent.Should().Be("Invalid library name");
+
+    }
+}

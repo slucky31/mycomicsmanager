@@ -15,6 +15,7 @@ using HealthChecks.UI.Client;
 using HealthChecks.ApplicationStatus.DependencyInjection;
 using MudBlazor.Services;
 using MudBlazor;
+using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,6 +80,8 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
 });
 
+// Config Web Services
+builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 
 var app = builder.Build();
 
