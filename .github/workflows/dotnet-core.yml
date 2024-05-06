@@ -10,27 +10,31 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:      
-      -
-        name : Checkout
+      - name : Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0      
-      -
-        name: Setup .NET Core
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x                    
-      -
-        name: Web Install dependencies
+      - name: Web Install dependencies
         run: dotnet restore "./Web/Web.csproj"                            
-      -
-        name: Web Build
+      - name: Web Build
         run: dotnet build "./Web/Web.csproj" --configuration Release --no-restore                    
-      -
-        name: Tests
-        run: dotnet test --configuration Release
+      - name: Tests
+        run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --collect:"Code Coverage"
         env:        
           MongoDbOptions__ConnectionString: ${{ secrets.MONGODBOPTIONS_CONNECTIONSTRING }}
+      - name: Tests coverage
+        run: |
+          dotnet tool install --global dotnet-coverage  
+          dotnet-coverage merge --output cobertura.xml --output-format cobertura "test-results/**/*.coverage"
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
+          coverage-reports: cobertura.xml
 
   sonar:
     needs: build
@@ -77,16 +81,12 @@ jobs:
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"slucky31_mycomicsmanager" /o:"slucky31" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.coverage.exclusions="**Test*.cs" /d:sonar.dotnet.excludeTestProjects=true
           dotnet tool install --global dotnet-coverage
-          dotnet build "./Web/Web.csproj" --configuration Release --no-incremental
-          dotnet test --configuration Release --verbosity normal --results-directory "test-results" --collect:"Code Coverage"
-          dotnet-coverage merge --output coverage.xml --output-format xml "test-results/**/*.coverage"
-          dotnet-coverage merge --output cobertura.xml --output-format cobertura "test-results/**/*.coverage"          
+          dotnet restore "./Web/Web.csproj"
+          dotnet build "./Web/Web.csproj" --configuration Release --no-restore
+          dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --collect:"Code Coverage"
+          dotnet-coverage merge --output coverage.xml --output-format xml "test-results/**/*.coverage"               
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@v1
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
-          coverage-reports: cobertura.xml
+
 
   publish:
     needs: sonar
