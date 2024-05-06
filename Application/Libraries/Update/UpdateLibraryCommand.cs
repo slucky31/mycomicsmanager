@@ -6,5 +6,3 @@ using MongoDB.Bson;
 namespace Application.Libraries.Update;
 
 public record UpdateLibraryCommand (ObjectId Id, string Name) : IRequest<Result<Library>>;
-
-public record UpdateLibraryRequest(string Name);
