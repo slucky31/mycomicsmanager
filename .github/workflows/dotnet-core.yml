@@ -19,7 +19,7 @@ jobs:
         with:
           dotnet-version: 8.0.x                    
       - name: Web Install dependencies
-        run: dotnet restore "./Web/Web.csproj"                            
+        run: dotnet restore                            
       - name: Web Build
         run: dotnet build "./Web/Web.csproj" --configuration Release --no-restore                    
       - name: Tests
