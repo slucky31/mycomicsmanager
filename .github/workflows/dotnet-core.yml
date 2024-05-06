@@ -41,8 +41,7 @@ jobs:
         with:
           java-version: 17
           distribution: 'zulu'
-      -
-        name : Checkout
+      - name : Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -65,8 +64,7 @@ jobs:
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-      -
-        name: Setup .NET Core
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x           
@@ -81,8 +79,14 @@ jobs:
           dotnet tool install --global dotnet-coverage
           dotnet build "./Web/Web.csproj" --configuration Release --no-incremental
           dotnet test --configuration Release --verbosity normal --results-directory "test-results" --collect:"Code Coverage"
-          dotnet-coverage merge --output coverage.xml --output-format cobertura "test-results/**/*.coverage"          
+          dotnet-coverage merge --output coverage.xml --output-format xml "test-results/**/*.coverage"
+          dotnet-coverage merge --output cobertura.xml --output-format cobertura "test-results/**/*.coverage"          
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
+          coverage-reports: cobertura.xml
 
   publish:
     needs: sonar
