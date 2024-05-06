@@ -118,7 +118,7 @@
         // Arrange
         var name = Guid.NewGuid().ToString();
         var lib = Library.Create(name);
-        _librariesServiceMock.Create(Arg.Any<string>()).Returns(lib);
+        _librariesServiceMock.GetById(Arg.Any<string>()).Returns(lib);
         _librariesServiceMock.Update(Arg.Any<string>(), Arg.Any<string>()).Returns(lib);
         Services.AddSingleton(_librariesServiceMock);
 
