@@ -1,0 +1,69 @@
+﻿using Ardalis.GuardClauses;
+using Domain.Libraries;
+using Domain.Primitives;
+using Microsoft.AspNetCore.Components;
+
+namespace Web.Components.Pages.Libraries;
+
+public partial class LibraryForm
+{
+    [Parameter]
+    public string? LibraryId { get; set; }
+
+    public string? LibraryName { get; set; }
+
+    private List<string> Errors { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(LibraryId))
+        {
+            LibraryName = "";
+        }
+        else
+        {
+            var result = await LibrariesService.Create(LibraryName);
+            if (result.IsSuccess)
+            {
+                var library = result.Value;
+                Guard.Against.Null(library);
+                LibraryName = library.Name;
+            }
+        }
+    }
+
+    private async Task CreateOrUpdateLibrary()
+    {
+        Errors.Clear();
+
+        Result<Library> result;
+        if (string.IsNullOrWhiteSpace(LibraryId))
+        {
+            result = await LibrariesService.Create(LibraryName);
+        }
+        else
+        {
+            result = await LibrariesService.Update(LibraryId, LibraryName);
+        }
+
+        if (result.IsFailure)
+        {
+            if (result.Error == LibrariesError.Duplicate)
+            {
+                Errors.Add("Library name already exists");
+            }
+            else if (result.Error == LibrariesError.BadRequest)
+            {
+                Errors.Add("Invalid library name");
+            }
+            else
+            {
+                Errors.Add("Invalid library name");
+            }
+        }
+        else
+        {
+            MyNavigationManager.NavigateTo("/libraries/list");
+        }
+    }
+}

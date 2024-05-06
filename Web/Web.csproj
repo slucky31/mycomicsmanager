@@ -15,7 +15,6 @@
     <PackageReference Include="Carter" />
     <PackageReference Include="MudBlazor" />    
     <PackageReference Include="Serilog.AspNetCore" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
