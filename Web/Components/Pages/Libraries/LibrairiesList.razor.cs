@@ -35,7 +35,7 @@ public partial class LibrairiesList
             return new TableData<Library> { TotalItems = result.TotalCount, Items = result.Items.ToList() };
         }
 
-        return new TableData<Library>() { TotalItems = 0, Items = new List<Library>() };
+        return new TableData<Library> { TotalItems = 0, Items = new List<Library>() };
     }
 
     private async Task OnClickDelete(ObjectId id)
