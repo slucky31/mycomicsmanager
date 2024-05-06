@@ -30,8 +30,4 @@
     <ProjectReference Include="..\Base.Integration.Tests\Base.Integration.Tests.csproj" />    
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="UnitTests\" />
-  </ItemGroup>
-
 </Project>

@@ -2,16 +2,12 @@
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<IsPackable>false</IsPackable>
+    <ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>		
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<Using Include="Bunit" />
-		<Using Include="Bunit.TestDoubles" />
-		<Using Include="Microsoft.Extensions.DependencyInjection" />
-		<Using Include="Xunit" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="bunit" />
@@ -22,14 +18,11 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="xunit" />
+    <PackageReference Include="xunit" />
 		<PackageReference Include="xunit.runner.visualstudio">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		  </PackageReference>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>
