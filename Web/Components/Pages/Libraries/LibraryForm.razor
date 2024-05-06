@@ -63,7 +63,7 @@
         }
         else
         {
-            var result = await LibrariesService.Create(LibraryName!);
+            var result = await LibrariesService.Create(LibraryName);
             if (result.IsSuccess)
             {
                 var library = result.Value;
