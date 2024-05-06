@@ -55,7 +55,7 @@
         
         var alerts = comp.FindComponents<MudAlert>();
         alerts.Should().HaveCount(1);
-        alerts[0].Nodes[0].TextContent.Should().Be("Invalid library name");
+        alerts[0].Nodes[0].TextContent.Should().Be(LibrariesError.BadRequest.Description);
     }
 
     [Fact]
@@ -81,7 +81,7 @@
 
         var alerts = comp.FindComponents<MudAlert>();
         alerts.Should().HaveCount(1);
-        alerts[0].Nodes[0].TextContent.Should().Be("Library name already exists");
+        alerts[0].Nodes[0].TextContent.Should().Be(LibrariesError.Duplicate.Description);
     }
 
     [Fact]

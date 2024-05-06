@@ -30,36 +30,17 @@ public partial class LibraryForm
                 LibraryName = library.Name;
             }
         }
-    }
+    }    
 
     private async Task CreateOrUpdateLibrary()
     {
         Errors.Clear();
-
-        Result<Library> result;
-        if (string.IsNullOrWhiteSpace(LibraryId))
-        {
-            result = await LibrariesService.Create(LibraryName);
-        }
-        else
-        {
-            result = await LibrariesService.Update(LibraryId, LibraryName);
-        }
-
+        var result = string.IsNullOrWhiteSpace(LibraryId) ? await LibrariesService.Create(LibraryName) : await LibrariesService.Update(LibraryId, LibraryName);
         if (result.IsFailure)
-        {
-            if (result.Error == LibrariesError.Duplicate)
-            {
-                Errors.Add("Library name already exists");
-            }
-            else if (result.Error == LibrariesError.BadRequest)
-            {
-                Errors.Add("Invalid library name");
-            }
-            else
-            {
-                Errors.Add("Invalid library name");
-            }
+        {            
+            Guard.Against.Null(result.Error);
+            Guard.Against.Null(result.Error.Description);
+            Errors.Add(result.Error.Description);
         }
         else
         {
