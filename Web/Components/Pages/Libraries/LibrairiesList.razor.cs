@@ -46,13 +46,9 @@ public partial class LibrairiesList
 
         Guard.Against.Null(result);
         if (result.IsFailure)
-        {
-            var message = "An unkwown error occurred";
-            if (result.Error == LibrariesError.NotFound)
-            {
-                message = "Library not found";
-            }
-            Snackbar.Add(message, Severity.Error);
+        {            
+            Guard.Against.Null(result.Error);            
+            Snackbar.Add(result.Error.Description, Severity.Error);
         }
         else
         {

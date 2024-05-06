@@ -22,15 +22,14 @@ public partial class LibraryForm
         }
         else
         {
-            var result = await LibrariesService.Create(LibraryName);
+            var result = await LibrariesService.GetById(LibraryId);
             if (result.IsSuccess)
-            {
-                var library = result.Value;
-                Guard.Against.Null(library);
-                LibraryName = library.Name;
+            {                
+                Guard.Against.Null(result.Value);
+                LibraryName = result.Value.Name;
             }
         }
-    }    
+    }   
 
     private async Task CreateOrUpdateLibrary()
     {
