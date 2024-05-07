@@ -3,13 +3,18 @@ using Application.Libraries.List;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
+using Microsoft.AspNetCore.Components;
 using MongoDB.Bson;
 using MudBlazor;
+using Web.Services;
 
 namespace Web.Components.Pages.Libraries;
 
 public partial class LibrairiesList
 {
+    [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
     private MudTable<Library>? table;
     private string searchString = "";
 
@@ -27,9 +32,7 @@ public partial class LibrairiesList
             sortOrder = SortOrder.Descending;
         }
 
-        var query = new GetLibrariesQuery(searchString, sortColumn, sortOrder, state.Page + 1, state.PageSize);
-
-        var result = await Mediator.Send(query);
+        var result = await LibrariesService.FilterBy(searchString, sortColumn, sortOrder, state.Page + 1, state.PageSize);        
         if (result is not null && result.Items is not null)
         {
             return new TableData<Library> { TotalItems = result.TotalCount, Items = result.Items.ToList() };
@@ -39,11 +42,8 @@ public partial class LibrairiesList
     }
 
     private async Task OnClickDelete(ObjectId id)
-    {
-        var query = new DeleteLibraryCommand(id);
-
-        var result = await Mediator.Send(query);
-
+    {        
+        var result = await LibrariesService.Delete(id.ToString());
         Guard.Against.Null(result);
         if (result.IsFailure)
         {            

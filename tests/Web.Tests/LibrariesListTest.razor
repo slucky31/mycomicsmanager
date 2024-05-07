@@ -1,0 +1,37 @@
+﻿@using Domain.Libraries
+@using MongoDB.Bson
+@using MudBlazor.Services
+@using NSubstitute
+@using Web.Services
+@inject ISnackbar Snackbar
+@inherits TestContext
+
+@code{
+
+    private readonly ILibrariesService _librariesServiceMock;    
+
+    public LibrariesListTest()
+    {                
+        _librariesServiceMock = Substitute.For<ILibrariesService>();
+    }
+
+    [Fact]
+    public void LibraryList_Should_RenderCorrectly_When_NoDataProvided()
+    {
+        // Arrange
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Services.AddSingleton(_librariesServiceMock);
+        Services.AddMudServices();
+
+        // Act
+        var comp = RenderComponent<LibrairiesList>();
+
+        // Assert
+        comp.Should().NotBeNull();        
+        comp.FindAll("table").Should().HaveCount(1);
+        comp.FindAll("thead").Should().HaveCount(1);
+        comp.FindAll("tbody").Should().HaveCount(1);
+        comp.FindAll("thead tr").Should().HaveCount(1);
+        comp.FindAll("tbody tr").Should().HaveCount(1);        
+    }
+}
