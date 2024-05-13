@@ -10,7 +10,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
-		<PackageReference Include="GitInfo" Version="3.3.4" />
+		<PackageReference Include="GitInfo" Version="3.3.5" />
 		<PackageReference Include="MudBlazor" Version="6.19.1" />
 		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />		
