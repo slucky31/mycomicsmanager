@@ -17,6 +17,9 @@ public partial class LibrairiesList
 
     private MudTable<Library>? table;
     private string searchString = "";
+    
+    public static readonly string Msg_NoRecordsFound = "No matching records found";
+    public static readonly string Msg_LibCorrectlyDeleted = "The library was correctly deleted";
 
     private async Task<TableData<Library>> ServerReload(TableState state)
     {
@@ -52,7 +55,7 @@ public partial class LibrairiesList
         }
         else
         {
-            Snackbar.Add("The library was correctly deleted", Severity.Success);
+            Snackbar.Add(Msg_LibCorrectlyDeleted, Severity.Success);
             if (table is not null)
             {
                 await table.ReloadServerData();

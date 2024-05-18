@@ -12,6 +12,7 @@
 @code{
 
     private readonly ILibrariesService _librariesServiceMock;
+    private readonly int nbItems = 10;
 
 
     public LibrariesListTest()
@@ -36,23 +37,27 @@
         comp.FindAll("thead").Should().HaveCount(1);
         comp.FindAll("tbody").Should().HaveCount(1);
         comp.FindAll("thead tr").Should().HaveCount(1);
-        comp.FindAll("tbody tr").Should().HaveCount(1);        
+        comp.FindAll("tbody tr").Should().HaveCount(1);
+
+        var rowText = comp.Find("tbody tr").TextContent;
+        rowText.MarkupMatches(LibrairiesList.Msg_NoRecordsFound);
     }
 
     [Fact]
     public async Task LibraryList_Should_RenderCorrectly_When_DataAreProvided()
     {
+        
         // Arrange
         JSInterop.Mode = JSRuntimeMode.Loose;
         List<Library> list = new();
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < nbItems; i++)
         {
             Library lib = Library.Create(new Guid().ToString());
             list.Add(lib);
         }
         var query = list.AsQueryable().BuildMock();
         var mockPagedList = new PagedList<Library>(query);
-        await mockPagedList.ExecuteQueryAsync(1, 10);
+        await mockPagedList.ExecuteQueryAsync(1, nbItems);
         _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
         Services.AddSingleton(_librariesServiceMock);
         Services.AddMudServices();
@@ -66,7 +71,16 @@
         comp.FindAll("thead").Should().HaveCount(1);
         comp.FindAll("tbody").Should().HaveCount(1);
         comp.FindAll("thead tr").Should().HaveCount(1);
-        comp.FindAll("tbody tr").Should().HaveCount(10);
+        var rows = comp.FindAll("tbody tr");
+        rows.Should().HaveCount(nbItems);
+
+        // Assert - Each value line
+        for (int i = 0; i < nbItems; i++)
+        {
+            var rowText = rows[i].TextContent;
+            rowText.MarkupMatches(list[i].Name);
+        }
+        
     }
 
     [Fact]
@@ -75,7 +89,7 @@
         // Arrange
         JSInterop.Mode = JSRuntimeMode.Loose;
         List<Library> list = new();
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < nbItems; i++)
         {
             Library lib = Library.Create(new Guid().ToString());
             list.Add(lib);
@@ -85,14 +99,14 @@
         list.Add(searchedLib);
         var query = list.AsQueryable().BuildMock();
         var mockPagedList = new PagedList<Library>(query);
-        await mockPagedList.ExecuteQueryAsync(1, 10);
+        await mockPagedList.ExecuteQueryAsync(1, nbItems);
 
         List<Library> filteredList = new();
         filteredList.Add(searchedLib);
         var query2 = list.AsQueryable().BuildMock();
         var mockPagedList2 = new PagedList<Library>(query2);
-        await mockPagedList2.ExecuteQueryAsync(1, 10);
-        
+        await mockPagedList2.ExecuteQueryAsync(1, nbItems);
+
         _librariesServiceMock.FilterBy("", Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
         _librariesServiceMock.FilterBy("lib", Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList2);
         Services.AddSingleton(_librariesServiceMock);
@@ -108,7 +122,7 @@
             mudTextField.Find("input").Change("lib");
             mudTextField.Instance.ValueChanged.InvokeAsync("new search term");
         });
-        
+
         // Assert
         comp.Should().NotBeNull();
         comp.FindAll("table").Should().HaveCount(1);
@@ -123,15 +137,15 @@
     {
         // Arrange
         JSInterop.Mode = JSRuntimeMode.Loose;
-        
+
         // Arrange - Create a list with 1 library
         Library lib = Library.Create("lib");
         List<Library> list = [lib];
-        
+
         // Arrange - Create a mockPagedList with the list
         var query = list.AsQueryable().BuildMock();
         var mockPagedList = new PagedList<Library>(query);
-        await mockPagedList.ExecuteQueryAsync(1, 10);
+        await mockPagedList.ExecuteQueryAsync(1, nbItems);
 
         // Arrange - Configure the FilterBy method to return the mockPagedList
         _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);        
@@ -164,7 +178,7 @@
         // Arrange - Create a mockPagedList with the list
         var query = list.AsQueryable().BuildMock();
         var mockPagedList = new PagedList<Library>(query);
-        await mockPagedList.ExecuteQueryAsync(1, 10);
+        await mockPagedList.ExecuteQueryAsync(1, nbItems);
 
         // Arrange - Configure the FilterBy method to return the mockPagedList
         _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
@@ -176,20 +190,21 @@
         var comp = RenderComponent<LibrairiesList>();
 
         // Assert - Before clicking on the delete button
-        comp.Should().NotBeNull();
-        comp.FindAll("table").Should().HaveCount(1);
-        comp.FindAll("thead").Should().HaveCount(1);
-        comp.FindAll("tbody").Should().HaveCount(1);
-        comp.FindAll("thead tr").Should().HaveCount(1);
+        comp.Should().NotBeNull();        
         comp.FindAll("tbody tr").Should().HaveCount(2);
+
+        // Act - Delete the first item of the list
+        list.Remove(lib1);
+        await mockPagedList.ExecuteQueryAsync(1, nbItems);
+        _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
 
         // Act - Click on the edit button where title is "Edit"
         await comp.Find($"button[title=\"Delete\"]").ClickAsync(new MouseEventArgs());
 
         // Assert - After clicking on the delete button
-        comp.Should().NotBeNull();
-
-        // TODO : Test display snackbar ?
+        await _librariesServiceMock.Received(1).Delete(Arg.Any<string>());
+        comp.Should().NotBeNull();        
+        comp.FindAll("tbody tr").Should().HaveCount(1);
                 
     }
 
@@ -207,7 +222,7 @@
         // Arrange - Create a mockPagedList with the list
         var query = list.AsQueryable().BuildMock();
         var mockPagedList = new PagedList<Library>(query);
-        await mockPagedList.ExecuteQueryAsync(1, 10);
+        await mockPagedList.ExecuteQueryAsync(1, nbItems);
 
         // Arrange - Configure the FilterBy method to return the mockPagedList
         _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
@@ -219,20 +234,15 @@
         var comp = RenderComponent<LibrairiesList>();
 
         // Assert - Before clicking on the delete button
-        comp.Should().NotBeNull();
-        comp.FindAll("table").Should().HaveCount(1);
-        comp.FindAll("thead").Should().HaveCount(1);
-        comp.FindAll("tbody").Should().HaveCount(1);
-        comp.FindAll("thead tr").Should().HaveCount(1);
+        comp.Should().NotBeNull();        
         comp.FindAll("tbody tr").Should().HaveCount(2);
 
         // Act - Click on the edit button where title is "Edit"
         await comp.Find($"button[title=\"Delete\"]").ClickAsync(new MouseEventArgs());
 
         // Assert - After clicking on the delete button
-        comp.Should().NotBeNull();
-
-        // TODO : Test display snackbar ?
+        await _librariesServiceMock.Received(1).Delete(Arg.Any<string>());        
+        comp.FindAll("tbody tr").Should().HaveCount(2);
 
     }
 
