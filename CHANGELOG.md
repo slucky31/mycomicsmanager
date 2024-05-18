@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.5.0"></a>
+## [8.5.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.5.0) (2024-05-18)
+
+### Features
+
+* Add Lib features on Web (list, create, edit, delete) ([#540](https://www.github.com/slucky31/mycomicsmanager/issues/540)) ([4dd669e](https://www.github.com/slucky31/mycomicsmanager/commit/4dd669e23ba2e96bb618f86c4dcfe9fda4b20b40))
+
 <a name="8.4.10"></a>
 ## [8.4.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.4.10) (2024-05-04)
 

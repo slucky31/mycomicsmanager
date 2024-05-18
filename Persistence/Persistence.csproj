@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>mcm.Persistence</PackageId>
     <!-- x-release-please-start-version -->
-    <Version>8.4.10</Version>
+    <Version>8.5.0</Version>
     <!-- x-release-please-end -->
     <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
   </PropertyGroup>
