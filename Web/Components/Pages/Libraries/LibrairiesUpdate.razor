@@ -1,0 +1,8 @@
+﻿@page "/libraries/update/{id}"
+
+<LibraryForm LibraryId=@Id />
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+}

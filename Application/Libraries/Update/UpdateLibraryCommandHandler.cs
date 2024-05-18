@@ -4,12 +4,13 @@ using Domain.Primitives;
 using MediatR;
 using Application.Interfaces;
 using MongoDB.Bson;
+using Ardalis.GuardClauses;
 
 namespace Application.Libraries.Update;
 
-internal sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork) : IRequestHandler<UpdateLibraryCommand, Result>
+internal sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService) : IRequestHandler<UpdateLibraryCommand, Result<Library>>
 {
-    public async Task<Result> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Library>> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
     {
         var library = await librayRepository.GetByIdAsync(request.Id);
 
@@ -18,12 +19,20 @@ internal sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId>
             return LibrariesError.NotFound;
         }
 
+        // Check if a library with the same name doesn't already exist
+        var pagedList = await libraryReadService.GetLibrariesAsync(request.Name, LibrariesColumn.Name, null, 1, 1);
+        Guard.Against.Null(pagedList);
+        if (pagedList.TotalCount > 0)
+        {
+            return LibrariesError.Duplicate;
+        }
+
         library.Update(request.Name);
         
         librayRepository.Update(library);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
+        return library;
     }
 }

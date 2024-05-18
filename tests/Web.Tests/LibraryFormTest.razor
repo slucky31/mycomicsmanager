@@ -1,0 +1,145 @@
+﻿@using AngleSharp.Dom
+@using Domain.Libraries
+@using MongoDB.Bson
+@using NSubstitute
+@using Web.Services
+@inherits TestContext
+
+@code {
+
+    private readonly ILibrariesService _librariesServiceMock;
+
+    public LibraryFormTest()
+    {
+        _librariesServiceMock = Substitute.For<ILibrariesService>();
+    }
+
+    [Fact]
+    public void LibraryForm_Should_RenderCorrectly_When_NoParameterProvided()
+    {                
+        // Arrange
+        Services.AddSingleton(_librariesServiceMock);
+
+        // Act
+        var comp = RenderComponent<LibraryForm>(parameters => 
+            parameters.Add(p => p.LibraryId, null)          
+        );
+
+        var alerts = comp.FindComponents<MudAlert>();
+
+        // Assert
+        comp.Should().NotBeNull();
+        alerts.Should().HaveCount(0);
+    }    
+
+    [Fact]
+    public async Task LibraryForm_Should_ShowAlert_When_NoNameProvided()
+    {
+        // Arrange
+        _librariesServiceMock.Create(Arg.Any<string>()).Returns(LibrariesError.BadRequest);
+        Services.AddSingleton(_librariesServiceMock);
+
+        // Act
+        var comp = RenderComponent<LibraryForm>(parameters =>
+            parameters.Add(p => p.LibraryId, null)
+        );
+
+        var buttons = comp.FindComponents<MudButton>();
+
+        var validateButton = buttons.Where(b => b.Nodes[0].TextContent == "Validate").FirstOrDefault();
+        Guard.Against.Null(validateButton);
+        await ((IElement)validateButton.Find("button")).ClickAsync(new MouseEventArgs());
+       
+        // Assert
+        comp.Should().NotBeNull();
+        
+        var alerts = comp.FindComponents<MudAlert>();
+        alerts.Should().HaveCount(1);
+        alerts[0].Nodes[0].TextContent.Should().Be(LibrariesError.BadRequest.Description);
+    }
+
+    [Fact]
+    public async Task LibraryForm_Should_ShowAlert_When_DuplicatedName()
+    {
+        // Arrange
+        _librariesServiceMock.Create(Arg.Any<string>()).Returns(LibrariesError.Duplicate);
+        Services.AddSingleton(_librariesServiceMock);
+
+        // Act
+        var comp = RenderComponent<LibraryForm>(parameters =>
+            parameters.Add(p => p.LibraryId, null)
+        );
+
+        var buttons = comp.FindComponents<MudButton>();
+
+        var validateButton = buttons.Where(b => b.Nodes[0].TextContent == "Validate").FirstOrDefault();
+        Guard.Against.Null(validateButton);
+        await ((IElement)validateButton.Find("button")).ClickAsync(new MouseEventArgs());
+        
+        // Assert
+        comp.Should().NotBeNull();
+
+        var alerts = comp.FindComponents<MudAlert>();
+        alerts.Should().HaveCount(1);
+        alerts[0].Nodes[0].TextContent.Should().Be(LibrariesError.Duplicate.Description);
+    }
+
+    [Fact]
+    public async Task LibraryForm_Should_DisplayList_When_ProperNameProvided()
+    {
+        // Arrange
+        _librariesServiceMock.Create(Arg.Any<string>()).Returns(Library.Create(Guid.NewGuid().ToString()));
+        Services.AddSingleton(_librariesServiceMock);
+
+        // Act
+        var comp = RenderComponent<LibraryForm>(parameters =>
+            parameters.Add(p => p.LibraryId, null)
+        );
+
+        var buttons = comp.FindComponents<MudButton>();
+
+        var validateButton = buttons.Where(b => b.Nodes[0].TextContent == "Validate").FirstOrDefault();
+        Guard.Against.Null(validateButton);
+        await ((IElement)validateButton.Find("button")).ClickAsync(new MouseEventArgs());        
+
+        // Assert
+        comp.Should().NotBeNull();
+
+        var alerts = comp.FindComponents<MudAlert>();
+        alerts.Should().HaveCount(0);
+
+        var navMan = Services.GetRequiredService<FakeNavigationManager>();
+        Assert.Equal("http://localhost/libraries/list", navMan.Uri);
+    }
+
+    [Fact]
+    public async Task LibraryForm_Should_DisplayList_When_ParameterIsProvided()
+    {
+        // Arrange
+        var name = Guid.NewGuid().ToString();
+        var lib = Library.Create(name);
+        _librariesServiceMock.GetById(Arg.Any<string>()).Returns(lib);
+        _librariesServiceMock.Update(Arg.Any<string>(), Arg.Any<string>()).Returns(lib);
+        Services.AddSingleton(_librariesServiceMock);
+
+        // Act
+        var comp = RenderComponent<LibraryForm>(parameters =>
+            parameters.Add(p => p.LibraryId, lib.Id.ToString())
+        );
+
+        var buttons = comp.FindComponents<MudButton>();
+
+        var validateButton = buttons.Where(b => b.Nodes[0].TextContent == "Validate").FirstOrDefault();
+        Guard.Against.Null(validateButton);
+        await((IElement)validateButton.Find("button")).ClickAsync(new MouseEventArgs());
+
+        // Assert
+        comp.Should().NotBeNull();
+
+        var alerts = comp.FindComponents<MudAlert>();
+        alerts.Should().HaveCount(0);
+
+        var navMan = Services.GetRequiredService<FakeNavigationManager>();
+        Assert.Equal("http://localhost/libraries/list", navMan.Uri);
+    }
+}

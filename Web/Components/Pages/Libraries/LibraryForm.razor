@@ -1,0 +1,40 @@
+﻿@using Domain.Libraries
+@using Web.Services
+@inject ILibrariesService LibrariesService
+@inject NavigationManager MyNavigationManager
+@rendermode InteractiveServer
+
+<MudStack Spacing="1" Class="mt-2">
+
+    <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
+        <MudGrid Class="d-flex align-center">
+            <MudItem xs="12" sm="2">
+                <MudText Typo="Typo.h5">Libraries</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (Errors.Any())
+    {
+        <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+                @foreach (var error in Errors)
+                {
+                    <MudText>@error</MudText>
+                }
+            </MudAlert>
+        </MudPaper>
+    }
+
+    <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
+        <MudForm>
+            <MudTextField T="string" Label="Name" Required="true" RequiredError="User name is required!" @bind-Value="LibraryName" />
+        </MudForm>
+    </MudPaper>
+
+    <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
+        <MudButton Class="ml-auto mt-3 mb-3" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(async ()=>await CreateOrUpdateLibrary())">Validate</MudButton>
+        <MudButton Class="ml-auto mt-3 mb-3" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" >Cancel</MudButton>
+    </MudPaper>
+
+</MudStack>
