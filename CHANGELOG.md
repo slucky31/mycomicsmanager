@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.5.1"></a>
+## [8.5.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.5.1) (2024-05-18)
+
+### Bug Fixes
+
+* **deps:** update dotnet monorepo (main) ([#580](https://www.github.com/slucky31/mycomicsmanager/issues/580)) ([b44e47e](https://www.github.com/slucky31/mycomicsmanager/commit/b44e47e961db71e99d8309bc830b37cf3c0772be))
+
 <a name="8.5.0"></a>
 ## [8.5.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.5.0) (2024-05-18)
 
