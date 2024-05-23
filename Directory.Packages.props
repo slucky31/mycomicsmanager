@@ -29,7 +29,7 @@
     <PackageVersion Include="NSubstitute" Version="5.1.0" />
     <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
     <PackageVersion Include="Serilog.AspNetCore" Version="8.0.1" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.25.0.90414" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.25.1.91650" />
     <PackageVersion Include="xunit" Version="2.8.0" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.8.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.0" />
