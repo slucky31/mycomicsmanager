@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebAPI;
+namespace Web;
 
 #pragma warning disable CA1812 // Avoid uninstantiated internal classes
 internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
@@ -20,6 +20,8 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
         httpContext.Response.StatusCode = problemDetails.Status.Value;
 
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+
+        SentrySdk.CaptureException(exception);
 
         return true;
     }
