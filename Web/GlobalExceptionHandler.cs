@@ -21,8 +21,6 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
 
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
-        SentrySdk.CaptureException(exception);
-
         return true;
     }
 }
