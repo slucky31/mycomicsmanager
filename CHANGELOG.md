@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.6.3"></a>
+## [8.6.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.6.3) (2024-06-08)
+
+### Bug Fixes
+
+* remove sentry ([#600](https://www.github.com/slucky31/mycomicsmanager/issues/600)) ([7c36220](https://www.github.com/slucky31/mycomicsmanager/commit/7c36220bd6af3d39cce70a96e15ec2d00ed78790))
+
 <a name="8.6.2"></a>
 ## [8.6.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.6.2) (2024-06-07)
 
