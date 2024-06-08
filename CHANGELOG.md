@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.6.4"></a>
+## [8.6.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.6.4) (2024-06-08)
+
+### Bug Fixes
+
+* **deps:** update dependency carter to v8.2.1 ([#598](https://www.github.com/slucky31/mycomicsmanager/issues/598)) ([cd6de74](https://www.github.com/slucky31/mycomicsmanager/commit/cd6de746f08d524ff8bad4eee1e28e245bcaec35))
+
 <a name="8.6.3"></a>
 ## [8.6.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.6.3) (2024-06-08)
 
