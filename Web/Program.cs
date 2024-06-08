@@ -15,60 +15,11 @@ using HealthChecks.ApplicationStatus.DependencyInjection;
 using MudBlazor.Services;
 using MudBlazor;
 using Web.Services;
-using Sentry.Profiling;
-using OpenTelemetry.Trace;
-using Sentry.OpenTelemetry;
-using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 Guard.Against.Null(builder);
 
 var configuration = builder.Configuration;
-
-// Config Sentry
-var config = configuration.GetSection("Sentry");
-builder.Services.Configure<SentryOption>(config);
-builder.Services.AddSingleton<ISentryOption>(sp => sp.GetRequiredService<IOptions<SentryOption>>().Value);
-var sentryConfig = config.Get<SentryOption>();
-Guard.Against.Null(sentryConfig);
-
-// Configire OpenTelemetry
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(builder => builder
-        .AddAspNetCoreInstrumentation()        
-    )
-    .WithTracing(tracerProviderBuilder =>
-        tracerProviderBuilder
-            .AddAspNetCoreInstrumentation() // <-- Adds ASP.NET Core telemetry sources
-            .AddHttpClientInstrumentation() // <-- Adds HttpClient telemetry sources
-            .AddSentry() // <-- Configure OpenTelemetry to send trace information to Sentry
-);
-
-
-builder.WebHost.UseSentry(o =>
-{
-    o.Dsn = sentryConfig.Dsn;
-    // Set TracesSampleRate to 1.0 to capture 100%
-    // of transactions for performance monitoring.
-    // We recommend adjusting this value in production
-    o.TracesSampleRate = 1.0;
-    // Sample rate for profiling, applied on top of othe TracesSampleRate,
-    // e.g. 0.2 means we want to profile 20 % of the captured transactions.
-    // We recommend adjusting this value in production.
-    o.ProfilesSampleRate = 1.0;
-    // Requires NuGet package: Sentry.Profiling
-    // Note: By default, the profiler is initialized asynchronously. This can
-    // be tuned by passing a desired initialization timeout to the constructor.
-    o.AddIntegration(new ProfilingIntegration(
-        // During startup, wait up to 500ms to profile the app startup code.
-        // This could make launching the app a bit slower so comment it out if you
-        // prefer profiling to start asynchronously.
-        TimeSpan.FromMilliseconds(500)
-    ));
-    o.Environment = sentryConfig.Environment;
-    // Configure Sentry to use OpenTelemetry trace information
-    o.UseOpenTelemetry();
-});
 
 builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(nameof(MongoDbOptions)));
 var options = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
@@ -90,7 +41,7 @@ builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
 // Config Auth0
-config = configuration.GetSection("Auth0");
+var config = configuration.GetSection("Auth0");
 builder.Services.Configure<Auth0Configuration>(config);
 builder.Services.AddSingleton<IAuth0Configuration>(sp => sp.GetRequiredService<IOptions<Auth0Configuration>>().Value);
 var auth0Config = config.Get<Auth0Configuration>();
@@ -161,7 +112,6 @@ app.MapHealthChecks("health", new HealthCheckOptions
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
-SentrySdk.CaptureMessage("Hello Sentry : MCM Run()");
 app.Run();
 
 #pragma warning disable S1118 // Utility classes should not have public constructors
