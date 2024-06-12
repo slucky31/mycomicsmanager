@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.6.6"></a>
+## [8.6.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.6.6) (2024-06-12)
+
+### Bug Fixes
+
+* **deps:** update mcr.microsoft.com/dotnet/sdk docker tag to v8.0.302 ([#603](https://www.github.com/slucky31/mycomicsmanager/issues/603)) ([beddf24](https://www.github.com/slucky31/mycomicsmanager/commit/beddf241b3000ab52ea3df225791ad0a718106dd))
+
 <a name="8.6.5"></a>
 ## [8.6.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.6.5) (2024-06-11)
 
