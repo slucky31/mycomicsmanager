@@ -68,7 +68,7 @@ jobs:
           images: ghcr.io/slucky31/mycomicsmanager-web/mycomicsmanager-web
       -
         name: Build and push Docker image MyComicsManagerWeb
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./MyComicsManagerWeb/Dockerfile
@@ -103,7 +103,7 @@ jobs:
 
       -
         name: Build and push Docker image MyComicsManagerApi
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./MyComicsManagerApi/Dockerfile
