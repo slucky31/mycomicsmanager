@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.7.0"></a>
+## [8.7.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.7.0) (2024-06-22)
+
+### Features
+
+* StartUp Info ([#612](https://www.github.com/slucky31/mycomicsmanager/issues/612)) ([7cbdc48](https://www.github.com/slucky31/mycomicsmanager/commit/7cbdc48ba674710881e988eb4fca379c91629007))
+
+### Other
+
+* fix : Cancel button (#611) ([e9de288](https://www.github.com/slucky31/mycomicsmanager/commit/e9de2881561c9af3ae1be178673d972b0cabd48e))
+
 <a name="8.6.9"></a>
 ## [8.6.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.6.9) (2024-06-20)
 
