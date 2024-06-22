@@ -113,6 +113,34 @@
     }
 
     [Fact]
+    public async Task LibraryForm_Should_DisplayList_When_ClicOnCancel()
+    {
+        // Arrange
+        _librariesServiceMock.Create(Arg.Any<string>()).Returns(Library.Create(Guid.NewGuid().ToString()));
+        Services.AddSingleton(_librariesServiceMock);
+
+        // Act
+        var comp = RenderComponent<LibraryForm>(parameters =>
+            parameters.Add(p => p.LibraryId, null)
+        );
+
+        var buttons = comp.FindComponents<MudButton>();
+
+        var cancelButton = buttons.Where(b => b.Nodes[0].TextContent == "Cancel").FirstOrDefault();
+        Guard.Against.Null(cancelButton);
+        await ((IElement)cancelButton.Find("button")).ClickAsync(new MouseEventArgs());
+
+        // Assert
+        comp.Should().NotBeNull();
+
+        var alerts = comp.FindComponents<MudAlert>();
+        alerts.Should().HaveCount(0);
+
+        var navMan = Services.GetRequiredService<FakeNavigationManager>();
+        Assert.Equal("http://localhost/libraries/list", navMan.Uri);
+    }
+
+    [Fact]
     public async Task LibraryForm_Should_DisplayList_When_ParameterIsProvided()
     {
         // Arrange

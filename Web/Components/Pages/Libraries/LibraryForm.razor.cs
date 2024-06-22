@@ -46,4 +46,9 @@ public partial class LibraryForm
             MyNavigationManager.NavigateTo("/libraries/list");
         }
     }
+
+    private void CancelCreateLibrary()
+    {
+        MyNavigationManager.NavigateTo("/libraries/list");        
+    }
 }
