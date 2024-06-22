@@ -112,6 +112,8 @@ app.MapHealthChecks("health", new HealthCheckOptions
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
+StartupInfo.Print();
+
 app.Run();
 
 #pragma warning disable S1118 // Utility classes should not have public constructors
