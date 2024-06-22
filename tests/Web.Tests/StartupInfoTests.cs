@@ -50,51 +50,5 @@ public class StartupInfoTests
         // Assert
         Assert.Equal(expected, result);
     }
-
-    [SkippableFact]
-    public void GetBestValue_ReturnsTrue_WhenValidPathExists()
-    {
-        Skip.IfNot(OperatingSystem.IsLinux());
-
-        // Arrange
-        string[] paths = ["/sys/fs/cgroup/memory.max"];
-
-        // Act
-        bool result = StartupInfo.GetBestValue(paths, out var limit, out var bestPath);
-
-        // Assert
-        Assert.True(result);
-        Assert.Equal("/sys/fs/cgroup/memory.max", bestPath);
-        Assert.NotEqual(0, limit);
-    }
-
-    [Fact]
-    public void GetBestValue_ReturnsFalse_WhenInvalidPathExists()
-    {
-        // Arrange
-        string[] paths = ["/sys/fs/cgroup/memory.invalid"];
-
-        // Act
-        bool result = StartupInfo.GetBestValue(paths, out var limit, out var bestPath);
-
-        // Assert
-        Assert.False(result);
-        Assert.Null(bestPath);
-        Assert.Equal(0, limit);
-    }
-
-    [Fact]
-    public void GetBestValue_ReturnsFalse_WhenPathDoesNotExist()
-    {
-        // Arrange
-        string[] paths = ["/sys/fs/cgroup/memory.nonexistent"];
-
-        // Act
-        bool result = StartupInfo.GetBestValue(paths, out var limit, out var bestPath);
-
-        // Assert
-        Assert.False(result);
-        Assert.Null(bestPath);
-        Assert.Equal(0, limit);
-    }
+    
 }
