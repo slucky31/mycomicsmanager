@@ -56,6 +56,8 @@ public static class StartupInfo
     {
         long limit = 0;
         string? bestPath = null;
+        
+        Guard.Against.Null(paths);
         foreach (string path in paths)
         {
             if (Path.Exists(path) && long.TryParse(File.ReadAllText(path), out limit))
