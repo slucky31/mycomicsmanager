@@ -34,7 +34,7 @@
 
     <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
         <MudButton Class="ml-auto mt-3 mb-3" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(async ()=>await CreateOrUpdateLibrary())">Validate</MudButton>
-        <MudButton Class="ml-auto mt-3 mb-3" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" >Cancel</MudButton>
+        <MudButton Class="ml-auto mt-3 mb-3" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(()=>CancelCreateLibrary())">Cancel</MudButton>
     </MudPaper>
 
 </MudStack>
