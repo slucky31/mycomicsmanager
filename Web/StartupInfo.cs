@@ -15,7 +15,7 @@ public static class StartupInfo
 
     public static void Print()
     {
-        Log.Information("MCM Starts ...");
+        Log.Information("MCM Startup Information:");
 
         // OS and .NET information
         Log.Information($"{nameof(RuntimeInformation.OSArchitecture)}: {RuntimeInformation.OSArchitecture}");
