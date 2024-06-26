@@ -21,16 +21,17 @@ Guard.Against.Null(builder);
 
 var configuration = builder.Configuration;
 
-builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(nameof(MongoDbOptions)));
-var options = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
-Guard.Against.Null(options);
-
 // Config Global Exception Management
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 // Config API
 builder.Services.AddCarter();
+
+// Config MongoDb
+builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(nameof(MongoDbOptions)));
+var options = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
+Guard.Against.Null(options);
 
 builder.Services
     .AddApplication()
@@ -86,6 +87,7 @@ builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
+
 app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
