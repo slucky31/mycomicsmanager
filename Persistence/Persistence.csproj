@@ -9,6 +9,7 @@
     <Version>8.7.2</Version>
     <!-- x-release-please-end -->
     <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
+    <Product>MCM</Product>
   </PropertyGroup>
 
   <ItemGroup>
