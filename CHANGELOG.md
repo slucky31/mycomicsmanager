@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.8.0"></a>
+## [8.8.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.0) (2024-06-28)
+
+### Features
+
+* StartUp Info ([#617](https://www.github.com/slucky31/mycomicsmanager/issues/617)) ([1a83611](https://www.github.com/slucky31/mycomicsmanager/commit/1a83611d21799052b7de377dc209a6f2ac4fe897))
+* Startup-info ([#614](https://www.github.com/slucky31/mycomicsmanager/issues/614)) ([8f17f2d](https://www.github.com/slucky31/mycomicsmanager/commit/8f17f2d3942fd4122d031cb3c783cd404f9c74be))
+
+### Bug Fixes
+
+* Update Web.csproj ([ddfea8e](https://www.github.com/slucky31/mycomicsmanager/commit/ddfea8e5b3f49455751ce27750402adc8a77e1c5))
+
 <a name="8.7.2"></a>
 ## [8.7.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.7.2) (2024-06-28)
 
