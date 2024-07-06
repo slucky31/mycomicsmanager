@@ -364,3 +364,5 @@ MyComicsManagerWeb/Covers/**
 /WebAPI/appsettings.Development.json
 /WebAPI/log-.txt
 /Web/appsettings.Development.json
+
+Web/wwwroot/temp/

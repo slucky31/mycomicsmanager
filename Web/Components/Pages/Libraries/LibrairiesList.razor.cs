@@ -21,7 +21,7 @@ public partial class LibrairiesList
     public static readonly string Msg_NoRecordsFound = "No matching records found";
     public static readonly string Msg_LibCorrectlyDeleted = "The library was correctly deleted";
 
-    private async Task<TableData<Library>> ServerReload(TableState state)
+    private async Task<TableData<Library>> OnReloadData(TableState state, CancellationToken token)
     {
         LibrariesColumn sortColumn = LibrariesColumn.Id;
         if (state.SortLabel == "name_field")

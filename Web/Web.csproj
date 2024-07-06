@@ -29,4 +29,9 @@
     <ProjectReference Include="..\Persistence\Persistence.csproj" />
   </ItemGroup>
 
+  <!-- Source:  https://jonhilton.net/visual-studio-2022-blazor-css-intellisense/#:~:text=If%20you%20opt%20to%20use%20an,styles%20%28that%20come%20with%20the%20library%29.&text=If%20you%20opt%20to,come%20with%20the%20library%29.&text=opt%20to%20use%20an,styles%20%28that%20come%20with -->
+  <Target Name="CollectMudBlazorStaticAssets" DependsOnTargets="ResolveStaticWebAssetsInputs" AfterTargets="Build" Condition=" '$(Configuration)' == 'Debug' ">
+    <Copy SourceFiles="%(StaticWebAsset.Identity)" DestinationFolder="wwwroot/temp" Condition="$([System.String]::Copy(%(StaticWebAsset.Identity)).Contains('mudblazor'))" />
+  </Target>
+
 </Project>
