@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.8.5"></a>
+## [8.8.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.5) (2024-07-09)
+
+### Bug Fixes
+
+* **deps:** update xunit-dotnet monorepo ([#624](https://www.github.com/slucky31/mycomicsmanager/issues/624)) ([5248729](https://www.github.com/slucky31/mycomicsmanager/commit/5248729fd18f5a2f42c0890e6e2108eb3c8b5b66))
+
 <a name="8.8.4"></a>
 ## [8.8.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.4) (2024-07-09)
 
