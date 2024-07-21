@@ -1,5 +1,6 @@
 ﻿@using Domain.Libraries
 @inject NavigationManager MyNavigationManager
+@rendermode InteractiveServer
 
 @page "/libraries/list"
 
@@ -36,6 +37,7 @@
                 color: white !important;
             }
         </style>
+        <MudPopoverProvider />
         <MudTable @ref="table" class="mx-4 rounded" ServerData="OnReloadData" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.None" HeaderClass="mud-table-header">
             <ColGroup>
                 <col style="width: 90%;" />

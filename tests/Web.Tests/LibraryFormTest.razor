@@ -11,8 +11,9 @@
     private readonly ILibrariesService _librariesServiceMock;
 
     public LibraryFormTest()
-    {
+    {        
         _librariesServiceMock = Substitute.For<ILibrariesService>();        
+        Services.AddSingleton(_librariesServiceMock);
         Services.AddMudServices();
     }
 
@@ -20,8 +21,6 @@
     public void LibraryForm_Should_RenderCorrectly_When_NoParameterProvided()
     {                
         // Arrange
-        Services.AddSingleton(_librariesServiceMock);
-
         // Act
         var comp = RenderComponent<LibraryForm>(parameters => 
             parameters.Add(p => p.LibraryId, null)          
@@ -39,7 +38,6 @@
     {
         // Arrange
         _librariesServiceMock.Create(Arg.Any<string>()).Returns(LibrariesError.BadRequest);
-        Services.AddSingleton(_librariesServiceMock);
 
         // Act
         var comp = RenderComponent<LibraryForm>(parameters =>
@@ -65,7 +63,6 @@
     {
         // Arrange
         _librariesServiceMock.Create(Arg.Any<string>()).Returns(LibrariesError.Duplicate);
-        Services.AddSingleton(_librariesServiceMock);
 
         // Act
         var comp = RenderComponent<LibraryForm>(parameters =>
@@ -91,7 +88,6 @@
     {
         // Arrange
         _librariesServiceMock.Create(Arg.Any<string>()).Returns(Library.Create(Guid.NewGuid().ToString()));
-        Services.AddSingleton(_librariesServiceMock);
 
         // Act
         var comp = RenderComponent<LibraryForm>(parameters =>
@@ -119,7 +115,6 @@
     {
         // Arrange
         _librariesServiceMock.Create(Arg.Any<string>()).Returns(Library.Create(Guid.NewGuid().ToString()));
-        Services.AddSingleton(_librariesServiceMock);
 
         // Act
         var comp = RenderComponent<LibraryForm>(parameters =>
