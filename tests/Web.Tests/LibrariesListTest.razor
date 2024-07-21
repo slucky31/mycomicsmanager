@@ -14,21 +14,18 @@
     private readonly ILibrariesService _librariesServiceMock;
     private readonly int nbItems = 10;
 
-
     public LibrariesListTest()
     {                
-        _librariesServiceMock = Substitute.For<ILibrariesService>();
-        Services.AddMudServices();
-
         JSInterop.Mode = JSRuntimeMode.Loose;
+        _librariesServiceMock = Substitute.For<ILibrariesService>();
         Services.AddSingleton(_librariesServiceMock);
+        Services.AddMudServices();
     }
 
     [Fact]
     public void LibraryList_Should_RenderCorrectly_When_NoDataProvided()
     {
-        // Arrange        
-        
+
         // Act
         var comp = RenderComponent<LibrairiesList>();
 
@@ -59,8 +56,6 @@
         var mockPagedList = new PagedList<Library>(query);
         await mockPagedList.ExecuteQueryAsync(1, nbItems);
         _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
-        Services.AddSingleton(_librariesServiceMock);
-        Services.AddMudServices();
 
         // Act
         var comp = RenderComponent<LibrairiesList>();
@@ -108,8 +103,6 @@
 
         _librariesServiceMock.FilterBy("", Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
         _librariesServiceMock.FilterBy("lib", Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList2);
-        Services.AddSingleton(_librariesServiceMock);
-        Services.AddMudServices();
 
         // Act
         var comp = RenderComponent<LibrairiesList>();
@@ -145,8 +138,6 @@
 
         // Arrange - Configure the FilterBy method to return the mockPagedList
         _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);        
-        Services.AddSingleton(_librariesServiceMock);
-        Services.AddMudServices();
 
         // Act - Render the component
         var comp = RenderComponent<LibrairiesList>();
@@ -176,8 +167,6 @@
         // Arrange - Configure the FilterBy method to return the mockPagedList
         _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
         _librariesServiceMock.Delete(Arg.Any<string>()).Returns(Result.Success());
-        Services.AddSingleton(_librariesServiceMock);
-        Services.AddMudServices();
 
         // Act - Render the component
         var comp = RenderComponent<LibrairiesList>();
@@ -217,8 +206,6 @@
         // Arrange - Configure the FilterBy method to return the mockPagedList
         _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
         _librariesServiceMock.Delete(Arg.Any<string>()).Returns(Result.Failure(LibrariesError.NotFound));
-        Services.AddSingleton(_librariesServiceMock);
-        Services.AddMudServices();
 
         // Act - Render the component
         var comp = RenderComponent<LibrairiesList>();

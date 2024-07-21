@@ -1,6 +1,4 @@
-﻿using Application.Libraries.Delete;
-using Application.Libraries.List;
-using Ardalis.GuardClauses;
+﻿using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
