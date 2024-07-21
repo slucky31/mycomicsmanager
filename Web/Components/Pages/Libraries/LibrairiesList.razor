@@ -21,7 +21,7 @@
                     </div>
                 </MudItem>
                 <MudItem xs="12" sm="2" Class="d-flex justify-end">
-                    <MudButton Href="/libraries/create" class="rounded" StartIcon="@Icons.Material.Filled.AddCircleOutline" Color=Color.Primary Variant="Variant.Filled">Create</MudButton>
+                    <MudButton Href="/libraries/create" title="Create" class="rounded" StartIcon="@Icons.Material.Filled.AddCircleOutline" Color=Color.Primary Variant="Variant.Filled">Create</MudButton>
                 </MudItem>
             </MudGrid>
         </MudPaper>
@@ -48,8 +48,8 @@
             <RowTemplate>
                 <MudTd DataLabel="Name">@context.Name</MudTd>
                 <MudTd DataLabel="Actions">
-                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" aria-label="Edit" OnClick="@(e => OnClickEdit(@context.Id))" />
-                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" aria-label="Delete" OnClick="@(e => OnClickDelete(@context.Id))" />
+                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" title="Edit" aria-label="Edit" OnClick="@(e => OnClickEdit(@context.Id))" />
+                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" title="Delete" aria-label="Delete" OnClick="@(e => OnClickDelete(@context.Id))" />
                 </MudTd>
             </RowTemplate>
             <NoRecordsContent>

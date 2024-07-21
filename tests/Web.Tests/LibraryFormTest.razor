@@ -1,6 +1,7 @@
 ﻿@using AngleSharp.Dom
 @using Domain.Libraries
 @using MongoDB.Bson
+@using MudBlazor.Services
 @using NSubstitute
 @using Web.Services
 @inherits TestContext
@@ -11,7 +12,8 @@
 
     public LibraryFormTest()
     {
-        _librariesServiceMock = Substitute.For<ILibrariesService>();
+        _librariesServiceMock = Substitute.For<ILibrariesService>();        
+        Services.AddMudServices();
     }
 
     [Fact]
