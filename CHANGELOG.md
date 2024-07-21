@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.8.6"></a>
+## [8.8.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.6) (2024-07-15)
+
+### Bug Fixes
+
+* **deps:** update dependency sonaranalyzer.csharp to v9.29.0.95321 ([#630](https://www.github.com/slucky31/mycomicsmanager/issues/630)) ([12e4313](https://www.github.com/slucky31/mycomicsmanager/commit/12e4313a6e67c891d1c331beeb344f95e850f386))
+
+<a name="8.8.5"></a>
+## [8.8.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.5) (2024-07-09)
+
+### Bug Fixes
+
+* **deps:** update xunit-dotnet monorepo ([#624](https://www.github.com/slucky31/mycomicsmanager/issues/624)) ([5248729](https://www.github.com/slucky31/mycomicsmanager/commit/5248729fd18f5a2f42c0890e6e2108eb3c8b5b66))
+
+<a name="8.8.4"></a>
+## [8.8.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.4) (2024-07-09)
+
+### Bug Fixes
+
+* **deps:** update dependency ardalis.guardclauses to v4.6.0 ([#626](https://www.github.com/slucky31/mycomicsmanager/issues/626)) ([85ba987](https://www.github.com/slucky31/mycomicsmanager/commit/85ba98755f664609e34182e8e6be3efab82b1ed6))
+
+<a name="8.8.3"></a>
+## [8.8.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.3) (2024-07-09)
+
+### Bug Fixes
+
+* **deps:** update dotnet monorepo ([#627](https://www.github.com/slucky31/mycomicsmanager/issues/627)) ([33463f2](https://www.github.com/slucky31/mycomicsmanager/commit/33463f22da0345c489b3ada13b84f78b316d70eb))
+
+<a name="8.8.2"></a>
+## [8.8.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.2) (2024-07-06)
+
+### Bug Fixes
+
+* **deps:** update dependency mongodb.entityframeworkcore to v8.0.3 ([#618](https://www.github.com/slucky31/mycomicsmanager/issues/618)) ([7675409](https://www.github.com/slucky31/mycomicsmanager/commit/7675409718b9010058190fcbbbe2ba92b64ec80e))
+
 <a name="8.8.1"></a>
 ## [8.8.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.1) (2024-07-06)
 
