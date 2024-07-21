@@ -6,7 +6,7 @@
 
 <MudStack Spacing="1" Class="mt-2">
 
-    <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
+    <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" >
         <MudGrid Class="d-flex align-center">
             <MudItem xs="12" sm="2">
                 <MudText Typo="Typo.h5">Libraries</MudText>
@@ -16,7 +16,7 @@
 
     @if (Errors.Any())
     {
-        <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
+        <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" >
             <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
                 @foreach (var error in Errors)
                 {
@@ -26,15 +26,17 @@
         </MudPaper>
     }
 
-    <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
+    <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" >
+        
         <MudForm>
             <MudTextField T="string" Label="Name" Required="true" RequiredError="User name is required!" @bind-Value="LibraryName" />
         </MudForm>
+        
     </MudPaper>
 
-    <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" Align="Align.Center">
-        <MudButton Class="ml-auto mt-3 mb-3" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(async ()=>await CreateOrUpdateLibrary())">Validate</MudButton>
-        <MudButton Class="ml-auto mt-3 mb-3" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(()=>CancelCreateLibrary())">Cancel</MudButton>
+    <MudPaper class=" py-4 px-6 mx-4 rounded" Elevation="0" >
+        <MudButton Class="ml-auto mt-3 mb-3" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" OnClick="@(async ()=>await CreateOrUpdateLibrary())">Validate</MudButton>
+        <MudButton Class="ml-auto mt-3 mb-3" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" OnClick="@(()=>CancelCreateLibrary())">Cancel</MudButton>
     </MudPaper>
 
 </MudStack>

@@ -1,8 +1,9 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="mcmTheme" />
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
 <MudDialogProvider />
 <MudSnackbarProvider />
+<MudPopoverProvider />
 
 <MudLayout>
     <MudAppBar Elevation="1">
@@ -29,12 +30,12 @@
 
     private readonly MudTheme mcmTheme = new MudTheme()
     {
-        Palette = new PaletteLight
+        PaletteLight = new PaletteLight
         {
             Primary = Colors.Blue.Default,
             Secondary = Colors.Green.Accent4,
             AppbarBackground = Colors.Red.Default,
-            Background = Colors.Grey.Lighten1
+            Background = Colors.Gray.Lighten1
         },
         PaletteDark = new PaletteDark
         {
