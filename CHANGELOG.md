@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.8.13"></a>
+## [8.8.13](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.13) (2024-07-27)
+
+### Bug Fixes
+
+* **deps:** update dependency mediatr to v12.4.0 ([#638](https://www.github.com/slucky31/mycomicsmanager/issues/638)) ([2586f29](https://www.github.com/slucky31/mycomicsmanager/commit/2586f29b2a12c0b4b8216217be695a1ece265098))
+
 <a name="8.8.12"></a>
 ## [8.8.12](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.12) (2024-07-27)
 
