@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.8.15"></a>
+## [8.8.15](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.15) (2024-08-01)
+
+### Bug Fixes
+
+* **deps:** update dependency serilog.aspnetcore to v8.0.2 ([#644](https://www.github.com/slucky31/mycomicsmanager/issues/644)) ([0ef78df](https://www.github.com/slucky31/mycomicsmanager/commit/0ef78df1b257851f82e5a05c11790d6b6e5bccae))
+
 <a name="8.8.14"></a>
 ## [8.8.14](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.14) (2024-08-01)
 
