@@ -12,7 +12,7 @@
 		<PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
 		<PackageReference Include="GitInfo" Version="3.3.5" />
 		<PackageReference Include="MudBlazor" Version="6.21.0" />
-		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+		<PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />		
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="7.0.0" />
 		<PackageReference Include="Google.Apis.Books.v1" Version="1.68.0.3331" />
