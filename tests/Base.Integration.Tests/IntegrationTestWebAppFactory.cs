@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.TestHost;
 using Persistence;
 using Web.Configuration;
+using Persistence.LocalStorage;
 
 // Source : https://www.youtube.com/watch?v=tj5ZCtvgXKY&t=358s
 // Source 2 : https://stackoverflow.com/questions/69990675/change-config-values-in-appsettings-json-githubactions
@@ -17,7 +18,8 @@ namespace Base.Integration.Tests;
 public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IDisposable
 #pragma warning restore CA1063 // Implement IDisposable Correctly
 {
-    private MongoDbOptions? _mongoDbOptions;
+    private MongoDbOptions? _mongoDbOptions;    
+
     private string? _databaseName;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -35,9 +37,10 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             // here we can "compile" the settings. Api.Setup will do the same, it doesn't matter.
             var _configuration = conf.Build();
 
-            _mongoDbOptions = _configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
+            _mongoDbOptions = _configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();            
         });
 
+        // Reconfigure the services to use the MongoDb with a new database name        
         builder.ConfigureTestServices(services =>
         {
             var descriptor = services.SingleOrDefault(s=> s.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
@@ -55,6 +58,20 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
                 .UseMongoDB(_mongoDbOptions.ConnectionString, _databaseName)
                 .EnableDetailedErrors(true)
             );
+        });
+
+        // Reconfigure the service to use LocalStorage with a new root path as Temp directory
+        builder.ConfigureTestServices(services =>
+        {
+            var descriptor = services.SingleOrDefault(s => s.ServiceType == typeof(ILibraryLocalStorage));
+
+            if (descriptor is not null)
+            {
+                services.Remove(descriptor);
+            }
+            
+            var rootPath = Path.GetTempPath();
+            services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
         });
     }
 

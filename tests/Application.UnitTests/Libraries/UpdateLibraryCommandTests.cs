@@ -8,6 +8,8 @@ using Ardalis.GuardClauses;
 using MockQueryable.NSubstitute;
 using Persistence.Queries.Helpers;
 using Application.Libraries;
+using Persistence.LocalStorage;
+using Domain.Primitives;
 
 namespace Application.UnitTests.Libraries;
 public class UpdateLibraryCommandTests
@@ -19,14 +21,16 @@ public class UpdateLibraryCommandTests
     private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryReadService _libraryReadServiceMock;
+    private readonly ILibraryLocalStorage _libraryLocalStorage;
 
     public UpdateLibraryCommandTests()
     {
         _librayRepositoryMock = Substitute.For<IRepository<Library, ObjectId>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryReadServiceMock = Substitute.For<ILibraryReadService>();
+        _libraryLocalStorage = Substitute.For<ILibraryLocalStorage>();
 
-        _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock);
+        _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorage);
     }
 
     [Fact]
@@ -65,10 +69,26 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_ShouldReturnFolderNotMoved_WhenDirectoryWasNotMoved()
+    {
+        // Arrange
+        _librayRepositoryMock.GetByIdAsync(Command.Id).Returns(library);
+        _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Failure(TError.Any));
+
+        // Act
+        var result = await _handler.Handle(Command, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.FolderNotMoved);
+    }
+
+    [Fact]
     public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(Command.Id).Returns(library);
+        _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
 
         // Act
         var result = await _handler.Handle(Command, default);
