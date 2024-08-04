@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.9.0"></a>
+## [8.9.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.0) (2024-08-04)
+
+### Features
+
+* 634 Library - Use LocalStorage ([#647](https://www.github.com/slucky31/mycomicsmanager/issues/647)) ([f1a1a09](https://www.github.com/slucky31/mycomicsmanager/commit/f1a1a091ff801eff639374dfb4b0d8f3312c726a))
+
 <a name="8.8.15"></a>
 ## [8.8.15](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.8.15) (2024-08-01)
 
