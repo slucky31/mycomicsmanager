@@ -5,10 +5,11 @@ using Application.Data;
 using Application.Interfaces;
 using MongoDB.Bson;
 using Ardalis.GuardClauses;
+using Persistence.LocalStorage;
 
 namespace Application.Libraries.Create;
 
-internal sealed class CreateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService) : IRequestHandler<CreateLibraryCommand, Result<Library>>
+internal sealed class CreateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : IRequestHandler<CreateLibraryCommand, Result<Library>>
 {
     public async Task<Result<Library>> Handle(CreateLibraryCommand command, CancellationToken cancellationToken)
     {
@@ -25,9 +26,17 @@ internal sealed class CreateLibraryCommandHandler(IRepository<Library, ObjectId>
         {
             return LibrariesError.Duplicate;
         }
-
+        
         // Create Library
-        var library = Library.Create(command.Name);      
+        var library = Library.Create(command.Name);
+
+        // Create the directory for the library
+        var result = libraryLocalStorage.Create(library.RelativePath);
+        if (result.IsFailure)
+        {
+            return LibrariesError.FolderNotCreated;
+        }
+
         libraryRepository.Add(library);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

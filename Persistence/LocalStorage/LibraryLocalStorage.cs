@@ -5,16 +5,23 @@ using Domain.Extensions;
 using Domain.Primitives;
 
 namespace Persistence.LocalStorage;
-public static class LibraryLocalStorage
+public class LibraryLocalStorage : ILibraryLocalStorage
 {
-    private static readonly char[] _charsToTrim = ['/', '\\'];
+    private readonly char[] _charsToTrim = ['/', '\\'];
+    
+    public string rootPath { get; init; }
 
-    public static Result Create(string rootPath, string folderName)
+    public LibraryLocalStorage(string rootPath)
+    {
+        this.rootPath = rootPath;
+    }
+
+    public Result Create(string folderName)
     {
         Guard.Against.Null(rootPath);
         Guard.Against.Null(folderName);
 
-        if(String.IsNullOrEmpty(rootPath) || String.IsNullOrEmpty(folderName))
+        if (String.IsNullOrEmpty(rootPath) || String.IsNullOrEmpty(folderName))
         {
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
         }
@@ -23,10 +30,10 @@ public static class LibraryLocalStorage
         path.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(folderName);
 
         Directory.CreateDirectory(path.ToString());
-        return Result.Success();        
+        return Result.Success();
     }
 
-    public static Result Move(string rootPath, string originFolderName, string destinationFolderName)
+    public Result Move(string originFolderName, string destinationFolderName)
     {
         Guard.Against.Null(rootPath);
         Guard.Against.Null(originFolderName);
@@ -35,7 +42,7 @@ public static class LibraryLocalStorage
         if (String.IsNullOrEmpty(rootPath) || String.IsNullOrEmpty(originFolderName) || String.IsNullOrEmpty(destinationFolderName))
         {
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
-        }        
+        }
 
         var originPath = new StringBuilder();
         originPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(originFolderName.RemoveDiacritics());
@@ -57,7 +64,7 @@ public static class LibraryLocalStorage
         return Result.Success();
     }
 
-    public static Result Delete(string rootPath, string folderName) 
+    public Result Delete(string folderName)
     {
         Guard.Against.Null(rootPath);
         Guard.Against.Null(folderName);

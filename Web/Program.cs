@@ -30,12 +30,18 @@ builder.Services.AddCarter();
 
 // Config MongoDb
 builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(nameof(MongoDbOptions)));
-var options = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
-Guard.Against.Null(options);
+var optionsMongoDb = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
+Guard.Against.Null(optionsMongoDb);
+
+// Config LocalStorage
+var localStorageSection = builder.Configuration.GetSection("LocalStorage");
+builder.Services.Configure<LocalStorageConfiguration>(localStorageSection);
+var localStorageConfig = localStorageSection.Get<LocalStorageConfiguration>();
+Guard.Against.Null(localStorageConfig);
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure(options.ConnectionString, options.DatabaseName);
+    .AddInfrastructure(optionsMongoDb.ConnectionString, optionsMongoDb.DatabaseName, localStorageConfig.RootPath);
 
 // Config Serilog
 builder.Host.UseSerilog((context, configuration) =>
@@ -66,7 +72,7 @@ builder.Services.AddAuthorization();
 // Config HealthChecks
 builder.Services.AddHealthChecks()
     .AddApplicationStatus()
-    .AddMongoDb(options.ConnectionString);
+    .AddMongoDb(optionsMongoDb.ConnectionString);
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
