@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.9.4"></a>
+## [8.9.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.4) (2024-08-16)
+
+### Bug Fixes
+
+* **deps:** update dependency sonaranalyzer.csharp to v9.32.0.97167 ([#654](https://www.github.com/slucky31/mycomicsmanager/issues/654)) ([5b3164e](https://www.github.com/slucky31/mycomicsmanager/commit/5b3164e1e4dc4952511c37092bc8e8d85ff20cc1))
+
+<a name="8.9.3"></a>
+## [8.9.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.3) (2024-08-16)
+
+### Bug Fixes
+
+* **deps:** update dotnet monorepo ([#652](https://www.github.com/slucky31/mycomicsmanager/issues/652)) ([fe74784](https://www.github.com/slucky31/mycomicsmanager/commit/fe747845f4293039d4836ace71a49550ccecb161))
+
 <a name="8.9.2"></a>
 ## [8.9.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.2) (2024-08-07)
 
