@@ -21,13 +21,13 @@ public partial class LibrairiesList
 
     private async Task<TableData<Library>> OnReloadData(TableState state, CancellationToken token)
     {
-        LibrariesColumn sortColumn = LibrariesColumn.Id;
+        var sortColumn = LibrariesColumn.Id;
         if (state.SortLabel == "name_field")
         {
             sortColumn = LibrariesColumn.Name;
         }
 
-        SortOrder sortOrder = SortOrder.Ascending;
+        var sortOrder = SortOrder.Ascending;
         if (state.SortDirection == SortDirection.Descending)
         {
             sortOrder = SortOrder.Descending;

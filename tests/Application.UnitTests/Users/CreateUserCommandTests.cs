@@ -70,7 +70,7 @@ public class CreateUserCommandHandlerTests
     public async Task Handle_ShouldReturnDuplicate_WhenAUserWithSameEmailOrAuthIdAlreadyExist()
     {
         // Arrange
-        User user = User.Create(Command.email, Command.authId);
+        var user = User.Create(Command.email, Command.authId);
         _userReadServiceMock.GetUserByAuthIdAndEmail(Command.email, Command.authId).Returns(user);
 
         // Act

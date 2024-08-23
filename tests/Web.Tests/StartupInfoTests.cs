@@ -9,10 +9,10 @@ public class StartupInfoTests
     {
         // Arrange
         long size = 512;
-        string expected = "512 bytes";
+        var expected = "512 bytes";
 
         // Act
-        string result = StartupInfo.GetInBestUnit(size);
+        var result = StartupInfo.GetInBestUnit(size);
 
         // Assert
         Assert.Equal(expected, result);
@@ -23,10 +23,10 @@ public class StartupInfoTests
     {
         // Arrange
         long size = 1024 * 1024;
-        string expected = "1.00 MiB";
+        var expected = "1.00 MiB";
 
         // Act
-        string result = StartupInfo.GetInBestUnit(size);
+        var result = StartupInfo.GetInBestUnit(size);
 
         // Assert
         Assert.Equal(expected, result);
@@ -37,10 +37,10 @@ public class StartupInfoTests
     {
         // Arrange
         long size = 1024 * 1024 * 1024;
-        string expected = "1.00 GiB";
+        var expected = "1.00 GiB";
 
         // Act
-        string result = StartupInfo.GetInBestUnit(size);
+        var result = StartupInfo.GetInBestUnit(size);
 
         // Assert
         Assert.Equal(expected, result);
