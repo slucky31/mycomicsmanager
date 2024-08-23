@@ -1,7 +1,7 @@
 ﻿using Auth0.AspNetCore.Authentication;
 using Carter;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Web.EndPoints;
 

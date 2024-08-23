@@ -66,7 +66,7 @@ public class ArchitectureTests
         var assembly = typeof(Persistence.ProjectDependencyInjection).Assembly;
 
         var otherProjects = new[]
-        {            
+        {
             PresentationNamespace,
             WebApiNamespace,
         };
@@ -79,5 +79,5 @@ public class ArchitectureTests
 
         // Assert
         testResult.IsSuccessful.Should().BeTrue();
-    }    
+    }
 }

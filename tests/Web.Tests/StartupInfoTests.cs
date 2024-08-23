@@ -45,5 +45,5 @@ public class StartupInfoTests
         // Assert
         Assert.Equal(expected, result);
     }
-    
+
 }

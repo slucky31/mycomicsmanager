@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Application.Interfaces;
 using Application.Users;
-using Ardalis.GuardClauses;
 using Domain.Primitives;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;

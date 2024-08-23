@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-using Domain.Primitives;
+﻿using Domain.Primitives;
 using MongoDB.Bson;
 
 namespace Domain.Users;

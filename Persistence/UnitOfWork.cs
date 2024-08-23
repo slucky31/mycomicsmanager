@@ -1,8 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using Application.Interfaces;
 using Domain.Interfaces;
 using Domain.Primitives;
-using Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
 public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork

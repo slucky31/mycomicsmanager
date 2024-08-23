@@ -1,15 +1,9 @@
-﻿using Application.Users.Create;
+﻿using Application.Interfaces;
 using Application.Users;
+using Application.Users.Create;
 using Domain.Users;
-using NSubstitute;
-using Application.Interfaces;
 using MongoDB.Bson;
-using Application.Libraries.Create;
-using Ardalis.GuardClauses;
-using Domain.Libraries;
-using MockQueryable.NSubstitute;
-using Persistence.Queries.Helpers;
-using Domain.Primitives;
+using NSubstitute;
 
 namespace Application.UnitTests.Users;
 
@@ -76,8 +70,8 @@ public class CreateUserCommandHandlerTests
     public async Task Handle_ShouldReturnDuplicate_WhenAUserWithSameEmailOrAuthIdAlreadyExist()
     {
         // Arrange
-        User user = User.Create(Command.email, Command.authId);        
-        _userReadServiceMock.GetUserByAuthIdAndEmail(Command.email, Command.authId).Returns(user);            
+        User user = User.Create(Command.email, Command.authId);
+        _userReadServiceMock.GetUserByAuthIdAndEmail(Command.email, Command.authId).Returns(user);
 
         // Act
         var result = await _handler.Handle(Command, default);

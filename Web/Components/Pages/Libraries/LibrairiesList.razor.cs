@@ -15,7 +15,7 @@ public partial class LibrairiesList
 
     private MudTable<Library>? table;
     private string searchString = "";
-    
+
     public static readonly string Msg_NoRecordsFound = "No matching records found";
     public static readonly string Msg_LibCorrectlyDeleted = "The library was correctly deleted";
 
@@ -33,7 +33,7 @@ public partial class LibrairiesList
             sortOrder = SortOrder.Descending;
         }
 
-        var result = await LibrariesService.FilterBy(searchString, sortColumn, sortOrder, state.Page + 1, state.PageSize);        
+        var result = await LibrariesService.FilterBy(searchString, sortColumn, sortOrder, state.Page + 1, state.PageSize);
         if (result is not null && result.Items is not null)
         {
             return new TableData<Library> { TotalItems = result.TotalCount, Items = result.Items.ToList() };
@@ -43,12 +43,12 @@ public partial class LibrairiesList
     }
 
     private async Task OnClickDelete(ObjectId id)
-    {        
+    {
         var result = await LibrariesService.Delete(id.ToString());
         Guard.Against.Null(result);
         if (result.IsFailure)
-        {            
-            Guard.Against.Null(result.Error);            
+        {
+            Guard.Against.Null(result.Error);
             Snackbar.Add(result.Error.Description, Severity.Error);
         }
         else
