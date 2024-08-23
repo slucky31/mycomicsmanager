@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Text;
 using Ardalis.GuardClauses;
 
@@ -15,20 +12,20 @@ public static class StringExtension
         {
             return str;
         }
-        
+
         // Ajout d'une majuscule à chaque début de mot
         var txtInfo = CultureInfo.InvariantCulture.TextInfo;
         var stripStr = txtInfo.ToTitleCase(str);
-            
+
         // Conservation uniquement des lettres et des chiffres
         // Source : https://stackoverflow.com/questions/7316258/how-to-get-only-letters-from-a-string-in-c/7316298
         stripStr = new string(stripStr.Where(c => Char.IsLetter(c) || Char.IsDigit(c)).ToArray());
-            
+
         // Suppression des accents
         // Source : https://stackoverflow.com/questions/249087/how-do-i-remove-diacritics-accents-from-a-string-in-net
         return stripStr.RemoveDiacritics();
     }
-    
+
     public static string ToCamlCase(this string str)
     {
         if (string.IsNullOrEmpty(str) || str.Length <= 1)
@@ -40,14 +37,13 @@ public static class StringExtension
         Guard.Against.Null(caml);
         return char.ToLowerInvariant(caml[0]) + caml[1..];
     }
-    
-    public static string RemoveDiacritics(this string str) 
+
+    public static string RemoveDiacritics(this string str)
     {
         if (string.IsNullOrEmpty(str))
         {
             return str;
         }
-        
         var normalizedString = str.Normalize(NormalizationForm.FormD);
         var stringBuilder = new StringBuilder();
 

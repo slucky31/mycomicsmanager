@@ -4,7 +4,8 @@ using MongoDB.Bson;
 
 namespace Domain.Libraries;
 
-public class Library : Entity<ObjectId> {
+public class Library : Entity<ObjectId>
+{
 
     public string Name { get; protected set; } = String.Empty;
 
@@ -22,6 +23,6 @@ public class Library : Entity<ObjectId> {
 
     public void Update(string name)
     {
-        Name = name;        
+        Name = name;
     }
 }

@@ -3,15 +3,14 @@ using Application.Libraries.List;
 using Ardalis.GuardClauses;
 using Domain.Extensions;
 using Domain.Libraries;
-using MockQueryable.NSubstitute;
+using MockQueryable.EntityFrameworkCore;
 using NSubstitute;
 using Persistence.Queries.Helpers;
-using Persistence.Queries.Libraries;
 
 namespace Application.UnitTests.Libraries;
 public class ListLibraryCommandeTests
 {
-    private static readonly GetLibrariesQuery request = new(null, null, null,1, 10);
+    private static readonly GetLibrariesQuery request = new(null, null, null, 1, 10);
     private static readonly Library library = Library.Create("library");
 
 
@@ -29,7 +28,7 @@ public class ListLibraryCommandeTests
     public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
-        List<Library> list = [ library ];
+        List<Library> list = [library];
         var query = list.AsQueryable().BuildMock();
         var mockPagedList = new PagedList<Library>(query);
         _libraryReadServiceMock.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize).Returns(mockPagedList);

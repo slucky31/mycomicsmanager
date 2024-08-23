@@ -1,5 +1,4 @@
-﻿using Application.Data;
-using Domain.Libraries;
+﻿using Domain.Libraries;
 using NSubstitute;
 using Application.Interfaces;
 using MongoDB.Bson;
@@ -8,8 +7,8 @@ using Ardalis.GuardClauses;
 using MockQueryable.NSubstitute;
 using Persistence.Queries.Helpers;
 using Application.Libraries;
-using Persistence.LocalStorage;
 using Domain.Primitives;
+using MockQueryable.EntityFrameworkCore;
 
 namespace Application.UnitTests.Libraries;
 public class UpdateLibraryCommandTests

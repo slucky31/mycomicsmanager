@@ -8,8 +8,8 @@ namespace Persistence.Repositories;
 public class UserRepository(ApplicationDbContext dbContext) : IRepository<User, ObjectId>
 {
     public async Task<User?> GetByIdAsync(ObjectId id)
-    {        
-        Guard.Against.Null(id);        
+    {
+        Guard.Against.Null(id);
         return await dbContext.Set<User>().SingleOrDefaultAsync(p => p.Id == id);
     }
 

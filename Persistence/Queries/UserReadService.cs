@@ -9,10 +9,10 @@ using Persistence.Queries.Helpers;
 
 namespace Persistence.Queries;
 public class UserReadService(ApplicationDbContext context) : IUserReadService
-{    
+{
     public async Task<IPagedList<User>> GetUsersAsync(string? searchTerm, UsersColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
     {
-        IQueryable<User> query = context.Users.AsNoTracking();
+        var query = context.Users.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -27,28 +27,25 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
             _ => User => User.Id
         };
 
-        if (sortOrder == SortOrder.Descending)
+        query = sortOrder switch
         {
-            query = query.OrderByDescending(keySelector);
-        }
-        else
-        {
-            query = query.OrderBy(keySelector);
-        }
-
+            SortOrder.Descending => query.OrderByDescending(keySelector),
+            SortOrder.Ascending => query.OrderBy(keySelector),
+            _ => query.OrderBy(keySelector)
+        };
         var librariesPagedList = new PagedList<User>(query);
-        return await librariesPagedList.ExecuteQueryAsync(page, pageSize);        
+        return await librariesPagedList.ExecuteQueryAsync(page, pageSize);
     }
 
     public async Task<Result<User>> GetUserByAuthIdAndEmail(string? email, string? authId)
-    {        
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(authId)) 
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(authId))
         {
             return UsersError.BadRequest;
         }
 
-        IQueryable<User> query = context.Users.AsNoTracking();
-        User? user = await query.Where(u => u.Email == email && u.AuthId == authId).SingleOrDefaultAsync();
+        var query = context.Users.AsNoTracking();
+        var user = await query.Where(u => u.Email == email && u.AuthId == authId).SingleOrDefaultAsync();
 
         if (user is null)
         {
@@ -64,8 +61,8 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
             return UsersError.BadRequest;
         }
 
-        IQueryable<User> query = context.Users.AsNoTracking();
-        User? user = await query.Where(u => u.Email == email).SingleOrDefaultAsync();
+        var query = context.Users.AsNoTracking();
+        var user = await query.Where(u => u.Email == email).SingleOrDefaultAsync();
 
         if (user is null)
         {

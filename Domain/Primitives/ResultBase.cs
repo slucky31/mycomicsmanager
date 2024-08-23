@@ -11,8 +11,8 @@ public interface IResultBase
 {
     bool IsSuccess { get; init; }
 
-    bool IsFailure { get;  }
-    
+    bool IsFailure { get; }
+
 }
 
 public interface IResult<out TValue> : IResultBase
@@ -26,8 +26,8 @@ public abstract class ResultBase : IResultBase
 
     public bool IsFailure => !IsSuccess;
 
-    public TError? Error { get; init;  }
-    
+    public TError? Error { get; init; }
+
 }
 
 public abstract class ResultBase<TResult> : ResultBase where TResult : ResultBase<TResult>;

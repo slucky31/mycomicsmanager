@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Application.Libraries;
 using Ardalis.GuardClauses;
 using Domain.Errors;
 using Domain.Extensions;
@@ -8,7 +9,7 @@ namespace Persistence.LocalStorage;
 public class LibraryLocalStorage : ILibraryLocalStorage
 {
     private readonly char[] _charsToTrim = ['/', '\\'];
-    
+
     public string rootPath { get; init; }
 
     public LibraryLocalStorage(string rootPath)

@@ -1,5 +1,4 @@
-﻿using Application.Data;
-using Application.Users.Create;
+﻿using Application.Users.Create;
 using Application.Users;
 using Domain.Users;
 using NSubstitute;

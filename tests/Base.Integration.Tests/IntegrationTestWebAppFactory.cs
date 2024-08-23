@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.TestHost;
 using Persistence;
 using Web.Configuration;
 using Persistence.LocalStorage;
+using Application.Libraries;
 
 // Source : https://www.youtube.com/watch?v=tj5ZCtvgXKY&t=358s
 // Source 2 : https://stackoverflow.com/questions/69990675/change-config-values-in-appsettings-json-githubactions
