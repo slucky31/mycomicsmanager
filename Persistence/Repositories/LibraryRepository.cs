@@ -8,8 +8,8 @@ namespace Persistence.Repositories;
 public class LibraryRepository(ApplicationDbContext dbContext) : IRepository<Library, ObjectId>
 {
     public async Task<Library?> GetByIdAsync(ObjectId id)
-    {        
-        Guard.Against.Null(id);        
+    {
+        Guard.Against.Null(id);
         return await dbContext.Set<Library>().SingleOrDefaultAsync(p => p.Id == id);
     }
 

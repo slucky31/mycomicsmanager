@@ -24,19 +24,19 @@ public partial class LibraryForm
         {
             var result = await LibrariesService.GetById(LibraryId);
             if (result.IsSuccess)
-            {                
+            {
                 Guard.Against.Null(result.Value);
                 LibraryName = result.Value.Name;
             }
         }
-    }   
+    }
 
     private async Task CreateOrUpdateLibrary()
     {
         Errors.Clear();
         var result = string.IsNullOrWhiteSpace(LibraryId) ? await LibrariesService.Create(LibraryName) : await LibrariesService.Update(LibraryId, LibraryName);
         if (result.IsFailure)
-        {            
+        {
             Guard.Against.Null(result.Error);
             Guard.Against.Null(result.Error.Description);
             Errors.Add(result.Error.Description);
@@ -49,6 +49,6 @@ public partial class LibraryForm
 
     private void CancelCreateLibrary()
     {
-        MyNavigationManager.NavigateTo("/libraries/list");        
+        MyNavigationManager.NavigateTo("/libraries/list");
     }
 }

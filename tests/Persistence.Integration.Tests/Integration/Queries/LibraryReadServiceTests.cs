@@ -162,7 +162,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Bas
         Guard.Against.Null(pagedList.Items);
         pagedList.Items.Select(l => l.Name).Should().ContainInOrder(libs.OrderBy(l => l.Name).Select(l => l.Name).ToArray());
 
-    } 
+    }
 
     [Fact]
     public async Task GetLibrariesAsync_ShouldReturnItemsPagedListOrderDescendingByName_WhenSortColumnIsNameAndSorterOrderIsDesc()
@@ -180,5 +180,5 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Bas
         pagedList.Items.Select(l => l.Name).Should().ContainInOrder(libs.OrderByDescending(l => l.Name).Select(l => l.Name).ToArray());
 
     }
-   
+
 }

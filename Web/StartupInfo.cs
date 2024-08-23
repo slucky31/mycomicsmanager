@@ -1,31 +1,27 @@
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Ardalis.GuardClauses;
 using Serilog;
-using static System.Console;
 
 namespace Web;
 
 public static class StartupInfo
 {
-    const double Mebi = 1024 * 1024;
-    const double Gibi = Mebi * 1024;
-    const string Mcm_Prodcut = "MCM";
+    private const double Mebi = 1024 * 1024;
+    private const double Gibi = Mebi * 1024;
+    private const string Mcm_Prodcut = "MCM";
 
     public static void Print()
     {
-        Log.Information("\n\n"+"""
+        Log.Information("\n\n" + """
             88,dPYba,,adPYba,   ,adPPYba, 88,dPYba,,adPYba,   
             88P'   "88"    "8a a8"     "" 88P'   "88"    "8a  
             88      88      88 8b         88      88      88  
             88      88      88 "8a,   ,aa 88      88      88  
             88      88      88  `"Ybbd8"' 88      88      88  
             """ + "\n");
-               
+
         // OS and .NET information
         Log.Information("OSArchitecture: {@OSArchitecture}", RuntimeInformation.OSArchitecture);
         Log.Information("OSDescription: {@OSDescription}", RuntimeInformation.OSArchitecture);
@@ -33,11 +29,11 @@ public static class StartupInfo
 
         // Environment information
         Log.Information("UserName: {@UserName}", Environment.UserName);
-        Log.Information("HostName : {@HostName}", Dns.GetHostName());      
+        Log.Information("HostName : {@HostName}", Dns.GetHostName());
 
         // Hardware information
-        GCMemoryInfo gcInfo = GC.GetGCMemoryInfo();
-        long totalMemoryBytes = gcInfo.TotalAvailableMemoryBytes;
+        var gcInfo = GC.GetGCMemoryInfo();
+        var totalMemoryBytes = gcInfo.TotalAvailableMemoryBytes;
         Log.Information("ProcessorCount: {@ProcessorCount}", Environment.ProcessorCount);
         Log.Information("TotalAvailableMemoryBytes: {@TotalMemoryBytes} ({@TotalMemoryBytesInBestUnit})", totalMemoryBytes, GetInBestUnit(totalMemoryBytes));
 
@@ -46,8 +42,8 @@ public static class StartupInfo
         {
             var productAttribute = assembly.GetCustomAttribute<AssemblyProductAttribute>();
             if (productAttribute != null && productAttribute.Product == Mcm_Prodcut)
-            {                
-                Log.Information("Assembly Versions: {@AssemblyName} - {@AssemblyVersion}", assembly.GetName().Name, assembly.GetName().Version!.ToString());                
+            {
+                Log.Information("Assembly Versions: {@AssemblyName} - {@AssemblyVersion}", assembly.GetName().Name, assembly.GetName().Version!.ToString());
             }
         }
     }
@@ -60,12 +56,12 @@ public static class StartupInfo
         }
         else if (size < Gibi)
         {
-            double mebibytes = size / Mebi;
+            var mebibytes = size / Mebi;
             return $"{mebibytes.ToString("F", CultureInfo.InvariantCulture)} MiB";
         }
         else
         {
-            double gibibytes = size / Gibi;
+            var gibibytes = size / Gibi;
             return $"{gibibytes.ToString("F", CultureInfo.InvariantCulture)} GiB";
         }
     }

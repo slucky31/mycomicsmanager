@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 
 namespace Web.EndPoints;
 
-public class AccountsApi : ICarterModule
+public sealed class AccountsApi : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {

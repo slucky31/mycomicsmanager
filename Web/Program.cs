@@ -62,7 +62,8 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 // Add Auth0 services
 builder.Services
-    .AddAuth0WebAppAuthentication(options => {
+    .AddAuth0WebAppAuthentication(options =>
+    {
         options.Domain = auth0Config.Domain;
         options.ClientId = auth0Config.ClientId;
     });

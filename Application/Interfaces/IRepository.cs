@@ -13,6 +13,6 @@ public interface IRepository<TEntity, TEntityId>
     Task<List<TEntity>> ListAsync();
 
     int Count();
-    
+
 }
 

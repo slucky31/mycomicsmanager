@@ -1,5 +1,4 @@
-﻿using Application.Data;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Libraries;
 using Application.Users;
 using Ardalis.GuardClauses;
@@ -9,7 +8,6 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Persistence;
-using Persistence.LocalStorage;
 using Persistence.Queries;
 using Persistence.Repositories;
 using Xunit;

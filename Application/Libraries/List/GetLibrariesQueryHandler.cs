@@ -1,12 +1,10 @@
 ﻿using Application.Interfaces;
-using Application.Libraries;
-using Application.Libraries.List;
 using Domain.Libraries;
 using MediatR;
 
 // Source : https://www.youtube.com/watch?v=X8zRvXbirMU
 
-namespace Persistence.Queries.Libraries;
+namespace Application.Libraries.List;
 internal sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadService) : IRequestHandler<GetLibrariesQuery, IPagedList<Library>>
 {
     public async Task<IPagedList<Library>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
