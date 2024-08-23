@@ -1,8 +1,8 @@
 ﻿using Application.Interfaces;
 using Domain.Primitives;
+using Domain.Users;
 using MediatR;
 using MongoDB.Bson;
-using Domain.Users;
 
 namespace Application.Users.Create;
 

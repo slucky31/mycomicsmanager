@@ -11,8 +11,8 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
 
     private static void CreateFile(string path)
     {
-        using FileStream fs = File.Create(path);
-        byte[] info = new UTF8Encoding(true).GetBytes("This is some text in the file.");
+        using var fs = File.Create(path);
+        var info = new UTF8Encoding(true).GetBytes("This is some text in the file.");
         fs.Write(info, 0, info.Length);
     }
 

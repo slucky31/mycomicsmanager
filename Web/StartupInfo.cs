@@ -38,7 +38,7 @@ public static class StartupInfo
         Log.Information("TotalAvailableMemoryBytes: {@TotalMemoryBytes} ({@TotalMemoryBytesInBestUnit})", totalMemoryBytes, GetInBestUnit(totalMemoryBytes));
 
         // Version information
-        foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
             var productAttribute = assembly.GetCustomAttribute<AssemblyProductAttribute>();
             if (productAttribute != null && productAttribute.Product == Mcm_Prodcut)
