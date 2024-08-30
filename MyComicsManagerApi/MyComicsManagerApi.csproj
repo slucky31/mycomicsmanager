@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.CustomSearchAPI.v1" Version="1.68.0.3520" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.64" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.65" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.33" />
     <PackageReference Include="Microsoft.Azure.CognitiveServices.Vision.ComputerVision" Version="7.0.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
