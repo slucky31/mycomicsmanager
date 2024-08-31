@@ -1,6 +1,6 @@
 ﻿using Domain.Primitives;
 
-namespace Application.Data;
+namespace Application.Interfaces;
 
 public interface IUnitOfWork
 {

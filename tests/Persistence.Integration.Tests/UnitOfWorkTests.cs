@@ -3,8 +3,7 @@ using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Libraries;
 
-namespace Persistence.Integration.Tests;
-
+namespace Persistence.Tests;
 
 public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
@@ -14,7 +13,7 @@ public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : BaseIntegra
         // Arrange
         var guid = Guid.NewGuid().ToString();
         var libName = "Create_" + guid;
-        var lib = Library.Create(libName);        
+        var lib = Library.Create(libName);
         Context.Libraries.Add(lib);
 
         // Act

@@ -1,7 +1,7 @@
-﻿using Domain.Libraries;
+﻿using Application.Interfaces;
+using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
-using Application.Interfaces;
 using MongoDB.Bson;
 
 namespace Application.Libraries.GetById;

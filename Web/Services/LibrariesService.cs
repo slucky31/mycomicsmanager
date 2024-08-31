@@ -36,6 +36,6 @@ public class LibrariesService(IMediator mediator) : ILibrariesService
     public async Task<Result> Delete(string? id)
     {
         return await mediator.Send(new DeleteLibraryCommand(new ObjectId(id)));
-    }    
+    }
 
 }

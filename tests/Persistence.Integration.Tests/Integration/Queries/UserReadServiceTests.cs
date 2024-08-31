@@ -29,7 +29,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
         users.Add(usr2);
         users.Add(usr3);
         users.Add(usr4);
-        users.Add(usr5);        
+        users.Add(usr5);
 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
     }
@@ -63,7 +63,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(2);
         pagedList.Items.Should().Contain(u => u.Id == usr4.Id);
-        pagedList.Items.Should().Contain(u => u.Id == usr5.Id);        
+        pagedList.Items.Should().Contain(u => u.Id == usr5.Id);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
         Guard.Against.Null(pagedList.Items);
         pagedList.Items.Select(l => l.Email).Should().ContainInOrder(users.OrderBy(l => l.Email).Select(l => l.Email).ToArray());
 
-    } 
+    }
 
     [Fact]
     public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByEmail_WhenSortColumnIsEmailAndSorterOrderIsDesc()
@@ -257,7 +257,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
     public async Task GetUserByEmail_WhenEmailIsEmpty_ReturnsBadRequest()
     {
         // Arrange
-        string email = string.Empty;
+        var email = string.Empty;
 
         // Act
         var result = await UserReadService.GetUserByEmail(email);
@@ -271,7 +271,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
     public async Task GetUserByEmail_WhenUserNotFound_ReturnsNotFound()
     {
         // Arrange
-        string email = "test@example.com";
+        var email = "test@example.com";
 
         // Act
         var result = await UserReadService.GetUserByEmail(email);
@@ -285,7 +285,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
     public async Task GetUserByEmail_WhenUserFound_ReturnsUser()
     {
         // Arrange
-        string email = "test@example.com";
+        var email = "test@example.com";
         var user = User.Create(email, "123456");
         UserRepository.Add(user);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
@@ -294,7 +294,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
         var result = await UserReadService.GetUserByEmail(email);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();        
+        result.IsSuccess.Should().BeTrue();
         Guard.Against.Null(result.Value);
         result.Value.Email.Should().Be(user.Email);
         result.Value.AuthId.Should().Be(user.AuthId);

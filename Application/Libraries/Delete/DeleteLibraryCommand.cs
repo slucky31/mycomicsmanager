@@ -1,5 +1,4 @@
-﻿using Domain.Libraries;
-using Domain.Primitives;
+﻿using Domain.Primitives;
 using MediatR;
 using MongoDB.Bson;
 

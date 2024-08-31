@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using Application.Data;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Libraries;
 using Application.Users;
 using Domain.Libraries;
@@ -24,11 +22,11 @@ public static class ProjectDependencyInjection
         services.AddMediatR(configuration =>
             configuration.RegisterServicesFromAssembly(assembly));
 
-        services.AddDbContext<ApplicationDbContext>(options => 
+        services.AddDbContext<ApplicationDbContext>(options =>
             options
                 .UseMongoDB(connectionString, dataBaseName)
                 .EnableDetailedErrors(true)
-        );        
+        );
 
         services.AddScoped<UnitOfWork>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UnitOfWork>());

@@ -1,11 +1,9 @@
-﻿using Application.Data;
+﻿using Application.Interfaces;
+using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
-using Application.Interfaces;
 using MongoDB.Bson;
-using Ardalis.GuardClauses;
-using Persistence.LocalStorage;
 
 namespace Application.Libraries.Update;
 
@@ -37,7 +35,7 @@ internal sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId>
         {
             return LibrariesError.FolderNotMoved;
         }
-        
+
         librayRepository.Update(library);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);

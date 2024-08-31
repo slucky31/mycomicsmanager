@@ -1,7 +1,6 @@
 ﻿
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
-using Domain.Extensions;
 using Domain.Users;
 
 namespace Persistence.Tests.Integration.Repositories;

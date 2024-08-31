@@ -9,7 +9,7 @@ namespace Domain.Primitives;
 
 public class Result : ResultBase<Result>
 {
-    
+
     private Result()
     {
         IsSuccess = true;
@@ -22,14 +22,25 @@ public class Result : ResultBase<Result>
         Error = error;
     }
 
-    public static Result Success() => new();
+    public static Result Success()
+    {
+        return new();
+    }
 
-    public static Result Failure(TError error) => new(error);
+    public static Result Failure(TError error)
+    {
+        return new(error);
+    }
 
-    public static implicit operator Result(TError error) => Result.Failure(error);
+    public static implicit operator Result(TError error)
+    {
+        return Result.Failure(error);
+    }
 
-    public static Result<TError> ToResult(TError error) => Result<TError>.Failure(error);
-
+    public static Result<TError> ToResult(TError error)
+    {
+        return Result<TError>.Failure(error);
+    }
 }
 
 public class Result<TValue> : ResultBase<Result<TValue>>, IResult<TValue>
@@ -51,15 +62,33 @@ public class Result<TValue> : ResultBase<Result<TValue>>, IResult<TValue>
         Error = error;
     }
 
-    public static Result<TValue> Success(TValue value) => new(value);
+    public static Result<TValue> Success(TValue value)
+    {
+        return new(value);
+    }
 
-    public static Result<TValue> Failure(TError error) => new(error);
+    public static Result<TValue> Failure(TError error)
+    {
+        return new(error);
+    }
 
-    public static implicit operator Result<TValue>(TError error) => Result<TValue>.Failure(error);
+    public static implicit operator Result<TValue>(TError error)
+    {
+        return Result<TValue>.Failure(error);
+    }
 
-    public static implicit operator Result<TValue>(TValue value) => Result<TValue>.Success(value);
+    public static implicit operator Result<TValue>(TValue value)
+    {
+        return Result<TValue>.Success(value);
+    }
 
-    public static Result<TValue> ToResult(TValue value) => Result<TValue>.Success(value);
+    public static Result<TValue> ToResult(TValue value)
+    {
+        return Result<TValue>.Success(value);
+    }
 
-    public static Result<TValue> ToResult(TError error) => Result<TValue>.Failure(error);
+    public static Result<TValue> ToResult(TError error)
+    {
+        return Result<TValue>.Failure(error);
+    }
 }

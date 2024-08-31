@@ -1,6 +1,6 @@
 ﻿using Domain.Primitives;
 
-namespace Persistence.LocalStorage;
+namespace Application.Libraries;
 public interface ILibraryLocalStorage
 {
     public string rootPath { get; init; }

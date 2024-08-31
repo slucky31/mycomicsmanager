@@ -15,7 +15,7 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        if (modelBuilder !=null)
+        if (modelBuilder != null)
         {
             modelBuilder.Entity<Library>().ToCollection("libraries");
             modelBuilder.Entity<Library>().Ignore("RelativePath");

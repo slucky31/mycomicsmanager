@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.9.9"></a>
+## [8.9.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.9) (2024-08-25)
+
+### Bug Fixes
+
+* **deps:** update pascalgn/size-label-action action to v0.5.4 ([#666](https://www.github.com/slucky31/mycomicsmanager/issues/666)) ([73e3572](https://www.github.com/slucky31/mycomicsmanager/commit/73e35729d7b8f4f720eb977b47a907415c070387))
+
+<a name="8.9.8"></a>
+## [8.9.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.8) (2024-08-23)
+
+### Bug Fixes
+
+* cleanup ([#664](https://www.github.com/slucky31/mycomicsmanager/issues/664)) ([2e8ab12](https://www.github.com/slucky31/mycomicsmanager/commit/2e8ab122ad3cef28df5969740036cb53efdb4464))
+
+<a name="8.9.7"></a>
+## [8.9.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.7) (2024-08-23)
+
+### Bug Fixes
+
+* **deps:** update dependency mockqueryable.nsubstitute to v7.0.2 (main) ([#663](https://www.github.com/slucky31/mycomicsmanager/issues/663)) ([89229d9](https://www.github.com/slucky31/mycomicsmanager/commit/89229d95f20c5870b261c6831577a219c87b2dcd))
+
+<a name="8.9.6"></a>
+## [8.9.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.6) (2024-08-20)
+
+### Bug Fixes
+
+* **deps:** update dependency microsoft.net.test.sdk to v17.11.0 ([#661](https://www.github.com/slucky31/mycomicsmanager/issues/661)) ([d5f5089](https://www.github.com/slucky31/mycomicsmanager/commit/d5f508904146d4ea7ee768f422628368f47c1b2f))
+
+<a name="8.9.5"></a>
+## [8.9.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.5) (2024-08-18)
+
+### Bug Fixes
+
+* **deps:** update dependency bunit to v1.31.3 ([#658](https://www.github.com/slucky31/mycomicsmanager/issues/658)) ([42b37fa](https://www.github.com/slucky31/mycomicsmanager/commit/42b37fac56494b0836959523cd1d5bd6b019ae5c))
+
 <a name="8.9.4"></a>
 ## [8.9.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.4) (2024-08-16)
 
