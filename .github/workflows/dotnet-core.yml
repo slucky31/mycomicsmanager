@@ -82,6 +82,13 @@ jobs:
           branch: ${{ github.ref }}
           tags: true
           force: true
+
+      - name: Download coverage report
+        if: steps.versionize.outcome == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: .     
             
       - name: Run codacy-coverage-reporter
         if: steps.versionize.outcome == 'success'  
@@ -90,12 +97,7 @@ jobs:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
           coverage-reports: cobertura.xml
       
-      - name: Download coverage report
-        if: steps.versionize.outcome == 'success'
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-report
-          path: .          
+     
       
       - name: "Create release"
         if: steps.versionize.outcome == 'success'
