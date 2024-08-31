@@ -35,6 +35,11 @@ jobs:
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
           coverage-reports: cobertura.xml
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: cobertura.xml
 
   publish:
     needs: build
@@ -65,35 +70,7 @@ jobs:
       - name: No release required
         if: steps.versionize.outcome != 'success'
         run: echo "Skipping Release. No release required."
-      
-      - name: Setup .NET Core
-        if: steps.versionize.outcome == 'success'
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x                    
-      - name: Install dependencies
-        if: steps.versionize.outcome == 'success'  
-        run: dotnet restore                            
-      - name: Build
-        if: steps.versionize.outcome == 'success'
-        run: dotnet build --configuration Release --no-restore                    
-      - name: Tests
-        if: steps.versionize.outcome == 'success'
-        run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --collect:"Code Coverage"
-        env:        
-          MongoDbOptions__ConnectionString: ${{ secrets.MONGODBOPTIONS_CONNECTIONSTRING }}
-      - name: Tests coverage
-        if: steps.versionize.outcome == 'success' 
-        run: |
-          dotnet tool install --global dotnet-coverage  
-          dotnet-coverage merge --output cobertura.xml --output-format cobertura "test-results/**/*.coverage"
-      - name: Run codacy-coverage-reporter
-        if: steps.versionize.outcome == 'success'  
-        uses: codacy/codacy-coverage-reporter-action@v1
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
-          coverage-reports: cobertura.xml
-                
+
       - name: Push changes to GitHub
         if: steps.versionize.outcome == 'success'
         uses: ad-m/github-push-action@master
@@ -102,6 +79,20 @@ jobs:
           branch: ${{ github.ref }}
           tags: true
           force: true
+            
+      - name: Run codacy-coverage-reporter
+        if: steps.versionize.outcome == 'success'  
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}              
+          coverage-reports: cobertura.xml
+      
+      - name: Download coverage report
+        if: steps.versionize.outcome == 'success'
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-report
+          path: .          
       
       - name: "Create release"
         if: steps.versionize.outcome == 'success'
