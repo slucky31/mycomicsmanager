@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.9.13"></a>
+## [8.9.13](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.13) (2024-08-31)
+
+### Bug Fixes
+
+* github ([#673](https://www.github.com/slucky31/mycomicsmanager/issues/673)) ([926b428](https://www.github.com/slucky31/mycomicsmanager/commit/926b428a024f58dc9ec9b9ade8f27de6c1361767))
+
 <a name="8.9.12"></a>
 ## [8.9.12](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.12) (2024-08-31)
 
