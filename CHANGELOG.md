@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.10.0"></a>
+## [8.10.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.0) (2024-09-01)
+
+### Features
+
+* New Relic Init ([#674](https://www.github.com/slucky31/mycomicsmanager/issues/674)) ([700c08c](https://www.github.com/slucky31/mycomicsmanager/commit/700c08c3b87a581d2a48543cd00a89f0089a2965))
+
 <a name="8.9.13"></a>
 ## [8.9.13](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.9.13) (2024-08-31)
 
