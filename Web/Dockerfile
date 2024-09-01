@@ -20,7 +20,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0.8-jammy
 
 # Install the agent
 RUN apt-get update
-RUN apt-get install -y wget ca-certificates gnupg
+RUN apt-get install -y --no-install-recommends wget ca-certificates gnupg
 RUN echo 'deb http://apt.newrelic.com/debian/ newrelic non-free' | tee /etc/apt/sources.list.d/newrelic.list
 RUN wget https://download.newrelic.com/548C16BF.gpg
 RUN apt-key add 548C16BF.gpg
