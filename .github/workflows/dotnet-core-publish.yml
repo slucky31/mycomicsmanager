@@ -3,8 +3,6 @@ name: .NET Core
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build:
@@ -123,20 +121,8 @@ jobs:
         with:
           images: ghcr.io/slucky31/mcm
       - name: Build and push Docker image MyComicsManagerWeb
-        if: ${{ (github.ref == 'refs/heads/main') }}
         uses: docker/build-push-action@v6
         with:
-          context: .
-          platforms: linux/arm64
-          file: ./Web/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-      - name: Build and push Docker image MyComicsManagerWeb
-        if: ${{ (github.ref != 'refs/heads/main') }}
-        uses: docker/build-push-action@v6
-        with:
-          outputs: type=cacheonly
           context: .
           platforms: linux/arm64
           file: ./Web/Dockerfile
