@@ -26,6 +26,7 @@ RUN wget https://download.newrelic.com/548C16BF.gpg
 RUN apt-key add 548C16BF.gpg
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends 'newrelic-dotnet-agent=10.29.0'
+RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
