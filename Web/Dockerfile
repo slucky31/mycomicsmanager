@@ -17,10 +17,6 @@ RUN dotnet publish "./Web/Web.csproj" -a $TARGETARCH -o /app
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0.8-jammy
-EXPOSE 8080
-WORKDIR /app
-COPY --from=build /app .
-USER $APP_UID
 
 # Install the agent
 RUN apt-get update
@@ -32,4 +28,8 @@ RUN apt-get update
 RUN apt-get install -y 'newrelic-dotnet-agent'
 RUN rm -rf /var/lib/apt/lists/*
 
+EXPOSE 8080
+WORKDIR /app
+COPY --from=build /app .
+USER $APP_UID
 ENTRYPOINT ["./Web"]
