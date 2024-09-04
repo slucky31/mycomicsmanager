@@ -1,7 +1,7 @@
 ﻿using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Libraries;
-using MockQueryable.EntityFrameworkCore;
+using MockQueryable;
 using Persistence.Queries.Helpers;
 
 namespace Persistence.Tests;

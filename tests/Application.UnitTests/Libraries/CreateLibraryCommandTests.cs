@@ -5,7 +5,7 @@ using Ardalis.GuardClauses;
 using Domain.Errors;
 using Domain.Libraries;
 using Domain.Primitives;
-using MockQueryable.EntityFrameworkCore;
+using MockQueryable;
 using MongoDB.Bson;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;

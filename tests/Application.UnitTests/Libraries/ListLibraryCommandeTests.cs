@@ -3,7 +3,7 @@ using Application.Libraries.List;
 using Ardalis.GuardClauses;
 using Domain.Extensions;
 using Domain.Libraries;
-using MockQueryable.EntityFrameworkCore;
+using MockQueryable;
 using NSubstitute;
 using Persistence.Queries.Helpers;
 
