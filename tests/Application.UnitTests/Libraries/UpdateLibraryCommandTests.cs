@@ -4,7 +4,7 @@ using Application.Libraries.Update;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
-using MockQueryable.EntityFrameworkCore;
+using MockQueryable;
 using MongoDB.Bson;
 using NSubstitute;
 using Persistence.Queries.Helpers;
