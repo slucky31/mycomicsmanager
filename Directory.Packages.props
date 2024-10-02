@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Ardalis.GuardClauses" Version="4.6.0" />
+    <PackageVersion Include="Ardalis.GuardClauses" Version="5.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.ApplicationStatus" Version="8.0.1" />
     <PackageVersion Include="AspNetCore.HealthChecks.MongoDb" Version="8.1.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
