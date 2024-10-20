@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.10.18"></a>
+## [8.10.18](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.18) (2024-10-20)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency serilog.aspnetcore to 8.0.3 (main) ([#711](https://www.github.com/slucky31/mycomicsmanager/issues/711)) ([9535329](https://www.github.com/slucky31/mycomicsmanager/commit/9535329d5b7a162a8f8366ae4f3391b600bbd560))
+* **deps:** update mongo-csharp-driver monorepo to 2.30.0 ([#714](https://www.github.com/slucky31/mycomicsmanager/issues/714)) ([462f131](https://www.github.com/slucky31/mycomicsmanager/commit/462f131b07fd0c94e866762538dcca8032b26c28))
+
 <a name="8.10.17"></a>
 ## [8.10.17](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.17) (2024-10-14)
 
