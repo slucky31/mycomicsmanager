@@ -58,7 +58,7 @@ jobs:
 
       - name: Versioning
         id: versionize
-        run: versionize --changelog-all --exit-insignificant-commits
+        run: versionize --exit-insignificant-commits
       
       - name: No release required
         if: steps.versionize.outcome != 'success'
