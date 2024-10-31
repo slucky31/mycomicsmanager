@@ -20,7 +20,7 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.11.70" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.35" />
     <PackageReference Include="Microsoft.Azure.CognitiveServices.Vision.ComputerVision" Version="7.0.1" />
-    <PackageReference Include="MongoDB.Driver" Version="3.0.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.23.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
     <PackageReference Include="PdfPig" Version="0.1.9" />
@@ -28,7 +28,7 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
     <PackageReference Include="Hangfire.Core" Version="1.8.15" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.15" />
-    <PackageReference Include="Hangfire.Mongo" Version="1.11.0" />
+    <PackageReference Include="Hangfire.Mongo" Version="1.10.0" />
     <PackageReference Include="Hangfire.Console" Version="1.4.3" />
     <PackageReference Include="CloudinaryDotNet" Version="1.26.2" />
   </ItemGroup>
