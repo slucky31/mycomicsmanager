@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="8.10.23"></a>
+## [8.10.23](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.23) (2024-10-30)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency mudblazor to 7.15.0 ([#725](https://www.github.com/slucky31/mycomicsmanager/issues/725)) ([08be70b](https://www.github.com/slucky31/mycomicsmanager/commit/08be70bb9d8092ca8772c685c94e8d42d4b1a441))
+
+<a name="8.10.22"></a>
+## [8.10.22](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.22) (2024-10-30)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency nsubstitute to 5.3.0 ([#722](https://www.github.com/slucky31/mycomicsmanager/issues/722)) ([54b9d14](https://www.github.com/slucky31/mycomicsmanager/commit/54b9d146099d55b83392095b9b712bafbde48da8))
+
+<a name="8.10.21"></a>
+## [8.10.21](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.21) (2024-10-26)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency mudblazor to 7.14.0 ([#718](https://www.github.com/slucky31/mycomicsmanager/issues/718)) ([06a35f8](https://www.github.com/slucky31/mycomicsmanager/commit/06a35f8c7d90acff5b183157ee7821a7b9f94905))
+
+<a name="8.10.20"></a>
+## [8.10.20](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.20) (2024-10-26)
+
+### 🐛 Bug Fixes
+
+* **deps:** update pascalgn/size-label-action action to v0.5.5 ([#720](https://www.github.com/slucky31/mycomicsmanager/issues/720)) ([2eb53bd](https://www.github.com/slucky31/mycomicsmanager/commit/2eb53bd7d265b4e44a7ee051f5db383be1aa354b))
+
+<a name="8.10.19"></a>
+## [8.10.19](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.19) (2024-10-20)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency mudblazor to 7.13.0 ([#712](https://www.github.com/slucky31/mycomicsmanager/issues/712)) ([82c32e4](https://www.github.com/slucky31/mycomicsmanager/commit/82c32e421549cb0a1e01d50a1941dd1076ccef03))
+
 <a name="8.10.18"></a>
 ## [8.10.18](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.18) (2024-10-20)
 
