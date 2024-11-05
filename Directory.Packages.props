@@ -9,7 +9,7 @@
     <PackageVersion Include="AspNetCore.HealthChecks.MongoDb" Version="8.1.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
     <PackageVersion Include="Auth0.AspNetCore.Authentication" Version="1.4.1" />
-    <PackageVersion Include="bunit" Version="1.33.3" />
+    <PackageVersion Include="bunit" Version="1.34.0" />
     <PackageVersion Include="Carter" Version="8.2.1" />
     <PackageVersion Include="FluentAssertions" Version="6.12.1" />
     <PackageVersion Include="MediatR" Version="12.4.1" />
