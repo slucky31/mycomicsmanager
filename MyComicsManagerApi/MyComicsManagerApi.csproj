@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.36" />
     <PackageReference Include="Microsoft.Azure.CognitiveServices.Vision.ComputerVision" Version="7.0.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.23.2" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <PackageReference Include="PdfPig" Version="0.1.9" />
     <PackageReference Include="sharpcompress" Version="0.38.0" />
