@@ -11,7 +11,7 @@ using MongoDB.Bson;
 
 namespace Web.Services;
 
-public class LibrariesService(IMediator mediator) : ILibrariesService
+internal class LibrariesService(IMediator mediator) : ILibrariesService
 {
     public async Task<Result<Library>> GetById(string? id)
     {

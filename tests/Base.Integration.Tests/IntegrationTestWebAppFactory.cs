@@ -79,8 +79,10 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
     public new void Dispose()
     {
         Guard.Against.Null(_mongoDbOptions);
-        var client = new MongoClient(_mongoDbOptions.ConnectionString);
-        client.DropDatabase(_databaseName);
+        using (var client = new MongoClient(_mongoDbOptions.ConnectionString))
+        {
+            client.DropDatabase(_databaseName);
+        }
         base.Dispose();
     }
 }
