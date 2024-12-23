@@ -1,6 +1,6 @@
 ﻿namespace Web.Configuration;
 
-public sealed class Auth0Configuration : IAuth0Configuration
+internal sealed class Auth0Configuration : IAuth0Configuration
 {
     public string Domain { get; set; } = "DOMAIN";
     public string ClientId { get; set; } = "CLIENTID";

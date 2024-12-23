@@ -3,6 +3,7 @@ using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Web.Services;
+
 public interface ILibrariesService
 {
     Task<Result<Library>> Create(string? name);

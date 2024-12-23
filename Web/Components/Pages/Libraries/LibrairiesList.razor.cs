@@ -49,6 +49,7 @@ public partial class LibrairiesList
         if (result.IsFailure)
         {
             Guard.Against.Null(result.Error);
+            Guard.Against.Null(result.Error.Description);
             Snackbar.Add(result.Error.Description, Severity.Error);
         }
         else

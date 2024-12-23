@@ -9,7 +9,7 @@ using MongoDB.Bson;
 
 namespace Web;
 
-public class CustomAuthenticationStateProvider(IUserReadService userReadService, IRepository<User, ObjectId> userRepository, IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
+internal class CustomAuthenticationStateProvider(IUserReadService userReadService, IRepository<User, ObjectId> userRepository, IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
 {
     private readonly IUserReadService _userReadService = userReadService;
     private readonly IRepository<User, ObjectId> _userRepository = userRepository;
