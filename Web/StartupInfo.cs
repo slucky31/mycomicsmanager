@@ -6,7 +6,7 @@ using Serilog;
 
 namespace Web;
 
-public static class StartupInfo
+internal static class StartupInfo
 {
     private const double Mebi = 1024 * 1024;
     private const double Gibi = Mebi * 1024;

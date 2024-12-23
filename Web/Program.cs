@@ -7,6 +7,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using MudBlazor;
 using MudBlazor.Services;
 using Persistence;
@@ -71,9 +72,11 @@ builder.Services
 builder.Services.AddAuthorization();
 
 // Config HealthChecks
-builder.Services.AddHealthChecks()
+builder.Services
+    .AddSingleton(sp => new MongoClient(optionsMongoDb.ConnectionString))
+    .AddHealthChecks()
     .AddApplicationStatus()
-    .AddMongoDb(optionsMongoDb.ConnectionString);
+    .AddMongoDb();
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
@@ -125,6 +128,6 @@ StartupInfo.Print();
 
 app.Run();
 
-#pragma warning disable S1118 // Utility classes should not have public constructors
+#pragma warning disable S1118, CA1515 // Utility classes should not have public constructors
 public partial class Program { }
-#pragma warning restore S1118 // Util
+#pragma warning restore S1118, CA1515 // Util

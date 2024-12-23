@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Web.EndPoints;
 
-public sealed class AccountsApi : ICarterModule
+internal sealed class AccountsApi : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
