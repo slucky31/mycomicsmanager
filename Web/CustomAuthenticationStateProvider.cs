@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using Application.Data;
 using Application.Interfaces;
 using Application.Users;
 using Ardalis.GuardClauses;
@@ -10,7 +9,7 @@ using MongoDB.Bson;
 
 namespace Web;
 
-public class CustomAuthenticationStateProvider(IUserReadService userReadService, IRepository<User, ObjectId> userRepository, IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
+internal class CustomAuthenticationStateProvider(IUserReadService userReadService, IRepository<User, ObjectId> userRepository, IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
 {
     private readonly IUserReadService _userReadService = userReadService;
     private readonly IRepository<User, ObjectId> _userRepository = userRepository;
@@ -26,16 +25,16 @@ public class CustomAuthenticationStateProvider(IUserReadService userReadService,
         {
             var email = user.Identity.Name;
             var authId = user.FindFirstValue("sid");
-            
-            var userResult = await _userReadService.GetUserByEmail(email);            
+
+            var userResult = await _userReadService.GetUserByEmail(email);
             if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(authId) && userResult.IsFailure && userResult.Error == UsersError.NotFound)
-            {                
+            {
                 var usr = User.Create(email, authId);
                 _userRepository.Add(usr);
-                await _unitOfWork.SaveChangesAsync(default);                                
+                await _unitOfWork.SaveChangesAsync(default);
             }
         }
-             
+
         // return the modified principal
         return await Task.FromResult(new AuthenticationState(user));
     }

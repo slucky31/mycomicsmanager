@@ -1,12 +1,14 @@
-﻿using Ardalis.GuardClauses;
+using Application.Libraries;
+using Ardalis.GuardClauses;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.TestHost;
 using Persistence;
+using Persistence.LocalStorage;
 using Web.Configuration;
 using Persistence.LocalStorage;
 
@@ -43,14 +45,14 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // Reconfigure the services to use the MongoDb with a new database name        
         builder.ConfigureTestServices(services =>
         {
-            var descriptor = services.SingleOrDefault(s=> s.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+            var descriptor = services.SingleOrDefault(s => s.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
 
             if (descriptor is not null)
             {
                 services.Remove(descriptor);
             }
-            
-            Guard.Against.Null(_mongoDbOptions);            
+
+            Guard.Against.Null(_mongoDbOptions);
             _databaseName = Guid.NewGuid().ToString();
 
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -76,10 +78,12 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
     }
 
     public new void Dispose()
-    {        
+    {
         Guard.Against.Null(_mongoDbOptions);
-        var client = new MongoClient(_mongoDbOptions.ConnectionString);
-        client.DropDatabase(_databaseName);
+        using (var client = new MongoClient(_mongoDbOptions.ConnectionString))
+        {
+            client.DropDatabase(_databaseName);
+        }
         base.Dispose();
     }
 }

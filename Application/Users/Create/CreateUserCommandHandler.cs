@@ -1,13 +1,8 @@
-﻿using Application.Data;
-using Application.Interfaces;
-using Application.Libraries.Create;
-using Application.Libraries;
-using Ardalis.GuardClauses;
-using Domain.Libraries;
+﻿using Application.Interfaces;
 using Domain.Primitives;
+using Domain.Users;
 using MediatR;
 using MongoDB.Bson;
-using Domain.Users;
 
 namespace Application.Users.Create;
 
@@ -22,7 +17,7 @@ internal sealed class CreateUserCommandHandler(IRepository<User, ObjectId> userR
         }
 
         // Check if a user with the same email or AuthId doesn't already exist
-        var user = await userReadService.GetUserByAuthIdAndEmail(command.email, command.authId);        
+        var user = await userReadService.GetUserByAuthIdAndEmail(command.email, command.authId);
         if (user is not null)
         {
             return UsersError.Duplicate;

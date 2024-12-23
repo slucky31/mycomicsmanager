@@ -1,8 +1,7 @@
-﻿using Application.Data;
+﻿using Application.Interfaces;
 using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
-using Application.Interfaces;
 using MongoDB.Bson;
 using Persistence.LocalStorage;
 

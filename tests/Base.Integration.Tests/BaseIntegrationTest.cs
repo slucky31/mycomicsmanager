@@ -1,4 +1,3 @@
-﻿using Application.Data;
 using Application.Interfaces;
 using Application.Libraries;
 using Application.Users;
@@ -37,15 +36,15 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
         Guard.Against.Null(factory);
-        
+
         _scope = factory.Services.CreateScope();
         Sender = _scope.ServiceProvider.GetRequiredService<ISender>();
         Context = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        
+
         LibraryRepository = _scope.ServiceProvider.GetRequiredService<IRepository<Library, ObjectId>>();
         UserRepository = _scope.ServiceProvider.GetRequiredService<IRepository<User, ObjectId>>();
-        
+
         LibraryReadService = _scope.ServiceProvider.GetRequiredService<ILibraryReadService>();
         UserReadService = _scope.ServiceProvider.GetRequiredService<IUserReadService>();
 
@@ -60,7 +59,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
 
     public void Dispose()
     {
-        Dispose(true);        
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 

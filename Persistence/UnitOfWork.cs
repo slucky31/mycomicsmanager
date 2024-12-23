@@ -1,8 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Application.Data;
+﻿using Application.Interfaces;
 using Domain.Interfaces;
 using Domain.Primitives;
+using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
 public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
@@ -10,17 +9,15 @@ public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
     public async Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken)
     {
         UpdateAuditableEntities();
-        int changesNb = await dbContext.SaveChangesAsync(cancellationToken);
+        var changesNb = await dbContext.SaveChangesAsync(cancellationToken);
         return changesNb;
     }
 
     private void UpdateAuditableEntities()
     {
-        IEnumerable<EntityEntry<IAuditable>> entries =
-            dbContext.ChangeTracker
-            .Entries<IAuditable>();
+        var entries = dbContext.ChangeTracker.Entries<IAuditable>();
 
-        foreach (var entry in entries) 
+        foreach (var entry in entries)
         {
             if (entry.State == EntityState.Added)
             {
@@ -34,5 +31,5 @@ public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
         }
     }
 
-    
+
 }

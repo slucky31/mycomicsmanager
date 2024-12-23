@@ -1,6 +1,6 @@
 ﻿namespace Web.Configuration;
 
-public class MongoDbOptions
+internal class MongoDbOptions
 {
     public string ConnectionString { get; init; } = string.Empty;
     public string DatabaseName { get; init; } = string.Empty;

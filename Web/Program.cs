@@ -1,19 +1,20 @@
-﻿using Web.Components;
-using Auth0.AspNetCore.Authentication;
-using Microsoft.Extensions.Options;
-using Web.Configuration;
+using Application;
 using Ardalis.GuardClauses;
+using Auth0.AspNetCore.Authentication;
+using Carter;
+using HealthChecks.ApplicationStatus.DependencyInjection;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
+using MudBlazor;
+using MudBlazor.Services;
+using Persistence;
 using Serilog;
 using Web;
-using Application;
-using Persistence;
-using Carter;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using HealthChecks.UI.Client;
-using HealthChecks.ApplicationStatus.DependencyInjection;
-using MudBlazor.Services;
-using MudBlazor;
+using Web.Components;
+using Web.Configuration;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,7 +63,8 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 // Add Auth0 services
 builder.Services
-    .AddAuth0WebAppAuthentication(options => {
+    .AddAuth0WebAppAuthentication(options =>
+    {
         options.Domain = auth0Config.Domain;
         options.ClientId = auth0Config.ClientId;
     });
@@ -70,9 +72,11 @@ builder.Services
 builder.Services.AddAuthorization();
 
 // Config HealthChecks
-builder.Services.AddHealthChecks()
+builder.Services
+    .AddSingleton(sp => new MongoClient(optionsMongoDb.ConnectionString))
+    .AddHealthChecks()
     .AddApplicationStatus()
-    .AddMongoDb(optionsMongoDb.ConnectionString);
+    .AddMongoDb();
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
@@ -124,6 +128,6 @@ StartupInfo.Print();
 
 app.Run();
 
-#pragma warning disable S1118 // Utility classes should not have public constructors
+#pragma warning disable S1118, CA1515 // Utility classes should not have public constructors
 public partial class Program { }
-#pragma warning restore S1118 // Util
+#pragma warning restore S1118, CA1515 // Util

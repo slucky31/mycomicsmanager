@@ -1,11 +1,11 @@
 ﻿using Auth0.AspNetCore.Authentication;
 using Carter;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Web.EndPoints;
 
-public class AccountsApi : ICarterModule
+internal sealed class AccountsApi : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {

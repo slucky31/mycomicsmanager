@@ -8,11 +8,11 @@ public class StringExtensionsTests
     public void ToPascalCase_Returns_PascalCasedString()
     {
         // Arrange
-        string input = "héllo_wôrld123;:,-_";
-        string expectedOutput = "HelloWorld123";
+        var input = "héllo_wôrld123;:,-_";
+        var expectedOutput = "HelloWorld123";
 
         // Act
-        string? result = input.ToPascalCase();
+        var result = input.ToPascalCase();
 
         // Assert
         result.Should().Be(expectedOutput);
@@ -22,11 +22,11 @@ public class StringExtensionsTests
     public void ToPascalCase_ReturnsEmptyString_WhenGivenEmptyString()
     {
         // Arrange
-        string input = String.Empty;
-        string expectedOutput = String.Empty;
+        var input = String.Empty;
+        var expectedOutput = String.Empty;
 
         // Act
-        string? result = input.ToPascalCase();
+        var result = input.ToPascalCase();
 
         // Assert
         result.Should().Be(expectedOutput);
@@ -36,11 +36,11 @@ public class StringExtensionsTests
     public void ToCamlCase_Returns_CorrectString()
     {
         // Arrange
-        string input = "héllo_wôrld123;:,-_";
-        string expectedOutput = "helloWorld123";
+        var input = "héllo_wôrld123;:,-_";
+        var expectedOutput = "helloWorld123";
 
         // Act
-        string? result = input.ToCamlCase();
+        var result = input.ToCamlCase();
 
         // Assert
         result.Should().Be(expectedOutput);
@@ -50,11 +50,11 @@ public class StringExtensionsTests
     public void ToCamlCase_ReturnsEmptyString_WhenGivenEmptyString()
     {
         // Arrange
-        string? input = String.Empty;
-        string? expectedOutput = String.Empty;
+        var input = String.Empty;
+        var expectedOutput = String.Empty;
 
         // Act
-        string? result = input.ToCamlCase();
+        var result = input.ToCamlCase();
 
         // Assert
         result.Should().Be(expectedOutput);
@@ -64,11 +64,11 @@ public class StringExtensionsTests
     public void RemoveDiacritics_RemovesDiacritics()
     {
         // Arrange
-        string input = "éèêëÈÉÊË-ûüùÛÜÙ-ôöÔÖ-âàäÀÂÄ-îïÎÏ";
-        string expectedOutput = "eeeeEEEE-uuuUUU-ooOO-aaaAAA-iiII";
+        var input = "éèêëÈÉÊË-ûüùÛÜÙ-ôöÔÖ-âàäÀÂÄ-îïÎÏ";
+        var expectedOutput = "eeeeEEEE-uuuUUU-ooOO-aaaAAA-iiII";
 
         // Act
-        string? result = input.RemoveDiacritics();
+        var result = input.RemoveDiacritics();
 
         // Assert
         result.Should().Be(expectedOutput);
@@ -78,11 +78,11 @@ public class StringExtensionsTests
     public void RemoveDiacritics_ReturnsEmptyString_WhenGivenEmptyString()
     {
         // Arrange
-        string? input = String.Empty;
-        string? expectedOutput = String.Empty;
+        var input = String.Empty;
+        var expectedOutput = String.Empty;
 
         // Act
-        string? result = input.RemoveDiacritics();
+        var result = input.RemoveDiacritics();
 
         // Assert
         result.Should().Be(expectedOutput);
@@ -92,12 +92,12 @@ public class StringExtensionsTests
     public void Substract_ReturnsSubstract()
     {
         // Arrange
-        string? input = "Hello World !";
-        string? sub = "wOrld";
-        string? expectedOutput = "Hello  !";
+        var input = "Hello World !";
+        var sub = "wOrld";
+        var expectedOutput = "Hello  !";
 
         // Act
-        string? result = input.Substract(sub);
+        var result = input.Substract(sub);
 
         // Assert
         result.Should().Be(expectedOutput);
@@ -107,11 +107,11 @@ public class StringExtensionsTests
     public void Substract_ReturnsInput_WhenSubIsEmpty()
     {
         // Arrange
-        string? input = "Hello World !";
-        string? sub = String.Empty;
+        var input = "Hello World !";
+        var sub = String.Empty;
 
         // Act
-        string? result = input.Substract(sub);
+        var result = input.Substract(sub);
 
         // Assert
         result.Should().Be(input);
@@ -121,11 +121,11 @@ public class StringExtensionsTests
     public void Substract_ReturnsEmpty_WhenIsEmpty()
     {
         // Arrange
-        string? input = String.Empty;
-        string? sub = "sdjqjgsqldkj";
+        var input = String.Empty;
+        var sub = "sdjqjgsqldkj";
 
         // Act
-        string? result = input.Substract(sub);
+        var result = input.Substract(sub);
 
         // Assert
         result.Should().Be(input);

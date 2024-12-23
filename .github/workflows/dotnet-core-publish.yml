@@ -3,8 +3,6 @@ name: .NET Core
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build:
@@ -17,7 +15,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x                    
+          dotnet-version: 9.0.x                    
       - name: Install dependencies
         run: dotnet restore                            
       - name: Build
@@ -60,7 +58,7 @@ jobs:
 
       - name: Versioning
         id: versionize
-        run: versionize --changelog-all --exit-insignificant-commits
+        run: versionize --exit-insignificant-commits
       
       - name: No release required
         if: steps.versionize.outcome != 'success'
@@ -99,8 +97,7 @@ jobs:
             }
 
   docker-web:
-    needs: publish
-    if: ${{ (github.ref == 'refs/heads/main') }}
+    needs: publish    
     runs-on: ubuntu-latest
     permissions:
       contents: read

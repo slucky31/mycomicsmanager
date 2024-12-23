@@ -11,7 +11,7 @@ using MongoDB.Bson;
 
 namespace Web.Services;
 
-public class LibrariesService(IMediator mediator) : ILibrariesService
+internal class LibrariesService(IMediator mediator) : ILibrariesService
 {
     public async Task<Result<Library>> GetById(string? id)
     {
@@ -36,6 +36,6 @@ public class LibrariesService(IMediator mediator) : ILibrariesService
     public async Task<Result> Delete(string? id)
     {
         return await mediator.Send(new DeleteLibraryCommand(new ObjectId(id)));
-    }    
+    }
 
 }

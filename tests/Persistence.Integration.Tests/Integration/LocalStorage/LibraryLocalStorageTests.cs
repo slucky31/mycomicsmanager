@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Base.Integration.Tests;
 using Domain.Errors;
 using Persistence.LocalStorage;
@@ -11,11 +11,11 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
 
     private static void CreateFile(string path)
     {
-        using FileStream fs = File.Create(path);
-        byte[] info = new UTF8Encoding(true).GetBytes("This is some text in the file.");
+        using var fs = File.Create(path);
+        var info = new UTF8Encoding(true).GetBytes("This is some text in the file.");
         fs.Write(info, 0, info.Length);
     }
-    
+
     [Fact]
     public void Create_ShouldCreateDirectory()
     {
@@ -217,8 +217,8 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
 
         //Assert
         result.IsSuccess.Should().BeTrue();
-        Directory.Exists(path).Should().BeFalse();        
-        File.Exists(filePath).Should().BeFalse();        
+        Directory.Exists(path).Should().BeFalse();
+        File.Exists(filePath).Should().BeFalse();
     }
 
     [Fact]

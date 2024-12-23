@@ -1,19 +1,16 @@
-﻿using Application.Data;
-using Application.Libraries.Create;
+﻿using Application.Interfaces;
+using Application.Libraries.GetById;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
-using FluentAssertions;
+using MongoDB.Bson;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
-using Application.Interfaces;
-using MongoDB.Bson;
 using NSubstitute.ReturnsExtensions;
-using Application.Libraries.GetById;
 
 namespace Application.UnitTests.Libraries;
 public class GetLibraryCommandTests
 {
- 
+
     private readonly GetLibraryQueryHandler _handler;
     private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
 
@@ -31,7 +28,7 @@ public class GetLibraryCommandTests
         var library = Library.Create("test");
         var libraryId = library.Id;
         _librayRepositoryMock.GetByIdAsync(libraryId).Returns(library);
-        var Query = new GetLibraryQuery(libraryId);       
+        var Query = new GetLibraryQuery(libraryId);
 
         // Act
         var result = await _handler.Handle(Query, default);
@@ -39,9 +36,9 @@ public class GetLibraryCommandTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Id.Should().Be(libraryId);        
+        result.Value.Id.Should().Be(libraryId);
         result.Value.Name.Should().Be(library.Name);
-        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<ObjectId>());        
+        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<ObjectId>());
     }
 
     [Fact]
@@ -53,7 +50,7 @@ public class GetLibraryCommandTests
         var Query = new GetLibraryQuery(libraryId);
 
         // Act
-        var result = await _handler.Handle(Query, default);        
+        var result = await _handler.Handle(Query, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();

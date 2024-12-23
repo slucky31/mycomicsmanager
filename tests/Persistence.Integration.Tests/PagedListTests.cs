@@ -1,32 +1,32 @@
-﻿using Base.Integration.Tests;
+﻿using Ardalis.GuardClauses;
+using Base.Integration.Tests;
 using Domain.Libraries;
+using MockQueryable;
 using Persistence.Queries.Helpers;
-using MockQueryable.NSubstitute;
-using Ardalis.GuardClauses;
 
-namespace Persistence.Integration.Tests;
+namespace Persistence.Tests;
 
 public class PagedListTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
     [Fact]
     public async Task CreateAsync_Should_ReturnPagedList()
-    {        
+    {
         // Arrange
         var nbItems = 50;
-        int count = Context.Libraries.Count();
-        for (int i = 0; i < nbItems; i++)
+        var count = Context.Libraries.Count();
+        for (var i = 0; i < nbItems; i++)
         {
-            var lib = Library.Create("lib-"+i);
-            Context.Libraries.Add(lib);            
+            var lib = Library.Create("lib-" + i);
+            Context.Libraries.Add(lib);
         }
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var pagedList = new PagedList<Library>((IQueryable<Library>)Context.Libraries);
+        var pagedList = new PagedList<Library>(Context.Libraries);
         await pagedList.ExecuteQueryAsync(1, 5);
 
         // Assert
-        pagedList.Page.Should().Be(1);        
+        pagedList.Page.Should().Be(1);
         pagedList.TotalCount.Should().Be(count + nbItems);
     }
 
@@ -37,7 +37,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : BaseIntegrat
     // Mock IQueryable with NSubstitute
     // https://sinairv.github.io/blog/2015/10/04/mock-entity-framework-dbset-with-nsubstitute/
 
-    private readonly List<string> list = ["1","2", "3", "4", "5", "6", "7", "8", "9", "10"];
+    private readonly List<string> list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
     [Fact]
     public async Task PagedList_TotalCountAsync()
@@ -61,7 +61,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : BaseIntegrat
 
         // Act
         var pagedList = new PagedList<string>(query);
-        await pagedList.ExecuteQueryAsync(1, 2);        
+        await pagedList.ExecuteQueryAsync(1, 2);
 
         // Assert
         pagedList.HasNextPage.Should().BeTrue();
@@ -77,7 +77,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : BaseIntegrat
 
         // Act
         var pagedList = new PagedList<string>(query);
-        await pagedList.ExecuteQueryAsync(2, 2);        
+        await pagedList.ExecuteQueryAsync(2, 2);
 
         // Assert
         pagedList.HasNextPage.Should().BeTrue();
@@ -95,7 +95,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : BaseIntegrat
 
         // Act
         var pagedList = new PagedList<string>(query);
-        await pagedList.ExecuteQueryAsync(5, 2);        
+        await pagedList.ExecuteQueryAsync(5, 2);
 
         // Assert
         pagedList.HasNextPage.Should().BeFalse();

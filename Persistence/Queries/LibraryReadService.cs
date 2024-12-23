@@ -11,7 +11,7 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 {
     public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
     {
-        IQueryable<Library> librariesQuery = context.Libraries.AsNoTracking();
+        var librariesQuery = context.Libraries.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -25,16 +25,13 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
             _ => Library => Library.Id
         };
 
-        if (sortOrder == SortOrder.Descending)
+        librariesQuery = sortOrder switch
         {
-            librariesQuery = librariesQuery.OrderByDescending(keySelector);
-        }
-        else
-        {
-            librariesQuery = librariesQuery.OrderBy(keySelector);
-        }
-
+            SortOrder.Descending => librariesQuery.OrderByDescending(keySelector),
+            SortOrder.Ascending => librariesQuery.OrderBy(keySelector),
+            _ => librariesQuery.OrderBy(keySelector),
+        };
         var librariesPagedList = new PagedList<Library>(librariesQuery);
-        return await librariesPagedList.ExecuteQueryAsync(page, pageSize);        
+        return await librariesPagedList.ExecuteQueryAsync(page, pageSize);
     }
 }
