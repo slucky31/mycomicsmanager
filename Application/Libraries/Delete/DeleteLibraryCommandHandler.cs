@@ -3,7 +3,6 @@ using Domain.Libraries;
 using Domain.Primitives;
 using MediatR;
 using MongoDB.Bson;
-using Persistence.LocalStorage;
 
 namespace Application.Libraries.Delete;
 internal sealed class DeleteLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork, ILibraryLocalStorage libraryLocalStorage) : IRequestHandler<DeleteLibraryCommand, Result>

@@ -8,9 +8,6 @@ using MockQueryable;
 using MongoDB.Bson;
 using NSubstitute;
 using Persistence.Queries.Helpers;
-using Application.Libraries;
-using Persistence.LocalStorage;
-using Domain.Primitives;
 
 namespace Application.UnitTests.Libraries;
 public class UpdateLibraryCommandTests

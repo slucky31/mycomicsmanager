@@ -9,7 +9,6 @@ using MockQueryable;
 using MongoDB.Bson;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
-using Persistence.LocalStorage;
 using Persistence.Queries.Helpers;
 
 namespace Application.UnitTests.Libraries;

@@ -8,9 +8,6 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Persistence;
-using Persistence.LocalStorage;
-using Persistence.Queries;
-using Persistence.Repositories;
 using Xunit;
 
 namespace Base.Integration.Tests;
@@ -48,7 +45,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         LibraryReadService = _scope.ServiceProvider.GetRequiredService<ILibraryReadService>();
         UserReadService = _scope.ServiceProvider.GetRequiredService<IUserReadService>();
 
-        LibraryLocalStorage = _scope.ServiceProvider.GetRequiredService<ILibraryLocalStorage>();        
+        LibraryLocalStorage = _scope.ServiceProvider.GetRequiredService<ILibraryLocalStorage>();
 
         // Clear all MongoDb Collections before tests
         Context.Libraries.RemoveRange(Context.Libraries);

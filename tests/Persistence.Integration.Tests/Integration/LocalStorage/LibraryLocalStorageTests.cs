@@ -27,7 +27,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
 
         //Assert
         result.IsSuccess.Should().BeTrue();
-        Directory.Exists(LibraryLocalStorage.rootPath + Path.DirectorySeparatorChar + folder).Should().BeTrue();        
+        Directory.Exists(LibraryLocalStorage.rootPath + Path.DirectorySeparatorChar + folder).Should().BeTrue();
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
         var folder = Guid.NewGuid().ToString();
 
         // Act
-        var result= LibraryLocalStorageWithEmptyRootPath.Create(folder);
+        var result = LibraryLocalStorageWithEmptyRootPath.Create(folder);
 
         //Assert
         result.IsFailure.Should().BeTrue();
@@ -123,7 +123,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
     public void Move_ShouldReturnError_WhenRootPathIsEmpty()
     {
         // Arrange
-        var folder = Guid.NewGuid().ToString();        
+        var folder = Guid.NewGuid().ToString();
         var folderMoved = Guid.NewGuid().ToString();
 
         // Act
@@ -138,7 +138,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
     public void Move_ShouldReturnError_WhenOldFolderNameIsEmpty()
     {
         // Arrange        
-        var folder = "";        
+        var folder = "";
         var folderMoved = Guid.NewGuid().ToString();
 
         // Act
@@ -196,7 +196,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
 
         //Assert
         result.IsSuccess.Should().BeTrue();
-        Directory.Exists(LibraryLocalStorage.rootPath + Path.DirectorySeparatorChar + folder).Should().BeFalse();        
+        Directory.Exists(LibraryLocalStorage.rootPath + Path.DirectorySeparatorChar + folder).Should().BeFalse();
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
     public void Delete_ShouldReturnError_WhenFolderNameIsEmpty()
     {
         // Arrange
-        var folder = "";      
+        var folder = "";
 
         // Act
         var result = LibraryLocalStorage.Delete(folder);
@@ -254,7 +254,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Ba
     {
         // Arrange
         var folder = Guid.NewGuid().ToString();
-        Directory.Exists(LibraryLocalStorage.rootPath + Path.DirectorySeparatorChar + folder).Should().BeFalse();        
+        Directory.Exists(LibraryLocalStorage.rootPath + Path.DirectorySeparatorChar + folder).Should().BeFalse();
 
         // Act
         var result = LibraryLocalStorage.Delete(folder);
