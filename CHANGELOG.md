@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.0.0"></a>
+## [9.0.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.0) (2024-12-23)
+
+### Breaking Changes
+
+* update dotnet monorepo to v9 (main) (major) ([#738](https://www.github.com/slucky31/mycomicsmanager/issues/738)) ([d00f3a8](https://www.github.com/slucky31/mycomicsmanager/commit/d00f3a8befe2e613061a55dddc89e132e92123d2))
+
+### Other
+
+* Merge remote-tracking branch 'origin/main' ([ce69c9c](https://www.github.com/slucky31/mycomicsmanager/commit/ce69c9cb499b3f0eb8ebc3210520b0478b1d980f))
+* update dotnet monorepo to v9 (main) (major) ([#738](https://www.github.com/slucky31/mycomicsmanager/issues/738)) ([98cfcae](https://www.github.com/slucky31/mycomicsmanager/commit/98cfcae598e6b88692c1e9ef88828fa75c7a97fb))
+
 <a name="8.10.37"></a>
 ## [8.10.37](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.37) (2024-12-21)
 
