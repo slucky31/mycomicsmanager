@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.0.2"></a>
+## [9.0.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.2) (2025-01-09)
+
+### 🐛 Bug Fixes
+
+* **deps:** update xunit-dotnet monorepo to 2.9.3 ([#770](https://www.github.com/slucky31/mycomicsmanager/issues/770)) ([ac84b5c](https://www.github.com/slucky31/mycomicsmanager/commit/ac84b5cde58f07d01967f035040b5f8cf819f9d2))
+
 <a name="9.0.1"></a>
 ## [9.0.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.1) (2024-12-23)
 
