@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.0.9"></a>
+## [9.0.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.9) (2025-02-15)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency bunit to 1.38.5 ([#788](https://www.github.com/slucky31/mycomicsmanager/issues/788)) ([33406e5](https://www.github.com/slucky31/mycomicsmanager/commit/33406e539b9660481b28a70e5fae25b8557d7e6b))
+
 <a name="9.0.8"></a>
 ## [9.0.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.8) (2025-02-15)
 
