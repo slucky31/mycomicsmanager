@@ -23,7 +23,7 @@ namespace MyComicsManagerApiTests
             results[ComicDataEnum.ISBN].Should().Be("978-2-2030-0116-9");
             results[ComicDataEnum.URL].Should().Be("https://www.bdphile.fr/album/view/101521/");
             results[ComicDataEnum.EDITEUR].Should().Be("Casterman");
-            results[ComicDataEnum.NOTE].Should().Be("4.4");
+            results[ComicDataEnum.NOTE].Should().Be("4.5");
             results[ComicDataEnum.ONESHOT].Should().Be("False");
         }
 
