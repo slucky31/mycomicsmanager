@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.0.7"></a>
+## [9.0.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.7) (2025-02-15)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency xunit.runner.visualstudio to 3.0.2 ([#786](https://www.github.com/slucky31/mycomicsmanager/issues/786)) ([d4bc385](https://www.github.com/slucky31/mycomicsmanager/commit/d4bc385bc599ee785e426c6f65c85373668f0175))
+
 <a name="9.0.6"></a>
 ## [9.0.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.6) (2025-02-15)
 
