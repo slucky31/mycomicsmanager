@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0.102-noble AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0.200-noble AS build
 ARG TARGETARCH
 WORKDIR /source
 
@@ -16,7 +16,7 @@ COPY . .
 RUN dotnet publish "./Web/Web.csproj" -a $TARGETARCH -o /app
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0.1-noble
+FROM mcr.microsoft.com/dotnet/aspnet:9.0.2-noble
 
 # Install the agent
 RUN apt-get update \
