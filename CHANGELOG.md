@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.0.13"></a>
+## [9.0.13](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.13) (2025-02-22)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency fluentassertions to 7.2.0 ([#799](https://www.github.com/slucky31/mycomicsmanager/issues/799)) ([e1cea4f](https://www.github.com/slucky31/mycomicsmanager/commit/e1cea4f4ddc168445a914a0c00a710bb3673e0b7))
+
 <a name="9.0.12"></a>
 ## [9.0.12](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.12) (2025-02-22)
 
