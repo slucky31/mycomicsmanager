@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Base.Integration.Tests;
 using Domain.Errors;
 using Persistence.LocalStorage;
