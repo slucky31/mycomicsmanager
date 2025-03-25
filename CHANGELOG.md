@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.0.19"></a>
+## [9.0.19](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.19) (2025-03-25)
+
+### 🐛 Bug Fixes
+
+* **deps:** update mcr.microsoft.com/dotnet/sdk docker tag to v9.0.202 ([#814](https://www.github.com/slucky31/mycomicsmanager/issues/814)) ([bf1b17d](https://www.github.com/slucky31/mycomicsmanager/commit/bf1b17db57218503a49a405107790f2a1fe5941a))
+
 <a name="9.0.18"></a>
 ## [9.0.18](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.18) (2025-03-16)
 
