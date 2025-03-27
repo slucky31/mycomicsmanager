@@ -21,8 +21,8 @@
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="MockQueryable.NSubstitute" Version="7.0.3" />
-    <PackageVersion Include="MongoDB.Bson" Version="3.2.1" />
-    <PackageVersion Include="MongoDB.Driver" Version="3.2.1" />
+    <PackageVersion Include="MongoDB.Bson" Version="3.3.0" />
+    <PackageVersion Include="MongoDB.Driver" Version="3.3.0" />
     <PackageVersion Include="MongoDB.EntityFrameworkCore" Version="8.2.3" />
     <PackageVersion Include="MudBlazor" Version="8.3.0" />
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
