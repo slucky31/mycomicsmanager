@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.0.21"></a>
+## [9.0.21](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.21) (2025-05-18)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency sonaranalyzer.csharp to 10.9.0.115408 ([#822](https://www.github.com/slucky31/mycomicsmanager/issues/822)) ([8c457c3](https://www.github.com/slucky31/mycomicsmanager/commit/8c457c3642370ba52a684123472400befd64b322))
+
+### Other
+
+* add .deepsource.toml ([2e92d72](https://www.github.com/slucky31/mycomicsmanager/commit/2e92d72634831ee5cb40d3fb535447110a7d9892))
+
 <a name="9.0.20"></a>
 ## [9.0.20](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.20) (2025-03-28)
 
