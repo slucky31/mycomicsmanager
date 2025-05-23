@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.0.27"></a>
+## [9.0.27](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.27) (2025-05-23)
+
+### 🐛 Bug Fixes
+
+* **deps:** update mongo-csharp-driver monorepo to 3.4.0 ([#829](https://www.github.com/slucky31/mycomicsmanager/issues/829)) ([52f4a0f](https://www.github.com/slucky31/mycomicsmanager/commit/52f4a0fda37915fc90ccfa2bed4df93bf8e21911))
+
 <a name="9.0.26"></a>
 ## [9.0.26](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.26) (2025-05-23)
 
