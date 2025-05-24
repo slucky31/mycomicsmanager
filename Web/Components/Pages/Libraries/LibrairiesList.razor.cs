@@ -34,9 +34,10 @@ public partial class LibrairiesList
         }
 
         var result = await LibrariesService.FilterBy(searchString, sortColumn, sortOrder, state.Page + 1, state.PageSize);
-        if (result is not null && result.Items is not null)
+
+        if (result is not null && result.IsSuccess && result.Value is not null && result.Value.Items is not null)
         {
-            return new TableData<Library> { TotalItems = result.TotalCount, Items = result.Items.ToList() };
+            return new TableData<Library> { TotalItems = result.Value.TotalCount, Items = result.Value.Items.ToList() };
         }
 
         return new TableData<Library> { TotalItems = 0, Items = new List<Library>() };

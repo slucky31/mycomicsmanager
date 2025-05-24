@@ -1,15 +1,22 @@
-﻿using Application.Interfaces;
+﻿using Application.Abstractions.Messaging;
+using Application.Interfaces;
 using Domain.Libraries;
-using MediatR;
+using Domain.Primitives;
 
 // Source : https://www.youtube.com/watch?v=X8zRvXbirMU
 
 namespace Application.Libraries.List;
-internal sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadService) : IRequestHandler<GetLibrariesQuery, IPagedList<Library>>
+internal sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadService) : IQueryHandler<GetLibrariesQuery, IPagedList<Library>>
 {
-    public async Task<IPagedList<Library>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IPagedList<Library>>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
     {
-        return await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize);
+        var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize);
 
+        if (list is null)
+        {
+            return LibrariesError.NotFound;
+        }
+
+        return Result<IPagedList<Library>>.Success(list);
     }
 }

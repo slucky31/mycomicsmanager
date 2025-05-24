@@ -4,7 +4,6 @@ using Application.Users;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Users;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Persistence;
@@ -15,7 +14,7 @@ namespace Base.Integration.Tests;
 public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>, IDisposable
 {
     private readonly IServiceScope _scope;
-    protected ISender Sender { get; }
+
     protected ApplicationDbContext Context { get; }
 
     protected IRepository<Library, ObjectId> LibraryRepository { get; }
@@ -35,7 +34,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         Guard.Against.Null(factory);
 
         _scope = factory.Services.CreateScope();
-        Sender = _scope.ServiceProvider.GetRequiredService<ISender>();
+
         Context = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
