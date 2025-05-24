@@ -40,7 +40,7 @@ public class ArchitectureTests
     public void Application_Should_Not_HaveDependencyOnOtherProjects()
     {
         // Arrange
-        var assembly = typeof(Application.ProjectDependencyInjection).Assembly;
+        var assembly = typeof(Application.DependencyInjection).Assembly;
 
         var otherProjects = new[]
         {

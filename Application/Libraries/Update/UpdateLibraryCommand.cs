@@ -1,8 +1,7 @@
-﻿using Domain.Libraries;
-using Domain.Primitives;
-using MediatR;
+﻿using Application.Abstractions.Messaging;
+using Domain.Libraries;
 using MongoDB.Bson;
 
 namespace Application.Libraries.Update;
 
-public record UpdateLibraryCommand(ObjectId Id, string Name) : IRequest<Result<Library>>;
+public record UpdateLibraryCommand(ObjectId Id, string Name) : ICommand<Library>;

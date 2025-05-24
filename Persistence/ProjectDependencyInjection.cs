@@ -17,10 +17,6 @@ public static class ProjectDependencyInjection
 
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, string dataBaseName, String rootPath)
     {
-        var assembly = typeof(ProjectDependencyInjection).Assembly;
-
-        services.AddMediatR(configuration =>
-            configuration.RegisterServicesFromAssembly(assembly));
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options

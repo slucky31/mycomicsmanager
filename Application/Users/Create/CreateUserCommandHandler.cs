@@ -1,12 +1,12 @@
-﻿using Application.Interfaces;
+﻿using Application.Abstractions.Messaging;
+using Application.Interfaces;
 using Domain.Primitives;
 using Domain.Users;
-using MediatR;
 using MongoDB.Bson;
 
 namespace Application.Users.Create;
 
-internal sealed class CreateUserCommandHandler(IRepository<User, ObjectId> userRepository, IUnitOfWork unitOfWork, IUserReadService userReadService) : IRequestHandler<CreateUserCommand, Result<User>>
+internal sealed class CreateUserCommandHandler(IRepository<User, ObjectId> userRepository, IUnitOfWork unitOfWork, IUserReadService userReadService) : ICommandHandler<CreateUserCommand, User>
 {
     public async Task<Result<User>> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
