@@ -10,6 +10,12 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, ObjectId> l
 {
     public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {
+
+        if (request is null)
+        {
+            return LibrariesError.ValidationError;
+        }
+
         var library = await librayRepository.GetByIdAsync(request.Id);
 
         if (library is null)

@@ -18,11 +18,6 @@ public sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadServ
 
         var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize);
 
-        if (list is null)
-        {
-            return LibrariesError.NotFound;
-        }
-
         return Result<IPagedList<Library>>.Success(list);
     }
 }
