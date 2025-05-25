@@ -1,17 +1,22 @@
-﻿using Application.Interfaces;
+﻿using Application.Abstractions.Messaging;
+using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
-using MediatR;
 using MongoDB.Bson;
 
 namespace Application.Libraries.Update;
 
-internal sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : IRequestHandler<UpdateLibraryCommand, Result<Library>>
+public sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<UpdateLibraryCommand, Library>
 {
     public async Task<Result<Library>> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
     {
-        var library = await librayRepository.GetByIdAsync(request.Id);
+        if (request is null)
+        {
+            return LibrariesError.ValidationError;
+        }
+
+        var library = await libraryRepository.GetByIdAsync(request.Id);
 
         if (library is null)
         {
@@ -36,7 +41,7 @@ internal sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId>
             return LibrariesError.FolderNotMoved;
         }
 
-        librayRepository.Update(library);
+        libraryRepository.Update(library);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

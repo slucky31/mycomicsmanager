@@ -8,7 +8,9 @@ using Web.Services;
 
 namespace Web.Components.Pages.Libraries;
 
+#pragma warning disable CA1515 // Consider making public types internal (bug roselyn analyser : https://github.com/dotnet/roslyn-analyzers/issues/7473)
 public partial class LibrairiesList
+#pragma warning restore CA1515 // Consider making public types internal
 {
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -34,9 +36,10 @@ public partial class LibrairiesList
         }
 
         var result = await LibrariesService.FilterBy(searchString, sortColumn, sortOrder, state.Page + 1, state.PageSize);
-        if (result is not null && result.Items is not null)
+
+        if (result is not null && result.IsSuccess && result.Value is not null && result.Value.Items is not null)
         {
-            return new TableData<Library> { TotalItems = result.TotalCount, Items = result.Items.ToList() };
+            return new TableData<Library> { TotalItems = result.Value.TotalCount, Items = result.Value.Items.ToList() };
         }
 
         return new TableData<Library> { TotalItems = 0, Items = new List<Library>() };

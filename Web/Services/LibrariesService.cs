@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.Abstractions.Messaging;
+using Application.Interfaces;
 using Application.Libraries.Create;
 using Application.Libraries.Delete;
 using Application.Libraries.GetById;
@@ -6,36 +7,66 @@ using Application.Libraries.List;
 using Application.Libraries.Update;
 using Domain.Libraries;
 using Domain.Primitives;
-using MediatR;
 using MongoDB.Bson;
 
 namespace Web.Services;
 
-internal class LibrariesService(IMediator mediator) : ILibrariesService
+internal class LibrariesService : ILibrariesService
 {
+    private readonly ICommandHandler<CreateLibraryCommand, Library> handler_CreateLibraryCommand;
+    private readonly ICommandHandler<UpdateLibraryCommand, Library> handler_UpdateLibraryCommand;
+    private readonly ICommandHandler<DeleteLibraryCommand> handler_DeleteLibraryCommand;
+
+    private readonly IQueryHandler<GetLibraryQuery, Library> handler_GetLibraryQuery;
+    private readonly IQueryHandler<GetLibrariesQuery, IPagedList<Library>> handler_GetLibrariesQuery;
+
+    public LibrariesService(IQueryHandler<GetLibraryQuery, Library> handler_GetLibraryQuery,
+                            IQueryHandler<GetLibrariesQuery, IPagedList<Library>> handler_GetLibrariesQuery,
+                            ICommandHandler<CreateLibraryCommand, Library> handler_CreateLibraryCommand,
+                            ICommandHandler<UpdateLibraryCommand, Library> handler_UpdateLibraryCommand,
+                            ICommandHandler<DeleteLibraryCommand> handler_DeleteLibraryCommand)
+    {
+        this.handler_GetLibraryQuery = handler_GetLibraryQuery;
+        this.handler_GetLibrariesQuery = handler_GetLibrariesQuery;
+        this.handler_CreateLibraryCommand = handler_CreateLibraryCommand;
+        this.handler_UpdateLibraryCommand = handler_UpdateLibraryCommand;
+        this.handler_DeleteLibraryCommand = handler_DeleteLibraryCommand;
+    }
+
     public async Task<Result<Library>> GetById(string? id)
     {
-        return await mediator.Send(new GetLibraryQuery(new ObjectId(id)));
+        var query = new GetLibraryQuery(new ObjectId(id));
+
+        return await handler_GetLibraryQuery.Handle(query, CancellationToken.None);
     }
 
     public async Task<Result<Library>> Create(string? name)
     {
-        return await mediator.Send(new CreateLibraryCommand(name ?? ""));
+        var command = new CreateLibraryCommand(name ?? "");
+
+        return await handler_CreateLibraryCommand.Handle(command, CancellationToken.None);
     }
 
     public async Task<Result<Library>> Update(string? id, string? name)
     {
-        return await mediator.Send(new UpdateLibraryCommand(new ObjectId(id), name ?? ""));
+        var command = new UpdateLibraryCommand(new ObjectId(id), name ?? "");
+
+        return await handler_UpdateLibraryCommand.Handle(command, CancellationToken.None);
     }
 
-    public async Task<IPagedList<Library>> FilterBy(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
+    public async Task<Result<IPagedList<Library>>> FilterBy(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
     {
-        return await mediator.Send(new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize));
+        var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize);
+
+        return await handler_GetLibrariesQuery.Handle(query, CancellationToken.None);
+
     }
 
     public async Task<Result> Delete(string? id)
     {
-        return await mediator.Send(new DeleteLibraryCommand(new ObjectId(id)));
+        var command = new DeleteLibraryCommand(new ObjectId(id));
+
+        return await handler_DeleteLibraryCommand.Handle(command, CancellationToken.None);
     }
 
 }

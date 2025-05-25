@@ -1,7 +1,6 @@
-﻿using Domain.Libraries;
-using Domain.Primitives;
-using MediatR;
+﻿using Application.Abstractions.Messaging;
+using Domain.Libraries;
 
 namespace Application.Libraries.Create;
 
-public record CreateLibraryCommand(string Name) : IRequest<Result<Library>>;
+public record CreateLibraryCommand(string Name) : ICommand<Library>;
