@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.1.0"></a>
+## [9.1.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.1.0) (2025-05-25)
+
+### ✨ Features
+
+* Remove Mediatr ([#837](https://www.github.com/slucky31/mycomicsmanager/issues/837)) ([4c21d47](https://www.github.com/slucky31/mycomicsmanager/commit/4c21d47118f7525f0a0802b85cb61fe844481f9b))
+
 <a name="9.0.29"></a>
 ## [9.0.29](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.29) (2025-05-25)
 
