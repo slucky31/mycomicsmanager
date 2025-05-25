@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.0.29"></a>
+## [9.0.29](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.29) (2025-05-25)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency microsoft.entityframeworkcore to 9.0.5 ([#834](https://www.github.com/slucky31/mycomicsmanager/issues/834)) ([9be970b](https://www.github.com/slucky31/mycomicsmanager/commit/9be970b71ee3acd9ba180e53c8c0553448c46c29))
+
+### Other
+
+* update packages and fix unit tests (#833) ([5249904](https://www.github.com/slucky31/mycomicsmanager/commit/5249904f377f0d1d3067e388800d50ba943b422e))
+
 <a name="9.0.28"></a>
 ## [9.0.28](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.28) (2025-05-24)
 
