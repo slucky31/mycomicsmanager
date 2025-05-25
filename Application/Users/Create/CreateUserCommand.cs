@@ -1,6 +1,5 @@
-﻿using Domain.Primitives;
+﻿using Application.Abstractions.Messaging;
 using Domain.Users;
-using MediatR;
 
 namespace Application.Users.Create;
-public record CreateUserCommand(string email, string authId) : IRequest<Result<User>>;
+public record CreateUserCommand(string email, string authId) : ICommand<User>;

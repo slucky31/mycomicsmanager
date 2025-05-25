@@ -91,7 +91,7 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
 });
 
-// Config Web Services
+// Config Services
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 
 var app = builder.Build();

@@ -1,13 +1,13 @@
-﻿using Application.Interfaces;
+using Application.Abstractions.Messaging;
+using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
-using MediatR;
 using MongoDB.Bson;
 
 namespace Application.Libraries.Create;
 
-internal sealed class CreateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : IRequestHandler<CreateLibraryCommand, Result<Library>>
+public sealed class CreateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : IRequestHandler<CreateLibraryCommand, Result<Library>>
 {
 
     public async Task<Result<Library>> Handle(CreateLibraryCommand request, CancellationToken cancellationToken)
@@ -54,4 +54,5 @@ internal sealed class CreateLibraryCommandHandler(IRepository<Library, ObjectId>
 
         return library;
     }
+
 }

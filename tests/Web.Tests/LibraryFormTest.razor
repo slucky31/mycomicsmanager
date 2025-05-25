@@ -15,6 +15,7 @@
         _librariesServiceMock = Substitute.For<ILibrariesService>();        
         Services.AddSingleton(_librariesServiceMock);
         Services.AddMudServices();
+        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
     }
 
     [Fact]
