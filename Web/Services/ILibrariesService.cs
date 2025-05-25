@@ -1,10 +1,14 @@
-﻿using Application.Interfaces;
+﻿using System.Runtime.CompilerServices;
+using Application.Interfaces;
 using Domain.Libraries;
 using Domain.Primitives;
 
+// Nécessaire pour que l'on puisse utiliser NSubstitute dans les tests unitaires (Web.Tests)
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+
 namespace Web.Services;
 
-public interface ILibrariesService
+internal interface ILibrariesService
 {
     Task<Result<Library>> Create(string? name);
     Task<Result<Library>> GetById(string? id);

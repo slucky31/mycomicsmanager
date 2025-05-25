@@ -6,10 +6,16 @@ using Domain.Primitives;
 // Source : https://www.youtube.com/watch?v=X8zRvXbirMU
 
 namespace Application.Libraries.List;
-internal sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadService) : IQueryHandler<GetLibrariesQuery, IPagedList<Library>>
+
+public sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadService) : IQueryHandler<GetLibrariesQuery, IPagedList<Library>>
 {
     public async Task<Result<IPagedList<Library>>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
     {
+        if (request is null)
+        {
+            return LibrariesError.ValidationError;
+        }
+
         var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize);
 
         if (list is null)

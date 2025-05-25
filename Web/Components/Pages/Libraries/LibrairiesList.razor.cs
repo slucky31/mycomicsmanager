@@ -8,7 +8,9 @@ using Web.Services;
 
 namespace Web.Components.Pages.Libraries;
 
+#pragma warning disable CA1515 // Consider making public types internal (bug roselyn analyser : https://github.com/dotnet/roslyn-analyzers/issues/7473)
 public partial class LibrairiesList
+#pragma warning restore CA1515 // Consider making public types internal
 {
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
