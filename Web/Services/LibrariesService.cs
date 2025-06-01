@@ -7,7 +7,6 @@ using Application.Libraries.List;
 using Application.Libraries.Update;
 using Domain.Libraries;
 using Domain.Primitives;
-using MongoDB.Bson;
 
 namespace Web.Services;
 
@@ -35,7 +34,7 @@ internal class LibrariesService : ILibrariesService
 
     public async Task<Result<Library>> GetById(string? id)
     {
-        var query = new GetLibraryQuery(new ObjectId(id));
+        var query = new GetLibraryQuery(Guid.CreateVersion7());
 
         return await handler_GetLibraryQuery.Handle(query, CancellationToken.None);
     }
@@ -49,7 +48,7 @@ internal class LibrariesService : ILibrariesService
 
     public async Task<Result<Library>> Update(string? id, string? name)
     {
-        var command = new UpdateLibraryCommand(new ObjectId(id), name ?? "");
+        var command = new UpdateLibraryCommand(Guid.CreateVersion7(), name ?? "");
 
         return await handler_UpdateLibraryCommand.Handle(command, CancellationToken.None);
     }
@@ -64,7 +63,7 @@ internal class LibrariesService : ILibrariesService
 
     public async Task<Result> Delete(string? id)
     {
-        var command = new DeleteLibraryCommand(new ObjectId(id));
+        var command = new DeleteLibraryCommand(Guid.CreateVersion7());
 
         return await handler_DeleteLibraryCommand.Handle(command, CancellationToken.None);
     }

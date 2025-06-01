@@ -6,10 +6,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using Persistence;
 using Persistence.LocalStorage;
-using Web.Configuration;
 
 // Source : https://www.youtube.com/watch?v=tj5ZCtvgXKY&t=358s
 // Source 2 : https://stackoverflow.com/questions/69990675/change-config-values-in-appsettings-json-githubactions
@@ -19,9 +17,7 @@ namespace Base.Integration.Tests;
 public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IDisposable
 #pragma warning restore CA1063 // Implement IDisposable Correctly
 {
-    private MongoDbOptions? _mongoDbOptions;
-
-    private string? _databaseName;
+    private String _connectionString = String.Empty;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -35,10 +31,9 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
 
             conf.AddEnvironmentVariables();
 
-            // here we can "compile" the settings. Api.Setup will do the same, it doesn't matter.
             var _configuration = conf.Build();
 
-            _mongoDbOptions = _configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
+            _connectionString = _configuration.GetConnectionString("NeonConnectionUnitTests") ?? String.Empty;
         });
 
         // Reconfigure the services to use the MongoDb with a new database name        
@@ -51,12 +46,11 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
                 services.Remove(descriptor);
             }
 
-            Guard.Against.Null(_mongoDbOptions);
-            _databaseName = Guid.NewGuid().ToString();
-
             services.AddDbContext<ApplicationDbContext>(options =>
             options
-                .UseMongoDB(_mongoDbOptions.ConnectionString, _databaseName)
+                .UseNpgsql(_connectionString, npgsqlOptions =>
+                    npgsqlOptions.MigrationsAssembly("Persistence")
+                )
                 .EnableDetailedErrors(true)
             );
         });
@@ -78,11 +72,6 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
 
     public new void Dispose()
     {
-        Guard.Against.Null(_mongoDbOptions);
-        using (var client = new MongoClient(_mongoDbOptions.ConnectionString))
-        {
-            client.DropDatabase(_databaseName);
-        }
         base.Dispose();
     }
 }

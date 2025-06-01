@@ -6,7 +6,8 @@ using Persistence.Queries.Helpers;
 
 namespace Persistence.Tests;
 
-public class PagedListTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+[Collection("Library")]
+public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]
     public async Task CreateAsync_Should_ReturnPagedList()

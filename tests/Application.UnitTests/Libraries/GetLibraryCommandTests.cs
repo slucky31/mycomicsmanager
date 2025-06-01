@@ -2,7 +2,6 @@
 using Application.Libraries.GetById;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
-using MongoDB.Bson;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using NSubstitute.ReturnsExtensions;
@@ -12,12 +11,12 @@ public class GetLibraryCommandTests
 {
 
     private readonly GetLibraryQueryHandler _handler;
-    private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
+    private readonly IRepository<Library, Guid> _librayRepositoryMock;
 
 
     public GetLibraryCommandTests()
     {
-        _librayRepositoryMock = Substitute.For<IRepository<Library, ObjectId>>();
+        _librayRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _handler = new GetLibraryQueryHandler(_librayRepositoryMock);
     }
 
@@ -38,14 +37,14 @@ public class GetLibraryCommandTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Id.Should().Be(libraryId);
         result.Value.Name.Should().Be(library.Name);
-        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<ObjectId>());
+        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<Guid>());
     }
 
     [Fact]
     public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
     {
         // Arrange
-        var libraryId = ObjectId.GenerateNewId();
+        var libraryId = Guid.CreateVersion7();
         _librayRepositoryMock.GetByIdAsync(libraryId).ReturnsNull();
         var Query = new GetLibraryQuery(libraryId);
 
@@ -55,7 +54,7 @@ public class GetLibraryCommandTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.NotFound);
-        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<ObjectId>());
+        await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<Guid>());
     }
 
 

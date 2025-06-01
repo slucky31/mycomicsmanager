@@ -5,18 +5,18 @@ using Ardalis.GuardClauses;
 using Domain.Users;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
-using MongoDB.Bson;
 
 namespace Web;
 
-internal class CustomAuthenticationStateProvider(IUserReadService userReadService, IRepository<User, ObjectId> userRepository, IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
+internal class CustomAuthenticationStateProvider(IUserReadService userReadService, IRepository<User, Guid> userRepository, IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
 {
     private readonly IUserReadService _userReadService = userReadService;
-    private readonly IRepository<User, ObjectId> _userRepository = userRepository;
+    private readonly IRepository<User, Guid> _userRepository = userRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
+
         var authState = await base.GetAuthenticationStateAsync();
         var user = authState.User;
 

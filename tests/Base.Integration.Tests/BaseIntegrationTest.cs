@@ -5,7 +5,6 @@ using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Users;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using Persistence;
 using Xunit;
 
@@ -13,17 +12,9 @@ namespace Base.Integration.Tests;
 
 public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>, IDisposable
 {
-    private readonly IServiceScope _scope;
+    protected IServiceScope _scope { get; }
 
     protected ApplicationDbContext Context { get; }
-
-    protected IRepository<Library, ObjectId> LibraryRepository { get; }
-    protected IRepository<User, ObjectId> UserRepository { get; }
-
-    protected ILibraryReadService LibraryReadService { get; }
-    protected IUserReadService UserReadService { get; }
-
-    protected ILibraryLocalStorage LibraryLocalStorage { get; }
 
     protected IUnitOfWork UnitOfWork { get; }
 
@@ -38,20 +29,9 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         Context = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        LibraryRepository = _scope.ServiceProvider.GetRequiredService<IRepository<Library, ObjectId>>();
-        UserRepository = _scope.ServiceProvider.GetRequiredService<IRepository<User, ObjectId>>();
-
-        LibraryReadService = _scope.ServiceProvider.GetRequiredService<ILibraryReadService>();
-        UserReadService = _scope.ServiceProvider.GetRequiredService<IUserReadService>();
-
-        LibraryLocalStorage = _scope.ServiceProvider.GetRequiredService<ILibraryLocalStorage>();
-
-        // Clear all MongoDb Collections before tests
-        Context.Libraries.RemoveRange(Context.Libraries);
-        Context.Users.RemoveRange(Context.Users);
-
-        Context.SaveChanges();
     }
+
+
 
     public void Dispose()
     {
@@ -70,4 +50,56 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
             disposed = true;
         }
     }
+}
+
+public class LibraryIntegrationTest : BaseIntegrationTest
+{
+    protected ILibraryReadService LibraryReadService { get; }
+
+    protected IRepository<Library, Guid> LibraryRepository { get; }
+
+
+    public LibraryIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        LibraryRepository = _scope.ServiceProvider.GetRequiredService<IRepository<Library, Guid>>();
+
+        LibraryReadService = _scope.ServiceProvider.GetRequiredService<ILibraryReadService>();
+
+        // Clear all data from the database
+        Context.Libraries.RemoveRange(Context.Libraries);
+        Context.SaveChanges();
+    }
+
+}
+
+public class UserIntegrationTest : BaseIntegrationTest
+{
+    protected IRepository<User, Guid> UserRepository { get; }
+
+    protected IUserReadService UserReadService { get; }
+
+
+    public UserIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        UserRepository = _scope.ServiceProvider.GetRequiredService<IRepository<User, Guid>>();
+
+        UserReadService = _scope.ServiceProvider.GetRequiredService<IUserReadService>();
+
+        // Clear all data from the database
+        Context.Users.RemoveRange(Context.Users);
+        Context.SaveChanges();
+    }
+
+}
+
+public class LibraryLocalStorageIntegrationTest : BaseIntegrationTest
+{
+    protected ILibraryLocalStorage LibraryLocalStorage { get; }
+
+
+    public LibraryLocalStorageIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        LibraryLocalStorage = _scope.ServiceProvider.GetRequiredService<ILibraryLocalStorage>();
+    }
+
 }

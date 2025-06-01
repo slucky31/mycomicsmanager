@@ -3,23 +3,22 @@ using Application.Libraries;
 using Application.Libraries.Delete;
 using Domain.Libraries;
 using Domain.Primitives;
-using MongoDB.Bson;
 using NSubstitute;
 
 namespace Application.UnitTests.Libraries;
 public class DeleteLibraryCommandTests
 {
-    private static readonly DeleteLibraryCommand Command = new(new ObjectId());
+    private static readonly DeleteLibraryCommand Command = new(Guid.CreateVersion7());
     private static readonly Library library = Library.Create("test");
 
     private readonly DeleteLibraryCommandHandler _handler;
-    private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
+    private readonly IRepository<Library, Guid> _librayRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryLocalStorage _libraryLocalStorageMock;
 
     public DeleteLibraryCommandTests()
     {
-        _librayRepositoryMock = Substitute.For<IRepository<Library, ObjectId>>();
+        _librayRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
 

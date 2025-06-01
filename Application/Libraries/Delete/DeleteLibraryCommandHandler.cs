@@ -2,11 +2,10 @@
 using Application.Interfaces;
 using Domain.Libraries;
 using Domain.Primitives;
-using MongoDB.Bson;
 
 namespace Application.Libraries.Delete;
 
-public sealed class DeleteLibraryCommandHandler(IRepository<Library, ObjectId> librayRepository, IUnitOfWork unitOfWork, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<DeleteLibraryCommand>
+public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> librayRepository, IUnitOfWork unitOfWork, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<DeleteLibraryCommand>
 {
     public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {

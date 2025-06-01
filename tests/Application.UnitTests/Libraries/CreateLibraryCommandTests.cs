@@ -6,7 +6,6 @@ using Domain.Errors;
 using Domain.Libraries;
 using Domain.Primitives;
 using MockQueryable;
-using MongoDB.Bson;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Persistence.Queries.Helpers;
@@ -17,14 +16,14 @@ public class CreateLibraryCommandTests
     private static readonly CreateLibraryCommand Command = new("test-name");
 
     private readonly CreateLibraryCommandHandler _handler;
-    private readonly IRepository<Library, ObjectId> _libraryRepositoryMock;
+    private readonly IRepository<Library, Guid> _libraryRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryReadService _libraryReadServiceMock;
     private readonly ILibraryLocalStorage _libraryLocalStorageMock;
 
     public CreateLibraryCommandTests()
     {
-        _libraryRepositoryMock = Substitute.For<IRepository<Library, ObjectId>>();
+        _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryReadServiceMock = Substitute.For<ILibraryReadService>();
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
