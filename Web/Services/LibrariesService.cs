@@ -34,7 +34,12 @@ internal class LibrariesService : ILibrariesService
 
     public async Task<Result<Library>> GetById(string? id)
     {
-        var query = new GetLibraryQuery(Guid.CreateVersion7());
+        if (!Guid.TryParse(id, out var guidId))
+        {
+            return LibrariesError.ValidationError;
+        }
+
+        var query = new GetLibraryQuery(guidId);
 
         return await handler_GetLibraryQuery.Handle(query, CancellationToken.None);
     }
@@ -48,7 +53,12 @@ internal class LibrariesService : ILibrariesService
 
     public async Task<Result<Library>> Update(string? id, string? name)
     {
-        var command = new UpdateLibraryCommand(Guid.CreateVersion7(), name ?? "");
+        if (!Guid.TryParse(id, out var guidId))
+        {
+            return LibrariesError.ValidationError;
+        }
+
+        var command = new UpdateLibraryCommand(guidId, name ?? "");
 
         return await handler_UpdateLibraryCommand.Handle(command, CancellationToken.None);
     }
@@ -63,7 +73,12 @@ internal class LibrariesService : ILibrariesService
 
     public async Task<Result> Delete(string? id)
     {
-        var command = new DeleteLibraryCommand(Guid.CreateVersion7());
+        if (!Guid.TryParse(id, out var guidId))
+        {
+            return LibrariesError.ValidationError;
+        }
+
+        var command = new DeleteLibraryCommand(guidId);
 
         return await handler_DeleteLibraryCommand.Handle(command, CancellationToken.None);
     }

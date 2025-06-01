@@ -1,17 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Ardalis.GuardClauses;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using Serilog;
 
 namespace Persistence;
 public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        var environment = "Development"; // valeur par défaut
+        var environment = "Development";
 
-        // Récupérer l'argument --environment passé à dotnet ef
-        if (args != null && args.Length == 2 && args[0] == "--environment")
+        // Parse the --environment argument passed to dotnet ef
+        if (args != null && args.Length >= 2 && args[0] == "--environment")
         {
             environment = args[1];
         }
@@ -27,8 +27,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
             .Build();
 
         var connectionString = config.GetConnectionString("NeonConnection");
-
-        Log.Information("Using connection string: {ConnectionString}", connectionString);
+        Guard.Against.Null(connectionString);
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseNpgsql(connectionString);

@@ -27,16 +27,16 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             // Expand default config      
             conf.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.Development.json", optional: true);
-
-            conf.AddEnvironmentVariables();
+                .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddEnvironmentVariables();
 
             var _configuration = conf.Build();
 
             _connectionString = _configuration.GetConnectionString("NeonConnectionUnitTests") ?? String.Empty;
+            Guard.Against.NullOrEmpty(_connectionString);
         });
 
-        // Reconfigure the services to use the MongoDb with a new database name        
+        // Reconfigure the services to use the database with a new connection string       
         builder.ConfigureTestServices(services =>
         {
             var descriptor = services.SingleOrDefault(s => s.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
@@ -53,6 +53,14 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
                 )
                 .EnableDetailedErrors(true)
             );
+        });
+
+        builder.ConfigureTestServices(services =>
+        {
+            var provider = services.BuildServiceProvider();
+            using var scope = provider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.Database.EnsureCreated();  // ou db.Database.Migrate(); si vous voulez appliquer les migrations ??
         });
 
         // Reconfigure the service to use LocalStorage with a new root path as Temp directory

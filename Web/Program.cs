@@ -25,8 +25,8 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 // Get connection string from configuration
-var connetionString = configuration.GetConnectionString("NeonConnection");
-Guard.Against.Null(connetionString);
+var connectionString = configuration.GetConnectionString("NeonConnection");
+Guard.Against.Null(connectionString);
 
 // Config LocalStorage
 var localStorageSection = builder.Configuration.GetSection("LocalStorage");
@@ -36,7 +36,7 @@ Guard.Against.Null(localStorageConfig);
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure(connetionString, localStorageConfig.RootPath);
+    .AddInfrastructure(connectionString, localStorageConfig.RootPath);
 
 // Config Serilog
 builder.Host.UseSerilog((context, configuration) =>
@@ -66,7 +66,7 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services
     .AddHealthChecks()
     .AddApplicationStatus()
-    .AddNpgSql(connetionString);
+    .AddNpgSql(connectionString);
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
