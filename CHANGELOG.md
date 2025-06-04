@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.2.0"></a>
+## [9.2.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.0) (2025-06-04)
+
+### ✨ Features
+
+* Refactor codebase for PostgreSQL migration ([#839](https://www.github.com/slucky31/mycomicsmanager/issues/839)) ([6013a73](https://www.github.com/slucky31/mycomicsmanager/commit/6013a7365bcb3b19d7cb13a1dd0d0b890112a0ec))
+
+### Other
+
+* Update dotnet-core-publish.yml ([977bb3a](https://www.github.com/slucky31/mycomicsmanager/commit/977bb3ad2e0c9051b482ad6d95966a00a94ac5d1))
+
 <a name="9.1.0"></a>
 ## [9.1.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.1.0) (2025-05-25)
 
