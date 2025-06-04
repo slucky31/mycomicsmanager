@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Create;
 using Ardalis.GuardClauses;
@@ -6,7 +6,6 @@ using Domain.Errors;
 using Domain.Libraries;
 using Domain.Primitives;
 using MockQueryable;
-using MongoDB.Bson;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Persistence.Queries.Helpers;

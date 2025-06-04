@@ -5,25 +5,24 @@ using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
 using MockQueryable;
-using MongoDB.Bson;
 using NSubstitute;
 using Persistence.Queries.Helpers;
 
 namespace Application.UnitTests.Libraries;
 public class UpdateLibraryCommandTests
 {
-    private static readonly UpdateLibraryCommand Command = new(new ObjectId(), "library");
+    private static readonly UpdateLibraryCommand Command = new(Guid.CreateVersion7(), "library");
     private static readonly Library library = Library.Create("library");
 
     private readonly UpdateLibraryCommandHandler _handler;
-    private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
+    private readonly IRepository<Library, Guid> _librayRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryReadService _libraryReadServiceMock;
     private readonly ILibraryLocalStorage _libraryLocalStorage;
 
     public UpdateLibraryCommandTests()
     {
-        _librayRepositoryMock = Substitute.For<IRepository<Library, ObjectId>>();
+        _librayRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryReadServiceMock = Substitute.For<ILibraryReadService>();
         _libraryLocalStorage = Substitute.For<ILibraryLocalStorage>();

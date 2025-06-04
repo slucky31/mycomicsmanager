@@ -2,11 +2,10 @@
 using Application.Interfaces;
 using Domain.Libraries;
 using Domain.Primitives;
-using MongoDB.Bson;
 
 namespace Application.Libraries.GetById;
 
-public sealed class GetLibraryQueryHandler(IRepository<Library, ObjectId> librayRepository) : IQueryHandler<GetLibraryQuery, Library>
+public sealed class GetLibraryQueryHandler(IRepository<Library, Guid> librayRepository) : IQueryHandler<GetLibraryQuery, Library>
 {
     public async Task<Result<Library>> Handle(GetLibraryQuery request, CancellationToken cancellationToken)
     {

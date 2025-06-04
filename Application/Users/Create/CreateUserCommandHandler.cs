@@ -2,14 +2,18 @@
 using Application.Interfaces;
 using Domain.Primitives;
 using Domain.Users;
-using MongoDB.Bson;
 
 namespace Application.Users.Create;
 
-internal sealed class CreateUserCommandHandler(IRepository<User, ObjectId> userRepository, IUnitOfWork unitOfWork, IUserReadService userReadService) : ICommandHandler<CreateUserCommand, User>
+public sealed class CreateUserCommandHandler(IRepository<User, Guid> userRepository, IUnitOfWork unitOfWork, IUserReadService userReadService) : ICommandHandler<CreateUserCommand, User>
 {
     public async Task<Result<User>> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
+        if (command is null)
+        {
+            return UsersError.BadRequest;
+        }
+
         // Check if parameter are not null or empty
         if (string.IsNullOrEmpty(command.email) || string.IsNullOrEmpty(command.authId))
         {

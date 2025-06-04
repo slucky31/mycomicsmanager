@@ -7,7 +7,6 @@ using Application.Libraries.List;
 using Application.Libraries.Update;
 using Domain.Libraries;
 using Domain.Primitives;
-using MongoDB.Bson;
 
 namespace Web.Services;
 
@@ -35,7 +34,12 @@ internal class LibrariesService : ILibrariesService
 
     public async Task<Result<Library>> GetById(string? id)
     {
-        var query = new GetLibraryQuery(new ObjectId(id));
+        if (!Guid.TryParse(id, out var guidId))
+        {
+            return LibrariesError.ValidationError;
+        }
+
+        var query = new GetLibraryQuery(guidId);
 
         return await handler_GetLibraryQuery.Handle(query, CancellationToken.None);
     }
@@ -49,7 +53,12 @@ internal class LibrariesService : ILibrariesService
 
     public async Task<Result<Library>> Update(string? id, string? name)
     {
-        var command = new UpdateLibraryCommand(new ObjectId(id), name ?? "");
+        if (!Guid.TryParse(id, out var guidId))
+        {
+            return LibrariesError.ValidationError;
+        }
+
+        var command = new UpdateLibraryCommand(guidId, name ?? "");
 
         return await handler_UpdateLibraryCommand.Handle(command, CancellationToken.None);
     }
@@ -64,7 +73,12 @@ internal class LibrariesService : ILibrariesService
 
     public async Task<Result> Delete(string? id)
     {
-        var command = new DeleteLibraryCommand(new ObjectId(id));
+        if (!Guid.TryParse(id, out var guidId))
+        {
+            return LibrariesError.ValidationError;
+        }
+
+        var command = new DeleteLibraryCommand(guidId);
 
         return await handler_DeleteLibraryCommand.Handle(command, CancellationToken.None);
     }
