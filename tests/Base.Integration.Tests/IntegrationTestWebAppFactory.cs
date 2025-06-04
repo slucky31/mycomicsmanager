@@ -27,8 +27,10 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             // Expand default config      
             conf.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.Development.json", optional: true)
-                .AddEnvironmentVariables();
+                .AddJsonFile("appsettings.Development.json", optional: true);
+
+            // Add environment variables to override the parameters 
+            conf.AddEnvironmentVariables();
 
             var _configuration = conf.Build();
 
