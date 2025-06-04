@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.2.2"></a>
+## [9.2.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.2) (2025-06-04)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency microsoft.net.test.sdk to 17.14.1 ([#840](https://www.github.com/slucky31/mycomicsmanager/issues/840)) ([ac4a641](https://www.github.com/slucky31/mycomicsmanager/commit/ac4a64174919806539324b1e5f5872f815aa4caf))
+
 <a name="9.2.1"></a>
 ## [9.2.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.1) (2025-06-04)
 
