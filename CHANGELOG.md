@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.2.1"></a>
+## [9.2.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.1) (2025-06-04)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency scrutor to 6.1.0 ([#841](https://www.github.com/slucky31/mycomicsmanager/issues/841)) ([04fd0fe](https://www.github.com/slucky31/mycomicsmanager/commit/04fd0feac5805132bf0f64eb550f9f272c28a5a4))
+
 <a name="9.2.0"></a>
 ## [9.2.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.0) (2025-06-04)
 
