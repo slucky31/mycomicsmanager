@@ -25,7 +25,7 @@ RUN apt-get update \
     && wget https://download.newrelic.com/548C16BF.gpg \
     && apt-key add 548C16BF.gpg \
     && apt-get update \
-    && apt-get install -y --no-install-recommends 'newrelic-dotnet-agent=10.29.0' \
+    && apt-get install -y --no-install-recommends 'newrelic-dotnet-agent' \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -34,3 +34,4 @@ WORKDIR /app
 COPY --from=build /app .
 USER $APP_UID
 ENTRYPOINT ["./Web"]
+
