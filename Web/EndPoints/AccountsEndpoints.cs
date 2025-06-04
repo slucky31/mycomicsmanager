@@ -8,7 +8,7 @@ namespace Web.EndPoints;
 
 internal static class AccountsEndpoints
 {
-    public static void RegisterAccountEndpoints(this WebApplication app)
+    internal static void RegisterAccountEndpoints(this WebApplication app)
     {
         app.MapGet("/Account/Login", async (HttpContext httpContext, string redirectUri = "/") =>
         {
