@@ -5,7 +5,8 @@ using Domain.Users;
 
 namespace Persistence.Tests.Integration.Repositories;
 
-public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+[Collection("User")]
+public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory) : UserIntegrationTest(factory)
 {
     [Fact]
     public async Task Add_ShouldAddUsr()

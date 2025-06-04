@@ -1,13 +1,10 @@
 ﻿using Application;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
-using Carter;
 using HealthChecks.ApplicationStatus.DependencyInjection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
 using MudBlazor;
 using MudBlazor.Services;
 using Persistence;
@@ -15,6 +12,7 @@ using Serilog;
 using Web;
 using Web.Components;
 using Web.Configuration;
+using Web.EndPoints;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,13 +24,9 @@ var configuration = builder.Configuration;
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-// Config API
-builder.Services.AddCarter();
-
-// Config MongoDb
-builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(nameof(MongoDbOptions)));
-var optionsMongoDb = builder.Configuration.GetSection(nameof(MongoDbOptions)).Get<MongoDbOptions>();
-Guard.Against.Null(optionsMongoDb);
+// Get connection string from configuration
+var connectionString = configuration.GetConnectionString("NeonConnection");
+Guard.Against.Null(connectionString);
 
 // Config LocalStorage
 var localStorageSection = builder.Configuration.GetSection("LocalStorage");
@@ -42,7 +36,7 @@ Guard.Against.Null(localStorageConfig);
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure(optionsMongoDb.ConnectionString, optionsMongoDb.DatabaseName, localStorageConfig.RootPath);
+    .AddInfrastructure(connectionString, localStorageConfig.RootPath);
 
 // Config Serilog
 builder.Host.UseSerilog((context, configuration) =>
@@ -51,32 +45,28 @@ builder.Host.UseSerilog((context, configuration) =>
 // Config Auth0
 var config = configuration.GetSection("Auth0");
 builder.Services.Configure<Auth0Configuration>(config);
-builder.Services.AddSingleton<IAuth0Configuration>(sp => sp.GetRequiredService<IOptions<Auth0Configuration>>().Value);
 var auth0Config = config.Get<Auth0Configuration>();
 Guard.Against.Null(auth0Config);
 
 // Register CustomAuthenticationStateProvider
+builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
-// Add services to the container.
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-
 // Add Auth0 services
-builder.Services
-    .AddAuth0WebAppAuthentication(options =>
+builder.Services.AddAuth0WebAppAuthentication(options =>
     {
         options.Domain = auth0Config.Domain;
         options.ClientId = auth0Config.ClientId;
     });
 
-builder.Services.AddAuthorization();
+// Add services to the container.
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 // Config HealthChecks
 builder.Services
-    .AddSingleton(sp => new MongoClient(optionsMongoDb.ConnectionString))
     .AddHealthChecks()
     .AddApplicationStatus()
-    .AddMongoDb();
+    .AddNpgSql(connectionString);
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
@@ -108,8 +98,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseAuthentication();
 app.UseRouting();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseStaticFiles();
@@ -117,7 +108,8 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-app.MapCarter();
+// Register Accounts Endpoints for Auth0 login/logout
+app.RegisterAccountEndpoints();
 
 app.MapHealthChecks("health", new HealthCheckOptions
 {

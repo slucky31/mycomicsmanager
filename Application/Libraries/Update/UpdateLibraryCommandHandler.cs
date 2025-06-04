@@ -3,11 +3,10 @@ using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
-using MongoDB.Bson;
 
 namespace Application.Libraries.Update;
 
-public sealed class UpdateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<UpdateLibraryCommand, Library>
+public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<UpdateLibraryCommand, Library>
 {
     public async Task<Result<Library>> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
     {

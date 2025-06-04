@@ -5,7 +5,8 @@ using Domain.Libraries;
 
 namespace Persistence.Tests;
 
-public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+[Collection("Library")]
+public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]
     public async Task Savechanges_Create()

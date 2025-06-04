@@ -18,19 +18,9 @@ RUN dotnet publish "./Web/Web.csproj" -a $TARGETARCH -o /app
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0.5-noble
 
-# Install the agent
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget ca-certificates gnupg \
-    && echo 'deb http://apt.newrelic.com/debian/ newrelic non-free' | tee /etc/apt/sources.list.d/newrelic.list \
-    && wget https://download.newrelic.com/548C16BF.gpg \
-    && apt-key add 548C16BF.gpg \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends 'newrelic-dotnet-agent=10.29.0' \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 EXPOSE 8080
 WORKDIR /app
 COPY --from=build /app .
 USER $APP_UID
 ENTRYPOINT ["./Web"]
+

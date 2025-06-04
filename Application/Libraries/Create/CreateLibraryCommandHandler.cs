@@ -3,11 +3,10 @@ using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
-using MongoDB.Bson;
 
 namespace Application.Libraries.Create;
 
-public sealed class CreateLibraryCommandHandler(IRepository<Library, ObjectId> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<CreateLibraryCommand, Library>
+public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<CreateLibraryCommand, Library>
 {
     public async Task<Result<Library>> Handle(CreateLibraryCommand request, CancellationToken cancellationToken)
     {

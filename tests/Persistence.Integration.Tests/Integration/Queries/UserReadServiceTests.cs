@@ -4,7 +4,9 @@ using Domain.Primitives;
 using Domain.Users;
 
 namespace Persistence.Tests.Integration.Queries;
-public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+
+[Collection("User")]
+public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIntegrationTest(factory)
 {
     private readonly User usr1 = User.Create("usr1@test.com", "1");
     private readonly User usr2 = User.Create("usr2@test.com", "2");
@@ -23,7 +25,6 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
         UserRepository.Add(usr4);
         UserRepository.Add(usr5);
 
-
         users.Clear();
         users.Add(usr1);
         users.Add(usr2);
@@ -41,7 +42,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync(null, null, null, 1, 2);
+        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, SortOrder.Ascending, 1, 2);
 
         //Assert
         pagedList.Should().NotBeNull();

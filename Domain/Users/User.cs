@@ -1,8 +1,7 @@
 ﻿using Domain.Primitives;
-using MongoDB.Bson;
 
 namespace Domain.Users;
-public class User : Entity<ObjectId>
+public class User : Entity<Guid>
 {
 
     public string Email { get; protected set; } = String.Empty;
@@ -13,7 +12,7 @@ public class User : Entity<ObjectId>
     {
         var user = new User
         {
-            Id = ObjectId.GenerateNewId(),
+            Id = Guid.CreateVersion7(),
             Email = email,
             AuthId = authId
         };

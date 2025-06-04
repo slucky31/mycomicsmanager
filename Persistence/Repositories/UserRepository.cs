@@ -2,12 +2,11 @@
 using Ardalis.GuardClauses;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
-using MongoDB.Bson;
 
 namespace Persistence.Repositories;
-public class UserRepository(ApplicationDbContext dbContext) : IRepository<User, ObjectId>
+public class UserRepository(ApplicationDbContext dbContext) : IRepository<User, Guid>
 {
-    public async Task<User?> GetByIdAsync(ObjectId id)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
         Guard.Against.Null(id);
         return await dbContext.Set<User>().SingleOrDefaultAsync(p => p.Id == id);

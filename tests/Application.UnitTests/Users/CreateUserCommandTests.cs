@@ -2,7 +2,6 @@
 using Application.Users;
 using Application.Users.Create;
 using Domain.Users;
-using MongoDB.Bson;
 using NSubstitute;
 
 namespace Application.UnitTests.Users;
@@ -11,14 +10,14 @@ public class CreateUserCommandHandlerTests
 {
     private static readonly CreateUserCommand Command = new("test@test.com", "1234");
 
-    private readonly IRepository<User, ObjectId> _userRepositoryMock;
+    private readonly IRepository<User, Guid> _userRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly IUserReadService _userReadServiceMock;
     private readonly CreateUserCommandHandler _handler;
 
     public CreateUserCommandHandlerTests()
     {
-        _userRepositoryMock = Substitute.For<IRepository<User, ObjectId>>();
+        _userRepositoryMock = Substitute.For<IRepository<User, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _userReadServiceMock = Substitute.For<IUserReadService>();
 

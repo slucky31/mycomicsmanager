@@ -4,15 +4,17 @@ using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Persistence.Tests.Integration.Queries;
-public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+
+[Collection("Library")]
+public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
-    private readonly Library lib1 = Library.Create("Bande dessinées");
-    private readonly Library lib2 = Library.Create("comics");
-    private readonly Library lib3 = Library.Create("manga");
-    private readonly Library lib4 = Library.Create("manhwa");
-    private readonly Library lib5 = Library.Create("webcomics");
-    private readonly Library lib6 = Library.Create("graphics novels");
-    private readonly Library lib7 = Library.Create("comics strips");
+    private readonly Library lib1 = Library.Create("1-Bande dessinées");
+    private readonly Library lib2 = Library.Create("2-comics");
+    private readonly Library lib3 = Library.Create("3-manga");
+    private readonly Library lib4 = Library.Create("4-manhwa");
+    private readonly Library lib5 = Library.Create("5-webcomics");
+    private readonly Library lib6 = Library.Create("6-graphics novels");
+    private readonly Library lib7 = Library.Create("7-comics strips");
     private readonly List<Library> libs = [];
 
     private async Task CreateLibraries()
@@ -45,7 +47,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Bas
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 2);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Ascending, 1, 2);
 
         //Assert
         pagedList.Should().NotBeNull();

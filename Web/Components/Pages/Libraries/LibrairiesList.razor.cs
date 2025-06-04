@@ -2,7 +2,6 @@
 using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
-using MongoDB.Bson;
 using MudBlazor;
 using Web.Services;
 
@@ -45,7 +44,7 @@ public partial class LibrairiesList
         return new TableData<Library> { TotalItems = 0, Items = new List<Library>() };
     }
 
-    private async Task OnClickDelete(ObjectId id)
+    private async Task OnClickDelete(Guid id)
     {
         var result = await LibrariesService.Delete(id.ToString());
         Guard.Against.Null(result);
@@ -65,7 +64,7 @@ public partial class LibrairiesList
         }
     }
 
-    private void OnClickEdit(ObjectId id)
+    private void OnClickEdit(Guid id)
     {
         MyNavigationManager.NavigateTo($"/libraries/update/{id}");
     }

@@ -1,10 +1,9 @@
 ﻿using Domain.Extensions;
 using Domain.Primitives;
-using MongoDB.Bson;
 
 namespace Domain.Libraries;
 
-public class Library : Entity<ObjectId>
+public class Library : Entity<Guid>
 {
 
     public string Name { get; protected set; } = String.Empty;
@@ -15,7 +14,7 @@ public class Library : Entity<ObjectId>
     {
         var library = new Library
         {
-            Id = ObjectId.GenerateNewId(),
+            Id = Guid.CreateVersion7(),
             Name = name,
         };
         return library;
