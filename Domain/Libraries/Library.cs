@@ -8,7 +8,9 @@ public class Library : Entity<Guid>
 
     public string Name { get; protected set; } = String.Empty;
 
-    public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
+#pragma warning disable CA1308 // Normalize strings to uppercase
+    public string RelativePath => Name.RemoveDiacritics().ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
     public static Library Create(string name)
     {

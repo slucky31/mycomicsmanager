@@ -8,7 +8,6 @@ namespace Application.Libraries.Create;
 
 public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<CreateLibraryCommand, Library>
 {
-
     public async Task<Result<Library>> Handle(CreateLibraryCommand request, CancellationToken cancellationToken)
     {
         Guard.Against.Null(request);
@@ -27,26 +26,15 @@ public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libra
             return LibrariesError.Duplicate;
         }
 
-
-
         // Create Library
-
         var library = Library.Create(request.Name);
 
-
-
         // Create the directory for the library
-
         var result = libraryLocalStorage.Create(library.RelativePath);
-
         if (result.IsFailure)
-
         {
-
             return LibrariesError.FolderNotCreated;
-
         }
-
 
         libraryRepository.Add(library);
         await unitOfWork.SaveChangesAsync(cancellationToken);

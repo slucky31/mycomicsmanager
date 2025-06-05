@@ -8,7 +8,6 @@ namespace Application.Libraries.Update;
 
 public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<UpdateLibraryCommand, Library>
 {
-
     public async Task<Result<Library>> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
     {
         if (request is null)
@@ -31,22 +30,14 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             return LibrariesError.Duplicate;
         }
 
-
-
         var originPath = library.RelativePath;
 
         library.Update(request.Name);
 
-
-
         var result = libraryLocalStorage.Move(originPath, library.RelativePath);
-
         if (result.IsFailure)
-
         {
-
             return LibrariesError.FolderNotMoved;
-
         }
 
         libraryRepository.Update(library);

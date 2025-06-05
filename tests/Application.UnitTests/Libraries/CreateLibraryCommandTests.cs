@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Create;
 using Ardalis.GuardClauses;
@@ -16,31 +16,26 @@ public class CreateLibraryCommandTests
     private static readonly CreateLibraryCommand Command = new("test-name");
 
     private readonly CreateLibraryCommandHandler _handler;
-    private readonly IRepository<Library, ObjectId> _librayRepositoryMock;
+    private readonly IRepository<Library, Guid> _libraryRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
-
     private readonly ILibraryReadService _libraryReadServiceMock;
-
     private readonly ILibraryLocalStorage _libraryLocalStorageMock;
 
     public CreateLibraryCommandTests()
     {
-        _librayRepositoryMock = Substitute.For<IRepository<Library, ObjectId>>();
+        _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
-
         _libraryReadServiceMock = Substitute.For<ILibraryReadService>();
-
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
 
-        _handler = new CreateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorageMock);
+        _handler = new CreateLibraryCommandHandler(_libraryRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorageMock);
     }
 
     [Fact]
     public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
-        _librayRepositoryMock.Add(Arg.Any<Library>());
-
+        _libraryRepositoryMock.Add(Arg.Any<Library>());
         _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(Result.Success());
 
         // Act
@@ -50,7 +45,7 @@ public class CreateLibraryCommandTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Name.Should().Be(Command.Name);
-        _librayRepositoryMock.Received(1).Add(Arg.Any<Library>());
+        _libraryRepositoryMock.Received(1).Add(Arg.Any<Library>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
     }
 
@@ -58,8 +53,7 @@ public class CreateLibraryCommandTests
     public async Task Handle_Should_ExecuteSaveChangeAsyncOnce()
     {
         // Arrange
-        _librayRepositoryMock.Add(Arg.Any<Library>());
-
+        _libraryRepositoryMock.Add(Arg.Any<Library>());
         _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(Result.Success());
 
         // Act
@@ -73,25 +67,21 @@ public class CreateLibraryCommandTests
     public async Task Handle_ShouldReturnBadREquest_WhenCommandNameIsEmpty()
     {
         // Arrange
-        _librayRepositoryMock.Add(Arg.Any<Library>());
-
-        _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(Result.Success());
+        var emptyCommand = new CreateLibraryCommand(string.Empty);
 
         // Act
-        await _handler.Handle(Command, default);
+        var result = await _handler.Handle(emptyCommand, default);
 
         // Assert
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.BadRequest);
     }
-
-
 
     [Fact]
     public async Task Handle_ShouldReturnFolderNotCreated_WhenFolderNotCreated()
     {
         // Arrange
-        _librayRepositoryMock.Add(Arg.Any<Library>());
-
+        _libraryRepositoryMock.Add(Arg.Any<Library>());
         _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(LibraryLocalStorageError.ArgumentNullOrEmpty);
 
         // Act
@@ -99,7 +89,6 @@ public class CreateLibraryCommandTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-
         result.Error.Should().Be(LibrariesError.FolderNotCreated);
     }
 
