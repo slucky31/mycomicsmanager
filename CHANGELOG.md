@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.3.0"></a>
+## [9.3.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.3.0) (2025-06-06)
+
+### ✨ Features
+
+* LocalStorage ([#767](https://www.github.com/slucky31/mycomicsmanager/issues/767)) ([3cd2e11](https://www.github.com/slucky31/mycomicsmanager/commit/3cd2e11e397c27d8e185f1c1aded29e30aad4a11))
+
 <a name="9.2.3"></a>
 ## [9.2.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.3) (2025-06-04)
 
