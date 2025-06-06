@@ -1,4 +1,4 @@
-﻿using Domain.Primitives;
+using Domain.Primitives;
 
 namespace Application.Libraries;
 public interface ILibraryLocalStorage
