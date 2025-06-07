@@ -1,5 +1,6 @@
 ﻿@layout LoginLayout
 @page "/"
+@using System.Security.Cryptography
 @inject NavigationManager Navigation
 
 <style>
@@ -182,23 +183,20 @@
 </div>
 
 @code {
-    private string[] Images;
-    private string SelectedImage;
+    private string[] ? Images;
+    private string ? SelectedImage;
 
     protected override void OnInitialized()
     {
             
         Images = GetBackgroundImages();
-        var rng = new Random();
-        if (Images.Length > 0)
-        {
-            SelectedImage = Images[rng.Next(Images.Length)];
-        }
-        else
+        if (Images == null || Images.Length == 0)
         {
             SelectedImage = string.Empty;
+            return;
         }
-                
+
+        SelectedImage = Images[RandomNumberGenerator.GetInt32(Images.Length)];
     }
 
     private string[] GetBackgroundImages()
