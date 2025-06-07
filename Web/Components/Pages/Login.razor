@@ -1,4 +1,162 @@
 ﻿@layout LoginLayout
 @page "/"
+@using System.Security.Cryptography
+@inject NavigationManager Navigation
 
-<LoginContent />
+<style>
+    .landing-background {
+        min-height: 100vh;
+        width: 100vw;
+        background-size: cover;
+        background-position: center;
+        position: fixed;
+        top: 0; left: 0;
+        z-index: -1;
+    }
+
+    .fixed-login-column {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: 375px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(20,20,20,0.65);
+        z-index: 10;
+        box-shadow: -4px 0 32px 0 rgba(0,0,0,0.18);
+    }
+
+    .logo-square img {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 1rem;
+    }
+
+    .app-title {
+        font-size: 2.5rem;
+        font-weight: 400;
+        color: #fff;
+        letter-spacing: 0.01em;
+        font-family: 'Segoe UI', 'Arial', sans-serif;
+        margin-bottom: 1rem;
+    }
+
+    .subtitle {
+        font-size: 1.15rem;
+        color: #e0e0e0;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-family: 'Segoe UI', 'Arial', sans-serif;
+    }
+
+    .sign-in-btn {
+        width: 95%;
+        font-size: 1.25rem;
+        font-weight: 500;
+        color: #fff;
+        background: linear-gradient(90deg, #4f8cff 0%, #a259ff 100%);
+        border: none;
+        border-radius: 1rem;
+        cursor: pointer;
+        transition: filter 0.15s;
+        box-shadow: 0 2px 8px 0 rgba(80,80,80,0.10);
+    }
+
+    .sign-in-btn:hover {
+        filter: brightness(1.08);
+    }
+
+    .copyright {
+        position: absolute;
+        bottom: 24px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: #bbb;
+        font-size: 1rem;        
+    }
+
+</style>
+
+<div class="landing-background" style="background-image: url('/@_selectedImage');"></div>
+<div class="fixed-login-column" >
+            
+    <div class="logo-square" >
+        <img src="logo.png" alt="Logo MyComicsMaanger" />
+    </div>
+
+    <span class="app-title">MyComicsManager</span>
+    <span class="subtitle">Access your digital comic library</span>
+
+    <MudButton 
+        Class="sign-in-btn"
+        Href="/Account/Login?redirectUri=/home"
+        EndIcon="@Icons.Material.Filled.Login"
+        Size="Size.Medium">
+        Login
+    </MudButton>
+    
+    <span class="copyright">© ndt.ovh</span>   
+</div>
+
+@code {
+
+    private static readonly Lazy<string[]> _backgroundImages = new(() => LoadBackgroundImages());
+    private string? _selectedImage;
+    const int MaxFiles = 10;
+
+    protected override void OnInitialized()
+    {            
+        var images = _backgroundImages.Value;
+        if (images.Length == 0)
+        {
+            _selectedImage = string.Empty;
+            return;
+        }
+
+        _selectedImage = images[RandomNumberGenerator.GetInt32(images.Length)];
+    }
+
+    private static string[] LoadBackgroundImages()
+    {
+        try
+        {
+            var backgroundDir = Path.Combine(Environment.CurrentDirectory, "wwwroot", "background");
+            if (Directory.Exists(backgroundDir))
+            {
+                return Directory
+                    .EnumerateFiles(backgroundDir, "*.*", SearchOption.TopDirectoryOnly)
+                    .Take(MaxFiles)
+                    .Where(f => IsValidImageFile(f))
+                    .Select(f => $"background/{SanitizeFileName(Path.GetFileName(f))}")
+                    .ToArray();
+            }
+        }
+        catch (Exception ex)
+        {           
+            Console.WriteLine($"Error loading background images: {ex.Message}");            
+        }
+
+        return Array.Empty<string>();
+    }
+
+    private static bool IsValidImageFile(string filePath)
+    {
+        var extension = Path.GetExtension(filePath);
+            return  extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                    extension.Equals(".webp", StringComparison.OrdinalIgnoreCase) ||
+                    extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                    extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string SanitizeFileName(string fileName)
+    {
+        // Remove any potentially dangerous characters
+        var sanitized = Path.GetFileName(fileName);
+        return Uri.EscapeDataString(sanitized);
+    }
+        
+}
