@@ -21,6 +21,7 @@
         height: 100vh;
         width: 375px;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         background: rgba(20,20,20,0.65);
@@ -28,15 +29,10 @@
         box-shadow: -4px 0 32px 0 rgba(0,0,0,0.18);
     }
 
-    .logo-row {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-
     .logo-square img {
         width: 100px;
         height: 100px;
+        margin-bottom: 1rem;
     }
 
     .app-title {
@@ -45,15 +41,7 @@
         color: #fff;
         letter-spacing: 0.01em;
         font-family: 'Segoe UI', 'Arial', sans-serif;
-    }
-
-    .welcome-title {
-        font-size: 2.2rem;
-        font-weight: 400;
-        color: #fff;
-        margin-bottom: 0.5rem;
-        text-align: center;
-        font-family: 'Segoe UI', 'Arial', sans-serif;
+        margin-bottom: 1rem;
     }
 
     .subtitle {
@@ -65,8 +53,7 @@
     }
 
     .sign-in-btn {
-        width: 100%;
-        padding: 0.9rem 0;
+        width: 95%;
         font-size: 1.25rem;
         font-weight: 500;
         color: #fff;
@@ -81,65 +68,95 @@
     .sign-in-btn:hover {
         filter: brightness(1.08);
     }
+
+    .copyright {
+        position: absolute;
+        bottom: 24px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: #bbb;
+        font-size: 1rem;        
+    }
+
 </style>
 
-<div class="landing-background" style="background-image: url('/@SelectedImage');" />
-<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh; width: 100vw; position: fixed; top: 0; left: 0;">
-    <div class="landing-background" style="background-image: url('/@SelectedImage');"></div>
-    <div class="fixed-login-column" >
-        <div>
-            <div class="logo-row">            
-                <div class="logo-row" style="flex-direction: column;">
-                    <div class="logo-square" style="margin-bottom: 1rem;">
-                        <img src="logo.png" alt="Logo" />
-                    </div>
-                    <span class="app-title">MyComicsManager</span>
-                    <span class="subtitle">Access your digital comic library</span>
-                </div>
-            </div>
-            <MudButton class="sign-in-btn" Href="/Account/Login?redirectUri=/home" EndIcon="@Icons.Material.Filled.Login" Size="Size.Medium" >Login</MudButton>
-            <div style="position: absolute; bottom: 24px; left: 0; width: 100%; text-align: center;">
-                <span style="color: #bbb; font-size: 1rem;">© ndt.ovh</span>
-            </div>
-        </div>
+<div class="landing-background" style="background-image: url('/@_selectedImage');"></div>
+<div class="fixed-login-column" >
+            
+    <div class="logo-square" >
+        <img src="logo.png" alt="Logo MyComicsMaanger" />
     </div>
+
+    <span class="app-title">MyComicsManager</span>
+    <span class="subtitle">Access your digital comic library</span>
+
+    <MudButton 
+        Class="sign-in-btn"
+        Href="/Account/Login?redirectUri=/home"
+        EndIcon="@Icons.Material.Filled.Login"
+        Size="Size.Medium">
+        Login
+    </MudButton>
+    
+    <span class="copyright">© ndt.ovh</span>   
 </div>
 
 @code {
-    private string[] ? Images;
-    private string ? SelectedImage;
+
+    private static readonly Lazy<string[]> _backgroundImages = new(() => LoadBackgroundImages());
+    private string? _selectedImage;
+    const int MaxFiles = 10;
 
     protected override void OnInitialized()
-    {
-            
-        Images = GetBackgroundImages();
-        if (Images == null || Images.Length == 0)
+    {            
+        var images = _backgroundImages.Value;
+        if (images.Length == 0)
         {
-            SelectedImage = string.Empty;
+            _selectedImage = string.Empty;
             return;
         }
 
-        SelectedImage = Images[RandomNumberGenerator.GetInt32(Images.Length)];
+        _selectedImage = images[RandomNumberGenerator.GetInt32(images.Length)];
     }
 
-    private string[] GetBackgroundImages()
+    private static string[] LoadBackgroundImages()
     {
-        var backgroundDir = Path.Combine(Environment.CurrentDirectory, "wwwroot", "background");
-        if (Directory.Exists(backgroundDir))
+        try
         {
-            return Directory
-                .EnumerateFiles(backgroundDir, "*.*", SearchOption.TopDirectoryOnly)
-                .Where(f =>
-                    f.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
-                    f.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
-                    f.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase))
-                .Select(f => $"background/{Path.GetFileName(f)}")
-                .ToArray();
+            var backgroundDir = Path.Combine(Environment.CurrentDirectory, "wwwroot", "background");
+            if (Directory.Exists(backgroundDir))
+            {
+                return Directory
+                    .EnumerateFiles(backgroundDir, "*.*", SearchOption.TopDirectoryOnly)
+                    .Take(MaxFiles)
+                    .Where(f => IsValidImageFile(f))
+                    .Select(f => $"background/{SanitizeFileName(Path.GetFileName(f))}")
+                    .ToArray();
+            }
         }
-        else
-        {
-            return Array.Empty<string>();
+        catch (Exception ex)
+        {           
+            Console.WriteLine($"Error loading background images: {ex.Message}");            
         }
+
+        return Array.Empty<string>();
+    }
+
+    private static bool IsValidImageFile(string filePath)
+    {
+        var extension = Path.GetExtension(filePath);
+            return  extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                    extension.Equals(".webp", StringComparison.OrdinalIgnoreCase) ||
+                    extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                    extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string SanitizeFileName(string fileName)
+    {
+        // Remove any potentially dangerous characters
+        var sanitized = Path.GetFileName(fileName);
+        return Uri.EscapeDataString(sanitized);
     }
         
 }
