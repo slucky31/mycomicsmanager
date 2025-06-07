@@ -13,21 +13,21 @@
         top: 0; left: 0;
         z-index: -1;
     }
-    .centered-band {
-        background: rgba(20,20,20,0.65);
-        border-radius: 1.5rem;
-        padding: 2.5rem 2.5rem 2rem 2.5rem;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        min-width: 350px;
-        max-width: 480px;
+
+    .fixed-login-column {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: 375px;
         display: flex;
-        flex-direction: column;
         align-items: center;
-        box-shadow: 0 4px 32px 0 rgba(0,0,0,0.25);
+        justify-content: center;
+        background: rgba(20,20,20,0.65);
+        z-index: 10;
+        box-shadow: -4px 0 32px 0 rgba(0,0,0,0.18);
     }
+
     .logo-row {
         display: flex;
         align-items: center;
@@ -38,6 +38,7 @@
         width: 100px;
         height: 100px;
     }
+
     .app-title {
         font-size: 2.5rem;
         font-weight: 400;
@@ -45,6 +46,7 @@
         letter-spacing: 0.01em;
         font-family: 'Segoe UI', 'Arial', sans-serif;
     }
+
     .welcome-title {
         font-size: 2.2rem;
         font-weight: 400;
@@ -53,6 +55,7 @@
         text-align: center;
         font-family: 'Segoe UI', 'Arial', sans-serif;
     }
+
     .subtitle {
         font-size: 1.15rem;
         color: #e0e0e0;
@@ -60,6 +63,7 @@
         text-align: center;
         font-family: 'Segoe UI', 'Arial', sans-serif;
     }
+
     .sign-in-btn {
         width: 100%;
         padding: 0.9rem 0;
@@ -73,16 +77,17 @@
         transition: filter 0.15s;
         box-shadow: 0 2px 8px 0 rgba(80,80,80,0.10);
     }
+
     .sign-in-btn:hover {
         filter: brightness(1.08);
     }
 </style>
 
-<div class="landing-background" style="background-image: url('/@SelectedImage');"></div>
+<div class="landing-background" style="background-image: url('/@SelectedImage');" />
 <div class="d-flex justify-content-center align-items-center" style="min-height: 100vh; width: 100vw; position: fixed; top: 0; left: 0;">
     <div class="landing-background" style="background-image: url('/@SelectedImage');"></div>
-    <div class="fixed-login-column" style="width: 375px;">
-        <div class="centered-band">
+    <div class="fixed-login-column" >
+        <div>
             <div class="logo-row">            
                 <div class="logo-row" style="flex-direction: column;">
                     <div class="logo-square" style="margin-bottom: 1rem;">
@@ -92,94 +97,12 @@
                     <span class="subtitle">Access your digital comic library</span>
                 </div>
             </div>
-            
-            <button class="sign-in-btn" @onclick="Log">Sign In</button>
+            <MudButton class="sign-in-btn" Href="/Account/Login?redirectUri=/home" EndIcon="@Icons.Material.Filled.Login" Size="Size.Medium" >Login</MudButton>
+            <div style="position: absolute; bottom: 24px; left: 0; width: 100%; text-align: center;">
+                <span style="color: #bbb; font-size: 1rem;">© ndt.ovh</span>
+            </div>
         </div>
     </div>
-
-    <style>
-        .landing-background {
-            min-height: 100vh;
-            width: 100vw;
-            background-size: cover;
-            background-position: center;
-            position: fixed;
-            top: 0; left: 0;
-            z-index: -1;
-        }
-        .fixed-login-column {
-            position: fixed;
-            top: 0;
-            right: 0;
-            height: 100vh;
-            width: 420px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(20,20,20,0.65);
-            z-index: 10;
-            box-shadow: -4px 0 32px 0 rgba(0,0,0,0.18);
-        }
-        .centered-band {
-            background: transparent;
-            border-radius: 1.5rem;
-            padding: 2.5rem 2.5rem 2rem 2.5rem;
-            min-width: 350px;
-            max-width: 380px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: none;
-        }
-        .logo-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .logo-square img {
-            width: 100px;
-            height: 100px;
-        }
-        .app-title {
-            font-size: 2.5rem;
-            font-weight: 400;
-            color: #fff;
-            letter-spacing: 0.01em;
-            font-family: 'Segoe UI', 'Arial', sans-serif;
-        }
-        .welcome-title {
-            font-size: 2.2rem;
-            font-weight: 400;
-            color: #fff;
-            margin-bottom: 0.5rem;
-            text-align: center;
-            font-family: 'Segoe UI', 'Arial', sans-serif;
-        }
-        .subtitle {
-            font-size: 1.15rem;
-            color: #e0e0e0;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-family: 'Segoe UI', 'Arial', sans-serif;
-        }
-        .sign-in-btn {
-            width: 100%;
-            padding: 0.9rem 0;
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: #fff;
-            background: linear-gradient(90deg, #4f8cff 0%, #a259ff 100%);
-            border: none;
-            border-radius: 1rem;
-            cursor: pointer;
-            transition: filter 0.15s;
-            box-shadow: 0 2px 8px 0 rgba(80,80,80,0.10);
-        }
-        .sign-in-btn:hover {
-            filter: brightness(1.08);
-        }
-        
-    </style>
 </div>
 
 @code {
@@ -218,9 +141,5 @@
             return Array.Empty<string>();
         }
     }
-
-    private void Log()
-    {
-        Navigation.NavigateTo("authentication/login");
-    }          
+        
 }
