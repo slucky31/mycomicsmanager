@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.4.0"></a>
+## [9.4.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.4.0) (2025-06-07)
+
+### ✨ Features
+
+* Refactor login layout and enhance styling ([#847](https://www.github.com/slucky31/mycomicsmanager/issues/847)) ([45a1c84](https://www.github.com/slucky31/mycomicsmanager/commit/45a1c840817e0522d56633445b855db9706100cb))
+
 <a name="9.3.0"></a>
 ## [9.3.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.3.0) (2025-06-06)
 
