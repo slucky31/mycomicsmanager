@@ -1,5 +1,4 @@
 ﻿using Domain.Libraries;
-using FluentAssertions;
 using NetArchTest.Rules;
 
 namespace Architecture.Tests;
