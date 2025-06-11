@@ -1,0 +1,25 @@
+<style>
+    .navbar-title {
+        font-family: "Bangers", system-ui;
+        font-weight: 400;
+        font-style: normal;
+    }
+</style>
+
+
+<MudAppBar Elevation="0" Class="navbar-appbar" Style="background-color: #131B2C;">
+
+    <!-- Logo and Title -->    
+    <MudImage Src="logo.png" Alt="MyComicsMAanger Logo" Width="36" Height="36" Elevation="25" Class="rounded-lg mr-2" />
+    <MudText Typo="Typo.h5" Class="navbar-title">MyComicsManager</MudText>
+    <MudSpacer />
+    <MudButton Href="/libraries/list" StartIcon="@Icons.Material.Filled.CollectionsBookmark" >Libraries</MudButton>
+    <MudButton Href="/statistics" StartIcon="@Icons.Material.Filled.BarChart">Statistics</MudButton>
+    <MudButton Href="/import" StartIcon="@Icons.Material.Filled.Upload" >Import</MudButton>
+    <MudButton Href="/settings" StartIcon="@Icons.Material.Filled.Settings">Settings</MudButton>
+
+</MudAppBar>
+
+@code {
+    private string _searchText = string.Empty;
+}

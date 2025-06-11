@@ -1,0 +1,28 @@
+﻿<style>
+    .blue-left-border {
+        border-left: 4px solid #1976d2; /* Material Blue 700 */
+    }
+</style>
+
+<div class="ma-4" >
+
+    <div class="d-flex align-center justify-space-between">
+        <MudText Typo="Typo.h5"><strong>@Title</strong></MudText>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">@Action</MudButton>        
+    </div>
+
+    <div class="mt-4">
+        @ChildContent
+    </div>        
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public String? Title { get; set; }
+
+    [Parameter]
+    public String? Action { get; set; }
+}
