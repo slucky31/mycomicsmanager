@@ -1,0 +1,25 @@
+﻿<div class="ma-4" >
+
+    <div class="d-flex align-center">
+        @if (!string.IsNullOrWhiteSpace(Icon))
+        {
+            <MudIcon Class="mr-2" Icon="@Icon" />
+        }
+        <MudText Typo="Typo.h5"><strong>@Title</strong></MudText>              
+    </div>
+
+    <div class="mt-4">
+        @ChildContent
+    </div>        
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public String Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public String Icon { get; set; } = string.Empty;
+}

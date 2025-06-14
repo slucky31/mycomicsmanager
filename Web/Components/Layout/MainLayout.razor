@@ -1,58 +1,22 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
+<MudThemeProvider />
 <MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudDialogProvider FullWidth="true"
+                   MaxWidth="MaxWidth.ExtraExtraLarge"
+                   CloseButton="true"
+                   BackdropClick="false"
+                   NoHeader="false"
+                   Position="DialogPosition.Center"
+                   CloseOnEscapeKey="true"
+                   
+                    />
 
 <MudLayout>
-    <MudAppBar Elevation="1">
-        <MudText Typo="Typo.h5" Class="ml-3">MCM</MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Brightness4"
-                       Color="Color.Inherit"
-                       Class="nav-button"
-                       OnClick="@ThemeToggle" />
-        
-    </MudAppBar>
+    <NavBar />
     <MudMainContent>
         @Body
-    </MudMainContent>
+    </MudMainContent>    
 </MudLayout>
-
-
-
-@code {
-    
-    // Source : https://stackoverflow.com/questions/65801224/mudblazor-ui-library-colours
-    // Source : https://mudblazor.com/customization/overview#watch-system-preference
-    
-    private bool _isDarkMode;
-    private MudThemeProvider? _mudThemeProvider;
-
-    private readonly MudTheme mcmTheme = new MudTheme()
-    {
-        PaletteLight = new PaletteLight
-        {
-            Primary = Colors.Blue.Default,
-            Secondary = Colors.Green.Accent4,
-            AppbarBackground = Colors.Red.Default,
-            Background = Colors.Gray.Lighten1
-        },
-        PaletteDark = new PaletteDark
-        {
-            Primary = Colors.Blue.Lighten1
-        }
-    };
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && _mudThemeProvider is not null)
-        {
-            _isDarkMode = await _mudThemeProvider.GetSystemDarkModeAsync();
-            StateHasChanged();
-        }
-    }
-
-    // Toggles the dark mode state
-    void ThemeToggle() => _isDarkMode = !_isDarkMode;
-}
-
