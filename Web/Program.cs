@@ -1,4 +1,4 @@
-using Application;
+﻿using Application;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
 using HealthChecks.ApplicationStatus.DependencyInjection;
@@ -71,7 +71,7 @@ builder.Services
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
 {
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopRight;
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
     config.SnackbarConfiguration.PreventDuplicates = false;
     config.SnackbarConfiguration.NewestOnTop = false;
     config.SnackbarConfiguration.ShowCloseIcon = true;

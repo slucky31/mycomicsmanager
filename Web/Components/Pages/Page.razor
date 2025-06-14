@@ -1,7 +1,10 @@
 ﻿<div class="ma-4" >
 
     <div class="d-flex align-center">
-        <MudIcon Class="mr-2" Icon="@Icon" />
+        @if (!string.IsNullOrWhiteSpace(Icon))
+        {
+            <MudIcon Class="mr-2" Icon="@Icon" />
+        }
         <MudText Typo="Typo.h5"><strong>@Title</strong></MudText>              
     </div>
 

@@ -1,5 +1,5 @@
 ﻿@using Domain.Libraries
-@inject NavigationManager MyNavigationManager
+
 @rendermode InteractiveServer
 
 @page "/libraries/list"
@@ -10,100 +10,35 @@
     }
 </style>
 
-
-
-<Page Title="Libraries" Icon="@Icons.Material.Filled.CollectionsBookmark">
-    <MudGrid Spacing="3" Justify="Justify.FlexStart">
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Class="blue-left-border" Outlined="true">
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Lib1</MudText>
-                    </CardHeaderContent>
-                    <CardHeaderActions>
-                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Actions">
-                            <MudMenuItem Label="Edit" />
-                            <MudMenuItem Label="Delete" />
-                        </MudMenu>
-                    </CardHeaderActions>
-                </MudCardHeader>
-                <MudCardContent>
-                    <div class="d-flex">
-                        <MudText Class="ml-2" Typo="Typo.body2"><strong>Books : </strong></MudText>
-                        <MudText Class="ml-2" Typo="Typo.body2">180</MudText>
-                    </div>
-                    <div class="d-flex">
-                        <MudText Class="ml-2" Typo="Typo.body2"><strong>Path : </strong></MudText>
-                        <MudText Class="ml-2" Typo="Typo.body2">/mcm/libs/Lib1</MudText>
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
+<PageWithAction Title="Libraries" Icon="@Icons.Material.Filled.CollectionsBookmark" ActionName="New library" ActionIcon="@Icons.Material.Filled.Add" OnActionClick="@(e => CreateOrEdit(FormMode.Create, null))">
+    <MudGrid Spacing="4" Justify="Justify.FlexStart">
+        @foreach (var lib in Libraries)
+        {
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Class="blue-left-border" Outlined="true">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@lib.Name</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Actions">
+                                <MudMenuItem Label="Edit" OnClick="@(e => CreateOrEdit(FormMode.Edit, @lib))" />
+                                <MudMenuItem Label="Delete" OnClick="@(e => OnClickDelete(@lib.Id))" />
+                            </MudMenu>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <div class="d-flex">
+                            <MudText Class="ml-2" Typo="Typo.body2"><strong>Books : </strong></MudText>
+                            <MudText Class="ml-2" Typo="Typo.body2">???</MudText>
+                        </div>
+                        <div class="d-flex">
+                            <MudText Class="ml-2" Typo="Typo.body2"><strong>Path : </strong></MudText>
+                            <MudText Class="ml-2" Typo="Typo.body2">@lib.RelativePath</MudText>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
     </MudGrid>
-</Page>
-
-@*
-<MudStack Spacing="1" Class="mt-2">
-
-        <MudPaper class=" py-4 px-6 mx-4 rounded"  Elevation="0" >
-            <MudGrid Class="d-flex align-center">
-                <MudItem xs="12" sm="2">
-                    <MudText Typo="Typo.h5">Libraries</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="8">
-                    <div class="mud-background-gray rounded-xl">
-                        <style>
-                            .mcm-border-none > .mud-input-control-input-container > .mud-input.mud-input-outlined > .mud-input-outlined-border {
-                                border-style: none;
-                            }
-                        </style>
-                        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Clearable="true" class="rounded-xl mcm-border-none" Margin=" Margin.Dense" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
-                    </div>
-                </MudItem>
-                <MudItem xs="12" sm="2" Class="d-flex justify-end">
-                    <MudButton Href="/libraries/create" title="Create" class="rounded" StartIcon="@Icons.Material.Filled.AddCircleOutline" Color=Color.Primary Variant="Variant.Filled">Create</MudButton>
-                </MudItem>
-            </MudGrid>
-        </MudPaper>
-
-    <MudPaper class=" py-4 px-6 mx-4 rounded"  Elevation="0">
-        <style>
-            .mud-table-header {
-                background-color: #0078d2;
-            }
-
-            .mud-table-header .mud-table-cell {
-                color: white !important;
-            }
-        </style>
-        <MudPopoverProvider />
-        <MudTable @ref="table" class="mx-4 rounded" ServerData="OnReloadData" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.None" HeaderClass="mud-table-header">
-            <ColGroup>
-                <col style="width: 90%;" />
-                <col style="width: 10%;" />        
-            </ColGroup>
-            <HeaderContent>
-                <MudTh><MudTableSortLabel SortLabel="name_field" T="Library">Name</MudTableSortLabel></MudTh>
-                <MudTh>Actions</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Name">@context.Name</MudTd>
-                <MudTd DataLabel="Actions">
-                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" title="Edit" aria-label="Edit" OnClick="@(e => OnClickEdit(@context.Id))" />
-                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" title="Delete" aria-label="Delete" OnClick="@(e => OnClickDelete(@context.Id))" />
-                </MudTd>
-            </RowTemplate>
-            <NoRecordsContent>
-                <MudText>@Msg_NoRecordsFound</MudText>
-            </NoRecordsContent>
-            <LoadingContent>
-                <MudText>Loading...</MudText>
-            </LoadingContent>
-            <PagerContent>
-                <MudTablePager />
-            </PagerContent>
-        </MudTable>
-    </MudPaper>
-
-</MudStack>
-*@
+</PageWithAction>

@@ -7,8 +7,16 @@
 <div class="ma-4" >
 
     <div class="d-flex align-center justify-space-between">
-        <MudText Typo="Typo.h5"><strong>@Title</strong></MudText>
-        <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">@Action</MudButton>        
+        <div class="d-flex align-center">
+            <MudIcon Class="mr-2" Icon="@Icon" />
+            <MudText Typo="Typo.h5"><strong>@Title</strong></MudText>
+        </div>
+        <MudButton StartIcon="@ActionIcon"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="@OnActionClick">
+            @ActionName
+        </MudButton>        
     </div>
 
     <div class="mt-4">
@@ -21,8 +29,17 @@
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
-    public String? Title { get; set; }
+    public string? Title { get; set; }
 
     [Parameter]
-    public String? Action { get; set; }
+    public string? Icon { get; set; }
+
+    [Parameter]
+    public string? ActionName { get; set; }
+
+    [Parameter]
+    public string? ActionIcon { get; set; }
+
+    [Parameter]
+    public EventCallback OnActionClick { get; set; }
 }
