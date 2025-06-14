@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.5.0"></a>
+## [9.5.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.5.0) (2025-06-14)
+
+### ✨ Features
+
+* Replace FluentAssertions with AwesomeAssertions ([#849](https://www.github.com/slucky31/mycomicsmanager/issues/849)) ([11e8063](https://www.github.com/slucky31/mycomicsmanager/commit/11e8063863238d0bb4190fd9be286b65a5e1da3e))
+
+### Other
+
+* Merge remote-tracking branch 'origin/main' ([3501464](https://www.github.com/slucky31/mycomicsmanager/commit/3501464068048b69d9ad40c89c5400311853512b))
+* Replace FluentAssertions with AwesomeAssertions (#849) ([2f018e9](https://www.github.com/slucky31/mycomicsmanager/commit/2f018e9b33711d8565390bfb3414fb2bc8016ccf))
+
 <a name="9.4.1"></a>
 ## [9.4.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.4.1) (2025-06-09)
 
