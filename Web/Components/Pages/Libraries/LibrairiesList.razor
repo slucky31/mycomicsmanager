@@ -4,6 +4,45 @@
 
 @page "/libraries/list"
 
+<style>
+    .blue-left-border {
+        border-left: 4px solid #1976d2; /* Material Blue 700 */
+    }
+</style>
+
+
+
+<Page Title="Libraries" Icon="@Icons.Material.Filled.CollectionsBookmark">
+    <MudGrid Spacing="3" Justify="Justify.FlexStart">
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Class="blue-left-border" Outlined="true">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Lib1</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Actions">
+                            <MudMenuItem Label="Edit" />
+                            <MudMenuItem Label="Delete" />
+                        </MudMenu>
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <div class="d-flex">
+                        <MudText Class="ml-2" Typo="Typo.body2"><strong>Books : </strong></MudText>
+                        <MudText Class="ml-2" Typo="Typo.body2">180</MudText>
+                    </div>
+                    <div class="d-flex">
+                        <MudText Class="ml-2" Typo="Typo.body2"><strong>Path : </strong></MudText>
+                        <MudText Class="ml-2" Typo="Typo.body2">/mcm/libs/Lib1</MudText>
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</Page>
+
+@*
 <MudStack Spacing="1" Class="mt-2">
 
         <MudPaper class=" py-4 px-6 mx-4 rounded"  Elevation="0" >
@@ -67,3 +106,4 @@
     </MudPaper>
 
 </MudStack>
+*@
