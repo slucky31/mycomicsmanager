@@ -20,7 +20,7 @@
 
 @code {
     [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; }
+    private IMudDialogInstance ? MudDialog { get; set; }
 
     [Parameter]
     public LibraryUiDto library { get; set; } = new LibraryUiDto();
@@ -34,12 +34,14 @@
         form.Validate();        
         if (form.IsValid)
         {
+            Guard.Against.Null(MudDialog);
             MudDialog.Close(DialogResult.Ok(library));
         }        
     }
 
     private void Cancel()
     {
+        Guard.Against.Null(MudDialog);
         MudDialog.Cancel();
     }
 }

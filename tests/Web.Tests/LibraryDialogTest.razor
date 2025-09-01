@@ -1,0 +1,103 @@
+@using Application.Libraries
+@using Bunit
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
+@using MudBlazor.Services
+@using NSubstitute
+@using Web.Components.Pages.Libraries
+@using Web.Validators
+@inherits TestContext
+
+@code {
+    private LibraryUiDto CreateValidLibraryUiDto()
+    {
+        return new LibraryUiDto
+        {
+            Name = "Test Library"
+        };
+    }
+
+    public LibraryDialogTest()
+    {
+        Services.AddMudServices();       
+    }
+
+    [Fact]
+    public void LibraryDialog_Should_Render_With_Initial_Values()
+    {
+        // Arrange
+        var library = CreateValidLibraryUiDto();
+        var comp0 = RenderComponent<MudDialogProvider>();
+        var service = Services.GetRequiredService<IDialogService>();
+
+        // Act        
+        var comp = RenderComponent<LibraryDialog>(parameters => parameters
+            .Add(p => p.library, null)
+        );
+
+        var test = comp.Instance.ToString();
+
+        // Assert
+        comp.Should().NotBeNull();
+        comp.FindComponents<MudText>().Count.Should().Be(1);
+
+        var textFields = comp.FindComponents<MudTextField<string>>();
+        textFields.Should().HaveCount(2);
+        textFields[0].Instance.Value.Should().Be(library.Name);
+        textFields[1].Instance.Value.Should().Be(library.RelativePath);
+    }
+
+    [Fact]
+    public void LibraryDialog_Should_Call_Cancel_On_Cancel_Button_Click()
+    {
+        // Arrange
+        var library = CreateValidLibraryUiDto();
+        var dialogInstance = Substitute.For<IMudDialogInstance>();
+        var comp = RenderComponent<LibraryDialog>(parameters => parameters
+            .AddCascadingValue(dialogInstance)
+            .Add(p => p.library, library)
+        );
+
+        // Act
+        comp.FindAll("button")[0].Click(); // Cancel button
+
+        // Assert
+        dialogInstance.Received(1).Cancel();
+    }
+
+    [Fact]
+    public void LibraryDialog_Should_Validate_And_Close_On_Valid_Submit()
+    {
+        // Arrange
+        var library = CreateValidLibraryUiDto();
+        var dialogInstance = Substitute.For<IMudDialogInstance>();
+        var comp = RenderComponent<LibraryDialog>(parameters => parameters
+            .AddCascadingValue(dialogInstance)
+            .Add(p => p.library, library)
+        );
+
+        // Act
+        comp.FindAll("button")[1].Click(); // OK button
+
+        // Assert
+        dialogInstance.ReceivedWithAnyArgs().Close(Arg.Any<DialogResult>());
+    }
+
+    [Fact]
+    public void LibraryDialog_Should_Not_Close_On_Invalid_Form()
+    {
+        // Arrange
+        var library = new LibraryUiDto { Name = "" };
+        var dialogInstance = Substitute.For<IMudDialogInstance>();
+        var comp = RenderComponent<LibraryDialog>(parameters => parameters
+            .AddCascadingValue(dialogInstance)
+            .Add(p => p.library, library)
+        );
+
+        // Act
+        comp.FindAll("button")[1].Click(); // OK button
+
+        // Assert
+        dialogInstance.DidNotReceive().Close(Arg.Any<DialogResult>());
+    }
+}
