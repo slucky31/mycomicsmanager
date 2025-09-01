@@ -53,7 +53,7 @@
             Library lib = Library.Create(new Guid().ToString());
             list.Add(lib);
         }
-        var query = list.AsQueryable().BuildMock();
+        var query = list.BuildMock();
         var mockPagedList = new PagedList<Library>(query);
         await mockPagedList.ExecuteQueryAsync(1, nbItems);
         _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
@@ -92,13 +92,13 @@
 
         Library searchedLib = Library.Create("lib");
         list.Add(searchedLib);
-        var query = list.AsQueryable().BuildMock();
+        var query = list.BuildMock();
         var mockPagedList = new PagedList<Library>(query);
         await mockPagedList.ExecuteQueryAsync(1, nbItems);
 
         List<Library> filteredList = new();
         filteredList.Add(searchedLib);
-        var query2 = list.AsQueryable().BuildMock();
+        var query2 = list.BuildMock();
         var mockPagedList2 = new PagedList<Library>(query2);
         await mockPagedList2.ExecuteQueryAsync(1, nbItems);
 
@@ -133,7 +133,7 @@
         List<Library> list = [lib];
 
         // Arrange - Create a mockPagedList with the list
-        var query = list.AsQueryable().BuildMock();
+        var query = list.BuildMock();
         var mockPagedList = new PagedList<Library>(query);
         await mockPagedList.ExecuteQueryAsync(1, nbItems);
 
@@ -161,7 +161,7 @@
         List<Library> list = [lib1, lib2];
 
         // Arrange - Create a mockPagedList with the list
-        var query = list.AsQueryable().BuildMock();
+        var query = list.BuildMock();
         var mockPagedList = new PagedList<Library>(query);
         await mockPagedList.ExecuteQueryAsync(1, nbItems);
 
@@ -200,7 +200,7 @@
         List<Library> list = [lib1, lib2];
 
         // Arrange - Create a mockPagedList with the list
-        var query = list.AsQueryable().BuildMock();
+        var query = list.BuildMock();
         var mockPagedList = new PagedList<Library>(query);
         await mockPagedList.ExecuteQueryAsync(1, nbItems);
 
