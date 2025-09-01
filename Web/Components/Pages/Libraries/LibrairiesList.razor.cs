@@ -13,6 +13,7 @@ public partial class LibrairiesList
 {
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!; // FIX: Inject NavigationManager
 
     private MudTable<Library>? table;
     private string searchString = "";
@@ -20,6 +21,7 @@ public partial class LibrairiesList
     public static readonly string Msg_NoRecordsFound = "No matching records found";
     public static readonly string Msg_LibCorrectlyDeleted = "The library was correctly deleted";
 
+    // Change the OnReloadData method signature to match the expected delegate
     private async Task<TableData<Library>> OnReloadData(TableState state, CancellationToken token)
     {
         var sortColumn = LibrariesColumn.Id;
@@ -66,7 +68,7 @@ public partial class LibrairiesList
 
     private void OnClickEdit(Guid id)
     {
-        MyNavigationManager.NavigateTo($"/libraries/update/{id}");
+        NavigationManager.NavigateTo($"/libraries/update/{id}"); // FIX: Use injected NavigationManager
     }
 
     private void OnSearch(string text)

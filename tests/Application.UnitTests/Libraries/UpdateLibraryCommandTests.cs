@@ -51,7 +51,7 @@ public class UpdateLibraryCommandTests
     {
         // Arrange
         List<Library> list = [library];
-        var query = list.AsQueryable().BuildMock();
+        var query = list.BuildMock();
         var pagedList = new PagedList<Library>(query);
         await pagedList.ExecuteQueryAsync(1, 2);
         _libraryReadServiceMock.GetLibrariesAsync(Command.Name, LibrariesColumn.Name, null, 1, 1).Returns(pagedList);

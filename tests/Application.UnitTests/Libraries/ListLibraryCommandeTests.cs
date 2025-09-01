@@ -29,7 +29,7 @@ public class ListLibraryCommandeTests
     {
         // Arrange
         List<Library> list = [library];
-        var query = list.AsQueryable().BuildMock();
+        var query = list.BuildMock();
         var mockPagedList = new PagedList<Library>(query);
         _libraryReadServiceMock.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize).Returns(mockPagedList);
 
