@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Update;
 using Ardalis.GuardClauses;
