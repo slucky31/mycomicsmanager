@@ -9,12 +9,24 @@
 @using Persistence.Queries.Helpers
 @using Web.Components.Pages
 @using Web.Services
+@using Application.Interfaces
 @inherits TestContext
 
 @code{
 
     private readonly ILibrariesService _librariesServiceMock;
     private readonly int nbItems = 10;
+
+    private sealed class FakePagedList<T>(IReadOnlyCollection<T> items, int page, int pageSize) : IPagedList<T>
+    {
+        public bool HasNextPage => false;
+        public bool HasPreviousPage => false;
+        public IReadOnlyCollection<T>? Items { get; } = items;
+        public int Page { get; } = page;
+        public int PageSize { get; } = pageSize;
+        public int TotalCount { get; } = items.Count;
+        public Task<IPagedList<T>> ExecuteQueryAsync(int page, int pageSize) => Task.FromResult<IPagedList<T>>(this);
+    }
 
     public LibrariesListTest()
     {                
@@ -46,9 +58,14 @@
         List<Library> list = new();
         for (int i = 0; i < nbItems; i++)
         {
-            Library lib = Library.Create(Guid.NewGuid().ToString());
+            Library lib = Library.Create("lib-" + i);
             list.Add(lib);
         }
+
+        var paged = new FakePagedList<Library>(list, 1, nbItems);
+        _librariesServiceMock
+            .FilterBy(Arg.Any<string?>(), Arg.Any<LibrariesColumn?>(), Arg.Any<SortOrder?>(), Arg.Any<int>(), Arg.Any<int>())
+            .Returns(Task.FromResult(Result<IPagedList<Library>>.Success(paged)));
 
         // Act
         var comp = RenderComponent<LibrairiesList>();
@@ -57,18 +74,23 @@
         comp.Should().NotBeNull();
         comp.FindComponents<PageWithAction>().Count.Should().Be(1);
         comp.FindComponents<MudGrid>().Count.Should().Be(1);
-        var cards = comp.FindComponents<MudCard>();
-        cards.Count.Should().Be(nbItems);    
+        comp.WaitForAssertion(() =>
+        {
+            var cards = comp.FindComponents<MudCard>();
+            cards.Count.Should().Be(nbItems);
+        });
+
+        var cards2 = comp.FindComponents<MudCard>();
 
         // Assert - Each card
-        foreach(var card in cards)
+        foreach(var card in cards2)
         {                        
             var header = card.FindComponents<MudCardHeader>();
             header.Should().HaveCount(1); 
 
             var mudText = header[0].FindComponent<MudText>();
             mudText.Should().NotBeNull();
-            mudText.Markup.Should().Contain(list[cards.ToList().IndexOf(card)].Name);
+            mudText.Markup.Should().Contain(list[cards2.ToList().IndexOf(card)].Name);
 
             var mudMenu = header[0].FindComponent<MudMenu>();
             mudMenu.Should().NotBeNull();
