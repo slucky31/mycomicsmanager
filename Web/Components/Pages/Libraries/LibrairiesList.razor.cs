@@ -23,7 +23,6 @@ public partial class LibrairiesList
         Edit
     }
 
-
     private List<LibraryUiDto> Libraries { get; } = new();
 
     private string searchString = "";

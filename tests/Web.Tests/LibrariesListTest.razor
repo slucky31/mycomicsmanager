@@ -49,10 +49,6 @@
             Library lib = Library.Create(Guid.NewGuid().ToString());
             list.Add(lib);
         }
-        var query = list.AsQueryable().BuildMock();
-        var mockPagedList = new PagedList<Library>(query);
-        await mockPagedList.ExecuteQueryAsync(1, nbItems);
-        _librariesServiceMock.FilterBy(Arg.Any<string>(), Arg.Any<LibrariesColumn>(), Arg.Any<SortOrder>(), Arg.Any<int>(), Arg.Any<int>()).Returns(mockPagedList);
 
         // Act
         var comp = RenderComponent<LibrairiesList>();
@@ -82,7 +78,4 @@
             content[0].FindComponents<MudText>().Count.Should().Be(4);
         }                
     }
-
-    
-
 }
