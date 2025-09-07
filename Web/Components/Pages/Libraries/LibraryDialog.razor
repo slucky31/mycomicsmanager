@@ -1,12 +1,8 @@
 ﻿@using Application.Libraries
 @using Web.Validators
 
-<MudDialog>
-    <TitleContent>
-        Library        
-    </TitleContent>
+<MudDialog>    
     <DialogContent>
-        <MudText Typo="Typo.body1">Add a new library to your collection.</MudText>
         <MudForm Model="@library" @ref="@form" Validation="@(libraryValidator.ValidateValue)" ValidationDelay="0">
             <MudTextField @bind-Value="library.Name" For="@(() => library.Name)" Immediate="true" />
             <MudTextField Value="library.RelativePath" For="@(() => library.RelativePath)" Disabled="true" />

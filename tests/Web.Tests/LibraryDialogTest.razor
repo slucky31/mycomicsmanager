@@ -45,9 +45,6 @@
         // Act        
 
         // Assert
-        provider.Should().NotBeNull();
-        provider.FindComponents<MudText>().Count.Should().Be(1);
-
         var textFields = provider.FindComponents<MudTextField<string>>();
         textFields.Should().HaveCount(2);
         textFields[0].Instance.Value.Should().Be(library.Name);

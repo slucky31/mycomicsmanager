@@ -5,8 +5,9 @@ public class LibraryValidator : AbstractValidator<LibraryUiDto>
 {
     public LibraryValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required.").MaximumLength(100).WithMessage("Name must not exceed 100 characters.");
-        RuleFor(x => x.RelativePath).NotEmpty().WithMessage("RelativePath is required.").MaximumLength(200).WithMessage("RelativePath must not exceed 200 characters.");
+        const int maxNameLength = 100;
+        RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required.").MaximumLength(maxNameLength).WithMessage("Name must not exceed 100 characters.");
+        RuleFor(x => x.RelativePath).NotEmpty().WithMessage("RelativePath is required.").MaximumLength(maxNameLength).WithMessage("RelativePath must not exceed 200 characters.");
     }
 
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>

@@ -44,9 +44,10 @@ public partial class LibrairiesList
 
         var result = await LibrariesService.FilterBy(searchString, sortColumn, sortOrder, 1, 10);
 
-        Libraries.Clear();
         if (result is not null && result.IsSuccess && result.Value is not null && result.Value.Items is not null)
         {
+            Libraries.Clear();
+
             var items = result.Value.Items?
                 .Select(library => LibraryUiDto.convert(library))
                 .ToList();
@@ -99,7 +100,9 @@ public partial class LibrairiesList
         }
 
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
-        var dialog = await DialogService.ShowAsync<LibraryDialog>("Create", parameters, options);
+        var dialogTitle = mode == FormMode.Create ? "Create" : "Edit";
+        dialogTitle += " Library";
+        var dialog = await DialogService.ShowAsync<LibraryDialog>(dialogTitle, parameters, options);
         var result = await dialog.Result;
 
         if (result is null)

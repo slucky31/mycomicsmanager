@@ -44,9 +44,18 @@
         var comp = RenderComponent<LibrairiesList>();
 
         // Assert
+        //comp.Should().NotBeNull();
+       // comp.FindComponents<PageWithAction>().Count.Should().Be(1);        
+        //comp.FindComponents<MudGrid>().Count.Should().Be(1);
+        
+        
         comp.Should().NotBeNull();
-        comp.FindComponents<PageWithAction>().Count.Should().Be(1);        
-        comp.FindComponents<MudGrid>().Count.Should().Be(1);       
+        comp.WaitForAssertion(() =>
+        {
+            comp.FindComponents<PageWithAction>().Count.Should().Be(1);
+            comp.FindComponents<MudGrid>().Count.Should().Be(1);
+            comp.FindComponents<MudCard>().Count.Should().Be(0);
+        });
 
     }
 
