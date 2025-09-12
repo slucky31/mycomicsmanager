@@ -25,23 +25,24 @@
 
     private LibraryValidator libraryValidator = new LibraryValidator();
 
-    private void Submit()
+    private async Task Submit()
     {
         if (form is null)
             return;
 
-        form.Validate();
+        await form.Validate();
 
-        if (form.IsValid)
+        if (form.IsValid && MudDialog is not null)
         {
-            Guard.Against.Null(MudDialog);
             MudDialog.Close(DialogResult.Ok(library));
         }        
     }
 
     private void Cancel()
     {
-        Guard.Against.Null(MudDialog);
-        MudDialog.Cancel();
+        if (MudDialog is not null)
+        {
+            MudDialog.Cancel();
+        }
     }
 }

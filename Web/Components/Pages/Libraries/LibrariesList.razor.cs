@@ -50,7 +50,6 @@ public partial class LibrariesList
     private async Task OnClickDelete(Guid id)
     {
         var result = await LibrariesService.Delete(id.ToString());
-        Guard.Against.Null(result);
         if (result.IsFailure)
         {
             Guard.Against.Null(result.Error);
@@ -76,7 +75,10 @@ public partial class LibrariesList
                 library = new LibraryUiDto();
                 break;
             case FormMode.Edit:
-                Guard.Against.Null(editLibrary);
+                if (editLibrary is null)
+                {
+                    return LibrariesError.DialogError;
+                }
                 library = editLibrary;
                 break;
             default:
@@ -108,6 +110,11 @@ public partial class LibrariesList
 
     private async Task CreateOrEdit(FormMode mode, LibraryUiDto? editLibrary)
     {
+        if (mode == FormMode.Edit && editLibrary is null)
+        {
+            return;
+        }
+
         var result = await OpenLibraryDialog(mode, editLibrary);
         if (result.IsFailure || result.Value is null)
         {
