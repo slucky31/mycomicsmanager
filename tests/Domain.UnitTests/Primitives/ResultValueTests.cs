@@ -9,7 +9,7 @@ public class ResultValueTests
     // Assert
 
     [Fact]
-    public void Success_Should_SetIsSuccesToTrueAndReturnValue()
+    public void Success_Should_SetIsSuccessToTrueAndReturnValue()
     {
         // Arrange
         const string value = "the tested value";

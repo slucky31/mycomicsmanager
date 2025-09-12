@@ -28,7 +28,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
 
         //Assert
         result.IsSuccess.Should().BeTrue();
-        Directory.Exists(LibraryLocalStorage.rootPath + Path.DirectorySeparatorChar + folder).Should().BeTrue();
+        Directory.Exists(Path.Combine(LibraryLocalStorage.rootPath, folder)).Should().BeTrue();
     }
 
     [Fact]
@@ -73,8 +73,8 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
 
         //Assert
         result.IsSuccess.Should().BeTrue();
-        Directory.Exists(LibraryLocalStorage.rootPath + Path.DirectorySeparatorChar + folder).Should().BeFalse();
-        Directory.Exists(LibraryLocalStorage.rootPath + Path.DirectorySeparatorChar + folderMoved).Should().BeTrue();
+        Directory.Exists(Path.Combine(LibraryLocalStorage.rootPath, folder)).Should().BeFalse();
+        Directory.Exists(Path.Combine(LibraryLocalStorage.rootPath, folderMoved)).Should().BeTrue();
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
     public void Move_ShouldReturnError_WhenOldFolderNameIsEmpty()
     {
         // Arrange        
-        const string folder = "";
+        var folder = string.Empty;
         var folderMoved = Guid.NewGuid().ToString();
 
         // Act
@@ -243,11 +243,11 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         var folder = Guid.NewGuid().ToString();
 
         // Act
-        var result = LibraryLocalStorage.Delete(folder);
+        var result = LibraryLocalStorageWithEmptyRootPath.Delete(folder);
 
         //Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibraryLocalStorageError.UnknownFolder);
+        result.Error.Should().Be(LibraryLocalStorageError.ArgumentNullOrEmpty);
     }
 
     [Fact]

@@ -41,7 +41,7 @@
     public void LibraryList_Should_RenderCorrectly_When_NoDataProvided()
     {
         // Act
-        var comp = RenderComponent<LibrairiesList>();
+        var comp = RenderComponent<LibrariesList>();
 
         comp.Should().NotBeNull();
         comp.WaitForAssertion(() =>
@@ -71,7 +71,7 @@
             .Returns(Task.FromResult(Result<IPagedList<Library>>.Success(paged)));
 
         // Act
-        var comp = RenderComponent<LibrairiesList>();
+        var comp = RenderComponent<LibrariesList>();
 
         // Assert
         comp.Should().NotBeNull();

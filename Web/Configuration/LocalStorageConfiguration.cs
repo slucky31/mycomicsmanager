@@ -1,6 +1,6 @@
 ﻿namespace Web.Configuration;
 
-internal class LocalStorageConfiguration
+internal sealed class LocalStorageConfiguration
 {
     internal string RootPath { get; init; } = string.Empty;
 }

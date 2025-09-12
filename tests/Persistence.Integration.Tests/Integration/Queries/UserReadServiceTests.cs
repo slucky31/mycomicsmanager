@@ -52,7 +52,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnPagedList_WichContainsComicsInName()
+    public async Task GetUsersAsync_ShouldReturnPagedList_WhichContainsComicsInName()
     {
         // Arrange
         await CreateUsers();
@@ -82,7 +82,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Items.Should().Contain(l => l.Id == usr1.Id);
         pagedList.Items.Should().Contain(l => l.Id == usr2.Id);
         pagedList.Items.Should().Contain(l => l.Id == usr3.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr3.Id);
+        pagedList.Items.Should().Contain(l => l.Id == usr4.Id);
         pagedList.Items.Should().Contain(l => l.Id == usr5.Id);
     }
 
@@ -101,7 +101,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Items.Should().Contain(l => l.Id == usr1.Id);
         pagedList.Items.Should().Contain(l => l.Id == usr2.Id);
         pagedList.Items.Should().Contain(l => l.Id == usr3.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr3.Id);
+        pagedList.Items.Should().Contain(l => l.Id == usr4.Id);
         pagedList.Items.Should().Contain(l => l.Id == usr5.Id);
     }
 
@@ -157,7 +157,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByEmail_WhenSortColumnIsEmailAndSorterOrderIsDesc()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByEmail_WhenSortColumnIsEmailAndSortOrderIsDesc()
     {
         // Arrange
         await CreateUsers();
@@ -174,7 +174,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByAuhId_WhenSortColumnIsAuthId()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByAuthId_WhenSortColumnIsAuthId()
     {
         // Arrange
         await CreateUsers();
@@ -208,7 +208,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthIdOrEmail_WithValidData_ReturnsUser()
+    public async Task GetUserByAuthIdAndEmail_WithValidData_ReturnsUser()
     {
         // Arrange
         var user = User.Create("test@test.com", "123456");
@@ -226,7 +226,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthIdOrEmail_WithInvalidData_ReturnsBadRequest()
+    public async Task GetUserByAuthIdAndEmail_WithInvalidData_ReturnsBadRequest()
     {
         // Arrange
         const string email = "";
