@@ -1,0 +1,44 @@
+@using Domain.Libraries
+
+@rendermode InteractiveServer
+
+@page "/libraries/list"
+
+<style>
+    .blue-left-border {
+        border-left: 4px solid #1976d2; /* Material Blue 700 */
+    }
+</style>
+
+<PageWithAction Title="Libraries" Icon="@Icons.Material.Filled.CollectionsBookmark" ActionName="New library" ActionIcon="@Icons.Material.Filled.Add" OnActionClick="@(e => CreateOrEdit(FormMode.Create, null))">
+    <MudGrid Spacing="4" Justify="Justify.FlexStart">
+        @foreach (var lib in Libraries)
+        {
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Class="blue-left-border" Outlined="true">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@lib.Name</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Actions">
+                                <MudMenuItem Label="Edit" OnClick="@(e => CreateOrEdit(FormMode.Edit, @lib))" />
+                                <MudMenuItem Label="Delete" OnClick="@(e => OnClickDelete(@lib.Id))" />
+                            </MudMenu>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <div class="d-flex">
+                            <MudText Class="ml-2" Typo="Typo.body2"><strong>Books : </strong></MudText>
+                            <MudText Class="ml-2" Typo="Typo.body2">???</MudText>
+                        </div>
+                        <div class="d-flex">
+                            <MudText Class="ml-2" Typo="Typo.body2"><strong>Path : </strong></MudText>
+                            <MudText Class="ml-2" Typo="Typo.body2">@lib.RelativePath</MudText>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</PageWithAction>

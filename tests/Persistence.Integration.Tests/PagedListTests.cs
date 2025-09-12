@@ -13,7 +13,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     public async Task CreateAsync_Should_ReturnPagedList()
     {
         // Arrange
-        var nbItems = 50;
+        const int nbItems = 50;
         var count = Context.Libraries.Count();
         for (var i = 0; i < nbItems; i++)
         {

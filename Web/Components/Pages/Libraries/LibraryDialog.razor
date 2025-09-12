@@ -1,0 +1,48 @@
+﻿@using Application.Libraries
+@using Web.Validators
+
+<MudDialog>    
+    <DialogContent>
+        <MudForm Model="@library" @ref="@form" Validation="@(libraryValidator.ValidateValue)" ValidationDelay="0">
+            <MudTextField @bind-Value="library.Name" For="@(() => library.Name)" Immediate="true" />
+            <MudTextField Value="library.RelativePath" For="@(() => library.RelativePath)" ReadOnly="true" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">OK</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance ? MudDialog { get; set; }
+
+    [Parameter]
+    public LibraryUiDto library { get; set; } = new LibraryUiDto();
+
+    private MudForm? form;
+
+    private LibraryValidator libraryValidator = new LibraryValidator();
+
+    private async Task Submit()
+    {
+        if (form is null)
+            return;
+
+        await form.Validate();
+
+        if (form.IsValid && MudDialog is not null)
+        {
+            MudDialog.Close(DialogResult.Ok(library));
+        }        
+    }
+
+    private void Cancel()
+    {
+        if (MudDialog is not null)
+        {
+            MudDialog.Cancel();
+        }
+    }
+}

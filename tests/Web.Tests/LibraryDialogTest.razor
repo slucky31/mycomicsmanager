@@ -1,0 +1,130 @@
+@using Application.Libraries
+@using Bunit
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
+@using MudBlazor.Services
+@using NSubstitute
+@using Web.Components.Pages.Libraries
+@using Web.Validators
+@using System.Threading.Tasks
+@inherits TestContext
+
+@code {
+    private LibraryUiDto CreateValidLibraryUiDto()
+    {
+        return new LibraryUiDto
+        {
+            Name = "Test Library"
+        };
+    }
+
+    public LibraryDialogTest()
+    {
+        // Allow MudBlazor's JS calls to be ignored during tests
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
+
+        Services.AddMudServices();       
+    }
+
+    [Fact]
+    public async Task LibraryDialog_Should_Render_With_Initial_Values()
+    {
+        // Arrange
+        var library = CreateValidLibraryUiDto();
+        var provider = RenderComponent<MudDialogProvider>();
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var parameters = new DialogParameters { ["library"] = library };
+        var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
+
+        // Wait for the dialog to render its buttons
+        provider.WaitForAssertion(() =>
+            provider.FindAll("button").Should().NotBeEmpty("No buttons were rendered in the dialog. Check the dialog markup."));
+
+        // Act        
+
+        // Assert        
+        var fields = provider.FindComponents<MudTextField<string>>();
+        fields.Should().HaveCount(2);
+        fields.Single(f => string.Equals(f.Instance.Label, "Name", StringComparison.OrdinalIgnoreCase)).Instance.Value.Should().Be(library.Name);
+        fields.Single(f => string.Equals(f.Instance.Label, "RelativePath", StringComparison.OrdinalIgnoreCase)).Instance.Value.Should().Be(library.RelativePath);
+
+    }
+
+    [Fact]
+    public async Task LibraryDialog_Should_Call_Cancel_On_Cancel_Button_Click()
+    {
+        // Arrange
+        var library = CreateValidLibraryUiDto();
+        var provider = RenderComponent<MudDialogProvider>();
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var parameters = new DialogParameters { ["library"] = library };
+        var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
+
+        // Wait for the dialog to render its buttons
+        provider.WaitForAssertion(() =>
+            provider.FindAll("button").Should().NotBeEmpty("No buttons were rendered in the dialog. Check the dialog markup."));
+
+        // Act
+        var cancelButton = provider.FindAll("button")
+            .FirstOrDefault(b => b.TextContent.Contains("Cancel", StringComparison.OrdinalIgnoreCase));
+        cancelButton.Should().NotBeNull("Cancel button not found. Check the button text or markup.");
+        cancelButton.Click();
+
+        // Assert
+        var result = await dialogRef.Result;
+        result.Should().NotBeNull();
+        result.Canceled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task LibraryDialog_Should_Validate_And_Close_On_Valid_Submit()
+    {
+        // Arrange
+        var library = CreateValidLibraryUiDto();
+        var provider = RenderComponent<MudDialogProvider>();
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var parameters = new DialogParameters { ["library"] = library };
+        var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
+
+        // Wait for the dialog to render its buttons
+        provider.WaitForAssertion(() =>
+            provider.FindAll("button").Should().NotBeEmpty("No buttons were rendered in the dialog. Check the dialog markup."));
+
+        // Act
+        var okButton = provider.FindAll("button")
+            .FirstOrDefault(b => b.TextContent.Contains("Ok", StringComparison.OrdinalIgnoreCase));
+        okButton.Should().NotBeNull("Ok button not found. Check the button text or markup.");
+        okButton.Click();
+
+        // Assert
+        var result = await dialogRef.Result;
+        result.Should().NotBeNull();
+        result.Data.Should().BeOfType<LibraryUiDto>();
+    }
+
+    [Fact]
+    public async Task LibraryDialog_Should_Not_Close_On_Invalid_Form()
+    {
+        // Arrange
+        var library = new LibraryUiDto(); // invalid - missing required fields
+        var provider = RenderComponent<MudDialogProvider>();
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var parameters = new DialogParameters { ["library"] = library };
+        var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
+
+        // Wait for the dialog to render its buttons
+        provider.WaitForAssertion(() =>
+            provider.FindAll("button").Should().NotBeEmpty("No buttons were rendered in the dialog. Check the dialog markup."));
+
+        // Act
+        var okButton = provider.FindAll("button")
+            .FirstOrDefault(b => b.TextContent.Contains("Ok", StringComparison.OrdinalIgnoreCase));
+        okButton.Should().NotBeNull("Ok button not found. Check the button text or markup.");
+        okButton.Click();
+
+        // Assert - dialog should remain open and Result should not be completed
+        provider.FindAll(".mud-dialog").Should().NotBeEmpty("Dialog should remain open when the form is invalid.");
+        dialogRef.Result.IsCompleted.Should().BeFalse("Dialog should not close when the form is invalid.");
+    }
+}
