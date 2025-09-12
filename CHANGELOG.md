@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.6.0"></a>
+## [9.6.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.0) (2025-09-12)
+
+### ✨ Features
+
+* navbar ([#850](https://www.github.com/slucky31/mycomicsmanager/issues/850)) ([21fd84c](https://www.github.com/slucky31/mycomicsmanager/commit/21fd84cdbcc7716ca6272833271f8c6b065d67a6))
+
 <a name="9.5.1"></a>
 ## [9.5.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.5.1) (2025-09-01)
 
