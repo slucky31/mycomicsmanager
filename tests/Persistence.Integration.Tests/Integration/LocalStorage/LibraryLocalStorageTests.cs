@@ -226,7 +226,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
     public void Delete_ShouldReturnError_WhenFolderNameIsEmpty()
     {
         // Arrange
-        var folder = "";
+        const string folder = "";
 
         // Act
         var result = LibraryLocalStorage.Delete(folder);

@@ -8,7 +8,7 @@ using Domain.Primitives;
 
 namespace Web.Services;
 
-internal interface ILibrariesService
+public interface ILibrariesService
 {
     Task<Result<Library>> Create(string? name);
     Task<Result<Library>> GetById(string? id);

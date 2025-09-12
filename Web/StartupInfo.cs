@@ -12,7 +12,7 @@ internal static class StartupInfo
     private const double Gibi = Mebi * 1024;
     private const string Mcm_Prodcut = "MCM";
 
-    public static void Print()
+    internal static void Print()
     {
         Log.Information("\n\n" + """
             88,dPYba,,adPYba,   ,adPPYba, 88,dPYba,,adPYba,   
@@ -48,7 +48,7 @@ internal static class StartupInfo
         }
     }
 
-    public static string GetInBestUnit(long size)
+    internal static string GetInBestUnit(long size)
     {
         if (size < Mebi)
         {

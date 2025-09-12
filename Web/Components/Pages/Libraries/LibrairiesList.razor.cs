@@ -24,9 +24,7 @@ public partial class LibrairiesList
         Edit
     }
 
-    private List<LibraryUiDto> Libraries { get; } = new();
-
-    private string searchString = "";
+    private List<LibraryUiDto> Libraries { get; } = [];
 
     public static readonly string Msg_NoRecordsFound = "No matching records found";
     public static readonly string Msg_LibCorrectlyDeleted = "The library was correctly deleted";
@@ -43,7 +41,7 @@ public partial class LibrairiesList
         var sortColumn = LibrariesColumn.Name;
         var sortOrder = SortOrder.Descending;
 
-        var result = await LibrariesService.FilterBy(searchString, sortColumn, sortOrder, 1, 10);
+        var result = await LibrariesService.FilterBy("", sortColumn, sortOrder, 1, 10);
 
         if (result is not null && result.IsSuccess && result.Value is not null && result.Value.Items is not null)
         {

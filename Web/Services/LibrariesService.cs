@@ -10,7 +10,7 @@ using Domain.Primitives;
 
 namespace Web.Services;
 
-internal class LibrariesService : ILibrariesService
+public class LibrariesService : ILibrariesService
 {
     private readonly ICommandHandler<CreateLibraryCommand, Library> handler_CreateLibraryCommand;
     private readonly ICommandHandler<UpdateLibraryCommand, Library> handler_UpdateLibraryCommand;

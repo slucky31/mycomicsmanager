@@ -3,12 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Web;
 
-#pragma warning disable CA1812 // Avoid uninstantiated internal classes
-internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
-#pragma warning restore CA1812 // Avoid uninstantiated internal classes
+#pragma warning disable CA181, CA1515// Avoid uninstantiated internal classes
+public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+#pragma warning restore CA1812, CA1515 // Avoid uninstantiated internal classes
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
+        if (exception is null || httpContext is null)
+        {
+            return false;
+        }
+
         logger.LogError(exception, "Exceptionoccured: {Message}", exception.Message);
 
         var problemDetails = new ProblemDetails

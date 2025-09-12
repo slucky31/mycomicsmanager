@@ -286,7 +286,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     public async Task GetUserByEmail_WhenUserFound_ReturnsUser()
     {
         // Arrange
-        var email = "test@example.com";
+        const string email = "test@example.com";
         var user = User.Create(email, "123456");
         UserRepository.Add(user);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
