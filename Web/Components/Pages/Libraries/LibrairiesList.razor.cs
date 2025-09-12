@@ -9,6 +9,7 @@ using Web.Validators;
 namespace Web.Components.Pages.Libraries;
 
 #pragma warning disable CA1515 // Consider making public types internal (bug roselyn analyser : https://github.com/dotnet/roslyn-analyzers/issues/7473)
+
 public partial class LibrairiesList
 #pragma warning restore CA1515 // Consider making public types internal
 {
@@ -76,57 +77,63 @@ public partial class LibrairiesList
         await ReloadData();
     }
 
-
-    private async Task CreateOrEdit(FormMode mode, LibraryUiDto? editLibrary)
+    private async Task<Result<LibraryUiDto>> OpenLibraryDialog(FormMode mode, LibraryUiDto? editLibrary)
     {
         DialogParameters<LibraryDialog> parameters;
+        LibraryUiDto library;
+
         switch (mode)
         {
             case FormMode.Create:
-                parameters = new DialogParameters<LibraryDialog>
-                {
-                    { x => x.library, new LibraryUiDto() }
-                };
+                library = new LibraryUiDto();
                 break;
             case FormMode.Edit:
                 Guard.Against.Null(editLibrary);
-                parameters = new DialogParameters<LibraryDialog>
-                {
-                    { x => x.library, editLibrary }
-                };
+                library = editLibrary;
                 break;
             default:
-                return;
+                return LibrariesError.DialogError;
         }
+        parameters = new DialogParameters<LibraryDialog>
+        {
+            { x => x.library, library }
+        };
 
-        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
         var dialogTitle = mode == FormMode.Create ? "Create" : "Edit";
         dialogTitle += " Library";
-        var dialog = await DialogService.ShowAsync<LibraryDialog>(dialogTitle, parameters, options);
-        var result = await dialog.Result;
 
-        if (result is null)
+        var result = await DialogService.ShowAsync<LibraryDialog>(dialogTitle, parameters, options);
+        var dialog = await result.Result;
+
+        if (dialog is null || dialog.Canceled || dialog.Data is null)
+        {
+            return LibrariesError.DialogError;
+        }
+        return (LibraryUiDto)dialog.Data;
+    }
+
+
+    private async Task CreateOrEdit(FormMode mode, LibraryUiDto? editLibrary)
+    {
+        var result = await OpenLibraryDialog(mode, editLibrary);
+        if (result.IsFailure || result.Value is null)
         {
             return;
         }
+        var libraryFromDialog = result.Value;
 
-        if (result.Canceled || result.Data is null)
-        {
-            return;
-        }
-
-        var library = (LibraryUiDto)result.Data;
-        Result<Library> resultCreateOrEdit;
+        Result<Domain.Libraries.Library> resultCreateOrEdit;
         string SuccesMessage;
 
         switch (mode)
         {
             case FormMode.Create:
-                resultCreateOrEdit = await LibrariesService.Create(library.Name);
+                resultCreateOrEdit = await LibrariesService.Create(libraryFromDialog.Name);
                 SuccesMessage = Msg_LibCorrectlyCreated;
                 break;
             case FormMode.Edit:
-                resultCreateOrEdit = await LibrariesService.Update(library.Id.ToString(), library.Name);
+                resultCreateOrEdit = await LibrariesService.Update(libraryFromDialog.Id.ToString(), libraryFromDialog.Name);
                 SuccesMessage = Msg_LibCorrectlyUpdated;
                 break;
             default:
@@ -145,12 +152,8 @@ public partial class LibrairiesList
         }
 
         await ReloadData();
+
     }
 
-    private async void OnSearch(string text)
-    {
-        searchString = text;
-        await ReloadData();
-    }
 }
 

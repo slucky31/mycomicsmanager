@@ -8,8 +8,8 @@ public class StringExtensionsTests
     public void ToPascalCase_Returns_PascalCasedString()
     {
         // Arrange
-        var input = "héllo_wôrld123;:,-_";
-        var expectedOutput = "HelloWorld123";
+        const string input = "héllo_wôrld123;:,-_";
+        const string expectedOutput = "HelloWorld123";
 
         // Act
         var result = input.ToPascalCase();
@@ -36,8 +36,8 @@ public class StringExtensionsTests
     public void ToCamlCase_Returns_CorrectString()
     {
         // Arrange
-        var input = "héllo_wôrld123;:,-_";
-        var expectedOutput = "helloWorld123";
+        const string input = "héllo_wôrld123;:,-_";
+        const string expectedOutput = "helloWorld123";
 
         // Act
         var result = input.ToCamlCase();
@@ -64,8 +64,8 @@ public class StringExtensionsTests
     public void RemoveDiacritics_RemovesDiacritics()
     {
         // Arrange
-        var input = "éèêëÈÉÊË-ûüùÛÜÙ-ôöÔÖ-âàäÀÂÄ-îïÎÏ";
-        var expectedOutput = "eeeeEEEE-uuuUUU-ooOO-aaaAAA-iiII";
+        const string input = "éèêëÈÉÊË-ûüùÛÜÙ-ôöÔÖ-âàäÀÂÄ-îïÎÏ";
+        const string expectedOutput = "eeeeEEEE-uuuUUU-ooOO-aaaAAA-iiII";
 
         // Act
         var result = input.RemoveDiacritics();
@@ -92,9 +92,9 @@ public class StringExtensionsTests
     public void Substract_ReturnsSubstract()
     {
         // Arrange
-        var input = "Hello World !";
-        var sub = "wOrld";
-        var expectedOutput = "Hello  !";
+        const string input = "Hello World !";
+        const string sub = "wOrld";
+        const string expectedOutput = "Hello  !";
 
         // Act
         var result = input.Substract(sub);
@@ -107,7 +107,7 @@ public class StringExtensionsTests
     public void Substract_ReturnsInput_WhenSubIsEmpty()
     {
         // Arrange
-        var input = "Hello World !";
+        const string input = "Hello World !";
         var sub = String.Empty;
 
         // Act
@@ -122,7 +122,7 @@ public class StringExtensionsTests
     {
         // Arrange
         var input = String.Empty;
-        var sub = "sdjqjgsqldkj";
+        const string sub = "sdjqjgsqldkj";
 
         // Act
         var result = input.Substract(sub);

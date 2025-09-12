@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Base.Integration.Tests;
 using Domain.Errors;
 using Persistence.LocalStorage;
@@ -139,7 +139,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
     public void Move_ShouldReturnError_WhenOldFolderNameIsEmpty()
     {
         // Arrange        
-        var folder = "";
+        const string folder = "";
         var folderMoved = Guid.NewGuid().ToString();
 
         // Act
@@ -157,7 +157,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         var folder = Guid.NewGuid().ToString();
         var result = LibraryLocalStorage.Create(folder);
         result.IsSuccess.Should().BeTrue();
-        var folderMoved = "";
+        const string folderMoved = "";
 
         // Act
         result = LibraryLocalStorage.Move(folder, folderMoved);

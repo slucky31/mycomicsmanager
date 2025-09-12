@@ -14,7 +14,9 @@ public class LibraryValidator : AbstractValidator<LibraryUiDto>
     {
         var result = await ValidateAsync(ValidationContext<LibraryUiDto>.CreateWithOptions((LibraryUiDto)model, x => x.IncludeProperties(propertyName)));
         if (result.IsValid)
+        {
             return Array.Empty<string>();
+        }
         return result.Errors.Select(e => e.ErrorMessage);
     };
 

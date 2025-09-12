@@ -229,8 +229,8 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     public async Task GetUserByAuthIdOrEmail_WithInvalidData_ReturnsBadRequest()
     {
         // Arrange
-        var email = "";
-        var authId = "123456";
+        const string email = "";
+        const string authId = "123456";
 
         // Act
         var result = await UserReadService.GetUserByAuthIdAndEmail(email, authId);
@@ -272,7 +272,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     public async Task GetUserByEmail_WhenUserNotFound_ReturnsNotFound()
     {
         // Arrange
-        var email = "test@example.com";
+        const string email = "test@example.com";
 
         // Act
         var result = await UserReadService.GetUserByEmail(email);
