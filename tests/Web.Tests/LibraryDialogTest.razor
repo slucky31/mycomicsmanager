@@ -33,7 +33,6 @@
         // Arrange
         var library = CreateValidLibraryUiDto();
         var provider = RenderComponent<MudDialogProvider>();
-        var service = Services.GetRequiredService<IDialogService>();
         var dialogService = Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
         var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
@@ -44,11 +43,12 @@
 
         // Act        
 
-        // Assert
-        var textFields = provider.FindComponents<MudTextField<string>>();
-        textFields.Should().HaveCount(2);
-        textFields[0].Instance.Value.Should().Be(library.Name);
-        textFields[1].Instance.Value.Should().Be(library.RelativePath);
+        // Assert        
+        var fields = provider.FindComponents<MudTextField<string>>();
+        fields.Should().HaveCount(2);
+        fields.Single(f => string.Equals(f.Instance.Label, "Name", StringComparison.OrdinalIgnoreCase)).Instance.Value.Should().Be(library.Name);
+        fields.Single(f => string.Equals(f.Instance.Label, "RelativePath", StringComparison.OrdinalIgnoreCase)).Instance.Value.Should().Be(library.RelativePath);
+
     }
 
     [Fact]

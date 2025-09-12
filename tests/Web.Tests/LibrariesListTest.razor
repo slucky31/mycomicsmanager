@@ -74,13 +74,12 @@
         var comp = RenderComponent<LibrariesList>();
 
         // Assert
-        comp.Should().NotBeNull();
-        comp.FindComponents<PageWithAction>().Count.Should().Be(1);
-        comp.FindComponents<MudGrid>().Count.Should().Be(1);
+        comp.Should().NotBeNull();        
         comp.WaitForAssertion(() =>
         {
-            var cards = comp.FindComponents<MudCard>();
-            cards.Count.Should().Be(nbItems);
+            comp.FindComponents<PageWithAction>().Count.Should().Be(1);
+            comp.FindComponents<MudGrid>().Count.Should().Be(1);
+            comp.FindComponents<MudCard>().Count.Should().Be(nbItems);
         });
 
         var cards2 = comp.FindComponents<MudCard>();

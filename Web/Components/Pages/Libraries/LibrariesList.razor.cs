@@ -22,10 +22,10 @@ public partial class LibrariesList
 
     private List<LibraryUiDto> Libraries { get; } = [];
 
-    public const string Msg_NoRecordsFound = "No matching records found";
-    public const string Msg_LibCorrectlyDeleted = "The library was correctly deleted";
-    public const string Msg_LibCorrectlyCreated = "The library was correctly created";
-    public const string Msg_LibCorrectlyUpdated = "The library was correctly updated";
+    public static readonly string Msg_NoRecordsFound = "No matching records found";
+    public static readonly string Msg_LibCorrectlyDeleted = "The library was correctly deleted";
+    public static readonly string Msg_LibCorrectlyCreated = "The library was correctly created";
+    public static readonly string Msg_LibCorrectlyUpdated = "The library was correctly updated";
 
     protected override async Task OnInitializedAsync()
     {
@@ -94,7 +94,7 @@ public partial class LibrariesList
         var result = await DialogService.ShowAsync<LibraryDialog>(dialogTitle, parameters, options);
         var dialog = await result.Result;
 
-        if (dialog is null || dialog.Canceled || dialog.Data is null || dialog.Data is not LibraryUiDto)
+        if (dialog is null || dialog.Data is null || dialog.Data is not LibraryUiDto)
         {
             return LibrariesError.DialogError;
         }

@@ -5,7 +5,7 @@
     <DialogContent>
         <MudForm Model="@library" @ref="@form" Validation="@(libraryValidator.ValidateValue)" ValidationDelay="0">
             <MudTextField @bind-Value="library.Name" For="@(() => library.Name)" Immediate="true" />
-            <MudTextField Value="library.RelativePath" For="@(() => library.RelativePath)" Disabled="true" />
+            <MudTextField Value="library.RelativePath" For="@(() => library.RelativePath)" ReadOnly="true" />
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -21,13 +21,17 @@
     [Parameter]
     public LibraryUiDto library { get; set; } = new LibraryUiDto();
 
-    public required MudForm form;
+    private MudForm? form;
 
     private LibraryValidator libraryValidator = new LibraryValidator();
 
     private void Submit()
     {
-        form.Validate();        
+        if (form is null)
+            return;
+
+        form.Validate();
+
         if (form.IsValid)
         {
             Guard.Against.Null(MudDialog);
