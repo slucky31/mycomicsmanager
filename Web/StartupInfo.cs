@@ -10,9 +10,9 @@ internal static class StartupInfo
 {
     private const double Mebi = 1024 * 1024;
     private const double Gibi = Mebi * 1024;
-    private const string Mcm_Prodcut = "MCM";
+    private const string Mcm_Product = "MCM";
 
-    public static void Print()
+    internal static void Print()
     {
         Log.Information("\n\n" + """
             88,dPYba,,adPYba,   ,adPPYba, 88,dPYba,,adPYba,   
@@ -41,14 +41,14 @@ internal static class StartupInfo
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
             var productAttribute = assembly.GetCustomAttribute<AssemblyProductAttribute>();
-            if (productAttribute != null && productAttribute.Product == Mcm_Prodcut)
+            if (productAttribute != null && productAttribute.Product == Mcm_Product)
             {
                 Log.Information("Assembly Versions: {@AssemblyName} - {@AssemblyVersion}", assembly.GetName().Name, assembly.GetName().Version!.ToString());
             }
         }
     }
 
-    public static string GetInBestUnit(long size)
+    internal static string GetInBestUnit(long size)
     {
         if (size < Mebi)
         {
