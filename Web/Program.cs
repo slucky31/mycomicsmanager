@@ -33,7 +33,7 @@ var localStorageSection = builder.Configuration.GetSection("LocalStorage");
 builder.Services.AddOptions<LocalStorageConfiguration>()
     .Bind(localStorageSection)
     .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.RootPath), "LocalStorage:RootPath is required")
-    .Validate(cfg => !Path.IsPathFullyQualified(cfg.RootPath), "LocalStorage:RootPath must be an absolute path")
+    .Validate(cfg => Path.IsPathFullyQualified(cfg.RootPath), "LocalStorage:RootPath must be an absolute path")
     .ValidateOnStart();
 
 var localStorageConfig = localStorageSection.Get<LocalStorageConfiguration>();
