@@ -26,17 +26,19 @@ builder.Services.AddProblemDetails();
 
 // Get connection string from configuration
 var connectionString = configuration.GetConnectionString("NeonConnection");
-Guard.Against.Null(connectionString);
+Guard.Against.NullOrWhiteSpace(connectionString);
 
 // Config LocalStorage
 var localStorageSection = builder.Configuration.GetSection("LocalStorage");
-builder.Services.Configure<LocalStorageConfiguration>(localStorageSection);
-var localStorageConfig = localStorageSection.Get<LocalStorageConfiguration>();
-Guard.Against.Null(localStorageConfig);
+builder.Services.AddOptions<LocalStorageConfiguration>()
+    .Bind(localStorageSection)
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.RootPath), "LocalStorage:RootPath is required")
+    .Validate(cfg => Path.IsPathFullyQualified(cfg.RootPath), "LocalStorage:RootPath must be an absolute path")
+    .ValidateOnStart();
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure(connectionString, localStorageConfig.RootPath);
+    .AddInfrastructure(connectionString, configuration["LocalStorage:RootPath"]!);
 
 // Config Serilog
 builder.Host.UseSerilog((context, configuration) =>
@@ -44,20 +46,21 @@ builder.Host.UseSerilog((context, configuration) =>
 
 // Config Auth0
 var config = configuration.GetSection("Auth0");
-builder.Services.Configure<Auth0Configuration>(config);
-var auth0Config = config.Get<Auth0Configuration>();
-Guard.Against.Null(auth0Config);
-
-// Register CustomAuthenticationStateProvider
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddOptions<Auth0Configuration>()
+    .Bind(config)
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.ClientId), "Auth0:ClientId is required")
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.Domain), "Auth0:Domain is required")
+    .ValidateOnStart();
 
 // Add Auth0 services
 builder.Services.AddAuth0WebAppAuthentication(options =>
     {
-        options.Domain = auth0Config.Domain;
-        options.ClientId = auth0Config.ClientId;
+        config.Bind(options);
     });
+
+// Register CustomAuthenticationStateProvider
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -93,7 +96,6 @@ app.UseExceptionHandler();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
@@ -111,7 +113,7 @@ app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 // Register Accounts Endpoints for Auth0 login/logout
 app.RegisterAccountEndpoints();
 
-app.MapHealthChecks("health", new HealthCheckOptions
+app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
