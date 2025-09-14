@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.6.2"></a>
+## [9.6.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.2) (2025-09-14)
+
+### 🐛 Bug Fixes
+
+* too many codacy fixes, kills fixes ([#866](https://www.github.com/slucky31/mycomicsmanager/issues/866)) ([f471e80](https://www.github.com/slucky31/mycomicsmanager/commit/f471e80aafdd3966c3dab7d937b09b771e5af097))
+
 <a name="9.6.1"></a>
 ## [9.6.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.1) (2025-09-12)
 
