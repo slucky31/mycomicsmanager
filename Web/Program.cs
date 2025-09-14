@@ -36,13 +36,9 @@ builder.Services.AddOptions<LocalStorageConfiguration>()
     .Validate(cfg => Path.IsPathFullyQualified(cfg.RootPath), "LocalStorage:RootPath must be an absolute path")
     .ValidateOnStart();
 
-var localStorageConfig = localStorageSection.Get<LocalStorageConfiguration>();
-Guard.Against.Null(localStorageConfig);
-Guard.Against.NullOrWhiteSpace(localStorageConfig.RootPath);
-
 builder.Services
     .AddApplication()
-    .AddInfrastructure(connectionString, localStorageConfig.RootPath);
+    .AddInfrastructure(connectionString, configuration["LocalStorage:RootPath"]!);
 
 // Config Serilog
 builder.Host.UseSerilog((context, configuration) =>
@@ -56,14 +52,11 @@ builder.Services.AddOptions<Auth0Configuration>()
     .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.Domain), "Auth0:Domain is required")
     .ValidateOnStart();
 
-var auth0Config = config.Get<Auth0Configuration>();
-Guard.Against.Null(auth0Config);
-
 // Add Auth0 services
 builder.Services.AddAuth0WebAppAuthentication(options =>
     {
-        options.Domain = auth0Config.Domain;
-        options.ClientId = auth0Config.ClientId;
+        options.Domain = configuration["Auth0:Domain"]!;
+        options.ClientId = configuration["Auth0:ClientId"]!;
     });
 
 // Register CustomAuthenticationStateProvider
