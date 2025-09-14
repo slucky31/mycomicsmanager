@@ -26,14 +26,19 @@ builder.Services.AddProblemDetails();
 
 // Get connection string from configuration
 var connectionString = configuration.GetConnectionString("NeonConnection");
-Guard.Against.NullOrEmpty(connectionString);
+Guard.Against.NullOrWhiteSpace(connectionString);
 
 // Config LocalStorage
 var localStorageSection = builder.Configuration.GetSection("LocalStorage");
-builder.Services.Configure<LocalStorageConfiguration>(localStorageSection);
+builder.Services.AddOptions<LocalStorageConfiguration>()
+    .Bind(localStorageSection)
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.RootPath), "LocalStorage:RootPath is required")
+    .Validate(cfg => !Path.IsPathFullyQualified(cfg.RootPath), "LocalStorage:RootPath must be an absolute path")
+    .ValidateOnStart();
+
 var localStorageConfig = localStorageSection.Get<LocalStorageConfiguration>();
 Guard.Against.Null(localStorageConfig);
-Guard.Against.NullOrEmpty(localStorageConfig.RootPath);
+Guard.Against.NullOrWhiteSpace(localStorageConfig.RootPath);
 
 builder.Services
     .AddApplication()
@@ -45,13 +50,14 @@ builder.Host.UseSerilog((context, configuration) =>
 
 // Config Auth0
 var config = configuration.GetSection("Auth0");
-builder.Services.Configure<Auth0Configuration>(config);
+builder.Services.AddOptions<Auth0Configuration>()
+    .Bind(config)
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.ClientId), "Auth0:ClientId is required")
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.Domain), "Auth0:Domain is required")
+    .ValidateOnStart();
+
 var auth0Config = config.Get<Auth0Configuration>();
 Guard.Against.Null(auth0Config);
-
-// Register CustomAuthenticationStateProvider
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 // Add Auth0 services
 builder.Services.AddAuth0WebAppAuthentication(options =>
@@ -59,6 +65,10 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
         options.Domain = auth0Config.Domain;
         options.ClientId = auth0Config.ClientId;
     });
+
+// Register CustomAuthenticationStateProvider
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();

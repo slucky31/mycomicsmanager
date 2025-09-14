@@ -2,5 +2,5 @@
 
 public sealed class LocalStorageConfiguration
 {
-    public string RootPath { get; init; } = string.Empty;
+    public required string RootPath { get; init; }
 }
