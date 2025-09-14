@@ -9,10 +9,10 @@ public class ResultValueTests
     // Assert
 
     [Fact]
-    public void Success_Should_SetIsSuccesToTrueAndReturnValue()
+    public void Success_Should_SetIsSuccessToTrueAndReturnValue()
     {
         // Arrange
-        var value = "the tested value";
+        const string value = "the tested value";
 
         // Act
         var result = Result<string>.Success(value);
@@ -44,7 +44,7 @@ public class ResultValueTests
     public void Implicit_Should_ConvertFromValue()
     {
         // Arrange
-        var value = "the tested value";
+        const string value = "the tested value";
 
         // Act
         Result<string> result = value;
@@ -92,7 +92,7 @@ public class ResultValueTests
     public void ToResult_Should_ConvertFromValue()
     {
         // Arrange
-        var value = "the tested value";
+        const string value = "the tested value";
 
         // Act
         var result = Result<string>.ToResult(value);

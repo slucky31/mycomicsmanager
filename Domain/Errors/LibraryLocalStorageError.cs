@@ -1,6 +1,7 @@
 ﻿using Domain.Primitives;
 
 namespace Domain.Errors;
+
 public static class LibraryLocalStorageError
 {
     public static readonly TError ArgumentNullOrEmpty = new("ArgumentNullOrEmpty", "path is null.");

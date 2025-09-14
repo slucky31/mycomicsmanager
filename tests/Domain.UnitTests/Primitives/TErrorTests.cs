@@ -11,8 +11,8 @@ public class TErrorTests
     public void Create_Error()
     {
         // Arrange
-        var code = "123";
-        var description = "Test error";
+        const string code = "123";
+        const string description = "Test error";
 
         // Act
         var error = new TError(code, description);

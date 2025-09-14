@@ -1,0 +1,31 @@
+﻿@page "/settings"
+
+<style>
+    .settings-card {
+        background-color: white;
+    }
+</style>
+
+<Page Title="Settings" Icon="@Icons.Material.Filled.Settings">
+    <MudGrid Spacing="4" >
+        <MudItem Class="mud-width-full" xs="12" sm="12" md="8">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6"><strong>General Settings</strong></MudText>
+                <MudText Typo="Typo.body1">Configure basic application settings</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem Class="mud-width-full" xs="12" sm="12" md="4">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6"><strong>About</strong></MudText>
+                <MudText Class="mb-4" Typo="Typo.body1">Application information</MudText>
+                <MudText Typo="Typo.body1"><strong>MyComicsManager</strong></MudText>
+                <MudText Typo="Typo.body1">V1.0.0</MudText>
+            </MudPaper>
+        </MudItem>        
+    </MudGrid>
+</Page>
+
+
+@code {
+    
+}

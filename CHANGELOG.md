@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.6.1"></a>
+## [9.6.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.1) (2025-09-12)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dotnet monorepo ([#848](https://www.github.com/slucky31/mycomicsmanager/issues/848)) ([a34ed7a](https://www.github.com/slucky31/mycomicsmanager/commit/a34ed7a3ebeed0a0440d90deb5696f75e4eaa09e))
+
+<a name="9.6.0"></a>
+## [9.6.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.0) (2025-09-12)
+
+### ✨ Features
+
+* navbar ([#850](https://www.github.com/slucky31/mycomicsmanager/issues/850)) ([21fd84c](https://www.github.com/slucky31/mycomicsmanager/commit/21fd84cdbcc7716ca6272833271f8c6b065d67a6))
+
+<a name="9.5.1"></a>
+## [9.5.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.5.1) (2025-09-01)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency bunit to 1.40.0 ([#852](https://www.github.com/slucky31/mycomicsmanager/issues/852)) ([5ac9b61](https://www.github.com/slucky31/mycomicsmanager/commit/5ac9b61adf0c4dde7ea2dd8b04082cce7209410c))
+* **deps:** Update package versions and refactor code structure ([#856](https://www.github.com/slucky31/mycomicsmanager/issues/856)) ([eac2a4d](https://www.github.com/slucky31/mycomicsmanager/commit/eac2a4d44a4595d7002ea1776727b92c8b558ad8))
+
 <a name="9.5.0"></a>
 ## [9.5.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.5.0) (2025-06-14)
 
