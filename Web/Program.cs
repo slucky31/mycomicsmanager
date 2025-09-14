@@ -55,8 +55,7 @@ builder.Services.AddOptions<Auth0Configuration>()
 // Add Auth0 services
 builder.Services.AddAuth0WebAppAuthentication(options =>
     {
-        options.Domain = configuration["Auth0:Domain"]!;
-        options.ClientId = configuration["Auth0:ClientId"]!;
+        config.Bind(options);
     });
 
 // Register CustomAuthenticationStateProvider
@@ -97,7 +96,6 @@ app.UseExceptionHandler();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
@@ -115,7 +113,7 @@ app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 // Register Accounts Endpoints for Auth0 login/logout
 app.RegisterAccountEndpoints();
 
-app.MapHealthChecks("health", new HealthCheckOptions
+app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
