@@ -26,13 +26,14 @@ builder.Services.AddProblemDetails();
 
 // Get connection string from configuration
 var connectionString = configuration.GetConnectionString("NeonConnection");
-Guard.Against.Null(connectionString);
+Guard.Against.NullOrEmpty(connectionString);
 
 // Config LocalStorage
 var localStorageSection = builder.Configuration.GetSection("LocalStorage");
 builder.Services.Configure<LocalStorageConfiguration>(localStorageSection);
 var localStorageConfig = localStorageSection.Get<LocalStorageConfiguration>();
 Guard.Against.Null(localStorageConfig);
+Guard.Against.NullOrEmpty(localStorageConfig.RootPath);
 
 builder.Services
     .AddApplication()
