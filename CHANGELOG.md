@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.6.4"></a>
+## [9.6.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.4) (2025-09-19)
+
+### 🐛 Bug Fixes
+
+* **deps:** update actions/checkout action to v5 ([#857](https://www.github.com/slucky31/mycomicsmanager/issues/857)) ([7da7627](https://www.github.com/slucky31/mycomicsmanager/commit/7da76279aeb390497652a36755d4d23d143e0c8c))
+
 <a name="9.6.3"></a>
 ## [9.6.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.3) (2025-09-14)
 
