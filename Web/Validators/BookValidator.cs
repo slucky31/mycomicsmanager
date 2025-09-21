@@ -20,8 +20,8 @@ public class BookValidator : AbstractValidator<BookUiDto>
             .MaximumLength(maxIsbnLength).WithMessage($"ISBN must not exceed {maxIsbnLength} characters.")
             .Must(BeValidISBN).WithMessage("ISBN must be a valid 10 or 13 digit number.");
 
-        RuleFor(x => x.Series)
-            .MaximumLength(maxSeriesLength).WithMessage($"Series must not exceed {maxSeriesLength} characters.");
+        RuleFor(x => x.Serie)
+            .MaximumLength(maxSeriesLength).WithMessage($"Serie must not exceed {maxSeriesLength} characters.");
 
         RuleFor(x => x.VolumeNumber)
             .GreaterThan(0).WithMessage("Volume number must be greater than 0.");
@@ -33,7 +33,9 @@ public class BookValidator : AbstractValidator<BookUiDto>
     private static bool BeValidISBN(string isbn)
     {
         if (string.IsNullOrEmpty(isbn))
+        {
             return false;
+        }
 
         // Remove any dashes or spaces
         var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal).Replace(" ", "", StringComparison.Ordinal);

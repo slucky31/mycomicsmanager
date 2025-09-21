@@ -12,7 +12,7 @@ public class User : Entity<Guid>
     {
         var user = new User
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Email = email,
             AuthId = authId
         };

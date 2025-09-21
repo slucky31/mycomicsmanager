@@ -43,7 +43,17 @@ public class BooksService : IBooksService
         return await handler_GetBookQuery.Handle(query, CancellationToken.None);
     }
 
-    public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber = 1, string imageLink = "")
+    public async Task<Result<Book>> Create(string series, string title, string isbn)
+    {
+        return await Create(series, title, isbn, 1, "");
+    }
+
+    public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber)
+    {
+        return await Create(series, title, isbn, volumeNumber, "");
+    }
+
+    public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink)
     {
         var command = new CreateBookCommand(series, title, isbn, volumeNumber, imageLink);
 

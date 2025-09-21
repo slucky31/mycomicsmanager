@@ -7,8 +7,8 @@ namespace Web.Validators;
 
 public class BookUiDto : Entity<Guid>
 {
-    [Label("Series")]
-    public string Series { get; set; } = string.Empty;
+    [Label("Serie")]
+    public string Serie { get; set; } = string.Empty;
 
     [Label("Title")]
     public string Title { get; set; } = string.Empty;
@@ -29,7 +29,7 @@ public class BookUiDto : Entity<Guid>
         return new BookUiDto
         {
             Id = book.Id,
-            Series = book.Series,
+            Serie = book.Serie,
             Title = book.Title,
             ISBN = book.ISBN,
             VolumeNumber = book.VolumeNumber,

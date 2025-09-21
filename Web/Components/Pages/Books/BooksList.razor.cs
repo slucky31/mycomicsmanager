@@ -82,7 +82,7 @@ public partial class BooksList
             if (_formMode == FormMode.Create)
             {
                 var result = await BooksService.Create(
-                    _bookModel.Series,
+                    _bookModel.Serie,
                     _bookModel.Title,
                     _bookModel.ISBN,
                     _bookModel.VolumeNumber,
@@ -104,7 +104,7 @@ public partial class BooksList
             {
                 var result = await BooksService.Update(
                     _bookModel.Id!.ToString(),
-                    _bookModel.Series,
+                    _bookModel.Serie,
                     _bookModel.Title,
                     _bookModel.ISBN,
                     _bookModel.VolumeNumber,

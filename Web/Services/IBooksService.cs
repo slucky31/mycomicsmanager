@@ -9,7 +9,9 @@ namespace Web.Services;
 
 public interface IBooksService
 {
-    Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber = 1, string imageLink = "");
+    Task<Result<Book>> Create(string series, string title, string isbn);
+    Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber);
+    Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink);
     Task<Result<Book>> GetById(string? id);
     Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink);
     Task<Result<List<Book>>> GetAll();

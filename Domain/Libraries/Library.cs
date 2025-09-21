@@ -14,7 +14,7 @@ public class Library : Entity<Guid>
     {
         var library = new Library
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Name = name,
         };
         return library;

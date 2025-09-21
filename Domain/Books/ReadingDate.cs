@@ -14,7 +14,7 @@ public class ReadingDate : Entity<Guid>
     {
         var readingDate = new ReadingDate
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Date = date,
             Note = note,
             BookId = bookId

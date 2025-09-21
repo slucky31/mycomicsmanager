@@ -5,7 +5,7 @@ namespace Application.Books.Update;
 
 public record UpdateBookCommand(
     Guid Id,
-    string Series, 
+    string Serie, 
     string Title, 
     string ISBN, 
     int VolumeNumber, 

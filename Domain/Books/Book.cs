@@ -4,7 +4,7 @@ namespace Domain.Books;
 
 public class Book : Entity<Guid>
 {
-    public string Series { get; protected set; } = string.Empty;
+    public string Serie { get; protected set; } = string.Empty;
     
     public string Title { get; protected set; } = string.Empty;
     
@@ -17,12 +17,22 @@ public class Book : Entity<Guid>
     private readonly List<ReadingDate> _readingDates = [];
     public IReadOnlyList<ReadingDate> ReadingDates => _readingDates.AsReadOnly();
 
-    public static Book Create(string series, string title, string isbn, int volumeNumber = 1, string imageLink = "")
+    public static Book Create(string series, string title, string isbn)
+    {
+        return Create(series, title, isbn, 1, "");
+    }
+
+    public static Book Create(string series, string title, string isbn, int volumeNumber)
+    {
+        return Create(series, title, isbn, volumeNumber, "");
+    }
+
+    public static Book Create(string series, string title, string isbn, int volumeNumber, string imageLink)
     {
         var book = new Book
         {
-            Id = Guid.NewGuid(),
-            Series = series,
+            Id = Guid.CreateVersion7(),
+            Serie = series,
             Title = title,
             ISBN = isbn,
             VolumeNumber = volumeNumber,
@@ -33,14 +43,19 @@ public class Book : Entity<Guid>
 
     public void Update(string series, string title, string isbn, int volumeNumber, string imageLink)
     {
-        Series = series;
+        Serie = series;
         Title = title;
         ISBN = isbn;
         VolumeNumber = volumeNumber;
         ImageLink = imageLink;
     }
 
-    public void AddReadingDate(DateTime date, string note = "")
+    public void AddReadingDate(DateTime date)
+    {
+        AddReadingDate(date, "");
+    }
+
+    public void AddReadingDate(DateTime date, string note)
     {
         var readingDate = ReadingDate.Create(date, note, Id);
         _readingDates.Add(readingDate);

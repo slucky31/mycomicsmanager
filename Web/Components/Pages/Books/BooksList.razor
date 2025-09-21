@@ -27,9 +27,9 @@
                     <MudCardHeader>
                         <CardHeaderContent>
                             <MudText Typo="Typo.h6">@book.Title</MudText>
-                            @if (!string.IsNullOrEmpty(book.Series))
+                            @if (!string.IsNullOrEmpty(book.Serie))
                             {
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">@book.Series</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@book.Serie</MudText>
                             }
                         </CardHeaderContent>
                         <CardHeaderActions>
@@ -85,10 +85,10 @@
                                   Immediate="true"
                                   Label="Title"/>
 
-                    <MudTextField @bind-Value="_bookModel.Series"
-                                  For="@(() => _bookModel.Series)"
+                    <MudTextField @bind-Value="_bookModel.Serie"
+                                  For="@(() => _bookModel.Serie)"
                                   Immediate="true"
-                                  Label="Series"
+                                  Label="Serie"
                                   Class="mt-3"/>
 
                     <MudTextField @bind-Value="_bookModel.ISBN"

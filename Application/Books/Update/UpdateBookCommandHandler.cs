@@ -39,7 +39,7 @@ public sealed class UpdateBookCommandHandler(IRepository<Book, Guid> bookReposit
         }
 
         // Update the book
-        book.Update(request.Series, request.Title, request.ISBN, request.VolumeNumber, request.ImageLink);
+        book.Update(request.Serie, request.Title, request.ISBN, request.VolumeNumber, request.ImageLink);
 
         bookRepository.Update(book);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -50,12 +50,89 @@ public sealed class UpdateBookCommandHandler(IRepository<Book, Guid> bookReposit
     private static bool IsValidISBN(string isbn)
     {
         if (string.IsNullOrEmpty(isbn))
+        {
             return false;
+        }
 
-        // Remove any dashes or spaces
-        var cleanIsbn = isbn.Replace("-", "").Replace(" ", "");
+        // Remove any dashes, spaces, and convert to uppercase
+        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
+                           .Replace(" ", "", StringComparison.Ordinal)
+                           .ToUpperInvariant();
 
-        // Check if it's all digits and either 10 or 13 characters long
-        return (cleanIsbn.Length == 10 || cleanIsbn.Length == 13) && cleanIsbn.All(char.IsDigit);
+        // Check ISBN-10
+        if (cleanIsbn.Length == 10)
+        {
+            return IsValidISBN10(cleanIsbn);
+        }
+
+        // Check ISBN-13
+        if (cleanIsbn.Length == 13)
+        {
+            return IsValidISBN13(cleanIsbn);
+        }
+
+        return false;
+    }
+
+    private static bool IsValidISBN10(string isbn)
+    {
+        // First 9 characters must be digits, last can be digit or X
+        for (int i = 0; i < 9; i++)
+        {
+            if (!char.IsDigit(isbn[i]))
+            {
+                return false;
+            }
+        }
+
+        char lastChar = isbn[9];
+        if (!char.IsDigit(lastChar) && lastChar != 'X')
+        {
+            return false;
+        }
+
+        // Calculate checksum
+        int sum = 0;
+        for (int i = 0; i < 9; i++)
+        {
+            sum += (isbn[i] - '0') * (10 - i);
+        }
+
+        // Add the check digit
+        if (lastChar == 'X')
+        {
+            sum += 10;
+        }
+        else
+        {
+            sum += lastChar - '0';
+        }
+
+        return sum % 11 == 0;
+    }
+
+    private static bool IsValidISBN13(string isbn)
+    {
+        // All characters must be digits
+        for (int i = 0; i < 13; i++)
+        {
+            if (!char.IsDigit(isbn[i]))
+            {
+                return false;
+            }
+        }
+
+        // Calculate checksum
+        int sum = 0;
+        for (int i = 0; i < 12; i++)
+        {
+            int digit = isbn[i] - '0';
+            sum += (i % 2 == 0) ? digit : digit * 3;
+        }
+
+        int checkDigit = (10 - (sum % 10)) % 10;
+        int actualCheckDigit = isbn[12] - '0';
+
+        return checkDigit == actualCheckDigit;
     }
 }

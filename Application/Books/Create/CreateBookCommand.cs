@@ -4,7 +4,7 @@ using Domain.Books;
 namespace Application.Books.Create;
 
 public record CreateBookCommand(
-    string Series, 
+    string Serie, 
     string Title, 
     string ISBN, 
     int VolumeNumber = 1, 
