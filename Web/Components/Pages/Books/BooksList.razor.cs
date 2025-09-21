@@ -15,6 +15,7 @@ public partial class BooksList
 
     private bool _visible;
     private bool _deleteDialogVisible;
+    private bool _scannerVisible;
     private FormMode _formMode = FormMode.Create;
     private MudForm _form = default!;
     private BookUiDto _bookModel = new();
@@ -167,22 +168,16 @@ public partial class BooksList
 
     private async Task ScanISBN()
     {
-        try
-        {
-            // This would be implemented with a barcode scanner library
-            // For now, we'll just show a placeholder message
-            Snackbar.Add("ISBN scanning feature will be implemented next", Severity.Info);
-            
-            // TODO: Implement actual ISBN scanning using camera
-            // This would typically involve:
-            // 1. ZXing.Net.Maui or similar barcode scanning library
-            // 2. Camera access permissions
-            // 3. Barcode detection and ISBN validation
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Failed to scan ISBN: {ex.Message}", Severity.Error);
-        }
+        _scannerVisible = true;
+        StateHasChanged();
+    }
+
+    private async Task OnIsbnScanned(string isbn)
+    {
+        _bookModel.ISBN = isbn;
+        _scannerVisible = false;
+        Snackbar.Add($"ISBN scanned: {isbn}", Severity.Success);
+        StateHasChanged();
     }
 }
 

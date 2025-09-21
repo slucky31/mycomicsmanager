@@ -141,4 +141,7 @@
             <MudButton Color="Color.Error" OnClick="ConfirmDelete">Delete</MudButton>
         </DialogActions>
     </MudDialog>
+
+    @* ISBN Scanner Dialog *@
+    <IsbnScannerDialog @bind-IsVisible="_scannerVisible" OnIsbnScanned="OnIsbnScanned" />
 </PageWithAction>
