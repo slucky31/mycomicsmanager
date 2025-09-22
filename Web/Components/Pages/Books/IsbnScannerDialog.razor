@@ -1,0 +1,151 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+
+<MudDialog @bind-Visible="IsVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" Class="mr-3 mb-n1" />
+            Scan ISBN Barcode
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Style="text-align: center;">
+            @if (!_scanning)
+            {
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    Position the ISBN barcode within the camera view to scan it automatically.
+                </MudText>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Videocam"
+                           OnClick="StartScanning">
+                    Start Camera
+                </MudButton>
+            }
+            else
+            {
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    Point your camera at the ISBN barcode
+                </MudText>
+                <video id="@_videoElementId"
+                       width="400"
+                       height="300"
+                       style="border: 2px solid #ddd; border-radius: 8px;"
+                       autoplay></video>
+                <div class="mt-4">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Secondary"
+                               OnClick="StopScanning">
+                        Stop Scanning
+                    </MudButton>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-4">
+                    @_errorMessage
+                </MudAlert>
+            }
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback<string> OnIsbnScanned { get; set; }
+
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<IsbnScannerDialog>? _dotNetObjectRef;
+    private bool _scanning = false;
+    private string _videoElementId = $"video-scanner-{Guid.NewGuid():N}";
+    private string _errorMessage = string.Empty;
+
+    private bool _pendingStartScan = false;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        CloseButton = true,
+        CloseOnEscapeKey = true,
+        FullWidth = true,
+        MaxWidth = MaxWidth.Medium
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetObjectRef = DotNetObjectReference.Create(this);
+            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/isbnScanner.js");
+        }
+
+        if (_pendingStartScan && _jsModule != null && _dotNetObjectRef != null)
+        {
+            _pendingStartScan = false;
+            await _jsModule.InvokeVoidAsync("startScan", _videoElementId, _dotNetObjectRef);
+        }
+    }
+
+    private void StartScanning()
+    {
+        _errorMessage = string.Empty;
+        _scanning = true;
+        _pendingStartScan = true;
+        StateHasChanged();
+    }
+
+    private async Task StopScanning()
+    {
+        _scanning = false;
+        if (_jsModule != null)
+        {
+            await _jsModule.InvokeVoidAsync("stopScan");
+        }
+        StateHasChanged();
+    }
+
+    private async Task Cancel()
+    {
+        await StopScanning();
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+    [JSInvokable]
+    public async Task OnIsbnScannedFromJs(string isbn)
+    {
+        await StopScanning();
+        await OnIsbnScanned.InvokeAsync(isbn);
+        await Cancel();
+    }
+
+    [JSInvokable]
+    public void OnScanErrorFromJs(string error)
+    {
+        _errorMessage = error;
+        _scanning = false;
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule != null)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("stopScan");
+                await _jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Circuit is gone, ignore or log if needed
+            }
+        }
+        _dotNetObjectRef?.Dispose();
+    }
+}
