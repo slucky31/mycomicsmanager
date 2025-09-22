@@ -42,7 +42,7 @@ namespace Persistence.Migrations
                     b.Property<DateTime?>("ModifiedOnUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Series")
+                    b.Property<string>("Serie")
                         .IsRequired()
                         .HasColumnType("text");
 

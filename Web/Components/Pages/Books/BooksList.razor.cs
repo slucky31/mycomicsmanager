@@ -1,4 +1,4 @@
-using Domain.Books;
+﻿using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -19,7 +19,7 @@ public partial class BooksList
     private FormMode _formMode = FormMode.Create;
     private MudForm _form = default!;
     private BookUiDto _bookModel = new();
-    private BookValidator _bookValidator = new();
+    private readonly BookValidator _bookValidator = new();
     private Guid _bookToDeleteId;
 
     private List<Book> Books { get; set; } = [];
@@ -45,7 +45,7 @@ public partial class BooksList
     private async Task LoadBooks()
     {
         var result = await BooksService.GetAll();
-        if (result.IsSuccess)
+        if (result.IsSuccess && result.Value is not null)
         {
             Books = result.Value;
             StateHasChanged();
@@ -56,10 +56,10 @@ public partial class BooksList
         }
     }
 
-    private async Task CreateOrEdit(FormMode formMode, Book? book)
+    private void CreateOrEdit(FormMode formMode, Book? book)
     {
         _formMode = formMode;
-        
+
         if (formMode == FormMode.Create)
         {
             _bookModel = new BookUiDto();
@@ -97,7 +97,7 @@ public partial class BooksList
                 }
                 else
                 {
-                    Snackbar.Add($"Failed to create book: {result.Error.Description}", Severity.Error);
+                    Snackbar.Add($"Failed to create book: {result.Error?.Description}", Severity.Error);
                 }
             }
             else
@@ -119,7 +119,7 @@ public partial class BooksList
                 }
                 else
                 {
-                    Snackbar.Add($"Failed to update book: {result.Error.Description}", Severity.Error);
+                    Snackbar.Add($"Failed to update book: {result.Error?.Description}", Severity.Error);
                 }
             }
         }
@@ -132,7 +132,7 @@ public partial class BooksList
         StateHasChanged();
     }
 
-    private async Task OnClickDelete(Guid? bookId)
+    private void OnClickDelete(Guid? bookId)
     {
         if (bookId.HasValue)
         {
@@ -145,7 +145,7 @@ public partial class BooksList
     private async Task ConfirmDelete()
     {
         var result = await BooksService.Delete(_bookToDeleteId.ToString());
-        
+
         if (result.IsSuccess)
         {
             Snackbar.Add("Book deleted successfully", Severity.Success);
@@ -153,7 +153,7 @@ public partial class BooksList
         }
         else
         {
-            Snackbar.Add($"Failed to delete book: {result.Error.Description}", Severity.Error);
+            Snackbar.Add($"Failed to delete book: {result.Error?.Description}", Severity.Error);
         }
 
         CancelDelete();
@@ -166,13 +166,13 @@ public partial class BooksList
         StateHasChanged();
     }
 
-    private async Task ScanISBN()
+    private void ScanISBN()
     {
         _scannerVisible = true;
         StateHasChanged();
     }
 
-    private async Task OnIsbnScanned(string isbn)
+    private void OnIsbnScanned(string isbn)
     {
         _bookModel.ISBN = isbn;
         _scannerVisible = false;

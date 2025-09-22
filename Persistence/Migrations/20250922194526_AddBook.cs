@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class AddBooksAndReadingDates : Migration
+    public partial class AddBook : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,7 +16,7 @@ namespace Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Series = table.Column<string>(type: "text", nullable: false),
+                    Serie = table.Column<string>(type: "text", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     ISBN = table.Column<string>(type: "text", nullable: false),
                     VolumeNumber = table.Column<int>(type: "integer", nullable: false),

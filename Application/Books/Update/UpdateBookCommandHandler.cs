@@ -1,4 +1,4 @@
-using Application.Abstractions.Messaging;
+﻿using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
@@ -33,7 +33,7 @@ public sealed class UpdateBookCommandHandler(IRepository<Book, Guid> bookReposit
 
         // Check if another book with the same ISBN exists (excluding current book)
         var existingBooks = await bookRepository.ListAsync();
-        if (existingBooks.Any(b => b.ISBN == request.ISBN && b.Id != request.Id))
+        if (existingBooks.Exists(b => b.ISBN == request.ISBN && b.Id != request.Id))
         {
             return BooksError.Duplicate;
         }
@@ -77,7 +77,7 @@ public sealed class UpdateBookCommandHandler(IRepository<Book, Guid> bookReposit
     private static bool IsValidISBN10(string isbn)
     {
         // First 9 characters must be digits, last can be digit or X
-        for (int i = 0; i < 9; i++)
+        for (var i = 0; i < 9; i++)
         {
             if (!char.IsDigit(isbn[i]))
             {
@@ -85,15 +85,15 @@ public sealed class UpdateBookCommandHandler(IRepository<Book, Guid> bookReposit
             }
         }
 
-        char lastChar = isbn[9];
+        var lastChar = isbn[9];
         if (!char.IsDigit(lastChar) && lastChar != 'X')
         {
             return false;
         }
 
         // Calculate checksum
-        int sum = 0;
-        for (int i = 0; i < 9; i++)
+        var sum = 0;
+        for (var i = 0; i < 9; i++)
         {
             sum += (isbn[i] - '0') * (10 - i);
         }
@@ -114,7 +114,7 @@ public sealed class UpdateBookCommandHandler(IRepository<Book, Guid> bookReposit
     private static bool IsValidISBN13(string isbn)
     {
         // All characters must be digits
-        for (int i = 0; i < 13; i++)
+        for (var i = 0; i < 13; i++)
         {
             if (!char.IsDigit(isbn[i]))
             {
@@ -123,15 +123,15 @@ public sealed class UpdateBookCommandHandler(IRepository<Book, Guid> bookReposit
         }
 
         // Calculate checksum
-        int sum = 0;
-        for (int i = 0; i < 12; i++)
+        var sum = 0;
+        for (var i = 0; i < 12; i++)
         {
-            int digit = isbn[i] - '0';
+            var digit = isbn[i] - '0';
             sum += (i % 2 == 0) ? digit : digit * 3;
         }
 
-        int checkDigit = (10 - (sum % 10)) % 10;
-        int actualCheckDigit = isbn[12] - '0';
+        var checkDigit = (10 - (sum % 10)) % 10;
+        var actualCheckDigit = isbn[12] - '0';
 
         return checkDigit == actualCheckDigit;
     }

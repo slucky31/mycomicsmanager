@@ -12,8 +12,8 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250921193544_AddBooksAndReadingDates")]
-    partial class AddBooksAndReadingDates
+    [Migration("20250922194526_AddBook")]
+    partial class AddBook
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,7 +45,7 @@ namespace Persistence.Migrations
                     b.Property<DateTime?>("ModifiedOnUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Series")
+                    b.Property<string>("Serie")
                         .IsRequired()
                         .HasColumnType("text");
 
