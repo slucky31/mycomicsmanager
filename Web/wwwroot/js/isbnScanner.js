@@ -1,117 +1,70 @@
-// ISBN Barcode Scanner using ZXing-js
-(function() {
-    'use strict';
-    
-    // Guard against SSR
-    if (typeof window === 'undefined') {
-        return;
+// Helper to load ZXing if not already loaded
+async function ensureZXingLoaded() {
+    if (!window.ZXing) {
+        await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/@zxing/library@latest/umd/index.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
     }
+}
 
-    window.isbnScanner = {
-        video: null,
-        canvas: null,
-        context: null,
-        codeReader: null,
-        scanning: false,
+let codeReader = null;
+let video = null;
+let scanning = false;
 
-        init: function() {
-            // Load ZXing library if not already loaded
-            if (typeof window.ZXing === 'undefined') {
-                var script = document.createElement('script');
-                script.src = 'https://unpkg.com/@zxing/library@latest/umd/index.min.js';
-                var self = this;
-                script.onload = function() {
-                    self.codeReader = new window.ZXing.BrowserMultiFormatReader();
-                };
-                document.head.appendChild(script);
-            } else {
-                this.codeReader = new window.ZXing.BrowserMultiFormatReader();
-            }
-        },
+function init() {
+    if (!codeReader && window.ZXing) {
+        codeReader = new window.ZXing.BrowserMultiFormatReader();
+    }
+}
 
-        startScan: function(videoElementId, dotNetObjectRef) {
-            var self = this;
-            
-            return new Promise(function(resolve, reject) {
-                try {
-                    if (!self.codeReader) {
-                        self.init();
-                        // Wait for ZXing to load
-                        setTimeout(function() {
-                            self.startScanInternal(videoElementId, dotNetObjectRef);
-                            resolve();
-                        }, 1000);
-                    } else {
-                        self.startScanInternal(videoElementId, dotNetObjectRef);
-                        resolve();
-                    }
-                } catch (error) {
-                    console.error('Failed to start barcode scanning:', error);
-                    dotNetObjectRef.invokeMethodAsync('OnScanErrorFromJs', error.message);
-                    reject(error);
+export async function startScan(videoElementId, dotNetObjectRef) {
+    await ensureZXingLoaded();
+    init();
+
+    video = document.getElementById(videoElementId);
+    if (!video) throw new Error('Video element not found');
+    scanning = true;
+
+    try {
+        const videoInputDevices = await codeReader.listVideoInputDevices();
+        if (videoInputDevices.length === 0) throw new Error('No video input devices found');
+        const selectedDeviceId = videoInputDevices[0].deviceId;
+
+        codeReader.decodeFromVideoDevice(selectedDeviceId, video, (result, err) => {
+            if (result && scanning) {
+                const isbn = result.getText();
+                if (isValidISBN(isbn)) {
+                    stopScan();
+                    dotNetObjectRef.invokeMethodAsync('OnIsbnScannedFromJs', isbn);
                 }
-            });
-        },
-
-        startScanInternal: function(videoElementId, dotNetObjectRef) {
-            var self = this;
-            
-            this.video = document.getElementById(videoElementId);
-            if (!this.video) {
-                throw new Error('Video element not found');
             }
-
-            this.scanning = true;
-
-            // Get available video devices
-            this.codeReader.listVideoInputDevices().then(function(videoInputDevices) {
-                if (videoInputDevices.length === 0) {
-                    throw new Error('No video input devices found');
-                }
-
-                // Start scanning with the first available camera
-                var selectedDeviceId = videoInputDevices[0].deviceId;
-                
-                self.codeReader.decodeFromVideoDevice(selectedDeviceId, self.video, function(result, err) {
-                    if (result && self.scanning) {
-                        // Found a barcode
-                        var isbn = result.getText();
-                        if (self.isValidISBN(isbn)) {
-                            self.stopScan();
-                            dotNetObjectRef.invokeMethodAsync('OnIsbnScannedFromJs', isbn);
-                        }
-                    }
-                    if (err && !(err instanceof window.ZXing.NotFoundException)) {
-                        console.error('Barcode scan error:', err);
-                    }
-                });
-            }).catch(function(error) {
-                console.error('Failed to list video devices:', error);
-                dotNetObjectRef.invokeMethodAsync('OnScanErrorFromJs', error.message);
-            });
-        },
-
-        stopScan: function() {
-            this.scanning = false;
-            if (this.codeReader) {
-                this.codeReader.reset();
+            if (err && !(err instanceof window.ZXing.NotFoundException)) {
+                console.error('Barcode scan error:', err);
             }
-            if (this.video && this.video.srcObject) {
-                var stream = this.video.srcObject;
-                var tracks = stream.getTracks();
-                tracks.forEach(function(track) {
-                    track.stop();
-                });
-                this.video.srcObject = null;
-            }
-        },
+        });
+    } catch (error) {
+        console.error('Failed to start barcode scanning:', error);
+        dotNetObjectRef.invokeMethodAsync('OnScanErrorFromJs', error.message);
+        throw error;
+    }
+}
 
-        isValidISBN: function(isbn) {
-            if (!isbn) {
-                return false;
-            }
-            var cleanIsbn = isbn.replace(/[-\s]/g, '');
-            return /^\d{10}$/.test(cleanIsbn) || /^\d{13}$/.test(cleanIsbn);
-        }
-    };
-})();
+export function stopScan() {
+    scanning = false;
+    if (codeReader) codeReader.reset();
+    if (video && video.srcObject) {
+        const stream = video.srcObject;
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+    }
+}
+
+function isValidISBN(isbn) {
+    if (!isbn) return false;
+    const cleanIsbn = isbn.replace(/[-\s]/g, '');
+    return /^\d{10}$/.test(cleanIsbn) || /^\d{13}$/.test(cleanIsbn);
+}

@@ -5,7 +5,7 @@
 <MudDialog @bind-Visible="IsVisible" Options="_dialogOptions">
     <TitleContent>
         <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" Class="mr-3 mb-n1"/>
+            <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" Class="mr-3 mb-n1" />
             Scan ISBN Barcode
         </MudText>
     </TitleContent>
@@ -16,9 +16,9 @@
                 <MudText Typo="Typo.body1" Class="mb-4">
                     Position the ISBN barcode within the camera view to scan it automatically.
                 </MudText>
-                <MudButton Variant="Variant.Filled" 
-                           Color="Color.Primary" 
-                           StartIcon="@Icons.Material.Filled.Videocam" 
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Videocam"
                            OnClick="StartScanning">
                     Start Camera
                 </MudButton>
@@ -28,20 +28,20 @@
                 <MudText Typo="Typo.body1" Class="mb-4">
                     Point your camera at the ISBN barcode
                 </MudText>
-                <video id="@_videoElementId" 
-                       width="400" 
-                       height="300" 
+                <video id="@_videoElementId"
+                       width="400"
+                       height="300"
                        style="border: 2px solid #ddd; border-radius: 8px;"
                        autoplay></video>
                 <div class="mt-4">
-                    <MudButton Variant="Variant.Outlined" 
-                               Color="Color.Secondary" 
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Secondary"
                                OnClick="StopScanning">
                         Stop Scanning
                     </MudButton>
                 </div>
             }
-            
+
             @if (!string.IsNullOrEmpty(_errorMessage))
             {
                 <MudAlert Severity="Severity.Error" Class="mt-4">
@@ -66,6 +66,8 @@
     private string _videoElementId = $"video-scanner-{Guid.NewGuid():N}";
     private string _errorMessage = string.Empty;
 
+    private bool _pendingStartScan = false;
+
     private readonly DialogOptions _dialogOptions = new()
     {
         CloseButton = true,
@@ -74,31 +76,27 @@
         MaxWidth = MaxWidth.Medium
     };
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _dotNetObjectRef = DotNetObjectReference.Create(this);
-        _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/isbnScanner.js");
+        if (firstRender)
+        {
+            _dotNetObjectRef = DotNetObjectReference.Create(this);
+            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/isbnScanner.js");
+        }
+
+        if (_pendingStartScan && _jsModule != null && _dotNetObjectRef != null)
+        {
+            _pendingStartScan = false;
+            await _jsModule.InvokeVoidAsync("startScan", _videoElementId, _dotNetObjectRef);
+        }
     }
 
-    private async Task StartScanning()
+    private void StartScanning()
     {
-        try
-        {
-            _errorMessage = string.Empty;
-            _scanning = true;
-            StateHasChanged();
-
-            if (_jsModule != null && _dotNetObjectRef != null)
-            {
-                await _jsModule.InvokeVoidAsync("isbnScanner.startScan", _videoElementId, _dotNetObjectRef);
-            }
-        }
-        catch (Exception ex)
-        {
-            _errorMessage = $"Failed to start camera: {ex.Message}";
-            _scanning = false;
-            StateHasChanged();
-        }
+        _errorMessage = string.Empty;
+        _scanning = true;
+        _pendingStartScan = true;
+        StateHasChanged();
     }
 
     private async Task StopScanning()
@@ -106,7 +104,7 @@
         _scanning = false;
         if (_jsModule != null)
         {
-            await _jsModule.InvokeVoidAsync("isbnScanner.stopScan");
+            await _jsModule.InvokeVoidAsync("stopScan");
         }
         StateHasChanged();
     }
@@ -127,7 +125,7 @@
     }
 
     [JSInvokable]
-    public async Task OnScanErrorFromJs(string error)
+    public void OnScanErrorFromJs(string error)
     {
         _errorMessage = error;
         _scanning = false;
@@ -138,8 +136,15 @@
     {
         if (_jsModule != null)
         {
-            await _jsModule.InvokeVoidAsync("isbnScanner.stopScan");
-            await _jsModule.DisposeAsync();
+            try
+            {
+                await _jsModule.InvokeVoidAsync("stopScan");
+                await _jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Circuit is gone, ignore or log if needed
+            }
         }
         _dotNetObjectRef?.Dispose();
     }
