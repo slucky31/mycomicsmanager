@@ -7,7 +7,7 @@
 @using Web.Components.Pages.Libraries
 @using Web.Validators
 @using System.Threading.Tasks
-@inherits TestContext
+@inherits BunitContext
 
 @code {
     private LibraryUiDto CreateValidLibraryUiDto()
@@ -32,7 +32,7 @@
     {
         // Arrange
         var library = CreateValidLibraryUiDto();
-        var provider = RenderComponent<MudDialogProvider>();
+        var provider = Render<MudDialogProvider>();
         var dialogService = Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
         var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
@@ -56,7 +56,7 @@
     {
         // Arrange
         var library = CreateValidLibraryUiDto();
-        var provider = RenderComponent<MudDialogProvider>();
+        var provider = Render<MudDialogProvider>();
         var dialogService = Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
         var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
@@ -82,7 +82,7 @@
     {
         // Arrange
         var library = CreateValidLibraryUiDto();
-        var provider = RenderComponent<MudDialogProvider>();
+        var provider = Render<MudDialogProvider>();
         var dialogService = Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
         var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
@@ -108,7 +108,7 @@
     {
         // Arrange
         var library = new LibraryUiDto(); // invalid - missing required fields
-        var provider = RenderComponent<MudDialogProvider>();
+        var provider = Render<MudDialogProvider>();
         var dialogService = Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
         var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);

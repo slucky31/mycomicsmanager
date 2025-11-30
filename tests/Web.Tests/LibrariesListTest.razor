@@ -10,7 +10,7 @@
 @using Web.Components.Pages
 @using Web.Services
 @using Application.Interfaces
-@inherits TestContext
+@inherits BunitContext
 
 @code{
 
@@ -34,14 +34,14 @@
         _librariesServiceMock = Substitute.For<ILibrariesService>();
         Services.AddSingleton(_librariesServiceMock);
         Services.AddMudServices();
-        RenderComponent<MudPopoverProvider>();
+        Render<MudPopoverProvider>();
     }
 
     [Fact]
     public void LibraryList_Should_RenderCorrectly_When_NoDataProvided()
     {
         // Act
-        var comp = RenderComponent<LibrariesList>();
+        var comp = Render<LibrariesList>();
 
         comp.Should().NotBeNull();
         comp.WaitForAssertion(() =>
@@ -71,7 +71,7 @@
             .Returns(Task.FromResult(Result<IPagedList<Library>>.Success(paged)));
 
         // Act
-        var comp = RenderComponent<LibrariesList>();
+        var comp = Render<LibrariesList>();
 
         // Assert
         comp.Should().NotBeNull();        
