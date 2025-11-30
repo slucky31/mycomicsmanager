@@ -21,7 +21,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore                    
       - name: Tests
-        run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --collect:"XPlat Code Coverage"
+        run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --collect:"Code Coverage"
         env:        
           ConnectionStrings__NeonConnectionUnitTests: ${{ secrets.CONNECTIONSTRINGS_NEONCONNECTIONUNITTESTS }}
       - name: Tests coverage
