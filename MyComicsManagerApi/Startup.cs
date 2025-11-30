@@ -49,11 +49,11 @@ namespace MyComicsManagerApi
             
             var settings = Configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
             
-            var mongoUrlBuilder = new MongoUrlBuilder(settings.ConnectionString)
-            {
-                DatabaseName = "hangfire"
-            };
-            var mongoClient = new MongoClient(mongoUrlBuilder.ToMongoUrl());
+            // For mongodb+srv connections, append the database name to the connection string path
+            var hangfireConnectionString = settings.ConnectionString.Contains("?")
+                ? settings.ConnectionString.Substring(0, settings.ConnectionString.IndexOf("?")).TrimEnd('/') + "/hangfire" + settings.ConnectionString.Substring(settings.ConnectionString.IndexOf("?"))
+                : settings.ConnectionString.TrimEnd('/') + "/hangfire";
+            var mongoClient = new MongoClient(hangfireConnectionString);
             
             services.AddHttpClient<BookService>();
 
@@ -64,7 +64,7 @@ namespace MyComicsManagerApi
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
-                .UseMongoStorage(mongoClient, mongoUrlBuilder.DatabaseName, new MongoStorageOptions
+                .UseMongoStorage(mongoClient, "hangfire", new MongoStorageOptions
                 {
                     MigrationOptions = new MongoMigrationOptions
                     {

@@ -13,17 +13,19 @@ namespace MyComicsManagerApi.Services
         private static ILogger Log => Serilog.Log.ForContext<BookService>();
 
         private readonly IMongoCollection<Book> _books;
+        private readonly IGoogleSearchService _googleSearchService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BookService"/> class.
         /// </summary>
         /// <param name="dbSettings">The database settings.</param>
-        public BookService(IDatabaseSettings dbSettings)
+        public BookService(IDatabaseSettings dbSettings, IGoogleSearchService googleSearchService)
         {
             Log.Here().Debug("settings = {@Settings}", dbSettings);
             var client = new MongoClient(dbSettings.ConnectionString);
             var database = client.GetDatabase(dbSettings.DatabaseName);
             _books = database.GetCollection<Book>(dbSettings.BooksCollectionName);
+            _googleSearchService = googleSearchService;
         }
 
         /// <summary>
@@ -85,7 +87,7 @@ namespace MyComicsManagerApi.Services
 
             var book = new Book();
 
-            var parser = new BdphileComicHtmlDataParser();
+            var parser = new BedethequeComicHtmlDataParser(_googleSearchService);
             var results = parser.SearchComicInfoFromIsbn(isbn);
 
             if (results.Count > 0)
