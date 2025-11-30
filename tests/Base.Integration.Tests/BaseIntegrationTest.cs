@@ -5,15 +5,18 @@ using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence;
 using Xunit;
 
 namespace Base.Integration.Tests;
 
+[CollectionDefinition("Database collection")]
+public class DatabaseCollection : ICollectionFixture<IntegrationTestWebAppFactory>
+{
+}
 
-
-[Collection("Database collection")]
 public abstract class BaseIntegrationTest : IDisposable
 {
     protected IServiceScope _scope { get; }
@@ -21,6 +24,8 @@ public abstract class BaseIntegrationTest : IDisposable
     protected ApplicationDbContext Context { get; }
 
     protected IUnitOfWork UnitOfWork { get; }
+
+    private IDbContextTransaction? _transaction;
 
     private bool disposed;
 
@@ -33,6 +38,7 @@ public abstract class BaseIntegrationTest : IDisposable
         Context = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
+        _transaction = Context.Database.BeginTransaction();
     }
 
     public void Dispose()
@@ -47,6 +53,8 @@ public abstract class BaseIntegrationTest : IDisposable
         {
             if (disposing)
             {
+                _transaction?.Rollback();
+                _transaction?.Dispose();
                 _scope?.Dispose();
             }
             disposed = true;
@@ -66,13 +74,6 @@ public class LibraryIntegrationTest : BaseIntegrationTest
         LibraryRepository = _scope.ServiceProvider.GetRequiredService<IRepository<Library, Guid>>();
 
         LibraryReadService = _scope.ServiceProvider.GetRequiredService<ILibraryReadService>();
-
-        // Clear change tracker to avoid concurrency issues
-        Context.ChangeTracker.Clear();
-        
-        // Use ExecuteDelete for direct database cleanup without tracking
-        Context.Database.ExecuteSqlRaw("DELETE FROM \"Libraries\"");
-        Context.Database.ExecuteSqlRaw("DELETE FROM \"Users\"");
     }
 
 }
@@ -89,13 +90,6 @@ public class UserIntegrationTest : BaseIntegrationTest
         UserRepository = _scope.ServiceProvider.GetRequiredService<IRepository<User, Guid>>();
 
         UserReadService = _scope.ServiceProvider.GetRequiredService<IUserReadService>();
-
-        // Clear change tracker to avoid concurrency issues
-        Context.ChangeTracker.Clear();
-        
-        // Use ExecuteDelete for direct database cleanup without tracking
-        Context.Database.ExecuteSqlRaw("DELETE FROM \"Users\"");
-        Context.Database.ExecuteSqlRaw("DELETE FROM \"Libraries\"");
     }
 
 }
