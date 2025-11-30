@@ -10,10 +10,12 @@
 @using Web.Components.Pages
 @using Web.Services
 @using Application.Interfaces
-@inherits BunitContext
+@using Microsoft.Extensions.DependencyInjection
+@implements IAsyncDisposable
 
 @code{
 
+    private readonly TestContext _testContext;
     private readonly ILibrariesService _librariesServiceMock;
     private readonly int nbItems = 10;
 
@@ -29,19 +31,32 @@
     }
 
     public LibrariesListTest()
-    {                
-        JSInterop.Mode = JSRuntimeMode.Loose;
+    {          
+        _testContext = new TestContext();
+        _testContext.JSInterop.Mode = JSRuntimeMode.Loose;
         _librariesServiceMock = Substitute.For<ILibrariesService>();
-        Services.AddSingleton(_librariesServiceMock);
-        Services.AddMudServices();
-        Render<MudPopoverProvider>();
+        _testContext.Services.AddSingleton(_librariesServiceMock);
+        _testContext.Services.AddMudServices();
+        _testContext.Render<MudPopoverProvider>();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // Dispose the test context asynchronously
+        if (_testContext.Services is IAsyncDisposable asyncDisposable)
+        {
+            await asyncDisposable.DisposeAsync();
+        }
+        
+        _testContext?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
     public void LibraryList_Should_RenderCorrectly_When_NoDataProvided()
     {
         // Act
-        var comp = Render<LibrariesList>();
+        var comp = _testContext.Render<LibrariesList>();
 
         comp.Should().NotBeNull();
         comp.WaitForAssertion(() =>
@@ -71,7 +86,7 @@
             .Returns(Task.FromResult(Result<IPagedList<Library>>.Success(paged)));
 
         // Act
-        var comp = Render<LibrariesList>();
+        var comp = _testContext.Render<LibrariesList>();
 
         // Assert
         comp.Should().NotBeNull();        
