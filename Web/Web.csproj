@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>mcm.Web</PackageId>
     <!-- x-release-please-start-version -->
-    <Version>9.6.5</Version>
+    <Version>9.6.6</Version>
     <!-- x-release-please-end -->
     <Authors>Nicolas DUFAUT (nicolas.dufaut@gmail.com)</Authors>
     <Product>MCM</Product>
@@ -19,10 +19,6 @@
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
     <PackageReference Include="Auth0.AspNetCore.Authentication" />
     <PackageReference Include="FluentValidation" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="MudBlazor" />    
     <PackageReference Include="Serilog.AspNetCore" />
   </ItemGroup>

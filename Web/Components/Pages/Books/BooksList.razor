@@ -1,0 +1,147 @@
+@using Domain.Books
+@using Web.Validators
+
+@rendermode InteractiveServer
+
+@page "/books/list"
+
+<style>
+    .green-left-border {
+        border-left: 4px solid #4caf50; /* Material Green 500 */
+    }
+    
+    .book-image {
+        width: 60px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+</style>
+
+<PageWithAction Title="Books" Icon="@Icons.Material.Filled.MenuBook" ActionName="New book" ActionIcon="@Icons.Material.Filled.Add" OnActionClick="@(e => CreateOrEdit(FormMode.Create, null))">
+    <MudGrid Spacing="4" Justify="Justify.FlexStart">
+        @foreach (var book in Books)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudCard Class="green-left-border" Outlined="true">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@book.Title</MudText>
+                            @if (!string.IsNullOrEmpty(book.Serie))
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@book.Serie</MudText>
+                            }
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Actions">
+                                <MudMenuItem Label="Edit" OnClick="@(e => CreateOrEdit(FormMode.Edit, @book))" />
+                                <MudMenuItem Label="Delete" OnClick="@(e => OnClickDelete(@book.Id))" />
+                            </MudMenu>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <div class="d-flex align-items-start">
+                            @if (!string.IsNullOrEmpty(book.ImageLink))
+                            {
+                                <MudImage Src="@book.ImageLink" Alt="Book cover" Class="book-image mr-3" />
+                            }
+                            <div class="flex-grow-1">
+                                <div class="d-flex">
+                                    <MudText Class="ml-2" Typo="Typo.body2"><strong>ISBN: </strong></MudText>
+                                    <MudText Class="ml-2" Typo="Typo.body2">@book.ISBN</MudText>
+                                </div>
+                                <div class="d-flex">
+                                    <MudText Class="ml-2" Typo="Typo.body2"><strong>Volume: </strong></MudText>
+                                    <MudText Class="ml-2" Typo="Typo.body2">@book.VolumeNumber</MudText>
+                                </div>
+                                @if (book.ReadingDates.Any())
+                                {
+                                    <div class="d-flex">
+                                        <MudText Class="ml-2" Typo="Typo.body2"><strong>Last read: </strong></MudText>
+                                        <MudText Class="ml-2" Typo="Typo.body2">@book.ReadingDates.OrderByDescending(rd => rd.Date).First().Date.ToString("d")</MudText>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
+    @* Book Dialog *@
+    <MudDialog @bind-Visible="_visible" Options="_dialogOptions">
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.MenuBook" Class="mr-3 mb-n1"/>
+                @(_formMode == FormMode.Create ? "Create Book" : "Edit Book")
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudContainer Style="max-height: 600px; overflow-y: scroll">
+                <MudForm @ref="_form" Model="@_bookModel" Validation="@(_bookValidator.ValidateValue)">
+                    <MudTextField @bind-Value="_bookModel.Title"
+                                  For="@(() => _bookModel.Title)"
+                                  Immediate="true"
+                                  Label="Title"/>
+
+                    <MudTextField @bind-Value="_bookModel.Serie"
+                                  For="@(() => _bookModel.Serie)"
+                                  Immediate="true"
+                                  Label="Serie"
+                                  Class="mt-3"/>
+
+                    <MudTextField @bind-Value="_bookModel.ISBN"
+                                  For="@(() => _bookModel.ISBN)"
+                                  Immediate="true"
+                                  Label="ISBN"
+                                  Class="mt-3"/>
+                    
+                    <MudButton StartIcon="@Icons.Material.Filled.QrCodeScanner" 
+                               Variant="Variant.Outlined" 
+                               Color="Color.Primary" 
+                               Class="mt-2"
+                               OnClick="ScanISBN">
+                        Scan ISBN
+                    </MudButton>
+
+                    <MudNumericField @bind-Value="_bookModel.VolumeNumber"
+                                     For="@(() => _bookModel.VolumeNumber)"
+                                     Label="Volume Number"
+                                     Min="1"
+                                     Class="mt-3"/>
+
+                    <MudTextField @bind-Value="_bookModel.ImageLink"
+                                  For="@(() => _bookModel.ImageLink)"
+                                  Immediate="true"
+                                  Label="Image Link"
+                                  Class="mt-3"/>
+                </MudForm>
+            </MudContainer>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton Color="Color.Primary" OnClick="Submit">@(_formMode == FormMode.Create ? "Create" : "Update")</MudButton>
+        </DialogActions>
+    </MudDialog>
+
+    @* Delete Confirmation Dialog *@
+    <MudDialog @bind-Visible="_deleteDialogVisible" Options="_deleteDialogOptions">
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mr-3 mb-n1"/>
+                Delete Book
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudText>Are you sure you want to delete this book? This action cannot be undone.</MudText>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="CancelDelete">Cancel</MudButton>
+            <MudButton Color="Color.Error" OnClick="ConfirmDelete">Delete</MudButton>
+        </DialogActions>
+    </MudDialog>
+
+    @* ISBN Scanner Dialog *@
+    <IsbnScannerDialog @bind-IsVisible="_scannerVisible" OnIsbnScanned="OnIsbnScanned" />
+</PageWithAction>

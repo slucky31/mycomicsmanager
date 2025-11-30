@@ -86,6 +86,7 @@ builder.Services.AddMudServices(config =>
 
 // Config Services
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
+builder.Services.AddScoped<IBooksService, BooksService>();
 
 var app = builder.Build();
 

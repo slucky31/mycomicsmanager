@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Application.Libraries;
 using Application.Users;
+using Domain.Books;
 using Domain.Libraries;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,7 @@ public static class ProjectDependencyInjection
 
         services.AddScoped<IRepository<Library, Guid>, LibraryRepository>();
         services.AddScoped<IRepository<User, Guid>, UserRepository>();
+        services.AddScoped<IRepository<Book, Guid>, BookRepository>();
 
         services.AddScoped<ILibraryReadService, LibraryReadService>();
         services.AddScoped<IUserReadService, UserReadService>();
