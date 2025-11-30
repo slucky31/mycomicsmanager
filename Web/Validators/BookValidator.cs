@@ -1,3 +1,4 @@
+﻿using Application.Books.Helper;
 using FluentValidation;
 
 namespace Web.Validators;
@@ -32,16 +33,7 @@ public class BookValidator : AbstractValidator<BookUiDto>
 
     private static bool BeValidISBN(string isbn)
     {
-        if (string.IsNullOrEmpty(isbn))
-        {
-            return false;
-        }
-
-        // Remove any dashes or spaces
-        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal).Replace(" ", "", StringComparison.Ordinal);
-
-        // Check if it's all digits and either 10 or 13 characters long
-        return (cleanIsbn.Length == 10 || cleanIsbn.Length == 13) && cleanIsbn.All(char.IsDigit);
+        return IsbnValidator.IsValidISBN(isbn);
     }
 
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>

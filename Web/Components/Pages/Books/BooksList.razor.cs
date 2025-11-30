@@ -102,8 +102,9 @@ public partial class BooksList
             }
             else
             {
+             
                 var result = await BooksService.Update(
-                    _bookModel.Id!.ToString(),
+                    _bookModel.Id.ToString(),
                     _bookModel.Serie,
                     _bookModel.Title,
                     _bookModel.ISBN,

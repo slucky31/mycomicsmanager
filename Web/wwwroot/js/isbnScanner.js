@@ -1,9 +1,12 @@
+let version = '0.21.3';
+let script_url = `https://unpkg.com/@zxing/library@${version}/umd/index.min.js`;
+
 // Helper to load ZXing if not already loaded
 async function ensureZXingLoaded() {
     if (!window.ZXing) {
         await new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://unpkg.com/@zxing/library@latest/umd/index.min.js';
+            script.src = script_url;
             script.onload = resolve;
             script.onerror = reject;
             document.head.appendChild(script);

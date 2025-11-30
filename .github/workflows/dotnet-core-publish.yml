@@ -15,13 +15,13 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 9.0.x                    
+          dotnet-version: 10.0.x                    
       - name: Install dependencies
         run: dotnet restore                            
       - name: Build
         run: dotnet build --configuration Release --no-restore                    
       - name: Tests
-        run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --collect:"Code Coverage"
+        run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --collect:"XPlat Code Coverage"
         env:        
           ConnectionStrings__NeonConnectionUnitTests: ${{ secrets.CONNECTIONSTRINGS_NEONCONNECTIONUNITTESTS }}
       - name: Tests coverage

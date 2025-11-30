@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.8.34309.116
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\Application.csproj", "{1323651C-4277-4C31-8262-892A36352C4D}"
 EndProject
@@ -16,8 +16,17 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{8185B36D-A915-46AE-8A9A-C90A75C89E6F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
+		.github\copilot-instructions.md = .github\copilot-instructions.md
+		.github\workflows\copilot-setup-steps.yml = .github\workflows\copilot-setup-steps.yml
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
+		.github\workflows\dotnet-core-build.yml = .github\workflows\dotnet-core-build.yml
+		.github\workflows\dotnet-core-publish.yml = .github\workflows\dotnet-core-publish.yml
+		.github\labeler.yml = .github\labeler.yml
+		.github\workflows\pr-labeler.yml = .github\workflows\pr-labeler.yml
+		.github\renovate.json = .github\renovate.json
+		.github\semantic.yml = .github\semantic.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persistence.Tests", "tests\Persistence.Integration.Tests\Persistence.Tests.csproj", "{EA34FA8B-0663-4826-8DAD-208FE3926183}"

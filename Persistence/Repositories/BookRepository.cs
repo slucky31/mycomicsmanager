@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +9,9 @@ public class BookRepository(ApplicationDbContext dbContext) : IRepository<Book, 
 {
     public async Task<Book?> GetByIdAsync(Guid id)
     {
-        Guard.Against.Null(id);
+        // Guid is a value type and cannot be null.
+        // If you want to guard against the default value (Guid.Empty), use Guard.Against.Default(id) instead.
+        Guard.Against.Default(id);
         return await dbContext.Set<Book>()
             .Include(b => b.ReadingDates)
             .SingleOrDefaultAsync(p => p.Id == id);
