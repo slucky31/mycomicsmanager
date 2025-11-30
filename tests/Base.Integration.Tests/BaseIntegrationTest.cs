@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Libraries;
 using Application.Users;
 using Ardalis.GuardClauses;
@@ -10,7 +10,13 @@ using Xunit;
 
 namespace Base.Integration.Tests;
 
-public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>, IDisposable
+[CollectionDefinition("Database collection")]
+public class DatabaseCollection : ICollectionFixture<IntegrationTestWebAppFactory>
+{
+}
+
+[Collection("Database collection")]
+public abstract class BaseIntegrationTest : IDisposable
 {
     protected IServiceScope _scope { get; }
 
@@ -63,8 +69,8 @@ public class LibraryIntegrationTest : BaseIntegrationTest
 
         LibraryReadService = _scope.ServiceProvider.GetRequiredService<ILibraryReadService>();
 
-        // Clear all data from the database
         Context.Libraries.RemoveRange(Context.Libraries);
+        Context.Users.RemoveRange(Context.Users);
         Context.SaveChanges();
     }
 
@@ -83,8 +89,8 @@ public class UserIntegrationTest : BaseIntegrationTest
 
         UserReadService = _scope.ServiceProvider.GetRequiredService<IUserReadService>();
 
-        // Clear all data from the database
         Context.Users.RemoveRange(Context.Users);
+        Context.Libraries.RemoveRange(Context.Libraries);
         Context.SaveChanges();
     }
 
