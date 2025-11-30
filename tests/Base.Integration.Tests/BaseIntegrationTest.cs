@@ -4,16 +4,14 @@ using Application.Users;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Users;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence;
 using Xunit;
 
 namespace Base.Integration.Tests;
 
-[CollectionDefinition("Database collection")]
-public class DatabaseCollection : ICollectionFixture<IntegrationTestWebAppFactory>
-{
-}
+
 
 [Collection("Database collection")]
 public abstract class BaseIntegrationTest : IDisposable
@@ -69,9 +67,12 @@ public class LibraryIntegrationTest : BaseIntegrationTest
 
         LibraryReadService = _scope.ServiceProvider.GetRequiredService<ILibraryReadService>();
 
-        Context.Libraries.RemoveRange(Context.Libraries);
-        Context.Users.RemoveRange(Context.Users);
-        Context.SaveChanges();
+        // Clear change tracker to avoid concurrency issues
+        Context.ChangeTracker.Clear();
+        
+        // Use ExecuteDelete for direct database cleanup without tracking
+        Context.Database.ExecuteSqlRaw("DELETE FROM \"Libraries\"");
+        Context.Database.ExecuteSqlRaw("DELETE FROM \"Users\"");
     }
 
 }
@@ -89,9 +90,12 @@ public class UserIntegrationTest : BaseIntegrationTest
 
         UserReadService = _scope.ServiceProvider.GetRequiredService<IUserReadService>();
 
-        Context.Users.RemoveRange(Context.Users);
-        Context.Libraries.RemoveRange(Context.Libraries);
-        Context.SaveChanges();
+        // Clear change tracker to avoid concurrency issues
+        Context.ChangeTracker.Clear();
+        
+        // Use ExecuteDelete for direct database cleanup without tracking
+        Context.Database.ExecuteSqlRaw("DELETE FROM \"Users\"");
+        Context.Database.ExecuteSqlRaw("DELETE FROM \"Libraries\"");
     }
 
 }

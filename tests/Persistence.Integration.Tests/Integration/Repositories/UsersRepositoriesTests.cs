@@ -5,7 +5,7 @@ using Domain.Users;
 
 namespace Persistence.Tests.Integration.Repositories;
 
-[Collection("User")]
+[Collection("Database collection")]
 public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory) : UserIntegrationTest(factory)
 {
     [Fact]

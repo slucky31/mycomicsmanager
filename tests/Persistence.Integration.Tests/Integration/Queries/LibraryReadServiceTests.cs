@@ -5,7 +5,7 @@ using Domain.Primitives;
 
 namespace Persistence.Tests.Integration.Queries;
 
-[Collection("Library")]
+[Collection("Database collection")]
 public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     private readonly Library lib1 = Library.Create("1-Bande dessinées");

@@ -5,7 +5,7 @@ using Persistence.LocalStorage;
 
 namespace Persistence.Tests.Integration.LocalStorage;
 
-[Collection("LocalStorage")]
+[Collection("Database collection")]
 public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : LibraryLocalStorageIntegrationTest(factory)
 {
     private readonly LibraryLocalStorage LibraryLocalStorageWithEmptyRootPath = new("");
