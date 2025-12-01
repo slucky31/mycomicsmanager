@@ -32,6 +32,7 @@ public static class ProjectDependencyInjection
         services.AddScoped<IRepository<Library, Guid>, LibraryRepository>();
         services.AddScoped<IRepository<User, Guid>, UserRepository>();
         services.AddScoped<IRepository<Book, Guid>, BookRepository>();
+        services.AddScoped<IBookRepository, BookRepository>();
 
         services.AddScoped<ILibraryReadService, LibraryReadService>();
         services.AddScoped<IUserReadService, UserReadService>();

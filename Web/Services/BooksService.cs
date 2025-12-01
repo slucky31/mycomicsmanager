@@ -1,4 +1,4 @@
-using Application.Abstractions.Messaging;
+﻿using Application.Abstractions.Messaging;
 using Application.Books.Create;
 using Application.Books.Delete;
 using Application.Books.GetById;
@@ -15,10 +15,10 @@ public class BooksService : IBooksService
     private readonly ICommandHandler<UpdateBookCommand, Book> handler_UpdateBookCommand;
     private readonly ICommandHandler<DeleteBookCommand> handler_DeleteBookCommand;
 
-    private readonly IQueryHandler<GetBookQuery, Book> handler_GetBookQuery;
+    private readonly IQueryHandler<GetBookByIsbnQuery, Book> handler_GetBookQuery;
     private readonly IQueryHandler<GetBooksQuery, List<Book>> handler_GetBooksQuery;
 
-    public BooksService(IQueryHandler<GetBookQuery, Book> handler_GetBookQuery,
+    public BooksService(IQueryHandler<GetBookByIsbnQuery, Book> handler_GetBookQuery,
                         IQueryHandler<GetBooksQuery, List<Book>> handler_GetBooksQuery,
                         ICommandHandler<CreateBookCommand, Book> handler_CreateBookCommand,
                         ICommandHandler<UpdateBookCommand, Book> handler_UpdateBookCommand,
@@ -38,7 +38,7 @@ public class BooksService : IBooksService
             return BooksError.ValidationError;
         }
 
-        var query = new GetBookQuery(guidId);
+        var query = new GetBookByIsbnQuery(guidId);
 
         return await handler_GetBookQuery.Handle(query, CancellationToken.None);
     }

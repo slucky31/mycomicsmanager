@@ -7,14 +7,14 @@ using Domain.Primitives;
 
 namespace Application.Books.Create;
 
-public sealed class CreateBookCommandHandler(IRepository<Book, Guid> bookRepository, IUnitOfWork unitOfWork) : ICommandHandler<CreateBookCommand, Book>
+public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork) : ICommandHandler<CreateBookCommand, Book>
 {
     public async Task<Result<Book>> Handle(CreateBookCommand request, CancellationToken cancellationToken)
     {
         Guard.Against.Null(request);
 
         // Check if parameters are not null or empty
-        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.ISBN))
+        if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.ISBN))
         {
             return BooksError.BadRequest;
         }
@@ -26,8 +26,8 @@ public sealed class CreateBookCommandHandler(IRepository<Book, Guid> bookReposit
         }
 
         // Check if a book with the same ISBN doesn't already exist
-        var existingBooks = await bookRepository.ListAsync();
-        if (existingBooks.Exists(b => b.ISBN == request.ISBN))
+        var existingBook = await bookRepository.GetByIsbnAsync(request.ISBN, cancellationToken);
+        if (existingBook is not null)
         {
             return BooksError.Duplicate;
         }

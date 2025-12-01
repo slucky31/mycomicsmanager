@@ -28,7 +28,7 @@ jobs:
 
     # The setup steps - install Python and our dependencies
     steps:
-      - name : Checkout
+      - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 0      

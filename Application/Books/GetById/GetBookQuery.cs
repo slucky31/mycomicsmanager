@@ -1,6 +1,6 @@
-using Application.Abstractions.Messaging;
+﻿using Application.Abstractions.Messaging;
 using Domain.Books;
 
 namespace Application.Books.GetById;
 
-public record GetBookQuery(Guid Id) : IQuery<Book>;
+public record GetBookByIsbnQuery(Guid Id) : IQuery<Book>;

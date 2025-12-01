@@ -12,7 +12,7 @@
 
 @code {
 
-    private readonly TestContext _testContext;
+    private readonly BunitContext _testContext;
 
     private LibraryUiDto CreateValidLibraryUiDto()
     {
@@ -25,7 +25,7 @@
     public LibraryDialogTest()
     {
         // Allow MudBlazor's JS calls to be ignored during tests
-        _testContext = new TestContext();
+        _testContext = new BunitContext();
         _testContext.JSInterop.Mode = JSRuntimeMode.Loose;
         _testContext.JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
 
@@ -34,13 +34,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        // Dispose the test context asynchronously
-        if (_testContext.Services is IAsyncDisposable asyncDisposable)
-        {
-            await asyncDisposable.DisposeAsync();
-        }
-
-        _testContext?.Dispose();
+        await _testContext.DisposeAsync();
         GC.SuppressFinalize(this);
     }
 

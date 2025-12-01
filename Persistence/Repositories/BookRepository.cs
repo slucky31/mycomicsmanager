@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Repositories;
 
-public class BookRepository(ApplicationDbContext dbContext) : IRepository<Book, Guid>
+public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
 {
     public async Task<Book?> GetByIdAsync(Guid id)
     {
@@ -39,8 +39,28 @@ public class BookRepository(ApplicationDbContext dbContext) : IRepository<Book, 
 
     public async Task<List<Book>> ListAsync()
     {
+        return await ListAsync(CancellationToken.None);
+    }
+
+    public async Task<List<Book>> ListAsync(CancellationToken cancellationToken)
+    {
         return await dbContext.Set<Book>()
             .Include(b => b.ReadingDates)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Book?> GetByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(isbn))
+        {
+            throw new ArgumentException("ISBN cannot be null or empty.", nameof(isbn));
+        }
+
+        var normalizedIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
+                                 .Replace(" ", "", StringComparison.Ordinal)
+                                 .ToUpperInvariant();
+
+        return await dbContext.Books
+            .FirstOrDefaultAsync(b => b.ISBN == normalizedIsbn, cancellationToken);
     }
 }
