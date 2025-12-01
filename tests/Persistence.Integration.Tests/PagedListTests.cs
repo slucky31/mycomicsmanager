@@ -6,7 +6,7 @@ using Persistence.Queries.Helpers;
 
 namespace Persistence.Tests;
 
-[Collection("Database collection")]
+[Collection("DatabaseCollectionTests")]
 public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]

@@ -180,3 +180,6 @@ dotnet_diagnostic.IDE0290.severity = none
 
 # IDE0305: Collection initialization can be simplified
 dotnet_diagnostic.IDE0305.severity = none
+
+# IDE0028: Simplify collection initialization
+dotnet_diagnostic.IDE0028.severity = none

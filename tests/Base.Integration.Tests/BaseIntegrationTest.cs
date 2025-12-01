@@ -12,8 +12,8 @@ using Xunit;
 
 namespace Base.Integration.Tests;
 
-[CollectionDefinition("Database collection")]
-public class DatabaseCollection : ICollectionFixture<IntegrationTestWebAppFactory>
+[CollectionDefinition("DatabaseCollectionTests")]
+public class DatabaseCollectionTests : ICollectionFixture<IntegrationTestWebAppFactory>
 {
 }
 
@@ -25,7 +25,7 @@ public abstract class BaseIntegrationTest : IDisposable
 
     protected IUnitOfWork UnitOfWork { get; }
 
-    private IDbContextTransaction? _transaction;
+    private readonly IDbContextTransaction? _transaction;
 
     private bool disposed;
 

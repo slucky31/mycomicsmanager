@@ -6,7 +6,7 @@ using Domain.Libraries;
 
 namespace Persistence.Tests.Integration.Repositories;
 
-[Collection("Database collection")]
+[Collection("DatabaseCollectionTests")]
 public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]

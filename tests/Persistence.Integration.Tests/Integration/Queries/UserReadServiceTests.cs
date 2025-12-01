@@ -5,7 +5,7 @@ using Domain.Users;
 
 namespace Persistence.Tests.Integration.Queries;
 
-[Collection("Database collection")]
+[Collection("DatabaseCollectionTests")]
 public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIntegrationTest(factory)
 {
     private readonly User usr1 = User.Create("usr1@test.com", "1");

@@ -122,7 +122,3 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 StartupInfo.Print();
 
 app.Run();
-
-#pragma warning disable S1118, CA1515 // Utility classes should not have public constructors
-public partial class Program { }
-#pragma warning restore S1118, CA1515 // Util

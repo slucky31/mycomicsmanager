@@ -5,7 +5,7 @@ using Domain.Libraries;
 
 namespace Persistence.Tests;
 
-[Collection("Database collection")]
+[Collection("DatabaseCollectionTests")]
 public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]

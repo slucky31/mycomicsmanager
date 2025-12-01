@@ -15,10 +15,10 @@ public class BooksService : IBooksService
     private readonly ICommandHandler<UpdateBookCommand, Book> handler_UpdateBookCommand;
     private readonly ICommandHandler<DeleteBookCommand> handler_DeleteBookCommand;
 
-    private readonly IQueryHandler<GetBookByIsbnQuery, Book> handler_GetBookQuery;
+    private readonly IQueryHandler<GetBookByIdQuery, Book> handler_GetBookQuery;
     private readonly IQueryHandler<GetBooksQuery, List<Book>> handler_GetBooksQuery;
 
-    public BooksService(IQueryHandler<GetBookByIsbnQuery, Book> handler_GetBookQuery,
+    public BooksService(IQueryHandler<GetBookByIdQuery, Book> handler_GetBookQuery,
                         IQueryHandler<GetBooksQuery, List<Book>> handler_GetBooksQuery,
                         ICommandHandler<CreateBookCommand, Book> handler_CreateBookCommand,
                         ICommandHandler<UpdateBookCommand, Book> handler_UpdateBookCommand,
@@ -38,7 +38,7 @@ public class BooksService : IBooksService
             return BooksError.ValidationError;
         }
 
-        var query = new GetBookByIsbnQuery(guidId);
+        var query = new GetBookByIdQuery(guidId);
 
         return await handler_GetBookQuery.Handle(query, CancellationToken.None);
     }

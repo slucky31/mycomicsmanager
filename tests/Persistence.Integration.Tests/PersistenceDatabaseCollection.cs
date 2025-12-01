@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Persistence.Tests;
 
-[CollectionDefinition("Database collection")]
-public class DatabaseCollection : ICollectionFixture<IntegrationTestWebAppFactory>
+[CollectionDefinition("DatabaseCollectionTests")]
+public class DatabaseCollectionTests : ICollectionFixture<IntegrationTestWebAppFactory>
 {
 }
