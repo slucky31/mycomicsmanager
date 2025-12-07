@@ -1,4 +1,5 @@
 ﻿using Application.Books.Create;
+using Application.Helpers;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
@@ -33,7 +34,8 @@ public class CreateBookCommandHandlerTests
     public async Task Handle_Should_ReturnSuccess_WhenValidCommandProvided()
     {
         // Arrange
-        _bookRepositoryMock.GetByIsbnAsync(ValidCommand.ISBN, Arg.Any<CancellationToken>()).Returns((Book?)null);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
         _bookRepositoryMock.Add(Arg.Any<Book>());
 
         // Act
@@ -44,7 +46,7 @@ public class CreateBookCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Serie.Should().Be(ValidCommand.Serie);
         result.Value.Title.Should().Be(ValidCommand.Title);
-        result.Value.ISBN.Should().Be(ValidCommand.ISBN);
+        result.Value.ISBN.Should().Be(IsbnHelper.NormalizeIsbn(ValidCommand.ISBN));
         result.Value.VolumeNumber.Should().Be(ValidCommand.VolumeNumber);
         result.Value.ImageLink.Should().Be(ValidCommand.ImageLink);
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
@@ -55,7 +57,8 @@ public class CreateBookCommandHandlerTests
     public async Task Handle_Should_ExecuteSaveChangesAsyncOnce()
     {
         // Arrange
-        _bookRepositoryMock.GetByIsbnAsync(ValidCommand.ISBN, Arg.Any<CancellationToken>()).Returns((Book?)null);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
         _bookRepositoryMock.Add(Arg.Any<Book>());
 
         // Act
@@ -164,9 +167,10 @@ public class CreateBookCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnDuplicate_WhenBookWithSameISBNAlreadyExists()
     {
-        // Arrange
+        // Arrange        
         var existingBook = Book.Create(ValidCommand.Serie, ValidCommand.Title, ValidCommand.ISBN);
-        _bookRepositoryMock.GetByIsbnAsync(ValidCommand.ISBN, Arg.Any<CancellationToken>()).Returns(existingBook);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns(existingBook);
 
         // Act
         var result = await _handler.Handle(ValidCommand, default);
@@ -183,7 +187,8 @@ public class CreateBookCommandHandlerTests
     {
         // Arrange
         var isbn10Command = new CreateBookCommand("Serie", "Title", "0-306-40615-2", 1, "");
-        _bookRepositoryMock.GetByIsbnAsync(isbn10Command.ISBN, Arg.Any<CancellationToken>()).Returns((Book?)null);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(isbn10Command.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
         _bookRepositoryMock.Add(Arg.Any<Book>());
 
         // Act
@@ -192,7 +197,7 @@ public class CreateBookCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         Guard.Against.Null(result.Value);
-        result.Value.ISBN.Should().Be(isbn10Command.ISBN);
+        result.Value.ISBN.Should().Be(IsbnHelper.NormalizeIsbn(isbn10Command.ISBN));
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -202,7 +207,8 @@ public class CreateBookCommandHandlerTests
     {
         // Arrange
         var isbn13Command = new CreateBookCommand("Serie", "Title", "978-0-306-40615-7", 1, "");
-        _bookRepositoryMock.GetByIsbnAsync(isbn13Command.ISBN, Arg.Any<CancellationToken>()).Returns((Book?)null);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(isbn13Command.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
         _bookRepositoryMock.Add(Arg.Any<Book>());
 
         // Act
@@ -211,7 +217,7 @@ public class CreateBookCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         Guard.Against.Null(result.Value);
-        result.Value.ISBN.Should().Be(isbn13Command.ISBN);
+        result.Value.ISBN.Should().Be(IsbnHelper.NormalizeIsbn(isbn13Command.ISBN));
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -221,7 +227,8 @@ public class CreateBookCommandHandlerTests
     {
         // Arrange
         var minimalCommand = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0");
-        _bookRepositoryMock.GetByIsbnAsync(minimalCommand.ISBN, Arg.Any<CancellationToken>()).Returns((Book?)null);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(minimalCommand.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
         _bookRepositoryMock.Add(Arg.Any<Book>());
 
         // Act
@@ -241,14 +248,15 @@ public class CreateBookCommandHandlerTests
     {
         // Arrange
         var cancellationToken = new CancellationToken();
-        _bookRepositoryMock.GetByIsbnAsync(ValidCommand.ISBN, cancellationToken).Returns((Book?)null);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, cancellationToken).Returns((Book?)null);
         _bookRepositoryMock.Add(Arg.Any<Book>());
 
         // Act
         await _handler.Handle(ValidCommand, cancellationToken);
 
         // Assert
-        await _bookRepositoryMock.Received(1).GetByIsbnAsync(ValidCommand.ISBN, cancellationToken);
+        await _bookRepositoryMock.Received(1).GetByIsbnAsync(normalizedIsbn, cancellationToken);
         await _unitOfWorkMock.Received(1).SaveChangesAsync(cancellationToken);
     }
 }
