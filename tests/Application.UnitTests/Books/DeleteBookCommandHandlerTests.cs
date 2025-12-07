@@ -13,12 +13,12 @@ public class DeleteBookCommandHandlerTests
     private static readonly Book ExistingBook = Book.Create("Test Serie", "Test Title", "978-3-16-148410-0");
 
     private readonly DeleteBookCommandHandler _handler;
-    private readonly IRepository<Book, Guid> _bookRepositoryMock;
+    private readonly IBookRepository _bookRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
 
     public DeleteBookCommandHandlerTests()
     {
-        _bookRepositoryMock = Substitute.For<IRepository<Book, Guid>>();
+        _bookRepositoryMock = Substitute.For<IBookRepository>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
         _handler = new DeleteBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock);

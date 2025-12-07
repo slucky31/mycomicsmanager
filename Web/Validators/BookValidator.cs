@@ -1,4 +1,4 @@
-﻿using Application.Books.Helper;
+﻿using Application.Helpers;
 using FluentValidation;
 
 namespace Web.Validators;
@@ -33,7 +33,7 @@ public class BookValidator : AbstractValidator<BookUiDto>
 
     private static bool BeValidISBN(string isbn)
     {
-        return IsbnValidator.IsValidISBN(isbn);
+        return IsbnHelper.IsValidISBN(isbn);
     }
 
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>

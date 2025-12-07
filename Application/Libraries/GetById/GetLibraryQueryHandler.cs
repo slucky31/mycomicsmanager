@@ -7,7 +7,7 @@ namespace Application.Libraries.GetById;
 
 public sealed class GetLibraryQueryHandler(IRepository<Library, Guid> librayRepository) : IQueryHandler<GetLibraryQuery, Library>
 {
-    public async Task<Result<Library>> Handle(GetLibraryQuery request, CancellationToken cancellationToken)
+    public async Task<Result<Library>> Handle(GetLibraryQuery request)
     {
         if (request is null)
         {

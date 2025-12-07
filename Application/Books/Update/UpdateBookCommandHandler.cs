@@ -1,5 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
-using Application.Books.Helper;
+using Application.Helpers;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
@@ -7,7 +7,7 @@ using Domain.Primitives;
 
 namespace Application.Books.Update;
 
-public sealed class UpdateBookCommandHandler(IRepository<Book, Guid> bookRepository, IUnitOfWork unitOfWork) : ICommandHandler<UpdateBookCommand, Book>
+public sealed class UpdateBookCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork) : ICommandHandler<UpdateBookCommand, Book>
 {
     public async Task<Result<Book>> Handle(UpdateBookCommand request, CancellationToken cancellationToken)
     {
@@ -20,7 +20,7 @@ public sealed class UpdateBookCommandHandler(IRepository<Book, Guid> bookReposit
         }
 
         // Validate ISBN format
-        if (!IsbnValidator.IsValidISBN(request.ISBN))
+        if (!IsbnHelper.IsValidISBN(request.ISBN))
         {
             return BooksError.InvalidISBN;
         }

@@ -6,9 +6,9 @@ using Domain.Primitives;
 
 namespace Application.Books.List;
 
-public sealed class GetBooksQueryHandler(IRepository<Book, Guid> bookRepository) : IQueryHandler<GetBooksQuery, List<Book>>
+public sealed class GetBooksQueryHandler(IBookRepository bookRepository) : IQueryHandler<GetBooksQuery, List<Book>>
 {
-    public async Task<Result<List<Book>>> Handle(GetBooksQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<Book>>> Handle(GetBooksQuery request)
     {
         Guard.Against.Null(request);
 

@@ -1,8 +1,8 @@
-﻿using Application.Books.Helper;
+﻿using Application.Helpers;
 
-namespace Application.UnitTests.Books;
+namespace Application.UnitTests.Helpers;
 
-public class IsbnValidatorTests
+public class IsbnHelperTests
 {
     #region IsValidISBN Tests
 
@@ -13,7 +13,7 @@ public class IsbnValidatorTests
         string? isbn = null;
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn!);
+        var result = IsbnHelper.IsValidISBN(isbn!);
 
         // Assert
         result.Should().BeFalse();
@@ -26,7 +26,7 @@ public class IsbnValidatorTests
         var isbn = string.Empty;
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -39,7 +39,7 @@ public class IsbnValidatorTests
         var isbn = "0-306-40615-2";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -52,7 +52,7 @@ public class IsbnValidatorTests
         var isbn = "0306406152";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -65,7 +65,7 @@ public class IsbnValidatorTests
         var isbn = "080442957X";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -78,7 +78,7 @@ public class IsbnValidatorTests
         var isbn = "0-8044-2957-X";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -91,7 +91,7 @@ public class IsbnValidatorTests
         var isbn = "080442957x";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -104,7 +104,7 @@ public class IsbnValidatorTests
         var isbn = "978-0-306-40615-7";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -117,7 +117,7 @@ public class IsbnValidatorTests
         var isbn = "9780306406157";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -130,7 +130,7 @@ public class IsbnValidatorTests
         var isbn = "978 0 306 40615 7";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -143,7 +143,7 @@ public class IsbnValidatorTests
         var isbn = "0 306 40615 2";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -156,7 +156,7 @@ public class IsbnValidatorTests
         var isbn = "12345";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -169,7 +169,7 @@ public class IsbnValidatorTests
         var isbn = "12345678901";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -182,7 +182,7 @@ public class IsbnValidatorTests
         var isbn = "123456789012";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -195,7 +195,7 @@ public class IsbnValidatorTests
         var isbn = "978-3-16-148410-0";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -208,7 +208,7 @@ public class IsbnValidatorTests
         var isbn = "978-3-16-148410-1";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -221,7 +221,7 @@ public class IsbnValidatorTests
         var isbn = "978-0-306-40615-77";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -234,7 +234,7 @@ public class IsbnValidatorTests
         var isbn = "978 0-306-40615 7";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -247,7 +247,7 @@ public class IsbnValidatorTests
         var isbn = "978  0  306  40615  7";
 
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -264,7 +264,7 @@ public class IsbnValidatorTests
         string? isbn = null;
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -277,7 +277,7 @@ public class IsbnValidatorTests
         var isbn = string.Empty;
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -290,7 +290,7 @@ public class IsbnValidatorTests
         var isbn = "0306406152";
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -303,7 +303,7 @@ public class IsbnValidatorTests
         var isbn = "080442957X";
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -316,7 +316,7 @@ public class IsbnValidatorTests
         var isbn = "043942089X";
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -329,7 +329,7 @@ public class IsbnValidatorTests
         var isbn = "03064A6152";
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -342,7 +342,7 @@ public class IsbnValidatorTests
         var isbn = "0X06406152";
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -355,7 +355,7 @@ public class IsbnValidatorTests
         var isbn = "0306406153";
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -368,7 +368,7 @@ public class IsbnValidatorTests
         var isbn = "030640615Y";
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -381,7 +381,7 @@ public class IsbnValidatorTests
         var isbn = "0345339681";
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -394,7 +394,7 @@ public class IsbnValidatorTests
         var isbn = "0684801221";
 
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -411,7 +411,7 @@ public class IsbnValidatorTests
         string? isbn = null;
 
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -424,7 +424,7 @@ public class IsbnValidatorTests
         var isbn = string.Empty;
 
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -437,7 +437,7 @@ public class IsbnValidatorTests
         var isbn = "9780306406157";
 
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -450,7 +450,7 @@ public class IsbnValidatorTests
         var isbn = "9783161484100";
 
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -463,7 +463,7 @@ public class IsbnValidatorTests
         var isbn = "9780451524935";
 
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -476,7 +476,7 @@ public class IsbnValidatorTests
         var isbn = "9780743273565";
 
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().BeTrue();
@@ -489,7 +489,7 @@ public class IsbnValidatorTests
         var isbn = "978030640615A";
 
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -502,7 +502,7 @@ public class IsbnValidatorTests
         var isbn = "9780306406158";
 
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -515,7 +515,7 @@ public class IsbnValidatorTests
         var isbn = "978-0306406157";
 
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().BeFalse();
@@ -537,7 +537,7 @@ public class IsbnValidatorTests
     public void IsValidISBN_ShouldValidateMultipleFormats(string isbn, bool expected)
     {
         // Act
-        var result = IsbnValidator.IsValidISBN(isbn);
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().Be(expected);
@@ -554,7 +554,7 @@ public class IsbnValidatorTests
     public void IsValidISBN10_ShouldValidateMultipleISBN10s(string isbn, bool expected)
     {
         // Act
-        var result = IsbnValidator.IsValidISBN10(isbn);
+        var result = IsbnHelper.IsValidISBN10(isbn);
 
         // Assert
         result.Should().Be(expected);
@@ -570,7 +570,7 @@ public class IsbnValidatorTests
     public void IsValidISBN13_ShouldValidateMultipleISBN13s(string isbn, bool expected)
     {
         // Act
-        var result = IsbnValidator.IsValidISBN13(isbn);
+        var result = IsbnHelper.IsValidISBN13(isbn);
 
         // Assert
         result.Should().Be(expected);

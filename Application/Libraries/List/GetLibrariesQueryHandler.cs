@@ -9,7 +9,7 @@ namespace Application.Libraries.List;
 
 public sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadService) : IQueryHandler<GetLibrariesQuery, IPagedList<Library>>
 {
-    public async Task<Result<IPagedList<Library>>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IPagedList<Library>>> Handle(GetLibrariesQuery request)
     {
         if (request is null)
         {

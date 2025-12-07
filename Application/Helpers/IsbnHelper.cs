@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Application.Helpers;
 
-namespace Application.Books.Helper;
-
-public static class IsbnValidator
+public static class IsbnHelper
 {
     public static bool IsValidISBN(string isbn)
     {
@@ -14,9 +10,7 @@ public static class IsbnValidator
         }
 
         // Remove any dashes, spaces, and convert to uppercase
-        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
-                           .Replace(" ", "", StringComparison.Ordinal)
-                           .ToUpperInvariant();
+        var cleanIsbn = NormalizeIsbn(isbn);
 
         // Check ISBN-10
         if (cleanIsbn.Length == 10)
@@ -103,5 +97,16 @@ public static class IsbnValidator
         var actualCheckDigit = isbn[12] - '0';
 
         return checkDigit == actualCheckDigit;
+    }
+
+    public static string NormalizeIsbn(string isbn)
+    {
+        if (string.IsNullOrEmpty(isbn))
+        {
+            return string.Empty;
+        }
+        return isbn.Replace("-", "", StringComparison.Ordinal)
+                   .Replace(" ", "", StringComparison.Ordinal)
+                   .ToUpperInvariant();
     }
 }

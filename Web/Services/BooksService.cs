@@ -40,7 +40,7 @@ public class BooksService : IBooksService
 
         var query = new GetBookByIdQuery(guidId);
 
-        return await handler_GetBookQuery.Handle(query, CancellationToken.None);
+        return await handler_GetBookQuery.Handle(query);
     }
 
     public async Task<Result<Book>> Create(string series, string title, string isbn)
@@ -53,14 +53,14 @@ public class BooksService : IBooksService
         return await Create(series, title, isbn, volumeNumber, "");
     }
 
-    public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink)
+    public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink, CancellationToken cancellationToken = default)
     {
         var command = new CreateBookCommand(series, title, isbn, volumeNumber, imageLink);
 
-        return await handler_CreateBookCommand.Handle(command, CancellationToken.None);
+        return await handler_CreateBookCommand.Handle(command, cancellationToken);
     }
 
-    public async Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink)
+    public async Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(id, out var guidId))
         {
@@ -69,17 +69,17 @@ public class BooksService : IBooksService
 
         var command = new UpdateBookCommand(guidId, series, title, isbn, volumeNumber, imageLink);
 
-        return await handler_UpdateBookCommand.Handle(command, CancellationToken.None);
+        return await handler_UpdateBookCommand.Handle(command, cancellationToken);
     }
 
     public async Task<Result<List<Book>>> GetAll()
     {
         var query = new GetBooksQuery();
 
-        return await handler_GetBooksQuery.Handle(query, CancellationToken.None);
+        return await handler_GetBooksQuery.Handle(query);
     }
 
-    public async Task<Result> Delete(string? id)
+    public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(id, out var guidId))
         {
@@ -88,6 +88,6 @@ public class BooksService : IBooksService
 
         var command = new DeleteBookCommand(guidId);
 
-        return await handler_DeleteBookCommand.Handle(command, CancellationToken.None);
+        return await handler_DeleteBookCommand.Handle(command, cancellationToken);
     }
 }

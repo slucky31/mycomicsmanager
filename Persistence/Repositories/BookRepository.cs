@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Helpers;
 using Ardalis.GuardClauses;
 using Domain.Books;
 using Microsoft.EntityFrameworkCore;
@@ -56,9 +57,7 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
             throw new ArgumentException("ISBN cannot be null or empty.", nameof(isbn));
         }
 
-        var normalizedIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
-                                 .Replace(" ", "", StringComparison.Ordinal)
-                                 .ToUpperInvariant();
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(isbn);
 
         return await dbContext.Books
             .FirstOrDefaultAsync(b => b.ISBN == normalizedIsbn, cancellationToken);

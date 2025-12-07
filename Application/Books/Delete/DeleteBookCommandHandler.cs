@@ -1,4 +1,4 @@
-using Application.Abstractions.Messaging;
+﻿using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
@@ -6,7 +6,7 @@ using Domain.Primitives;
 
 namespace Application.Books.Delete;
 
-public sealed class DeleteBookCommandHandler(IRepository<Book, Guid> bookRepository, IUnitOfWork unitOfWork) : ICommandHandler<DeleteBookCommand>
+public sealed class DeleteBookCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork) : ICommandHandler<DeleteBookCommand>
 {
     public async Task<Result> Handle(DeleteBookCommand request, CancellationToken cancellationToken)
     {

@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Domain.Books;
 using Domain.Primitives;
 
@@ -11,9 +11,9 @@ public interface IBooksService
 {
     Task<Result<Book>> Create(string series, string title, string isbn);
     Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber);
-    Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink);
+    Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink, CancellationToken cancellationToken = default);
     Task<Result<Book>> GetById(string? id);
-    Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink);
+    Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink, CancellationToken cancellationToken = default);
     Task<Result<List<Book>>> GetAll();
-    Task<Result> Delete(string? id);
+    Task<Result> Delete(string? id, CancellationToken cancellationToken = default);
 }

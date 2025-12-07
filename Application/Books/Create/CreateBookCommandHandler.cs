@@ -1,5 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
-using Application.Books.Helper;
+using Application.Helpers;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
@@ -14,26 +14,28 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         Guard.Against.Null(request);
 
         // Check if parameters are not null or empty
-        if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.ISBN))
+        if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.ISBN) || string.IsNullOrWhiteSpace(request.Serie))
         {
             return BooksError.BadRequest;
         }
 
         // Validate ISBN format (basic check for 10 or 13 digits)
-        if (!IsbnValidator.IsValidISBN(request.ISBN))
+        if (!IsbnHelper.IsValidISBN(request.ISBN))
         {
             return BooksError.InvalidISBN;
         }
 
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);
+
         // Check if a book with the same ISBN doesn't already exist
-        var existingBook = await bookRepository.GetByIsbnAsync(request.ISBN, cancellationToken);
+        var existingBook = await bookRepository.GetByIsbnAsync(normalizedIsbn, cancellationToken);
         if (existingBook is not null)
         {
             return BooksError.Duplicate;
         }
 
         // Create Book
-        var book = Book.Create(request.Serie, request.Title, request.ISBN, request.VolumeNumber, request.ImageLink);
+        var book = Book.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink);
 
         bookRepository.Add(book);
         await unitOfWork.SaveChangesAsync(cancellationToken);

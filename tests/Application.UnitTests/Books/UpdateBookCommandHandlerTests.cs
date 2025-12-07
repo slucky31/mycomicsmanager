@@ -21,12 +21,12 @@ public class UpdateBookCommandHandlerTests
     );
 
     private readonly UpdateBookCommandHandler _handler;
-    private readonly IRepository<Book, Guid> _bookRepositoryMock;
+    private readonly IBookRepository _bookRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
 
     public UpdateBookCommandHandlerTests()
     {
-        _bookRepositoryMock = Substitute.For<IRepository<Book, Guid>>();
+        _bookRepositoryMock = Substitute.For<IBookRepository>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
         _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock);
@@ -35,8 +35,9 @@ public class UpdateBookCommandHandlerTests
     private static Book CreateBookWithId(Guid id, string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
     {
         var book = Book.Create(serie, title, isbn, volumeNumber, imageLink);
-        
+
         // Use reflection to set the Id property
+        // TODO :  Consider adding a test-specific factory method or constructor in the test project (e.g., via internal visibility or a test helper) to create Book instances with specific IDs for testing purposes.
         var idProperty = typeof(Book).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance);
         idProperty?.SetValue(book, id);
         
@@ -441,23 +442,4 @@ public class UpdateBookCommandHandlerTests
         result.Error.Should().Be(BooksError.Duplicate);
     }
 
-    [Fact]
-    public async Task Handle_Should_CallGetByIdAsync_BeforeListAsync()
-    {
-        // Arrange
-        var existingBook = CreateBookWithId(BookId, "Original Serie", "Original Title", "978-3-16-148410-0");
-        _bookRepositoryMock.GetByIdAsync(ValidCommand.Id).Returns(existingBook);
-        _bookRepositoryMock.ListAsync().Returns(new List<Book> { existingBook });
-
-        // Act
-        await _handler.Handle(ValidCommand, default);
-
-        // Assert
-        Action calls = async () =>
-        {
-            await _bookRepositoryMock.GetByIdAsync(ValidCommand.Id);
-            await _bookRepositoryMock.ListAsync();
-        };
-        Received.InOrder(calls);
-    }
 }

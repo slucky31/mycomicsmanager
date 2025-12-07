@@ -30,7 +30,7 @@ public class GetLibraryCommandTests
         var Query = new GetLibraryQuery(libraryId);
 
         // Act
-        var result = await _handler.Handle(Query, default);
+        var result = await _handler.Handle(Query);
         Guard.Against.Null(result.Value);
 
         // Assert
@@ -49,7 +49,7 @@ public class GetLibraryCommandTests
         var Query = new GetLibraryQuery(libraryId);
 
         // Act
-        var result = await _handler.Handle(Query, default);
+        var result = await _handler.Handle(Query);
 
         // Assert
         result.IsFailure.Should().BeTrue();
