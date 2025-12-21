@@ -22,6 +22,7 @@ public class BookValidator : AbstractValidator<BookUiDto>
             .Must(BeValidISBN).WithMessage("ISBN must be a valid 10 or 13 digit number.");
 
         RuleFor(x => x.Serie)
+            .NotEmpty().WithMessage("Serie is required.")
             .MaximumLength(maxSeriesLength).WithMessage($"Serie must not exceed {maxSeriesLength} characters.");
 
         RuleFor(x => x.VolumeNumber)

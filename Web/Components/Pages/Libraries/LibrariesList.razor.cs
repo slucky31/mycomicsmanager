@@ -3,6 +3,7 @@ using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Web.Enum;
 using Web.Services;
 using Web.Validators;
 
@@ -14,11 +15,7 @@ public partial class LibrariesList
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
-    private enum FormMode
-    {
-        Create,
-        Edit
-    }
+   
 
     private List<LibraryUiDto> Libraries { get; } = [];
 

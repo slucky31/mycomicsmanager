@@ -1,7 +1,10 @@
 ﻿using Domain.Books;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using MudBlazor;
+using Web.Components.Pages.Dialogs;
+using Web.Enum;
 using Web.Services;
 using Web.Validators;
 
@@ -9,33 +12,20 @@ namespace Web.Components.Pages.Books;
 
 public partial class BooksList
 {
-    [Inject] private IBooksService BooksService { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private IJSRuntime _jsRuntime { get; set; } = default!;
 
-    private bool _visible;
-    private bool _deleteDialogVisible;
-    private bool _scannerVisible;
-    private FormMode _formMode = FormMode.Create;
-    private MudForm _form = default!;
-    private BookUiDto _bookModel = new();
-    private readonly BookValidator _bookValidator = new();
-    private Guid _bookToDeleteId;
+    [Inject]
+    private IJSRuntime _jsRuntime { get; set; } = default!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; }
+
+    [Inject]
+    private IBooksService BooksService { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
 
     private List<Book> Books { get; set; } = [];
-
-    private readonly DialogOptions _dialogOptions = new()
-    {
-        FullWidth = true,
-        CloseButton = true,
-        CloseOnEscapeKey = true
-    };
-
-    private readonly DialogOptions _deleteDialogOptions = new()
-    {
-        CloseButton = true,
-        CloseOnEscapeKey = true
-    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,134 +46,96 @@ public partial class BooksList
         }
     }
 
-    private void CreateOrEdit(FormMode formMode, Book? book)
+    private async Task CreateOrEdit(FormMode formMode, Book? book)
     {
-        _formMode = formMode;
 
-        if (formMode == FormMode.Create)
+        var parameters = new DialogParameters<BookDialog>
         {
-            _bookModel = new BookUiDto();
-        }
-        else if (book != null)
+            { x => x.FormMode, formMode },
+            { x => x.Book, book },
+        };
+
+        var options = new DialogOptions
         {
-            _bookModel = BookUiDto.Convert(book);
-        }
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Medium,
+            CloseButton = false
+        };
 
-        _visible = true;
-        StateHasChanged();
-    }
+        var dialog = await DialogService.ShowAsync<BookDialog>("Book", parameters, options);
+        var result = await dialog.Result;
 
-    private async Task Submit()
-    {
-        await _form.Validate();
-
-        if (_form.IsValid)
+        if (result is not null && result.Data is not null && !result.Canceled)
         {
-            if (_formMode == FormMode.Create)
+            BookUiDto b = (BookUiDto)result.Data;
+            if (formMode == FormMode.Create)
             {
-                var result = await BooksService.Create(
-                    _bookModel.Serie,
-                    _bookModel.Title,
-                    _bookModel.ISBN,
-                    _bookModel.VolumeNumber,
-                    _bookModel.ImageLink
+                var res = await BooksService.Create(
+                    b.Serie,
+                    b.Title,
+                    b.ISBN,
+                    b.VolumeNumber,
+                    b.ImageLink
+                );
+               
+                await DisplaySnackbarAsync(res.IsSuccess, "Book created successfully", $"Failed to create book: {res.Error?.Description}");
+            }
+            else if (formMode == FormMode.Edit)
+            {
+                var res = await BooksService.Update(
+                    b.Id.ToString(),
+                    b.Serie,
+                    b.Title,
+                    b.ISBN,
+                    b.VolumeNumber,
+                    b.ImageLink
                 );
 
-                if (result.IsSuccess)
-                {
-                    Snackbar.Add("Book created successfully", Severity.Success);
-                    await LoadBooks();
-                    Cancel();
-                }
-                else
-                {
-                    Snackbar.Add($"Failed to create book: {result.Error?.Description}", Severity.Error);
-                }
+                await DisplaySnackbarAsync(res.IsSuccess, "Book updated successfully", $"Failed to update book: {res.Error?.Description}");                
             }
-            else
-            {
-             
-                var result = await BooksService.Update(
-                    _bookModel.Id.ToString(),
-                    _bookModel.Serie,
-                    _bookModel.Title,
-                    _bookModel.ISBN,
-                    _bookModel.VolumeNumber,
-                    _bookModel.ImageLink
-                );
+        }
 
-                if (result.IsSuccess)
-                {
-                    Snackbar.Add("Book updated successfully", Severity.Success);
-                    await LoadBooks();
-                    Cancel();
-                }
-                else
-                {
-                    Snackbar.Add($"Failed to update book: {result.Error?.Description}", Severity.Error);
-                }
-            }
+    }    
+
+    private async Task Delete(Guid bookId)
+    {
+
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ConfirmationMessage, "Do you really want to delete this book? This process cannot be undone." },
+            { x => x.ActionText, "Delete" },
+            { x => x.ColorConfirmButton, Color.Error }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.ExtraSmall,
+            CloseButton = false
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && result.Data is not null && !result.Canceled)
+        {            
+            var res = await BooksService.Delete(bookId.ToString());
+            await DisplaySnackbarAsync(res.IsSuccess, "Book deleted successfully", $"Failed to delete book: {res.Error?.Description}");
+
         }
     }
 
-    private void Cancel()
+    private async Task DisplaySnackbarAsync(bool succcess, string successMessage, string failureMessage)
     {
-        _visible = false;
-        _bookModel = new BookUiDto();
-        StateHasChanged();
-    }
-
-    private void OnClickDelete(Guid? bookId)
-    {
-        if (bookId.HasValue)
+        if (succcess)
         {
-            _bookToDeleteId = bookId.Value;
-            _deleteDialogVisible = true;
-            StateHasChanged();
-        }
-    }
-
-    private async Task ConfirmDelete()
-    {
-        var result = await BooksService.Delete(_bookToDeleteId.ToString());
-
-        if (result.IsSuccess)
-        {
-            Snackbar.Add("Book deleted successfully", Severity.Success);
+            Snackbar.Add(successMessage, Severity.Success);
             await LoadBooks();
         }
         else
         {
-            Snackbar.Add($"Failed to delete book: {result.Error?.Description}", Severity.Error);
+            Snackbar.Add(failureMessage, Severity.Error);
         }
-
-        CancelDelete();
     }
 
-    private void CancelDelete()
-    {
-        _deleteDialogVisible = false;
-        _bookToDeleteId = Guid.Empty;
-        StateHasChanged();
-    }
-
-    private void ScanISBN()
-    {
-        _scannerVisible = true;
-        StateHasChanged();
-    }
-
-    private void OnIsbnScanned(string isbn)
-    {
-        _bookModel.ISBN = isbn;
-        _scannerVisible = false;
-        Snackbar.Add($"ISBN scanned: {isbn}", Severity.Success);
-        StateHasChanged();
-    }
-}
-
-public enum FormMode
-{
-    Create,
-    Edit
 }

@@ -33,16 +33,46 @@ export async function startScan(videoElementId, dotNetObjectRef) {
     scanning = true;
 
     try {
-        const videoInputDevices = await codeReader.listVideoInputDevices();
-        if (videoInputDevices.length === 0) throw new Error('No video input devices found');
-        const selectedDeviceId = videoInputDevices[0].deviceId;
+        // Demander explicitement la caméra arrière via getUserMedia
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: { ideal: 'environment' },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            }
+        });
+        
+        video.srcObject = stream;
+        await video.play();
 
-        codeReader.decodeFromVideoDevice(selectedDeviceId, video, (result, err) => {
+        // Activer l'autofocus sur la piste vidéo si supporté
+        const videoTrack = stream.getVideoTracks()[0];
+        const capabilities = videoTrack.getCapabilities();
+        
+        if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+            await videoTrack.applyConstraints({
+                advanced: [{ focusMode: 'continuous' }]
+            });
+        }
+
+        codeReader.decodeFromStream(stream, video, async (result, err) => {
             if (result && scanning) {
-                const isbn = result.getText();
-                if (isValidISBN(isbn)) {
-                    stopScan();
-                    dotNetObjectRef.invokeMethodAsync('OnIsbnScannedFromJs', isbn);
+                const rawText = result.getText();
+                console.log('Barcode detected:', rawText);
+                
+                const isbn = extractISBN(rawText);
+                if (isbn) {
+                    // Valider avec le validateur C# côté serveur
+                    const isValid = await dotNetObjectRef.invokeMethodAsync('ValidateIsbn', isbn);
+                    if (isValid) {
+                        console.log('Valid ISBN found:', isbn);
+                        stopScan();
+                        dotNetObjectRef.invokeMethodAsync('OnIsbnScannedFromJs', isbn);
+                    } else {
+                        console.log('ISBN format valid but failed server validation:', isbn);
+                    }
+                } else {
+                    console.log('Not a valid ISBN format:', rawText);
                 }
             }
             if (err && !(err instanceof window.ZXing.NotFoundException)) {
@@ -66,8 +96,25 @@ export function stopScan() {
     }
 }
 
-function isValidISBN(isbn) {
-    if (!isbn) return false;
-    const cleanIsbn = isbn.replace(/[-\s]/g, '');
-    return /^\d{10}$/.test(cleanIsbn) || /^\d{13}$/.test(cleanIsbn);
+function extractISBN(text) {
+    if (!text) return null;
+    
+    // Nettoyer le texte (enlever espaces, tirets, préfixes)
+    let cleaned = text.replace(/[-\s]/g, '');
+    
+    // Enlever le préfixe "ISBN" si présent
+    cleaned = cleaned.replace(/^ISBN/i, '');
+    
+    // Vérifier si c'est un ISBN-10 ou ISBN-13 valide
+    const isbn13Match = cleaned.match(/(\d{13})/);
+    const isbn10Match = cleaned.match(/(\d{10})/);
+    
+    if (isbn13Match) {
+        return isbn13Match[1];
+    }
+    if (isbn10Match) {
+        return isbn10Match[1];
+    }
+    
+    return null;
 }

@@ -1,0 +1,56 @@
+﻿@using Web.Enum
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.MenuBook" Class="mr-3 mb-n1" />
+            @(FormMode == FormMode.Create ? "Create Book" : "Edit Book")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Style="max-height: 600px; overflow-y: scroll">
+            <MudForm @ref="_form" Model="@_bookModel" Validation="@(_bookValidator.ValidateValue)">
+                <MudButton StartIcon="@Icons.Material.Filled.QrCodeScanner"
+                           Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Class="mt-2"
+                           OnClick="ScanISBN">
+                    Scan ISBN
+                </MudButton>
+
+                <MudTextField @bind-Value="_bookModel.Title"
+                              For="@(() => _bookModel.Title)"
+                              Immediate="true"
+                              Label="Title" />
+
+                <MudTextField @bind-Value="_bookModel.Serie"
+                              For="@(() => _bookModel.Serie)"
+                              Immediate="true"
+                              Label="Serie"
+                              Class="mt-3" />
+
+                <MudTextField @bind-Value="_bookModel.ISBN"
+                              For="@(() => _bookModel.ISBN)"
+                              Immediate="true"
+                              Label="ISBN"
+                              Class="mt-3" />
+
+                <MudNumericField @bind-Value="_bookModel.VolumeNumber"
+                                 For="@(() => _bookModel.VolumeNumber)"
+                                 Label="Volume Number"
+                                 Min="1"
+                                 Class="mt-3" />
+
+                <MudTextField @bind-Value="_bookModel.ImageLink"
+                              For="@(() => _bookModel.ImageLink)"
+                              Immediate="true"
+                              Label="Image Link"
+                              Class="mt-3" />
+            </MudForm>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">@(FormMode == FormMode.Create ? "Create" : "Update")</MudButton>
+    </DialogActions>
+</MudDialog>
