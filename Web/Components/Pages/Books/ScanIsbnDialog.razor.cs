@@ -89,14 +89,23 @@ public partial class ScanIsbnDialog : IAsyncDisposable
             try
             {
                 await _jsModule.InvokeVoidAsync("stopScan");
-                await _jsModule.DisposeAsync();
-                GC.SuppressFinalize(this);
             }
             catch (JSDisconnectedException)
             {
                 // Circuit is gone, ignore or log if needed
+            }            
+
+            try
+            {
+                await _jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Ignore disposal errors
             }
         }
+
         _dotNetObjectRef?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

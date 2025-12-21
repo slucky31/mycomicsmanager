@@ -59,7 +59,7 @@
                                 {
                                     <div class="d-flex">
                                         <MudText Class="ml-2" Typo="Typo.body2"><strong>Last read: </strong></MudText>
-                                        <MudText Class="ml-2" Typo="Typo.body2">@book.ReadingDates.OrderByDescending(rd => rd.Date).First().Date.ToString("d")</MudText>
+                                        <MudText Class="ml-2" Typo="Typo.body2">@book.ReadingDates.MaxBy(rd => rd.Date)!.Date.ToString("d")</MudText>
                                     </div>
                                 }
                             </div>

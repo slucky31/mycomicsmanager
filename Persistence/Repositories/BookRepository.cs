@@ -13,6 +13,7 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
         // Guid is a value type and cannot be null.
         // If you want to guard against the default value (Guid.Empty), use Guard.Against.Default(id) instead.
         Guard.Against.Default(id);
+
         return await dbContext.Set<Book>()
             .Include(b => b.ReadingDates)
             .SingleOrDefaultAsync(p => p.Id == id);
