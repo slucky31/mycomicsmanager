@@ -1,8 +1,7 @@
 ﻿using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Web.Enum;
-using Web.Services;
+using Web.Enums;
 using Web.Validators;
 
 namespace Web.Components.Pages.Books;
@@ -11,10 +10,10 @@ public partial class BookDialog
 {
 
     [CascadingParameter]
-    public required IMudDialogInstance MudDialog { get; set; }
+    public IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Inject]
-    private IDialogService DialogService { get; set; }
+    private IDialogService DialogService { get; set; } = default!;
 
     [Parameter]
     public FormMode FormMode { get; set; }

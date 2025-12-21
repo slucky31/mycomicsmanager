@@ -41,7 +41,7 @@ public class LibrariesService : ILibrariesService
 
         var query = new GetLibraryQuery(guidId);
 
-        return await handler_GetLibraryQuery.Handle(query);
+        return await handler_GetLibraryQuery.Handle(query, CancellationToken.None);
     }
 
     public async Task<Result<Library>> Create(string? name)
@@ -67,7 +67,7 @@ public class LibrariesService : ILibrariesService
     {
         var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize);
 
-        return await handler_GetLibrariesQuery.Handle(query);
+        return await handler_GetLibrariesQuery.Handle(query, CancellationToken.None);
 
     }
 

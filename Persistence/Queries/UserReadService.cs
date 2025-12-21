@@ -9,7 +9,7 @@ using Persistence.Queries.Helpers;
 namespace Persistence.Queries;
 public class UserReadService(ApplicationDbContext context) : IUserReadService
 {
-    public async Task<IPagedList<User>> GetUsersAsync(string? searchTerm, UsersColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
+    public async Task<IPagedList<User>> GetUsersAsync(string? searchTerm, UsersColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = context.Users.AsNoTracking();
 
@@ -33,10 +33,10 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
             _ => query.OrderBy(keySelector)
         };
         var librariesPagedList = new PagedList<User>(query);
-        return await librariesPagedList.ExecuteQueryAsync(page, pageSize);
+        return await librariesPagedList.ExecuteQueryAsync(page, pageSize, cancellationToken);
     }
 
-    public async Task<Result<User>> GetUserByAuthIdAndEmail(string? email, string? authId)
+    public async Task<Result<User>> GetUserByAuthIdAndEmail(string? email, string? authId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(authId))
         {
@@ -44,7 +44,7 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
         }
 
         var query = context.Users.AsNoTracking();
-        var user = await query.Where(u => u.Email == email && u.AuthId == authId).SingleOrDefaultAsync();
+        var user = await query.Where(u => u.Email == email && u.AuthId == authId).SingleOrDefaultAsync(cancellationToken);
 
         if (user is null)
         {
@@ -53,7 +53,7 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
         return user;
     }
 
-    public async Task<Result<User>> GetUserByEmail(string? email)
+    public async Task<Result<User>> GetUserByEmail(string? email, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
@@ -61,7 +61,7 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
         }
 
         var query = context.Users.AsNoTracking();
-        var user = await query.Where(u => u.Email == email).SingleOrDefaultAsync();
+        var user = await query.Where(u => u.Email == email).SingleOrDefaultAsync(cancellationToken);
 
         if (user is null)
         {

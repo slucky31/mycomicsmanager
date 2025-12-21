@@ -31,10 +31,10 @@ public class ListLibraryCommandeTests
         List<Library> list = [library];
         var query = list.BuildMock();
         var mockPagedList = new PagedList<Library>(query);
-        _libraryReadServiceMock.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize).Returns(mockPagedList);
+        _libraryReadServiceMock.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize, Arg.Any<CancellationToken>()).Returns(mockPagedList);
 
         // Act
-        var result = await _handler.Handle(request);
+        var result = await _handler.Handle(request, CancellationToken.None);
         Assert.NotNull(result);
         result.IsSuccess.Should().BeTrue();
         var pagedList = result.Value;

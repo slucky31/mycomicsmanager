@@ -33,7 +33,7 @@ export async function startScan(videoElementId, dotNetObjectRef) {
     scanning = true;
 
     try {
-        // Demander explicitement la caméra arrière via getUserMedia
+        // Request rear camera explicitly via getUserMedia
         const stream = await navigator.mediaDevices.getUserMedia({
             video: { 
                 facingMode: { ideal: 'environment' },
@@ -45,7 +45,7 @@ export async function startScan(videoElementId, dotNetObjectRef) {
         video.srcObject = stream;
         await video.play();
 
-        // Activer l'autofocus sur la piste vidéo si supporté
+        // Enable autofocus on video track if supported
         const videoTrack = stream.getVideoTracks()[0];
         const capabilities = videoTrack.getCapabilities();
         
@@ -62,17 +62,17 @@ export async function startScan(videoElementId, dotNetObjectRef) {
                 
                 const isbn = extractISBN(rawText);
                 if (isbn) {
-                    // Valider avec le validateur C# côté serveur
+                    console.log('ISBN extracted:', isbn);
                     const isValid = await dotNetObjectRef.invokeMethodAsync('ValidateIsbn', isbn);
                     if (isValid) {
-                        console.log('Valid ISBN found:', isbn);
+                        console.log('Valid ISBN confirmed:', isbn);
                         stopScan();
                         dotNetObjectRef.invokeMethodAsync('OnIsbnScannedFromJs', isbn);
                     } else {
-                        console.log('ISBN format valid but failed server validation:', isbn);
+                        console.log('ISBN checksum validation failed:', isbn);
                     }
                 } else {
-                    console.log('Not a valid ISBN format:', rawText);
+                    console.log('No valid ISBN format found in:', rawText);
                 }
             }
             if (err && !(err instanceof window.ZXing.NotFoundException)) {
@@ -99,21 +99,22 @@ export function stopScan() {
 function extractISBN(text) {
     if (!text) return null;
     
-    // Nettoyer le texte (enlever espaces, tirets, préfixes)
+    // Clean the text (remove spaces, dashes, prefixes)
     let cleaned = text.replace(/[-\s]/g, '');
     
-    // Enlever le préfixe "ISBN" si présent
+    // Remove "ISBN" prefix if present
     cleaned = cleaned.replace(/^ISBN/i, '');
     
-    // Vérifier si c'est un ISBN-10 ou ISBN-13 valide
+    // Extract ISBN-13 or ISBN-10 (without checksum validation)
+    // Full validation will be done in C#
     const isbn13Match = cleaned.match(/(\d{13})/);
-    const isbn10Match = cleaned.match(/(\d{10})/);
+    const isbn10Match = cleaned.match(/(\d{9}[\dX])/i);
     
     if (isbn13Match) {
         return isbn13Match[1];
     }
     if (isbn10Match) {
-        return isbn10Match[1];
+        return isbn10Match[1].toUpperCase();
     }
     
     return null;

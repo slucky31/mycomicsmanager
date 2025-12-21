@@ -9,14 +9,14 @@ namespace Application.Libraries.List;
 
 public sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadService) : IQueryHandler<GetLibrariesQuery, IPagedList<Library>>
 {
-    public async Task<Result<IPagedList<Library>>> Handle(GetLibrariesQuery request)
+    public async Task<Result<IPagedList<Library>>> Handle(GetLibrariesQuery request, CancellationToken cancellationToken)
     {
         if (request is null)
         {
             return LibrariesError.ValidationError;
         }
 
-        var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize);
+        var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize, cancellationToken);
 
         return Result<IPagedList<Library>>.Success(list);
     }

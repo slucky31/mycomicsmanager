@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Web.Enum;
 
 namespace Web.Components.Pages.Dialogs;
 

@@ -17,7 +17,6 @@ public partial class ScanIsbnDialog : IAsyncDisposable
     private DotNetObjectReference<ScanIsbnDialog>? _dotNetObjectRef;
     private readonly string _videoElementId = $"video-scanner-{Guid.NewGuid():N}";
     private string _errorMessage = string.Empty;
-    private bool _scanStarted;
     private bool _isbnDetected;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -27,13 +26,12 @@ public partial class ScanIsbnDialog : IAsyncDisposable
             _dotNetObjectRef = DotNetObjectReference.Create(this);
             _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/isbnScanner.js");
 
-            if (_jsModule != null && _dotNetObjectRef != null)
+            if (_jsModule != null)
             {
                 try
                 {
                     await _jsModule.InvokeVoidAsync("startScan", _videoElementId, _dotNetObjectRef);
                     _errorMessage = string.Empty;
-                    _scanStarted = true;
                     StateHasChanged();
                 }
                 catch (JSException ex)

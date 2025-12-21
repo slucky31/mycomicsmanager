@@ -14,7 +14,7 @@ public sealed class UpdateBookCommandHandler(IBookRepository bookRepository, IUn
         Guard.Against.Null(request);
 
         // Check if parameters are not null or empty
-        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.ISBN))
+        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.ISBN) || string.IsNullOrEmpty(request.Serie))
         {
             return BooksError.BadRequest;
         }
@@ -24,19 +24,20 @@ public sealed class UpdateBookCommandHandler(IBookRepository bookRepository, IUn
         {
             return BooksError.InvalidISBN;
         }
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);        
+
+        // Check if another book with the same ISBN exists (excluding current book)
+        var existingBook = await bookRepository.GetByIsbnAsync(normalizedIsbn, cancellationToken);
+        if (existingBook is not null && existingBook.Id != request.Id)
+        {
+            return BooksError.Duplicate;
+        }
 
         // Get the existing book
         var book = await bookRepository.GetByIdAsync(request.Id);
         if (book == null)
         {
             return BooksError.NotFound;
-        }
-
-        // Check if another book with the same ISBN exists (excluding current book)
-        var existingBooks = await bookRepository.ListAsync();
-        if (existingBooks.Exists(b => b.ISBN == request.ISBN && b.Id != request.Id))
-        {
-            return BooksError.Duplicate;
         }
 
         // Update the book

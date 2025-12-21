@@ -8,7 +8,7 @@ namespace Application.Books.GetById;
 
 public sealed class GetBookQueryHandler(IBookRepository bookRepository) : IQueryHandler<GetBookByIdQuery, Book>
 {
-    public async Task<Result<Book>> Handle(GetBookByIdQuery request)
+    public async Task<Result<Book>> Handle(GetBookByIdQuery request, CancellationToken cancellationToken)
     {
         Guard.Against.Null(request);
 

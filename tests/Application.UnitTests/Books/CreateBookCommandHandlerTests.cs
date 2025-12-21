@@ -35,8 +35,7 @@ public class CreateBookCommandHandlerTests
     {
         // Arrange
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
-        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
-        _bookRepositoryMock.Add(Arg.Any<Book>());
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
 
         // Act
         var result = await _handler.Handle(ValidCommand, default);
@@ -58,8 +57,7 @@ public class CreateBookCommandHandlerTests
     {
         // Arrange
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
-        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
-        _bookRepositoryMock.Add(Arg.Any<Book>());
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
 
         // Act
         await _handler.Handle(ValidCommand, default);
@@ -170,7 +168,7 @@ public class CreateBookCommandHandlerTests
         // Arrange        
         var existingBook = Book.Create(ValidCommand.Serie, ValidCommand.Title, ValidCommand.ISBN);
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
-        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns(existingBook);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns(existingBook);
 
         // Act
         var result = await _handler.Handle(ValidCommand, default);
@@ -188,8 +186,7 @@ public class CreateBookCommandHandlerTests
         // Arrange
         var isbn10Command = new CreateBookCommand("Serie", "Title", "0-306-40615-2", 1, "");
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(isbn10Command.ISBN);
-        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
-        _bookRepositoryMock.Add(Arg.Any<Book>());
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
 
         // Act
         var result = await _handler.Handle(isbn10Command, default);
@@ -208,8 +205,7 @@ public class CreateBookCommandHandlerTests
         // Arrange
         var isbn13Command = new CreateBookCommand("Serie", "Title", "978-0-306-40615-7", 1, "");
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(isbn13Command.ISBN);
-        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
-        _bookRepositoryMock.Add(Arg.Any<Book>());
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
 
         // Act
         var result = await _handler.Handle(isbn13Command, default);
@@ -228,8 +224,7 @@ public class CreateBookCommandHandlerTests
         // Arrange
         var minimalCommand = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0");
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(minimalCommand.ISBN);
-        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, Arg.Any<CancellationToken>()).Returns((Book?)null);
-        _bookRepositoryMock.Add(Arg.Any<Book>());
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
 
         // Act
         var result = await _handler.Handle(minimalCommand, default);
@@ -249,8 +244,7 @@ public class CreateBookCommandHandlerTests
         // Arrange
         var cancellationToken = new CancellationToken();
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
-        _bookRepositoryMock.GetByIsbnAsync(normalizedIsbn, cancellationToken).Returns((Book?)null);
-        _bookRepositoryMock.Add(Arg.Any<Book>());
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), cancellationToken).Returns((Book?)null);
 
         // Act
         await _handler.Handle(ValidCommand, cancellationToken);

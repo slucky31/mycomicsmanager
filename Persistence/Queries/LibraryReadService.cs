@@ -9,7 +9,7 @@ using Persistence.Queries.Helpers;
 namespace Persistence.Queries;
 public class LibraryReadService(ApplicationDbContext context) : ILibraryReadService
 {
-    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
+    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var librariesQuery = context.Libraries.AsNoTracking();
 
@@ -32,6 +32,6 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
             _ => librariesQuery.OrderBy(keySelector),
         };
         var librariesPagedList = new PagedList<Library>(librariesQuery);
-        return await librariesPagedList.ExecuteQueryAsync(page, pageSize);
+        return await librariesPagedList.ExecuteQueryAsync(page, pageSize, cancellationToken);
     }
 }

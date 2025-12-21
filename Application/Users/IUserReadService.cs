@@ -6,10 +6,10 @@ namespace Application.Users;
 
 public interface IUserReadService
 {
-    Task<IPagedList<User>> GetUsersAsync(string? searchTerm, UsersColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize);
+    Task<IPagedList<User>> GetUsersAsync(string? searchTerm, UsersColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default);
 
-    Task<Result<User>> GetUserByEmail(string? email);
+    Task<Result<User>> GetUserByEmail(string? email, CancellationToken cancellationToken = default);
 
-    Task<Result<User>> GetUserByAuthIdAndEmail(string? email, string? authId);
+    Task<Result<User>> GetUserByAuthIdAndEmail(string? email, string? authId, CancellationToken cancellationToken = default);
 
 }

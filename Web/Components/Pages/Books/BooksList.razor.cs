@@ -1,10 +1,9 @@
 ﻿using Domain.Books;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Web.Components.Pages.Dialogs;
-using Web.Enum;
+using Web.Enums;
 using Web.Services;
 using Web.Validators;
 
@@ -17,7 +16,7 @@ public partial class BooksList
     private IJSRuntime _jsRuntime { get; set; } = default!;
 
     [Inject]
-    private IDialogService DialogService { get; set; }
+    private IDialogService DialogService { get; set; } = default!;
 
     [Inject]
     private IBooksService BooksService { get; set; } = default!;
@@ -125,9 +124,9 @@ public partial class BooksList
         }
     }
 
-    private async Task DisplaySnackbarAsync(bool succcess, string successMessage, string failureMessage)
+    private async Task DisplaySnackbarAsync(bool success, string successMessage, string failureMessage)
     {
-        if (succcess)
+        if (success)
         {
             Snackbar.Add(successMessage, Severity.Success);
             await LoadBooks();

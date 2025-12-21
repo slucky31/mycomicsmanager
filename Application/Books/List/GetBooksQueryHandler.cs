@@ -8,7 +8,7 @@ namespace Application.Books.List;
 
 public sealed class GetBooksQueryHandler(IBookRepository bookRepository) : IQueryHandler<GetBooksQuery, List<Book>>
 {
-    public async Task<Result<List<Book>>> Handle(GetBooksQuery request)
+    public async Task<Result<List<Book>>> Handle(GetBooksQuery request, CancellationToken cancellationToken)
     {
         Guard.Against.Null(request);
 

@@ -40,7 +40,7 @@ public class BooksService : IBooksService
 
         var query = new GetBookByIdQuery(guidId);
 
-        return await handler_GetBookQuery.Handle(query);
+        return await handler_GetBookQuery.Handle(query, CancellationToken.None);
     }
 
     public async Task<Result<Book>> Create(string series, string title, string isbn)
@@ -76,7 +76,7 @@ public class BooksService : IBooksService
     {
         var query = new GetBooksQuery();
 
-        return await handler_GetBooksQuery.Handle(query);
+        return await handler_GetBooksQuery.Handle(query, CancellationToken.None);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)

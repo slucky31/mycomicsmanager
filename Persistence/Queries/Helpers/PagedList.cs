@@ -17,12 +17,12 @@ public class PagedList<T>(IQueryable<T> query) : IPagedList<T>
 
     public bool HasPreviousPage => TotalCount != -1 && Page > 1;
 
-    public async Task<IPagedList<T>> ExecuteQueryAsync(int page, int pageSize)
+    public async Task<IPagedList<T>> ExecuteQueryAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
         Page = page;
         PageSize = pageSize;
-        TotalCount = await query.CountAsync();
-        Items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        TotalCount = await query.CountAsync(cancellationToken);
+        Items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
         return this;
     }
 

@@ -1,4 +1,4 @@
-﻿namespace Web.Enum;
+﻿namespace Web.Enums;
 
 public enum FormMode
 {
