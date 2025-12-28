@@ -22,7 +22,7 @@ public class GetLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccessAsync()
+    public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
         var library = Library.Create("test");
@@ -42,7 +42,7 @@ public class GetLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenLibraryIsNotFoundAsync()
+    public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
     {
         // Arrange
         var libraryId = Guid.CreateVersion7();

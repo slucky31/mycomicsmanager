@@ -62,7 +62,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            db.Database.EnsureCreated();  // ou db.Database.Migrate(); si vous voulez appliquer les migrations ??
+            db.Database.Migrate();
         });
 
         // Reconfigure the service to use LocalStorage with a new root path as Temp directory

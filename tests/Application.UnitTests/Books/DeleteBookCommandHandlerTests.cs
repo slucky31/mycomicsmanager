@@ -24,7 +24,7 @@ public class DeleteBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WhenBookExistsAsync()
+    public async Task Handle_Should_ReturnSuccess_WhenBookExists()
     {
         // Arrange
         _bookRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_existingBook);
@@ -39,7 +39,7 @@ public class DeleteBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ExecuteSaveChangesAsyncOnceAsync()
+    public async Task Handle_Should_ExecuteSaveChangesAsyncOnce()
     {
         // Arrange
         _bookRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_existingBook);
@@ -52,7 +52,7 @@ public class DeleteBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenBookIsNullAsync()
+    public async Task Handle_ShouldReturnNotFound_WhenBookIsNull()
     {
         // Arrange
         _bookRepositoryMock.GetByIdAsync(s_command.Id).Returns((Book?)null);
@@ -68,7 +68,7 @@ public class DeleteBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenBookDoesNotExistAsync()
+    public async Task Handle_ShouldReturnNotFound_WhenBookDoesNotExist()
     {
         // Arrange
         var nonExistentId = Guid.CreateVersion7();
@@ -86,7 +86,7 @@ public class DeleteBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_CallRemoveWithCorrectBookAsync()
+    public async Task Handle_Should_CallRemoveWithCorrectBook()
     {
         // Arrange
         _bookRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_existingBook);
@@ -99,7 +99,7 @@ public class DeleteBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_PassCorrectCancellationTokenAsync()
+    public async Task Handle_Should_PassCorrectCancellationToken()
     {
         // Arrange
         var cancellationToken = new CancellationToken();
@@ -114,7 +114,7 @@ public class DeleteBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_CallGetByIdAsyncOnceAsync()
+    public async Task Handle_Should_CallGetByIdAsyncOnce()
     {
         // Arrange
         _bookRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_existingBook);
@@ -127,7 +127,7 @@ public class DeleteBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_NotCallRemove_WhenBookNotFoundAsync()
+    public async Task Handle_Should_NotCallRemove_WhenBookNotFound()
     {
         // Arrange
         _bookRepositoryMock.GetByIdAsync(s_command.Id).Returns((Book?)null);
@@ -140,7 +140,7 @@ public class DeleteBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_NotCallSaveChanges_WhenBookNotFoundAsync()
+    public async Task Handle_Should_NotCallSaveChanges_WhenBookNotFound()
     {
         // Arrange
         _bookRepositoryMock.GetByIdAsync(s_command.Id).Returns((Book?)null);

@@ -25,7 +25,7 @@ public class CreateUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ExecuteSaveChangeAsyncOnceAsync()
+    public async Task Handle_Should_ExecuteSaveChangeAsyncOnce()
     {
         // Arrange
         _userRepositoryMock.Add(Arg.Any<User>());
@@ -38,7 +38,7 @@ public class CreateUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadREquest_WhenCommandEmailIsEmptyAsync()
+    public async Task Handle_ShouldReturnBadREquest_WhenCommandEmailIsEmpty()
     {
         // Arrange
         CreateUserCommand commandWithEmptyEmail = new("", "1234");
@@ -52,7 +52,7 @@ public class CreateUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadREquest_WhenCommandAuthIdIsEmptyAsync()
+    public async Task Handle_ShouldReturnBadREquest_WhenCommandAuthIdIsEmpty()
     {
         // Arrange
         CreateUserCommand commandWithEmptyAuthId = new("test@test.com", "");
@@ -66,7 +66,7 @@ public class CreateUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnDuplicate_WhenAUserWithSameEmailOrAuthIdAlreadyExistAsync()
+    public async Task Handle_ShouldReturnDuplicate_WhenAUserWithSameEmailOrAuthIdAlreadyExist()
     {
         // Arrange
         var user = User.Create(s_command.email, s_command.authId);

@@ -26,7 +26,7 @@ public class ListLibraryCommandeTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccessAsync()
+    public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
         List<Library> list = [s_library];

@@ -32,7 +32,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenLibraryIsNotFoundAsync()
+    public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns((Library?)null);
@@ -48,7 +48,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExistAsync()
+    public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExist()
     {
         // Arrange
         List<Library> list = [s_library];
@@ -67,7 +67,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnFolderNotMoved_WhenDirectoryWasNotMovedAsync()
+    public async Task Handle_ShouldReturnFolderNotMoved_WhenDirectoryWasNotMoved()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
@@ -82,7 +82,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccessAsync()
+    public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);

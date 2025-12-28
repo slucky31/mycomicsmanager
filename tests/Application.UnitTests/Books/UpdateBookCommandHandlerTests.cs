@@ -44,12 +44,12 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WhenValidCommandProvidedAsync()
+    public async Task Handle_Should_ReturnSuccess_WhenValidCommandProvided()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
         _bookRepositoryMock.GetByIdAsync(s_validCommand.Id).Returns(existingBook);
-        _bookRepositoryMock.ListAsync().Returns(new List<Book> { existingBook });
+        _bookRepositoryMock.List().Returns(new List<Book> { existingBook });
 
         // Act
         var result = await _handler.Handle(s_validCommand, default);
@@ -67,12 +67,12 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ExecuteSaveChangesAsyncOnceAsync()
+    public async Task Handle_Should_ExecuteSaveChangesAsyncOnce()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
         _bookRepositoryMock.GetByIdAsync(s_validCommand.Id).Returns(existingBook);
-        _bookRepositoryMock.ListAsync().Returns(new List<Book> { existingBook });
+        _bookRepositoryMock.List().Returns(new List<Book> { existingBook });
 
         // Act
         await _handler.Handle(s_validCommand, default);
@@ -82,7 +82,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsEmptyAsync()
+    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsEmpty()
     {
         // Arrange
         var emptyTitleCommand = new UpdateBookCommand(s_bookId, "Serie", string.Empty, "978-3-16-148410-0", 1, "");
@@ -98,7 +98,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsNullAsync()
+    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsNull()
     {
         // Arrange
         var nullTitleCommand = new UpdateBookCommand(s_bookId, "Serie", null!, "978-3-16-148410-0", 1, "");
@@ -114,7 +114,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsEmptyAsync()
+    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsEmpty()
     {
         // Arrange
         var emptyIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", string.Empty, 1, "");
@@ -130,7 +130,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsNullAsync()
+    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsNull()
     {
         // Arrange
         var nullIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", null!, 1, "");
@@ -146,7 +146,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNFormatIsInvalidAsync()
+    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNFormatIsInvalid()
     {
         // Arrange
         var invalidIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", "invalid-isbn", 1, "");
@@ -162,7 +162,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNHasInvalidLengthAsync()
+    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNHasInvalidLength()
     {
         // Arrange
         var invalidLengthCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", "12345", 1, "");
@@ -178,7 +178,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenBookDoesNotExistAsync()
+    public async Task Handle_ShouldReturnNotFound_WhenBookDoesNotExist()
     {
         // Arrange
         _bookRepositoryMock.GetByIdAsync(s_validCommand.Id).Returns((Book?)null);
@@ -194,7 +194,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnDuplicate_WhenAnotherBookWithSameISBNExistsAsync()
+    public async Task Handle_ShouldReturnDuplicate_WhenAnotherBookWithSameISBNExists()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -215,7 +215,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_AllowUpdatingToSameISBNAsync()
+    public async Task Handle_Should_AllowUpdatingToSameISBN()
     {
         // Arrange - Updating book to keep its own ISBN
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -243,7 +243,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_UpdateAllBookPropertiesAsync()
+    public async Task Handle_Should_UpdateAllBookProperties()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -264,7 +264,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_CallUpdateWithCorrectBookAsync()
+    public async Task Handle_Should_CallUpdateWithCorrectBook()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -279,7 +279,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_PassCorrectCancellationTokenAsync()
+    public async Task Handle_Should_PassCorrectCancellationToken()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -296,7 +296,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WithISBN10FormatAsync()
+    public async Task Handle_Should_ReturnSuccess_WithISBN10Format()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -316,7 +316,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WithISBN13FormatAsync()
+    public async Task Handle_Should_ReturnSuccess_WithISBN13Format()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -336,7 +336,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_UpdateVolumeNumberAsync()
+    public async Task Handle_Should_UpdateVolumeNumber()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -354,7 +354,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_UpdateImageLinkAsync()
+    public async Task Handle_Should_UpdateImageLink()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -372,7 +372,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_AllowEmptyImageLinkAsync()
+    public async Task Handle_Should_AllowEmptyImageLink()
     {
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
@@ -390,7 +390,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_NotCallUpdate_WhenBookNotFoundAsync()
+    public async Task Handle_Should_NotCallUpdate_WhenBookNotFound()
     {
         // Arrange
         _bookRepositoryMock.GetByIdAsync(s_validCommand.Id).Returns((Book?)null);
@@ -403,7 +403,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_NotCallSaveChanges_WhenValidationFailsAsync()
+    public async Task Handle_Should_NotCallSaveChanges_WhenValidationFails()
     {
         // Arrange
         var invalidCommand = new UpdateBookCommand(s_bookId, "Serie", "", "978-3-16-148410-0", 1, "");
@@ -416,7 +416,7 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_CheckDuplicateISBNAcrossMultipleBooksAsync()
+    public async Task Handle_Should_CheckDuplicateISBNAcrossMultipleBooks()
     {
         // Arrange
         var bookId1 = Guid.CreateVersion7();
@@ -428,7 +428,7 @@ public class UpdateBookCommandHandlerTests
         var book3 = CreateBookWithId(bookId3, "Serie 3", "Title 3", "978-0-451-52493-5");
 
         _bookRepositoryMock.GetByIdAsync(bookId1).Returns(book1);
-        _bookRepositoryMock.ListAsync().Returns(new List<Book> { book1, book2, book3 });
+        _bookRepositoryMock.List().Returns(new List<Book> { book1, book2, book3 });
 
         // Mock GetByIsbnAsync to return book2 when queried with its ISBN
         _bookRepositoryMock.GetByIsbnAsync("9780306406157", Arg.Any<CancellationToken>()).Returns(book2);

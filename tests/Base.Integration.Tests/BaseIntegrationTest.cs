@@ -105,3 +105,15 @@ public class LibraryLocalStorageIntegrationTest : BaseIntegrationTest
     }
 
 }
+
+public class BookIntegrationTest : BaseIntegrationTest
+{
+    protected IBookRepository BookRepository { get; }
+
+
+    public BookIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        BookRepository = _scope.ServiceProvider.GetRequiredService<IBookRepository>();
+    }
+
+}

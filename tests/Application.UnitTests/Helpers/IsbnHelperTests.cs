@@ -523,6 +523,171 @@ public class IsbnHelperTests
 
     #endregion
 
+    #region NormalizeIsbn Tests
+
+    [Fact]
+    public void NormalizeIsbn_ShouldReturnEmptyString_WhenISBNIsNull()
+    {
+        // Arrange
+        string? isbn = null;
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn!);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldReturnEmptyString_WhenISBNIsEmpty()
+    {
+        // Arrange
+        var isbn = string.Empty;
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldRemoveDashes_WhenISBNContainsDashes()
+    {
+        // Arrange
+        var isbn = "978-0-306-40615-7";
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be("9780306406157");
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldRemoveSpaces_WhenISBNContainsSpaces()
+    {
+        // Arrange
+        var isbn = "978 0 306 40615 7";
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be("9780306406157");
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldRemoveDashesAndSpaces_WhenISBNContainsBoth()
+    {
+        // Arrange
+        var isbn = "978 0-306-40615 7";
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be("9780306406157");
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldConvertToUppercase_WhenISBNContainsLowercaseX()
+    {
+        // Arrange
+        var isbn = "080442957x";
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be("080442957X");
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldConvertToUppercase_WhenISBNContainsLowercaseLetters()
+    {
+        // Arrange
+        var isbn = "abcde12345";
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be("ABCDE12345");
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldReturnAsIs_WhenISBNIsAlreadyNormalized()
+    {
+        // Arrange
+        var isbn = "9780306406157";
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be("9780306406157");
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldRemoveMultipleDashes()
+    {
+        // Arrange
+        var isbn = "978--0--306--40615--7";
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be("9780306406157");
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldRemoveMultipleSpaces()
+    {
+        // Arrange
+        var isbn = "978  0  306  40615  7";
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be("9780306406157");
+    }
+
+    [Fact]
+    public void NormalizeIsbn_ShouldHandleMixedCase_WhenISBNContainsMixedCase()
+    {
+        // Arrange
+        var isbn = "0-8044-2957-x";
+
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be("080442957X");
+    }
+
+    [Theory]
+    [InlineData("978-0-306-40615-7", "9780306406157")]
+    [InlineData("978 0 306 40615 7", "9780306406157")]
+    [InlineData("9780306406157", "9780306406157")]
+    [InlineData("0-306-40615-2", "0306406152")]
+    [InlineData("080442957x", "080442957X")]
+    [InlineData("0-8044-2957-X", "080442957X")]
+    [InlineData("", "")]
+    [InlineData("978  0--306  40615--7", "9780306406157")]
+    public void NormalizeIsbn_ShouldNormalizeVariousFormats(string input, string expected)
+    {
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(input);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    #endregion
+
     #region Theory Tests
 
     [Theory]

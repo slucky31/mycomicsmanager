@@ -30,7 +30,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WhenValidCommandProvidedAsync()
+    public async Task Handle_Should_ReturnSuccess_WhenValidCommandProvided()
     {
         // Arrange
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
@@ -52,7 +52,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ExecuteSaveChangesAsyncOnceAsync()
+    public async Task Handle_Should_ExecuteSaveChangesAsyncOnce()
     {
         // Arrange
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
@@ -66,7 +66,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsEmptyAsync()
+    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsEmpty()
     {
         // Arrange
         var emptyTitleCommand = new CreateBookCommand("Serie", string.Empty, "978-3-16-148410-0", 1, "");
@@ -82,7 +82,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsWhitespaceAsync()
+    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsWhitespace()
     {
         // Arrange
         var whitespaceCommand = new CreateBookCommand("Serie", "   ", "978-3-16-148410-0", 1, "");
@@ -98,7 +98,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsEmptyAsync()
+    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsEmpty()
     {
         // Arrange
         var emptyIsbnCommand = new CreateBookCommand("Serie", "Title", string.Empty, 1, "");
@@ -114,7 +114,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsWhitespaceAsync()
+    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsWhitespace()
     {
         // Arrange
         var whitespaceIsbnCommand = new CreateBookCommand("Serie", "Title", "   ", 1, "");
@@ -130,7 +130,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNFormatIsInvalidAsync()
+    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNFormatIsInvalid()
     {
         // Arrange
         var invalidIsbnCommand = new CreateBookCommand("Serie", "Title", "invalid-isbn", 1, "");
@@ -146,7 +146,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNHasInvalidLengthAsync()
+    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNHasInvalidLength()
     {
         // Arrange
         var invalidLengthCommand = new CreateBookCommand("Serie", "Title", "12345", 1, "");
@@ -162,7 +162,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnDuplicate_WhenBookWithSameISBNAlreadyExistsAsync()
+    public async Task Handle_ShouldReturnDuplicate_WhenBookWithSameISBNAlreadyExists()
     {
         // Arrange        
         var existingBook = Book.Create(s_validCommand.Serie, s_validCommand.Title, s_validCommand.ISBN);
@@ -180,7 +180,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WithISBN10FormatAsync()
+    public async Task Handle_Should_ReturnSuccess_WithISBN10Format()
     {
         // Arrange
         var isbn10Command = new CreateBookCommand("Serie", "Title", "0-306-40615-2", 1, "");
@@ -199,7 +199,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WithISBN13FormatAsync()
+    public async Task Handle_Should_ReturnSuccess_WithISBN13Format()
     {
         // Arrange
         var isbn13Command = new CreateBookCommand("Serie", "Title", "978-0-306-40615-7", 1, "");
@@ -218,7 +218,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_CreateBookWithDefaultValues_WhenOptionalParametersNotProvidedAsync()
+    public async Task Handle_Should_CreateBookWithDefaultValues_WhenOptionalParametersNotProvided()
     {
         // Arrange
         var minimalCommand = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0");
@@ -238,7 +238,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_PassCorrectCancellationTokenAsync()
+    public async Task Handle_Should_PassCorrectCancellationToken()
     {
         // Arrange
         var cancellationToken = new CancellationToken();

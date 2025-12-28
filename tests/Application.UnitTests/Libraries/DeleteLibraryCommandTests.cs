@@ -27,7 +27,7 @@ public class DeleteLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenLibraryIsNullAsync()
+    public async Task Handle_Should_ReturnError_WhenLibraryIsNull()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns((Library?)null);
@@ -43,7 +43,7 @@ public class DeleteLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccessAsync()
+    public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
@@ -60,7 +60,7 @@ public class DeleteLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenDirectoryIsNotDeletedAsync()
+    public async Task Handle_Should_ReturnError_WhenDirectoryIsNotDeleted()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);

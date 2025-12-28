@@ -33,7 +33,7 @@ public class CreateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccessAsync()
+    public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
         _libraryRepositoryMock.Add(Arg.Any<Library>());
@@ -51,7 +51,7 @@ public class CreateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ExecuteSaveChangeAsyncOnceAsync()
+    public async Task Handle_Should_ExecuteSaveChangeAsyncOnce()
     {
         // Arrange
         _libraryRepositoryMock.Add(Arg.Any<Library>());
@@ -65,7 +65,7 @@ public class CreateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadREquest_WhenCommandNameIsEmptyAsync()
+    public async Task Handle_ShouldReturnBadREquest_WhenCommandNameIsEmpty()
     {
         // Arrange
         var emptyCommand = new CreateLibraryCommand(string.Empty);
@@ -79,7 +79,7 @@ public class CreateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnFolderNotCreated_WhenFolderNotCreatedAsync()
+    public async Task Handle_ShouldReturnFolderNotCreated_WhenFolderNotCreated()
     {
         // Arrange
         _libraryRepositoryMock.Add(Arg.Any<Library>());
@@ -94,7 +94,7 @@ public class CreateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExistAsync()
+    public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExist()
     {
         // Arrange
         List<Library> list = [Library.Create(s_command.Name)];

@@ -1,6 +1,5 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
-using Ardalis.GuardClauses;
 using Domain.Books;
 using Domain.Primitives;
 
@@ -10,7 +9,10 @@ public sealed class GetBookQueryHandler(IBookRepository bookRepository) : IQuery
 {
     public async Task<Result<Book>> Handle(GetBookByIdQuery request, CancellationToken cancellationToken)
     {
-        Guard.Against.Null(request);
+        if (request is null)
+        {
+            return BooksError.BadRequest;
+        }
 
         if (request.Id == Guid.Empty)
         {
