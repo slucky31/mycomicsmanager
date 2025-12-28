@@ -10,7 +10,7 @@ namespace Persistence.Tests.Integration.Repositories;
 public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]
-    public async Task Add_ShouldAddLib()
+    public async Task Add_ShouldAddLibAsync()
     {
         // Arrange
         var lib = Library.Create("name");
@@ -28,14 +28,14 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
     }
 
     [Fact]
-    public async Task Add_ShouldThrowException_WhenAddLibWithSameIdTwice()
+    public async Task Add_ShouldThrowException_WhenAddLibWithSameIdTwiceAsync()
     {
         // Arrange
         var lib = Library.Create("name");
         LibraryRepository.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         LibraryRepository.Add(lib);
-        var action = async () => { await UnitOfWork.SaveChangesAsync(CancellationToken.None); };
+        var action = async () => await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act && Assert
         Guard.Against.Null(action);
@@ -43,7 +43,7 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
     }
 
     [Fact]
-    public async Task Update_ShouldUpdateLib()
+    public async Task Update_ShouldUpdateLibAsync()
     {
         // Arrange
         var lib = Library.Create("name");
@@ -65,7 +65,7 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
     }
 
     [Fact]
-    public async Task Remove_ShouldRemoveLib()
+    public async Task Remove_ShouldRemoveLibAsync()
     {
         // Arrange
         var lib = Library.Create("name");
@@ -83,7 +83,7 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
     }
 
     [Fact]
-    public async Task List_ShouldListLib()
+    public async Task List_ShouldListLibAsync()
     {
         // Arrange
         var lib1 = Library.Create("name");

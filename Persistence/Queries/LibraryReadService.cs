@@ -21,9 +21,9 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 
         Expression<Func<Library, object>> keySelector = sortColumn switch
         {
-            LibrariesColumn.Id => Library => Library.Id,
-            LibrariesColumn.Name => Library => Library.Name,
-            _ => Library => Library.Id
+            LibrariesColumn.Id => library => library.Id,
+            LibrariesColumn.Name => library => library.Name,
+            _ => library => library.Id
         };
 
         librariesQuery = sortOrder switch

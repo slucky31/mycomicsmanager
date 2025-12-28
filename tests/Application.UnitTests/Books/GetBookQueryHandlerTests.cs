@@ -9,8 +9,8 @@ namespace Application.UnitTests.Books;
 
 public class GetBookQueryHandlerTests
 {
-    private static readonly Guid BookId = Guid.CreateVersion7();
-    private static readonly Book ExistingBook = Book.Create("Test Serie", "Test Title", "978-3-16-148410-0", 1, "https://example.com/image.jpg");
+    private static readonly Guid s_bookId = Guid.CreateVersion7();
+    private static readonly Book s_existingBook = Book.Create("Test Serie", "Test Title", "978-3-16-148410-0", 1, "https://example.com/image.jpg");
 
     private readonly GetBookQueryHandler _handler;
     private readonly IBookRepository _bookRepositoryMock;
@@ -22,11 +22,11 @@ public class GetBookQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WhenBookExists()
+    public async Task Handle_Should_ReturnSuccess_WhenBookExistsAsync()
     {
         // Arrange
-        var query = new GetBookByIdQuery(BookId);
-        _bookRepositoryMock.GetByIdAsync(BookId).Returns(ExistingBook);
+        var query = new GetBookByIdQuery(s_bookId);
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(s_existingBook);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -34,21 +34,21 @@ public class GetBookQueryHandlerTests
         // Assert
         Guard.Against.Null(result.Value);
         result.IsSuccess.Should().BeTrue();
-        result.Value.Id.Should().Be(ExistingBook.Id);
-        result.Value.Serie.Should().Be(ExistingBook.Serie);
-        result.Value.Title.Should().Be(ExistingBook.Title);
-        result.Value.ISBN.Should().Be(ExistingBook.ISBN);
-        result.Value.VolumeNumber.Should().Be(ExistingBook.VolumeNumber);
-        result.Value.ImageLink.Should().Be(ExistingBook.ImageLink);
-        await _bookRepositoryMock.Received(1).GetByIdAsync(BookId);
+        result.Value.Id.Should().Be(s_existingBook.Id);
+        result.Value.Serie.Should().Be(s_existingBook.Serie);
+        result.Value.Title.Should().Be(s_existingBook.Title);
+        result.Value.ISBN.Should().Be(s_existingBook.ISBN);
+        result.Value.VolumeNumber.Should().Be(s_existingBook.VolumeNumber);
+        result.Value.ImageLink.Should().Be(s_existingBook.ImageLink);
+        await _bookRepositoryMock.Received(1).GetByIdAsync(s_bookId);
     }
 
     [Fact]
-    public async Task Handle_Should_CallGetByIdAsyncOnce()
+    public async Task Handle_Should_CallGetByIdAsyncOnceAsync()
     {
         // Arrange
-        var query = new GetBookByIdQuery(BookId);
-        _bookRepositoryMock.GetByIdAsync(BookId).Returns(ExistingBook);
+        var query = new GetBookByIdQuery(s_bookId);
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(s_existingBook);
 
         // Act
         await _handler.Handle(query, CancellationToken.None);
@@ -58,11 +58,11 @@ public class GetBookQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenBookIsNull()
+    public async Task Handle_ShouldReturnNotFound_WhenBookIsNullAsync()
     {
         // Arrange
-        var query = new GetBookByIdQuery(BookId);
-        _bookRepositoryMock.GetByIdAsync(BookId).ReturnsNull();
+        var query = new GetBookByIdQuery(s_bookId);
+        _bookRepositoryMock.GetByIdAsync(s_bookId).ReturnsNull();
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -70,11 +70,11 @@ public class GetBookQueryHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(BooksError.NotFound);
-        await _bookRepositoryMock.Received(1).GetByIdAsync(BookId);
+        await _bookRepositoryMock.Received(1).GetByIdAsync(s_bookId);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenBookDoesNotExist()
+    public async Task Handle_ShouldReturnNotFound_WhenBookDoesNotExistAsync()
     {
         // Arrange
         var nonExistentId = Guid.CreateVersion7();
@@ -91,7 +91,7 @@ public class GetBookQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnCorrectBook_WhenMultipleBooksExist()
+    public async Task Handle_Should_ReturnCorrectBook_WhenMultipleBooksExistAsync()
     {
         // Arrange
         var bookId1 = Guid.CreateVersion7();
@@ -117,7 +117,7 @@ public class GetBookQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnBookWithAllProperties()
+    public async Task Handle_Should_ReturnBookWithAllPropertiesAsync()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -139,12 +139,12 @@ public class GetBookQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_CallGetByIdAsyncWithCorrectId()
+    public async Task Handle_Should_CallGetByIdAsyncWithCorrectIdAsync()
     {
         // Arrange
         var specificId = Guid.CreateVersion7();
         var query = new GetBookByIdQuery(specificId);
-        _bookRepositoryMock.GetByIdAsync(specificId).Returns(ExistingBook);
+        _bookRepositoryMock.GetByIdAsync(specificId).Returns(s_existingBook);
 
         // Act
         await _handler.Handle(query, CancellationToken.None);
@@ -155,12 +155,12 @@ public class GetBookQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSameBookInstance()
+    public async Task Handle_Should_ReturnSameBookInstanceAsync()
     {
         // Arrange
-        var query = new GetBookByIdQuery(BookId);
+        var query = new GetBookByIdQuery(s_bookId);
         var specificBook = Book.Create("Specific Serie", "Specific Title", "978-3-16-148410-0");
-        _bookRepositoryMock.GetByIdAsync(BookId).Returns(specificBook);
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(specificBook);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);

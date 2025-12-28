@@ -8,7 +8,7 @@ namespace Persistence.Tests.Integration.LocalStorage;
 [Collection("DatabaseCollectionTests")]
 public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : LibraryLocalStorageIntegrationTest(factory)
 {
-    private readonly LibraryLocalStorage LibraryLocalStorageWithEmptyRootPath = new("");
+    private readonly LibraryLocalStorage _libraryLocalStorageWithEmptyRootPath = new("");
 
     private static void CreateFile(string path)
     {
@@ -38,7 +38,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         var folder = Guid.NewGuid().ToString();
 
         // Act
-        var result = LibraryLocalStorageWithEmptyRootPath.Create(folder);
+        var result = _libraryLocalStorageWithEmptyRootPath.Create(folder);
 
         //Assert
         result.IsFailure.Should().BeTrue();
@@ -128,7 +128,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         var folderMoved = Guid.NewGuid().ToString();
 
         // Act
-        var result = LibraryLocalStorageWithEmptyRootPath.Move(folder, folderMoved);
+        var result = _libraryLocalStorageWithEmptyRootPath.Move(folder, folderMoved);
 
         //Assert
         result.IsFailure.Should().BeTrue();
@@ -243,7 +243,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         var folder = Guid.NewGuid().ToString();
 
         // Act
-        var result = LibraryLocalStorageWithEmptyRootPath.Delete(folder);
+        var result = _libraryLocalStorageWithEmptyRootPath.Delete(folder);
 
         //Assert
         result.IsFailure.Should().BeTrue();

@@ -9,8 +9,8 @@ namespace Application.UnitTests.Libraries;
 
 public class DeleteLibraryCommandTests
 {
-    private static readonly DeleteLibraryCommand Command = new(Guid.CreateVersion7());
-    private static readonly Library library = Library.Create("test");
+    private static readonly DeleteLibraryCommand s_command = new(Guid.CreateVersion7());
+    private static readonly Library s_library = Library.Create("test");
 
     private readonly DeleteLibraryCommandHandler _handler;
     private readonly IRepository<Library, Guid> _librayRepositoryMock;
@@ -27,13 +27,13 @@ public class DeleteLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenLibraryIsNull()
+    public async Task Handle_Should_ReturnError_WhenLibraryIsNullAsync()
     {
         // Arrange
-        _librayRepositoryMock.GetByIdAsync(Command.Id).Returns((Library?)null);
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns((Library?)null);
 
         // Act
-        var result = await _handler.Handle(Command, default);
+        var result = await _handler.Handle(s_command, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -43,14 +43,14 @@ public class DeleteLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess()
+    public async Task Handle_Should_ReturnSuccessAsync()
     {
         // Arrange
-        _librayRepositoryMock.GetByIdAsync(Command.Id).Returns(library);
-        _libraryLocalStorageMock.Delete(library.RelativePath).Returns(Result.Success());
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
+        _libraryLocalStorageMock.Delete(s_library.RelativePath).Returns(Result.Success());
 
         // Act
-        var result = await _handler.Handle(Command, default);
+        var result = await _handler.Handle(s_command, default);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -60,14 +60,14 @@ public class DeleteLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenDirectoryIsNotDeleted()
+    public async Task Handle_Should_ReturnError_WhenDirectoryIsNotDeletedAsync()
     {
         // Arrange
-        _librayRepositoryMock.GetByIdAsync(Command.Id).Returns(library);
-        _libraryLocalStorageMock.Delete(library.RelativePath).Returns(Result.Failure(TError.Any));
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
+        _libraryLocalStorageMock.Delete(s_library.RelativePath).Returns(Result.Failure(TError.Any));
 
         // Act
-        var result = await _handler.Handle(Command, default);
+        var result = await _handler.Handle(s_command, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();

@@ -22,16 +22,16 @@ public class GetLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess()
+    public async Task Handle_Should_ReturnSuccessAsync()
     {
         // Arrange
         var library = Library.Create("test");
         var libraryId = library.Id;
         _librayRepositoryMock.GetByIdAsync(libraryId).Returns(library);
-        var Query = new GetLibraryQuery(libraryId);
+        var query = new GetLibraryQuery(libraryId);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(query, CancellationToken.None);
         Guard.Against.Null(result.Value);
 
         // Assert
@@ -42,15 +42,15 @@ public class GetLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
+    public async Task Handle_Should_ReturnError_WhenLibraryIsNotFoundAsync()
     {
         // Arrange
         var libraryId = Guid.CreateVersion7();
         _librayRepositoryMock.GetByIdAsync(libraryId).ReturnsNull();
-        var Query = new GetLibraryQuery(libraryId);
+        var query = new GetLibraryQuery(libraryId);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();

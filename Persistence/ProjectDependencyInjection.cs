@@ -15,7 +15,7 @@ namespace Persistence;
 public static class ProjectDependencyInjection
 {
 
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, String rootPath)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, string rootPath)
     {
 
         services.AddDbContext<ApplicationDbContext>(options =>

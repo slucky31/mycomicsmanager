@@ -19,7 +19,7 @@
     }
 </style>
 
-<PageWithAction Title="Books" Icon="@Icons.Material.Filled.MenuBook" ActionName="New book" ActionIcon="@Icons.Material.Filled.Add" OnActionClick="@(e => CreateOrEdit(FormMode.Create, null))">
+<PageWithAction Title="Books" Icon="@Icons.Material.Filled.MenuBook" ActionName="New book" ActionIcon="@Icons.Material.Filled.Add" OnActionClick="@(e => CreateOrEditAsync(FormMode.Create, null))">
     <MudGrid Spacing="4" Justify="Justify.FlexStart">
         @foreach (var book in Books)
         {
@@ -35,8 +35,8 @@
                         </CardHeaderContent>
                         <CardHeaderActions>
                             <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Actions">
-                                <MudMenuItem Label="Edit" OnClick="@(e => CreateOrEdit(FormMode.Edit, @book))" />
-                                <MudMenuItem Label="Delete" OnClick="@(e => Delete(@book.Id))" />
+                                <MudMenuItem Label="Edit" OnClick="@(e => CreateOrEditAsync(FormMode.Edit, @book))" />
+                                <MudMenuItem Label="Delete" OnClick="@(e => DeleteAsync(@book.Id))" />
                             </MudMenu>
                         </CardHeaderActions>
                     </MudCardHeader>

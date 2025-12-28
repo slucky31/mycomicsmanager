@@ -8,38 +8,38 @@ namespace Persistence.Tests.Integration.Queries;
 [Collection("DatabaseCollectionTests")]
 public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIntegrationTest(factory)
 {
-    private readonly User usr1 = User.Create("usr1@test.com", "1");
-    private readonly User usr2 = User.Create("usr2@test.com", "2");
-    private readonly User usr3 = User.Create("usr3@test.com", "3");
-    private readonly User usr4 = User.Create("usr4-comics@test.com", "4");
-    private readonly User usr5 = User.Create("usr5-comics@test.com", "5");
+    private readonly User _usr1 = User.Create("usr1@test.com", "1");
+    private readonly User _usr2 = User.Create("usr2@test.com", "2");
+    private readonly User _usr3 = User.Create("usr3@test.com", "3");
+    private readonly User _usr4 = User.Create("usr4-comics@test.com", "4");
+    private readonly User _usr5 = User.Create("usr5-comics@test.com", "5");
 
-    private readonly List<User> users = [];
+    private readonly List<User> _users = [];
 
-    private async Task CreateUsers()
+    private async Task CreateUsersAsync()
     {
 
-        UserRepository.Add(usr1);
-        UserRepository.Add(usr2);
-        UserRepository.Add(usr3);
-        UserRepository.Add(usr4);
-        UserRepository.Add(usr5);
+        UserRepository.Add(_usr1);
+        UserRepository.Add(_usr2);
+        UserRepository.Add(_usr3);
+        UserRepository.Add(_usr4);
+        UserRepository.Add(_usr5);
 
-        users.Clear();
-        users.Add(usr1);
-        users.Add(usr2);
-        users.Add(usr3);
-        users.Add(usr4);
-        users.Add(usr5);
+        _users.Clear();
+        _users.Add(_usr1);
+        _users.Add(_usr2);
+        _users.Add(_usr3);
+        _users.Add(_usr4);
+        _users.Add(_usr5);
 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnPagedList()
+    public async Task GetUsersAsync_ShouldReturnPagedListAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, SortOrder.Ascending, 1, 2);
@@ -47,15 +47,15 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(2);
-        pagedList.Items.Should().Contain(u => u.Id == usr1.Id);
-        pagedList.Items.Should().Contain(u => u.Id == usr2.Id);
+        pagedList.Items.Should().Contain(u => u.Id == _usr1.Id);
+        pagedList.Items.Should().Contain(u => u.Id == _usr2.Id);
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnPagedList_WhichContainsComicsInName()
+    public async Task GetUsersAsync_ShouldReturnPagedList_WhichContainsComicsInNameAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync("comics", null, null, 1, 3);
@@ -63,15 +63,15 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(2);
-        pagedList.Items.Should().Contain(u => u.Id == usr4.Id);
-        pagedList.Items.Should().Contain(u => u.Id == usr5.Id);
+        pagedList.Items.Should().Contain(u => u.Id == _usr4.Id);
+        pagedList.Items.Should().Contain(u => u.Id == _usr5.Id);
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsNull()
+    public async Task GetUsersAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsNullAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, null, null, 1, 10);
@@ -79,18 +79,18 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
-        pagedList.Items.Should().Contain(l => l.Id == usr1.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr2.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr3.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr4.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr5.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr1.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr2.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr3.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr4.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr5.Id);
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsEmpty()
+    public async Task GetUsersAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsEmptyAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync("", null, null, 1, 10);
@@ -98,18 +98,18 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
-        pagedList.Items.Should().Contain(l => l.Id == usr1.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr2.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr3.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr4.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr5.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr1.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr2.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr3.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr4.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr5.Id);
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsNull()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsNullAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, null, null, 1, 10);
@@ -118,15 +118,15 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.Id).Should().ContainInOrder(users.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
+        pagedList.Items.Select(l => l.Id).Should().ContainInOrder(_users.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
 
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsId()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsIdAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Id, null, 1, 10);
@@ -135,15 +135,15 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.Id).Should().ContainInOrder(users.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
+        pagedList.Items.Select(l => l.Id).Should().ContainInOrder(_users.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
 
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByEmail_WhenSortColumnIsEmail()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByEmail_WhenSortColumnIsEmailAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, null, 1, 10);
@@ -152,15 +152,15 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.Email).Should().ContainInOrder(users.OrderBy(l => l.Email).Select(l => l.Email).ToArray());
+        pagedList.Items.Select(l => l.Email).Should().ContainInOrder(_users.OrderBy(l => l.Email).Select(l => l.Email).ToArray());
 
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByEmail_WhenSortColumnIsEmailAndSortOrderIsDesc()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByEmail_WhenSortColumnIsEmailAndSortOrderIsDescAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, SortOrder.Descending, 1, 10);
@@ -169,15 +169,15 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.Email).Should().ContainInOrder(users.OrderByDescending(l => l.Email).Select(l => l.Email).ToArray());
+        pagedList.Items.Select(l => l.Email).Should().ContainInOrder(_users.OrderByDescending(l => l.Email).Select(l => l.Email).ToArray());
 
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByAuthId_WhenSortColumnIsAuthId()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByAuthId_WhenSortColumnIsAuthIdAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.AuthId, null, 1, 10);
@@ -186,15 +186,15 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.AuthId).Should().ContainInOrder(users.OrderBy(l => l.AuthId).Select(l => l.AuthId).ToArray());
+        pagedList.Items.Select(l => l.AuthId).Should().ContainInOrder(_users.OrderBy(l => l.AuthId).Select(l => l.AuthId).ToArray());
 
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByAuthId_WhenSortColumnIsAuthIdAndSorterOrderIsDesc()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByAuthId_WhenSortColumnIsAuthIdAndSorterOrderIsDescAsync()
     {
         // Arrange
-        await CreateUsers();
+        await CreateUsersAsync();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.AuthId, SortOrder.Descending, 1, 10);
@@ -203,12 +203,12 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.AuthId).Should().ContainInOrder(users.OrderByDescending(l => l.AuthId).Select(l => l.AuthId).ToArray());
+        pagedList.Items.Select(l => l.AuthId).Should().ContainInOrder(_users.OrderByDescending(l => l.AuthId).Select(l => l.AuthId).ToArray());
 
     }
 
     [Fact]
-    public async Task GetUserByAuthIdAndEmail_WithValidData_ReturnsUser()
+    public async Task GetUserByAuthIdAndEmail_WithValidData_ReturnsUserAsync()
     {
         // Arrange
         var user = User.Create("test@test.com", "123456");
@@ -226,7 +226,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthIdAndEmail_WithInvalidData_ReturnsBadRequest()
+    public async Task GetUserByAuthIdAndEmail_WithInvalidData_ReturnsBadRequestAsync()
     {
         // Arrange
         const string email = "";
@@ -241,7 +241,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthIdOrEmail_WithNonExistingUser_ReturnsNotFound()
+    public async Task GetUserByAuthIdOrEmail_WithNonExistingUser_ReturnsNotFoundAsync()
     {
         // Arrange
         var user = User.Create("test@test.com", "123456");
@@ -255,7 +255,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByEmail_WhenEmailIsEmpty_ReturnsBadRequest()
+    public async Task GetUserByEmail_WhenEmailIsEmpty_ReturnsBadRequestAsync()
     {
         // Arrange
         var email = string.Empty;
@@ -269,7 +269,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByEmail_WhenUserNotFound_ReturnsNotFound()
+    public async Task GetUserByEmail_WhenUserNotFound_ReturnsNotFoundAsync()
     {
         // Arrange
         const string email = "test@example.com";
@@ -283,7 +283,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByEmail_WhenUserFound_ReturnsUser()
+    public async Task GetUserByEmail_WhenUserFound_ReturnsUserAsync()
     {
         // Arrange
         const string email = "test@example.com";

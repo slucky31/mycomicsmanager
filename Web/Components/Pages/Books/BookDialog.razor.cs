@@ -40,7 +40,7 @@ public partial class BookDialog
         MudDialog.Cancel();
     }
 
-    private async Task Submit()
+    private async Task SubmitAsync()
     {
         await _form.Validate();
 
@@ -51,7 +51,7 @@ public partial class BookDialog
 
     }
 
-    private async Task ScanISBN()
+    private async Task ScanISBNAsync()
     {
 
         var options = new DialogOptions
@@ -66,7 +66,7 @@ public partial class BookDialog
 
         if (result is not null && result.Data is not null && !result.Canceled)
         {
-            string isbn = result.Data.ToString() ?? string.Empty;
+            var isbn = result.Data.ToString() ?? string.Empty;
             _bookModel.ISBN = isbn;
         }
     }

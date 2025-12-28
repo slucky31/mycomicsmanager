@@ -9,7 +9,7 @@ namespace Persistence.Tests.Integration.Repositories;
 public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory) : UserIntegrationTest(factory)
 {
     [Fact]
-    public async Task Add_ShouldAddUsr()
+    public async Task Add_ShouldAddUsrAsync()
     {
         // Arrange
         var usr = User.Create("test@test.com", "1");
@@ -27,14 +27,14 @@ public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory)
     }
 
     [Fact]
-    public async Task Add_ShouldThrowException_WhenAddusrWithSameIdTwice()
+    public async Task Add_ShouldThrowException_WhenAddusrWithSameIdTwiceAsync()
     {
         // Arrange
         var usr = User.Create("test@test.com", "1");
         UserRepository.Add(usr);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         UserRepository.Add(usr);
-        var action = async () => { await UnitOfWork.SaveChangesAsync(CancellationToken.None); };
+        var action = async () => await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act && Assert
         Guard.Against.Null(action);
@@ -42,7 +42,7 @@ public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory)
     }
 
     [Fact]
-    public async Task Update_ShouldUpdateUser()
+    public async Task Update_ShouldUpdateUserAsync()
     {
         // Arrange
         var usr = User.Create("test@test.com", "1");
@@ -64,7 +64,7 @@ public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory)
     }
 
     [Fact]
-    public async Task Remove_ShouldRemoveusr()
+    public async Task Remove_ShouldRemoveusrAsync()
     {
         // Arrange
         var usr = User.Create("test@test.com", "1");
@@ -82,7 +82,7 @@ public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory)
     }
 
     [Fact]
-    public async Task List_ShouldListusr()
+    public async Task List_ShouldListusrAsync()
     {
         // Arrange
         var usr1 = User.Create("test-1@test.com", "1");

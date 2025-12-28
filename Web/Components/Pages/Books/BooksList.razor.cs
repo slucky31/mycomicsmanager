@@ -28,10 +28,10 @@ public partial class BooksList
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadBooks();
+        await LoadBooksAsync();
     }
 
-    private async Task LoadBooks()
+    private async Task LoadBooksAsync()
     {
         var result = await BooksService.GetAll();
         if (result.IsSuccess && result.Value is not null)
@@ -45,7 +45,7 @@ public partial class BooksList
         }
     }
 
-    private async Task CreateOrEdit(FormMode formMode, Book? book)
+    private async Task CreateOrEditAsync(FormMode formMode, Book? book)
     {
 
         var parameters = new DialogParameters<BookDialog>
@@ -66,7 +66,7 @@ public partial class BooksList
 
         if (result is not null && result.Data is not null && !result.Canceled)
         {
-            BookUiDto b = (BookUiDto)result.Data;
+            var b = (BookUiDto)result.Data;
             if (formMode == FormMode.Create)
             {
                 var res = await BooksService.Create(
@@ -96,7 +96,7 @@ public partial class BooksList
 
     }
 
-    private async Task Delete(Guid bookId)
+    private async Task DeleteAsync(Guid bookId)
     {
 
         var parameters = new DialogParameters<ConfirmationDialog>
@@ -129,7 +129,7 @@ public partial class BooksList
         if (success)
         {
             Snackbar.Add(successMessage, Severity.Success);
-            await LoadBooks();
+            await LoadBooksAsync();
         }
         else
         {

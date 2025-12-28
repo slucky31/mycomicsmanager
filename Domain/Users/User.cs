@@ -5,9 +5,9 @@ namespace Domain.Users;
 public class User : Entity<Guid>
 {
 
-    public string Email { get; protected set; } = String.Empty;
+    public string Email { get; protected set; } = string.Empty;
 
-    public string AuthId { get; protected set; } = String.Empty;
+    public string AuthId { get; protected set; } = string.Empty;
 
     public static User Create(string email, string authId)
     {

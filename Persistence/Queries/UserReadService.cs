@@ -21,10 +21,10 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
 
         Expression<Func<User, object>> keySelector = sortColumn switch
         {
-            UsersColumn.Id => User => User.Id,
-            UsersColumn.Email => User => User.Email,
-            UsersColumn.AuthId => User => User.AuthId,
-            _ => User => User.Id
+            UsersColumn.Id => user => user.Id,
+            UsersColumn.Email => user => user.Email,
+            UsersColumn.AuthId => user => user.AuthId,
+            _ => user => user.Id
         };
 
         query = sortOrder switch

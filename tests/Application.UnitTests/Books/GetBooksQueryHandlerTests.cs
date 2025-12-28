@@ -8,7 +8,7 @@ namespace Application.UnitTests.Books;
 
 public class GetBooksQueryHandlerTests
 {
-    private static readonly GetBooksQuery Query = new();
+    private static readonly GetBooksQuery s_query = new();
 
     private readonly GetBooksQueryHandler _handler;
     private readonly IBookRepository _bookRepositoryMock;
@@ -20,7 +20,7 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WhenBooksExist()
+    public async Task Handle_Should_ReturnSuccess_WhenBooksExistAsync()
     {
         // Arrange
         var book1 = Book.Create("Serie 1", "Title 1", "978-3-16-148410-0");
@@ -31,7 +31,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -44,14 +44,14 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnEmptyList_WhenNoBooksExist()
+    public async Task Handle_Should_ReturnEmptyList_WhenNoBooksExistAsync()
     {
         // Arrange
         var emptyBooks = new List<Book>();
         _bookRepositoryMock.ListAsync().Returns(emptyBooks);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -61,21 +61,21 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_CallListAsyncOnce()
+    public async Task Handle_Should_CallListAsyncOnceAsync()
     {
         // Arrange
         var books = new List<Book>();
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        await _handler.Handle(Query, CancellationToken.None);
+        await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         await _bookRepositoryMock.Received(1).ListAsync();
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnAllBooksWithCorrectProperties()
+    public async Task Handle_Should_ReturnAllBooksWithCorrectPropertiesAsync()
     {
         // Arrange
         var book1 = Book.Create("Harry Potter", "Philosopher's Stone", "978-3-16-148410-0", 1, "https://example.com/hp1.jpg");
@@ -85,7 +85,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -108,7 +108,7 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSingleBook_WhenOnlyOneBookExists()
+    public async Task Handle_Should_ReturnSingleBook_WhenOnlyOneBookExistsAsync()
     {
         // Arrange
         var singleBook = Book.Create("Test Serie", "Test Title", "978-3-16-148410-0");
@@ -117,7 +117,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -127,11 +127,11 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnManyBooks_WhenMultipleBooksExist()
+    public async Task Handle_Should_ReturnManyBooks_WhenMultipleBooksExistAsync()
     {
         // Arrange
         var books = new List<Book>();
-        for (int i = 1; i <= 10; i++)
+        for (var i = 1; i <= 10; i++)
         {
             books.Add(Book.Create($"Serie {i}", $"Title {i}", $"978-3-16-14841{i:D}-0"));
         }
@@ -139,7 +139,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -148,7 +148,7 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnBooksInCorrectOrder()
+    public async Task Handle_Should_ReturnBooksInCorrectOrderAsync()
     {
         // Arrange
         var book1 = Book.Create("Serie A", "Title A", "978-3-16-148410-0");
@@ -159,7 +159,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -170,7 +170,7 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnListWithDifferentVolumeNumbers()
+    public async Task Handle_Should_ReturnListWithDifferentVolumeNumbersAsync()
     {
         // Arrange
         var book1 = Book.Create("Same Serie", "Volume 1", "978-3-16-148410-0", 1);
@@ -181,7 +181,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -193,7 +193,7 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSameListReference()
+    public async Task Handle_Should_ReturnSameListReferenceAsync()
     {
         // Arrange
         var books = new List<Book>
@@ -205,7 +205,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -214,7 +214,7 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnBooksWithDefaultAndCustomImageLinks()
+    public async Task Handle_Should_ReturnBooksWithDefaultAndCustomImageLinksAsync()
     {
         // Arrange
         var book1 = Book.Create("Serie 1", "Title 1", "978-3-16-148410-0", 1, "https://example.com/image1.jpg");
@@ -225,7 +225,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -236,14 +236,14 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccessResult()
+    public async Task Handle_Should_ReturnSuccessResultAsync()
     {
         // Arrange
         var books = new List<Book> { Book.Create("Serie", "Title", "978-3-16-148410-0") };
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
-        var result = await _handler.Handle(Query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

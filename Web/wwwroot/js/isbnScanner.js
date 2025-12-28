@@ -67,7 +67,7 @@ export async function startScan(videoElementId, dotNetObjectRef) {
                     if (isValid) {
                         console.log('Valid ISBN confirmed:', isbn);
                         stopScan();
-                        dotNetObjectRef.invokeMethodAsync('OnIsbnScannedFromJs', isbn);
+                      dotNetObjectRef.invokeMethodAsync('OnIsbnScannedFromJsAsync', isbn);
                     } else {
                         console.log('ISBN checksum validation failed:', isbn);
                     }

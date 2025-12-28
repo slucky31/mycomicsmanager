@@ -53,10 +53,7 @@ builder.Services.AddOptions<Auth0Configuration>()
     .ValidateOnStart();
 
 // Add Auth0 services
-builder.Services.AddAuth0WebAppAuthentication(options =>
-    {
-        config.Bind(options);
-    });
+builder.Services.AddAuth0WebAppAuthentication(options => config.Bind(options));
 
 // Register CustomAuthenticationStateProvider
 builder.Services.AddCascadingAuthenticationState();

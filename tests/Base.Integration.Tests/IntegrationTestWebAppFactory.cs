@@ -17,7 +17,7 @@ namespace Base.Integration.Tests;
 public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IDisposable
 #pragma warning restore CA1063 // Implement IDisposable Correctly
 {
-    private String _connectionString = String.Empty;
+    private string _connectionString = string.Empty;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -32,9 +32,9 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             // Add environment variables to override the parameters 
             conf.AddEnvironmentVariables();
 
-            var _configuration = conf.Build();
+            var configuration = conf.Build();
 
-            _connectionString = _configuration.GetConnectionString("NeonConnectionUnitTests") ?? String.Empty;
+            _connectionString = configuration.GetConnectionString("NeonConnectionUnitTests") ?? string.Empty;
             Guard.Against.NullOrEmpty(_connectionString);
         });
 

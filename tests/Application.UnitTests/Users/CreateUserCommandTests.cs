@@ -8,7 +8,7 @@ namespace Application.UnitTests.Users;
 
 public class CreateUserCommandHandlerTests
 {
-    private static readonly CreateUserCommand Command = new("test@test.com", "1234");
+    private static readonly CreateUserCommand s_command = new("test@test.com", "1234");
 
     private readonly IRepository<User, Guid> _userRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
@@ -25,20 +25,20 @@ public class CreateUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ExecuteSaveChangeAsyncOnce()
+    public async Task Handle_Should_ExecuteSaveChangeAsyncOnceAsync()
     {
         // Arrange
         _userRepositoryMock.Add(Arg.Any<User>());
 
         // Act
-        await _handler.Handle(Command, default);
+        await _handler.Handle(s_command, default);
 
         // Assert
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadREquest_WhenCommandEmailIsEmpty()
+    public async Task Handle_ShouldReturnBadREquest_WhenCommandEmailIsEmptyAsync()
     {
         // Arrange
         CreateUserCommand commandWithEmptyEmail = new("", "1234");
@@ -52,7 +52,7 @@ public class CreateUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadREquest_WhenCommandAuthIdIsEmpty()
+    public async Task Handle_ShouldReturnBadREquest_WhenCommandAuthIdIsEmptyAsync()
     {
         // Arrange
         CreateUserCommand commandWithEmptyAuthId = new("test@test.com", "");
@@ -66,14 +66,14 @@ public class CreateUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnDuplicate_WhenAUserWithSameEmailOrAuthIdAlreadyExist()
+    public async Task Handle_ShouldReturnDuplicate_WhenAUserWithSameEmailOrAuthIdAlreadyExistAsync()
     {
         // Arrange
-        var user = User.Create(Command.email, Command.authId);
-        _userReadServiceMock.GetUserByAuthIdAndEmail(Command.email, Command.authId).Returns(user);
+        var user = User.Create(s_command.email, s_command.authId);
+        _userReadServiceMock.GetUserByAuthIdAndEmail(s_command.email, s_command.authId).Returns(user);
 
         // Act
-        var result = await _handler.Handle(Command, default);
+        var result = await _handler.Handle(s_command, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();

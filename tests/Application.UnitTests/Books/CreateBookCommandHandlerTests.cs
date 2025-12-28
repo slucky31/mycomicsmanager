@@ -9,7 +9,7 @@ namespace Application.UnitTests.Books;
 
 public class CreateBookCommandHandlerTests
 {
-    private static readonly CreateBookCommand ValidCommand = new(
+    private static readonly CreateBookCommand s_validCommand = new(
         "Test Serie",
         "Test Title",
         "978-3-16-148410-0",
@@ -30,43 +30,43 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WhenValidCommandProvided()
+    public async Task Handle_Should_ReturnSuccess_WhenValidCommandProvidedAsync()
     {
         // Arrange
-        var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
         _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
 
         // Act
-        var result = await _handler.Handle(ValidCommand, default);
+        var result = await _handler.Handle(s_validCommand, default);
 
         // Assert
         Guard.Against.Null(result.Value);
         result.IsSuccess.Should().BeTrue();
-        result.Value.Serie.Should().Be(ValidCommand.Serie);
-        result.Value.Title.Should().Be(ValidCommand.Title);
-        result.Value.ISBN.Should().Be(IsbnHelper.NormalizeIsbn(ValidCommand.ISBN));
-        result.Value.VolumeNumber.Should().Be(ValidCommand.VolumeNumber);
-        result.Value.ImageLink.Should().Be(ValidCommand.ImageLink);
+        result.Value.Serie.Should().Be(s_validCommand.Serie);
+        result.Value.Title.Should().Be(s_validCommand.Title);
+        result.Value.ISBN.Should().Be(IsbnHelper.NormalizeIsbn(s_validCommand.ISBN));
+        result.Value.VolumeNumber.Should().Be(s_validCommand.VolumeNumber);
+        result.Value.ImageLink.Should().Be(s_validCommand.ImageLink);
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
     }
 
     [Fact]
-    public async Task Handle_Should_ExecuteSaveChangesAsyncOnce()
+    public async Task Handle_Should_ExecuteSaveChangesAsyncOnceAsync()
     {
         // Arrange
-        var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
         _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
 
         // Act
-        await _handler.Handle(ValidCommand, default);
+        await _handler.Handle(s_validCommand, default);
 
         // Assert
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsEmpty()
+    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsEmptyAsync()
     {
         // Arrange
         var emptyTitleCommand = new CreateBookCommand("Serie", string.Empty, "978-3-16-148410-0", 1, "");
@@ -82,7 +82,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsWhitespace()
+    public async Task Handle_ShouldReturnBadRequest_WhenTitleIsWhitespaceAsync()
     {
         // Arrange
         var whitespaceCommand = new CreateBookCommand("Serie", "   ", "978-3-16-148410-0", 1, "");
@@ -98,7 +98,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsEmpty()
+    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsEmptyAsync()
     {
         // Arrange
         var emptyIsbnCommand = new CreateBookCommand("Serie", "Title", string.Empty, 1, "");
@@ -114,7 +114,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsWhitespace()
+    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsWhitespaceAsync()
     {
         // Arrange
         var whitespaceIsbnCommand = new CreateBookCommand("Serie", "Title", "   ", 1, "");
@@ -130,7 +130,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNFormatIsInvalid()
+    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNFormatIsInvalidAsync()
     {
         // Arrange
         var invalidIsbnCommand = new CreateBookCommand("Serie", "Title", "invalid-isbn", 1, "");
@@ -146,7 +146,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNHasInvalidLength()
+    public async Task Handle_ShouldReturnInvalidISBN_WhenISBNHasInvalidLengthAsync()
     {
         // Arrange
         var invalidLengthCommand = new CreateBookCommand("Serie", "Title", "12345", 1, "");
@@ -162,15 +162,15 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnDuplicate_WhenBookWithSameISBNAlreadyExists()
+    public async Task Handle_ShouldReturnDuplicate_WhenBookWithSameISBNAlreadyExistsAsync()
     {
         // Arrange        
-        var existingBook = Book.Create(ValidCommand.Serie, ValidCommand.Title, ValidCommand.ISBN);
-        var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
+        var existingBook = Book.Create(s_validCommand.Serie, s_validCommand.Title, s_validCommand.ISBN);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
         _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns(existingBook);
 
         // Act
-        var result = await _handler.Handle(ValidCommand, default);
+        var result = await _handler.Handle(s_validCommand, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -180,7 +180,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WithISBN10Format()
+    public async Task Handle_Should_ReturnSuccess_WithISBN10FormatAsync()
     {
         // Arrange
         var isbn10Command = new CreateBookCommand("Serie", "Title", "0-306-40615-2", 1, "");
@@ -199,7 +199,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WithISBN13Format()
+    public async Task Handle_Should_ReturnSuccess_WithISBN13FormatAsync()
     {
         // Arrange
         var isbn13Command = new CreateBookCommand("Serie", "Title", "978-0-306-40615-7", 1, "");
@@ -218,7 +218,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_CreateBookWithDefaultValues_WhenOptionalParametersNotProvided()
+    public async Task Handle_Should_CreateBookWithDefaultValues_WhenOptionalParametersNotProvidedAsync()
     {
         // Arrange
         var minimalCommand = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0");
@@ -238,15 +238,15 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_PassCorrectCancellationToken()
+    public async Task Handle_Should_PassCorrectCancellationTokenAsync()
     {
         // Arrange
         var cancellationToken = new CancellationToken();
-        var normalizedIsbn = IsbnHelper.NormalizeIsbn(ValidCommand.ISBN);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
         _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), cancellationToken).Returns((Book?)null);
 
         // Act
-        await _handler.Handle(ValidCommand, cancellationToken);
+        await _handler.Handle(s_validCommand, cancellationToken);
 
         // Assert
         await _bookRepositoryMock.Received(1).GetByIsbnAsync(normalizedIsbn, cancellationToken);

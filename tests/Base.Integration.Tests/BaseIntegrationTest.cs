@@ -27,7 +27,7 @@ public abstract class BaseIntegrationTest : IDisposable
 
     private readonly IDbContextTransaction? _transaction;
 
-    private bool disposed;
+    private bool _disposed;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
@@ -49,7 +49,7 @@ public abstract class BaseIntegrationTest : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposed)
+        if (!_disposed)
         {
             if (disposing)
             {
@@ -57,7 +57,7 @@ public abstract class BaseIntegrationTest : IDisposable
                 _transaction?.Dispose();
                 _scope?.Dispose();
             }
-            disposed = true;
+            _disposed = true;
         }
     }
 }

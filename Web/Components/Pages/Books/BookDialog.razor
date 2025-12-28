@@ -14,7 +14,7 @@
                            Variant="Variant.Outlined"
                            Color="Color.Primary"
                            Class="mt-2"
-                           OnClick="ScanISBN">
+                           OnClick="ScanISBNAsync">
                     Scan ISBN
                 </MudButton>
 
@@ -51,6 +51,6 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">@(FormMode == FormMode.Create ? "Create" : "Update")</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SubmitAsync">@(FormMode == FormMode.Create ? "Create" : "Update")</MudButton>
     </DialogActions>
 </MudDialog>

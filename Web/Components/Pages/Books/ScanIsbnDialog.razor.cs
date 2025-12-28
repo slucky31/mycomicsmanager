@@ -43,7 +43,7 @@ public partial class ScanIsbnDialog : IAsyncDisposable
         }
     }
 
-    private async Task StopScanning()
+    private async Task StopScanningAsync()
     {
         if (_jsModule != null)
         {
@@ -52,19 +52,19 @@ public partial class ScanIsbnDialog : IAsyncDisposable
         StateHasChanged();
     }
 
-    private async Task Cancel()
+    private async Task CancelAsync()
     {
-        await StopScanning();
+        await StopScanningAsync();
         MudDialog.Cancel();
     }
 
     [JSInvokable]
-    public async Task OnIsbnScannedFromJs(string isbn)
+    public async Task OnIsbnScannedFromJsAsync(string isbn)
     {
         _isbnDetected = true;
         StateHasChanged();
         await Task.Delay(500);
-        await StopScanning();
+        await StopScanningAsync();
         await OnIsbnScanned.InvokeAsync(isbn);
         MudDialog.Close(DialogResult.Ok(isbn));
     }

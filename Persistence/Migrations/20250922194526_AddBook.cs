@@ -25,10 +25,7 @@ public partial class AddBook : Migration
                 CreatedOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 ModifiedOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
             },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_Books", x => x.Id);
-            });
+            constraints: table => table.PrimaryKey("PK_Books", x => x.Id));
 
         migrationBuilder.CreateTable(
             name: "ReadingDates",
