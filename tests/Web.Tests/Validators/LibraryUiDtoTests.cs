@@ -19,7 +19,7 @@ public sealed class LibraryUiDtoTests
         dto.Name.Should().Be(string.Empty);
         dto.RelativePath.Should().Be(string.Empty);
         dto.Id.Should().Be(default(Guid));
-        dto.CreatedOnUtc.Should().Be(default(DateTime));
+        dto.CreatedOnUtc.Should().Be(default);
         dto.ModifiedOnUtc.Should().BeNull();
     }
 
