@@ -96,8 +96,8 @@ public class BookTests
         const string newSeries = "New Series";
         const string newTitle = "New Title";
         const string newIsbn = "9876543210";
-        var newVolumeNumber = 5;
-        var newImageLink = "https://example.com/new-image.jpg";
+        const int newVolumeNumber = 5;
+        const string newImageLink = "https://example.com/new-image.jpg";
 
         // Act
         book.Update(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink);

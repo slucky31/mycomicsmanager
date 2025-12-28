@@ -176,7 +176,7 @@ public class ReadingDateTests
     {
         // Arrange
         var date = new DateTime(2024, 12, 31, 23, 59, 59, 999);
-        var note = "New Year's Eve";
+        const string note = "New Year's Eve";
         var bookId = Guid.NewGuid();
 
         // Act

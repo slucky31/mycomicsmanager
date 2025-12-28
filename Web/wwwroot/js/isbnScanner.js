@@ -1,11 +1,11 @@
-let version = '0.21.3';
-let script_url = `https://unpkg.com/@zxing/library@${version}/umd/index.min.js`;
+var version = '0.21.3';
+var script_url = `https://unpkg.com/@zxing/library@${version}/umd/index.min.js`;
 
 // Helper to load ZXing if not already loaded
 async function ensureZXingLoaded() {
     if (!window.ZXing) {
         await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
+            var script = document.createElement('script');
             script.src = script_url;
             script.onload = resolve;
             script.onerror = reject;
@@ -14,9 +14,9 @@ async function ensureZXingLoaded() {
     }
 }
 
-let codeReader = null;
-let video = null;
-let scanning = false;
+var codeReader = null;
+var video = null;
+var scanning = false;
 
 function init() {
     if (!codeReader && window.ZXing) {
@@ -34,7 +34,7 @@ export async function startScan(videoElementId, dotNetObjectRef) {
 
     try {
         // Request rear camera explicitly via getUserMedia
-        const stream = await navigator.mediaDevices.getUserMedia({
+        var stream = await navigator.mediaDevices.getUserMedia({
             video: { 
                 facingMode: { ideal: 'environment' },
                 width: { ideal: 1920 },
@@ -46,24 +46,24 @@ export async function startScan(videoElementId, dotNetObjectRef) {
         await video.play();
 
         // Enable autofocus on video track if supported
-        const videoTrack = stream.getVideoTracks()[0];
-        const capabilities = videoTrack.getCapabilities();
+        var videoTrack = stream.getVideoTracks()[0];
+        var capabilities = videoTrack.getCapabilities();
         
         if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-            await videoTrack.applyConstraints({
+            await videoTrack.applyvarraints({
                 advanced: [{ focusMode: 'continuous' }]
             });
         }
 
         codeReader.decodeFromStream(stream, video, async (result, err) => {
-            if (result && scanning) {
-                const rawText = result.getText();
+          if (result && scanning) {            
+                var rawText = sanitizeInput(result.getText());
                 console.log('Barcode detected:', rawText);
                 
-                const isbn = extractISBN(rawText);
+                var isbn = extractISBN(rawText);
                 if (isbn) {
                     console.log('ISBN extracted:', isbn);
-                    const isValid = await dotNetObjectRef.invokeMethodAsync('ValidateIsbn', isbn);
+                    var isValid = await dotNetObjectRef.invokeMethodAsync('ValidateIsbn', isbn);
                     if (isValid) {
                         console.log('Valid ISBN confirmed:', isbn);
                         stopScan();
@@ -90,7 +90,7 @@ export function stopScan() {
     scanning = false;
     if (codeReader) codeReader.reset();
     if (video && video.srcObject) {
-        const stream = video.srcObject;
+        var stream = video.srcObject;
         stream.getTracks().forEach(track => track.stop());
         video.srcObject = null;
     }
@@ -100,15 +100,15 @@ function extractISBN(text) {
     if (!text) return null;
     
     // Clean the text (remove spaces, dashes, prefixes)
-    let cleaned = text.replace(/[-\s]/g, '');
+    var cleaned = text.replace(/[-\s]/g, '');
     
     // Remove "ISBN" prefix if present
     cleaned = cleaned.replace(/^ISBN/i, '');
     
     // Extract ISBN-13 or ISBN-10 (without checksum validation)
     // Full validation will be done in C#
-    const isbn13Match = cleaned.match(/(\d{13})/);
-    const isbn10Match = cleaned.match(/(\d{9}[\dX])/i);
+    var isbn13Match = cleaned.match(/(\d{13})/);
+    var isbn10Match = cleaned.match(/(\d{9}[\dX])/i);
     
     if (isbn13Match) {
         return isbn13Match[1];

@@ -46,7 +46,7 @@ public sealed class LibrariesServiceTests
     public async Task GetById_ShouldReturnValidationError_WhenIdIsNull()
     {
         // Arrange
-        string? id = null;
+        const string? id = null;
 
         // Act
         var result = await _service.GetById(id);
@@ -171,7 +171,7 @@ public sealed class LibrariesServiceTests
     public async Task Create_ShouldUseEmptyString_WhenNameIsNull()
     {
         // Arrange
-        string? name = null;
+        const string? name = null;
         var library = Library.Create("");
         _createLibraryHandler.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
@@ -360,7 +360,7 @@ public sealed class LibrariesServiceTests
     public async Task FilterBy_ShouldHandleNullSearchTerm()
     {
         // Arrange
-        string? searchTerm = null;
+        const string? searchTerm = null;
         var pagedList = Substitute.For<IPagedList<Library>>();
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())
             .Returns(Result<IPagedList<Library>>.Success(pagedList));
