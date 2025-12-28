@@ -1,4 +1,3 @@
-using Ardalis.GuardClauses;
 using Domain.Books;
 using Domain.Primitives;
 using MudBlazor;
@@ -23,9 +22,7 @@ public class BookUiDto : Entity<Guid>
     public string ImageLink { get; set; } = string.Empty;
 
     public static BookUiDto Convert(Book book)
-    {
-        Guard.Against.Null(book);
-
+    {       
         return new BookUiDto
         {
             Id = book.Id,
