@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace Web.Validators;
 public class LibraryValidator : AbstractValidator<LibraryUiDto>

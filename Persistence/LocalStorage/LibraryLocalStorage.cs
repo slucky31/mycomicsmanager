@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Application.Libraries;
 using Ardalis.GuardClauses;
 using Domain.Errors;

@@ -1,4 +1,4 @@
-﻿using Domain.Books;
+using Domain.Books;
 using Domain.Libraries;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;

@@ -1,4 +1,4 @@
-﻿namespace Domain.Primitives;
+namespace Domain.Primitives;
 
 public enum SortOrder
 {

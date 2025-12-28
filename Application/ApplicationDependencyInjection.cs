@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;

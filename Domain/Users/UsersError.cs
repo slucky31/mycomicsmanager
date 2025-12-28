@@ -1,4 +1,4 @@
-﻿using Domain.Primitives;
+using Domain.Primitives;
 
 namespace Domain.Users;
 public static class UsersError

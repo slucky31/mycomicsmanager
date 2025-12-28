@@ -1,4 +1,4 @@
-﻿
+
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Users;

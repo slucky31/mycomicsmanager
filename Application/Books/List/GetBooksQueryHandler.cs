@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;

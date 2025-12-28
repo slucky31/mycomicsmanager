@@ -1,4 +1,4 @@
-﻿using Domain.Books;
+using Domain.Books;
 
 namespace Application.Interfaces;
 

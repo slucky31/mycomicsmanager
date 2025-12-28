@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;

@@ -1,4 +1,4 @@
-﻿using Domain.Primitives;
+using Domain.Primitives;
 
 namespace Domain.Libraries;
 public static class LibrariesError

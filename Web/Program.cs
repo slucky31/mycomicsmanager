@@ -1,4 +1,4 @@
-﻿using Application;
+using Application;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
 using HealthChecks.ApplicationStatus.DependencyInjection;

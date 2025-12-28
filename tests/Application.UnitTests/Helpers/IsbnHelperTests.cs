@@ -1,4 +1,4 @@
-﻿using Application.Helpers;
+using Application.Helpers;
 
 namespace Application.UnitTests.Helpers;
 

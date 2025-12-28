@@ -1,4 +1,4 @@
-﻿using Domain.Extensions;
+using Domain.Extensions;
 using Domain.Primitives;
 
 namespace Domain.Libraries;

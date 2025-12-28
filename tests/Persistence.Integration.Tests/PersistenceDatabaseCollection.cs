@@ -1,4 +1,4 @@
-﻿using Base.Integration.Tests;
+using Base.Integration.Tests;
 using Xunit;
 
 namespace Persistence.Tests;

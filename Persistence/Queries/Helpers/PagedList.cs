@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Queries.Helpers;

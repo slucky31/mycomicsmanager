@@ -1,4 +1,4 @@
-﻿using Application.Books.List;
+using Application.Books.List;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;

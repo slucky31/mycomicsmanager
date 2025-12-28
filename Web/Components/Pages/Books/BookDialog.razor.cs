@@ -1,4 +1,4 @@
-﻿using Domain.Books;
+using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Web.Enums;

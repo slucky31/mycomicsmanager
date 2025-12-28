@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. See [versio
 <a name="9.6.6"></a>
 ## [9.6.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.6) (2025-09-21)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update actions/github-script action to v8 ([#861](https://www.github.com/slucky31/mycomicsmanager/issues/861)) ([190adc2](https://www.github.com/slucky31/mycomicsmanager/commit/190adc2f5c2c429adf331f6537e712e5d57f1543))
 
@@ -16,49 +16,49 @@ All notable changes to this project will be documented in this file. See [versio
 <a name="9.6.5"></a>
 ## [9.6.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.5) (2025-09-21)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update actions/labeler action to v6 ([#862](https://www.github.com/slucky31/mycomicsmanager/issues/862)) ([698f5d2](https://www.github.com/slucky31/mycomicsmanager/commit/698f5d23d8feea9430a1a59c1a1288ea8836b12a))
 
 <a name="9.6.4"></a>
 ## [9.6.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.4) (2025-09-19)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update actions/checkout action to v5 ([#857](https://www.github.com/slucky31/mycomicsmanager/issues/857)) ([7da7627](https://www.github.com/slucky31/mycomicsmanager/commit/7da76279aeb390497652a36755d4d23d143e0c8c))
 
 <a name="9.6.3"></a>
 ## [9.6.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.3) (2025-09-14)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update actions/setup-dotnet action to v5 ([#863](https://www.github.com/slucky31/mycomicsmanager/issues/863)) ([89b687c](https://www.github.com/slucky31/mycomicsmanager/commit/89b687c8c0a303cd77d2b65d841c7a83a5f668e0))
 
 <a name="9.6.2"></a>
 ## [9.6.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.2) (2025-09-14)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * too many codacy fixes, kills fixes ([#866](https://www.github.com/slucky31/mycomicsmanager/issues/866)) ([f471e80](https://www.github.com/slucky31/mycomicsmanager/commit/f471e80aafdd3966c3dab7d937b09b771e5af097))
 
 <a name="9.6.1"></a>
 ## [9.6.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.1) (2025-09-12)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dotnet monorepo ([#848](https://www.github.com/slucky31/mycomicsmanager/issues/848)) ([a34ed7a](https://www.github.com/slucky31/mycomicsmanager/commit/a34ed7a3ebeed0a0440d90deb5696f75e4eaa09e))
 
 <a name="9.6.0"></a>
 ## [9.6.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.0) (2025-09-12)
 
-### ✨ Features
+### âœ¨ Features
 
 * navbar ([#850](https://www.github.com/slucky31/mycomicsmanager/issues/850)) ([21fd84c](https://www.github.com/slucky31/mycomicsmanager/commit/21fd84cdbcc7716ca6272833271f8c6b065d67a6))
 
 <a name="9.5.1"></a>
 ## [9.5.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.5.1) (2025-09-01)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency bunit to 1.40.0 ([#852](https://www.github.com/slucky31/mycomicsmanager/issues/852)) ([5ac9b61](https://www.github.com/slucky31/mycomicsmanager/commit/5ac9b61adf0c4dde7ea2dd8b04082cce7209410c))
 * **deps:** Update package versions and refactor code structure ([#856](https://www.github.com/slucky31/mycomicsmanager/issues/856)) ([eac2a4d](https://www.github.com/slucky31/mycomicsmanager/commit/eac2a4d44a4595d7002ea1776727b92c8b558ad8))
@@ -66,7 +66,7 @@ All notable changes to this project will be documented in this file. See [versio
 <a name="9.5.0"></a>
 ## [9.5.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.5.0) (2025-06-14)
 
-### ✨ Features
+### âœ¨ Features
 
 * Replace FluentAssertions with AwesomeAssertions ([#849](https://www.github.com/slucky31/mycomicsmanager/issues/849)) ([11e8063](https://www.github.com/slucky31/mycomicsmanager/commit/11e8063863238d0bb4190fd9be286b65a5e1da3e))
 
@@ -78,49 +78,49 @@ All notable changes to this project will be documented in this file. See [versio
 <a name="9.4.1"></a>
 ## [9.4.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.4.1) (2025-06-09)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency xunit.runner.visualstudio to 3.1.1 ([#845](https://www.github.com/slucky31/mycomicsmanager/issues/845)) ([dea1963](https://www.github.com/slucky31/mycomicsmanager/commit/dea19637ae35ac8d8389b8b3cbe26321baa567d2))
 
 <a name="9.4.0"></a>
 ## [9.4.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.4.0) (2025-06-07)
 
-### ✨ Features
+### âœ¨ Features
 
 * Refactor login layout and enhance styling ([#847](https://www.github.com/slucky31/mycomicsmanager/issues/847)) ([45a1c84](https://www.github.com/slucky31/mycomicsmanager/commit/45a1c840817e0522d56633445b855db9706100cb))
 
 <a name="9.3.0"></a>
 ## [9.3.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.3.0) (2025-06-06)
 
-### ✨ Features
+### âœ¨ Features
 
 * LocalStorage ([#767](https://www.github.com/slucky31/mycomicsmanager/issues/767)) ([3cd2e11](https://www.github.com/slucky31/mycomicsmanager/commit/3cd2e11e397c27d8e185f1c1aded29e30aad4a11))
 
 <a name="9.2.3"></a>
 ## [9.2.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.3) (2025-06-04)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dotnet monorepo to 4.14.0 ([#843](https://www.github.com/slucky31/mycomicsmanager/issues/843)) ([73c48c5](https://www.github.com/slucky31/mycomicsmanager/commit/73c48c57d295397636cf523a1564225ccce34a5e))
 
 <a name="9.2.2"></a>
 ## [9.2.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.2) (2025-06-04)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency microsoft.net.test.sdk to 17.14.1 ([#840](https://www.github.com/slucky31/mycomicsmanager/issues/840)) ([ac4a641](https://www.github.com/slucky31/mycomicsmanager/commit/ac4a64174919806539324b1e5f5872f815aa4caf))
 
 <a name="9.2.1"></a>
 ## [9.2.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.1) (2025-06-04)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency scrutor to 6.1.0 ([#841](https://www.github.com/slucky31/mycomicsmanager/issues/841)) ([04fd0fe](https://www.github.com/slucky31/mycomicsmanager/commit/04fd0feac5805132bf0f64eb550f9f272c28a5a4))
 
 <a name="9.2.0"></a>
 ## [9.2.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.2.0) (2025-06-04)
 
-### ✨ Features
+### âœ¨ Features
 
 * Refactor codebase for PostgreSQL migration ([#839](https://www.github.com/slucky31/mycomicsmanager/issues/839)) ([6013a73](https://www.github.com/slucky31/mycomicsmanager/commit/6013a7365bcb3b19d7cb13a1dd0d0b890112a0ec))
 
@@ -131,14 +131,14 @@ All notable changes to this project will be documented in this file. See [versio
 <a name="9.1.0"></a>
 ## [9.1.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.1.0) (2025-05-25)
 
-### ✨ Features
+### âœ¨ Features
 
 * Remove Mediatr ([#837](https://www.github.com/slucky31/mycomicsmanager/issues/837)) ([4c21d47](https://www.github.com/slucky31/mycomicsmanager/commit/4c21d47118f7525f0a0802b85cb61fe844481f9b))
 
 <a name="9.0.29"></a>
 ## [9.0.29](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.29) (2025-05-25)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency microsoft.entityframeworkcore to 9.0.5 ([#834](https://www.github.com/slucky31/mycomicsmanager/issues/834)) ([9be970b](https://www.github.com/slucky31/mycomicsmanager/commit/9be970b71ee3acd9ba180e53c8c0553448c46c29))
 
@@ -149,56 +149,56 @@ All notable changes to this project will be documented in this file. See [versio
 <a name="9.0.28"></a>
 ## [9.0.28](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.28) (2025-05-24)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mongodb.entityframeworkcore to 8.3.0 ([#825](https://www.github.com/slucky31/mycomicsmanager/issues/825)) ([e371d9f](https://www.github.com/slucky31/mycomicsmanager/commit/e371d9f6a7d9424e86a8b2ac2c0c494e2294ce55))
 
 <a name="9.0.27"></a>
 ## [9.0.27](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.27) (2025-05-23)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update mongo-csharp-driver monorepo to 3.4.0 ([#829](https://www.github.com/slucky31/mycomicsmanager/issues/829)) ([52f4a0f](https://www.github.com/slucky31/mycomicsmanager/commit/52f4a0fda37915fc90ccfa2bed4df93bf8e21911))
 
 <a name="9.0.26"></a>
 ## [9.0.26](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.26) (2025-05-23)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency microsoft.net.test.sdk to 17.14.0 ([#827](https://www.github.com/slucky31/mycomicsmanager/issues/827)) ([551c18f](https://www.github.com/slucky31/mycomicsmanager/commit/551c18fa68e58dba1f6a4bdc39cc701bb2d1318a))
 
 <a name="9.0.25"></a>
 ## [9.0.25](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.25) (2025-05-22)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency sonaranalyzer.csharp to 10.10.0.116381 ([#828](https://www.github.com/slucky31/mycomicsmanager/issues/828)) ([f217e47](https://www.github.com/slucky31/mycomicsmanager/commit/f217e4756f3439d863595ef26dd709ecaed8f1ae))
 
 <a name="9.0.24"></a>
 ## [9.0.24](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.24) (2025-05-21)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dotnet monorepo ([#821](https://www.github.com/slucky31/mycomicsmanager/issues/821)) ([60bccd4](https://www.github.com/slucky31/mycomicsmanager/commit/60bccd46e46410f96a45fc41fb151a2d9f87e235))
 
 <a name="9.0.23"></a>
 ## [9.0.23](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.23) (2025-05-21)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency xunit.runner.visualstudio to 3.1.0 ([#826](https://www.github.com/slucky31/mycomicsmanager/issues/826)) ([e352cb9](https://www.github.com/slucky31/mycomicsmanager/commit/e352cb95d27fff60625845a5f9cdc7d84dd3e92d))
 
 <a name="9.0.22"></a>
 ## [9.0.22](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.22) (2025-05-18)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency bunit to 1.39.5 ([#820](https://www.github.com/slucky31/mycomicsmanager/issues/820)) ([5e9ff34](https://www.github.com/slucky31/mycomicsmanager/commit/5e9ff3464774d24ae54a66ef0c1434e5cf5f1a31))
 
 <a name="9.0.21"></a>
 ## [9.0.21](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.21) (2025-05-18)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency sonaranalyzer.csharp to 10.9.0.115408 ([#822](https://www.github.com/slucky31/mycomicsmanager/issues/822)) ([8c457c3](https://www.github.com/slucky31/mycomicsmanager/commit/8c457c3642370ba52a684123472400befd64b322))
 
@@ -209,140 +209,140 @@ All notable changes to this project will be documented in this file. See [versio
 <a name="9.0.20"></a>
 ## [9.0.20](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.20) (2025-03-28)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update mongo-csharp-driver monorepo to 3.3.0 ([#817](https://www.github.com/slucky31/mycomicsmanager/issues/817)) ([6422c83](https://www.github.com/slucky31/mycomicsmanager/commit/6422c8326901be6d44b5bb784489c4aa6aff3d2a))
 
 <a name="9.0.19"></a>
 ## [9.0.19](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.19) (2025-03-25)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update mcr.microsoft.com/dotnet/sdk docker tag to v9.0.202 ([#814](https://www.github.com/slucky31/mycomicsmanager/issues/814)) ([bf1b17d](https://www.github.com/slucky31/mycomicsmanager/commit/bf1b17db57218503a49a405107790f2a1fe5941a))
 
 <a name="9.0.18"></a>
 ## [9.0.18](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.18) (2025-03-16)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dotnet monorepo ([#809](https://www.github.com/slucky31/mycomicsmanager/issues/809)) ([1b734eb](https://www.github.com/slucky31/mycomicsmanager/commit/1b734eb678d96fd6ce3a089e67afb462aae05665))
 
 <a name="9.0.17"></a>
 ## [9.0.17](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.17) (2025-03-02)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency sonaranalyzer.csharp to 10.7.0.110445 ([#805](https://www.github.com/slucky31/mycomicsmanager/issues/805)) ([1bb9ead](https://www.github.com/slucky31/mycomicsmanager/commit/1bb9eadf266f9d40ac2de6536c74d69bc4552ea3))
 
 <a name="9.0.16"></a>
 ## [9.0.16](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.16) (2025-02-26)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mudblazor to 8.3.0 ([#801](https://www.github.com/slucky31/mycomicsmanager/issues/801)) ([f51abcc](https://www.github.com/slucky31/mycomicsmanager/commit/f51abccac6ef62b50b06f9df132393e945e6adec))
 
 <a name="9.0.15"></a>
 ## [9.0.15](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.15) (2025-02-22)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mudblazor to v8 ([#782](https://www.github.com/slucky31/mycomicsmanager/issues/782)) ([2d9b3c4](https://www.github.com/slucky31/mycomicsmanager/commit/2d9b3c4c2766cd26b631a0c31509a1078df0f616))
 
 <a name="9.0.14"></a>
 ## [9.0.14](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.14) (2025-02-22)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mongodb.entityframeworkcore to 8.2.3 ([#783](https://www.github.com/slucky31/mycomicsmanager/issues/783)) ([bc1868b](https://www.github.com/slucky31/mycomicsmanager/commit/bc1868b62f3dcdde06076c4322f4842e1dd6d628))
 
 <a name="9.0.13"></a>
 ## [9.0.13](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.13) (2025-02-22)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency fluentassertions to 7.2.0 ([#799](https://www.github.com/slucky31/mycomicsmanager/issues/799)) ([e1cea4f](https://www.github.com/slucky31/mycomicsmanager/commit/e1cea4f4ddc168445a914a0c00a710bb3673e0b7))
 
 <a name="9.0.12"></a>
 ## [9.0.12](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.12) (2025-02-22)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update mongo-csharp-driver monorepo to 3.2.1 ([#800](https://www.github.com/slucky31/mycomicsmanager/issues/800)) ([978f61c](https://www.github.com/slucky31/mycomicsmanager/commit/978f61c2ec5518b6ac1ec080664233db468142ba))
 
 <a name="9.0.11"></a>
 ## [9.0.11](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.11) (2025-02-15)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dotnet monorepo (main) ([#787](https://www.github.com/slucky31/mycomicsmanager/issues/787)) ([c0a58b9](https://www.github.com/slucky31/mycomicsmanager/commit/c0a58b9749014f3f7cc31f624e274ce2ebe1ae70))
 
 <a name="9.0.10"></a>
 ## [9.0.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.10) (2025-02-15)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update mongo-csharp-driver monorepo to 3.2.0 ([#792](https://www.github.com/slucky31/mycomicsmanager/issues/792)) ([a65c372](https://www.github.com/slucky31/mycomicsmanager/commit/a65c37249edac8307d1d272fe5d08368464b79c9))
 
 <a name="9.0.9"></a>
 ## [9.0.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.9) (2025-02-15)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency bunit to 1.38.5 ([#788](https://www.github.com/slucky31/mycomicsmanager/issues/788)) ([33406e5](https://www.github.com/slucky31/mycomicsmanager/commit/33406e539b9660481b28a70e5fae25b8557d7e6b))
 
 <a name="9.0.8"></a>
 ## [9.0.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.8) (2025-02-15)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency fluentassertions to 7.1.0 ([#789](https://www.github.com/slucky31/mycomicsmanager/issues/789)) ([4d0b5c1](https://www.github.com/slucky31/mycomicsmanager/commit/4d0b5c1fac173aca15b1a0423e193788d6588344))
 
 <a name="9.0.7"></a>
 ## [9.0.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.7) (2025-02-15)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency xunit.runner.visualstudio to 3.0.2 ([#786](https://www.github.com/slucky31/mycomicsmanager/issues/786)) ([d4bc385](https://www.github.com/slucky31/mycomicsmanager/commit/d4bc385bc599ee785e426c6f65c85373668f0175))
 
 <a name="9.0.6"></a>
 ## [9.0.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.6) (2025-02-15)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency sonaranalyzer.csharp to 10.6.0.109712 (main) ([#785](https://www.github.com/slucky31/mycomicsmanager/issues/785)) ([c7b428b](https://www.github.com/slucky31/mycomicsmanager/commit/c7b428bbf9b9587e389b00669abdf12f1fd9e4eb))
 
 <a name="9.0.5"></a>
 ## [9.0.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.5) (2025-02-05)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dotnet monorepo ([#778](https://www.github.com/slucky31/mycomicsmanager/issues/778)) ([3d55437](https://www.github.com/slucky31/mycomicsmanager/commit/3d5543787f291e2877dd648025bb6710c3ac2877))
 
 <a name="9.0.4"></a>
 ## [9.0.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.4) (2025-02-04)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mudblazor to 7.16.0 ([#781](https://www.github.com/slucky31/mycomicsmanager/issues/781)) ([4279aa5](https://www.github.com/slucky31/mycomicsmanager/commit/4279aa52f0d412b30af1230270e4534bf7555e8d))
 
 <a name="9.0.3"></a>
 ## [9.0.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.3) (2025-02-04)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency xunit.runner.visualstudio to 3.0.1 ([#772](https://www.github.com/slucky31/mycomicsmanager/issues/772)) ([abed535](https://www.github.com/slucky31/mycomicsmanager/commit/abed53570b9352b06f2535bbe622cb1315d4e4fa))
 
 <a name="9.0.2"></a>
 ## [9.0.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.2) (2025-01-09)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update xunit-dotnet monorepo to 2.9.3 ([#770](https://www.github.com/slucky31/mycomicsmanager/issues/770)) ([ac84b5c](https://www.github.com/slucky31/mycomicsmanager/commit/ac84b5cde58f07d01967f035040b5f8cf819f9d2))
 
 <a name="9.0.1"></a>
 ## [9.0.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.0.1) (2024-12-23)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency sonaranalyzer.csharp to v10 ([#766](https://www.github.com/slucky31/mycomicsmanager/issues/766)) ([b4354f9](https://www.github.com/slucky31/mycomicsmanager/commit/b4354f9453880c59e067d79184fd6b1c9bd2f00e))
 
@@ -361,140 +361,140 @@ All notable changes to this project will be documented in this file. See [versio
 <a name="8.10.37"></a>
 ## [8.10.37](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.37) (2024-12-21)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency sonaranalyzer.csharp to 10.4.0.108396 ([#762](https://www.github.com/slucky31/mycomicsmanager/issues/762)) ([d869715](https://www.github.com/slucky31/mycomicsmanager/commit/d869715273e446fb4f7523bbf3ab84c5859192c2))
 
 <a name="8.10.36"></a>
 ## [8.10.36](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.36) (2024-12-16)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency xunit.runner.visualstudio to v3 ([#760](https://www.github.com/slucky31/mycomicsmanager/issues/760)) ([df7d97c](https://www.github.com/slucky31/mycomicsmanager/commit/df7d97c33014e29c47e7dcf7bde92c67bab2a298))
 
 <a name="8.10.35"></a>
 ## [8.10.35](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.35) (2024-12-14)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mongodb.entityframeworkcore to 8.2.1 ([#758](https://www.github.com/slucky31/mycomicsmanager/issues/758)) ([37751d6](https://www.github.com/slucky31/mycomicsmanager/commit/37751d65d2df50ff9b7a5387722379e8df62af1e))
 
 <a name="8.10.34"></a>
 ## [8.10.34](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.34) (2024-12-13)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency bunit to 1.37.7 ([#757](https://www.github.com/slucky31/mycomicsmanager/issues/757)) ([389d5cf](https://www.github.com/slucky31/mycomicsmanager/commit/389d5cf5bc42a422d4b515651027fc6b5c77dd6a))
 
 <a name="8.10.33"></a>
 ## [8.10.33](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.33) (2024-12-08)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update mongo-csharp-driver monorepo to 3.1.0 ([#753](https://www.github.com/slucky31/mycomicsmanager/issues/753)) ([54068e2](https://www.github.com/slucky31/mycomicsmanager/commit/54068e224798dc08f28d7fcd1174b24e777bbc0f))
 
 <a name="8.10.32"></a>
 ## [8.10.32](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.32) (2024-12-07)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency sonaranalyzer.csharp to v10 ([#748](https://www.github.com/slucky31/mycomicsmanager/issues/748)) ([d27ff34](https://www.github.com/slucky31/mycomicsmanager/commit/d27ff34d42d21dadf44b3fd64b70b7cadaeeb64d))
 
 <a name="8.10.31"></a>
 ## [8.10.31](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.31) (2024-12-03)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency fluentassertions to v7 ([#751](https://www.github.com/slucky31/mycomicsmanager/issues/751)) ([197d6bb](https://www.github.com/slucky31/mycomicsmanager/commit/197d6bbf50d3ef6f9420b9ff20ae7ca999d4a2a3))
 
 <a name="8.10.30"></a>
 ## [8.10.30](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.30) (2024-11-20)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency fluentassertions to 6.12.2 ([#733](https://www.github.com/slucky31/mycomicsmanager/issues/733)) ([b6c8212](https://www.github.com/slucky31/mycomicsmanager/commit/b6c8212fbb4c71e8ee650810115de5cf7bc10114))
 
 <a name="8.10.29"></a>
 ## [8.10.29](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.29) (2024-11-20)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency microsoft.net.test.sdk to 17.12.0 ([#745](https://www.github.com/slucky31/mycomicsmanager/issues/745)) ([14c8a2b](https://www.github.com/slucky31/mycomicsmanager/commit/14c8a2bc7f46a0a9b21f4ba08a0c4bde4052ee38))
 
 <a name="8.10.28"></a>
 ## [8.10.28](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.28) (2024-11-17)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency bunit to 1.36.0 ([#737](https://www.github.com/slucky31/mycomicsmanager/issues/737)) ([97e71a0](https://www.github.com/slucky31/mycomicsmanager/commit/97e71a022a9ce821bb2dda5616cd78815442da16))
 
 <a name="8.10.27"></a>
 ## [8.10.27](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.27) (2024-11-17)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dotnet monorepo ([#736](https://www.github.com/slucky31/mycomicsmanager/issues/736)) ([bc3ab90](https://www.github.com/slucky31/mycomicsmanager/commit/bc3ab90fdd70bf0ceccff9aa382abb0fa6397f6c))
 
 <a name="8.10.26"></a>
 ## [8.10.26](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.26) (2024-11-05)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency bunit to 1.34.0 ([#731](https://www.github.com/slucky31/mycomicsmanager/issues/731)) ([782066e](https://www.github.com/slucky31/mycomicsmanager/commit/782066e0acc2151a2507d1e7c0a48ead9d458551))
 
 <a name="8.10.25"></a>
 ## [8.10.25](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.25) (2024-11-01)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mudblazor to 7.15.0 ([#730](https://www.github.com/slucky31/mycomicsmanager/issues/730)) ([9fc33b4](https://www.github.com/slucky31/mycomicsmanager/commit/9fc33b4c14737aec92657966853c853f53db71ba))
 
 <a name="8.10.24"></a>
 ## [8.10.24](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.24) (2024-10-31)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update mongo-csharp-driver monorepo to v3 (main) (major) ([#716](https://www.github.com/slucky31/mycomicsmanager/issues/716)) ([ce66da8](https://www.github.com/slucky31/mycomicsmanager/commit/ce66da800857de0f3971d217b5a212591c4228b7))
 
 <a name="8.10.23"></a>
 ## [8.10.23](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.23) (2024-10-30)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mudblazor to 7.15.0 ([#725](https://www.github.com/slucky31/mycomicsmanager/issues/725)) ([08be70b](https://www.github.com/slucky31/mycomicsmanager/commit/08be70bb9d8092ca8772c685c94e8d42d4b1a441))
 
 <a name="8.10.22"></a>
 ## [8.10.22](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.22) (2024-10-30)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency nsubstitute to 5.3.0 ([#722](https://www.github.com/slucky31/mycomicsmanager/issues/722)) ([54b9d14](https://www.github.com/slucky31/mycomicsmanager/commit/54b9d146099d55b83392095b9b712bafbde48da8))
 
 <a name="8.10.21"></a>
 ## [8.10.21](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.21) (2024-10-26)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mudblazor to 7.14.0 ([#718](https://www.github.com/slucky31/mycomicsmanager/issues/718)) ([06a35f8](https://www.github.com/slucky31/mycomicsmanager/commit/06a35f8c7d90acff5b183157ee7821a7b9f94905))
 
 <a name="8.10.20"></a>
 ## [8.10.20](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.20) (2024-10-26)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update pascalgn/size-label-action action to v0.5.5 ([#720](https://www.github.com/slucky31/mycomicsmanager/issues/720)) ([2eb53bd](https://www.github.com/slucky31/mycomicsmanager/commit/2eb53bd7d265b4e44a7ee051f5db383be1aa354b))
 
 <a name="8.10.19"></a>
 ## [8.10.19](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.19) (2024-10-20)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency mudblazor to 7.13.0 ([#712](https://www.github.com/slucky31/mycomicsmanager/issues/712)) ([82c32e4](https://www.github.com/slucky31/mycomicsmanager/commit/82c32e421549cb0a1e01d50a1941dd1076ccef03))
 
 <a name="8.10.18"></a>
 ## [8.10.18](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v8.10.18) (2024-10-20)
 
-### 🐛 Bug Fixes
+### ðŸ› Bug Fixes
 
 * **deps:** update dependency serilog.aspnetcore to 8.0.3 (main) ([#711](https://www.github.com/slucky31/mycomicsmanager/issues/711)) ([9535329](https://www.github.com/slucky31/mycomicsmanager/commit/9535329d5b7a162a8f8366ae4f3391b600bbd560))
 * **deps:** update mongo-csharp-driver monorepo to 2.30.0 ([#714](https://www.github.com/slucky31/mycomicsmanager/issues/714)) ([462f131](https://www.github.com/slucky31/mycomicsmanager/commit/462f131b07fd0c94e866762538dcca8032b26c28))
@@ -1247,14 +1247,14 @@ All notable changes to this project will be documented in this file. See [versio
 
 * .2.0: Ajout try - catch ([08ad204](https://www.github.com/slucky31/mycomicsmanager/commit/08ad2048c3e4a233fafba6d84b61da8e74a144f0))
 * .gitignore is now working ([bd40924](https://www.github.com/slucky31/mycomicsmanager/commit/bd4092439d325d721e369c04ae876593dc687c1f))
-* #12 : Ajout info version git + réorg ([fa563d5](https://www.github.com/slucky31/mycomicsmanager/commit/fa563d531c8a745628eb38d87a4e64df96ccf90c))
+* #12 : Ajout info version git + rÃ©org ([fa563d5](https://www.github.com/slucky31/mycomicsmanager/commit/fa563d531c8a745628eb38d87a4e64df96ccf90c))
 * #152 : set Log Bufferisation to False ([e3c61aa](https://www.github.com/slucky31/mycomicsmanager/commit/e3c61aab1ba0d9dd5f24d617b2ca8751bc8b16b5))
 * #16 : Appel WS Extraction ISBN ([d7fed66](https://www.github.com/slucky31/mycomicsmanager/commit/d7fed66d8f0981e180497662b75cc8c119096344))
 * #16 : Dialog Extraction ISBN ([de911e4](https://www.github.com/slucky31/mycomicsmanager/commit/de911e4c3b321eaae1b2969486e150f380ab52c4))
 * #166 : Factorisation  Gestion Statut Import ([31b4b41](https://www.github.com/slucky31/mycomicsmanager/commit/31b4b41d21c75d69e65be2dff909c17949f292b6))
 * #181 + #204 (en cours) ([95d176a](https://www.github.com/slucky31/mycomicsmanager/commit/95d176a1dc9e64a45c74ca7dad11780cbdb69749))
 * #192  : CPU LImit ([bd7b7d6](https://www.github.com/slucky31/mycomicsmanager/commit/bd7b7d68dc4fc8f526c801768b9db41a33cacb5e))
-* #20 : Correction Pb Génération miniatures ([bdcca00](https://www.github.com/slucky31/mycomicsmanager/commit/bdcca0024467be2363513982bcdcd17485c39d02))
+* #20 : Correction Pb GÃ©nÃ©ration miniatures ([bdcca00](https://www.github.com/slucky31/mycomicsmanager/commit/bdcca0024467be2363513982bcdcd17485c39d02))
 * #204 ([f808855](https://www.github.com/slucky31/mycomicsmanager/commit/f808855957887b14b7c2670d2241e5a8214b9c78))
 * #204 (en cours) ([5a07f63](https://www.github.com/slucky31/mycomicsmanager/commit/5a07f63f96b9df8be32b429db01754a387d7db0f))
 * #204 (en cours) ([1a402b5](https://www.github.com/slucky31/mycomicsmanager/commit/1a402b5727ccff962cd272f379058c07bf9894a7))
@@ -1266,10 +1266,10 @@ All notable changes to this project will be documented in this file. See [versio
 * #69 ([e0827a1](https://www.github.com/slucky31/mycomicsmanager/commit/e0827a1c27f2bf4de21d08a175468f6113137372))
 * #75 ([9308392](https://www.github.com/slucky31/mycomicsmanager/commit/9308392b74e017a899132cd236f3b1172e61fac3))
 * #75 et #69 ([74c06e1](https://www.github.com/slucky31/mycomicsmanager/commit/74c06e1509d714c5823b06436121d0e32e35dd12))
-* #8 : gestion paramètre ([21cab26](https://www.github.com/slucky31/mycomicsmanager/commit/21cab260a6a467f742afba959904c657eff392cf))
+* #8 : gestion paramÃ¨tre ([21cab26](https://www.github.com/slucky31/mycomicsmanager/commit/21cab260a6a467f742afba959904c657eff392cf))
 * 144 Taille des fichiers (#295) ([a3b6bbf](https://www.github.com/slucky31/mycomicsmanager/commit/a3b6bbfc4ff13abce913199b1a2eac9174e94a29))
-* 218 Import : Gérer la reprise d'import sur Erreur (#254) ([2b93181](https://www.github.com/slucky31/mycomicsmanager/commit/2b93181f86399112ad14f4387f07fc30df43179d))
-* 218 Import : Gérer la reprise d'import sur Erreur (#273) ([2a47271](https://www.github.com/slucky31/mycomicsmanager/commit/2a47271d95ac6fe24917a64004488cd09a296488))
+* 218 Import : GÃ©rer la reprise d'import sur Erreur (#254) ([2b93181](https://www.github.com/slucky31/mycomicsmanager/commit/2b93181f86399112ad14f4387f07fc30df43179d))
+* 218 Import : GÃ©rer la reprise d'import sur Erreur (#273) ([2a47271](https://www.github.com/slucky31/mycomicsmanager/commit/2a47271d95ac6fe24917a64004488cd09a296488))
 * 257 import  importation comicinfo (#326) ([a65177b](https://www.github.com/slucky31/mycomicsmanager/commit/a65177bbc141194f015cb43d0708f946690d047d))
 * 278 Bug Move (#279) ([031a7d1](https://www.github.com/slucky31/mycomicsmanager/commit/031a7d193e809a4456ddaaecb7ab2c9a1b25a214))
 * 280 Unit tests (#281) ([fe045f4](https://www.github.com/slucky31/mycomicsmanager/commit/fe045f4f0d58ff77befda98805bb4a5ddc4880f9))
@@ -1288,13 +1288,13 @@ All notable changes to this project will be documented in this file. See [versio
 * Ajout dark mode ([ac45a8e](https://www.github.com/slucky31/mycomicsmanager/commit/ac45a8e89a12e9232dbd5297fc8e5f7c9d1c52a0))
 * Ajout DialogReview ([e6eaa0d](https://www.github.com/slucky31/mycomicsmanager/commit/e6eaa0d86fedc89619e83ca081e44fe6a3e4df8d))
 * Ajout EbookPath ([6e00b0b](https://www.github.com/slucky31/mycomicsmanager/commit/6e00b0bd87db3e8b32d117f0e8c17233c03dfdc2))
-* Ajout Fenêtre Dialog pour chercher ISBN ([ed7e876](https://www.github.com/slucky31/mycomicsmanager/commit/ed7e876ed8b37565be08ca6ede9a327e259ee32f))
+* Ajout FenÃªtre Dialog pour chercher ISBN ([ed7e876](https://www.github.com/slucky31/mycomicsmanager/commit/ed7e876ed8b37565be08ca6ede9a327e259ee32f))
 * Ajout Icone Navigation GalleryView ([56d97f6](https://www.github.com/slucky31/mycomicsmanager/commit/56d97f6955d2747346d9b6d49f2eb2df05dea7b9))
 * Ajout lib manquante + correction typo ([64addcb](https://www.github.com/slucky31/mycomicsmanager/commit/64addcbe2a5c75dfa3d384cdf928a88a3f8bd505))
 * Ajout page settings ([34a4175](https://www.github.com/slucky31/mycomicsmanager/commit/34a417588bbfc4f5678e82c783c069ad5b54c767))
 * Ajout Page Settings + Correctif Rendu vignette ([92bdcc0](https://www.github.com/slucky31/mycomicsmanager/commit/92bdcc0c16d8eea288ae6f00f507da443a7dfc65))
 * Ajout Search Info + Correction Update ([70b42fd](https://www.github.com/slucky31/mycomicsmanager/commit/70b42fd046dcd9476ae0b021c1188d149211abc2))
-* Améliorations Imports ([4f6b1e4](https://www.github.com/slucky31/mycomicsmanager/commit/4f6b1e49423d656198bcfa2d95d356da7d1b2bec))
+* AmÃ©liorations Imports ([4f6b1e4](https://www.github.com/slucky31/mycomicsmanager/commit/4f6b1e49423d656198bcfa2d95d356da7d1b2bec))
 * Assemby info (#373) ([59179bd](https://www.github.com/slucky31/mycomicsmanager/commit/59179bd55c5e61bd5b919824ee101cc663ea58f8))
 * Authentification (#171) ([38b7577](https://www.github.com/slucky31/mycomicsmanager/commit/38b7577566507782f5023a1b4e0f1afab45b4654))
 * BarCode Scanner ([718b995](https://www.github.com/slucky31/mycomicsmanager/commit/718b99586df3fa3247de640f01e03c62cc6317d7))
@@ -1331,7 +1331,7 @@ All notable changes to this project will be documented in this file. See [versio
 * Codacy Fix ([8a1ca63](https://www.github.com/slucky31/mycomicsmanager/commit/8a1ca639df6e5b8f60a8dd2eb113e036dc0aaf1e))
 * Codacy Fix ([fc91645](https://www.github.com/slucky31/mycomicsmanager/commit/fc91645235f74bd5b9782666dc787cbd0d447b03))
 * Codacy Issues ([63090ac](https://www.github.com/slucky31/mycomicsmanager/commit/63090ace3360b476a9c8d68b2c9568f210784216))
-* Commentaire + Footer corrigé ([664df0a](https://www.github.com/slucky31/mycomicsmanager/commit/664df0ac104f90b839071f6a8b2c442a74448bb9))
+* Commentaire + Footer corrigÃ© ([664df0a](https://www.github.com/slucky31/mycomicsmanager/commit/664df0ac104f90b839071f6a8b2c442a74448bb9))
 * Commit initial : Split de 2 repos ([56efa8c](https://www.github.com/slucky31/mycomicsmanager/commit/56efa8ce0774eb6dce357569d55fcce638da92e1))
 * Config Dependabot ([0b806f8](https://www.github.com/slucky31/mycomicsmanager/commit/0b806f87a4708caab3f0724a5aec787e26c3fd52))
 * Convention fix ([21e184a](https://www.github.com/slucky31/mycomicsmanager/commit/21e184a432ceadaa05d55cb43a0c02c21b081a12))
@@ -1349,8 +1349,8 @@ All notable changes to this project will be documented in this file. See [versio
 * Correction Footer ([bb6c7b2](https://www.github.com/slucky31/mycomicsmanager/commit/bb6c7b2f00096f6d0d21ca0dab4eb11360ddc684))
 * Correction Footer ([6811ef2](https://www.github.com/slucky31/mycomicsmanager/commit/6811ef24c78661d0f5c64f686f0f49809014d162))
 * Correction Param Build et Test ([a843350](https://www.github.com/slucky31/mycomicsmanager/commit/a8433507c6cec46a32ac3b075eaa21c6497101a5))
-* Correction séparation RazorPage ([60b9664](https://www.github.com/slucky31/mycomicsmanager/commit/60b966481dcde9b954e1c00c6610ec3e1c686828))
-* Correction using + suppression code commenté ([3df6e00](https://www.github.com/slucky31/mycomicsmanager/commit/3df6e00810422359709b9813cd7c01dc7078b325))
+* Correction sÃ©paration RazorPage ([60b9664](https://www.github.com/slucky31/mycomicsmanager/commit/60b966481dcde9b954e1c00c6610ec3e1c686828))
+* Correction using + suppression code commentÃ© ([3df6e00](https://www.github.com/slucky31/mycomicsmanager/commit/3df6e00810422359709b9813cd7c01dc7078b325))
 * Corrections Codacy ([57597d9](https://www.github.com/slucky31/mycomicsmanager/commit/57597d90bfd28e2ea7539cba2428700f2c83670d))
 * Create LICENSE ([088538b](https://www.github.com/slucky31/mycomicsmanager/commit/088538b6102355ed120fe33d39c16f8367880294))
 * Create README.md ([37ebc8a](https://www.github.com/slucky31/mycomicsmanager/commit/37ebc8aedff0a86d2fc93ae00e6669f93d3e10c4))
@@ -1391,7 +1391,7 @@ All notable changes to this project will be documented in this file. See [versio
 * fix : upgrade dependancies ([2cefb5f](https://www.github.com/slucky31/mycomicsmanager/commit/2cefb5fa1b95e2d9a333ec51991a937b5ce02494))
 * fix : upgrade dependencies version (#400) ([4c9b0ad](https://www.github.com/slucky31/mycomicsmanager/commit/4c9b0ad01700dcd53c553c8b629d8a3c3f8a0742))
 * Fix (#276) ([0399472](https://www.github.com/slucky31/mycomicsmanager/commit/0399472a7576df3c72fed75e1a513cfffc04bac5))
-* Fix Affichage par série ([24ccd8b](https://www.github.com/slucky31/mycomicsmanager/commit/24ccd8b7004a29bc6dd6e655085bb5788f0c4bf9))
+* Fix Affichage par sÃ©rie ([24ccd8b](https://www.github.com/slucky31/mycomicsmanager/commit/24ccd8b7004a29bc6dd6e655085bb5788f0c4bf9))
 * Fix build ([70e4fef](https://www.github.com/slucky31/mycomicsmanager/commit/70e4fef15d34b47a66e9a663c44993b5a89c2a95))
 * Fix Codacy ([5165676](https://www.github.com/slucky31/mycomicsmanager/commit/516567634260c4aec709ae223190d78c374f2bb6))
 * Fix Codacy ([5f673ce](https://www.github.com/slucky31/mycomicsmanager/commit/5f673ced7f6074993159d6c48e4c329290479eef))
@@ -1490,14 +1490,14 @@ All notable changes to this project will be documented in this file. See [versio
 * Pagination & Inifinite Scroll ([0314e8f](https://www.github.com/slucky31/mycomicsmanager/commit/0314e8f752b680b229133f1c8e8be4acea4f5f32))
 * Premier Jet Module ViewComicsBySeries ([8b34df8](https://www.github.com/slucky31/mycomicsmanager/commit/8b34df86a2c241e28c6ed3f98160a42b7b1b4170))
 * Refacto avec MudBlazor ([b75f893](https://www.github.com/slucky31/mycomicsmanager/commit/b75f893115946fcd8d59e5fcc8da1f0e54ee004c))
-* Refonte Formulaire Création Librairie ([4610f9f](https://www.github.com/slucky31/mycomicsmanager/commit/4610f9f2ec88bb9bf56d994c8447b3c45cee03ab))
+* Refonte Formulaire CrÃ©ation Librairie ([4610f9f](https://www.github.com/slucky31/mycomicsmanager/commit/4610f9f2ec88bb9bf56d994c8447b3c45cee03ab))
 * Refonte Import ([a7d5ce1](https://www.github.com/slucky31/mycomicsmanager/commit/a7d5ce1e2cd0daffd507fd00106cff3785e04588))
 * Refonte List Comics ([73dd18a](https://www.github.com/slucky31/mycomicsmanager/commit/73dd18acb568dc97e8d784419cf297ce39bbb0fc))
 * Refonte MainLayout et Menu ([6164a8f](https://www.github.com/slucky31/mycomicsmanager/commit/6164a8f1a568957258223e48be7a877cff3d1d0f))
 * Refonte Thumbnail ([99dc8e2](https://www.github.com/slucky31/mycomicsmanager/commit/99dc8e2b35ee409dec9bf8c9135b27afdb599fd8))
 * Refonte Thumbnail avec ImageSharp ([907dd42](https://www.github.com/slucky31/mycomicsmanager/commit/907dd42b5e62085c015135bfe70dce363a2cb870))
-* Régression Codacy ([1ab93d3](https://www.github.com/slucky31/mycomicsmanager/commit/1ab93d37c7be3cdda20096f7234604929278a37b))
-* Rendre Hangfire accessible à l'exterieur de docker ([3fd9305](https://www.github.com/slucky31/mycomicsmanager/commit/3fd93057afc0d6d535a95b61d11d24afa7d07b2d))
+* RÃ©gression Codacy ([1ab93d3](https://www.github.com/slucky31/mycomicsmanager/commit/1ab93d37c7be3cdda20096f7234604929278a37b))
+* Rendre Hangfire accessible Ã  l'exterieur de docker ([3fd9305](https://www.github.com/slucky31/mycomicsmanager/commit/3fd93057afc0d6d535a95b61d11d24afa7d07b2d))
 * Renommage ([0b1b396](https://www.github.com/slucky31/mycomicsmanager/commit/0b1b3969bb7b056877c58c5add03f24b42af8389))
 * Renommage Part 2 ([01386a3](https://www.github.com/slucky31/mycomicsmanager/commit/01386a3bdf9ce65373b314f0dd717e516e2ba721))
 * Retry Import en masse (#277) ([4857c19](https://www.github.com/slucky31/mycomicsmanager/commit/4857c196972bf3e51ed3d15e030857078785096d))
@@ -1513,7 +1513,7 @@ All notable changes to this project will be documented in this file. See [versio
 * Stats (#139) ([40802e6](https://www.github.com/slucky31/mycomicsmanager/commit/40802e6d7cd008e2b38941adaa55dbe3bdd00d9b))
 * Stats (#139) (#145) ([1b623ab](https://www.github.com/slucky31/mycomicsmanager/commit/1b623abc427d27bb7112830f4593b4be6429d115))
 * Suppression du footer qui cachait du contenu ([8373542](https://www.github.com/slucky31/mycomicsmanager/commit/8373542a23caf86a9d3f855a24d5f41986be2581))
-* Suppression Entrée Menu About ([ad56707](https://www.github.com/slucky31/mycomicsmanager/commit/ad56707b9679d3ba88db7f6d6fb810735124c0d2))
+* Suppression EntrÃ©e Menu About ([ad56707](https://www.github.com/slucky31/mycomicsmanager/commit/ad56707b9679d3ba88db7f6d6fb810735124c0d2))
 * Update ComicService.cs ([028f03f](https://www.github.com/slucky31/mycomicsmanager/commit/028f03ffdd691c84a0257451f5ecfbe3fd75c402))
 * Update dependancy (#298) ([09ee506](https://www.github.com/slucky31/mycomicsmanager/commit/09ee506d49f96816cb3c64615ee2a2e994234e2d))
 * Update dependencies ([18e10d0](https://www.github.com/slucky31/mycomicsmanager/commit/18e10d0aeac74c9023b1ec198a36671fd2cb6399))

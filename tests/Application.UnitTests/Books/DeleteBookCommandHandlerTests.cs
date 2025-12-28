@@ -1,4 +1,4 @@
-﻿using Application.Books.Delete;
+using Application.Books.Delete;
 using Application.Interfaces;
 using Domain.Books;
 using Domain.Primitives;

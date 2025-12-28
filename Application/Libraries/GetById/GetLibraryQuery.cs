@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Domain.Libraries;
 
 namespace Application.Libraries.GetById;

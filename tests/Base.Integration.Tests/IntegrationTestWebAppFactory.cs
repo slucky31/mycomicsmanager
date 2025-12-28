@@ -1,4 +1,4 @@
-﻿using Application.Libraries;
+using Application.Libraries;
 using Ardalis.GuardClauses;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

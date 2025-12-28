@@ -1,4 +1,4 @@
-﻿namespace Web.Configuration;
+namespace Web.Configuration;
 
 public sealed class LocalStorageConfiguration
 {

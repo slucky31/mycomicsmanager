@@ -1,4 +1,4 @@
-﻿using Application.Helpers;
+using Application.Helpers;
 using FluentValidation;
 
 namespace Web.Validators;

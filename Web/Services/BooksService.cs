@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.Books.Create;
 using Application.Books.Delete;
 using Application.Books.GetById;

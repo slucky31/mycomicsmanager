@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Application.Interfaces;
 using Application.Users;
 using Ardalis.GuardClauses;
