@@ -9,6 +9,7 @@ using NSubstitute;
 using Persistence.Queries.Helpers;
 
 namespace Application.UnitTests.Libraries;
+
 public class UpdateLibraryCommandTests
 {
     private static readonly UpdateLibraryCommand Command = new(Guid.CreateVersion7(), "library");

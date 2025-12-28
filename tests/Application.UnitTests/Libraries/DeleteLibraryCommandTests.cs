@@ -6,6 +6,7 @@ using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Libraries;
+
 public class DeleteLibraryCommandTests
 {
     private static readonly DeleteLibraryCommand Command = new(Guid.CreateVersion7());

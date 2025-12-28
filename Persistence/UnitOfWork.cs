@@ -4,6 +4,7 @@ using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
+
 public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
 {
     public async Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken)

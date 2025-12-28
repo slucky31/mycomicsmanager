@@ -1,10 +1,9 @@
+using System.Reflection;
 using Application.Books.Update;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
-using Domain.Primitives;
 using NSubstitute;
-using System.Reflection;
 
 namespace Application.UnitTests.Books;
 
@@ -40,7 +39,7 @@ public class UpdateBookCommandHandlerTests
         // TODO :  Consider adding a test-specific factory method or constructor in the test project (e.g., via internal visibility or a test helper) to create Book instances with specific IDs for testing purposes.
         var idProperty = typeof(Book).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance);
         idProperty?.SetValue(book, id);
-        
+
         return book;
     }
 
@@ -201,7 +200,7 @@ public class UpdateBookCommandHandlerTests
         var existingBook = CreateBookWithId(BookId, "Original Serie", "Original Title", "978-3-16-148410-0");
         var anotherBookId = Guid.CreateVersion7();
         var anotherBook = CreateBookWithId(anotherBookId, "Another Serie", "Another Title", "978-0-306-40615-7");
-        
+
         _bookRepositoryMock.GetByIdAsync(ValidCommand.Id).Returns(existingBook);
         _bookRepositoryMock.GetByIsbnAsync("9780306406157", Arg.Any<CancellationToken>()).Returns(anotherBook);
 
@@ -220,7 +219,7 @@ public class UpdateBookCommandHandlerTests
     {
         // Arrange - Updating book to keep its own ISBN
         var existingBook = CreateBookWithId(BookId, "Original Serie", "Original Title", "978-3-16-148410-0");
-        
+
         var commandWithSameISBN = new UpdateBookCommand(
             BookId,
             "Updated Serie",
@@ -423,14 +422,14 @@ public class UpdateBookCommandHandlerTests
         var bookId1 = Guid.CreateVersion7();
         var bookId2 = Guid.CreateVersion7();
         var bookId3 = Guid.CreateVersion7();
-        
+
         var book1 = CreateBookWithId(bookId1, "Serie 1", "Title 1", "978-3-16-148410-0");
         var book2 = CreateBookWithId(bookId2, "Serie 2", "Title 2", "978-0-306-40615-7");
         var book3 = CreateBookWithId(bookId3, "Serie 3", "Title 3", "978-0-451-52493-5");
 
         _bookRepositoryMock.GetByIdAsync(bookId1).Returns(book1);
         _bookRepositoryMock.ListAsync().Returns(new List<Book> { book1, book2, book3 });
-        
+
         // Mock GetByIsbnAsync to return book2 when queried with its ISBN
         _bookRepositoryMock.GetByIsbnAsync("9780306406157", Arg.Any<CancellationToken>()).Returns(book2);
 

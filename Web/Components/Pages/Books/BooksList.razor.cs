@@ -76,7 +76,7 @@ public partial class BooksList
                     b.VolumeNumber,
                     b.ImageLink
                 );
-               
+
                 await DisplaySnackbarAsync(res.IsSuccess, "Book created successfully", $"Failed to create book: {res.Error?.Description}");
             }
             else if (formMode == FormMode.Edit)
@@ -90,11 +90,11 @@ public partial class BooksList
                     b.ImageLink
                 );
 
-                await DisplaySnackbarAsync(res.IsSuccess, "Book updated successfully", $"Failed to update book: {res.Error?.Description}");                
+                await DisplaySnackbarAsync(res.IsSuccess, "Book updated successfully", $"Failed to update book: {res.Error?.Description}");
             }
         }
 
-    }    
+    }
 
     private async Task Delete(Guid bookId)
     {
@@ -117,7 +117,7 @@ public partial class BooksList
         var result = await dialog.Result;
 
         if (result is not null && result.Data is not null && !result.Canceled)
-        {            
+        {
             var res = await BooksService.Delete(bookId.ToString());
             await DisplaySnackbarAsync(res.IsSuccess, "Book deleted successfully", $"Failed to delete book: {res.Error?.Description}");
 

@@ -42,5 +42,5 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
 
         return book;
     }
-    
+
 }

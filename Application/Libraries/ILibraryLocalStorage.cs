@@ -1,6 +1,7 @@
 using Domain.Primitives;
 
 namespace Application.Libraries;
+
 public interface ILibraryLocalStorage
 {
     public string rootPath { get; init; }

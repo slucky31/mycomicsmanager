@@ -4,6 +4,7 @@ using Domain.Libraries;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Repositories;
+
 public class LibraryRepository(ApplicationDbContext dbContext) : IRepository<Library, Guid>
 {
     public async Task<Library?> GetByIdAsync(Guid id)

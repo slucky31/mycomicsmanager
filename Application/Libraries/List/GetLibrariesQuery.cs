@@ -4,6 +4,7 @@ using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Application.Libraries.List;
+
 public record GetLibrariesQuery(
     string? searchTerm,
     LibrariesColumn? sortColumn,

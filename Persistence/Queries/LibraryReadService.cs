@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Persistence.Queries.Helpers;
 
 namespace Persistence.Queries;
+
 public class LibraryReadService(ApplicationDbContext context) : ILibraryReadService
 {
     public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default)

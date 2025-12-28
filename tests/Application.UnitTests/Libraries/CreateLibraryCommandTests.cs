@@ -11,6 +11,7 @@ using NSubstitute.ReceivedExtensions;
 using Persistence.Queries.Helpers;
 
 namespace Application.UnitTests.Libraries;
+
 public class CreateLibraryCommandTests
 {
     private static readonly CreateLibraryCommand Command = new("test-name");

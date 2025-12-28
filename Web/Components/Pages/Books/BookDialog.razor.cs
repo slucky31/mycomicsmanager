@@ -53,7 +53,7 @@ public partial class BookDialog
 
     private async Task ScanISBN()
     {
-        
+
         var options = new DialogOptions
         {
             CloseOnEscapeKey = true,

@@ -24,7 +24,7 @@ public sealed class UpdateBookCommandHandler(IBookRepository bookRepository, IUn
         {
             return BooksError.InvalidISBN;
         }
-        var normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);        
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);
 
         // Check if another book with the same ISBN exists (excluding current book)
         var existingBook = await bookRepository.GetByIsbnAsync(normalizedIsbn, cancellationToken);
@@ -48,5 +48,5 @@ public sealed class UpdateBookCommandHandler(IBookRepository bookRepository, IUn
 
         return book;
     }
-    
+
 }

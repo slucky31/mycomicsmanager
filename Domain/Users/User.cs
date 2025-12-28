@@ -1,6 +1,7 @@
 using Domain.Primitives;
 
 namespace Domain.Users;
+
 public class User : Entity<Guid>
 {
 

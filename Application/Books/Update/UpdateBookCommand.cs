@@ -5,9 +5,9 @@ namespace Application.Books.Update;
 
 public record UpdateBookCommand(
     Guid Id,
-    string Serie, 
-    string Title, 
-    string ISBN, 
-    int VolumeNumber, 
+    string Serie,
+    string Title,
+    string ISBN,
+    int VolumeNumber,
     string ImageLink
 ) : ICommand<Book>;

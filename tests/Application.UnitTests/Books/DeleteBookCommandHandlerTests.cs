@@ -1,7 +1,6 @@
 using Application.Books.Delete;
 using Application.Interfaces;
 using Domain.Books;
-using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;

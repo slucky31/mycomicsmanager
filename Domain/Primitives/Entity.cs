@@ -3,6 +3,7 @@ using Ardalis.GuardClauses;
 using Domain.Interfaces;
 
 namespace Domain.Primitives;
+
 public abstract class Entity<TEntityId> : IAuditable
 {
     public TEntityId? Id { get; protected set; }

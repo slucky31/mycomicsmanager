@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Persistence.Queries.Helpers;
 
 namespace Persistence.Queries;
+
 public class UserReadService(ApplicationDbContext context) : IUserReadService
 {
     public async Task<IPagedList<User>> GetUsersAsync(string? searchTerm, UsersColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default)

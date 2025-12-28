@@ -6,6 +6,7 @@ using Domain.Extensions;
 using Domain.Primitives;
 
 namespace Persistence.LocalStorage;
+
 public class LibraryLocalStorage : ILibraryLocalStorage
 {
     private readonly char[] _charsToTrim = ['/', '\\'];

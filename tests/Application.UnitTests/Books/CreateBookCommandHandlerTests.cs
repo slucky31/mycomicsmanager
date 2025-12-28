@@ -3,7 +3,6 @@ using Application.Helpers;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
-using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;

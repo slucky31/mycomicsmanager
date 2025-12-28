@@ -7,6 +7,7 @@ using NSubstitute.ReceivedExtensions;
 using NSubstitute.ReturnsExtensions;
 
 namespace Application.UnitTests.Libraries;
+
 public class GetLibraryCommandTests
 {
 

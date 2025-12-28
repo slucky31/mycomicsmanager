@@ -1,6 +1,7 @@
 using Domain.Primitives;
 
 namespace Domain.UnitTests.Primitives;
+
 public class TErrorTests
 {
     // Arrange

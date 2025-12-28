@@ -93,7 +93,7 @@ public partial class ScanIsbnDialog : IAsyncDisposable
             catch (JSDisconnectedException)
             {
                 // Circuit is gone, ignore or log if needed
-            }            
+            }
 
             try
             {

@@ -15,7 +15,7 @@ public partial class LibrariesList
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
-   
+
 
     private List<LibraryUiDto> Libraries { get; } = [];
 

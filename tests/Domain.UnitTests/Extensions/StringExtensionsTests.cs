@@ -2,6 +2,7 @@
 using Domain.Extensions;
 
 namespace Domain.UnitTests.Extensions;
+
 public class StringExtensionsTests
 {
     [Fact]

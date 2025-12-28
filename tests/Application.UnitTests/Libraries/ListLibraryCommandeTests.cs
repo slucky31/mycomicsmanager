@@ -8,6 +8,7 @@ using NSubstitute;
 using Persistence.Queries.Helpers;
 
 namespace Application.UnitTests.Libraries;
+
 public class ListLibraryCommandeTests
 {
     private static readonly GetLibrariesQuery request = new(null, null, null, 1, 10);

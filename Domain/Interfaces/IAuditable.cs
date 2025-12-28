@@ -1,4 +1,5 @@
 namespace Domain.Interfaces;
+
 public interface IAuditable
 {
     public DateTime CreatedOnUtc { get; set; }

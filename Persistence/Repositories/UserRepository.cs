@@ -4,6 +4,7 @@ using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Repositories;
+
 public class UserRepository(ApplicationDbContext dbContext) : IRepository<User, Guid>
 {
     public async Task<User?> GetByIdAsync(Guid id)
