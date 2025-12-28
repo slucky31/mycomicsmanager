@@ -28,7 +28,7 @@ public class GetBooksQueryHandlerTests
         var book3 = Book.Create("Serie 3", "Title 3", "978-0-451-52493-5");
         var books = new List<Book> { book1, book2, book3 };
 
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -40,7 +40,7 @@ public class GetBooksQueryHandlerTests
         result.Value.Should().Contain(book1);
         result.Value.Should().Contain(book2);
         result.Value.Should().Contain(book3);
-        await _bookRepositoryMock.Received(1).List();
+        await _bookRepositoryMock.Received(1).ListAsync();
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class GetBooksQueryHandlerTests
     {
         // Arrange
         var emptyBooks = new List<Book>();
-        _bookRepositoryMock.List().Returns(emptyBooks);
+        _bookRepositoryMock.ListAsync().Returns(emptyBooks);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -57,7 +57,7 @@ public class GetBooksQueryHandlerTests
         Guard.Against.Null(result.Value);
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
-        await _bookRepositoryMock.Received(1).List();
+        await _bookRepositoryMock.Received(1).ListAsync();
     }
 
     [Fact]
@@ -65,13 +65,13 @@ public class GetBooksQueryHandlerTests
     {
         // Arrange
         var books = new List<Book>();
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
-        await _bookRepositoryMock.Received(1).List();
+        await _bookRepositoryMock.Received(1).ListAsync();
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class GetBooksQueryHandlerTests
         var book2 = Book.Create("Lord of the Rings", "Fellowship of the Ring", "978-0-306-40615-7", 1, "https://example.com/lotr1.jpg");
         var books = new List<Book> { book1, book2 };
 
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -114,7 +114,7 @@ public class GetBooksQueryHandlerTests
         var singleBook = Book.Create("Test Serie", "Test Title", "978-3-16-148410-0");
         var books = new List<Book> { singleBook };
 
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -136,7 +136,7 @@ public class GetBooksQueryHandlerTests
             books.Add(Book.Create($"Serie {i}", $"Title {i}", $"978-3-16-14841{i:D}-0"));
         }
 
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -156,7 +156,7 @@ public class GetBooksQueryHandlerTests
         var book3 = Book.Create("Serie C", "Title C", "978-0-451-52493-5");
         var books = new List<Book> { book1, book2, book3 };
 
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -178,7 +178,7 @@ public class GetBooksQueryHandlerTests
         var book3 = Book.Create("Same Serie", "Volume 3", "978-0-451-52493-5", 3);
         var books = new List<Book> { book1, book2, book3 };
 
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -202,7 +202,7 @@ public class GetBooksQueryHandlerTests
             Book.Create("Serie 2", "Title 2", "978-0-306-40615-7")
         };
 
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -222,7 +222,7 @@ public class GetBooksQueryHandlerTests
         var book3 = Book.Create("Serie 3", "Title 3", "978-0-451-52493-5");
         var books = new List<Book> { book1, book2, book3 };
 
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -240,7 +240,7 @@ public class GetBooksQueryHandlerTests
     {
         // Arrange
         var books = new List<Book> { Book.Create("Serie", "Title", "978-3-16-148410-0") };
-        _bookRepositoryMock.List().Returns(books);
+        _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);

@@ -17,7 +17,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     private readonly Library _lib7 = Library.Create("7-comics strips");
     private readonly List<Library> _libs = [];
 
-    private async Task CreateLibrariesAsync()
+    private async Task CreateLibraries()
     {
 
         LibraryRepository.Add(_lib1);
@@ -41,10 +41,10 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     }
 
     [Fact]
-    public async Task GetLibrariesAsync_ShouldReturnPagedListAsync()
+    public async Task GetLibrariesAsync_ShouldReturnPagedList()
     {
         // Arrange
-        await CreateLibrariesAsync();
+        await CreateLibraries();
 
         // Act
         var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Ascending, 1, 2);
@@ -57,10 +57,10 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     }
 
     [Fact]
-    public async Task GetLibrariesAsync_ShouldReturnPagedList_WichContainsComicsInNameAsync()
+    public async Task GetLibrariesAsync_ShouldReturnPagedList_WichContainsComicsInName()
     {
         // Arrange
-        await CreateLibrariesAsync();
+        await CreateLibraries();
 
         // Act
         var pagedList = await LibraryReadService.GetLibrariesAsync("comics", null, null, 1, 3);
@@ -74,10 +74,10 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     }
 
     [Fact]
-    public async Task GetLibrariesAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsNullAsync()
+    public async Task GetLibrariesAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsNull()
     {
         // Arrange
-        await CreateLibrariesAsync();
+        await CreateLibraries();
 
         // Act
         var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10);
@@ -95,10 +95,10 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     }
 
     [Fact]
-    public async Task GetLibrariesAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsEmptyAsync()
+    public async Task GetLibrariesAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsEmpty()
     {
         // Arrange
-        await CreateLibrariesAsync();
+        await CreateLibraries();
 
         // Act
         var pagedList = await LibraryReadService.GetLibrariesAsync("", null, null, 1, 10);
@@ -116,10 +116,10 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     }
 
     [Fact]
-    public async Task GetLibrariesAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsNullAsync()
+    public async Task GetLibrariesAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsNull()
     {
         // Arrange
-        await CreateLibrariesAsync();
+        await CreateLibraries();
 
         // Act
         var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10);
@@ -133,10 +133,10 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     }
 
     [Fact]
-    public async Task GetLibrariesAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsIdAsync()
+    public async Task GetLibrariesAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsId()
     {
         // Arrange
-        await CreateLibrariesAsync();
+        await CreateLibraries();
 
         // Act
         var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Id, null, 1, 10);
@@ -150,10 +150,10 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     }
 
     [Fact]
-    public async Task GetLibrariesAsync_ShouldReturnItemsPagedListOrderByName_WhenSortColumnIsNameAsync()
+    public async Task GetLibrariesAsync_ShouldReturnItemsPagedListOrderByName_WhenSortColumnIsName()
     {
         // Arrange
-        await CreateLibrariesAsync();
+        await CreateLibraries();
 
         // Act
         var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, null, 1, 10);
@@ -167,10 +167,10 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     }
 
     [Fact]
-    public async Task GetLibrariesAsync_ShouldReturnItemsPagedListOrderDescendingByName_WhenSortColumnIsNameAndSorterOrderIsDescAsync()
+    public async Task GetLibrariesAsync_ShouldReturnItemsPagedListOrderDescendingByName_WhenSortColumnIsNameAndSorterOrderIsDesc()
     {
         // Arrange
-        await CreateLibrariesAsync();
+        await CreateLibraries();
 
         // Act
         var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Descending, 1, 10);

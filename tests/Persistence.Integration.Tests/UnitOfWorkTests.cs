@@ -9,7 +9,7 @@ namespace Persistence.Tests;
 public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]
-    public async Task Savechanges_CreateAsync()
+    public async Task Savechanges_Create()
     {
         // Arrange
         var guid = Guid.NewGuid().ToString();
@@ -29,7 +29,7 @@ public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : LibraryInte
     }
 
     [Fact]
-    public async Task Savechanges_ModifyAsync()
+    public async Task Savechanges_Modify()
     {
         // Arrange
         var guid = Guid.NewGuid().ToString();

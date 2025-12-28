@@ -8,7 +8,7 @@ namespace Persistence.Tests.Integration.Repositories;
 public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : BookIntegrationTest(factory)
 {
     [Fact]
-    public async Task GetByIdAsync_ShouldReturnBook_WhenBookExistsAsync()
+    public async Task GetByIdAsync_ShouldReturnBook_WhenBookExists()
     {
         // Arrange
         var book = Book.Create("Spider-Man", "Amazing Spider-Man", "9780785123456");
@@ -28,7 +28,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIdAsync_ShouldReturnNull_WhenBookDoesNotExistAsync()
+    public async Task GetByIdAsync_ShouldReturnNull_WhenBookDoesNotExist()
     {
         // Arrange
         var nonExistentId = Guid.CreateVersion7();
@@ -41,7 +41,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIdAsync_ShouldThrowException_WhenIdIsDefaultAsync()
+    public async Task GetByIdAsync_ShouldThrowException_WhenIdIsDefault()
     {
         // Arrange
         var defaultId = Guid.Empty;
@@ -54,7 +54,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIdAsync_ShouldIncludeReadingDates_WhenBookHasReadingDatesAsync()
+    public async Task GetByIdAsync_ShouldIncludeReadingDates_WhenBookHasReadingDates()
     {
         // Arrange
         var book = Book.Create("X-Men", "Uncanny X-Men", "9780785134567");
@@ -73,7 +73,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task Add_ShouldAddBook_WhenBookIsValidAsync()
+    public async Task Add_ShouldAddBook_WhenBookIsValid()
     {
         // Arrange
         var book = Book.Create("Batman", "The Dark Knight Returns", "9780785145678");
@@ -92,7 +92,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task Add_ShouldThrowException_WhenAddBookWithSameIdTwiceAsync()
+    public async Task Add_ShouldThrowException_WhenAddBookWithSameIdTwice()
     {
         // Arrange
         var book = Book.Create("Superman", "Man of Steel", "9780785156789");
@@ -107,7 +107,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task Update_ShouldUpdateBook_WhenBookExistsAsync()
+    public async Task Update_ShouldUpdateBook_WhenBookExists()
     {
         // Arrange
         var book = Book.Create("Avengers", "The Avengers", "9780785167890", 1);
@@ -129,7 +129,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task Remove_ShouldRemoveBook_WhenBookExistsAsync()
+    public async Task Remove_ShouldRemoveBook_WhenBookExists()
     {
         // Arrange
         var book = Book.Create("Wonder Woman", "Wonder Woman Vol 1", "9780785178901");
@@ -147,7 +147,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task Count_ShouldReturnZero_WhenNoBooksExistAsync()
+    public async Task Count_ShouldReturnZero_WhenNoBooksExist()
     {
         // Act
         var count = BookRepository.Count();
@@ -157,7 +157,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task Count_ShouldReturnCorrectCount_WhenBooksExistAsync()
+    public async Task Count_ShouldReturnCorrectCount_WhenBooksExist()
     {
         // Arrange
         var book1 = Book.Create("Flash", "The Flash", "9780785189012");
@@ -176,7 +176,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task ListAsync_ShouldReturnAllBooks_WhenBooksExistAsync()
+    public async Task ListAsync_ShouldReturnAllBooks_WhenBooksExist()
     {
         // Arrange
         var book1 = Book.Create("Justice League", "Justice League Vol 1", "9780785192345");
@@ -196,7 +196,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task ListAsync_ShouldReturnEmptyList_WhenNoBooksExistAsync()
+    public async Task ListAsync_ShouldReturnEmptyList_WhenNoBooksExist()
     {
         // Act
         var list = await BookRepository.ListAsync();
@@ -206,7 +206,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task ListAsync_ShouldIncludeReadingDates_WhenBooksHaveReadingDatesAsync()
+    public async Task ListAsync_ShouldIncludeReadingDates_WhenBooksHaveReadingDates()
     {
         // Arrange
         var book1 = Book.Create("Fantastic Four", "Fantastic Four Vol 1", "9780785195678");
@@ -232,7 +232,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task ListAsyncWithCancellationToken_ShouldReturnAllBooks_WhenBooksExistAsync()
+    public async Task ListAsyncWithCancellationToken_ShouldReturnAllBooks_WhenBooksExist()
     {
         // Arrange
         var book1 = Book.Create("Black Panther", "Black Panther Vol 1", "9780785197890");
@@ -249,7 +249,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIsbnAsync_ShouldReturnBook_WhenIsbnExistsAsync()
+    public async Task GetByIsbnAsync_ShouldReturnBook_WhenIsbnExists()
     {
         // Arrange
         var book = Book.Create("Daredevil", "Daredevil Vol 1", "9780785199012");
@@ -267,7 +267,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIsbnAsync_ShouldReturnBook_WhenIsbnIsNormalizedAsync()
+    public async Task GetByIsbnAsync_ShouldReturnBook_WhenIsbnIsNormalized()
     {
         // Arrange
         var book = Book.Create("Punisher", "The Punisher", "9780785200123");
@@ -284,7 +284,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIsbnAsync_ShouldReturnNull_WhenIsbnDoesNotExistAsync()
+    public async Task GetByIsbnAsync_ShouldReturnNull_WhenIsbnDoesNotExist()
     {
         // Arrange
         var book = Book.Create("Hawkeye", "Hawkeye Vol 1", "9780785201234");
@@ -299,7 +299,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsNullAsync()
+    public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsNull()
     {
         // Act
         var action = async () => await BookRepository.GetByIsbnAsync(null!);
@@ -310,7 +310,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsEmptyAsync()
+    public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsEmpty()
     {
         // Act
         var action = async () => await BookRepository.GetByIsbnAsync(string.Empty);
@@ -321,7 +321,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsWhitespaceAsync()
+    public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsWhitespace()
     {
         // Act
         var action = async () => await BookRepository.GetByIsbnAsync("   ");
@@ -332,7 +332,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIsbnAsync_ShouldHandleIsbn10Format_WhenProvidedAsync()
+    public async Task GetByIsbnAsync_ShouldHandleIsbn10Format_WhenProvided()
     {
         // Arrange
         var book = Book.Create("Iron Man", "Iron Man Vol 1", "043965548X");
@@ -349,7 +349,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIsbnAsync_ShouldHandleIsbnWithSpaces_WhenProvidedAsync()
+    public async Task GetByIsbnAsync_ShouldHandleIsbnWithSpaces_WhenProvided()
     {
         // Arrange
         var book = Book.Create("Thor", "Thor Vol 1", "9780785202345");
@@ -366,7 +366,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task GetByIsbnAsync_ShouldBeCaseInsensitive_WhenIsbn10HasXAsync()
+    public async Task GetByIsbnAsync_ShouldBeCaseInsensitive_WhenIsbn10HasX()
     {
         // Arrange
         var book = Book.Create("Loki", "Loki Vol 1", "043965548X");

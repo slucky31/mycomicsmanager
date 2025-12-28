@@ -10,7 +10,7 @@ namespace Persistence.Tests;
 public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]
-    public async Task CreateAsync_Should_ReturnPagedListAsync()
+    public async Task CreateAsync_Should_ReturnPagedList()
     {
         // Arrange
         const int nbItems = 50;
@@ -41,7 +41,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     private readonly List<string> _list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
     [Fact]
-    public async Task PagedList_TotalCountAsync()
+    public async Task PagedList_TotalCount()
     {
         // Arrange : https://github.com/romantitov/MockQueryable
         var query = _list.BuildMock();
@@ -55,7 +55,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     }
 
     [Fact]
-    public async Task PagedList_FirstPage_HasNextPageAsync_And_HasNoPreviousPageAsync()
+    public async Task PagedList_FirstPage_HasNextPageAsync_And_HasNoPreviousPage()
     {
         // Arrange
         var query = _list.BuildMock();
@@ -71,7 +71,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     }
 
     [Fact]
-    public async Task PagedList_SecondPage_HasNextPageAsync_And_HasPreviousPageAsync()
+    public async Task PagedList_SecondPage_HasNextPageAsync_And_HasPreviousPage()
     {
         // Arrange
         var query = _list.BuildMock();
@@ -89,7 +89,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     }
 
     [Fact]
-    public async Task PagedList_FifthPage_HasNoNextPageAsync_And_HasPreviousPageAsync()
+    public async Task PagedList_FifthPage_HasNoNextPageAsync_And_HasPreviousPage()
     {
         // Arrange
         var query = _list.BuildMock();
@@ -106,7 +106,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     }
 
     [Fact]
-    public async Task PagedList_SixthPage_HasNoNextPageAsync_And_HasPreviousPageAsync()
+    public async Task PagedList_SixthPage_HasNoNextPageAsync_And_HasPreviousPage()
     {
         // Arrange
         var query = _list.BuildMock();

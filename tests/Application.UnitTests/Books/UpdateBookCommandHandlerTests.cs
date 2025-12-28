@@ -49,7 +49,7 @@ public class UpdateBookCommandHandlerTests
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
         _bookRepositoryMock.GetByIdAsync(s_validCommand.Id).Returns(existingBook);
-        _bookRepositoryMock.List().Returns(new List<Book> { existingBook });
+        _bookRepositoryMock.ListAsync().Returns(new List<Book> { existingBook });
 
         // Act
         var result = await _handler.Handle(s_validCommand, default);
@@ -72,7 +72,7 @@ public class UpdateBookCommandHandlerTests
         // Arrange
         var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
         _bookRepositoryMock.GetByIdAsync(s_validCommand.Id).Returns(existingBook);
-        _bookRepositoryMock.List().Returns(new List<Book> { existingBook });
+        _bookRepositoryMock.ListAsync().Returns(new List<Book> { existingBook });
 
         // Act
         await _handler.Handle(s_validCommand, default);
@@ -428,7 +428,7 @@ public class UpdateBookCommandHandlerTests
         var book3 = CreateBookWithId(bookId3, "Serie 3", "Title 3", "978-0-451-52493-5");
 
         _bookRepositoryMock.GetByIdAsync(bookId1).Returns(book1);
-        _bookRepositoryMock.List().Returns(new List<Book> { book1, book2, book3 });
+        _bookRepositoryMock.ListAsync().Returns(new List<Book> { book1, book2, book3 });
 
         // Mock GetByIsbnAsync to return book2 when queried with its ISBN
         _bookRepositoryMock.GetByIsbnAsync("9780306406157", Arg.Any<CancellationToken>()).Returns(book2);

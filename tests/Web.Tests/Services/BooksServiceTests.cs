@@ -42,7 +42,7 @@ public sealed class BooksServiceTests
     #region GetById Tests
 
     [Fact]
-    public async Task GetById_ShouldReturnValidationError_WhenIdIsNullAsync()
+    public async Task GetById_ShouldReturnValidationError_WhenIdIsNull()
     {
         // Arrange
         string? id = null;
@@ -57,7 +57,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task GetById_ShouldReturnValidationError_WhenIdIsEmptyAsync()
+    public async Task GetById_ShouldReturnValidationError_WhenIdIsEmpty()
     {
         // Arrange
         var id = string.Empty;
@@ -72,7 +72,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task GetById_ShouldReturnValidationError_WhenIdIsInvalidGuidAsync()
+    public async Task GetById_ShouldReturnValidationError_WhenIdIsInvalidGuid()
     {
         // Arrange
         const string id = "invalid-guid";
@@ -87,7 +87,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task GetById_ShouldCallHandler_WhenIdIsValidGuidAsync()
+    public async Task GetById_ShouldCallHandler_WhenIdIsValidGuid()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -106,7 +106,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task GetById_ShouldReturnBook_WhenBookExistsAsync()
+    public async Task GetById_ShouldReturnBook_WhenBookExists()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -131,7 +131,7 @@ public sealed class BooksServiceTests
     #region Create Tests (3 parameters)
 
     [Fact]
-    public async Task Create_With3Parameters_ShouldCallFullCreateWithDefaultsAsync()
+    public async Task Create_With3Parameters_ShouldCallFullCreateWithDefaults()
     {
         // Arrange
         const string series = "Test Series";
@@ -161,7 +161,7 @@ public sealed class BooksServiceTests
     #region Create Tests (4 parameters)
 
     [Fact]
-    public async Task Create_With4Parameters_ShouldCallFullCreateWithDefaultsAsync()
+    public async Task Create_With4Parameters_ShouldCallFullCreateWithDefaults()
     {
         // Arrange
         const string series = "Test Series";
@@ -192,7 +192,7 @@ public sealed class BooksServiceTests
     #region Create Tests (5 parameters)
 
     [Fact]
-    public async Task Create_With5Parameters_ShouldCallHandlerWithAllParametersAsync()
+    public async Task Create_With5Parameters_ShouldCallHandlerWithAllParameters()
     {
         // Arrange
         const string series = "Test Series";
@@ -220,7 +220,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With5Parameters_ShouldReturnCreatedBookAsync()
+    public async Task Create_With5Parameters_ShouldReturnCreatedBook()
     {
         // Arrange
         const string series = "Marvel";
@@ -247,7 +247,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With5Parameters_ShouldPassCancellationTokenAsync()
+    public async Task Create_With5Parameters_ShouldPassCancellationToken()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -269,7 +269,7 @@ public sealed class BooksServiceTests
     #region Update Tests
 
     [Fact]
-    public async Task Update_ShouldReturnValidationError_WhenIdIsNullAsync()
+    public async Task Update_ShouldReturnValidationError_WhenIdIsNull()
     {
         // Arrange
         string? id = null;
@@ -284,7 +284,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_ShouldReturnValidationError_WhenIdIsInvalidGuidAsync()
+    public async Task Update_ShouldReturnValidationError_WhenIdIsInvalidGuid()
     {
         // Arrange
         const string id = "not-a-guid";
@@ -299,7 +299,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_ShouldCallHandler_WhenIdIsValidGuidAsync()
+    public async Task Update_ShouldCallHandler_WhenIdIsValidGuid()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -329,7 +329,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_ShouldReturnUpdatedBookAsync()
+    public async Task Update_ShouldReturnUpdatedBook()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -355,7 +355,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_ShouldPassCancellationTokenAsync()
+    public async Task Update_ShouldPassCancellationToken()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -378,7 +378,7 @@ public sealed class BooksServiceTests
     #region GetAll Tests
 
     [Fact]
-    public async Task GetAll_ShouldCallHandlerAsync()
+    public async Task GetAll_ShouldCallHandler()
     {
         // Arrange
         var books = new List<Book>
@@ -400,7 +400,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task GetAll_ShouldReturnListOfBooksAsync()
+    public async Task GetAll_ShouldReturnListOfBooks()
     {
         // Arrange
         var expectedBooks = new List<Book>
@@ -423,7 +423,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task GetAll_ShouldReturnEmptyList_WhenNoBooksExistAsync()
+    public async Task GetAll_ShouldReturnEmptyList_WhenNoBooksExist()
     {
         // Arrange
         var emptyList = new List<Book>();
@@ -444,7 +444,7 @@ public sealed class BooksServiceTests
     #region Delete Tests
 
     [Fact]
-    public async Task Delete_ShouldReturnValidationError_WhenIdIsNullAsync()
+    public async Task Delete_ShouldReturnValidationError_WhenIdIsNull()
     {
         // Arrange
         string? id = null;
@@ -459,7 +459,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Delete_ShouldReturnValidationError_WhenIdIsEmptyAsync()
+    public async Task Delete_ShouldReturnValidationError_WhenIdIsEmpty()
     {
         // Arrange
         var id = string.Empty;
@@ -474,7 +474,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Delete_ShouldReturnValidationError_WhenIdIsInvalidGuidAsync()
+    public async Task Delete_ShouldReturnValidationError_WhenIdIsInvalidGuid()
     {
         // Arrange
         const string id = "invalid-guid-format";
@@ -489,7 +489,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Delete_ShouldCallHandler_WhenIdIsValidGuidAsync()
+    public async Task Delete_ShouldCallHandler_WhenIdIsValidGuid()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -507,7 +507,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Delete_ShouldReturnSuccess_WhenDeletionSucceedsAsync()
+    public async Task Delete_ShouldReturnSuccess_WhenDeletionSucceeds()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -522,7 +522,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Delete_ShouldPassCancellationTokenAsync()
+    public async Task Delete_ShouldPassCancellationToken()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -540,7 +540,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Delete_ShouldReturnFailure_WhenHandlerReturnsFailureAsync()
+    public async Task Delete_ShouldReturnFailure_WhenHandlerReturnsFailure()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();

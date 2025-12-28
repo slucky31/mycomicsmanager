@@ -16,7 +16,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
 
     private readonly List<User> _users = [];
 
-    private async Task CreateUsersAsync()
+    private async Task CreateUsers()
     {
 
         UserRepository.Add(_usr1);
@@ -36,10 +36,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnPagedListAsync()
+    public async Task GetUsersAsync_ShouldReturnPagedList()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, SortOrder.Ascending, 1, 2);
@@ -52,10 +52,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnPagedList_WhichContainsComicsInNameAsync()
+    public async Task GetUsersAsync_ShouldReturnPagedList_WhichContainsComicsInName()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync("comics", null, null, 1, 3);
@@ -68,10 +68,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsNullAsync()
+    public async Task GetUsersAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsNull()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, null, null, 1, 10);
@@ -87,10 +87,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsEmptyAsync()
+    public async Task GetUsersAsync_ShouldReturnAllItemsPagedList_WhenSearchTermIsEmpty()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync("", null, null, 1, 10);
@@ -106,10 +106,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsNullAsync()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsNull()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, null, null, 1, 10);
@@ -123,10 +123,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsIdAsync()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderById_WhenSortColumnIsId()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Id, null, 1, 10);
@@ -140,10 +140,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByEmail_WhenSortColumnIsEmailAsync()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByEmail_WhenSortColumnIsEmail()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, null, 1, 10);
@@ -157,10 +157,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByEmail_WhenSortColumnIsEmailAndSortOrderIsDescAsync()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByEmail_WhenSortColumnIsEmailAndSortOrderIsDesc()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, SortOrder.Descending, 1, 10);
@@ -174,10 +174,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByAuthId_WhenSortColumnIsAuthIdAsync()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderByAuthId_WhenSortColumnIsAuthId()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.AuthId, null, 1, 10);
@@ -191,10 +191,10 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByAuthId_WhenSortColumnIsAuthIdAndSorterOrderIsDescAsync()
+    public async Task GetUsersAsync_ShouldReturnItemsPagedListOrderDescendingByAuthId_WhenSortColumnIsAuthIdAndSorterOrderIsDesc()
     {
         // Arrange
-        await CreateUsersAsync();
+        await CreateUsers();
 
         // Act
         var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.AuthId, SortOrder.Descending, 1, 10);
@@ -208,7 +208,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthIdAndEmail_WithValidData_ReturnsUserAsync()
+    public async Task GetUserByAuthIdAndEmail_WithValidData_ReturnsUser()
     {
         // Arrange
         var user = User.Create("test@test.com", "123456");
@@ -226,7 +226,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthIdAndEmail_WithInvalidData_ReturnsBadRequestAsync()
+    public async Task GetUserByAuthIdAndEmail_WithInvalidData_ReturnsBadRequest()
     {
         // Arrange
         const string email = "";
@@ -241,7 +241,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthIdOrEmail_WithNonExistingUser_ReturnsNotFoundAsync()
+    public async Task GetUserByAuthIdOrEmail_WithNonExistingUser_ReturnsNotFound()
     {
         // Arrange
         var user = User.Create("test@test.com", "123456");
@@ -255,7 +255,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByEmail_WhenEmailIsEmpty_ReturnsBadRequestAsync()
+    public async Task GetUserByEmail_WhenEmailIsEmpty_ReturnsBadRequest()
     {
         // Arrange
         var email = string.Empty;
@@ -269,7 +269,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByEmail_WhenUserNotFound_ReturnsNotFoundAsync()
+    public async Task GetUserByEmail_WhenUserNotFound_ReturnsNotFound()
     {
         // Arrange
         const string email = "test@example.com";
@@ -283,7 +283,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByEmail_WhenUserFound_ReturnsUserAsync()
+    public async Task GetUserByEmail_WhenUserFound_ReturnsUser()
     {
         // Arrange
         const string email = "test@example.com";
