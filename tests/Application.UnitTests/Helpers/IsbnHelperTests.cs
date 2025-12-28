@@ -6,681 +6,81 @@ public class IsbnHelperTests
 {
     #region IsValidISBN Tests
 
-    [Fact]
-    public void IsValidISBN_ShouldReturnFalse_WhenISBNIsNull()
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    public void IsValidISBN_ShouldReturnFalse_WhenISBNIsNullOrEmpty(string? isbn, bool expected)
     {
-        // Arrange
-        string? isbn = null;
-
         // Act
         var result = IsbnHelper.IsValidISBN(isbn!);
 
         // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnFalse_WhenISBNIsEmpty()
-    {
-        // Arrange
-        var isbn = string.Empty;
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN10WithDashes()
-    {
-        // Arrange
-        var isbn = "0-306-40615-2";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN10WithoutDashes()
-    {
-        // Arrange
-        var isbn = "0306406152";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN10WithXCheckDigit()
-    {
-        // Arrange - Valid ISBN-10 with X check digit
-        var isbn = "080442957X";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN10WithDashesAndX()
-    {
-        // Arrange
-        var isbn = "0-8044-2957-X";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN10WithLowercaseXConverted()
-    {
-        // Arrange - Lowercase x gets converted to uppercase
-        var isbn = "080442957x";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN13WithDashes()
-    {
-        // Arrange
-        var isbn = "978-0-306-40615-7";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN13WithoutDashes()
-    {
-        // Arrange
-        var isbn = "9780306406157";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN13WithSpaces()
-    {
-        // Arrange
-        var isbn = "978 0 306 40615 7";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN10WithSpaces()
-    {
-        // Arrange
-        var isbn = "0 306 40615 2";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnFalse_WhenISBNHasInvalidLength()
-    {
-        // Arrange
-        var isbn = "12345";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnFalse_WhenISBNHas11Digits()
-    {
-        // Arrange
-        var isbn = "12345678901";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnFalse_WhenISBNHas12Digits()
-    {
-        // Arrange
-        var isbn = "123456789012";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnTrue_WhenValidISBN13Example1()
-    {
-        // Arrange
-        var isbn = "978-3-16-148410-0";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnFalse_WhenInvalidChecksum()
-    {
-        // Arrange - Invalid checksum
-        var isbn = "978-3-16-148410-1";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldReturnFalse_WhenISBNHas14DigitsAfterCleaning()
-    {
-        // Arrange
-        var isbn = "978-0-306-40615-77";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldHandleMixedDashesAndSpaces()
-    {
-        // Arrange
-        var isbn = "978 0-306-40615 7";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN_ShouldRemoveMultipleSpaces()
-    {
-        // Arrange
-        var isbn = "978  0  306  40615  7";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    #endregion
-
-    #region IsValidISBN10 Tests
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnFalse_WhenISBNIsNull()
-    {
-        // Arrange
-        string? isbn = null;
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnFalse_WhenISBNIsEmpty()
-    {
-        // Arrange
-        var isbn = string.Empty;
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnTrue_WhenValidISBN10()
-    {
-        // Arrange
-        var isbn = "0306406152";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnTrue_WhenValidISBN10WithXCheckDigit()
-    {
-        // Arrange - Valid ISBN-10 with X check digit
-        var isbn = "080442957X";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnTrue_WhenAnotherValidISBN10WithX()
-    {
-        // Arrange
-        var isbn = "043942089X";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnFalse_WhenISBNContainsLetters()
-    {
-        // Arrange
-        var isbn = "03064A6152";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnFalse_WhenXIsNotLastCharacter()
-    {
-        // Arrange
-        var isbn = "0X06406152";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnFalse_WhenInvalidChecksum()
-    {
-        // Arrange
-        var isbn = "0306406153";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnFalse_WhenLastCharacterIsInvalid()
-    {
-        // Arrange
-        var isbn = "030640615Y";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnTrue_WhenValidISBN10Example1()
-    {
-        // Arrange
-        var isbn = "0345339681";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN10_ShouldReturnTrue_WhenValidISBN10Example2()
-    {
-        // Arrange
-        var isbn = "0684801221";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN10(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    #endregion
-
-    #region IsValidISBN13 Tests
-
-    [Fact]
-    public void IsValidISBN13_ShouldReturnFalse_WhenISBNIsNull()
-    {
-        // Arrange
-        string? isbn = null;
-
-        // Act
-        var result = IsbnHelper.IsValidISBN13(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN13_ShouldReturnFalse_WhenISBNIsEmpty()
-    {
-        // Arrange
-        var isbn = string.Empty;
-
-        // Act
-        var result = IsbnHelper.IsValidISBN13(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN13_ShouldReturnTrue_WhenValidISBN13()
-    {
-        // Arrange
-        var isbn = "9780306406157";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN13(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN13_ShouldReturnTrue_WhenValidISBN13Example1()
-    {
-        // Arrange
-        var isbn = "9783161484100";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN13(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN13_ShouldReturnTrue_WhenValidISBN13Example2()
-    {
-        // Arrange
-        var isbn = "9780451524935";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN13(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN13_ShouldReturnTrue_WhenValidISBN13Example3()
-    {
-        // Arrange
-        var isbn = "9780743273565";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN13(isbn);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidISBN13_ShouldReturnFalse_WhenISBNContainsLetters()
-    {
-        // Arrange
-        var isbn = "978030640615A";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN13(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN13_ShouldReturnFalse_WhenInvalidChecksum()
-    {
-        // Arrange
-        var isbn = "9780306406158";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN13(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidISBN13_ShouldReturnFalse_WhenContainsSpecialCharacters()
-    {
-        // Arrange - Dashes not removed by ISBN13 validator directly
-        var isbn = "978-0306406157";
-
-        // Act
-        var result = IsbnHelper.IsValidISBN13(isbn);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    #endregion
-
-    #region NormalizeIsbn Tests
-
-    [Fact]
-    public void NormalizeIsbn_ShouldReturnEmptyString_WhenISBNIsNull()
-    {
-        // Arrange
-        string? isbn = null;
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn!);
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldReturnEmptyString_WhenISBNIsEmpty()
-    {
-        // Arrange
-        var isbn = string.Empty;
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldRemoveDashes_WhenISBNContainsDashes()
-    {
-        // Arrange
-        var isbn = "978-0-306-40615-7";
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().Be("9780306406157");
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldRemoveSpaces_WhenISBNContainsSpaces()
-    {
-        // Arrange
-        var isbn = "978 0 306 40615 7";
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().Be("9780306406157");
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldRemoveDashesAndSpaces_WhenISBNContainsBoth()
-    {
-        // Arrange
-        var isbn = "978 0-306-40615 7";
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().Be("9780306406157");
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldConvertToUppercase_WhenISBNContainsLowercaseX()
-    {
-        // Arrange
-        var isbn = "080442957x";
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().Be("080442957X");
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldConvertToUppercase_WhenISBNContainsLowercaseLetters()
-    {
-        // Arrange
-        var isbn = "abcde12345";
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().Be("ABCDE12345");
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldReturnAsIs_WhenISBNIsAlreadyNormalized()
-    {
-        // Arrange
-        var isbn = "9780306406157";
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().Be("9780306406157");
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldRemoveMultipleDashes()
-    {
-        // Arrange
-        var isbn = "978--0--306--40615--7";
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().Be("9780306406157");
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldRemoveMultipleSpaces()
-    {
-        // Arrange
-        var isbn = "978  0  306  40615  7";
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().Be("9780306406157");
-    }
-
-    [Fact]
-    public void NormalizeIsbn_ShouldHandleMixedCase_WhenISBNContainsMixedCase()
-    {
-        // Arrange
-        var isbn = "0-8044-2957-x";
-
-        // Act
-        var result = IsbnHelper.NormalizeIsbn(isbn);
-
-        // Assert
-        result.Should().Be("080442957X");
+        result.Should().Be(expected);
     }
 
     [Theory]
-    [InlineData("978-0-306-40615-7", "9780306406157")]
-    [InlineData("978 0 306 40615 7", "9780306406157")]
-    [InlineData("9780306406157", "9780306406157")]
-    [InlineData("0-306-40615-2", "0306406152")]
-    [InlineData("080442957x", "080442957X")]
-    [InlineData("0-8044-2957-X", "080442957X")]
-    [InlineData("", "")]
-    [InlineData("978  0--306  40615--7", "9780306406157")]
-    public void NormalizeIsbn_ShouldNormalizeVariousFormats(string input, string expected)
+    [InlineData("0-306-40615-2", true)]
+    [InlineData("0306406152", true)]
+    [InlineData("0 306 40615 2", true)]
+    public void IsValidISBN_ShouldValidateISBN10_WithVariousFormats(string isbn, bool expected)
     {
         // Act
-        var result = IsbnHelper.NormalizeIsbn(input);
+        var result = IsbnHelper.IsValidISBN(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("080442957X", true)]
+    [InlineData("0-8044-2957-X", true)]
+    [InlineData("080442957x", true)]
+    [InlineData("043942089X", true)]
+    public void IsValidISBN_ShouldValidateISBN10_WithXCheckDigit(string isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("978-0-306-40615-7", true)]
+    [InlineData("9780306406157", true)]
+    [InlineData("978 0 306 40615 7", true)]
+    [InlineData("978 0-306-40615 7", true)]
+    [InlineData("978  0  306  40615  7", true)]
+    [InlineData("978-3-16-148410-0", true)]
+    public void IsValidISBN_ShouldValidateISBN13_WithVariousFormats(string isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("12345", false)]
+    [InlineData("12345678901", false)]
+    [InlineData("123456789012", false)]
+    [InlineData("978-0-306-40615-77", false)]
+    public void IsValidISBN_ShouldReturnFalse_WhenISBNHasInvalidLength(string isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("978-3-16-148410-1", false)]
+    public void IsValidISBN_ShouldReturnFalse_WhenInvalidChecksum(string isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN(isbn);
 
         // Assert
         result.Should().Be(expected);
@@ -688,7 +88,152 @@ public class IsbnHelperTests
 
     #endregion
 
-    #region Theory Tests
+    #region IsValidISBN10 Tests
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    public void IsValidISBN10_ShouldReturnFalse_WhenISBNIsNullOrEmpty(string? isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN10(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("0306406152", true)]
+    [InlineData("0345339681", true)]
+    [InlineData("0684801221", true)]
+    public void IsValidISBN10_ShouldReturnTrue_WhenValidISBN10(string isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN10(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("080442957X", true)]
+    [InlineData("043942089X", true)]
+    public void IsValidISBN10_ShouldReturnTrue_WhenValidISBN10WithXCheckDigit(string isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN10(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("03064A6152", false)]
+    [InlineData("0X06406152", false)]
+    [InlineData("030640615Y", false)]
+    [InlineData("0306406153", false)]
+    public void IsValidISBN10_ShouldReturnFalse_WhenInvalidISBN10(string isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN10(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    #endregion
+
+    #region IsValidISBN13 Tests
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    public void IsValidISBN13_ShouldReturnFalse_WhenISBNIsNullOrEmpty(string? isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN13(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("9780306406157", true)]
+    [InlineData("9783161484100", true)]
+    [InlineData("9780451524935", true)]
+    [InlineData("9780743273565", true)]
+    public void IsValidISBN13_ShouldReturnTrue_WhenValidISBN13(string isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN13(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("978030640615A", false)]
+    [InlineData("9780306406158", false)]
+    [InlineData("978-0306406157", false)]
+    public void IsValidISBN13_ShouldReturnFalse_WhenInvalidISBN13(string isbn, bool expected)
+    {
+        // Act
+        var result = IsbnHelper.IsValidISBN13(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    #endregion
+
+    #region NormalizeIsbn Tests
+
+    [Theory]
+    [InlineData(null, "")]
+    [InlineData("", "")]
+    public void NormalizeIsbn_ShouldReturnEmptyString_WhenISBNIsNullOrEmpty(string? isbn, string expected)
+    {
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn!);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("978-0-306-40615-7", "9780306406157")]
+    [InlineData("978 0 306 40615 7", "9780306406157")]
+    [InlineData("978 0-306-40615 7", "9780306406157")]
+    [InlineData("978--0--306--40615--7", "9780306406157")]
+    [InlineData("978  0  306  40615  7", "9780306406157")]
+    [InlineData("9780306406157", "9780306406157")]
+    public void NormalizeIsbn_ShouldRemoveDashesAndSpaces(string isbn, string expected)
+    {
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("080442957x", "080442957X")]
+    [InlineData("0-8044-2957-x", "080442957X")]
+    [InlineData("abcde12345", "ABCDE12345")]
+    [InlineData("0-306-40615-2", "0306406152")]
+    [InlineData("0-8044-2957-X", "080442957X")]
+    public void NormalizeIsbn_ShouldConvertToUppercase(string isbn, string expected)
+    {
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    #endregion
+
+    #region Comprehensive Theory Tests
 
     [Theory]
     [InlineData("0-306-40615-2", true)]
@@ -736,6 +281,24 @@ public class IsbnHelperTests
     {
         // Act
         var result = IsbnHelper.IsValidISBN13(isbn);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("978-0-306-40615-7", "9780306406157")]
+    [InlineData("978 0 306 40615 7", "9780306406157")]
+    [InlineData("9780306406157", "9780306406157")]
+    [InlineData("0-306-40615-2", "0306406152")]
+    [InlineData("080442957x", "080442957X")]
+    [InlineData("0-8044-2957-X", "080442957X")]
+    [InlineData("", "")]
+    [InlineData("978  0--306  40615--7", "9780306406157")]
+    public void NormalizeIsbn_ShouldNormalizeVariousFormats(string input, string expected)
+    {
+        // Act
+        var result = IsbnHelper.NormalizeIsbn(input);
 
         // Assert
         result.Should().Be(expected);

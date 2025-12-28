@@ -9,7 +9,7 @@ public class ReadingDateTests
     {
         // Arrange
         var date = new DateTime(2024, 1, 15, 10, 30, 0);
-        var note = "Great reading session";
+        const string note = "Great reading session";
         var bookId = Guid.NewGuid();
 
         // Act
@@ -47,7 +47,7 @@ public class ReadingDateTests
     {
         // Arrange
         var date = new DateTime(2024, 3, 10);
-        var note = "Test note";
+        const string note = "Test note";
         var bookId = Guid.NewGuid();
 
         // Act
@@ -62,7 +62,7 @@ public class ReadingDateTests
     {
         // Arrange
         var date = new DateTime(2024, 1, 15);
-        var note = "Test note";
+        const string note = "Test note";
         var bookId = Guid.NewGuid();
 
         // Act
@@ -78,11 +78,11 @@ public class ReadingDateTests
     {
         // Arrange
         var originalDate = new DateTime(2024, 1, 15);
-        var originalNote = "Original note";
+        const string originalNote = "Original note";
         var bookId = Guid.NewGuid();
         var readingDate = ReadingDate.Create(originalDate, originalNote, bookId);
         var newDate = new DateTime(2024, 2, 20);
-        var newNote = "Updated note";
+        const string newNote = "Updated note";
 
         // Act
         readingDate.Update(newDate, newNote);
@@ -97,11 +97,11 @@ public class ReadingDateTests
     {
         // Arrange
         var originalDate = new DateTime(2024, 1, 15);
-        var originalNote = "Original note";
+        const string originalNote = "Original note";
         var bookId = Guid.NewGuid();
         var readingDate = ReadingDate.Create(originalDate, originalNote, bookId);
         var newDate = new DateTime(2024, 2, 20);
-        var newNote = "Updated note";
+        const string newNote = "Updated note";
 
         // Act
         readingDate.Update(newDate, newNote);
@@ -115,12 +115,12 @@ public class ReadingDateTests
     {
         // Arrange
         var originalDate = new DateTime(2024, 1, 15);
-        var originalNote = "Original note";
+        const string originalNote = "Original note";
         var bookId = Guid.NewGuid();
         var readingDate = ReadingDate.Create(originalDate, originalNote, bookId);
         var originalId = readingDate.Id;
         var newDate = new DateTime(2024, 2, 20);
-        var newNote = "Updated note";
+        const string newNote = "Updated note";
 
         // Act
         readingDate.Update(newDate, newNote);
@@ -134,7 +134,7 @@ public class ReadingDateTests
     {
         // Arrange
         var originalDate = new DateTime(2024, 1, 15);
-        var originalNote = "Original note";
+        const string originalNote = "Original note";
         var bookId = Guid.NewGuid();
         var readingDate = ReadingDate.Create(originalDate, originalNote, bookId);
         var newDate = new DateTime(2024, 2, 20);
@@ -157,9 +157,9 @@ public class ReadingDateTests
         var readingDate = ReadingDate.Create(originalDate, "First note", bookId);
 
         var secondDate = new DateTime(2024, 2, 20);
-        var secondNote = "Second note";
+        const string secondNote = "Second note";
         var thirdDate = new DateTime(2024, 3, 25);
-        var thirdNote = "Third note";
+        const string thirdNote = "Third note";
 
         // Act
         readingDate.Update(secondDate, secondNote);
