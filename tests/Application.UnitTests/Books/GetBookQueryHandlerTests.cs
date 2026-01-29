@@ -19,6 +19,21 @@ public sealed class GetBookQueryHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldReturnBadRequest_WhenRequestIsNull()
+    {
+        // Arrange
+        GetBookByIdQuery? query = null;
+
+        // Act
+        var result = await _handler.Handle(query!, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
+        await _bookRepository.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnBadRequest_WhenIdIsEmpty()
     {
         // Arrange
