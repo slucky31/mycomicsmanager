@@ -8,5 +8,6 @@ public record CreateBookCommand(
     string Title,
     string ISBN,
     int VolumeNumber = 1,
-    string ImageLink = ""
+    string ImageLink = "",
+    int Rating = 0
 ) : ICommand<Book>;

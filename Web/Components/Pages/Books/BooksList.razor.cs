@@ -74,7 +74,8 @@ public partial class BooksList
                     b.Title,
                     b.ISBN,
                     b.VolumeNumber,
-                    b.ImageLink
+                    b.ImageLink,
+                    b.Rating
                 );
 
                 await DisplaySnackbarAsync(res.IsSuccess, "Book created successfully", $"Failed to create book: {res.Error?.Description}");
@@ -87,7 +88,8 @@ public partial class BooksList
                     b.Title,
                     b.ISBN,
                     b.VolumeNumber,
-                    b.ImageLink
+                    b.ImageLink,
+                    b.Rating
                 );
 
                 await DisplaySnackbarAsync(res.IsSuccess, "Book updated successfully", $"Failed to update book: {res.Error?.Description}");

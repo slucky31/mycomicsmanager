@@ -30,6 +30,9 @@ public class BookValidator : AbstractValidator<BookUiDto>
 
         RuleFor(x => x.ImageLink)
             .MaximumLength(maxImageLinkLength).WithMessage($"Image link must not exceed {maxImageLinkLength} characters.");
+
+        RuleFor(x => x.Rating)
+            .InclusiveBetween(0, 5).WithMessage("Rating must be between 0 and 5.");
     }
 
     private static bool BeValidISBN(string isbn)

@@ -115,7 +115,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        book.Update("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg");
+        book.Update("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg", 4);
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -126,6 +126,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         savedBook.Title.Should().Be("New Avengers");
         savedBook.VolumeNumber.Should().Be(2);
         savedBook.ImageLink.Should().Be("http://example.com/image.jpg");
+        savedBook.Rating.Should().Be(4);
     }
 
     [Fact]

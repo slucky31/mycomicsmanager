@@ -9,5 +9,6 @@ public record UpdateBookCommand(
     string Title,
     string ISBN,
     int VolumeNumber,
-    string ImageLink
+    string ImageLink,
+    int Rating
 ) : ICommand<Book>;

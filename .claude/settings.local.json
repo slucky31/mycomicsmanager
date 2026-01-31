@@ -6,7 +6,9 @@
       "Bash(dotnet test:*)",
       "Bash(dotnet clean:*)",
       "Bash(dotnet-coverage collect:*)",
-      "Bash(reportgenerator:*)"
+      "Bash(reportgenerator:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet format:*)"
     ]
   }
 }

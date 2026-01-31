@@ -14,7 +14,8 @@ public class CreateBookCommandHandlerTests
         "Test Title",
         "978-3-16-148410-0",
         1,
-        "https://example.com/image.jpg"
+        "https://example.com/image.jpg",
+        4
     );
 
     private readonly CreateBookCommandHandler _handler;

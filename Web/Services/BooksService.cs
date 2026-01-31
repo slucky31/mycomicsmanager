@@ -30,29 +30,29 @@ public class BooksService(
 
     public async Task<Result<Book>> Create(string series, string title, string isbn)
     {
-        return await Create(series, title, isbn, 1, "");
+        return await Create(series, title, isbn, 1, "", 0);
     }
 
     public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber)
     {
-        return await Create(series, title, isbn, volumeNumber, "");
+        return await Create(series, title, isbn, volumeNumber, "", 0);
     }
 
-    public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink, CancellationToken cancellationToken = default)
+    public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink, int rating, CancellationToken cancellationToken = default)
     {
-        var command = new CreateBookCommand(series, title, isbn, volumeNumber, imageLink);
+        var command = new CreateBookCommand(series, title, isbn, volumeNumber, imageLink, rating);
 
         return await createBookHandler.Handle(command, cancellationToken);
     }
 
-    public async Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink, CancellationToken cancellationToken = default)
+    public async Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink, int rating, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(id, out var guidId))
         {
             return BooksError.ValidationError;
         }
 
-        var command = new UpdateBookCommand(guidId, series, title, isbn, volumeNumber, imageLink);
+        var command = new UpdateBookCommand(guidId, series, title, isbn, volumeNumber, imageLink, rating);
 
         return await updateBookHandler.Handle(command, cancellationToken);
     }

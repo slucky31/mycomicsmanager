@@ -36,7 +36,7 @@ public class IsbnHelperTests
 
         // Assert
         result.Should().Be(expected);
-    }    
+    }
 
     [Theory]
     [InlineData(null, false)]
@@ -58,7 +58,7 @@ public class IsbnHelperTests
         // Assert
         result.Should().Be(expected);
     }
-   
+
     [Theory]
     [InlineData(null, false)]
     [InlineData("", false)]
@@ -78,7 +78,7 @@ public class IsbnHelperTests
         result.Should().Be(expected);
     }
 
-    
+
     [Theory]
     [InlineData(null, "")]
     [InlineData("", "")]
@@ -102,5 +102,5 @@ public class IsbnHelperTests
         // Assert
         result.Should().Be(expected);
     }
-    
+
 }

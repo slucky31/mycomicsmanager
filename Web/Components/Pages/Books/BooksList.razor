@@ -55,6 +55,13 @@
                                     <MudText Class="ml-2" Typo="Typo.body2"><strong>Volume: </strong></MudText>
                                     <MudText Class="ml-2" Typo="Typo.body2">@book.VolumeNumber</MudText>
                                 </div>
+                                @if (book.Rating > 0)
+                                {
+                                    <div class="d-flex align-center">
+                                        <MudText Class="ml-2" Typo="Typo.body2"><strong>Rating: </strong></MudText>
+                                        <MudRating Class="ml-2" SelectedValue="@book.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" />
+                                    </div>
+                                }
                                 @if (book.ReadingDates.Any())
                                 {
                                     <div class="d-flex">

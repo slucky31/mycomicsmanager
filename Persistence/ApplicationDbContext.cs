@@ -8,13 +8,13 @@ namespace Persistence;
 
 public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
 {
-    public DbSet<Library> Libraries { get; set; }
+    public DbSet<Library>? Libraries { get; set; }
 
-    public DbSet<User> Users { get; set; }
+    public DbSet<User>? Users { get; set; }
 
-    public DbSet<Book> Books { get; set; }
+    public DbSet<Book>? Books { get; set; }
 
-    public DbSet<ReadingDate> ReadingDates { get; set; }
+    public DbSet<ReadingDate>? ReadingDates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

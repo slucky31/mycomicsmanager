@@ -5,11 +5,11 @@ using Application.Books.GetById;
 using Application.Books.List;
 using Application.Books.Update;
 using Ardalis.GuardClauses;
+using AwesomeAssertions;
 using Domain.Books;
 using Domain.Primitives;
 using NSubstitute;
 using Web.Services;
-using AwesomeAssertions;
 using Xunit;
 
 namespace Web.Tests.Services;
@@ -30,7 +30,7 @@ public sealed class BooksServiceTests
         _createBookHandler = Substitute.For<ICommandHandler<CreateBookCommand, Book>>();
         _updateBookHandler = Substitute.For<ICommandHandler<UpdateBookCommand, Book>>();
         _deleteBookHandler = Substitute.For<ICommandHandler<DeleteBookCommand>>();
-        
+
         _service = new BooksService(
             _getBookByIdHandler,
             _getBooksHandler,
@@ -189,10 +189,10 @@ public sealed class BooksServiceTests
 
     #endregion
 
-    #region Create Tests (5 parameters)
+    #region Create Tests (6 parameters)
 
     [Fact]
-    public async Task Create_With5Parameters_ShouldCallHandlerWithAllParameters()
+    public async Task Create_With6Parameters_ShouldCallHandlerWithAllParameters()
     {
         // Arrange
         const string series = "Test Series";
@@ -200,12 +200,13 @@ public sealed class BooksServiceTests
         const string isbn = "978-3-16-148410-0";
         const int volumeNumber = 5;
         const string imageLink = "https://example.com/cover.jpg";
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        const int rating = 4;
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Create(series, title, isbn, volumeNumber, imageLink);
+        var result = await _service.Create(series, title, isbn, volumeNumber, imageLink, rating);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -215,12 +216,13 @@ public sealed class BooksServiceTests
                 c.Title == title &&
                 c.ISBN == isbn &&
                 c.VolumeNumber == volumeNumber &&
-                c.ImageLink == imageLink),
+                c.ImageLink == imageLink &&
+                c.Rating == rating),
             Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Create_With5Parameters_ShouldReturnCreatedBook()
+    public async Task Create_With6Parameters_ShouldReturnCreatedBook()
     {
         // Arrange
         const string series = "Marvel";
@@ -228,12 +230,13 @@ public sealed class BooksServiceTests
         const string isbn = "978-3-16-148410-0";
         const int volumeNumber = 10;
         const string imageLink = "https://example.com/spiderman.jpg";
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        const int rating = 5;
+        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
         // Act
-        var result = await _service.Create(series, title, isbn, volumeNumber, imageLink);
+        var result = await _service.Create(series, title, isbn, volumeNumber, imageLink, rating);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -244,10 +247,11 @@ public sealed class BooksServiceTests
         result.Value.ISBN.Should().Be(isbn);
         result.Value.VolumeNumber.Should().Be(volumeNumber);
         result.Value.ImageLink.Should().Be(imageLink);
+        result.Value.Rating.Should().Be(rating);
     }
 
     [Fact]
-    public async Task Create_With5Parameters_ShouldPassCancellationToken()
+    public async Task Create_With6Parameters_ShouldPassCancellationToken()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -256,7 +260,7 @@ public sealed class BooksServiceTests
             .Returns(book);
 
         // Act
-        await _service.Create("Series", "Title", "978-3-16-148410-0", 1, "", cts.Token);
+        await _service.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, cts.Token);
 
         // Assert
         await _createBookHandler.Received(1).Handle(
@@ -275,7 +279,7 @@ public sealed class BooksServiceTests
         string? id = null;
 
         // Act
-        var result = await _service.Update(id, "Series", "Title", "978-3-16-148410-0", 1, "");
+        var result = await _service.Update(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -290,7 +294,7 @@ public sealed class BooksServiceTests
         const string id = "not-a-guid";
 
         // Act
-        var result = await _service.Update(id, "Series", "Title", "978-3-16-148410-0", 1, "");
+        var result = await _service.Update(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -308,12 +312,13 @@ public sealed class BooksServiceTests
         const string isbn = "978-3-16-148410-0";
         const int volumeNumber = 7;
         const string imageLink = "https://example.com/updated.jpg";
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        const int rating = 3;
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Update(bookId.ToString(), series, title, isbn, volumeNumber, imageLink);
+        var result = await _service.Update(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -324,7 +329,8 @@ public sealed class BooksServiceTests
                 c.Title == title &&
                 c.ISBN == isbn &&
                 c.VolumeNumber == volumeNumber &&
-                c.ImageLink == imageLink),
+                c.ImageLink == imageLink &&
+                c.Rating == rating),
             Arg.Any<CancellationToken>());
     }
 
@@ -338,12 +344,13 @@ public sealed class BooksServiceTests
         const string isbn = "978-3-16-148410-0";
         const int volumeNumber = 15;
         const string imageLink = "https://example.com/batman.jpg";
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        const int rating = 5;
+        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
         // Act
-        var result = await _service.Update(bookId.ToString(), series, title, isbn, volumeNumber, imageLink);
+        var result = await _service.Update(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -352,6 +359,7 @@ public sealed class BooksServiceTests
         result.Value.Serie.Should().Be(series);
         result.Value.Title.Should().Be(title);
         result.Value.VolumeNumber.Should().Be(volumeNumber);
+        result.Value.Rating.Should().Be(rating);
     }
 
     [Fact]
@@ -365,7 +373,7 @@ public sealed class BooksServiceTests
             .Returns(book);
 
         // Act
-        await _service.Update(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", cts.Token);
+        await _service.Update(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0, cts.Token);
 
         // Assert
         await _updateBookHandler.Received(1).Handle(

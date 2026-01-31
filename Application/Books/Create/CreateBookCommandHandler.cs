@@ -35,7 +35,7 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         }
 
         // Create Book
-        var book = Book.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink);
+        var book = Book.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink, request.Rating);
 
         bookRepository.Add(book);
         await unitOfWork.SaveChangesAsync(cancellationToken);

@@ -22,7 +22,7 @@ public class HtmlDataParser
         Log.Information("Load information from {Url}", url.ToString());
         Doc = Web.Load(url);
         return Doc != null;
-    }    
+    }
 
     public HtmlNode ExtractSingleNode(string htmlPath)
     {

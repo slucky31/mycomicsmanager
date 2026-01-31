@@ -41,7 +41,7 @@ public sealed class UpdateBookCommandHandler(IBookRepository bookRepository, IUn
         }
 
         // Update the book
-        book.Update(request.Serie, request.Title, request.ISBN, request.VolumeNumber, request.ImageLink);
+        book.Update(request.Serie, request.Title, request.ISBN, request.VolumeNumber, request.ImageLink, request.Rating);
 
         bookRepository.Update(book);
         await unitOfWork.SaveChangesAsync(cancellationToken);

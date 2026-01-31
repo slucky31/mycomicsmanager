@@ -23,6 +23,7 @@ public class BookTests
         book.ISBN.Should().Be(isbn);
         book.VolumeNumber.Should().Be(1);
         book.ImageLink.Should().Be(string.Empty);
+        book.Rating.Should().Be(0);
         book.ReadingDates.Should().BeEmpty();
     }
 
@@ -46,6 +47,7 @@ public class BookTests
         book.ISBN.Should().Be(isbn);
         book.VolumeNumber.Should().Be(volumeNumber);
         book.ImageLink.Should().Be(string.Empty);
+        book.Rating.Should().Be(0);
         book.ReadingDates.Should().BeEmpty();
     }
 
@@ -58,9 +60,10 @@ public class BookTests
         const string isbn = "9781401284794";
         const int volumeNumber = 3;
         const string imageLink = "https://example.com/image.jpg";
+        const int rating = 4;
 
         // Act
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
 
         // Assert
         book.Should().NotBeNull();
@@ -70,6 +73,7 @@ public class BookTests
         book.ISBN.Should().Be(isbn);
         book.VolumeNumber.Should().Be(volumeNumber);
         book.ImageLink.Should().Be(imageLink);
+        book.Rating.Should().Be(rating);
         book.ReadingDates.Should().BeEmpty();
     }
 
@@ -98,9 +102,10 @@ public class BookTests
         const string newIsbn = "9876543210";
         const int newVolumeNumber = 5;
         const string newImageLink = "https://example.com/new-image.jpg";
+        const int newRating = 5;
 
         // Act
-        book.Update(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink);
+        book.Update(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink, newRating);
 
         // Assert
         book.Serie.Should().Be(newSeries);
@@ -108,6 +113,7 @@ public class BookTests
         book.ISBN.Should().Be(newIsbn);
         book.VolumeNumber.Should().Be(newVolumeNumber);
         book.ImageLink.Should().Be(newImageLink);
+        book.Rating.Should().Be(newRating);
     }
 
     [Fact]

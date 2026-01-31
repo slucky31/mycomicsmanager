@@ -21,8 +21,11 @@ public class BookUiDto : Entity<Guid>
     [Label("Image Link")]
     public string ImageLink { get; set; } = string.Empty;
 
+    [Label("Rating")]
+    public int Rating { get; set; } = 0;
+
     public static BookUiDto Convert(Book book)
-    {       
+    {
         return new BookUiDto
         {
             Id = book.Id,
@@ -31,6 +34,7 @@ public class BookUiDto : Entity<Guid>
             ISBN = book.ISBN,
             VolumeNumber = book.VolumeNumber,
             ImageLink = book.ImageLink,
+            Rating = book.Rating,
             CreatedOnUtc = book.CreatedOnUtc,
             ModifiedOnUtc = book.ModifiedOnUtc
         };
