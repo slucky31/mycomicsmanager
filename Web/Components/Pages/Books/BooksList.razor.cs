@@ -9,6 +9,13 @@ using Web.Validators;
 
 namespace Web.Components.Pages.Books;
 
+public enum ViewMode
+{
+    Cards,
+    Covers,
+    List
+}
+
 public partial class BooksList
 {
 
@@ -25,6 +32,8 @@ public partial class BooksList
     private ISnackbar Snackbar { get; set; } = default!;
 
     private List<Book> Books { get; set; } = [];
+
+    private ViewMode CurrentViewMode { get; set; } = ViewMode.Cards;
 
     protected override async Task OnInitializedAsync()
     {

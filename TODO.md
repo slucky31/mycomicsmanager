@@ -49,3 +49,17 @@
 
 
 # Aller chercher la photo et ajouter l'image dans cdn images
+
+
+# refonte graphique
+
+Quel style de design préférez-vous pour les cartes de livres?
+
+  1. Cards avec hover effects
+     Cartes avec animations au survol, ombres dynamiques et transitions fluides
+  2. Magazine/Cover focus
+     Design centré sur la couverture du livre en grand format, style bibliothèque visuelle
+❯ 3. Liste compacte
+     Vue liste avec plus d'informations visibles, idéale pour les grandes collections
+  4. Masonry grid
+     Grille asymétrique type Pinterest avec tailles variables selon le contenu
