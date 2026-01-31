@@ -31,4 +31,8 @@
     <ProjectReference Include="..\..\Persistence\Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ComicInfoSearch\" />
+  </ItemGroup>
+
 </Project>

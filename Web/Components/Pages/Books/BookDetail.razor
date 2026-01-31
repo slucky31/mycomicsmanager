@@ -1,0 +1,320 @@
+@page "/books/{BookId}"
+@rendermode InteractiveServer
+
+@using Domain.Books
+@using Microsoft.AspNetCore.Components
+@using Web.Components.Pages.Dialogs
+@using Web.Services
+
+@inject NavigationManager NavigationManager
+@inject IBooksService BooksService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<style>
+    .book-detail-page {
+        min-height: 100vh;
+        background: var(--mud-palette-background);
+    }
+
+    .book-detail-header {
+        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+        padding: 16px 24px;
+        color: white;
+    }
+
+    .book-detail-content {
+        padding: 24px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .book-detail-cover {
+        width: 200px;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 12px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    .book-detail-cover-placeholder {
+        width: 200px;
+        height: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
+        border-radius: 12px;
+        color: white;
+    }
+
+    .book-detail-info-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--mud-palette-lines-default);
+    }
+
+    .book-detail-info-item:last-child {
+        border-bottom: none;
+    }
+</style>
+
+<div class="book-detail-page">
+    @* Header *@
+    <div class="book-detail-header">
+        <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center gap-3">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                               Color="Color.Inherit"
+                               OnClick="GoBack" />
+                <div>
+                    <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
+                        Book Details
+                    </MudText>
+                    <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
+                        @if (_isLoading)
+                        {
+                            <text>Loading...</text>
+                        }
+                        else if (_book is not null)
+                        {
+                            @_book.Title
+                        }
+                    </MudText>
+                </div>
+            </div>
+            @if (_book is not null)
+            {
+                <div class="d-flex gap-2">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Inherit"
+                                   OnClick="EditBook" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Inherit"
+                                   OnClick="DeleteBookAsync" />
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Content *@
+    <div class="book-detail-content">
+        @if (_isLoading)
+        {
+            <div class="d-flex flex-column align-center justify-center pa-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">
+                    Loading book information...
+                </MudText>
+            </div>
+        }
+        else if (_loadError || _book is null)
+        {
+            <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Error" Style="font-size: 80px; opacity: 0.5;" />
+                <MudText Typo="Typo.h6" Color="Color.Error" Class="mt-4">Book not found</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">The book you're looking for doesn't exist.</MudText>
+                <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled" Color="Color.Primary" OnClick="GoBack">
+                    Back to Books
+                </MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            <MudPaper Class="pa-6 rounded-lg" Elevation="2">
+                <MudGrid Spacing="4">
+                    @* Cover column *@
+                    <MudItem xs="12" sm="4">
+                        <div class="d-flex flex-column align-center gap-4">
+                            @if (!string.IsNullOrEmpty(_book.ImageLink))
+                            {
+                                <MudImage Src="@_book.ImageLink" Alt="@_book.Title" Class="book-detail-cover" />
+                            }
+                            else
+                            {
+                                <div class="book-detail-cover-placeholder">
+                                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Style="opacity: 0.8; font-size: 48px;" />
+                                    <MudText Typo="Typo.body1" Class="mt-2" Style="opacity: 0.8;">No cover</MudText>
+                                </div>
+                            }
+
+                            @* Rating *@
+                            @if (_book.Rating > 0)
+                            {
+                                <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: var(--mud-palette-background-gray);">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1 text-center">Your Rating</MudText>
+                                    <MudRating SelectedValue="@_book.Rating" MaxValue="5" ReadOnly="true" Size="Size.Medium" />
+                                </MudPaper>
+                            }
+                        </div>
+                    </MudItem>
+
+                    @* Details column *@
+                    <MudItem xs="12" sm="8">
+                        <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">@_book.Title</MudText>
+                        @if (!string.IsNullOrEmpty(_book.Serie))
+                        {
+                            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-4">@_book.Serie</MudText>
+                        }
+
+                        <div class="mt-4">
+                            @* ISBN *@
+                            <div class="book-detail-info-item">
+                                <MudIcon Icon="@Icons.Material.Filled.QrCode" Color="Color.Secondary" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">ISBN</MudText>
+                                    <MudText Typo="Typo.body1" Style="font-family: monospace;">@_book.ISBN</MudText>
+                                </div>
+                            </div>
+
+                            @* Volume *@
+                            <div class="book-detail-info-item">
+                                <MudIcon Icon="@Icons.Material.Filled.Numbers" Color="Color.Secondary" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Volume</MudText>
+                                    <MudText Typo="Typo.body1">Volume @_book.VolumeNumber</MudText>
+                                </div>
+                            </div>
+
+                            @* Reading status *@
+                            <div class="book-detail-info-item">
+                                <MudIcon Icon="@(_book.ReadingDates.Any() ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.RadioButtonUnchecked)"
+                                         Color="@(_book.ReadingDates.Any() ? Color.Success : Color.Secondary)" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Reading Status</MudText>
+                                    @if (_book.ReadingDates.Any())
+                                    {
+                                        var lastRead = _book.ReadingDates.MaxBy(rd => rd.Date);
+                                        <MudText Typo="Typo.body1" Color="Color.Success">
+                                            Read on @lastRead!.Date.ToString("MMMM d, yyyy")
+                                        </MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body1">Not read yet</MudText>
+                                    }
+                                </div>
+                            </div>
+
+                            @* Created date *@
+                            <div class="book-detail-info-item">
+                                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Added to Collection</MudText>
+                                    <MudText Typo="Typo.body1">@_book.CreatedOnUtc.ToString("MMMM d, yyyy")</MudText>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Action buttons (for mobile) *@
+                        <div class="d-flex gap-2 mt-6 d-sm-none">
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Edit"
+                                       FullWidth="true"
+                                       OnClick="EditBook">
+                                Edit
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Error"
+                                       StartIcon="@Icons.Material.Filled.Delete"
+                                       FullWidth="true"
+                                       OnClick="DeleteBookAsync">
+                                Delete
+                            </MudButton>
+                        </div>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string BookId { get; set; } = string.Empty;
+
+    private Book? _book;
+    private bool _isLoading = true;
+    private bool _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBookAsync();
+    }
+
+    private async Task LoadBookAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+        StateHasChanged();
+
+        try
+        {
+            var result = await BooksService.GetById(BookId);
+
+            if (result.IsSuccess && result.Value is not null)
+            {
+                _book = result.Value;
+            }
+            else
+            {
+                _loadError = true;
+            }
+        }
+        catch
+        {
+            _loadError = true;
+        }
+
+        _isLoading = false;
+    }
+
+    private void EditBook()
+    {
+        NavigationManager.NavigateTo($"/books/{BookId}/edit");
+    }
+
+    private async Task DeleteBookAsync()
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ConfirmationMessage, "Do you really want to delete this book? This process cannot be undone." },
+            { x => x.ActionText, "Delete" },
+            { x => x.ColorConfirmButton, Color.Error }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.ExtraSmall,
+            CloseButton = false
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && result.Data is not null && !result.Canceled)
+        {
+            var res = await BooksService.Delete(BookId);
+
+            if (res.IsSuccess)
+            {
+                Snackbar.Add("Book deleted successfully!", Severity.Success);
+                NavigationManager.NavigateTo("/books/list");
+            }
+            else
+            {
+                Snackbar.Add($"Failed to delete book: {res.Error?.Description}", Severity.Error);
+            }
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/books/list");
+    }
+}

@@ -1,0 +1,154 @@
+@page "/books/add/manual"
+@rendermode InteractiveServer
+
+@using Application.Helpers
+@using Microsoft.AspNetCore.Components
+
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<style>
+    .add-book-manual-page {
+        min-height: 100vh;
+        background: var(--mud-palette-background);
+    }
+
+    .add-book-manual-header {
+        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+        padding: 16px 24px;
+        color: white;
+    }
+
+    .add-book-manual-content {
+        padding: 24px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .isbn-input-card {
+        padding: 32px;
+        border-radius: 16px;
+        text-align: center;
+    }
+
+    .isbn-icon-container {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    }
+</style>
+
+<div class="add-book-manual-page">
+    @* Header *@
+    <div class="add-book-manual-header">
+        <div class="d-flex align-center gap-3">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           Color="Color.Inherit"
+                           OnClick="GoBack" />
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
+                    Enter ISBN
+                </MudText>
+                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
+                    Type the ISBN number manually
+                </MudText>
+            </div>
+        </div>
+    </div>
+
+    @* Content *@
+    <div class="add-book-manual-content">
+        <MudPaper Class="isbn-input-card" Elevation="2">
+            <div class="isbn-icon-container">
+                <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Large" Style="color: white; font-size: 40px;" />
+            </div>
+
+            <MudText Typo="Typo.h6" Class="mb-2">Enter the ISBN</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
+                Enter the 10 or 13 digit ISBN number from your book
+            </MudText>
+
+            <MudTextField @bind-Value="_isbn"
+                          Label="ISBN"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Numbers"
+                          Placeholder="978-..."
+                          Immediate="true"
+                          AutoFocus="true"
+                          Error="@_hasError"
+                          ErrorText="@_errorMessage"
+                          OnKeyDown="HandleKeyDown"
+                          Class="mb-6" />
+
+            <div class="d-flex gap-2">
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Default"
+                           FullWidth="true"
+                           OnClick="GoBack">
+                    Back
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.Search"
+                           Disabled="@string.IsNullOrWhiteSpace(_isbn)"
+                           OnClick="SearchByIsbn">
+                    Search
+                </MudButton>
+            </div>
+        </MudPaper>
+
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-4 text-center">
+            The ISBN is usually found on the back cover near the barcode, or on the copyright page.
+        </MudText>
+    </div>
+</div>
+
+@code {
+    private string _isbn = string.Empty;
+    private bool _hasError;
+    private string _errorMessage = string.Empty;
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_isbn))
+        {
+            SearchByIsbn();
+        }
+    }
+
+    private void SearchByIsbn()
+    {
+        _hasError = false;
+        _errorMessage = string.Empty;
+
+        var normalizedIsbn = _isbn.Replace("-", "").Replace(" ", "").Trim();
+
+        if (string.IsNullOrWhiteSpace(normalizedIsbn))
+        {
+            _hasError = true;
+            _errorMessage = "Please enter an ISBN number.";
+            return;
+        }
+
+        if (!IsbnHelper.IsValidISBN(normalizedIsbn))
+        {
+            _hasError = true;
+            _errorMessage = "Invalid ISBN format. Please enter a valid 10 or 13 digit ISBN.";
+            return;
+        }
+
+        NavigationManager.NavigateTo($"/books/add/form?isbn={Uri.EscapeDataString(normalizedIsbn)}");
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/books/add");
+    }
+}

@@ -1,3 +1,5 @@
+@inject NavigationManager NavigationManager
+
 <style>
     .navbar-title {
         font-family: "Bangers", system-ui;
@@ -11,25 +13,254 @@
     }
 
     .navbar-item:hover {
-        background-color : red;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar-item.active {
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Desktop navigation - hidden on mobile */
+    .desktop-nav {
+        display: none;
+    }
+
+    /* Mobile hamburger - shown on mobile only */
+    .mobile-menu-btn {
+        display: flex;
+    }
+
+    /* Bottom navigation for mobile */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1100;
+        display: flex;
+        background-color: #131B2C;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 8px 0;
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+
+    .bottom-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 4px;
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        min-height: 56px;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+    }
+
+    .bottom-nav-item:hover,
+    .bottom-nav-item.active {
+        color: white;
+    }
+
+    .bottom-nav-item.active {
+        color: var(--mud-palette-primary);
+    }
+
+    .bottom-nav-item .mud-icon-root {
+        font-size: 24px;
+        margin-bottom: 2px;
+    }
+
+    .bottom-nav-label {
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: capitalize;
+        line-height: 1.2;
+    }
+
+    /* Drawer styles */
+    .nav-drawer {
+        background-color: #131B2C !important;
+    }
+
+    .nav-drawer-header {
+        padding: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .nav-drawer-item {
+        color: rgba(255, 255, 255, 0.8) !important;
+        border-radius: 8px;
+        margin: 4px 8px;
+    }
+
+    .nav-drawer-item:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+
+    .nav-drawer-item.active {
+        background-color: var(--mud-palette-primary) !important;
+        color: white !important;
+    }
+
+    /* Desktop breakpoint */
+    @@media (min-width: 960px) {
+        .desktop-nav {
+            display: flex;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+        }
+
+        .bottom-nav {
+            display: none;
+        }
     }
 </style>
 
+@* Top App Bar *@
+<MudAppBar Elevation="0" Style="background-color: #131B2C;">
+    @* Mobile: Hamburger menu button *@
+    <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                   Color="Color.Inherit"
+                   Edge="Edge.Start"
+                   Class="mobile-menu-btn"
+                   OnClick="ToggleDrawer" />
 
-<MudAppBar Elevation="0" Class="navbar-appbar" Style="background-color: #131B2C;">
+    @* Logo and Title *@
+    <MudImage Src="logo.png" Alt="MyComicsManager Logo" Width="36" Height="36" Elevation="25" Class="rounded-lg mr-2" />
+    <MudText Typo="Typo.h5" Class="navbar-title d-none d-sm-flex">MyComicsManager</MudText>
+    <MudText Typo="Typo.h6" Class="navbar-title d-flex d-sm-none">MCM</MudText>
 
-    <!-- Logo and Title -->    
-    <MudImage Src="logo.png" Alt="MyComicsMAanger Logo" Width="36" Height="36" Elevation="25" Class="rounded-lg mr-2" />
-    <MudText Typo="Typo.h5" Class="navbar-title">MyComicsManager</MudText>
     <MudSpacer />
-    <MudButton Class="ml-4 navbar-item" Variant="Variant.Text" Href="/libraries/list" StartIcon="@Icons.Material.Filled.CollectionsBookmark">Libraries</MudButton>
-    <MudButton Class="ml-4 navbar-item" Variant="Variant.Text" Href="/books/list" StartIcon="@Icons.Material.Filled.MenuBook">Books</MudButton>
-    <MudButton Class="ml-4 navbar-item" Variant="Variant.Text" Href="/statistics" StartIcon="@Icons.Material.Filled.BarChart">Statistics</MudButton>
-    <MudButton Class="ml-4 navbar-item" Variant="Variant.Text" Href="/import" StartIcon="@Icons.Material.Filled.Upload">Import</MudButton>
-    <MudButton Class="ml-4 navbar-item" Variant="Variant.Text" Href="/settings" StartIcon="@Icons.Material.Filled.Settings">Settings</MudButton>
 
+    @* Desktop: Full navigation *@
+    <div class="desktop-nav">
+        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/libraries") ? "active" : "")}")" 
+                   Variant="Variant.Text"
+                   Href="/libraries/list"
+                   StartIcon="@Icons.Material.Filled.CollectionsBookmark">
+            Libraries
+        </MudButton>
+        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/books") ? "active" : "")}")" 
+                   Variant="Variant.Text"
+                   Href="/books/list"
+                   StartIcon="@Icons.Material.Filled.MenuBook">
+            Books
+        </MudButton>
+        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/statistics") ? "active" : "")}")" 
+                   Variant="Variant.Text"
+                   Href="/statistics"
+                   StartIcon="@Icons.Material.Filled.BarChart">
+            Statistics
+        </MudButton>
+        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/import") ? "active" : "")}")" 
+                   Variant="Variant.Text"
+                   Href="/import"
+                   StartIcon="@Icons.Material.Filled.Upload">
+            Import
+        </MudButton>
+        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/settings") ? "active" : "")}")" 
+                   Variant="Variant.Text"
+                   Href="/settings"
+                   StartIcon="@Icons.Material.Filled.Settings">
+            Settings
+        </MudButton>
+    </div>
 </MudAppBar>
 
+@* Mobile: Side Drawer *@
+<MudDrawer @bind-Open="_drawerOpen"
+           Elevation="1"
+           Variant="@DrawerVariant.Temporary"
+           Class="nav-drawer"
+           Anchor="Anchor.Left">
+    <div class="nav-drawer-header">
+        <MudImage Src="logo.png" Alt="Logo" Width="40" Height="40" Class="rounded-lg" />
+        <MudText Typo="Typo.h6" Class="navbar-title" Style="color: white;">MyComicsManager</MudText>
+    </div>
+
+    <MudNavMenu Class="mt-2">
+        <MudNavLink Href="/libraries/list"
+                    Icon="@Icons.Material.Filled.CollectionsBookmark"
+                    Class="@($"nav-drawer-item {(IsActive("/libraries") ? "active" : "")}")"
+                    OnClick="CloseDrawer">
+            Libraries
+        </MudNavLink>
+        <MudNavLink Href="/books/list"
+                    Icon="@Icons.Material.Filled.MenuBook"
+                    Class="@($"nav-drawer-item {(IsActive("/books") ? "active" : "")}")"
+                    OnClick="CloseDrawer">
+            Books
+        </MudNavLink>
+        <MudNavLink Href="/statistics"
+                    Icon="@Icons.Material.Filled.BarChart"
+                    Class="@($"nav-drawer-item {(IsActive("/statistics") ? "active" : "")}")"
+                    OnClick="CloseDrawer">
+            Statistics
+        </MudNavLink>
+        <MudNavLink Href="/import"
+                    Icon="@Icons.Material.Filled.Upload"
+                    Class="@($"nav-drawer-item {(IsActive("/import") ? "active" : "")}")"
+                    OnClick="CloseDrawer">
+            Import
+        </MudNavLink>
+        <MudNavLink Href="/settings"
+                    Icon="@Icons.Material.Filled.Settings"
+                    Class="@($"nav-drawer-item {(IsActive("/settings") ? "active" : "")}")"
+                    OnClick="CloseDrawer">
+            Settings
+        </MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+
+@* Mobile: Bottom Navigation *@
+<nav class="bottom-nav">
+    <a href="/libraries/list" class="bottom-nav-item @(IsActive("/libraries") ? "active" : "")">
+        <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" />
+        <span class="bottom-nav-label">Libraries</span>
+    </a>
+    <a href="/books/list" class="bottom-nav-item @(IsActive("/books") ? "active" : "")">
+        <MudIcon Icon="@Icons.Material.Filled.MenuBook" />
+        <span class="bottom-nav-label">Books</span>
+    </a>
+    <a href="/statistics" class="bottom-nav-item @(IsActive("/statistics") ? "active" : "")">
+        <MudIcon Icon="@Icons.Material.Filled.BarChart" />
+        <span class="bottom-nav-label">Stats</span>
+    </a>
+    <a href="/import" class="bottom-nav-item @(IsActive("/import") ? "active" : "")">
+        <MudIcon Icon="@Icons.Material.Filled.Upload" />
+        <span class="bottom-nav-label">Import</span>
+    </a>
+    <a href="/settings" class="bottom-nav-item @(IsActive("/settings") ? "active" : "")">
+        <MudIcon Icon="@Icons.Material.Filled.Settings" />
+        <span class="bottom-nav-label">Settings</span>
+    </a>
+</nav>
+
 @code {
-    private string _searchText = string.Empty;
+    private bool _drawerOpen;
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void CloseDrawer()
+    {
+        _drawerOpen = false;
+    }
+
+    private bool IsActive(string path)
+    {
+        return NavigationManager.Uri.Contains(path, StringComparison.OrdinalIgnoreCase);
+    }
 }

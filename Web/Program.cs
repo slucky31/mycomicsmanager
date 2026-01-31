@@ -1,4 +1,5 @@
 using Application;
+using Application.ComicInfoSearch;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
 using HealthChecks.ApplicationStatus.DependencyInjection;
@@ -84,6 +85,22 @@ builder.Services.AddMudServices(config =>
 // Config Services
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
+
+// Config OpenLibrary service for ISBN lookup
+builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+// Config Cloudinary service for cover image storage
+var cloudinarySection = configuration.GetSection("Cloudinary");
+builder.Services.AddOptions<CloudinarySettings>()
+    .Bind(cloudinarySection)
+    .ValidateOnStart();
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+
+builder.Services.AddScoped<IComicSearchService, ComicSearchService>();
 
 var app = builder.Build();
 

@@ -1,6 +1,4 @@
 @using Domain.Books
-@using Web.Enums
-@using Web.Validators
 
 @rendermode InteractiveServer
 
@@ -239,7 +237,7 @@
             <MudButton StartIcon="@Icons.Material.Filled.Add"
                        Variant="Variant.Filled"
                        Color="Color.Primary"
-                       OnClick="@(e => CreateOrEditAsync(FormMode.Create, null))">
+                       Href="/books/add">
                 New Book
             </MudButton>
         </div>
@@ -252,7 +250,7 @@
             <MudIcon Icon="@Icons.Material.Filled.LibraryBooks" Size="Size.Large" Color="Color.Primary" Style="font-size: 80px; opacity: 0.5;" />
             <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-4">No books in your collection yet</MudText>
             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Start by adding your first book</MudText>
-            <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(e => CreateOrEditAsync(FormMode.Create, null))">
+            <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Href="/books/add">
                 Add Your First Book
             </MudButton>
         </MudPaper>
@@ -311,7 +309,8 @@
                                 }
                             </div>
                             <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                                <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="@(e => CreateOrEditAsync(FormMode.Edit, book))">Edit</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.Visibility" Href="@($"/books/{book.Id}")">View</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
                                 <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(e => DeleteAsync(book.Id))">Delete</MudMenuItem>
                             </MudMenu>
                         </div>
@@ -375,7 +374,8 @@
 
                     <div class="book-cover-actions">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                            <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="@(e => CreateOrEditAsync(FormMode.Edit, book))">Edit</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Visibility" Href="@($"/books/{book.Id}")">View</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
                             <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(e => DeleteAsync(book.Id))">Delete</MudMenuItem>
                         </MudMenu>
                     </div>
@@ -460,7 +460,8 @@
                 </MudTd>
                 <MudTd DataLabel="Actions" Style="text-align: right;" Class="list-actions-cell">
                     <div class="action-buttons">
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="@(e => CreateOrEditAsync(FormMode.Edit, context))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Default" Href="@($"/books/{context.Id}")" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/edit")" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(e => DeleteAsync(context.Id))" />
                     </div>
                 </MudTd>

@@ -1,0 +1,338 @@
+@page "/books/add/scan"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
+
+@implements IAsyncDisposable
+
+<style>
+    .add-book-scan-page {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #000;
+        z-index: 1000;
+    }
+
+    .scanner-video-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .scanner-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .scanner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+    }
+
+    .scanner-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 16px 24px;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        pointer-events: auto;
+        z-index: 10;
+    }
+
+    .scanner-footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 24px;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+        text-align: center;
+        pointer-events: auto;
+        z-index: 10;
+    }
+
+    .scanner-guide {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 300px;
+        aspect-ratio: 3/1;
+        border: 3px solid var(--mud-palette-warning);
+        border-radius: 12px;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+    }
+
+    .scanner-guide-corner {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-color: white;
+        border-style: solid;
+    }
+
+    .scanner-guide-corner.top-left {
+        top: -2px;
+        left: -2px;
+        border-width: 4px 0 0 4px;
+        border-radius: 10px 0 0 0;
+    }
+
+    .scanner-guide-corner.top-right {
+        top: -2px;
+        right: -2px;
+        border-width: 4px 4px 0 0;
+        border-radius: 0 10px 0 0;
+    }
+
+    .scanner-guide-corner.bottom-left {
+        bottom: -2px;
+        left: -2px;
+        border-width: 0 0 4px 4px;
+        border-radius: 0 0 0 10px;
+    }
+
+    .scanner-guide-corner.bottom-right {
+        bottom: -2px;
+        right: -2px;
+        border-width: 0 4px 4px 0;
+        border-radius: 0 0 10px 0;
+    }
+
+    .scanner-line {
+        position: absolute;
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--mud-palette-warning), transparent);
+        animation: scan-line 2s ease-in-out infinite;
+    }
+
+    @@keyframes scan-line {
+        0%, 100% { top: 20%; opacity: 0; }
+        50% { top: 80%; opacity: 1; }
+    }
+
+    .scanner-guide.detected {
+        border-color: var(--mud-palette-success);
+    }
+
+    .scanner-guide.detected .scanner-line {
+        background: linear-gradient(90deg, transparent, var(--mud-palette-success), transparent);
+    }
+</style>
+
+<div class="add-book-scan-page">
+    @* Video container *@
+    <div class="scanner-video-container">
+        <video id="@_videoElementId"
+               class="scanner-video"
+               autoplay
+               playsinline>
+        </video>
+    </div>
+
+    @* Overlay *@
+    <div class="scanner-overlay">
+        @* Header *@
+        <div class="scanner-header">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           Color="Color.Inherit"
+                           Style="color: white;"
+                           OnClick="GoBack" />
+            <div>
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Style="color: white;">
+                    Scan Barcode
+                </MudText>
+                <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.8);">
+                    @if (_isScanning)
+                    {
+                        <text>Position the barcode within the frame</text>
+                    }
+                    else if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        @_errorMessage
+                    }
+                    else
+                    {
+                        <text>Starting camera...</text>
+                    }
+                </MudText>
+            </div>
+        </div>
+
+        @* Scanner guide *@
+        <div class="scanner-guide @(_isbnDetected ? "detected" : "")">
+            <div class="scanner-guide-corner top-left"></div>
+            <div class="scanner-guide-corner top-right"></div>
+            <div class="scanner-guide-corner bottom-left"></div>
+            <div class="scanner-guide-corner bottom-right"></div>
+            <div class="scanner-line"></div>
+        </div>
+
+        @* Footer *@
+        <div class="scanner-footer">
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3" Style="text-align: left;">
+                    @_errorMessage
+                </MudAlert>
+            }
+
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Inherit"
+                       Style="color: white;"
+                       StartIcon="@Icons.Material.Filled.Keyboard"
+                       OnClick="GoToManualInput">
+                Enter ISBN manually
+            </MudButton>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<AddBookScan>? _dotNetObjectRef;
+    private readonly string _videoElementId = $"video-scanner-{Guid.NewGuid():N}";
+
+    private bool _isScanning;
+    private bool _isbnDetected;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await StartScanningAsync();
+        }
+    }
+
+    private async Task StartScanningAsync()
+    {
+        try
+        {
+            _dotNetObjectRef = DotNetObjectReference.Create(this);
+            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/isbnScanner.js");
+
+            if (_jsModule != null)
+            {
+                await _jsModule.InvokeVoidAsync("startScan", _videoElementId, _dotNetObjectRef);
+                _isScanning = true;
+                _errorMessage = string.Empty;
+                StateHasChanged();
+            }
+        }
+        catch (JSException ex)
+        {
+            _errorMessage = $"Camera error: {ex.Message}";
+            _isScanning = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task StopScanningAsync()
+    {
+        if (_jsModule != null)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("stopScan");
+            }
+            catch (JSDisconnectedException)
+            {
+                // Ignore
+            }
+        }
+        _isScanning = false;
+    }
+
+    [JSInvokable]
+    public async Task OnIsbnScannedFromJsAsync(string isbn)
+    {
+        _isbnDetected = true;
+        StateHasChanged();
+
+        // Small delay to show visual feedback
+        await Task.Delay(300);
+
+        await StopScanningAsync();
+
+        Snackbar.Add($"ISBN detected: {isbn}", Severity.Success);
+        NavigationManager.NavigateTo($"/books/add/form?isbn={Uri.EscapeDataString(isbn)}");
+    }
+
+    [JSInvokable]
+    public void OnScanErrorFromJs(string error)
+    {
+        _errorMessage = error;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public bool ValidateIsbn(string isbn)
+    {
+        return Application.Helpers.IsbnHelper.IsValidISBN(isbn);
+    }
+
+    private async Task GoBack()
+    {
+        await StopScanningAsync();
+        NavigationManager.NavigateTo("/books/add");
+    }
+
+    private async Task GoToManualInput()
+    {
+        await StopScanningAsync();
+        NavigationManager.NavigateTo("/books/add/manual");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule != null)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("stopScan");
+            }
+            catch (JSDisconnectedException)
+            {
+                // Ignore
+            }
+
+            try
+            {
+                await _jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Ignore
+            }
+        }
+
+        _dotNetObjectRef?.Dispose();
+        GC.SuppressFinalize(this);
+    }
+}

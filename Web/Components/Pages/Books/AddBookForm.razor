@@ -1,0 +1,212 @@
+@page "/books/add/form"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Components
+@using Web.Services
+@using Web.Validators
+
+@inject NavigationManager NavigationManager
+@inject IBooksService BooksService
+@inject IComicSearchService ComicSearchService
+@inject ISnackbar Snackbar
+
+<style>
+    .add-book-page {
+        min-height: 100vh;
+        background: var(--mud-palette-background);
+    }
+
+    .add-book-header {
+        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+        padding: 16px 24px;
+        color: white;
+    }
+
+    .add-book-content {
+        padding: 24px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+</style>
+
+<div class="add-book-page">
+    @* Header *@
+    <div class="add-book-header">
+        <div class="d-flex align-center gap-3">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           Color="Color.Inherit"
+                           OnClick="GoBack" />
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
+                    Add New Book
+                </MudText>
+                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
+                    @if (_isLoading)
+                    {
+                        <text>Searching for book information...</text>
+                    }
+                    else if (_searchResult?.Found == true)
+                    {
+                        <text>Book found - verify details and save</text>
+                    }
+                    else if (!string.IsNullOrEmpty(Isbn))
+                    {
+                        <text>Book not found - please fill in the details</text>
+                    }
+                    else
+                    {
+                        <text>Fill in the book details</text>
+                    }
+                </MudText>
+            </div>
+        </div>
+    </div>
+
+    @* Content *@
+    <div class="add-book-content">
+        @if (_isLoading)
+        {
+            <div class="d-flex flex-column align-center justify-center pa-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">
+                    Searching for book information...
+                </MudText>
+            </div>
+        }
+        else
+        {
+            <MudPaper Class="pa-6 rounded-lg" Elevation="2">
+                <BookForm @ref="_bookForm" Model="_bookModel" IsbnReadOnly="@(!string.IsNullOrEmpty(Isbn))" />
+
+                @* Action buttons *@
+                <div class="d-flex justify-end gap-2 mt-6">
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Default"
+                               OnClick="GoBack">
+                        Cancel
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="SaveBookAsync"
+                               Disabled="_isSaving">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            <text>Saving...</text>
+                        }
+                        else
+                        {
+                            <text>Add Book</text>
+                        }
+                    </MudButton>
+                </div>
+            </MudPaper>
+        }
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Isbn { get; set; }
+
+    private BookForm? _bookForm;
+    private BookUiDto _bookModel = new();
+    private ComicSearchResult? _searchResult;
+    private bool _isLoading;
+    private bool _isSaving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Isbn))
+        {
+            _isLoading = true;
+            StateHasChanged();
+
+            try
+            {
+                _searchResult = await ComicSearchService.SearchByIsbnAsync(Isbn);
+
+                if (_searchResult.Found)
+                {
+                    _bookModel = new BookUiDto
+                    {
+                        Title = _searchResult.Title,
+                        Serie = _searchResult.Serie,
+                        ISBN = _searchResult.Isbn,
+                        VolumeNumber = _searchResult.VolumeNumber,
+                        ImageLink = _searchResult.ImageUrl,
+                        Rating = 0
+                    };
+                    Snackbar.Add($"Found: {_searchResult.Title}", Severity.Success);
+                }
+                else
+                {
+                    _bookModel = new BookUiDto
+                    {
+                        ISBN = Isbn,
+                        VolumeNumber = 1
+                    };
+                    Snackbar.Add("Book not found. Please fill in the details manually.", Severity.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                _bookModel = new BookUiDto
+                {
+                    ISBN = Isbn,
+                    VolumeNumber = 1
+                };
+                Snackbar.Add($"Error searching for book: {ex.Message}", Severity.Error);
+            }
+
+            _isLoading = false;
+        }
+        else
+        {
+            _bookModel = new BookUiDto { VolumeNumber = 1 };
+        }
+    }
+
+    private async Task SaveBookAsync()
+    {
+        if (_bookForm is null) return;
+
+        var isValid = await _bookForm.ValidateAsync();
+        if (!isValid) return;
+
+        _isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await BooksService.Create(
+                _bookModel.Serie,
+                _bookModel.Title,
+                _bookModel.ISBN,
+                _bookModel.VolumeNumber,
+                _bookModel.ImageLink,
+                _bookModel.Rating
+            );
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Book added successfully!", Severity.Success);
+                NavigationManager.NavigateTo("/books/list");
+            }
+            else
+            {
+                Snackbar.Add($"Failed to add book: {result.Error?.Description}", Severity.Error);
+            }
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/books/add");
+    }
+}

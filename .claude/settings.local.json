@@ -8,7 +8,10 @@
       "Bash(dotnet-coverage collect:*)",
       "Bash(reportgenerator:*)",
       "Bash(dotnet ef migrations add:*)",
-      "Bash(dotnet format:*)"
+      "Bash(dotnet format:*)",
+      "Bash(dotnet --version:*)",
+      "Bash(dotnet list package:*)",
+      "Bash(dotnet restore:*)"
     ]
   }
 }
