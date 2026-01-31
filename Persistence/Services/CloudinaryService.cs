@@ -2,9 +2,8 @@ using Application.ComicInfoSearch;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
-using Web.Configuration;
 
-namespace Web.Services;
+namespace Persistence.Services;
 
 public class CloudinaryService : ICloudinaryService
 {

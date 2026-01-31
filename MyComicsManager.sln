@@ -46,6 +46,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "Web\Web.csproj", "{1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web.Tests", "tests\Web.Tests\Web.Tests.csproj", "{B6DFE0F1-F8CD-4F12-9552-B605B38E1503}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{3E2E5674-B954-477B-9BB1-558A9F84678A}"
+	ProjectSection(SolutionItems) = preProject
+		Analysis.md = Analysis.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -1,4 +1,4 @@
-namespace Web.Configuration;
+namespace Application.ComicInfoSearch;
 
 public class CloudinarySettings
 {

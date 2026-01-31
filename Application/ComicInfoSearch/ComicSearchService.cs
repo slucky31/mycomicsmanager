@@ -1,8 +1,6 @@
-using Application.ComicInfoSearch;
 using Microsoft.Extensions.Options;
-using Web.Configuration;
 
-namespace Web.Services;
+namespace Application.ComicInfoSearch;
 
 public class ComicSearchService : IComicSearchService
 {

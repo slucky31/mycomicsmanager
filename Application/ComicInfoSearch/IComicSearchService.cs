@@ -1,4 +1,4 @@
-namespace Web.Services;
+namespace Application.ComicInfoSearch;
 
 #pragma warning disable CA1054, CA1056 // URI parameters/properties should not be strings
 public record ComicSearchResult(

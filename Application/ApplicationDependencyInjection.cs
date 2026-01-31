@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.ComicInfoSearch;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -14,6 +15,8 @@ public static class ApplicationDependencyInjection
             .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<>)), publicOnly: false).AsImplementedInterfaces().WithScopedLifetime()
             .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<,>)), publicOnly: false).AsImplementedInterfaces().WithScopedLifetime()
         );
+
+        services.AddScoped<IComicSearchService, ComicSearchService>();
 
         return services;
     }
