@@ -59,9 +59,9 @@ public class Book : Entity<Guid>
         Rating = rating;
     }
 
-    public void AddReadingDate(DateTime date, string note)
+    public void AddReadingDate(DateTime date)
     {
-        var readingDate = ReadingDate.Create(date, note, Id);
+        var readingDate = ReadingDate.Create(date, Id);
         _readingDates.Add(readingDate);
     }
 
@@ -74,9 +74,9 @@ public class Book : Entity<Guid>
         }
     }
 
-    public void UpdateReadingDate(Guid readingDateId, DateTime date, string note)
+    public void UpdateReadingDate(Guid readingDateId, DateTime date)
     {
         var readingDate = _readingDates.Find(rd => rd.Id == readingDateId);
-        readingDate?.Update(date, note);
+        readingDate?.Update(date);
     }
 }

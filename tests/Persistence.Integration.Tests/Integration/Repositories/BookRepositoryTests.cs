@@ -58,8 +58,8 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var book = Book.Create("X-Men", "Uncanny X-Men", "9780785134567");
-        book.AddReadingDate(DateTime.UtcNow, "First reading");
-        book.AddReadingDate(DateTime.UtcNow.AddDays(-30), "Re-read");
+        book.AddReadingDate(DateTime.UtcNow);
+        book.AddReadingDate(DateTime.UtcNow.AddDays(-30));
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -211,10 +211,10 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var book1 = Book.Create("Fantastic Four", "Fantastic Four Vol 1", "9780785195678");
-        book1.AddReadingDate(DateTime.UtcNow, "Great read");
+        book1.AddReadingDate(DateTime.UtcNow);
         var book2 = Book.Create("Guardians of the Galaxy", "Guardians Vol 1", "9780785196789");
-        book2.AddReadingDate(DateTime.UtcNow, "Amazing story");
-        book2.AddReadingDate(DateTime.UtcNow.AddDays(-10), "Re-read");
+        book2.AddReadingDate(DateTime.UtcNow);
+        book2.AddReadingDate(DateTime.UtcNow.AddDays(-10));
         BookRepository.Add(book1);
         BookRepository.Add(book2);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);

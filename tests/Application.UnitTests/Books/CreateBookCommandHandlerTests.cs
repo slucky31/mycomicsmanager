@@ -48,6 +48,8 @@ public class CreateBookCommandHandlerTests
         result.Value.ISBN.Should().Be(IsbnHelper.NormalizeIsbn(s_validCommand.ISBN));
         result.Value.VolumeNumber.Should().Be(s_validCommand.VolumeNumber);
         result.Value.ImageLink.Should().Be(s_validCommand.ImageLink);
+        result.Value.Rating.Should().Be(s_validCommand.Rating);
+        result.Value.ReadingDates.Should().HaveCount(1);
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
     }
@@ -234,8 +236,45 @@ public class CreateBookCommandHandlerTests
         Guard.Against.Null(result.Value);
         result.Value.VolumeNumber.Should().Be(1);
         result.Value.ImageLink.Should().Be(string.Empty);
+        result.Value.ReadingDates.Should().BeEmpty();
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_AddReadingDate_WhenRatingIsProvided()
+    {
+        // Arrange
+        var commandWithRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", 1, "", 5);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(commandWithRating.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+
+        // Act
+        var result = await _handler.Handle(commandWithRating, default);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        Guard.Against.Null(result.Value);
+        result.Value.Rating.Should().Be(5);
+        result.Value.ReadingDates.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotAddReadingDate_WhenRatingIsZero()
+    {
+        // Arrange
+        var commandWithoutRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", 1, "", 0);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(commandWithoutRating.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+
+        // Act
+        var result = await _handler.Handle(commandWithoutRating, default);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        Guard.Against.Null(result.Value);
+        result.Value.Rating.Should().Be(0);
+        result.Value.ReadingDates.Should().BeEmpty();
     }
 
     [Fact]

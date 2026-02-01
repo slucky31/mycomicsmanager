@@ -122,15 +122,13 @@ public class BookTests
         // Arrange
         var book = Book.Create("Batman", "Year One", "9781401207526");
         var date = new DateTime(2024, 1, 15);
-        const string note = "Great read!";
 
         // Act
-        book.AddReadingDate(date, note);
+        book.AddReadingDate(date);
 
         // Assert
         book.ReadingDates.Should().HaveCount(1);
         book.ReadingDates[0].Date.Should().Be(date);
-        book.ReadingDates[0].Note.Should().Be(note);
         book.ReadingDates[0].BookId.Should().Be(book.Id);
     }
 
@@ -141,19 +139,15 @@ public class BookTests
         var book = Book.Create("V for Vendetta", "V for Vendetta", "9781401207922");
         var date1 = new DateTime(2023, 6, 1);
         var date2 = new DateTime(2024, 1, 15);
-        const string note1 = "First reading";
-        const string note2 = "Second reading";
 
         // Act
-        book.AddReadingDate(date1, note1);
-        book.AddReadingDate(date2, note2);
+        book.AddReadingDate(date1);
+        book.AddReadingDate(date2);
 
         // Assert
         book.ReadingDates.Should().HaveCount(2);
         book.ReadingDates[0].Date.Should().Be(date1);
-        book.ReadingDates[0].Note.Should().Be(note1);
         book.ReadingDates[1].Date.Should().Be(date2);
-        book.ReadingDates[1].Note.Should().Be(note2);
     }
 
     [Fact]
@@ -162,7 +156,7 @@ public class BookTests
         // Arrange
         var book = Book.Create("Saga", "Volume 1", "9781607066017");
         var date = new DateTime(2024, 1, 15);
-        book.AddReadingDate(date, "Test note");
+        book.AddReadingDate(date);
         var readingDateId = book.ReadingDates[0].Id;
 
         // Act
@@ -178,7 +172,7 @@ public class BookTests
         // Arrange
         var book = Book.Create("Fables", "Volume 1", "9781563899423");
         var date = new DateTime(2024, 1, 15);
-        book.AddReadingDate(date, "Test note");
+        book.AddReadingDate(date);
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -195,8 +189,8 @@ public class BookTests
         var book = Book.Create("Y: The Last Man", "Volume 1", "9781401219512");
         var date1 = new DateTime(2023, 6, 1);
         var date2 = new DateTime(2024, 1, 15);
-        book.AddReadingDate(date1, "First reading");
-        book.AddReadingDate(date2, "Second reading");
+        book.AddReadingDate(date1);
+        book.AddReadingDate(date2);
         var firstReadingDateId = book.ReadingDates[0].Id;
 
         // Act
@@ -208,24 +202,21 @@ public class BookTests
     }
 
     [Fact]
-    public void UpdateReadingDate_Should_UpdateDateAndNote()
+    public void UpdateReadingDate_Should_UpdateDate()
     {
         // Arrange
         var book = Book.Create("Preacher", "Volume 1", "9781401240455");
         var originalDate = new DateTime(2024, 1, 15);
-        const string originalNote = "Original note";
-        book.AddReadingDate(originalDate, originalNote);
+        book.AddReadingDate(originalDate);
         var readingDateId = book.ReadingDates[0].Id;
         var newDate = new DateTime(2024, 2, 20);
-        const string newNote = "Updated note";
 
         // Act
-        book.UpdateReadingDate(readingDateId, newDate, newNote);
+        book.UpdateReadingDate(readingDateId, newDate);
 
         // Assert
         book.ReadingDates.Should().HaveCount(1);
         book.ReadingDates[0].Date.Should().Be(newDate);
-        book.ReadingDates[0].Note.Should().Be(newNote);
     }
 
     [Fact]
@@ -234,19 +225,16 @@ public class BookTests
         // Arrange
         var book = Book.Create("Transmetropolitan", "Volume 1", "9781401220846");
         var originalDate = new DateTime(2024, 1, 15);
-        const string originalNote = "Original note";
-        book.AddReadingDate(originalDate, originalNote);
+        book.AddReadingDate(originalDate);
         var nonExistentId = Guid.NewGuid();
         var newDate = new DateTime(2024, 2, 20);
-        const string newNote = "Updated note";
 
         // Act
-        book.UpdateReadingDate(nonExistentId, newDate, newNote);
+        book.UpdateReadingDate(nonExistentId, newDate);
 
         // Assert
         book.ReadingDates.Should().HaveCount(1);
         book.ReadingDates[0].Date.Should().Be(originalDate);
-        book.ReadingDates[0].Note.Should().Be(originalNote);
     }
 
     [Fact]
@@ -254,7 +242,7 @@ public class BookTests
     {
         // Arrange
         var book = Book.Create("The Walking Dead", "Volume 1", "9781582406190");
-        book.AddReadingDate(new DateTime(2024, 1, 15), "Test note");
+        book.AddReadingDate(new DateTime(2024, 1, 15));
 
         // Act
         var readingDates = book.ReadingDates;

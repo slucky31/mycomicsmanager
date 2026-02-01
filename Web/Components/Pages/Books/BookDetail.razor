@@ -207,6 +207,18 @@
                                     <MudText Typo="Typo.body1">@_book.CreatedOnUtc.ToString("MMMM d, yyyy")</MudText>
                                 </div>
                             </div>
+
+                            @* Modified date *@
+                            @if (_book.ModifiedOnUtc.HasValue)
+                            {
+                                <div class="book-detail-info-item">
+                                    <MudIcon Icon="@Icons.Material.Filled.EditCalendar" Color="Color.Secondary" />
+                                    <div>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Last Modified</MudText>
+                                        <MudText Typo="Typo.body1">@_book.ModifiedOnUtc.Value.ToString("MMMM d, yyyy")</MudText>
+                                    </div>
+                                </div>
+                            }
                         </div>
 
                         @* Action buttons (for mobile) *@
