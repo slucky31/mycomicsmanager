@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.6.7"></a>
+## [9.6.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.7) (2026-02-01)
+
+### 🐛 Bug Fixes
+
+* Update code coverage collector in test command ([7f4fd19](https://www.github.com/slucky31/mycomicsmanager/commit/7f4fd19c1554f4c9f1a141a89c1a1f8ad640162d))
+
+### Other
+
+* Upgrade to .NET 10 and add Books management feature ([#879](https://www.github.com/slucky31/mycomicsmanager/issues/879)) ([b0ef21a](https://www.github.com/slucky31/mycomicsmanager/commit/b0ef21a16343c76d30a0908954c7b3246e6d1280))
+
 <a name="9.6.6"></a>
 ## [9.6.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.6) (2025-09-21)
 
