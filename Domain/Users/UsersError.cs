@@ -1,6 +1,7 @@
-﻿using Domain.Primitives;
+using Domain.Primitives;
 
 namespace Domain.Users;
+
 public static class UsersError
 {
     public static readonly TError BadRequest = new("USR400", "Verify the parameter of the request");

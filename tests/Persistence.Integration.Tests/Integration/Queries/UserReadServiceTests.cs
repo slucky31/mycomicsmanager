@@ -1,36 +1,36 @@
-﻿using Ardalis.GuardClauses;
+using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Primitives;
 using Domain.Users;
 
 namespace Persistence.Tests.Integration.Queries;
 
-[Collection("User")]
+[Collection("DatabaseCollectionTests")]
 public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIntegrationTest(factory)
 {
-    private readonly User usr1 = User.Create("usr1@test.com", "1");
-    private readonly User usr2 = User.Create("usr2@test.com", "2");
-    private readonly User usr3 = User.Create("usr3@test.com", "3");
-    private readonly User usr4 = User.Create("usr4-comics@test.com", "4");
-    private readonly User usr5 = User.Create("usr5-comics@test.com", "5");
+    private readonly User _usr1 = User.Create("usr1@test.com", "1");
+    private readonly User _usr2 = User.Create("usr2@test.com", "2");
+    private readonly User _usr3 = User.Create("usr3@test.com", "3");
+    private readonly User _usr4 = User.Create("usr4-comics@test.com", "4");
+    private readonly User _usr5 = User.Create("usr5-comics@test.com", "5");
 
-    private readonly List<User> users = [];
+    private readonly List<User> _users = [];
 
     private async Task CreateUsers()
     {
 
-        UserRepository.Add(usr1);
-        UserRepository.Add(usr2);
-        UserRepository.Add(usr3);
-        UserRepository.Add(usr4);
-        UserRepository.Add(usr5);
+        UserRepository.Add(_usr1);
+        UserRepository.Add(_usr2);
+        UserRepository.Add(_usr3);
+        UserRepository.Add(_usr4);
+        UserRepository.Add(_usr5);
 
-        users.Clear();
-        users.Add(usr1);
-        users.Add(usr2);
-        users.Add(usr3);
-        users.Add(usr4);
-        users.Add(usr5);
+        _users.Clear();
+        _users.Add(_usr1);
+        _users.Add(_usr2);
+        _users.Add(_usr3);
+        _users.Add(_usr4);
+        _users.Add(_usr5);
 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
     }
@@ -47,8 +47,8 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(2);
-        pagedList.Items.Should().Contain(u => u.Id == usr1.Id);
-        pagedList.Items.Should().Contain(u => u.Id == usr2.Id);
+        pagedList.Items.Should().Contain(u => u.Id == _usr1.Id);
+        pagedList.Items.Should().Contain(u => u.Id == _usr2.Id);
     }
 
     [Fact]
@@ -63,8 +63,8 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(2);
-        pagedList.Items.Should().Contain(u => u.Id == usr4.Id);
-        pagedList.Items.Should().Contain(u => u.Id == usr5.Id);
+        pagedList.Items.Should().Contain(u => u.Id == _usr4.Id);
+        pagedList.Items.Should().Contain(u => u.Id == _usr5.Id);
     }
 
     [Fact]
@@ -79,11 +79,11 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
-        pagedList.Items.Should().Contain(l => l.Id == usr1.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr2.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr3.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr4.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr5.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr1.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr2.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr3.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr4.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr5.Id);
     }
 
     [Fact]
@@ -98,11 +98,11 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
-        pagedList.Items.Should().Contain(l => l.Id == usr1.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr2.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr3.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr4.Id);
-        pagedList.Items.Should().Contain(l => l.Id == usr5.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr1.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr2.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr3.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr4.Id);
+        pagedList.Items.Should().Contain(l => l.Id == _usr5.Id);
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.Id).Should().ContainInOrder(users.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
+        pagedList.Items.Select(l => l.Id).Should().ContainInOrder(_users.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
 
     }
 
@@ -135,7 +135,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.Id).Should().ContainInOrder(users.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
+        pagedList.Items.Select(l => l.Id).Should().ContainInOrder(_users.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
 
     }
 
@@ -152,7 +152,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.Email).Should().ContainInOrder(users.OrderBy(l => l.Email).Select(l => l.Email).ToArray());
+        pagedList.Items.Select(l => l.Email).Should().ContainInOrder(_users.OrderBy(l => l.Email).Select(l => l.Email).ToArray());
 
     }
 
@@ -169,7 +169,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.Email).Should().ContainInOrder(users.OrderByDescending(l => l.Email).Select(l => l.Email).ToArray());
+        pagedList.Items.Select(l => l.Email).Should().ContainInOrder(_users.OrderByDescending(l => l.Email).Select(l => l.Email).ToArray());
 
     }
 
@@ -186,7 +186,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.AuthId).Should().ContainInOrder(users.OrderBy(l => l.AuthId).Select(l => l.AuthId).ToArray());
+        pagedList.Items.Select(l => l.AuthId).Should().ContainInOrder(_users.OrderBy(l => l.AuthId).Select(l => l.AuthId).ToArray());
 
     }
 
@@ -203,7 +203,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(5);
         Guard.Against.Null(pagedList.Items);
-        pagedList.Items.Select(l => l.AuthId).Should().ContainInOrder(users.OrderByDescending(l => l.AuthId).Select(l => l.AuthId).ToArray());
+        pagedList.Items.Select(l => l.AuthId).Should().ContainInOrder(_users.OrderByDescending(l => l.AuthId).Select(l => l.AuthId).ToArray());
 
     }
 

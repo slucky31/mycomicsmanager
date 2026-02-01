@@ -1,7 +1,8 @@
-﻿
+
 using Domain.Extensions;
 
 namespace Domain.UnitTests.Extensions;
+
 public class StringExtensionsTests
 {
     [Fact]
@@ -22,8 +23,8 @@ public class StringExtensionsTests
     public void ToPascalCase_ReturnsEmptyString_WhenGivenEmptyString()
     {
         // Arrange
-        var input = String.Empty;
-        var expectedOutput = String.Empty;
+        var input = string.Empty;
+        var expectedOutput = string.Empty;
 
         // Act
         var result = input.ToPascalCase();
@@ -50,8 +51,8 @@ public class StringExtensionsTests
     public void ToCamlCase_ReturnsEmptyString_WhenGivenEmptyString()
     {
         // Arrange
-        var input = String.Empty;
-        var expectedOutput = String.Empty;
+        var input = string.Empty;
+        var expectedOutput = string.Empty;
 
         // Act
         var result = input.ToCamlCase();
@@ -78,8 +79,8 @@ public class StringExtensionsTests
     public void RemoveDiacritics_ReturnsEmptyString_WhenGivenEmptyString()
     {
         // Arrange
-        var input = String.Empty;
-        var expectedOutput = String.Empty;
+        var input = string.Empty;
+        var expectedOutput = string.Empty;
 
         // Act
         var result = input.RemoveDiacritics();
@@ -108,7 +109,7 @@ public class StringExtensionsTests
     {
         // Arrange
         const string input = "Hello World !";
-        var sub = String.Empty;
+        var sub = string.Empty;
 
         // Act
         var result = input.Substract(sub);
@@ -121,7 +122,7 @@ public class StringExtensionsTests
     public void Substract_ReturnsEmpty_WhenIsEmpty()
     {
         // Arrange
-        var input = String.Empty;
+        var input = string.Empty;
         const string sub = "sdjqjgsqldkj";
 
         // Act

@@ -1,4 +1,4 @@
-﻿
+
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Extensions;
@@ -6,7 +6,7 @@ using Domain.Libraries;
 
 namespace Persistence.Tests.Integration.Repositories;
 
-[Collection("Library")]
+[Collection("DatabaseCollectionTests")]
 public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]
@@ -35,7 +35,7 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
         LibraryRepository.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         LibraryRepository.Add(lib);
-        var action = async () => { await UnitOfWork.SaveChangesAsync(CancellationToken.None); };
+        var action = async () => await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act && Assert
         Guard.Against.Null(action);

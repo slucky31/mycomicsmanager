@@ -19,7 +19,7 @@ public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libra
         }
 
         // Check if a library with the same name doesn't already exist
-        var pagedList = await libraryReadService.GetLibrariesAsync(request.Name, LibrariesColumn.Name, null, 1, 1);
+        var pagedList = await libraryReadService.GetLibrariesAsync(request.Name, LibrariesColumn.Name, null, 1, 1, cancellationToken);
         Guard.Against.Null(pagedList);
         if (pagedList.TotalCount > 0)
         {

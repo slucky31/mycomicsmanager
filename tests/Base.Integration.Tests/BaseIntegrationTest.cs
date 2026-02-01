@@ -4,13 +4,20 @@ using Application.Users;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Users;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence;
 using Xunit;
 
 namespace Base.Integration.Tests;
 
-public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>, IDisposable
+[CollectionDefinition("DatabaseCollectionTests")]
+public class DatabaseCollectionTests : ICollectionFixture<IntegrationTestWebAppFactory>
+{
+}
+
+public abstract class BaseIntegrationTest : IDisposable
 {
     protected IServiceScope _scope { get; }
 
@@ -18,7 +25,9 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
 
     protected IUnitOfWork UnitOfWork { get; }
 
-    private bool disposed;
+    private readonly IDbContextTransaction? _transaction;
+
+    private bool _disposed;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
@@ -29,6 +38,7 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         Context = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         UnitOfWork = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
+        _transaction = Context.Database.BeginTransaction();
     }
 
     public void Dispose()
@@ -39,13 +49,15 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposed)
+        if (!_disposed)
         {
             if (disposing)
             {
+                _transaction?.Rollback();
+                _transaction?.Dispose();
                 _scope?.Dispose();
             }
-            disposed = true;
+            _disposed = true;
         }
     }
 }
@@ -62,10 +74,6 @@ public class LibraryIntegrationTest : BaseIntegrationTest
         LibraryRepository = _scope.ServiceProvider.GetRequiredService<IRepository<Library, Guid>>();
 
         LibraryReadService = _scope.ServiceProvider.GetRequiredService<ILibraryReadService>();
-
-        // Clear all data from the database
-        Context.Libraries.RemoveRange(Context.Libraries);
-        Context.SaveChanges();
     }
 
 }
@@ -82,10 +90,6 @@ public class UserIntegrationTest : BaseIntegrationTest
         UserRepository = _scope.ServiceProvider.GetRequiredService<IRepository<User, Guid>>();
 
         UserReadService = _scope.ServiceProvider.GetRequiredService<IUserReadService>();
-
-        // Clear all data from the database
-        Context.Users.RemoveRange(Context.Users);
-        Context.SaveChanges();
     }
 
 }
@@ -98,6 +102,18 @@ public class LibraryLocalStorageIntegrationTest : BaseIntegrationTest
     public LibraryLocalStorageIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
     {
         LibraryLocalStorage = _scope.ServiceProvider.GetRequiredService<ILibraryLocalStorage>();
+    }
+
+}
+
+public class BookIntegrationTest : BaseIntegrationTest
+{
+    protected IBookRepository BookRepository { get; }
+
+
+    public BookIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        BookRepository = _scope.ServiceProvider.GetRequiredService<IBookRepository>();
     }
 
 }

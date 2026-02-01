@@ -1,11 +1,11 @@
-﻿
+
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Users;
 
 namespace Persistence.Tests.Integration.Repositories;
 
-[Collection("User")]
+[Collection("DatabaseCollectionTests")]
 public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory) : UserIntegrationTest(factory)
 {
     [Fact]
@@ -34,7 +34,7 @@ public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory)
         UserRepository.Add(usr);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         UserRepository.Add(usr);
-        var action = async () => { await UnitOfWork.SaveChangesAsync(CancellationToken.None); };
+        var action = async () => await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act && Assert
         Guard.Against.Null(action);

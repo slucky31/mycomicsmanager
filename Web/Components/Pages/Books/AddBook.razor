@@ -1,0 +1,155 @@
+@page "/books/add"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Components
+
+@inject NavigationManager NavigationManager
+
+<style>
+    .add-book-choice-page {
+        min-height: 100vh;
+        background: var(--mud-palette-background);
+    }
+
+    .add-book-choice-header {
+        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+        padding: 16px 24px;
+        color: white;
+    }
+
+    .add-book-choice-content {
+        padding: 24px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .add-book-option {
+        border: 2px solid var(--mud-palette-lines-default);
+        border-radius: 16px;
+        padding: 24px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        background: var(--mud-palette-surface);
+    }
+
+    .add-book-option:hover {
+        border-color: var(--mud-palette-primary);
+        background: var(--mud-palette-primary-hover);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .add-book-option-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+    .add-book-option-primary .add-book-option-icon {
+        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    }
+
+    .add-book-option-secondary .add-book-option-icon {
+        background: linear-gradient(135deg, var(--mud-palette-secondary) 0%, var(--mud-palette-secondary-darken) 100%);
+    }
+
+    .add-book-option-tertiary .add-book-option-icon {
+        background: linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-tertiary-darken) 100%);
+    }
+</style>
+
+<div class="add-book-choice-page">
+    @* Header *@
+    <div class="add-book-choice-header">
+        <div class="d-flex align-center gap-3">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           Color="Color.Inherit"
+                           OnClick="GoBack" />
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
+                    Add a Book
+                </MudText>
+                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
+                    Choose how you want to add your book
+                </MudText>
+            </div>
+        </div>
+    </div>
+
+    @* Content *@
+    <div class="add-book-choice-content">
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4 text-center">
+            How would you like to add your book?
+        </MudText>
+
+        <MudStack Spacing="3">
+            @* Scan option *@
+            <div class="add-book-option add-book-option-primary" @onclick="GoToScan">
+                <div class="add-book-option-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" Size="Size.Large" Style="color: white;" />
+                </div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold">Scan Barcode</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                    Use your camera to scan the book's ISBN barcode
+                </MudText>
+            </div>
+
+            @* Manual input option *@
+            <div class="add-book-option add-book-option-secondary" @onclick="GoToManual">
+                <div class="add-book-option-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Keyboard" Size="Size.Large" Style="color: white;" />
+                </div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold">Enter ISBN</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                    Type the ISBN number manually
+                </MudText>
+            </div>
+
+            @* Skip option *@
+            <div class="add-book-option add-book-option-tertiary" @onclick="GoToForm">
+                <div class="add-book-option-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Large" Style="color: white;" />
+                </div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold">Enter Details Manually</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                    Skip ISBN lookup and fill in all details yourself
+                </MudText>
+            </div>
+        </MudStack>
+
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Default"
+                   FullWidth="true"
+                   Class="mt-6"
+                   OnClick="GoBack">
+            Cancel
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    private void GoToScan()
+    {
+        NavigationManager.NavigateTo("/books/add/scan");
+    }
+
+    private void GoToManual()
+    {
+        NavigationManager.NavigateTo("/books/add/manual");
+    }
+
+    private void GoToForm()
+    {
+        NavigationManager.NavigateTo("/books/add/form");
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/books/list");
+    }
+}

@@ -1,4 +1,3 @@
-﻿using Ardalis.GuardClauses;
 using Domain.Extensions;
 using Domain.Libraries;
 using Domain.Primitives;
@@ -16,8 +15,6 @@ public class LibraryUiDto : Entity<Guid>
 
     public static LibraryUiDto convert(Library library)
     {
-        Guard.Against.Null(library);
-
         return new LibraryUiDto
         {
             Name = library.Name,

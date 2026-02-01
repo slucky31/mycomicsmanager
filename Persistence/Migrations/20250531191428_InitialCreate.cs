@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -21,10 +21,7 @@ public partial class InitialCreate : Migration
                 CreatedOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 ModifiedOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
             },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_Libraries", x => x.Id);
-            });
+            constraints: table => table.PrimaryKey("PK_Libraries", x => x.Id));
 
         migrationBuilder.CreateTable(
             name: "Users",
@@ -36,10 +33,7 @@ public partial class InitialCreate : Migration
                 CreatedOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 ModifiedOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
             },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_Users", x => x.Id);
-            });
+            constraints: table => table.PrimaryKey("PK_Users", x => x.Id));
     }
 
     /// <inheritdoc />

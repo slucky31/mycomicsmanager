@@ -1,4 +1,5 @@
-﻿namespace Domain.Libraries;
+namespace Domain.Libraries;
+
 public enum LibrariesColumn
 {
     Id,

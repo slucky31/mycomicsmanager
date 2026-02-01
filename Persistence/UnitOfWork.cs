@@ -1,9 +1,10 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Domain.Interfaces;
 using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
+
 public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
 {
     public async Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken)

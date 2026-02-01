@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Domain.Libraries;
 using Domain.Primitives;
@@ -16,7 +16,7 @@ public sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadServ
             return LibrariesError.ValidationError;
         }
 
-        var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize);
+        var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize, cancellationToken);
 
         return Result<IPagedList<Library>>.Success(list);
     }

@@ -7,9 +7,13 @@
 @using Web.Components.Pages.Libraries
 @using Web.Validators
 @using System.Threading.Tasks
-@inherits TestContext
+@using Microsoft.Extensions.DependencyInjection
+@implements IAsyncDisposable
 
 @code {
+
+    private readonly BunitContext _testContext;
+
     private LibraryUiDto CreateValidLibraryUiDto()
     {
         return new LibraryUiDto
@@ -21,10 +25,17 @@
     public LibraryDialogTest()
     {
         // Allow MudBlazor's JS calls to be ignored during tests
-        JSInterop.Mode = JSRuntimeMode.Loose;
-        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
+        _testContext = new BunitContext();
+        _testContext.JSInterop.Mode = JSRuntimeMode.Loose;
+        _testContext.JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
 
-        Services.AddMudServices();       
+        _testContext.Services.AddMudServices();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _testContext.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
@@ -32,8 +43,8 @@
     {
         // Arrange
         var library = CreateValidLibraryUiDto();
-        var provider = RenderComponent<MudDialogProvider>();
-        var dialogService = Services.GetRequiredService<IDialogService>();
+        var provider = _testContext.Render<MudDialogProvider>();
+        var dialogService = _testContext.Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
         var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
 
@@ -56,8 +67,8 @@
     {
         // Arrange
         var library = CreateValidLibraryUiDto();
-        var provider = RenderComponent<MudDialogProvider>();
-        var dialogService = Services.GetRequiredService<IDialogService>();
+        var provider = _testContext.Render<MudDialogProvider>();
+        var dialogService = _testContext.Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
         var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
 
@@ -82,8 +93,8 @@
     {
         // Arrange
         var library = CreateValidLibraryUiDto();
-        var provider = RenderComponent<MudDialogProvider>();
-        var dialogService = Services.GetRequiredService<IDialogService>();
+        var provider = _testContext.Render<MudDialogProvider>();
+        var dialogService = _testContext.Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
         var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
 
@@ -108,8 +119,8 @@
     {
         // Arrange
         var library = new LibraryUiDto(); // invalid - missing required fields
-        var provider = RenderComponent<MudDialogProvider>();
-        var dialogService = Services.GetRequiredService<IDialogService>();
+        var provider = _testContext.Render<MudDialogProvider>();
+        var dialogService = _testContext.Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
         var dialogRef = await dialogService.ShowAsync<LibraryDialog>(string.Empty, parameters);
 

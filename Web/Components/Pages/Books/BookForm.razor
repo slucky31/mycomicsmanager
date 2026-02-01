@@ -1,0 +1,123 @@
+@using Web.Validators
+
+<style>
+    .book-form-cover {
+        width: 140px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .book-form-cover-placeholder {
+        width: 140px;
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
+        border-radius: 12px;
+        color: white;
+    }
+</style>
+
+<MudForm @ref="_form" Model="@Model" Validation="@(_bookValidator.ValidateValue)">
+    <MudGrid Spacing="3">
+        @* Left column - Cover preview *@
+        <MudItem xs="12" sm="4">
+            <div class="d-flex flex-column align-center gap-3">
+                @if (!string.IsNullOrEmpty(Model.ImageLink))
+                {
+                    <MudImage Src="@Model.ImageLink" Alt="Book cover" Class="book-form-cover" />
+                }
+                else
+                {
+                    <div class="book-form-cover-placeholder">
+                        <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Style="opacity: 0.8;" />
+                        <MudText Typo="Typo.caption" Class="mt-2" Style="opacity: 0.8;">No cover</MudText>
+                    </div>
+                }
+
+                @* Rating section *@
+                <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: var(--mud-palette-background-gray);">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">Your Rating</MudText>
+                    <MudRating @bind-SelectedValue="Model.Rating" MaxValue="5" Size="Size.Medium" />
+                </MudPaper>
+            </div>
+        </MudItem>
+
+        @* Right column - Form fields *@
+        <MudItem xs="12" sm="8">
+            <MudStack Spacing="3">
+                @* Title *@
+                <MudTextField @bind-Value="Model.Title"
+                              For="@(() => Model.Title)"
+                              Immediate="true"
+                              Label="Title"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Title" />
+
+                @* Series *@
+                <MudTextField @bind-Value="Model.Serie"
+                              For="@(() => Model.Serie)"
+                              Immediate="true"
+                              Label="Series"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.CollectionsBookmark" />
+
+                @* ISBN and Volume in a row *@
+                <MudGrid Spacing="2">
+                    <MudItem xs="7">
+                        <MudTextField @bind-Value="Model.ISBN"
+                                      For="@(() => Model.ISBN)"
+                                      Immediate="true"
+                                      Label="ISBN"
+                                      Variant="Variant.Outlined"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.QrCode"
+                                      ReadOnly="@IsbnReadOnly" />
+                    </MudItem>
+                    <MudItem xs="5">
+                        <MudNumericField @bind-Value="Model.VolumeNumber"
+                                         For="@(() => Model.VolumeNumber)"
+                                         Label="Volume"
+                                         Variant="Variant.Outlined"
+                                         Min="1"
+                                         Adornment="Adornment.Start"
+                                         AdornmentIcon="@Icons.Material.Filled.Numbers" />
+                    </MudItem>
+                </MudGrid>
+
+                @* Image URL *@
+                <MudTextField @bind-Value="Model.ImageLink"
+                              For="@(() => Model.ImageLink)"
+                              Immediate="true"
+                              Label="Cover Image URL"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Image"
+                              HelperText="Paste a URL to the book cover image" />
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+</MudForm>
+
+@code {
+    [Parameter]
+    public BookUiDto Model { get; set; } = new();
+
+    [Parameter]
+    public bool IsbnReadOnly { get; set; } = false;
+
+    private readonly BookValidator _bookValidator = new();
+    private MudForm _form = default!;
+
+    public async Task<bool> ValidateAsync()
+    {
+        await _form.Validate();
+        return _form.IsValid;
+    }
+}

@@ -1,4 +1,4 @@
-﻿using Domain.Extensions;
+using Domain.Extensions;
 using Domain.Primitives;
 
 namespace Domain.Libraries;
@@ -6,7 +6,7 @@ namespace Domain.Libraries;
 public class Library : Entity<Guid>
 {
 
-    public string Name { get; protected set; } = String.Empty;
+    public string Name { get; protected set; } = string.Empty;
 
     public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 

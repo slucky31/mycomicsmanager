@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet-coverage collect:*)",
+      "Bash(reportgenerator:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet format:*)",
+      "Bash(dotnet --version:*)",
+      "Bash(dotnet list package:*)",
+      "Bash(dotnet restore:*)"
+    ]
+  }
+}

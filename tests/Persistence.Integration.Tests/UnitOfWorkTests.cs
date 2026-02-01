@@ -1,11 +1,11 @@
-﻿
+
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Libraries;
 
 namespace Persistence.Tests;
 
-[Collection("Library")]
+[Collection("DatabaseCollectionTests")]
 public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]

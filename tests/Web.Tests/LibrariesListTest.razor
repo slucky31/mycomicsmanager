@@ -1,4 +1,4 @@
-﻿@using AngleSharp.Dom
+@using AngleSharp.Dom
 @using Domain.Libraries
 @using Domain.Primitives
 @using MockQueryable
@@ -10,10 +10,12 @@
 @using Web.Components.Pages
 @using Web.Services
 @using Application.Interfaces
-@inherits TestContext
+@using Microsoft.Extensions.DependencyInjection
+@implements IAsyncDisposable
 
 @code{
 
+    private readonly BunitContext _testContext;
     private readonly ILibrariesService _librariesServiceMock;
     private readonly int nbItems = 10;
 
@@ -25,23 +27,30 @@
         public int Page { get; } = page;
         public int PageSize { get; } = pageSize;
         public int TotalCount { get; } = items.Count;
-        public Task<IPagedList<T>> ExecuteQueryAsync(int page, int pageSize) => Task.FromResult<IPagedList<T>>(this);
+        public Task<IPagedList<T>> ExecuteQueryAsync(int page, int pageSize, CancellationToken cancellationToken = default) => Task.FromResult<IPagedList<T>>(this);
     }
 
     public LibrariesListTest()
-    {                
-        JSInterop.Mode = JSRuntimeMode.Loose;
+    {          
+        _testContext = new BunitContext();
+        _testContext.JSInterop.Mode = JSRuntimeMode.Loose;
         _librariesServiceMock = Substitute.For<ILibrariesService>();
-        Services.AddSingleton(_librariesServiceMock);
-        Services.AddMudServices();
-        RenderComponent<MudPopoverProvider>();
+        _testContext.Services.AddSingleton(_librariesServiceMock);
+        _testContext.Services.AddMudServices();
+        _testContext.Render<MudPopoverProvider>();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _testContext.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
     public void LibraryList_Should_RenderCorrectly_When_NoDataProvided()
     {
         // Act
-        var comp = RenderComponent<LibrariesList>();
+        var comp = _testContext.Render<LibrariesList>();
 
         comp.Should().NotBeNull();
         comp.WaitForAssertion(() =>
@@ -71,7 +80,7 @@
             .Returns(Task.FromResult(Result<IPagedList<Library>>.Success(paged)));
 
         // Act
-        var comp = RenderComponent<LibrariesList>();
+        var comp = _testContext.Render<LibrariesList>();
 
         // Assert
         comp.Should().NotBeNull();        

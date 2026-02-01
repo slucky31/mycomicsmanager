@@ -1,4 +1,4 @@
-﻿namespace Application.Interfaces;
+namespace Application.Interfaces;
 
 public interface IRepository<TEntity, TEntityId>
 {

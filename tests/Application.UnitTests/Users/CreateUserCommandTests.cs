@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Application.Users;
 using Application.Users.Create;
 using Domain.Users;
@@ -8,7 +8,7 @@ namespace Application.UnitTests.Users;
 
 public class CreateUserCommandHandlerTests
 {
-    private static readonly CreateUserCommand Command = new("test@test.com", "1234");
+    private static readonly CreateUserCommand s_command = new("test@test.com", "1234");
 
     private readonly IRepository<User, Guid> _userRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
@@ -31,7 +31,7 @@ public class CreateUserCommandHandlerTests
         _userRepositoryMock.Add(Arg.Any<User>());
 
         // Act
-        await _handler.Handle(Command, default);
+        await _handler.Handle(s_command, default);
 
         // Assert
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -69,11 +69,11 @@ public class CreateUserCommandHandlerTests
     public async Task Handle_ShouldReturnDuplicate_WhenAUserWithSameEmailOrAuthIdAlreadyExist()
     {
         // Arrange
-        var user = User.Create(Command.email, Command.authId);
-        _userReadServiceMock.GetUserByAuthIdAndEmail(Command.email, Command.authId).Returns(user);
+        var user = User.Create(s_command.email, s_command.authId);
+        _userReadServiceMock.GetUserByAuthIdAndEmail(s_command.email, s_command.authId).Returns(user);
 
         // Act
-        var result = await _handler.Handle(Command, default);
+        var result = await _handler.Handle(s_command, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();

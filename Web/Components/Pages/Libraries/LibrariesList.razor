@@ -1,4 +1,5 @@
 @using Domain.Libraries
+@using Web.Enums
 
 @rendermode InteractiveServer
 
@@ -10,7 +11,7 @@
     }
 </style>
 
-<PageWithAction Title="Libraries" Icon="@Icons.Material.Filled.CollectionsBookmark" ActionName="New library" ActionIcon="@Icons.Material.Filled.Add" OnActionClick="@(e => CreateOrEdit(FormMode.Create, null))">
+<PageWithAction Title="Libraries" Icon="@Icons.Material.Filled.CollectionsBookmark" ActionName="New library" ActionIcon="@Icons.Material.Filled.Add" OnActionClick="@(e => CreateOrEditAsync(FormMode.Create, null))">
     <MudGrid Spacing="4" Justify="Justify.FlexStart">
         @foreach (var lib in Libraries)
         {
@@ -22,8 +23,8 @@
                         </CardHeaderContent>
                         <CardHeaderActions>
                             <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Actions">
-                                <MudMenuItem Label="Edit" OnClick="@(e => CreateOrEdit(FormMode.Edit, @lib))" />
-                                <MudMenuItem Label="Delete" OnClick="@(e => OnClickDelete(@lib.Id))" />
+                                <MudMenuItem Label="Edit" OnClick="@(e => CreateOrEditAsync(FormMode.Edit, @lib))" />
+                                <MudMenuItem Label="Delete" OnClick="@(e => OnClickDeleteAsync(@lib.Id))" />
                             </MudMenu>
                         </CardHeaderActions>
                     </MudCardHeader>

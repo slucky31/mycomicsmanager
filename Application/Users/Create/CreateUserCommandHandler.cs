@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Domain.Primitives;
 using Domain.Users;
@@ -21,7 +21,7 @@ public sealed class CreateUserCommandHandler(IRepository<User, Guid> userReposit
         }
 
         // Check if a user with the same email or AuthId doesn't already exist
-        var user = await userReadService.GetUserByAuthIdAndEmail(command.email, command.authId);
+        var user = await userReadService.GetUserByAuthIdAndEmail(command.email, command.authId, cancellationToken);
         if (user is not null)
         {
             return UsersError.Duplicate;

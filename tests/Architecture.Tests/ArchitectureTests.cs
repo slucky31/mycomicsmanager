@@ -1,4 +1,4 @@
-﻿using Domain.Libraries;
+using Domain.Libraries;
 using NetArchTest.Rules;
 
 namespace Architecture.Tests;

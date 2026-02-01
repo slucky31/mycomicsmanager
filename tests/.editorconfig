@@ -1,0 +1,7 @@
+# EditorConfig pour les projets de tests
+# Supprime l'avertissement IDE1006 uniquement dans les tests
+root = false
+
+[*.cs]
+# IDE1006: Naming rule violation: Missing suffix: Async
+dotnet_diagnostic.IDE1006.severity = none

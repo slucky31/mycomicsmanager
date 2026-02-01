@@ -1,6 +1,7 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace Web.Validators;
+
 public class LibraryValidator : AbstractValidator<LibraryUiDto>
 {
     public LibraryValidator()
@@ -18,19 +19,19 @@ public class LibraryValidator : AbstractValidator<LibraryUiDto>
     {
         if (model is not LibraryUiDto dto)
         {
-            return new[] { "Invalid model for validation." };
+            return ["Invalid model for validation."];
         }
 
         if (string.IsNullOrWhiteSpace(propertyName))
         {
-            return new[] { "Property name is required." };
+            return ["Property name is required."];
         }
 
         var ctx = ValidationContext<LibraryUiDto>.CreateWithOptions(dto, x => x.IncludeProperties(propertyName));
         var result = await ValidateAsync(ctx);
         if (result.IsValid)
         {
-            return Array.Empty<string>();
+            return [];
         }
         return result.Errors.Select(e => e.ErrorMessage);
     };

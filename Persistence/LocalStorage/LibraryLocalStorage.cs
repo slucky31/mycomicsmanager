@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Application.Libraries;
 using Ardalis.GuardClauses;
 using Domain.Errors;
@@ -6,6 +6,7 @@ using Domain.Extensions;
 using Domain.Primitives;
 
 namespace Persistence.LocalStorage;
+
 public class LibraryLocalStorage : ILibraryLocalStorage
 {
     private readonly char[] _charsToTrim = ['/', '\\'];
@@ -22,7 +23,7 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         Guard.Against.Null(rootPath);
         Guard.Against.Null(folderName);
 
-        if (String.IsNullOrEmpty(rootPath) || String.IsNullOrEmpty(folderName))
+        if (string.IsNullOrEmpty(rootPath) || string.IsNullOrEmpty(folderName))
         {
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
         }
@@ -40,7 +41,7 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         Guard.Against.Null(originFolderName);
         Guard.Against.Null(destinationFolderName);
 
-        if (String.IsNullOrEmpty(rootPath) || String.IsNullOrEmpty(originFolderName) || String.IsNullOrEmpty(destinationFolderName))
+        if (string.IsNullOrEmpty(rootPath) || string.IsNullOrEmpty(originFolderName) || string.IsNullOrEmpty(destinationFolderName))
         {
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
         }
@@ -70,7 +71,7 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         Guard.Against.Null(rootPath);
         Guard.Against.Null(folderName);
 
-        if (String.IsNullOrEmpty(rootPath) || String.IsNullOrEmpty(folderName))
+        if (string.IsNullOrEmpty(rootPath) || string.IsNullOrEmpty(folderName))
         {
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
         }

@@ -1,6 +1,7 @@
-﻿using Domain.Primitives;
+using Domain.Primitives;
 
 namespace Application.Abstractions.Messaging;
+
 public interface ICommandHandler<in TCommand> where TCommand : ICommand
 {
     Task<Result> Handle(TCommand command, CancellationToken cancellationToken);

@@ -1,4 +1,5 @@
-﻿using Application;
+using Application;
+using Application.ComicInfoSearch;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
 using HealthChecks.ApplicationStatus.DependencyInjection;
@@ -36,9 +37,22 @@ builder.Services.AddOptions<LocalStorageConfiguration>()
     .Validate(cfg => Path.IsPathFullyQualified(cfg.RootPath), "LocalStorage:RootPath must be an absolute path")
     .ValidateOnStart();
 
+// Config Cloudinary settings
+var cloudinarySection = configuration.GetSection("Cloudinary");
+builder.Services.AddOptions<CloudinarySettings>()
+    .Bind(cloudinarySection)
+    .ValidateOnStart();
+
+// Config OpenLibrary service for ISBN lookup
+builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 builder.Services
     .AddApplication()
-    .AddInfrastructure(connectionString, configuration["LocalStorage:RootPath"]!);
+    .AddInfrastructure(connectionString, configuration["LocalStorage:RootPath"]!, configuration);
 
 // Config Serilog
 builder.Host.UseSerilog((context, configuration) =>
@@ -53,10 +67,7 @@ builder.Services.AddOptions<Auth0Configuration>()
     .ValidateOnStart();
 
 // Add Auth0 services
-builder.Services.AddAuth0WebAppAuthentication(options =>
-    {
-        config.Bind(options);
-    });
+builder.Services.AddAuth0WebAppAuthentication(options => config.Bind(options));
 
 // Register CustomAuthenticationStateProvider
 builder.Services.AddCascadingAuthenticationState();
@@ -86,6 +97,7 @@ builder.Services.AddMudServices(config =>
 
 // Config Services
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
+builder.Services.AddScoped<IBooksService, BooksService>();
 
 var app = builder.Build();
 
@@ -121,7 +133,3 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 StartupInfo.Print();
 
 app.Run();
-
-#pragma warning disable S1118, CA1515 // Utility classes should not have public constructors
-public partial class Program { }
-#pragma warning restore S1118, CA1515 // Util

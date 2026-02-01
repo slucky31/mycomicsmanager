@@ -1,8 +1,9 @@
-﻿using Ardalis.GuardClauses;
+using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Web.Enums;
 using Web.Services;
 using Web.Validators;
 
@@ -14,11 +15,7 @@ public partial class LibrariesList
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
-    private enum FormMode
-    {
-        Create,
-        Edit
-    }
+
 
     private List<LibraryUiDto> Libraries { get; } = [];
 
@@ -29,10 +26,10 @@ public partial class LibrariesList
 
     protected override async Task OnInitializedAsync()
     {
-        await ReloadData();
+        await ReloadDataAsync();
     }
 
-    private async Task ReloadData()
+    private async Task ReloadDataAsync()
     {
         var sortColumn = LibrariesColumn.Name;
         var sortOrder = SortOrder.Descending;
@@ -47,7 +44,7 @@ public partial class LibrariesList
         }
     }
 
-    private async Task OnClickDelete(Guid id)
+    private async Task OnClickDeleteAsync(Guid id)
     {
         var result = await LibrariesService.Delete(id.ToString());
         if (result.IsFailure)
@@ -59,12 +56,12 @@ public partial class LibrariesList
         else
         {
             Snackbar.Add(Msg_LibCorrectlyDeleted, Severity.Success);
-            await ReloadData();
+            await ReloadDataAsync();
         }
 
     }
 
-    private async Task<Result<LibraryUiDto>> OpenLibraryDialog(FormMode mode, LibraryUiDto? editLibrary)
+    private async Task<Result<LibraryUiDto>> OpenLibraryDialogAsync(FormMode mode, LibraryUiDto? editLibrary)
     {
         DialogParameters<LibraryDialog> parameters;
         LibraryUiDto library;
@@ -108,14 +105,14 @@ public partial class LibrariesList
     }
 
 
-    private async Task CreateOrEdit(FormMode mode, LibraryUiDto? editLibrary)
+    private async Task CreateOrEditAsync(FormMode mode, LibraryUiDto? editLibrary)
     {
         if (mode == FormMode.Edit && editLibrary is null)
         {
             return;
         }
 
-        var result = await OpenLibraryDialog(mode, editLibrary);
+        var result = await OpenLibraryDialogAsync(mode, editLibrary);
         if (result.IsFailure || result.Value is null)
         {
             return;
@@ -150,7 +147,7 @@ public partial class LibrariesList
             Snackbar.Add(resultCreateOrEdit.Error.Description, Severity.Error);
         }
 
-        await ReloadData();
+        await ReloadDataAsync();
 
     }
 

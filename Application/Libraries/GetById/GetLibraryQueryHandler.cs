@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Domain.Libraries;
 using Domain.Primitives;

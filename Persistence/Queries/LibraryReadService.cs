@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using Application.Interfaces;
 using Application.Libraries;
 using Domain.Libraries;
@@ -7,9 +7,10 @@ using Microsoft.EntityFrameworkCore;
 using Persistence.Queries.Helpers;
 
 namespace Persistence.Queries;
+
 public class LibraryReadService(ApplicationDbContext context) : ILibraryReadService
 {
-    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
+    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var librariesQuery = context.Libraries.AsNoTracking();
 
@@ -20,9 +21,9 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 
         Expression<Func<Library, object>> keySelector = sortColumn switch
         {
-            LibrariesColumn.Id => Library => Library.Id,
-            LibrariesColumn.Name => Library => Library.Name,
-            _ => Library => Library.Id
+            LibrariesColumn.Id => library => library.Id,
+            LibrariesColumn.Name => library => library.Name,
+            _ => library => library.Id
         };
 
         librariesQuery = sortOrder switch
@@ -32,6 +33,6 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
             _ => librariesQuery.OrderBy(keySelector),
         };
         var librariesPagedList = new PagedList<Library>(librariesQuery);
-        return await librariesPagedList.ExecuteQueryAsync(page, pageSize);
+        return await librariesPagedList.ExecuteQueryAsync(page, pageSize, cancellationToken);
     }
 }

@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Application.Libraries.GetById;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
@@ -7,6 +7,7 @@ using NSubstitute.ReceivedExtensions;
 using NSubstitute.ReturnsExtensions;
 
 namespace Application.UnitTests.Libraries;
+
 public class GetLibraryCommandTests
 {
 
@@ -27,10 +28,10 @@ public class GetLibraryCommandTests
         var library = Library.Create("test");
         var libraryId = library.Id;
         _librayRepositoryMock.GetByIdAsync(libraryId).Returns(library);
-        var Query = new GetLibraryQuery(libraryId);
+        var query = new GetLibraryQuery(libraryId);
 
         // Act
-        var result = await _handler.Handle(Query, default);
+        var result = await _handler.Handle(query, CancellationToken.None);
         Guard.Against.Null(result.Value);
 
         // Assert
@@ -46,10 +47,10 @@ public class GetLibraryCommandTests
         // Arrange
         var libraryId = Guid.CreateVersion7();
         _librayRepositoryMock.GetByIdAsync(libraryId).ReturnsNull();
-        var Query = new GetLibraryQuery(libraryId);
+        var query = new GetLibraryQuery(libraryId);
 
         // Act
-        var result = await _handler.Handle(Query, default);
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();

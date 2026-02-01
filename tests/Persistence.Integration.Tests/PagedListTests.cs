@@ -1,4 +1,4 @@
-﻿using Ardalis.GuardClauses;
+using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Libraries;
 using MockQueryable;
@@ -6,7 +6,7 @@ using Persistence.Queries.Helpers;
 
 namespace Persistence.Tests;
 
-[Collection("Library")]
+[Collection("DatabaseCollectionTests")]
 public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
     [Fact]
@@ -38,13 +38,13 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     // Mock IQueryable with NSubstitute
     // https://sinairv.github.io/blog/2015/10/04/mock-entity-framework-dbset-with-nsubstitute/
 
-    private readonly List<string> list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+    private readonly List<string> _list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
     [Fact]
-    public async Task PagedList_TotalCountAsync()
+    public async Task PagedList_TotalCount()
     {
         // Arrange : https://github.com/romantitov/MockQueryable
-        var query = list.BuildMock();
+        var query = _list.BuildMock();
 
         // Act
         var pagedList = new PagedList<string>(query);
@@ -58,7 +58,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     public async Task PagedList_FirstPage_HasNextPageAsync_And_HasNoPreviousPage()
     {
         // Arrange
-        var query = list.BuildMock();
+        var query = _list.BuildMock();
 
         // Act
         var pagedList = new PagedList<string>(query);
@@ -74,7 +74,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     public async Task PagedList_SecondPage_HasNextPageAsync_And_HasPreviousPage()
     {
         // Arrange
-        var query = list.BuildMock();
+        var query = _list.BuildMock();
 
         // Act
         var pagedList = new PagedList<string>(query);
@@ -92,7 +92,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     public async Task PagedList_FifthPage_HasNoNextPageAsync_And_HasPreviousPage()
     {
         // Arrange
-        var query = list.BuildMock();
+        var query = _list.BuildMock();
 
         // Act
         var pagedList = new PagedList<string>(query);
@@ -109,7 +109,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
     public async Task PagedList_SixthPage_HasNoNextPageAsync_And_HasPreviousPage()
     {
         // Arrange
-        var query = list.BuildMock();
+        var query = _list.BuildMock();
 
         // Act
         var pagedList = new PagedList<string>(query);

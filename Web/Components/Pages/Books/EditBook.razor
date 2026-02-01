@@ -1,0 +1,201 @@
+@page "/books/{BookId}/edit"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Components
+@using Web.Services
+@using Web.Validators
+
+@inject NavigationManager NavigationManager
+@inject IBooksService BooksService
+@inject ISnackbar Snackbar
+
+<style>
+    .edit-book-page {
+        min-height: 100vh;
+        background: var(--mud-palette-background);
+    }
+
+    .edit-book-header {
+        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+        padding: 16px 24px;
+        color: white;
+    }
+
+    .edit-book-content {
+        padding: 24px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+</style>
+
+<div class="edit-book-page">
+    @* Header *@
+    <div class="edit-book-header">
+        <div class="d-flex align-center gap-3">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           Color="Color.Inherit"
+                           OnClick="GoBack" />
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
+                    Edit Book
+                </MudText>
+                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
+                    @if (_isLoading)
+                    {
+                        <text>Loading book information...</text>
+                    }
+                    else if (_bookModel is not null)
+                    {
+                        @_bookModel.Title
+                    }
+                    else
+                    {
+                        <text>Book not found</text>
+                    }
+                </MudText>
+            </div>
+        </div>
+    </div>
+
+    @* Content *@
+    <div class="edit-book-content">
+        @if (_isLoading)
+        {
+            <div class="d-flex flex-column align-center justify-center pa-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">
+                    Loading book information...
+                </MudText>
+            </div>
+        }
+        else if (_loadError)
+        {
+            <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Error" Style="font-size: 80px; opacity: 0.5;" />
+                <MudText Typo="Typo.h6" Color="Color.Error" Class="mt-4">Book not found</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">The book you're looking for doesn't exist.</MudText>
+                <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/books/list"))">
+                    Back to Books
+                </MudButton>
+            </MudPaper>
+        }
+        else if (_bookModel is not null)
+        {
+            <MudPaper Class="pa-6 rounded-lg" Elevation="2">
+                <BookForm @ref="_bookForm" Model="_bookModel" />
+
+                @* Action buttons *@
+                <div class="d-flex justify-end gap-2 mt-6">
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Default"
+                               OnClick="GoBack">
+                        Cancel
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="SaveBookAsync"
+                               Disabled="_isSaving">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            <text>Saving...</text>
+                        }
+                        else
+                        {
+                            <text>Save Changes</text>
+                        }
+                    </MudButton>
+                </div>
+            </MudPaper>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string BookId { get; set; } = string.Empty;
+
+    private BookForm? _bookForm;
+    private BookUiDto? _bookModel;
+    private bool _isLoading = true;
+    private bool _loadError;
+    private bool _isSaving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBookAsync();
+    }
+
+    private async Task LoadBookAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+        StateHasChanged();
+
+        try
+        {
+            var result = await BooksService.GetById(BookId);
+
+            if (result.IsSuccess && result.Value is not null)
+            {
+                _bookModel = BookUiDto.Convert(result.Value);
+            }
+            else
+            {
+                _loadError = true;
+                Snackbar.Add("Book not found.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _loadError = true;
+            Snackbar.Add($"Error loading book: {ex.Message}", Severity.Error);
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task SaveBookAsync()
+    {
+        if (_bookForm is null || _bookModel is null) return;
+
+        var isValid = await _bookForm.ValidateAsync();
+        if (!isValid) return;
+
+        _isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await BooksService.Update(
+                _bookModel.Id.ToString(),
+                _bookModel.Serie,
+                _bookModel.Title,
+                _bookModel.ISBN,
+                _bookModel.VolumeNumber,
+                _bookModel.ImageLink,
+                _bookModel.Rating
+            );
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Book updated successfully!", Severity.Success);
+                NavigationManager.NavigateTo($"/books/{BookId}");
+            }
+            else
+            {
+                Snackbar.Add($"Failed to update book: {result.Error?.Description}", Severity.Error);
+            }
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo($"/books/{BookId}");
+    }
+}
