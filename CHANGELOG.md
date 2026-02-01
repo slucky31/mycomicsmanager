@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.6.8"></a>
+## [9.6.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.8) (2026-02-01)
+
+### 🐛 Bug Fixes
+
+* Remove sensitive data from appsettings.json ([#881](https://www.github.com/slucky31/mycomicsmanager/issues/881)) ([9352310](https://www.github.com/slucky31/mycomicsmanager/commit/935231053ee726997abc806af4106b97d2a59230))
+
 <a name="9.6.7"></a>
 ## [9.6.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.7) (2026-02-01)
 
