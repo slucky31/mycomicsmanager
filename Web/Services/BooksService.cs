@@ -40,19 +40,31 @@ public class BooksService(
 
     public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink, int rating, CancellationToken cancellationToken = default)
     {
-        var command = new CreateBookCommand(series, title, isbn, volumeNumber, imageLink, rating);
+        return await Create(series, title, isbn, volumeNumber, imageLink, rating, "", "", null, null, cancellationToken);
+    }
+
+    public async Task<Result<Book>> Create(string series, string title, string isbn, int volumeNumber, string imageLink, int rating,
+        string authors, string publishers, DateOnly? publishDate, int? numberOfPages, CancellationToken cancellationToken = default)
+    {
+        var command = new CreateBookCommand(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
 
         return await createBookHandler.Handle(command, cancellationToken);
     }
 
     public async Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink, int rating, CancellationToken cancellationToken = default)
     {
+        return await Update(id, series, title, isbn, volumeNumber, imageLink, rating, "", "", null, null, cancellationToken);
+    }
+
+    public async Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink, int rating,
+        string authors, string publishers, DateOnly? publishDate, int? numberOfPages, CancellationToken cancellationToken = default)
+    {
         if (!Guid.TryParse(id, out var guidId))
         {
             return BooksError.ValidationError;
         }
 
-        var command = new UpdateBookCommand(guidId, series, title, isbn, volumeNumber, imageLink, rating);
+        var command = new UpdateBookCommand(guidId, series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
 
         return await updateBookHandler.Handle(command, cancellationToken);
     }

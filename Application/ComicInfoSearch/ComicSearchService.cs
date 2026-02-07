@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
@@ -34,7 +36,9 @@ public class ComicSearchService : IComicSearchService
 
             // Extract series and volume from title if possible
             // OpenLibrary often has titles like "Series Name - Tome 1" or "Series Name, Vol. 2"
-            var (serie, title, volumeNumber) = ParseTitleAndSeries(result.Title);
+            var (serie, volumeNumber) = ParseVolumeAndSerie(result.Title);
+
+            var title = string.IsNullOrEmpty(result.Subtitle) ? result.Title : result.Subtitle;
 
             // Upload cover to Cloudinary if available
             var imageUrl = string.Empty;
@@ -43,7 +47,14 @@ public class ComicSearchService : IComicSearchService
                 imageUrl = await UploadCoverToCloudinaryAsync(result.CoverUrl, isbn, cancellationToken);
             }
 
-            Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
+            // Combine authors and publishers as comma-separated strings
+            var authors = string.Join(", ", result.Authors);
+            var publishers = string.Join(", ", result.Publishers);
+
+            // Parse publish date from OpenLibrary format
+            var publishDate = ParsePublishDate(result.PublishDate);
+
+            Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", result.Subtitle, serie, volumeNumber);
 
             return new ComicSearchResult(
                 Title: title,
@@ -51,6 +62,10 @@ public class ComicSearchService : IComicSearchService
                 Isbn: isbn,
                 VolumeNumber: volumeNumber,
                 ImageUrl: imageUrl,
+                Authors: authors,
+                Publishers: publishers,
+                PublishDate: publishDate,
+                NumberOfPages: result.NumberOfPages,
                 Found: true
             );
         }
@@ -92,96 +107,101 @@ public class ComicSearchService : IComicSearchService
         return coverUrl.ToString();
     }
 
-    private static (string Serie, string Title, int VolumeNumber) ParseTitleAndSeries(string fullTitle)
+    private static (string Serie, int VolumeNumber) ParseVolumeAndSerie(string fullTitle)
     {
         if (string.IsNullOrWhiteSpace(fullTitle))
         {
-            return (string.Empty, string.Empty, 1);
+            return (string.Empty, 1);
         }
 
         var volumeNumber = 1;
-        var title = fullTitle;
         var serie = string.Empty;
 
         // Common patterns for comic/manga titles:
-        // "Series Name - Tome 1"
-        // "Series Name - Tome 1 - Subtitle"
-        // "Series Name, Vol. 2"
-        // "Series Name #3"
-
-        // Try to extract volume number
-        var tomeMatch = System.Text.RegularExpressions.Regex.Match(
-            fullTitle,
-            @"[-–]\s*[Tt]ome\s*(\d+)",
-            System.Text.RegularExpressions.RegexOptions.None,
-            TimeSpan.FromSeconds(1));
-
-        if (tomeMatch.Success)
+        // "Soda, tome 1"
+        // "Series Name - Tome 2"
+        // "Series Name, Vol. 3"
+        // "Series Name Vol. 4"
+        // "Series Name #5"
+        var patterns = new[]
         {
-            _ = int.TryParse(tomeMatch.Groups[1].Value, out volumeNumber);
-            // Series is everything before "- Tome X"
-            var tomeIndex = fullTitle.IndexOf(tomeMatch.Value, StringComparison.OrdinalIgnoreCase);
-            if (tomeIndex > 0)
-            {
-                serie = fullTitle[..tomeIndex].Trim().TrimEnd('-', '–').Trim();
-                // Title might include what comes after "Tome X"
-                var afterTome = fullTitle[(tomeIndex + tomeMatch.Value.Length)..].Trim().TrimStart('-', '–').Trim();
-                title = string.IsNullOrEmpty(afterTome) ? serie : afterTome;
-            }
-        }
-        else
+            @"^(.+?),\s*tome\s+(\d+)",           // "Soda, tome 1"
+            @"^(.+?)\s*-\s*tome\s+(\d+)",        // "Soda - tome 1"
+            @"^(.+?),\s*vol\.?\s*(\d+)",         // "Soda, vol. 1" or "Soda, vol 1"
+            @"^(.+?)\s*-\s*vol\.?\s*(\d+)",      // "Soda - vol. 1"
+            @"^(.+?)\s+vol\.?\s*(\d+)",          // "Soda vol. 1"
+            @"^(.+?)\s*#(\d+)",                  // "Soda #1"
+        };
+
+        foreach (var pattern in patterns)
         {
-            // Try "Vol. X" pattern
-            var volMatch = System.Text.RegularExpressions.Regex.Match(
-                fullTitle,
-                @",?\s*[Vv]ol\.?\s*(\d+)",
-                System.Text.RegularExpressions.RegexOptions.None,
-                TimeSpan.FromSeconds(1));
-
-            if (volMatch.Success)
+            var match = Regex.Match(fullTitle, pattern, RegexOptions.IgnoreCase);
+            if (match.Success)
             {
-                _ = int.TryParse(volMatch.Groups[1].Value, out volumeNumber);
-                var volIndex = fullTitle.IndexOf(volMatch.Value, StringComparison.OrdinalIgnoreCase);
-                if (volIndex > 0)
+                serie = match.Groups[1].Value.Trim();
+                if (int.TryParse(match.Groups[2].Value, out var vol))
                 {
-                    serie = fullTitle[..volIndex].Trim().TrimEnd(',').Trim();
-                    title = serie;
-                }
-            }
-            else
-            {
-                // Try "#X" pattern
-                var hashMatch = System.Text.RegularExpressions.Regex.Match(
-                    fullTitle,
-                    @"\s*#(\d+)",
-                    System.Text.RegularExpressions.RegexOptions.None,
-                    TimeSpan.FromSeconds(1));
-
-                if (hashMatch.Success)
-                {
-                    _ = int.TryParse(hashMatch.Groups[1].Value, out volumeNumber);
-                    var hashIndex = fullTitle.IndexOf(hashMatch.Value, StringComparison.OrdinalIgnoreCase);
-                    if (hashIndex > 0)
-                    {
-                        serie = fullTitle[..hashIndex].Trim();
-                        title = serie;
-                    }
-                }
+                    volumeNumber = vol;
+                }                
+                break;
             }
         }
 
         // If no series was extracted, use title as both
         if (string.IsNullOrEmpty(serie))
         {
-            serie = title;
+            serie = fullTitle;
         }
 
-        if (volumeNumber == 0)
+        return (serie, volumeNumber);
+    }
+
+    private static DateOnly? ParsePublishDate(string? dateString)
+    {
+        if (string.IsNullOrWhiteSpace(dateString))
         {
-            volumeNumber = 1;
+            return null;
         }
 
-        return (serie, title, volumeNumber);
+        // OpenLibrary returns dates in various formats:
+        // "September 16, 1987", "1987", "Sep 1987", "1987-09-16", etc.
+        var formats = new[]
+        {
+            "MMMM d, yyyy",      // "September 16, 1987"
+            "MMMM dd, yyyy",     // "September 16, 1987"
+            "MMM d, yyyy",       // "Sep 16, 1987"
+            "MMM dd, yyyy",      // "Sep 16, 1987"
+            "yyyy-MM-dd",        // "1987-09-16"
+            "yyyy/MM/dd",        // "1987/09/16"
+            "dd/MM/yyyy",        // "16/09/1987"
+            "MM/dd/yyyy",        // "09/16/1987"
+            "MMMM yyyy",         // "September 1987"
+            "MMM yyyy",          // "Sep 1987"
+            "yyyy",              // "1987"
+        };
+
+        foreach (var format in formats)
+        {
+            if (DateOnly.TryParseExact(dateString.Trim(), format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+            {
+                return date;
+            }
+        }
+
+        // Try generic parsing as fallback
+        if (DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
+        {
+            return DateOnly.FromDateTime(dateTime);
+        }
+
+        // If only a year is provided as a number
+        if (int.TryParse(dateString.Trim(), out var year) && year >= 1000 && year <= 9999)
+        {
+            return new DateOnly(year, 1, 1);
+        }
+
+        Log.Warning("Unable to parse publish date: {DateString}", dateString);
+        return null;
     }
 
     private static ComicSearchResult CreateNotFoundResult(string isbn) =>
@@ -191,6 +211,10 @@ public class ComicSearchService : IComicSearchService
             Isbn: isbn,
             VolumeNumber: 1,
             ImageUrl: string.Empty,
+            Authors: string.Empty,
+            Publishers: string.Empty,
+            PublishDate: null,
+            NumberOfPages: null,
             Found: false
         );
 }

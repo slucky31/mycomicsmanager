@@ -35,7 +35,8 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         }
 
         // Create Book
-        var book = Book.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink, request.Rating);
+        var book = Book.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink, request.Rating,
+            request.Authors, request.Publishers, request.PublishDate, request.NumberOfPages);
 
         // If a rating is provided, the book has been read, so add a reading date
         if (request.Rating > 0)

@@ -7,6 +7,10 @@ public record ComicSearchResult(
     string Isbn,
     int VolumeNumber,
     string ImageUrl,
+    string Authors,
+    string Publishers,
+    DateOnly? PublishDate,
+    int? NumberOfPages,
     bool Found
 );
 #pragma warning restore CA1054, CA1056
