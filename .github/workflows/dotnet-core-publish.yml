@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:      
       - name : Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0      
       - name: Setup .NET Core
@@ -44,7 +44,7 @@ jobs:
     steps:
       -
         name : Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       
@@ -104,7 +104,7 @@ jobs:
       packages: write
     steps:
       - name : Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
