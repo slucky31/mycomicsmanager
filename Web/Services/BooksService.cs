@@ -53,7 +53,21 @@ public class BooksService(
 
     public async Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink, int rating, CancellationToken cancellationToken = default)
     {
-        return await Update(id, series, title, isbn, volumeNumber, imageLink, rating, "", "", null, null, cancellationToken);
+        if (!Guid.TryParse(id, out var guidId))
+        {
+            return BooksError.ValidationError;
+        }
+
+        var query = new GetBookByIdQuery(guidId);
+        var existingBookResult = await getBookByIdHandler.Handle(query, cancellationToken);
+        if (existingBookResult.IsFailure)
+        {
+            return existingBookResult.Error!;
+        }
+
+        var existingBook = existingBookResult.Value!;
+        return await Update(id, series, title, isbn, volumeNumber, imageLink, rating,
+            existingBook.Authors, existingBook.Publishers, existingBook.PublishDate, existingBook.NumberOfPages, cancellationToken);
     }
 
     public async Task<Result<Book>> Update(string? id, string series, string title, string isbn, int volumeNumber, string imageLink, int rating,

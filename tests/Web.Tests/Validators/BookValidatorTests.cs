@@ -759,6 +759,312 @@ public sealed class BookValidatorTests
 
     #endregion
 
+    #region Authors Validation Tests
+
+    [Fact]
+    public void Validate_ShouldReturnError_WhenAuthorsExceedsMaxLength()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Authors = new string('A', 201)
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Authors));
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Authors must not exceed 200 characters.");
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenAuthorsIsAtMaxLength()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Authors = new string('A', 200)
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenAuthorsIsEmpty()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Authors = string.Empty
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    #endregion
+
+    #region Publishers Validation Tests
+
+    [Fact]
+    public void Validate_ShouldReturnError_WhenPublishersExceedsMaxLength()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Publishers = new string('A', 201)
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Publishers));
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Publishers must not exceed 200 characters.");
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenPublishersIsAtMaxLength()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Publishers = new string('A', 200)
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenPublishersIsEmpty()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Publishers = string.Empty
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    #endregion
+
+    #region NumberOfPages Validation Tests
+
+    [Fact]
+    public void Validate_ShouldReturnError_WhenNumberOfPagesIsZero()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            NumberOfPages = 0
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.NumberOfPages));
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Number of pages must be greater than 0.");
+    }
+
+    [Fact]
+    public void Validate_ShouldReturnError_WhenNumberOfPagesIsNegative()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            NumberOfPages = -5
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.NumberOfPages));
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Number of pages must be greater than 0.");
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenNumberOfPagesIsNull()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            NumberOfPages = null
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenNumberOfPagesIsPositive()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            NumberOfPages = 160
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    #endregion
+
+    #region PublishDate Validation Tests
+
+    [Fact]
+    public void Validate_ShouldReturnError_WhenPublishDateIsInTheFuture()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            PublishDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30))
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.PublishDate));
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Publish date must not be in the future.");
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenPublishDateIsNull()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            PublishDate = null
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenPublishDateIsToday()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            PublishDate = DateOnly.FromDateTime(DateTime.UtcNow)
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenPublishDateIsInThePast()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            PublishDate = new DateOnly(1986, 2, 1)
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    #endregion
+
     #region Edge Cases Tests
 
     [Fact]

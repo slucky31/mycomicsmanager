@@ -62,6 +62,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.Database.EnsureDeleted();
             db.Database.Migrate();
         });
 

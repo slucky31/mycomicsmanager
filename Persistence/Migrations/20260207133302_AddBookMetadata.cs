@@ -1,61 +1,59 @@
-﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Persistence.Migrations
+namespace Persistence.Migrations;
+
+/// <inheritdoc />
+public partial class AddBookMetadata : Migration
 {
     /// <inheritdoc />
-    public partial class AddBookMetadata : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<string>(
-                name: "Authors",
-                table: "Books",
-                type: "text",
-                nullable: false,
-                defaultValue: "");
+        migrationBuilder.AddColumn<string>(
+            name: "Authors",
+            table: "Books",
+            type: "text",
+            nullable: false,
+            defaultValue: "");
 
-            migrationBuilder.AddColumn<int>(
-                name: "NumberOfPages",
-                table: "Books",
-                type: "integer",
-                nullable: true);
+        migrationBuilder.AddColumn<int>(
+            name: "NumberOfPages",
+            table: "Books",
+            type: "integer",
+            nullable: true);
 
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "PublishDate",
-                table: "Books",
-                type: "date",
-                nullable: true);
+        migrationBuilder.AddColumn<DateOnly>(
+            name: "PublishDate",
+            table: "Books",
+            type: "date",
+            nullable: true);
 
-            migrationBuilder.AddColumn<string>(
-                name: "Publishers",
-                table: "Books",
-                type: "text",
-                nullable: false,
-                defaultValue: "");
-        }
+        migrationBuilder.AddColumn<string>(
+            name: "Publishers",
+            table: "Books",
+            type: "text",
+            nullable: false,
+            defaultValue: "");
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "Authors",
-                table: "Books");
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(
+            name: "Authors",
+            table: "Books");
 
-            migrationBuilder.DropColumn(
-                name: "NumberOfPages",
-                table: "Books");
+        migrationBuilder.DropColumn(
+            name: "NumberOfPages",
+            table: "Books");
 
-            migrationBuilder.DropColumn(
-                name: "PublishDate",
-                table: "Books");
+        migrationBuilder.DropColumn(
+            name: "PublishDate",
+            table: "Books");
 
-            migrationBuilder.DropColumn(
-                name: "Publishers",
-                table: "Books");
-        }
+        migrationBuilder.DropColumn(
+            name: "Publishers",
+            table: "Books");
     }
 }

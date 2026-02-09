@@ -142,7 +142,7 @@ public class ComicSearchService : IComicSearchService
                 if (int.TryParse(match.Groups[2].Value, out var vol))
                 {
                     volumeNumber = vol;
-                }                
+                }
                 break;
             }
         }

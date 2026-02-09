@@ -60,7 +60,7 @@ public class UpdateBookCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Serie.Should().Be(s_validCommand.Serie);
         result.Value.Title.Should().Be(s_validCommand.Title);
-        result.Value.ISBN.Should().Be(s_validCommand.ISBN);
+        result.Value.ISBN.Should().Be("9780306406157");
         result.Value.VolumeNumber.Should().Be(s_validCommand.VolumeNumber);
         result.Value.ImageLink.Should().Be(s_validCommand.ImageLink);
         _bookRepositoryMock.Received(1).Update(Arg.Any<Book>());
@@ -260,7 +260,7 @@ public class UpdateBookCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Serie.Should().Be("Updated Serie");
         result.Value.Title.Should().Be("Updated Title");
-        result.Value.ISBN.Should().Be("978-0-306-40615-7");
+        result.Value.ISBN.Should().Be("9780306406157");
         result.Value.VolumeNumber.Should().Be(2);
         result.Value.ImageLink.Should().Be("https://example.com/updated.jpg");
     }
@@ -312,7 +312,7 @@ public class UpdateBookCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         Guard.Against.Null(result.Value);
-        result.Value.ISBN.Should().Be("0-306-40615-2");
+        result.Value.ISBN.Should().Be("0306406152");
         _bookRepositoryMock.Received(1).Update(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -332,7 +332,7 @@ public class UpdateBookCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         Guard.Against.Null(result.Value);
-        result.Value.ISBN.Should().Be("978-0-306-40615-7");
+        result.Value.ISBN.Should().Be("9780306406157");
         _bookRepositoryMock.Received(1).Update(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
