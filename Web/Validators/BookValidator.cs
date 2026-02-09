@@ -41,8 +41,7 @@ public class BookValidator : AbstractValidator<BookUiDto>
             .When(x => x.NumberOfPages.HasValue);
 
         RuleFor(x => x.PublishDate)
-            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow)).WithMessage("Publish date must not be in the future.")
-            .When(x => x.PublishDate.HasValue);
+            .Must(p => !p.HasValue || p.Value <= DateOnly.FromDateTime(DateTime.UtcNow)).WithMessage("Publish date must not be in the future.");
     }
 
     private static bool BeValidISBN(string isbn)

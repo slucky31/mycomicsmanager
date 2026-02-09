@@ -54,7 +54,7 @@ public class ComicSearchService : IComicSearchService
             // Parse publish date from OpenLibrary format
             var publishDate = ParsePublishDate(result.PublishDate);
 
-            Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", result.Subtitle, serie, volumeNumber);
+            Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
 
             return new ComicSearchResult(
                 Title: title,
