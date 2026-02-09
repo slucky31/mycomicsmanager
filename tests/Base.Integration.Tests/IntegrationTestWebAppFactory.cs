@@ -135,7 +135,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             }
             return builder.ToString();
         }
-        catch
+        catch (ArgumentException)
         {
             return "***CONNECTION_STRING_PARSE_ERROR***";
         }
@@ -148,9 +148,10 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             var builder = new NpgsqlConnectionStringBuilder(connectionString);
             return builder.Host ?? "unknown";
         }
-        catch
+        catch (ArgumentException)
         {
             return "unknown";
         }
     }
 }
+
