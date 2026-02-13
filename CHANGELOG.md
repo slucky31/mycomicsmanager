@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.6.11"></a>
+## [9.6.11](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.11) (2026-02-13)
+
+### 🐛 Bug Fixes
+
+* **deps:** update github/codeql-action action to v4 ([#884](https://www.github.com/slucky31/mycomicsmanager/issues/884)) ([3c9ca67](https://www.github.com/slucky31/mycomicsmanager/commit/3c9ca67c510afbe443870c5fb15281c986926bb7))
+
 <a name="9.6.10"></a>
 ## [9.6.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.10) (2026-02-07)
 
