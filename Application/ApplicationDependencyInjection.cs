@@ -1,5 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.ComicInfoSearch;
+using Application.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;

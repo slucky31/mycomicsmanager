@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Application.Interfaces;
 using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
@@ -135,7 +136,7 @@ public class ComicSearchService : IComicSearchService
 
         foreach (var pattern in patterns)
         {
-            var match = Regex.Match(fullTitle, pattern, RegexOptions.IgnoreCase);
+            var match = Regex.Match(fullTitle, pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
             if (match.Success)
             {
                 serie = match.Groups[1].Value.Trim();
