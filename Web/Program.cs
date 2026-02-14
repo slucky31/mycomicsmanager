@@ -1,5 +1,6 @@
 using Application;
 using Application.ComicInfoSearch;
+using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
 using HealthChecks.ApplicationStatus.DependencyInjection;

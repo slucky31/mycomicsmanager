@@ -9,5 +9,9 @@ public record CreateBookCommand(
     string ISBN,
     int VolumeNumber = 1,
     string ImageLink = "",
-    int Rating = 0
+    int Rating = 0,
+    string Authors = "",
+    string Publishers = "",
+    DateOnly? PublishDate = null,
+    int? NumberOfPages = null
 ) : ICommand<Book>;

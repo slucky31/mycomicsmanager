@@ -21,6 +21,11 @@ public sealed class BookUiDtoTests
         dto.ISBN.Should().Be(string.Empty);
         dto.VolumeNumber.Should().Be(1);
         dto.ImageLink.Should().Be(string.Empty);
+        dto.Rating.Should().Be(0);
+        dto.Authors.Should().Be(string.Empty);
+        dto.Publishers.Should().Be(string.Empty);
+        dto.PublishDate.Should().BeNull();
+        dto.NumberOfPages.Should().BeNull();
         dto.Id.Should().Be(default(Guid));
         dto.CreatedOnUtc.Should().Be(default);
         dto.ModifiedOnUtc.Should().BeNull();
@@ -113,8 +118,13 @@ public sealed class BookUiDtoTests
         const string isbn = "978-1-401263-119-5";
         const int volumeNumber = 1;
         const string imageLink = "https://example.com/batman.jpg";
+        const int rating = 5;
+        const string authors = "Frank Miller";
+        const string publishers = "DC Comics";
+        var publishDate = new DateOnly(1986, 2, 1);
+        const int numberOfPages = 224;
 
-        var book = Book.Create(serie, title, isbn, volumeNumber, imageLink);
+        var book = Book.Create(serie, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         book.CreatedOnUtc = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
         book.ModifiedOnUtc = new DateTime(2024, 1, 20, 14, 45, 0, DateTimeKind.Utc);
 
@@ -128,6 +138,11 @@ public sealed class BookUiDtoTests
         dto.ISBN.Should().Be(isbn);
         dto.VolumeNumber.Should().Be(volumeNumber);
         dto.ImageLink.Should().Be(imageLink);
+        dto.Rating.Should().Be(rating);
+        dto.Authors.Should().Be(authors);
+        dto.Publishers.Should().Be(publishers);
+        dto.PublishDate.Should().Be(publishDate);
+        dto.NumberOfPages.Should().Be(numberOfPages);
         dto.CreatedOnUtc.Should().Be(book.CreatedOnUtc);
         dto.ModifiedOnUtc.Should().Be(book.ModifiedOnUtc);
     }
@@ -146,6 +161,10 @@ public sealed class BookUiDtoTests
         dto.Title.Should().Be(string.Empty);
         dto.ISBN.Should().Be(string.Empty);
         dto.ImageLink.Should().Be(string.Empty);
+        dto.Authors.Should().Be(string.Empty);
+        dto.Publishers.Should().Be(string.Empty);
+        dto.PublishDate.Should().BeNull();
+        dto.NumberOfPages.Should().BeNull();
     }
 
     [Fact]
@@ -210,8 +229,13 @@ public sealed class BookUiDtoTests
         const string isbn = "978-1-582406-72-1";
         const int volumeNumber = 1;
         const string imageLink = "https://cdn.example.com/walking-dead-vol1.jpg";
+        const int rating = 4;
+        const string authors = "Robert Kirkman";
+        const string publishers = "Image Comics";
+        var publishDate = new DateOnly(2004, 10, 1);
+        const int numberOfPages = 144;
 
-        var book = Book.Create(serie, title, isbn, volumeNumber, imageLink);
+        var book = Book.Create(serie, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         var createdDate = new DateTime(2023, 6, 1, 8, 0, 0, DateTimeKind.Utc);
         var modifiedDate = new DateTime(2023, 6, 15, 16, 30, 0, DateTimeKind.Utc);
         book.CreatedOnUtc = createdDate;
@@ -227,6 +251,11 @@ public sealed class BookUiDtoTests
         dto.ISBN.Should().Be(isbn);
         dto.VolumeNumber.Should().Be(volumeNumber);
         dto.ImageLink.Should().Be(imageLink);
+        dto.Rating.Should().Be(rating);
+        dto.Authors.Should().Be(authors);
+        dto.Publishers.Should().Be(publishers);
+        dto.PublishDate.Should().Be(publishDate);
+        dto.NumberOfPages.Should().Be(numberOfPages);
         dto.CreatedOnUtc.Should().Be(createdDate);
         dto.ModifiedOnUtc.Should().Be(modifiedDate);
     }
@@ -289,6 +318,7 @@ public sealed class BookUiDtoTests
         const string title = "Ñoño's Ädventure!";
         const string isbn = "978-ä-öü-ß";
 
+
         var book = Book.Create(serie, title, isbn);
 
         // Act
@@ -298,6 +328,135 @@ public sealed class BookUiDtoTests
         dto.Serie.Should().Be(serie);
         dto.Title.Should().Be(title);
         dto.ISBN.Should().Be(isbn);
+    }
+
+    [Fact]
+    public void Convert_ShouldHandleMultipleAuthors()
+    {
+        // Arrange
+        const string authors = "Stan Lee, Jack Kirby, Steve Ditko";
+        var book = Book.Create("Marvel", "The Avengers", "978-0-785-12345-6", 1, "", 0, authors, "", null, null);
+
+        // Act
+        var dto = BookUiDto.Convert(book);
+
+        // Assert
+        dto.Authors.Should().Be(authors);
+    }
+
+    [Fact]
+    public void Convert_ShouldHandleMultiplePublishers()
+    {
+        // Arrange
+        const string publishers = "Marvel Comics, DC Comics";
+        var book = Book.Create("Crossover", "JLA/Avengers", "978-0-785-11234-5", 1, "", 0, "", publishers, null, null);
+
+        // Act
+        var dto = BookUiDto.Convert(book);
+
+        // Assert
+        dto.Publishers.Should().Be(publishers);
+    }
+
+    [Fact]
+    public void Convert_ShouldHandlePublishDate_WhenProvided()
+    {
+        // Arrange
+        var publishDate = new DateOnly(1962, 8, 1); // Amazing Fantasy #15
+        var book = Book.Create("Amazing Fantasy", "Spider-Man's First Appearance", "N/A", 15, "", 0, "Stan Lee, Steve Ditko", "Marvel Comics", publishDate, 11);
+
+        // Act
+        var dto = BookUiDto.Convert(book);
+
+        // Assert
+        dto.PublishDate.Should().Be(publishDate);
+    }
+
+    [Fact]
+    public void Convert_ShouldHandleNullPublishDate()
+    {
+        // Arrange
+        var book = Book.Create("Unknown", "Mystery Comic", "ISBN", 1, "", 0, "", "", null, null);
+
+        // Act
+        var dto = BookUiDto.Convert(book);
+
+        // Assert
+        dto.PublishDate.Should().BeNull();
+    }
+
+    [Fact]
+    public void Convert_ShouldHandleNumberOfPages_WhenProvided()
+    {
+        // Arrange
+        const int numberOfPages = 320;
+        var book = Book.Create("Watchmen", "Watchmen", "978-0-930289-23-2", 1, "", 0, "Alan Moore", "DC Comics", new DateOnly(1987, 9, 1), numberOfPages);
+
+        // Act
+        var dto = BookUiDto.Convert(book);
+
+        // Assert
+        dto.NumberOfPages.Should().Be(numberOfPages);
+    }
+
+    [Fact]
+    public void Convert_ShouldHandleNullNumberOfPages()
+    {
+        // Arrange
+        var book = Book.Create("Unknown", "Mystery Pages", "ISBN");
+
+        // Act
+        var dto = BookUiDto.Convert(book);
+
+        // Assert
+        dto.NumberOfPages.Should().BeNull();
+    }
+
+    [Fact]
+    public void Convert_ShouldHandleEmptyAuthorsAndPublishers()
+    {
+        // Arrange
+        var book = Book.Create("Series", "Title", "ISBN", 1, "", 0, "", "", null, null);
+
+        // Act
+        var dto = BookUiDto.Convert(book);
+
+        // Assert
+        dto.Authors.Should().Be(string.Empty);
+        dto.Publishers.Should().Be(string.Empty);
+    }
+
+    [Fact]
+    public void Convert_ShouldHandleAllMetadataFields_WithRealisticComicData()
+    {
+        // Arrange
+        const string serie = "Saga";
+        const string title = "Saga, Volume 1";
+        const string isbn = "978-1-60706-601-9";
+        const int volumeNumber = 1;
+        const string imageLink = "https://cdn.example.com/saga-vol1.jpg";
+        const int rating = 5;
+        const string authors = "Brian K. Vaughan, Fiona Staples";
+        const string publishers = "Image Comics";
+        var publishDate = new DateOnly(2012, 10, 10);
+        const int numberOfPages = 160;
+
+        var book = Book.Create(serie, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+
+        // Act
+        var dto = BookUiDto.Convert(book);
+
+        // Assert
+        dto.Serie.Should().Be(serie);
+        dto.Title.Should().Be(title);
+        dto.ISBN.Should().Be(isbn);
+        dto.VolumeNumber.Should().Be(volumeNumber);
+        dto.ImageLink.Should().Be(imageLink);
+        dto.Rating.Should().Be(rating);
+        dto.Authors.Should().Be(authors);
+        dto.Publishers.Should().Be(publishers);
+        dto.PublishDate.Should().Be(publishDate);
+        dto.NumberOfPages.Should().Be(numberOfPages);
     }
 
     #endregion

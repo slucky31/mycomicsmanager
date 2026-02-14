@@ -1,4 +1,5 @@
 using Application.Helpers;
+using Domain.Books;
 using FluentValidation;
 
 namespace Web.Validators;
@@ -7,32 +8,40 @@ public class BookValidator : AbstractValidator<BookUiDto>
 {
     public BookValidator()
     {
-        const int maxTitleLength = 200;
-        const int maxSeriesLength = 200;
-        const int maxIsbnLength = 20;
-        const int maxImageLinkLength = 500;
-
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required.")
-            .MaximumLength(maxTitleLength).WithMessage($"Title must not exceed {maxTitleLength} characters.");
+            .MaximumLength(BookConstants.MaxTitleLength).WithMessage($"Title must not exceed {BookConstants.MaxTitleLength} characters.");
 
         RuleFor(x => x.ISBN)
             .NotEmpty().WithMessage("ISBN is required.")
-            .MaximumLength(maxIsbnLength).WithMessage($"ISBN must not exceed {maxIsbnLength} characters.")
+            .MaximumLength(BookConstants.MaxIsbnLength).WithMessage($"ISBN must not exceed {BookConstants.MaxIsbnLength} characters.")
             .Must(BeValidISBN).WithMessage("ISBN must be a valid 10 or 13 digit number.");
 
         RuleFor(x => x.Serie)
             .NotEmpty().WithMessage("Serie is required.")
-            .MaximumLength(maxSeriesLength).WithMessage($"Serie must not exceed {maxSeriesLength} characters.");
+            .MaximumLength(BookConstants.MaxSerieLength).WithMessage($"Serie must not exceed {BookConstants.MaxSerieLength} characters.");
 
         RuleFor(x => x.VolumeNumber)
             .GreaterThan(0).WithMessage("Volume number must be greater than 0.");
 
         RuleFor(x => x.ImageLink)
-            .MaximumLength(maxImageLinkLength).WithMessage($"Image link must not exceed {maxImageLinkLength} characters.");
+            .MaximumLength(BookConstants.MaxImageLinkLength).WithMessage($"Image link must not exceed {BookConstants.MaxImageLinkLength} characters.");
 
         RuleFor(x => x.Rating)
             .InclusiveBetween(0, 5).WithMessage("Rating must be between 0 and 5.");
+
+        RuleFor(x => x.Authors)
+            .MaximumLength(BookConstants.MaxAuthorsLength).WithMessage($"Authors must not exceed {BookConstants.MaxAuthorsLength} characters.");
+
+        RuleFor(x => x.Publishers)
+            .MaximumLength(BookConstants.MaxPublishersLength).WithMessage($"Publishers must not exceed {BookConstants.MaxPublishersLength} characters.");
+
+        RuleFor(x => x.NumberOfPages)
+            .GreaterThan(0).WithMessage("Number of pages must be greater than 0.")
+            .When(x => x.NumberOfPages.HasValue);
+
+        RuleFor(x => x.PublishDate)
+            .Must(p => !p.HasValue || p.Value <= DateOnly.FromDateTime(DateTime.UtcNow)).WithMessage("Publish date must not be in the future.");
     }
 
     private static bool BeValidISBN(string isbn)

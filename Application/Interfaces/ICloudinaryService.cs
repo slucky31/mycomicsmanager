@@ -1,4 +1,4 @@
-namespace Application.ComicInfoSearch;
+namespace Application.Interfaces;
 
 public record CloudinaryUploadResult(
     Uri? Url,

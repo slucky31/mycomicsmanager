@@ -382,4 +382,51 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         Guard.Against.Null(result);
         result.ISBN.Should().Be("043965548X");
     }
+
+    [Fact]
+    public async Task Add_ShouldPersistMetadataFields_WhenBookHasAuthorsPublishersPublishDateAndNumberOfPages()
+    {
+        // Arrange
+        var publishDate = new DateOnly(2023, 6, 15);
+        var book = Book.Create("Saga", "Saga Vol 1", "9781607066019", 1, "", 0,
+            "Brian K. Vaughan, Fiona Staples", "Image Comics", publishDate, 160);
+
+        // Act
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        var savedBook = await BookRepository.GetByIdAsync(book.Id);
+        Guard.Against.Null(savedBook);
+        savedBook.Authors.Should().Be("Brian K. Vaughan, Fiona Staples");
+        savedBook.Publishers.Should().Be("Image Comics");
+        savedBook.PublishDate.Should().Be(publishDate);
+        savedBook.NumberOfPages.Should().Be(160);
+    }
+
+    [Fact]
+    public async Task Update_ShouldPersistUpdatedMetadataFields_WhenMetadataFieldsAreChanged()
+    {
+        // Arrange
+        var originalPublishDate = new DateOnly(2023, 6, 15);
+        var book = Book.Create("Saga", "Saga Vol 1", "9781607066927", 1, "", 0,
+            "Brian K. Vaughan", "Image Comics", originalPublishDate, 160);
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var updatedPublishDate = new DateOnly(2024, 1, 10);
+        book.Update("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg", 5,
+            "Brian K. Vaughan, Fiona Staples", "Image Comics, DC Comics", updatedPublishDate, 240);
+        BookRepository.Update(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        var savedBook = await BookRepository.GetByIdAsync(book.Id);
+        Guard.Against.Null(savedBook);
+        savedBook.Authors.Should().Be("Brian K. Vaughan, Fiona Staples");
+        savedBook.Publishers.Should().Be("Image Comics, DC Comics");
+        savedBook.PublishDate.Should().Be(updatedPublishDate);
+        savedBook.NumberOfPages.Should().Be(240);
+    }
 }

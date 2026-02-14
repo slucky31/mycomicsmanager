@@ -8,7 +8,6 @@ using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Persistence.LocalStorage;
 using Persistence.Queries;
 using Persistence.Repositories;

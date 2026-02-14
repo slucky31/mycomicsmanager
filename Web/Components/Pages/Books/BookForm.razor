@@ -100,6 +100,49 @@
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Image"
                               HelperText="Paste a URL to the book cover image" />
+
+                @* Authors *@
+                <MudTextField @bind-Value="Model.Authors"
+                              For="@(() => Model.Authors)"
+                              Immediate="true"
+                              Label="Authors"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Person"
+                              HelperText="Comma-separated list of authors" />
+
+                @* Publishers *@
+                <MudTextField @bind-Value="Model.Publishers"
+                              For="@(() => Model.Publishers)"
+                              Immediate="true"
+                              Label="Publishers"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Business"
+                              HelperText="Comma-separated list of publishers" />
+
+                @* Publish Date and Number of Pages in a row *@
+                <MudGrid Spacing="2">
+                    <MudItem xs="7">
+                        <MudDatePicker @bind-Date="PublishDateTime"
+                                       Label="Publish Date"
+                                       Variant="Variant.Outlined"
+                                       Editable="true"
+                                       DateFormat="dd/MM/yyyy"
+                                       Placeholder="dd/MM/yyyy"
+                                       Adornment="Adornment.Start"
+                                       AdornmentIcon="@Icons.Material.Filled.CalendarMonth" />
+                    </MudItem>
+                    <MudItem xs="5">
+                        <MudNumericField @bind-Value="Model.NumberOfPages"
+                                         For="@(() => Model.NumberOfPages)"
+                                         Label="Pages"
+                                         Variant="Variant.Outlined"
+                                         Min="1"
+                                         Adornment="Adornment.Start"
+                                         AdornmentIcon="@Icons.Material.Filled.Description" />
+                    </MudItem>
+                </MudGrid>
             </MudStack>
         </MudItem>
     </MudGrid>
@@ -114,6 +157,13 @@
 
     private readonly BookValidator _bookValidator = new();
     private MudForm _form = default!;
+
+    // Conversion property for MudDatePicker (DateTime?) to DateOnly?
+    private DateTime? PublishDateTime
+    {
+        get => Model.PublishDate?.ToDateTime(TimeOnly.MinValue);
+        set => Model.PublishDate = value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
+    }
 
     public async Task<bool> ValidateAsync()
     {

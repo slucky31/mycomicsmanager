@@ -63,3 +63,22 @@ Quel style de design préférez-vous pour les cartes de livres?
      Vue liste avec plus d'informations visibles, idéale pour les grandes collections
   4. Masonry grid
      Grille asymétrique type Pinterest avec tailles variables selon le contenu
+
+
+     // Minimal usage
+var book = Book.Create("Series", "Title", "ISBN");
+
+// With named parameters for metadata
+var book = Book.Create("Watchmen", "Watchmen", "9781401245252", 
+    authors: "Alan Moore, Dave Gibbons", 
+    publishers: "DC Comics");
+
+// With all metadata
+var book = Book.Create("Saga", "Chapter One", "9781607066019", 
+    volumeNumber: 1, imageLink: "http://example.com/saga.jpg", rating: 5,
+    authors: "Brian K. Vaughan, Fiona Staples", publishers: "Image Comics",
+    publishDate: new DateOnly(2012, 10, 10), numberOfPages: 160);
+
+// Update with metadata
+book.Update("Saga", "Chapter One", "9781607066019", 1, "url", 5,
+    "New Author", "New Publisher", new DateOnly(2024, 1, 1), 200);

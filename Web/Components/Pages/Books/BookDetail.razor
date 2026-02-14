@@ -179,6 +179,54 @@
                                 </div>
                             </div>
 
+                            @* Authors *@
+                            @if (!string.IsNullOrEmpty(_book.Authors))
+                            {
+                                <div class="book-detail-info-item">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Secondary" />
+                                    <div>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Authors</MudText>
+                                        <MudText Typo="Typo.body1">@_book.Authors</MudText>
+                                    </div>
+                                </div>
+                            }
+
+                            @* Publishers *@
+                            @if (!string.IsNullOrEmpty(_book.Publishers))
+                            {
+                                <div class="book-detail-info-item">
+                                    <MudIcon Icon="@Icons.Material.Filled.Business" Color="Color.Secondary" />
+                                    <div>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Publishers</MudText>
+                                        <MudText Typo="Typo.body1">@_book.Publishers</MudText>
+                                    </div>
+                                </div>
+                            }
+
+                            @* Publish Date *@
+                            @if (_book.PublishDate.HasValue)
+                            {
+                                <div class="book-detail-info-item">
+                                    <MudIcon Icon="@Icons.Material.Filled.Event" Color="Color.Secondary" />
+                                    <div>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Publish Date</MudText>
+                                        <MudText Typo="Typo.body1">@_book.PublishDate.Value.ToString("dd/MM/yyyy")</MudText>
+                                    </div>
+                                </div>
+                            }
+
+                            @* Number of Pages *@
+                            @if (_book.NumberOfPages.HasValue)
+                            {
+                                <div class="book-detail-info-item">
+                                    <MudIcon Icon="@Icons.Material.Filled.Description" Color="Color.Secondary" />
+                                    <div>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Number of Pages</MudText>
+                                        <MudText Typo="Typo.body1">@_book.NumberOfPages pages</MudText>
+                                    </div>
+                                </div>
+                            }
+
                             @* Reading status *@
                             <div class="book-detail-info-item">
                                 <MudIcon Icon="@(_book.ReadingDates.Any() ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.RadioButtonUnchecked)"
@@ -189,7 +237,7 @@
                                     {
                                         var lastRead = _book.ReadingDates.MaxBy(rd => rd.Date);
                                         <MudText Typo="Typo.body1" Color="Color.Success">
-                                            Read on @lastRead!.Date.ToString("MMMM d, yyyy")
+                                            Read on @lastRead!.Date.ToString("dd/MM/yyyy")
                                         </MudText>
                                     }
                                     else
@@ -204,7 +252,7 @@
                                 <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" />
                                 <div>
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">Added to Collection</MudText>
-                                    <MudText Typo="Typo.body1">@_book.CreatedOnUtc.ToString("MMMM d, yyyy")</MudText>
+                                    <MudText Typo="Typo.body1">@_book.CreatedOnUtc.ToString("dd/MM/yyyy")</MudText>
                                 </div>
                             </div>
 
@@ -215,7 +263,7 @@
                                     <MudIcon Icon="@Icons.Material.Filled.EditCalendar" Color="Color.Secondary" />
                                     <div>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">Last Modified</MudText>
-                                        <MudText Typo="Typo.body1">@_book.ModifiedOnUtc.Value.ToString("MMMM d, yyyy")</MudText>
+                                        <MudText Typo="Typo.body1">@_book.ModifiedOnUtc.Value.ToString("dd/MM/yyyy")</MudText>
                                     </div>
                                 </div>
                             }

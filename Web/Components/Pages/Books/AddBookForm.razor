@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 
 @using Application.ComicInfoSearch
+@using Application.Interfaces
 @using Microsoft.AspNetCore.Components
 @using Web.Services
 @using Web.Validators
@@ -137,7 +138,11 @@
                         ISBN = _searchResult.Isbn,
                         VolumeNumber = _searchResult.VolumeNumber,
                         ImageLink = _searchResult.ImageUrl,
-                        Rating = 0
+                        Rating = 0,
+                        Authors = _searchResult.Authors,
+                        Publishers = _searchResult.Publishers,
+                        PublishDate = _searchResult.PublishDate,
+                        NumberOfPages = _searchResult.NumberOfPages
                     };
                     Snackbar.Add($"Found: {_searchResult.Title}", Severity.Success);
                 }
@@ -181,14 +186,20 @@
 
         try
         {
-            var result = await BooksService.Create(
+            var request = new CreateBookRequest(
                 _bookModel.Serie,
                 _bookModel.Title,
                 _bookModel.ISBN,
                 _bookModel.VolumeNumber,
                 _bookModel.ImageLink,
-                _bookModel.Rating
+                _bookModel.Rating,
+                _bookModel.Authors,
+                _bookModel.Publishers,
+                _bookModel.PublishDate,
+                _bookModel.NumberOfPages
             );
+
+            var result = await BooksService.Create(request);
 
             if (result.IsSuccess)
             {

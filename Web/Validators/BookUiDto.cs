@@ -24,6 +24,18 @@ public class BookUiDto : Entity<Guid>
     [Label("Rating")]
     public int Rating { get; set; } = 0;
 
+    [Label("Authors")]
+    public string Authors { get; set; } = string.Empty;
+
+    [Label("Publishers")]
+    public string Publishers { get; set; } = string.Empty;
+
+    [Label("Publish Date")]
+    public DateOnly? PublishDate { get; set; }
+
+    [Label("Number of Pages")]
+    public int? NumberOfPages { get; set; }
+
     public static BookUiDto Convert(Book book)
     {
         return new BookUiDto
@@ -35,6 +47,10 @@ public class BookUiDto : Entity<Guid>
             VolumeNumber = book.VolumeNumber,
             ImageLink = book.ImageLink,
             Rating = book.Rating,
+            Authors = book.Authors,
+            Publishers = book.Publishers,
+            PublishDate = book.PublishDate,
+            NumberOfPages = book.NumberOfPages,
             CreatedOnUtc = book.CreatedOnUtc,
             ModifiedOnUtc = book.ModifiedOnUtc
         };
