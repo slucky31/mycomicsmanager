@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.6.11"></a>
+## [9.6.11](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.11) (2026-02-13)
+
+### 🐛 Bug Fixes
+
+* **deps:** update github/codeql-action action to v4 ([#884](https://www.github.com/slucky31/mycomicsmanager/issues/884)) ([3c9ca67](https://www.github.com/slucky31/mycomicsmanager/commit/3c9ca67c510afbe443870c5fb15281c986926bb7))
+
+<a name="9.6.10"></a>
+## [9.6.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.10) (2026-02-07)
+
+### 🐛 Bug Fixes
+
+* **deps:** update actions/checkout action to v6 ([#883](https://www.github.com/slucky31/mycomicsmanager/issues/883)) ([a5a6935](https://www.github.com/slucky31/mycomicsmanager/commit/a5a693547b4c4be9b09f0f12e1d71366edcad2e3))
+
+<a name="9.6.9"></a>
+## [9.6.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.9) (2026-02-07)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dotnet monorepo ([#878](https://www.github.com/slucky31/mycomicsmanager/issues/878)) ([9b6836a](https://www.github.com/slucky31/mycomicsmanager/commit/9b6836a04ae7b2848b7066bf1473071f33cd940d))
+
+<a name="9.6.8"></a>
+## [9.6.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.8) (2026-02-01)
+
+### 🐛 Bug Fixes
+
+* Remove sensitive data from appsettings.json ([#881](https://www.github.com/slucky31/mycomicsmanager/issues/881)) ([9352310](https://www.github.com/slucky31/mycomicsmanager/commit/935231053ee726997abc806af4106b97d2a59230))
+
+<a name="9.6.7"></a>
+## [9.6.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.7) (2026-02-01)
+
+### 🐛 Bug Fixes
+
+* Update code coverage collector in test command ([7f4fd19](https://www.github.com/slucky31/mycomicsmanager/commit/7f4fd19c1554f4c9f1a141a89c1a1f8ad640162d))
+
+### Other
+
+* Upgrade to .NET 10 and add Books management feature ([#879](https://www.github.com/slucky31/mycomicsmanager/issues/879)) ([b0ef21a](https://www.github.com/slucky31/mycomicsmanager/commit/b0ef21a16343c76d30a0908954c7b3246e6d1280))
+
 <a name="9.6.6"></a>
 ## [9.6.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.6) (2025-09-21)
 
