@@ -128,21 +128,22 @@ public sealed class BooksServiceTests
 
     #endregion
 
-    #region Create Tests (3 parameters)
+    #region Create Tests
 
     [Fact]
-    public async Task Create_With3Parameters_ShouldCallFullCreateWithDefaults()
+    public async Task Create_ShouldCallHandlerWithMinimalParameters()
     {
         // Arrange
         const string series = "Test Series";
         const string title = "Test Title";
         const string isbn = "978-3-16-148410-0";
+        var request = new CreateBookRequest(series, title, isbn);
         var book = Book.Create(series, title, isbn, 1, "");
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Create(series, title, isbn);
+        var result = await _service.Create(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -156,24 +157,21 @@ public sealed class BooksServiceTests
             Arg.Any<CancellationToken>());
     }
 
-    #endregion
-
-    #region Create Tests (4 parameters)
-
     [Fact]
-    public async Task Create_With4Parameters_ShouldCallFullCreateWithDefaults()
+    public async Task Create_ShouldCallHandlerWithVolumeNumber()
     {
         // Arrange
         const string series = "Test Series";
         const string title = "Test Title";
         const string isbn = "978-3-16-148410-0";
         const int volumeNumber = 3;
+        var request = new CreateBookRequest(series, title, isbn, volumeNumber);
         var book = Book.Create(series, title, isbn, volumeNumber, "");
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Create(series, title, isbn, volumeNumber);
+        var result = await _service.Create(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -187,12 +185,8 @@ public sealed class BooksServiceTests
             Arg.Any<CancellationToken>());
     }
 
-    #endregion
-
-    #region Create Tests (6 parameters)
-
     [Fact]
-    public async Task Create_With6Parameters_ShouldCallHandlerWithAllParameters()
+    public async Task Create_ShouldCallHandlerWithAllBasicParameters()
     {
         // Arrange
         const string series = "Test Series";
@@ -201,12 +195,13 @@ public sealed class BooksServiceTests
         const int volumeNumber = 5;
         const string imageLink = "https://example.com/cover.jpg";
         const int rating = 4;
+        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
         var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Create(series, title, isbn, volumeNumber, imageLink, rating);
+        var result = await _service.Create(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -222,7 +217,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With6Parameters_ShouldReturnCreatedBook()
+    public async Task Create_ShouldReturnCreatedBook()
     {
         // Arrange
         const string series = "Marvel";
@@ -231,12 +226,13 @@ public sealed class BooksServiceTests
         const int volumeNumber = 10;
         const string imageLink = "https://example.com/spiderman.jpg";
         const int rating = 5;
+        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
         var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
         // Act
-        var result = await _service.Create(series, title, isbn, volumeNumber, imageLink, rating);
+        var result = await _service.Create(request);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -251,16 +247,17 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With6Parameters_ShouldPassCancellationToken()
+    public async Task Create_ShouldPassCancellationToken()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
+        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0");
         var book = Book.Create("Series", "Title", "978-3-16-148410-0");
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        await _service.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, cts.Token);
+        await _service.Create(request, cts.Token);
 
         // Assert
         await _createBookHandler.Received(1).Handle(
@@ -269,7 +266,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With6Parameters_ShouldForwardEmptyMetadataToFullOverload()
+    public async Task Create_ShouldForwardEmptyMetadataByDefault()
     {
         // Arrange
         const string series = "Test Series";
@@ -278,12 +275,13 @@ public sealed class BooksServiceTests
         const int volumeNumber = 5;
         const string imageLink = "https://example.com/cover.jpg";
         const int rating = 4;
+        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
         var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Create(series, title, isbn, volumeNumber, imageLink, rating);
+        var result = await _service.Create(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -302,12 +300,8 @@ public sealed class BooksServiceTests
             Arg.Any<CancellationToken>());
     }
 
-    #endregion
-
-    #region Create Tests (10 parameters - with metadata)
-
     [Fact]
-    public async Task Create_With10Parameters_ShouldCallHandlerWithAllMetadataFields()
+    public async Task Create_ShouldCallHandlerWithAllMetadataFields()
     {
         // Arrange
         const string series = "Saga";
@@ -320,12 +314,13 @@ public sealed class BooksServiceTests
         const string publishers = "Image Comics";
         var publishDate = new DateOnly(2012, 10, 10);
         const int numberOfPages = 160;
+        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var result = await _service.Create(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -345,7 +340,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With10Parameters_ShouldReturnCreatedBookWithMetadata()
+    public async Task Create_ShouldReturnCreatedBookWithMetadata()
     {
         // Arrange
         const string series = "Watchmen";
@@ -358,12 +353,13 @@ public sealed class BooksServiceTests
         const string publishers = "DC Comics";
         var publishDate = new DateOnly(1987, 9, 1);
         const int numberOfPages = 320;
+        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
         // Act
-        var result = await _service.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var result = await _service.Create(request);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -382,17 +378,18 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With10Parameters_ShouldPassCancellationToken()
+    public async Task Create_ShouldPassCancellationTokenWithMetadata()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
         var publishDate = new DateOnly(2020, 1, 1);
+        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
         var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        await _service.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100, cts.Token);
+        await _service.Create(request, cts.Token);
 
         // Assert
         await _createBookHandler.Received(1).Handle(
@@ -401,7 +398,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With10Parameters_ShouldHandleNullPublishDate()
+    public async Task Create_ShouldHandleNullPublishDate()
     {
         // Arrange
         const string series = "Unknown Date Comic";
@@ -409,12 +406,13 @@ public sealed class BooksServiceTests
         const string isbn = "978-3-16-148410-0";
         const string authors = "Unknown Author";
         const string publishers = "Unknown Publisher";
+        var request = new CreateBookRequest(series, title, isbn, 1, "", 0, authors, publishers, null, null);
         var book = Book.Create(series, title, isbn, 1, "", 0, authors, publishers, null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Create(series, title, isbn, 1, "", 0, authors, publishers, null, null);
+        var result = await _service.Create(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -428,15 +426,16 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With10Parameters_ShouldHandleEmptyAuthorsAndPublishers()
+    public async Task Create_ShouldHandleEmptyAuthorsAndPublishers()
     {
         // Arrange
+        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0");
         var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "", "", null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "", "", null, null);
+        var result = await _service.Create(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -448,17 +447,18 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Create_With10Parameters_ShouldHandleMultipleAuthorsAndPublishers()
+    public async Task Create_ShouldHandleMultipleAuthorsAndPublishers()
     {
         // Arrange
         const string authors = "Stan Lee, Jack Kirby, Steve Ditko";
         const string publishers = "Marvel Comics, Timely Comics";
+        var request = new CreateBookRequest("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", 0, authors, publishers);
         var book = Book.Create("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", 0, authors, publishers, null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Create("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", 0, authors, publishers, null, null);
+        var result = await _service.Create(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -471,10 +471,10 @@ public sealed class BooksServiceTests
 
     #endregion
 
-    #region Update Tests (10 parameters - with metadata)
+    #region Update Tests
 
     [Fact]
-    public async Task Update_With10Parameters_ShouldCallHandlerWithAllMetadataFields()
+    public async Task Update_ShouldCallHandlerWithAllMetadataFields()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -488,12 +488,13 @@ public sealed class BooksServiceTests
         const string publishers = "Image Comics";
         var publishDate = new DateOnly(2004, 10, 1);
         const int numberOfPages = 144;
+        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Update(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var result = await _service.Update(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -514,7 +515,7 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_With10Parameters_ShouldReturnUpdatedBookWithMetadata()
+    public async Task Update_ShouldReturnUpdatedBookWithMetadata()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
@@ -528,12 +529,13 @@ public sealed class BooksServiceTests
         const string publishers = "Vertigo";
         var publishDate = new DateOnly(2003, 4, 1);
         const int numberOfPages = 128;
+        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
         // Act
-        var result = await _service.Update(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var result = await _service.Update(request);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -548,18 +550,19 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_With10Parameters_ShouldPassCancellationToken()
+    public async Task Update_ShouldPassCancellationToken()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
         using var cts = new CancellationTokenSource();
         var publishDate = new DateOnly(2020, 5, 15);
+        var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 200);
         var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 200);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        await _service.Update(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 200, cts.Token);
+        await _service.Update(request, cts.Token);
 
         // Assert
         await _updateBookHandler.Received(1).Handle(
@@ -568,14 +571,15 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_With10Parameters_ShouldReturnValidationError_WhenIdIsNull()
+    public async Task Update_ShouldReturnValidationError_WhenIdIsNull()
     {
         // Arrange
         string? id = null;
         var publishDate = new DateOnly(2020, 1, 1);
+        var request = new UpdateBookRequest(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
 
         // Act
-        var result = await _service.Update(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
+        var result = await _service.Update(request);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -584,14 +588,15 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_With10Parameters_ShouldReturnValidationError_WhenIdIsInvalidGuid()
+    public async Task Update_ShouldReturnValidationError_WhenIdIsInvalidGuid()
     {
         // Arrange
         const string id = "not-a-valid-guid";
         var publishDate = new DateOnly(2020, 1, 1);
+        var request = new UpdateBookRequest(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
 
         // Act
-        var result = await _service.Update(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
+        var result = await _service.Update(request);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -600,16 +605,17 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_With10Parameters_ShouldHandleNullMetadata()
+    public async Task Update_ShouldHandleNullMetadata()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
+        var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0);
         var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "", "", null, null);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Update(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0, "", "", null, null);
+        var result = await _service.Update(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -623,18 +629,18 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
-    public async Task Update_With10Parameters_ShouldAllowUpdatingOnlyMetadata()
+    public async Task Update_ShouldAllowUpdatingOnlyMetadata()
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
-        var originalPublishDate = new DateOnly(2020, 1, 1);
         var newPublishDate = new DateOnly(2021, 6, 15);
+        var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0, "New Author", "New Publisher", newPublishDate, 250);
         var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "New Author", "New Publisher", newPublishDate, 250);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Update(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0, "New Author", "New Publisher", newPublishDate, 250);
+        var result = await _service.Update(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -645,40 +651,6 @@ public sealed class BooksServiceTests
                 c.PublishDate == newPublishDate &&
                 c.NumberOfPages == 250),
             Arg.Any<CancellationToken>());
-    }
-
-    #endregion
-
-    #region Update Tests
-
-    [Fact]
-    public async Task Update_ShouldReturnValidationError_WhenIdIsNull()
-    {
-        // Arrange
-        string? id = null;
-
-        // Act
-        var result = await _service.Update(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(BooksError.ValidationError);
-        await _updateBookHandler.DidNotReceive().Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Update_ShouldReturnValidationError_WhenIdIsInvalidGuid()
-    {
-        // Arrange
-        const string id = "not-a-guid";
-
-        // Act
-        var result = await _service.Update(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(BooksError.ValidationError);
-        await _updateBookHandler.DidNotReceive().Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -692,14 +664,13 @@ public sealed class BooksServiceTests
         const int volumeNumber = 7;
         const string imageLink = "https://example.com/updated.jpg";
         const int rating = 3;
+        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating);
         var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
-        _getBookByIdHandler.Handle(Arg.Any<GetBookByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(book);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
         // Act
-        var result = await _service.Update(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating);
+        var result = await _service.Update(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -726,14 +697,13 @@ public sealed class BooksServiceTests
         const int volumeNumber = 15;
         const string imageLink = "https://example.com/batman.jpg";
         const int rating = 5;
+        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating);
         var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
-        _getBookByIdHandler.Handle(Arg.Any<GetBookByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(expectedBook);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
         // Act
-        var result = await _service.Update(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating);
+        var result = await _service.Update(request);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -743,74 +713,6 @@ public sealed class BooksServiceTests
         result.Value.Title.Should().Be(title);
         result.Value.VolumeNumber.Should().Be(volumeNumber);
         result.Value.Rating.Should().Be(rating);
-    }
-
-    [Fact]
-    public async Task Update_ShouldPassCancellationToken()
-    {
-        // Arrange
-        var bookId = Guid.CreateVersion7();
-        using var cts = new CancellationTokenSource();
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0");
-        _getBookByIdHandler.Handle(Arg.Any<GetBookByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(book);
-        _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
-            .Returns(book);
-
-        // Act
-        await _service.Update(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0, cts.Token);
-
-        // Assert
-        await _updateBookHandler.Received(1).Handle(
-            Arg.Any<UpdateBookCommand>(),
-            Arg.Is<CancellationToken>(ct => ct == cts.Token));
-    }
-
-    [Fact]
-    public async Task Update_With7Parameters_ShouldPreserveMetadata_WhenBookHasExistingMetadata()
-    {
-        // Arrange
-        var bookId = Guid.CreateVersion7();
-        var publishDate = new DateOnly(2023, 6, 15);
-        var existingBook = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0,
-            "Brian K. Vaughan", "Image Comics", publishDate, 160);
-        _getBookByIdHandler.Handle(Arg.Any<GetBookByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(existingBook);
-        _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
-            .Returns(existingBook);
-
-        // Act
-        var result = await _service.Update(bookId.ToString(), "Updated Series", "Updated Title", "978-3-16-148410-0", 2, "http://example.com/img.jpg", 5);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        await _updateBookHandler.Received(1).Handle(
-            Arg.Is<UpdateBookCommand>(c =>
-                c.Id == bookId &&
-                c.Serie == "Updated Series" &&
-                c.Title == "Updated Title" &&
-                c.Authors == "Brian K. Vaughan" &&
-                c.Publishers == "Image Comics" &&
-                c.PublishDate == publishDate &&
-                c.NumberOfPages == 160),
-            Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Update_With7Parameters_ShouldReturnFailure_WhenBookNotFound()
-    {
-        // Arrange
-        var bookId = Guid.CreateVersion7();
-        _getBookByIdHandler.Handle(Arg.Any<GetBookByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<Book>.Failure(BooksError.NotFound));
-
-        // Act
-        var result = await _service.Update(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(BooksError.NotFound);
-        await _updateBookHandler.DidNotReceive().Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>());
     }
 
     #endregion

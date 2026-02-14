@@ -185,7 +185,7 @@
 
         try
         {
-            var result = await BooksService.Create(
+            var request = new CreateBookRequest(
                 _bookModel.Serie,
                 _bookModel.Title,
                 _bookModel.ISBN,
@@ -197,6 +197,8 @@
                 _bookModel.PublishDate,
                 _bookModel.NumberOfPages
             );
+
+            var result = await BooksService.Create(request);
 
             if (result.IsSuccess)
             {

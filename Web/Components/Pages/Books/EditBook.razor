@@ -168,7 +168,7 @@
 
         try
         {
-            var result = await BooksService.Update(
+            var request = new UpdateBookRequest(
                 _bookModel.Id.ToString(),
                 _bookModel.Serie,
                 _bookModel.Title,
@@ -181,6 +181,8 @@
                 _bookModel.PublishDate,
                 _bookModel.NumberOfPages
             );
+
+            var result = await BooksService.Update(request);
 
             if (result.IsSuccess)
             {

@@ -371,13 +371,17 @@ public sealed class ComicSearchServiceTests
 
     [Theory]
     [InlineData("September 16, 1987", 1987, 9, 16)]
+    [InlineData("September 06, 1987", 1987, 9, 6)]
     [InlineData("Sep 16, 1987", 1987, 9, 16)]
+    [InlineData("Sep 06, 1987", 1987, 9, 6)]
     [InlineData("1987-09-16", 1987, 9, 16)]
     [InlineData("1987/09/16", 1987, 9, 16)]
     [InlineData("16/09/1987", 1987, 9, 16)]
+    [InlineData("09/16/1987", 1987, 9, 16)]
     [InlineData("September 1987", 1987, 9, 1)]
     [InlineData("Sep 1987", 1987, 9, 1)]
     [InlineData("1987", 1987, 1, 1)]
+    [InlineData("2024", 2024, 1, 1)]
     public async Task SearchByIsbnAsync_ShouldParsePublishDate_WithVariousFormats(
         string publishDate,
         int expectedYear,
@@ -434,8 +438,13 @@ public sealed class ComicSearchServiceTests
         result.PublishDate.Should().BeNull();
     }
 
-    [Fact]
-    public async Task SearchByIsbnAsync_ShouldReturnNullPublishDate_WhenDateStringIsInvalid()
+    [Theory]
+    [InlineData("invalid-date")]
+    [InlineData("not a date")]
+    [InlineData("999")]
+    [InlineData("10000")]
+    [InlineData("13/45/2020")]
+    public async Task SearchByIsbnAsync_ShouldReturnNullPublishDate_WhenDateStringIsInvalid(string publishDate)
     {
         // Arrange
         const string isbn = "9781234567890";
@@ -444,7 +453,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "invalid-date",
+            PublishDate: publishDate,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -457,6 +466,334 @@ public sealed class ComicSearchServiceTests
 
         // Assert
         result.PublishDate.Should().BeNull();
+    }
+
+    #endregion
+
+    #region Volume Parsing Edge Cases
+
+    [Theory]
+    [InlineData("SODA, TOME 1", "SODA", 1)]
+    [InlineData("soda, tome 5", "soda", 5)]
+    [InlineData("Spider-Man, VOL. 10", "Spider-Man", 10)]
+    [InlineData("Batman #25", "Batman", 25)]
+    public async Task SearchByIsbnAsync_ShouldParseVolumeAndSerie_CaseInsensitively(
+        string title,
+        string expectedSerie,
+        int expectedVolume)
+    {
+        // Arrange
+        const string isbn = "9781234567890";
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: title,
+            Subtitle: null,
+            Authors: SingleAuthorArray,
+            Publishers: SinglePublisherArray,
+            PublishDate: "2024",
+            NumberOfPages: 100,
+            CoverUrl: null,
+            Found: true);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn);
+
+        // Assert
+        result.Serie.Should().Be(expectedSerie);
+        result.VolumeNumber.Should().Be(expectedVolume);
+    }
+
+    [Theory]
+    [InlineData(null, "", 1)]
+    [InlineData("", "", 1)]
+    [InlineData("   ", "", 1)]
+    public async Task SearchByIsbnAsync_ShouldHandleEmptyOrNullTitle_WhenParsingVolumeAndSerie(
+        string? title,
+        string expectedSerie,
+        int expectedVolume)
+    {
+        // Arrange
+        const string isbn = "9781234567890";
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: title ?? string.Empty,
+            Subtitle: null,
+            Authors: SingleAuthorArray,
+            Publishers: SinglePublisherArray,
+            PublishDate: "2024",
+            NumberOfPages: 100,
+            CoverUrl: null,
+            Found: true);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn);
+
+        // Assert
+        result.Serie.Should().Be(expectedSerie);
+        result.VolumeNumber.Should().Be(expectedVolume);
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_ShouldDefaultToVolumeOne_WhenVolumeNumberCannotBeParsed()
+    {
+        // Arrange
+        const string isbn = "9781234567890";
+        const string title = "Soda, tome abc";
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: title,
+            Subtitle: null,
+            Authors: SingleAuthorArray,
+            Publishers: SinglePublisherArray,
+            PublishDate: "2024",
+            NumberOfPages: 100,
+            CoverUrl: null,
+            Found: true);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn);
+
+        // Assert
+        result.VolumeNumber.Should().Be(1);
+    }
+
+    #endregion
+
+    #region ISBN Cleaning Tests
+
+    [Theory]
+    [InlineData("978-1-234-56789-0", "9781234567890")]
+    [InlineData("978 1 234 56789 0", "9781234567890")]
+    [InlineData("978-1234-567890", "9781234567890")]
+    public async Task SearchByIsbnAsync_ShouldCleanIsbn_WhenUploadingToCloudinary(
+        string isbnWithFormatting,
+        string expectedCleanIsbn)
+    {
+        // Arrange
+        var coverUrl = new Uri("https://covers.openlibrary.org/b/id/12345-L.jpg");
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: "Test Comic",
+            Subtitle: null,
+            Authors: SingleAuthorArray,
+            Publishers: SinglePublisherArray,
+            PublishDate: "2024",
+            NumberOfPages: 100,
+            CoverUrl: coverUrl,
+            Found: true);
+
+        var cloudinaryResult = new CloudinaryUploadResult(
+            Url: new Uri("https://res.cloudinary.com/test/uploaded.jpg"),
+            PublicId: "test-id",
+            Success: true,
+            Error: null);
+
+        _openLibraryService.SearchByIsbnAsync(isbnWithFormatting, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+        _cloudinaryService.UploadImageFromUrlAsync(
+                Arg.Any<Uri>(),
+                Arg.Any<string>(),
+                expectedCleanIsbn,
+                Arg.Any<CancellationToken>())
+            .Returns(cloudinaryResult);
+
+        // Act
+        await _sut.SearchByIsbnAsync(isbnWithFormatting);
+
+        // Assert
+        await _cloudinaryService.Received(1).UploadImageFromUrlAsync(
+            coverUrl,
+            "test-covers",
+            expectedCleanIsbn,
+            Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region Additional Date Format Tests
+
+    [Theory]
+    [InlineData("January 1, 2000", 2000, 1, 1)]
+    [InlineData("December 31, 1999", 1999, 12, 31)]
+    [InlineData("Feb 29, 2020", 2020, 2, 29)]
+    [InlineData("2020/02/29", 2020, 2, 29)]
+    [InlineData("29/02/2020", 2020, 2, 29)]
+    [InlineData("March 2021", 2021, 3, 1)]
+    [InlineData("Dec 2019", 2019, 12, 1)]
+    public async Task SearchByIsbnAsync_ShouldParsePublishDate_WithAdditionalFormats(
+        string publishDate,
+        int expectedYear,
+        int expectedMonth,
+        int expectedDay)
+    {
+        // Arrange
+        const string isbn = "9781234567890";
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: "Test Comic",
+            Subtitle: null,
+            Authors: SingleAuthorArray,
+            Publishers: SinglePublisherArray,
+            PublishDate: publishDate,
+            NumberOfPages: 100,
+            CoverUrl: null,
+            Found: true);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn);
+
+        // Assert
+        result.PublishDate.Should().Be(new DateOnly(expectedYear, expectedMonth, expectedDay));
+    }
+
+    #endregion
+
+    #region Multiple Volume Patterns Tests
+
+    [Theory]
+    [InlineData("The Walking Dead, Tome 1 - Days Gone Bye", "The Walking Dead", 1)]
+    [InlineData("Saga - vol. 1: Chapter One", "Saga", 1)]
+    [InlineData("Y: The Last Man, Vol. 2 - Cycles", "Y: The Last Man", 2)]
+    public async Task SearchByIsbnAsync_ShouldExtractSerie_FromComplexTitles(
+        string title,
+        string expectedSerie,
+        int expectedVolume)
+    {
+        // Arrange
+        const string isbn = "9781234567890";
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: title,
+            Subtitle: null,
+            Authors: SingleAuthorArray,
+            Publishers: SinglePublisherArray,
+            PublishDate: "2024",
+            NumberOfPages: 100,
+            CoverUrl: null,
+            Found: true);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn);
+
+        // Assert
+        result.Serie.Should().Be(expectedSerie);
+        result.VolumeNumber.Should().Be(expectedVolume);
+    }
+
+    #endregion
+
+    #region Metadata Mapping Tests
+
+    [Fact]
+    public async Task SearchByIsbnAsync_ShouldMapAllMetadata_FromOpenLibraryToResult()
+    {
+        // Arrange
+        const string isbn = "9781607066019";
+        const string title = "Saga, vol. 1";
+        const string subtitle = "Chapter One";
+        var authors = new[] { "Brian K. Vaughan", "Fiona Staples" };
+        var publishers = new[] { "Image Comics" };
+        const string publishDate = "October 10, 2012";
+        const int numberOfPages = 160;
+        var coverUrl = new Uri("https://covers.openlibrary.org/b/id/12345-L.jpg");
+
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: title,
+            Subtitle: subtitle,
+            Authors: authors,
+            Publishers: publishers,
+            PublishDate: publishDate,
+            NumberOfPages: numberOfPages,
+            CoverUrl: coverUrl,
+            Found: true);
+
+        var cloudinaryResult = new CloudinaryUploadResult(
+            Url: new Uri("https://res.cloudinary.com/test/saga.jpg"),
+            PublicId: "test-id",
+            Success: true,
+            Error: null);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+        _cloudinaryService.UploadImageFromUrlAsync(
+                Arg.Any<Uri>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>())
+            .Returns(cloudinaryResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Isbn.Should().Be(isbn);
+        result.Title.Should().Be(subtitle);
+        result.Serie.Should().Be("Saga");
+        result.VolumeNumber.Should().Be(1);
+        result.Authors.Should().Be("Brian K. Vaughan, Fiona Staples");
+        result.Publishers.Should().Be("Image Comics");
+        result.PublishDate.Should().Be(new DateOnly(2012, 10, 10));
+        result.NumberOfPages.Should().Be(160);
+        result.ImageUrl.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_ShouldHandleNullNumberOfPages()
+    {
+        // Arrange
+        const string isbn = "9781234567890";
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: "Test Comic",
+            Subtitle: null,
+            Authors: SingleAuthorArray,
+            Publishers: SinglePublisherArray,
+            PublishDate: "2024",
+            NumberOfPages: null,
+            CoverUrl: null,
+            Found: true);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn);
+
+        // Assert
+        result.NumberOfPages.Should().BeNull();
+    }
+
+    #endregion
+
+    #region Error Handling Tests
+
+    [Fact]
+    public async Task SearchByIsbnAsync_ShouldReturnNotFound_WhenOperationCancelledButNotByToken()
+    {
+        // Arrange
+        const string isbn = "9781234567890";
+        var exception = new TaskCanceledException("Operation was canceled");
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .ThrowsAsync(exception);
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn);
+
+        // Assert
+        result.Found.Should().BeFalse();
+        result.Isbn.Should().Be(isbn);
+        result.Title.Should().BeEmpty();
+        result.Serie.Should().BeEmpty();
     }
 
     #endregion
