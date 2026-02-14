@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="9.7.0"></a>
+## [9.7.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.7.0) (2026-02-14)
+
+### ✨ Features
+
+* Add book metadata fields and update schema/UI ([#886](https://www.github.com/slucky31/mycomicsmanager/issues/886)) ([b8ce2e5](https://www.github.com/slucky31/mycomicsmanager/commit/b8ce2e5c8b029dcc35b7dd22eed841ac3b85c8f6))
+
 <a name="9.6.11"></a>
 ## [9.6.11](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v9.6.11) (2026-02-13)
 
