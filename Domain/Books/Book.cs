@@ -27,28 +27,17 @@ public class Book : Entity<Guid>
     private readonly List<ReadingDate> _readingDates = [];
     public IReadOnlyList<ReadingDate> ReadingDates => _readingDates.AsReadOnly();
 
-    public static Book Create(string series, string title, string isbn)
-    {
-        return Create(series, title, isbn, 1, "", 0, "", "", null, null);
-    }
-
-    public static Book Create(string series, string title, string isbn, int volumeNumber)
-    {
-        return Create(series, title, isbn, volumeNumber, "", 0, "", "", null, null);
-    }
-
-    public static Book Create(string series, string title, string isbn, int volumeNumber, string imageLink)
-    {
-        return Create(series, title, isbn, volumeNumber, imageLink, 0, "", "", null, null);
-    }
-
-    public static Book Create(string series, string title, string isbn, int volumeNumber, string imageLink, int rating)
-    {
-        return Create(series, title, isbn, volumeNumber, imageLink, rating, "", "", null, null);
-    }
-
-    public static Book Create(string series, string title, string isbn, int volumeNumber, string imageLink, int rating,
-        string authors, string publishers, DateOnly? publishDate, int? numberOfPages)
+    public static Book Create(
+        string series,
+        string title,
+        string isbn,
+        int volumeNumber = 1,
+        string imageLink = "",
+        int rating = 0,
+        string authors = "",
+        string publishers = "",
+        DateOnly? publishDate = null,
+        int? numberOfPages = null)
     {
         var book = new Book
         {
@@ -67,13 +56,17 @@ public class Book : Entity<Guid>
         return book;
     }
 
-    public void Update(string series, string title, string isbn, int volumeNumber, string imageLink, int rating)
-    {
-        Update(series, title, isbn, volumeNumber, imageLink, rating, Authors, Publishers, PublishDate, NumberOfPages);
-    }
-
-    public void Update(string series, string title, string isbn, int volumeNumber, string imageLink, int rating,
-        string authors, string publishers, DateOnly? publishDate, int? numberOfPages)
+    public void Update(
+        string series,
+        string title,
+        string isbn,
+        int volumeNumber,
+        string imageLink,
+        int rating,
+        string authors = "",
+        string publishers = "",
+        DateOnly? publishDate = null,
+        int? numberOfPages = null)
     {
         Serie = series;
         Title = title;
