@@ -88,35 +88,43 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
     {
         var host = base.CreateHost(builder);
         
-        // Run migrations after host is created to avoid deadlocks
-        using (var scope = host.Services.CreateScope())
+        try
         {
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IntegrationTestWebAppFactory>>();
+            // Run migrations after host is created to avoid deadlocks
+            using (var scope = host.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<IntegrationTestWebAppFactory>>();
+                
+                try
+                {
+                    logger.LogInformation("Running database migrations for: {Host}", GetHostFromConnectionString(_connectionString));
+                    logger.LogInformation("Note: Neon free tier databases may take 10-30 seconds to wake from sleep...");
+                    
+                    db.Database.Migrate();
+                    
+                    logger.LogInformation("Database migrations completed successfully.");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to run database migrations");
+                    throw new InvalidOperationException(
+                        $"Cannot initialize test database: {ex.Message}\n" +
+                        $"Connection: {MaskPassword(_connectionString)}\n" +
+                        $"Ensure the database server is running and accessible.\n" +
+                        $"Set ConnectionStrings__NeonConnectionUnitTests environment variable to use a local database.",
+                        ex
+                    );
+                }
+            }
             
-            try
-            {
-                logger.LogInformation("Running database migrations for: {Host}", GetHostFromConnectionString(_connectionString));
-                logger.LogInformation("Note: Neon free tier databases may take 10-30 seconds to wake from sleep...");
-                
-                db.Database.Migrate();
-                
-                logger.LogInformation("Database migrations completed successfully.");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to run database migrations");
-                throw new InvalidOperationException(
-                    $"Cannot initialize test database: {ex.Message}\n" +
-                    $"Connection: {MaskPassword(_connectionString)}\n" +
-                    $"Ensure the database server is running and accessible.\n" +
-                    $"Set ConnectionStrings__NeonConnectionUnitTests environment variable to use a local database.",
-                    ex
-                );
-            }
+            return host;
         }
-        
-        return host;
+        catch
+        {
+            host.Dispose();
+            throw;
+        }
     }
 
     public new void Dispose()
