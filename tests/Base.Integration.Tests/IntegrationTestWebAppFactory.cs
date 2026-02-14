@@ -97,10 +97,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<IntegrationTestWebAppFactory>>();
                 
                 try
-                {
-                    logger.LogInformation("Running database migrations for: {Host}", GetHostFromConnectionString(_connectionString));
-                    logger.LogInformation("Note: Neon free tier databases may take 10-30 seconds to wake from sleep...");
-                    
+                {                    
                     db.Database.Migrate();
                     
                     logger.LogInformation("Database migrations completed successfully.");
