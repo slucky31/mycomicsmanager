@@ -4,7 +4,6 @@ using Application.Users;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Users;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence;
