@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
 
-public class ComicSearchService : IComicSearchService
+public partial class ComicSearchService : IComicSearchService
 {
     private static Serilog.ILogger Log => Serilog.Log.ForContext<ComicSearchService>();
 
@@ -108,6 +108,31 @@ public class ComicSearchService : IComicSearchService
         return coverUrl.ToString();
     }
 
+    // Generated regex patterns for parsing volume and series from titles
+    // "Soda, tome 1"
+    [GeneratedRegex(@"^(.+?),\s*tome\s+(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex CommaTomePattern();
+
+    // "Soda - tome 1"
+    [GeneratedRegex(@"^(.+?)\s*-\s*tome\s+(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex DashTomePattern();
+
+    // "Soda, vol. 1" or "Soda, vol 1"
+    [GeneratedRegex(@"^(.+?),\s*vol\.?\s*(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex CommaVolPattern();
+
+    // "Soda - vol. 1"
+    [GeneratedRegex(@"^(.+?)\s*-\s*vol\.?\s*(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex DashVolPattern();
+
+    // "Soda vol. 1"
+    [GeneratedRegex(@"^(.+?)\s+vol\.?\s*(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex SpaceVolPattern();
+
+    // "Soda #1"
+    [GeneratedRegex(@"^(.+?)\s*#(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex HashPattern();
+
     private static (string Serie, int VolumeNumber) ParseVolumeAndSerie(string fullTitle)
     {
         if (string.IsNullOrWhiteSpace(fullTitle))
@@ -118,25 +143,20 @@ public class ComicSearchService : IComicSearchService
         var volumeNumber = 1;
         var serie = string.Empty;
 
-        // Common patterns for comic/manga titles:
-        // "Soda, tome 1"
-        // "Series Name - Tome 2"
-        // "Series Name, Vol. 3"
-        // "Series Name Vol. 4"
-        // "Series Name #5"
-        var patterns = new[]
+        // Try each pattern in order until one matches
+        var patterns = new Func<Regex>[]
         {
-            @"^(.+?),\s*tome\s+(\d+)",           // "Soda, tome 1"
-            @"^(.+?)\s*-\s*tome\s+(\d+)",        // "Soda - tome 1"
-            @"^(.+?),\s*vol\.?\s*(\d+)",         // "Soda, vol. 1" or "Soda, vol 1"
-            @"^(.+?)\s*-\s*vol\.?\s*(\d+)",      // "Soda - vol. 1"
-            @"^(.+?)\s+vol\.?\s*(\d+)",          // "Soda vol. 1"
-            @"^(.+?)\s*#(\d+)",                  // "Soda #1"
+            CommaTomePattern,
+            DashTomePattern,
+            CommaVolPattern,
+            DashVolPattern,
+            SpaceVolPattern,
+            HashPattern
         };
 
-        foreach (var pattern in patterns)
+        foreach (var patternFunc in patterns)
         {
-            var match = Regex.Match(fullTitle, pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+            var match = patternFunc().Match(fullTitle);
             if (match.Success)
             {
                 serie = match.Groups[1].Value.Trim();
