@@ -1,4 +1,4 @@
-using Application.ComicInfoSearch;
+using Application.Interfaces;
 
 
 namespace Application.UnitTests.ComicInfoSearch;

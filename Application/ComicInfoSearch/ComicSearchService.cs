@@ -85,6 +85,11 @@ public partial class ComicSearchService : IComicSearchService
             Log.Error(ex, "Timeout searching for ISBN {Isbn}", isbn);
             return CreateNotFoundResult(isbn);
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            Log.Warning(ex, "Search cancelled for ISBN {Isbn}", isbn);
+            return CreateNotFoundResult(isbn);
+        }
     }
 
     private async Task<string> UploadCoverToCloudinaryAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken)

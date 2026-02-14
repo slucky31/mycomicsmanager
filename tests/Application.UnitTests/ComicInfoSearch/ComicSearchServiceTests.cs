@@ -797,6 +797,27 @@ public sealed class ComicSearchServiceTests
         result.Serie.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task SearchByIsbnAsync_ShouldReturnNotFound_WhenTokenIsCancelledByCallerBeforeCall()
+    {
+        // Arrange
+        const string isbn = "9781234567890";
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync(); // Cancel the token before the call
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new OperationCanceledException(cts.Token));
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn, cts.Token);
+
+        // Assert
+        result.Found.Should().BeFalse();
+        result.Isbn.Should().Be(isbn);
+        result.Title.Should().BeEmpty();
+        result.Serie.Should().BeEmpty();
+    }
+
     #endregion
 
     #region Multiple Authors and Publishers Tests
