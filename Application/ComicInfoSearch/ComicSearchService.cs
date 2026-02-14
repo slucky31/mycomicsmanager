@@ -215,12 +215,6 @@ public partial class ComicSearchService : IComicSearchService
             return DateOnly.FromDateTime(dateTime);
         }
 
-        // If only a year is provided as a number
-        if (int.TryParse(dateString.Trim(), out var year) && year >= 1000 && year <= 9999)
-        {
-            return new DateOnly(year, 1, 1);
-        }
-
         Log.Warning("Unable to parse publish date: {DateString}", dateString);
         return null;
     }
