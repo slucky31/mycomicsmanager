@@ -15,7 +15,7 @@
 		<PackageReference Include="GitInfo" Version="3.5.0" />
 		<PackageReference Include="MudBlazor" Version="6.21.0" />
 		<PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />		
+		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />		
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="7.0.0" />
 		<PackageReference Include="Google.Apis.Books.v1" Version="1.68.0.3331" />
 	</ItemGroup>
