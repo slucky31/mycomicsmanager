@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.0.4"></a>
+## [10.0.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.0.4) (2026-02-21)
+
+### 🐛 Bug Fixes
+
+* **config:** migrate config .github/renovate.json ([#925](https://www.github.com/slucky31/mycomicsmanager/issues/925)) ([afb97ce](https://www.github.com/slucky31/mycomicsmanager/commit/afb97cec863f22dc8ececb10d9b070f4bce78363))
+
 <a name="10.0.3"></a>
 ## [10.0.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.0.3) (2026-02-21)
 
