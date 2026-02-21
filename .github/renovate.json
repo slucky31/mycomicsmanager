@@ -3,10 +3,11 @@
   "extends": [
     "config:recommended",
     ":label(renovate)",
-    ":separateMultipleMajorReleases",    
+    ":separateMultipleMajorReleases",
     ":semanticCommitTypeAll(fix)"
   ],
   "prConcurrentLimit": 10,
-  "baseBranches": ["main"]
-
+  "baseBranchPatterns": [
+    "main"
+  ]
 }
