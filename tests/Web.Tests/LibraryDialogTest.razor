@@ -2,6 +2,7 @@
 @using Bunit
 @using Microsoft.AspNetCore.Components
 @using MudBlazor
+@using MudBlazor.Extensions
 @using MudBlazor.Services
 @using NSubstitute
 @using Web.Components.Pages.Libraries
@@ -57,8 +58,8 @@
         // Assert        
         var fields = provider.FindComponents<MudTextField<string>>();
         fields.Should().HaveCount(2);
-        fields.Single(f => string.Equals(f.Instance.Label, "Name", StringComparison.OrdinalIgnoreCase)).Instance.Value.Should().Be(library.Name);
-        fields.Single(f => string.Equals(f.Instance.Label, "RelativePath", StringComparison.OrdinalIgnoreCase)).Instance.Value.Should().Be(library.RelativePath);
+        fields.Single(f => string.Equals(f.Instance.Label, "Name", StringComparison.OrdinalIgnoreCase)).Instance.GetState(x => x.Value).Should().Be(library.Name);
+        fields.Single(f => string.Equals(f.Instance.Label, "RelativePath", StringComparison.OrdinalIgnoreCase)).Instance.GetState(x => x.Value).Should().Be(library.RelativePath);
 
     }
 
