@@ -20,11 +20,13 @@ public class OpenLibraryService : IOpenLibraryService
 
     public async Task<OpenLibraryBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
+        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
                                .Replace(" ", "", StringComparison.Ordinal)
                                .Trim();
+
+        try
+        {
+            
             var url = new Uri($"{BaseUrl}/isbn/{cleanIsbn}.json");
 
             Log.Information("Searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
@@ -71,17 +73,17 @@ public class OpenLibraryService : IOpenLibraryService
         }
         catch (HttpRequestException ex)
         {
-            Log.Error(ex, "HTTP error searching OpenLibrary for ISBN: {Isbn}", isbn);
+            Log.Error(ex, "HTTP error searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (JsonException ex)
         {
-            Log.Error(ex, "JSON parsing error for ISBN: {Isbn}", isbn);
+            Log.Error(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (TaskCanceledException ex) when (ex.CancellationToken != cancellationToken)
         {
-            Log.Error(ex, "Timeout searching OpenLibrary for ISBN: {Isbn}", isbn);
+            Log.Error(ex, "Timeout searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
     }

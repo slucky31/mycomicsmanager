@@ -127,7 +127,8 @@
 
             try
             {
-                _searchResult = await ComicSearchService.SearchByIsbnAsync(Isbn);
+                string cleanedIsbn = Isbn.Replace(Environment.NewLine, "").Trim();
+                _searchResult = await ComicSearchService.SearchByIsbnAsync(cleanedIsbn);
 
                 if (_searchResult.Found)
                 {

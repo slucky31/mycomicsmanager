@@ -19,11 +19,13 @@ public class GoogleBooksService : IGoogleBooksService
 
     public async Task<GoogleBooksBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
+        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
                                .Replace(" ", "", StringComparison.Ordinal)
                                .Trim();
+
+        try
+        {
+            
             var url = new Uri($"{BaseUrl}/volumes?q=isbn:{cleanIsbn}");
 
             Log.Information("Searching Google Books for ISBN: {Isbn}", cleanIsbn);
@@ -83,17 +85,17 @@ public class GoogleBooksService : IGoogleBooksService
         }
         catch (HttpRequestException ex)
         {
-            Log.Error(ex, "HTTP error searching Google Books for ISBN: {Isbn}", isbn);
+            Log.Error(ex, "HTTP error searching Google Books for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (JsonException ex)
         {
-            Log.Error(ex, "JSON parsing error for ISBN: {Isbn}", isbn);
+            Log.Error(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (TaskCanceledException ex) when (ex.CancellationToken != cancellationToken)
         {
-            Log.Error(ex, "Timeout searching Google Books for ISBN: {Isbn}", isbn);
+            Log.Error(ex, "Timeout searching Google Books for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
     }

@@ -28,14 +28,21 @@ public partial class ComicSearchService : IComicSearchService
 
     public async Task<ComicSearchResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
     {
+
+        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
+                               .Replace(" ", "", StringComparison.Ordinal)
+                               .Trim();
+
         try
         {
+            
+
             // Try OpenLibrary first
-            var result = await _openLibraryService.SearchByIsbnAsync(isbn, cancellationToken);
+            var result = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
 
             if (result.Found)
             {
-                Log.Information("Book found via OpenLibrary for ISBN {Isbn}", isbn);
+                Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
                 return await MapBookResultToComicSearchResultAsync(
                     result.Title, result.Subtitle, result.Authors, result.Publishers,
                     result.PublishDate, result.NumberOfPages, result.CoverUrl,
@@ -43,40 +50,40 @@ public partial class ComicSearchService : IComicSearchService
             }
 
             // Fallback to Google Books
-            Log.Information("OpenLibrary returned no result for ISBN {Isbn}, trying Google Books", isbn);
+            Log.Information("OpenLibrary returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
             var googleResult = await _googleBooksService.SearchByIsbnAsync(isbn, cancellationToken);
 
             if (googleResult.Found)
             {
-                Log.Information("Book found via Google Books for ISBN {Isbn}", isbn);
+                Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
                 return await MapBookResultToComicSearchResultAsync(
                     googleResult.Title, googleResult.Subtitle, googleResult.Authors, googleResult.Publishers,
                     googleResult.PublishDate, googleResult.NumberOfPages, googleResult.CoverUrl,
                     isbn, cancellationToken);
             }
 
-            Log.Warning("No data found for ISBN {Isbn} in any provider", isbn);
+            Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
             return CreateNotFoundResult(isbn);
         }
         catch (HttpRequestException ex)
         {
-            Log.Error(ex, "HTTP error searching for ISBN {Isbn}", isbn);
-            return CreateNotFoundResult(isbn);
+            Log.Error(ex, "HTTP error searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
         catch (InvalidOperationException ex)
         {
-            Log.Error(ex, "Invalid operation searching for ISBN {Isbn}", isbn);
-            return CreateNotFoundResult(isbn);
+            Log.Error(ex, "Invalid operation searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            Log.Error(ex, "Timeout searching for ISBN {Isbn}", isbn);
-            return CreateNotFoundResult(isbn);
+            Log.Error(ex, "Timeout searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
         catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {
-            Log.Warning(ex, "Search cancelled for ISBN {Isbn}", isbn);
-            return CreateNotFoundResult(isbn);
+            Log.Warning(ex, "Search cancelled for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
     }
 
