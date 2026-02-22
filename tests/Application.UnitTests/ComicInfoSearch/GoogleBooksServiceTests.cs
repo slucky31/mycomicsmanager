@@ -334,7 +334,7 @@ public sealed class GoogleBooksServiceTests
     [Fact]
     public async Task SearchByIsbnAsync_Should_UpgradeHttpToHttps_ForCoverUrl()
     {
-        // Arrange
+        // Arrange – realistic Google Books URL where edge=curl appears after other params
         var jsonResponse = """
         {
             "totalItems": 1,
@@ -342,7 +342,7 @@ public sealed class GoogleBooksServiceTests
                 "volumeInfo": {
                     "title": "Test",
                     "imageLinks": {
-                        "thumbnail": "http://books.google.com/thumb.jpg&edge=curl"
+                        "thumbnail": "http://books.google.com/content?id=123&zoom=1&edge=curl&source=gbs_api"
                     }
                 }
             }]
@@ -364,6 +364,80 @@ public sealed class GoogleBooksServiceTests
         result.CoverUrl.Should().NotBeNull();
         result.CoverUrl!.ToString().Should().StartWith("https://");
         result.CoverUrl.ToString().Should().NotContain("edge=curl");
+        result.CoverUrl.ToString().Should().Contain("id=123");
+        result.CoverUrl.ToString().Should().Contain("source=gbs_api");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_StripEdgeParam_WhenEdgeCurlIsFirstQueryParam()
+    {
+        // Arrange – edge=curl is the first (leading) query parameter → old Replace("&edge=curl"…) would not match
+        var jsonResponse = """
+        {
+            "totalItems": 1,
+            "items": [{
+                "volumeInfo": {
+                    "title": "Test",
+                    "imageLinks": {
+                        "thumbnail": "http://books.google.com/content?edge=curl&id=123&source=gbs_api"
+                    }
+                }
+            }]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}"] = CreateJsonResponse(jsonResponse)
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = new GoogleBooksService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.CoverUrl.Should().NotBeNull();
+        result.CoverUrl!.ToString().Should().StartWith("https://");
+        result.CoverUrl.ToString().Should().NotContain("edge=curl");
+        result.CoverUrl.ToString().Should().Contain("id=123");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_StripEdgeParam_WhenEdgeCurlIsOnlyQueryParam()
+    {
+        // Arrange – edge=curl is the only query parameter → old code left a stray '?'
+        var jsonResponse = """
+        {
+            "totalItems": 1,
+            "items": [{
+                "volumeInfo": {
+                    "title": "Test",
+                    "imageLinks": {
+                        "thumbnail": "http://books.google.com/content?edge=curl"
+                    }
+                }
+            }]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}"] = CreateJsonResponse(jsonResponse)
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = new GoogleBooksService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.CoverUrl.Should().NotBeNull();
+        result.CoverUrl!.ToString().Should().StartWith("https://");
+        result.CoverUrl.ToString().Should().NotContain("edge");
+        result.CoverUrl.ToString().Should().NotEndWith("?");
     }
 
     [Fact]

@@ -11,6 +11,7 @@ public class GoogleBooksService : IGoogleBooksService
 
     private readonly HttpClient _httpClient;
     private const string BaseUrl = "https://www.googleapis.com/books/v1";
+    private const string WebServiceUrl = $"{BaseUrl}/volumes?q=isbn:";
 
     public GoogleBooksService(HttpClient httpClient)
     {
@@ -26,7 +27,7 @@ public class GoogleBooksService : IGoogleBooksService
         try
         {
             
-            var url = new Uri($"{BaseUrl}/volumes?q=isbn:{cleanIsbn}");
+            var url = new Uri(WebServiceUrl + $"{cleanIsbn}");
 
             Log.Information("Searching Google Books for ISBN: {Isbn}", cleanIsbn);
 
@@ -146,6 +147,7 @@ public class GoogleBooksService : IGoogleBooksService
         var url = imageLinks.ExtraLarge
             ?? imageLinks.Large
             ?? imageLinks.Medium
+            ?? imageLinks.Small
             ?? imageLinks.Thumbnail
             ?? imageLinks.SmallThumbnail;
 
@@ -154,11 +156,28 @@ public class GoogleBooksService : IGoogleBooksService
             return null;
         }
 
-        // Google Books returns HTTP URLs; upgrade to HTTPS and remove edge=curl for clean images
-        url = url.Replace("http://", "https://", StringComparison.OrdinalIgnoreCase)
-                 .Replace("&edge=curl", "", StringComparison.OrdinalIgnoreCase);
+        // Parse the URL, force HTTPS, and strip the "edge" query parameter to get clean images
+        var builder = new UriBuilder(url)
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Port = -1
+        };
 
-        return new Uri(url);
+        var rawQuery = builder.Query.TrimStart('?');
+        if (!string.IsNullOrEmpty(rawQuery))
+        {
+            var filtered = rawQuery
+                .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                .Where(static param =>
+                {
+                    var eqIdx = param.IndexOf('=', StringComparison.Ordinal);
+                    var key = eqIdx >= 0 ? param[..eqIdx] : param;
+                    return !key.Equals("edge", StringComparison.OrdinalIgnoreCase);
+                });
+            builder.Query = string.Join("&", filtered);
+        }
+
+        return new Uri(builder.ToString());
     }
 
     private static GoogleBooksBookResult CreateNotFoundResult() =>
