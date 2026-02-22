@@ -1,5 +1,6 @@
 using System.Net;
 using Application.ComicInfoSearch;
+using Microsoft.Extensions.Options;
 
 namespace Application.UnitTests.ComicInfoSearch;
 
@@ -7,6 +8,10 @@ public sealed class GoogleBooksServiceTests
 {
     private const string ValidIsbn = "9782205089165";
     private const string ValidIsbnWithDashes = "978-2-205-08916-5";
+    private const string GoogleBooksBaseUrl = "https://www.googleapis.com/books/v1";
+
+    private static GoogleBooksService CreateService(HttpClient httpClient) =>
+        new(httpClient, Options.Create(new GoogleBooksSettings { BaseUrl = GoogleBooksBaseUrl }));
 
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnBookResult_WhenBookFound()
@@ -41,7 +46,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -85,7 +90,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbnWithDashes);
@@ -107,7 +112,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -128,7 +133,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -145,7 +150,7 @@ public sealed class GoogleBooksServiceTests
             new HttpRequestException("Network error"));
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -164,7 +169,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -195,7 +200,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -227,7 +232,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -259,7 +264,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -285,7 +290,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act & Assert
         await Assert.ThrowsAsync<TaskCanceledException>(
@@ -319,7 +324,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -355,7 +360,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -392,7 +397,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -428,7 +433,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -462,7 +467,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -493,7 +498,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -520,7 +525,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -551,7 +556,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -603,7 +608,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -644,7 +649,7 @@ public sealed class GoogleBooksServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new GoogleBooksService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn);

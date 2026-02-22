@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
 
@@ -10,12 +11,13 @@ public class GoogleBooksService : IGoogleBooksService
     private static Serilog.ILogger Log => Serilog.Log.ForContext<GoogleBooksService>();
 
     private readonly HttpClient _httpClient;
-    private const string BaseUrl = "https://www.googleapis.com/books/v1";
-    private const string WebServiceUrl = $"{BaseUrl}/volumes?q=isbn:";
+    private const string SearchPath = "/volumes?q=isbn:";
+    private readonly GoogleBooksSettings _settings;
 
-    public GoogleBooksService(HttpClient httpClient)
+    public GoogleBooksService(HttpClient httpClient, IOptions<GoogleBooksSettings> settings)
     {
         _httpClient = httpClient;
+        _settings = settings.Value;
     }
 
     public async Task<GoogleBooksBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
@@ -27,7 +29,7 @@ public class GoogleBooksService : IGoogleBooksService
         try
         {
             
-            var url = new Uri(WebServiceUrl + $"{cleanIsbn}");
+            var url = new Uri(_settings.BaseUrl + SearchPath + cleanIsbn);
 
             Log.Information("Searching Google Books for ISBN: {Isbn}", cleanIsbn);
 

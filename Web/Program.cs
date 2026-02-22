@@ -51,6 +51,13 @@ builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
+// Config Google Books settings
+var googleBooksSection = configuration.GetSection("GoogleBooks");
+builder.Services.AddOptions<GoogleBooksSettings>()
+    .Bind(googleBooksSection)
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.BaseUrl), "GoogleBooks:BaseUrl is required")
+    .ValidateOnStart();
+
 // Config Google Books service for ISBN lookup (fallback)
 builder.Services.AddHttpClient<IGoogleBooksService, GoogleBooksService>(client =>
 {
