@@ -96,7 +96,7 @@ public class GoogleBooksService : IGoogleBooksService
             Log.Error(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
-        catch (TaskCanceledException ex) when (ex.CancellationToken != cancellationToken)
+        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             Log.Error(ex, "Timeout searching Google Books for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
