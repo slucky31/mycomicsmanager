@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.1.0"></a>
+## [10.1.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.1.0) (2026-02-22)
+
+### ✨ Features
+
+* add Google Books fallback for ISBN comic search ([#926](https://www.github.com/slucky31/mycomicsmanager/issues/926)) ([7342f71](https://www.github.com/slucky31/mycomicsmanager/commit/7342f71f5c4977b54efc3fddeccf1f0bdadb0f4c))
+
 <a name="10.0.5"></a>
 ## [10.0.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.0.5) (2026-02-21)
 
