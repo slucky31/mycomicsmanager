@@ -3,7 +3,7 @@ using Application.ComicInfoSearch;
 
 namespace Application.UnitTests.ComicInfoSearch;
 
-public class GoogleBooksServiceTests
+public sealed class GoogleBooksServiceTests
 {
     private const string ValidIsbn = "9782205089165";
     private const string ValidIsbnWithDashes = "978-2-205-08916-5";

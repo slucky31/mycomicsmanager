@@ -78,6 +78,7 @@ public sealed class ComicSearchServiceTests
         result.Title.Should().BeEmpty();
         result.Serie.Should().BeEmpty();
         result.VolumeNumber.Should().Be(1);
+        await _googleBooksService.Received(1).SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -176,7 +177,7 @@ public sealed class ComicSearchServiceTests
             Success: true,
             Error: null);
 
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+        _openLibraryService.SearchByIsbnAsync("9781234567890", Arg.Any<CancellationToken>())
             .Returns(openLibraryResult);
         _cloudinaryService.UploadImageFromUrlAsync(
                 coverUrl,
@@ -614,7 +615,7 @@ public sealed class ComicSearchServiceTests
             Success: true,
             Error: null);
 
-        _openLibraryService.SearchByIsbnAsync(isbnWithFormatting, Arg.Any<CancellationToken>())
+        _openLibraryService.SearchByIsbnAsync(expectedCleanIsbn, Arg.Any<CancellationToken>())
             .Returns(openLibraryResult);
         _cloudinaryService.UploadImageFromUrlAsync(
                 Arg.Any<Uri>(),

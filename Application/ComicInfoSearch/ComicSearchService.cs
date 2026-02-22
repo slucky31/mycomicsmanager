@@ -44,9 +44,7 @@ public partial class ComicSearchService : IComicSearchService
             {
                 Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
                 return await MapBookResultToComicSearchResultAsync(
-                    result.Title, result.Subtitle, result.Authors, result.Publishers,
-                    result.PublishDate, result.NumberOfPages, result.CoverUrl,
-                    isbn, cancellationToken);
+                    result, isbn, cancellationToken);
             }
 
             // Fallback to Google Books
@@ -57,9 +55,7 @@ public partial class ComicSearchService : IComicSearchService
             {
                 Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
                 return await MapBookResultToComicSearchResultAsync(
-                    googleResult.Title, googleResult.Subtitle, googleResult.Authors, googleResult.Publishers,
-                    googleResult.PublishDate, googleResult.NumberOfPages, googleResult.CoverUrl,
-                    isbn, cancellationToken);
+                    googleResult, isbn, cancellationToken);
             }
 
             Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
@@ -88,32 +84,26 @@ public partial class ComicSearchService : IComicSearchService
     }
 
     private async Task<ComicSearchResult> MapBookResultToComicSearchResultAsync(
-        string resultTitle,
-        string? subtitle,
-        IReadOnlyList<string> resultAuthors,
-        IReadOnlyList<string> resultPublishers,
-        string? publishDateString,
-        int? numberOfPages,
-        Uri? coverUrl,
+        IBookSearchResult bookResult,
         string isbn,
         CancellationToken cancellationToken)
     {
-        var (serie, volumeNumber) = ParseVolumeAndSerie(resultTitle);
+        var (serie, volumeNumber) = ParseVolumeAndSerie(bookResult.Title);
 
         // If subtitle exists, use it as title; otherwise use series name
         // This strips volume info from the title (e.g. "Fullmetal Alchemist Tome 23" → "Fullmetal Alchemist")
-        var title = string.IsNullOrEmpty(subtitle) ? serie : subtitle;
+        var title = string.IsNullOrEmpty(bookResult.Subtitle) ? serie : bookResult.Subtitle;
 
         // Upload cover to Cloudinary if available
         var imageUrl = string.Empty;
-        if (coverUrl != null)
+        if (bookResult.CoverUrl != null)
         {
-            imageUrl = await UploadCoverToCloudinaryAsync(coverUrl, isbn, cancellationToken);
+            imageUrl = await UploadCoverToCloudinaryAsync(bookResult.CoverUrl, isbn, cancellationToken);
         }
 
-        var authors = string.Join(", ", resultAuthors);
-        var publishers = string.Join(", ", resultPublishers);
-        var publishDate = ParsePublishDate(publishDateString);
+        var authors = string.Join(", ", bookResult.Authors);
+        var publishers = string.Join(", ", bookResult.Publishers);
+        var publishDate = ParsePublishDate(bookResult.PublishDate);
 
         Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
 
@@ -126,7 +116,7 @@ public partial class ComicSearchService : IComicSearchService
             Authors: authors,
             Publishers: publishers,
             PublishDate: publishDate,
-            NumberOfPages: numberOfPages,
+            NumberOfPages: bookResult.NumberOfPages,
             Found: true
         );
     }
