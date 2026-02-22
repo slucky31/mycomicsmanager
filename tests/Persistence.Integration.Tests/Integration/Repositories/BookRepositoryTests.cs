@@ -58,8 +58,8 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var book = Book.Create("X-Men", "Uncanny X-Men", "9780785134567");
-        book.AddReadingDate(DateTime.UtcNow);
-        book.AddReadingDate(DateTime.UtcNow.AddDays(-30));
+        book.AddReadingDate(DateTime.UtcNow, 4);
+        book.AddReadingDate(DateTime.UtcNow.AddDays(-30), 3);
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -115,7 +115,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        book.Update("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg", 4);
+        book.Update("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg");
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -126,7 +126,6 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         savedBook.Title.Should().Be("New Avengers");
         savedBook.VolumeNumber.Should().Be(2);
         savedBook.ImageLink.Should().Be("http://example.com/image.jpg");
-        savedBook.Rating.Should().Be(4);
     }
 
     [Fact]
@@ -211,10 +210,10 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var book1 = Book.Create("Fantastic Four", "Fantastic Four Vol 1", "9780785195678");
-        book1.AddReadingDate(DateTime.UtcNow);
+        book1.AddReadingDate(DateTime.UtcNow, 4);
         var book2 = Book.Create("Guardians of the Galaxy", "Guardians Vol 1", "9780785196789");
-        book2.AddReadingDate(DateTime.UtcNow);
-        book2.AddReadingDate(DateTime.UtcNow.AddDays(-10));
+        book2.AddReadingDate(DateTime.UtcNow, 5);
+        book2.AddReadingDate(DateTime.UtcNow.AddDays(-10), 3);
         BookRepository.Add(book1);
         BookRepository.Add(book2);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
@@ -388,7 +387,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var publishDate = new DateOnly(2023, 6, 15);
-        var book = Book.Create("Saga", "Saga Vol 1", "9781607066019", 1, "", 0,
+        var book = Book.Create("Saga", "Saga Vol 1", "9781607066019", 1, "",
             "Brian K. Vaughan, Fiona Staples", "Image Comics", publishDate, 160);
 
         // Act
@@ -409,14 +408,14 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var originalPublishDate = new DateOnly(2023, 6, 15);
-        var book = Book.Create("Saga", "Saga Vol 1", "9781607066927", 1, "", 0,
+        var book = Book.Create("Saga", "Saga Vol 1", "9781607066927", 1, "",
             "Brian K. Vaughan", "Image Comics", originalPublishDate, 160);
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
         var updatedPublishDate = new DateOnly(2024, 1, 10);
-        book.Update("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg", 5,
+        book.Update("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg",
             "Brian K. Vaughan, Fiona Staples", "Image Comics, DC Comics", updatedPublishDate, 240);
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);

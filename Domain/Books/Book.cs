@@ -14,8 +14,6 @@ public class Book : Entity<Guid>
 
     public string ImageLink { get; protected set; } = string.Empty;
 
-    public int Rating { get; protected set; }
-
     public string Authors { get; protected set; } = string.Empty;
 
     public string Publishers { get; protected set; } = string.Empty;
@@ -33,7 +31,6 @@ public class Book : Entity<Guid>
         string isbn,
         int volumeNumber = 1,
         string imageLink = "",
-        int rating = 0,
         string authors = "",
         string publishers = "",
         DateOnly? publishDate = null,
@@ -47,7 +44,6 @@ public class Book : Entity<Guid>
             ISBN = isbn,
             VolumeNumber = volumeNumber,
             ImageLink = imageLink,
-            Rating = rating,
             Authors = authors,
             Publishers = publishers,
             PublishDate = publishDate,
@@ -62,7 +58,6 @@ public class Book : Entity<Guid>
         string isbn,
         int volumeNumber,
         string imageLink,
-        int rating,
         string authors = "",
         string publishers = "",
         DateOnly? publishDate = null,
@@ -73,17 +68,17 @@ public class Book : Entity<Guid>
         ISBN = isbn;
         VolumeNumber = volumeNumber;
         ImageLink = imageLink;
-        Rating = rating;
         Authors = authors;
         Publishers = publishers;
         PublishDate = publishDate;
         NumberOfPages = numberOfPages;
     }
 
-    public void AddReadingDate(DateTime date)
+    public ReadingDate AddReadingDate(DateTime date, int rating)
     {
-        var readingDate = ReadingDate.Create(date, Id);
+        var readingDate = ReadingDate.Create(date, rating, Id);
         _readingDates.Add(readingDate);
+        return readingDate;
     }
 
     public void RemoveReadingDate(Guid readingDateId)
@@ -93,11 +88,5 @@ public class Book : Entity<Guid>
         {
             _readingDates.Remove(readingDate);
         }
-    }
-
-    public void UpdateReadingDate(Guid readingDateId, DateTime date)
-    {
-        var readingDate = _readingDates.Find(rd => rd.Id == readingDateId);
-        readingDate?.Update(date);
     }
 }

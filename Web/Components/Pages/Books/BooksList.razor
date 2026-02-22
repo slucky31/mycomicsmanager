@@ -321,9 +321,12 @@
                                 <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Small" Color="Color.Secondary" />
                                 <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-family: monospace;">@book.ISBN</MudText>
                             </div>
-                            @if (book.Rating > 0)
+                            @{
+                                var cardRating = book.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
+                            }
+                            @if (cardRating > 0)
                             {
-                                <MudRating SelectedValue="@book.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" Class="mt-1" />
+                                <MudRating SelectedValue="@cardRating" MaxValue="5" ReadOnly="true" Size="Size.Small" Class="mt-1" />
                             }
                         </div>
 
@@ -386,9 +389,12 @@
                         {
                             <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.8);">@book.Serie</MudText>
                         }
-                        @if (book.Rating > 0)
+                        @{
+                            var coverRating = book.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
+                        }
+                        @if (coverRating > 0)
                         {
-                            <MudRating SelectedValue="@book.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" Class="mt-1" />
+                            <MudRating SelectedValue="@coverRating" MaxValue="5" ReadOnly="true" Size="Size.Small" Class="mt-1" />
                         }
                     </div>
                 </MudPaper>
@@ -407,7 +413,7 @@
                 <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Serie)">Series</MudTableSortLabel></MudTh>
                 <MudTh>ISBN</MudTh>
                 <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.VolumeNumber)">Vol.</MudTableSortLabel></MudTh>
-                <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Rating)">Rating</MudTableSortLabel></MudTh>
+                <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0)">Rating</MudTableSortLabel></MudTh>
                 <MudTh Style="text-align: center;">Read</MudTh>
                 <MudTh Style="text-align: right;">Actions</MudTh>
             </HeaderContent>
@@ -437,9 +443,12 @@
                     <MudChip T="string" Size="Size.Small" Color="Color.Default">@context.VolumeNumber</MudChip>
                 </MudTd>
                 <MudTd DataLabel="Rating" Style="text-align: center;">
-                    @if (context.Rating > 0)
+                    @{
+                        var listRating = context.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
+                    }
+                    @if (listRating > 0)
                     {
-                        <MudRating SelectedValue="@context.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" />
+                        <MudRating SelectedValue="@listRating" MaxValue="5" ReadOnly="true" Size="Size.Small" />
                     }
                     else
                     {

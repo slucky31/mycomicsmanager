@@ -1,6 +1,8 @@
 using Application.Abstractions.Messaging;
+using Application.Books.AddReadingDate;
 using Application.Books.Create;
 using Application.Books.Delete;
+using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
 using Application.Books.List;
 using Application.Books.Update;
@@ -14,7 +16,9 @@ public class BooksService(
     IQueryHandler<GetBooksQuery, List<Book>> getBooksHandler,
     ICommandHandler<CreateBookCommand, Book> createBookHandler,
     ICommandHandler<UpdateBookCommand, Book> updateBookHandler,
-    ICommandHandler<DeleteBookCommand> deleteBookHandler) : IBooksService
+    ICommandHandler<DeleteBookCommand> deleteBookHandler,
+    ICommandHandler<AddReadingDateCommand, ReadingDate> addReadingDateHandler,
+    ICommandHandler<DeleteReadingDateCommand> deleteReadingDateHandler) : IBooksService
 {
     public async Task<Result<Book>> GetById(string? id)
     {
@@ -59,13 +63,34 @@ public class BooksService(
             request.Isbn,
             request.VolumeNumber,
             request.ImageLink,
-            request.Rating,
             request.Authors,
             request.Publishers,
             request.PublishDate,
             request.NumberOfPages);
 
         return await updateBookHandler.Handle(command, cancellationToken);
+    }
+
+    public async Task<Result<ReadingDate>> AddReadingDate(string bookId, int rating, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(bookId, out var guidId))
+        {
+            return BooksError.ValidationError;
+        }
+
+        var command = new AddReadingDateCommand(guidId, rating);
+        return await addReadingDateHandler.Handle(command, cancellationToken);
+    }
+
+    public async Task<Result> DeleteReadingDate(string bookId, string readingDateId, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(bookId, out var bookGuidId) || !Guid.TryParse(readingDateId, out var readingDateGuidId))
+        {
+            return BooksError.ValidationError;
+        }
+
+        var command = new DeleteReadingDateCommand(bookGuidId, readingDateGuidId);
+        return await deleteReadingDateHandler.Handle(command, cancellationToken);
     }
 
     public async Task<Result<List<Book>>> GetAll()

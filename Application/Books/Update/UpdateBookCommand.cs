@@ -10,7 +10,6 @@ public record UpdateBookCommand(
     string ISBN,
     int VolumeNumber,
     string ImageLink,
-    int Rating,
     string Authors = "",
     string Publishers = "",
     DateOnly? PublishDate = null,

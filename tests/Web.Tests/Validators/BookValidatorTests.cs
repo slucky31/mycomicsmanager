@@ -24,7 +24,8 @@ public sealed class BookValidatorTests
             Title = string.Empty,
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -45,7 +46,8 @@ public sealed class BookValidatorTests
             Title = new string('A', 201),
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -66,7 +68,8 @@ public sealed class BookValidatorTests
             Title = new string('A', 200),
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -85,7 +88,8 @@ public sealed class BookValidatorTests
             Title = "Valid Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -108,7 +112,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = string.Empty,
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -129,7 +134,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = new string('1', 21),
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -149,7 +155,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "invalid",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -169,7 +176,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -188,7 +196,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "9780306406157",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -207,7 +216,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "043942089X",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -226,7 +236,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "978-0-306-40615-7",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -249,7 +260,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = string.Empty,
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -270,7 +282,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = new string('A', 201),
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -291,7 +304,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = new string('A', 200),
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -310,7 +324,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Valid Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -333,7 +348,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 0
+            VolumeNumber = 0,
+            Rating = 1
         };
 
         // Act
@@ -375,7 +391,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -394,7 +411,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 999
+            VolumeNumber = 999,
+            Rating = 1
         };
 
         // Act
@@ -440,7 +458,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            ImageLink = string.Empty
+            ImageLink = string.Empty,
+            Rating = 1
         };
 
         // Act
@@ -460,7 +479,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            ImageLink = new string('A', 500)
+            ImageLink = new string('A', 500),
+            Rating = 1
         };
 
         // Act
@@ -480,7 +500,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            ImageLink = "https://example.com/image.jpg"
+            ImageLink = "https://example.com/image.jpg",
+            Rating = 1
         };
 
         // Act
@@ -518,7 +539,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -538,7 +560,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -558,7 +581,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -578,7 +602,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -597,7 +622,8 @@ public sealed class BookValidatorTests
             Title = string.Empty,
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -617,7 +643,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "invalid",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -637,7 +664,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = string.Empty,
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -657,7 +685,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 0
+            VolumeNumber = 0,
+            Rating = 1
         };
 
         // Act
@@ -699,7 +728,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            ImageLink = string.Empty
+            ImageLink = string.Empty,
+            Rating = 1
         };
 
         // Act
@@ -722,7 +752,8 @@ public sealed class BookValidatorTests
             Title = string.Empty,
             ISBN = string.Empty,
             Serie = string.Empty,
-            VolumeNumber = 0
+            VolumeNumber = 0,
+            Rating = 1
         };
 
         // Act
@@ -746,7 +777,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = string.Empty,
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -793,7 +825,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            Authors = new string('A', 200)
+            Authors = new string('A', 200),
+            Rating = 1
         };
 
         // Act
@@ -813,7 +846,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            Authors = string.Empty
+            Authors = string.Empty,
+            Rating = 1
         };
 
         // Act
@@ -859,7 +893,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            Publishers = new string('A', 200)
+            Publishers = new string('A', 200),
+            Rating = 1
         };
 
         // Act
@@ -879,7 +914,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            Publishers = string.Empty
+            Publishers = string.Empty,
+            Rating = 1
         };
 
         // Act
@@ -947,7 +983,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            NumberOfPages = null
+            NumberOfPages = null,
+            Rating = 1
         };
 
         // Act
@@ -967,7 +1004,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            NumberOfPages = 160
+            NumberOfPages = 160,
+            Rating = 1
         };
 
         // Act
@@ -1013,7 +1051,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            PublishDate = null
+            PublishDate = null,
+            Rating = 1
         };
 
         // Act
@@ -1033,7 +1072,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            PublishDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            PublishDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            Rating = 1
         };
 
         // Act
@@ -1053,7 +1093,8 @@ public sealed class BookValidatorTests
             ISBN = "0306406152",
             Serie = "Test Serie",
             VolumeNumber = 1,
-            PublishDate = new DateOnly(1986, 2, 1)
+            PublishDate = new DateOnly(1986, 2, 1),
+            Rating = 1
         };
 
         // Act
@@ -1077,7 +1118,8 @@ public sealed class BookValidatorTests
             ISBN = "978-1401263119",
             Serie = "Batman",
             VolumeNumber = 1,
-            ImageLink = "https://example.com/image.jpg"
+            ImageLink = "https://example.com/image.jpg",
+            Rating = 1
         };
 
         // Act
@@ -1097,7 +1139,8 @@ public sealed class BookValidatorTests
             Title = "Ñoño's Ädventure! & Friends",
             ISBN = "0306406152",
             Serie = "Test Serie",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -1116,7 +1159,8 @@ public sealed class BookValidatorTests
             Title = "Test Title",
             ISBN = "0306406152",
             Serie = "Série écrite en français",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act
@@ -1135,7 +1179,8 @@ public sealed class BookValidatorTests
             Title = "A",
             ISBN = "0306406152",
             Serie = "B",
-            VolumeNumber = 1
+            VolumeNumber = 1,
+            Rating = 1
         };
 
         // Act

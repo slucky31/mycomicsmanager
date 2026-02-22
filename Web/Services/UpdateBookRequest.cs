@@ -7,7 +7,6 @@ public sealed record UpdateBookRequest(
     string Isbn,
     int VolumeNumber,
     string ImageLink,
-    int Rating,
     string Authors = "",
     string Publishers = "",
     DateOnly? PublishDate = null,

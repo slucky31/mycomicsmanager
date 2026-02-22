@@ -26,7 +26,12 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
 
     public void Update(Book entity)
     {
-        dbContext.Set<Book>().Update(entity);
+        dbContext.Entry(entity).State = EntityState.Modified;
+    }
+
+    public void AddReadingDate(ReadingDate readingDate)
+    {
+        dbContext.Set<ReadingDate>().Add(readingDate);
     }
 
     public void Remove(Book entity)

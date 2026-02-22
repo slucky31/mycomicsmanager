@@ -1,12 +1,15 @@
 @page "/books/{BookId}/edit"
 @rendermode InteractiveServer
 
+@using Domain.Books
 @using Microsoft.AspNetCore.Components
+@using Web.Components.Pages.Dialogs
 @using Web.Services
 @using Web.Validators
 
 @inject NavigationManager NavigationManager
 @inject IBooksService BooksService
+@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <style>
@@ -82,7 +85,7 @@
         else if (_bookModel is not null)
         {
             <MudPaper Class="pa-6 rounded-lg" Elevation="2">
-                <BookForm @ref="_bookForm" Model="_bookModel" />
+                <BookForm @ref="_bookForm" Model="_bookModel" ShowRating="false" />
 
                 @* Action buttons *@
                 <div class="d-flex justify-end gap-2 mt-6">
@@ -108,6 +111,34 @@
                     </MudButton>
                 </div>
             </MudPaper>
+
+            @* Reading history section *@
+            @if (_book is not null)
+            {
+                <MudPaper Class="pa-6 rounded-lg mt-4" Elevation="2">
+                    <MudText Typo="Typo.h6" Class="mb-4">Lectures</MudText>
+                    @if (_book.ReadingDates.Any())
+                    {
+                        @foreach (var rd in _book.ReadingDates.OrderByDescending(r => r.Date))
+                        {
+                            <div class="d-flex align-center justify-space-between pa-2 rounded mb-2" style="background: var(--mud-palette-background-gray);">
+                                <div class="d-flex align-center gap-3">
+                                    <MudRating SelectedValue="@rd.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">@rd.Date.ToString("dd/MM/yyyy")</MudText>
+                                </div>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Small"
+                                               OnClick="@(() => DeleteReadingDateAsync(rd.Id))" />
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Aucune lecture enregistrée.</MudText>
+                    }
+                </MudPaper>
+            }
         }
     </div>
 </div>
@@ -118,6 +149,7 @@
 
     private BookForm? _bookForm;
     private BookUiDto? _bookModel;
+    private Book? _book;
     private bool _isLoading = true;
     private bool _loadError;
     private bool _isSaving;
@@ -139,6 +171,7 @@
 
             if (result.IsSuccess && result.Value is not null)
             {
+                _book = result.Value;
                 _bookModel = BookUiDto.Convert(result.Value);
             }
             else
@@ -175,7 +208,6 @@
                 _bookModel.ISBN,
                 _bookModel.VolumeNumber,
                 _bookModel.ImageLink,
-                _bookModel.Rating,
                 _bookModel.Authors,
                 _bookModel.Publishers,
                 _bookModel.PublishDate,
@@ -197,6 +229,41 @@
         finally
         {
             _isSaving = false;
+        }
+    }
+
+    private async Task DeleteReadingDateAsync(Guid readingDateId)
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ConfirmationMessage, "Voulez-vous vraiment supprimer cette lecture ?" },
+            { x => x.ActionText, "Supprimer" },
+            { x => x.ColorConfirmButton, Color.Error }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.ExtraSmall,
+            CloseButton = false
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirmer la suppression", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && result.Data is not null && !result.Canceled)
+        {
+            var res = await BooksService.DeleteReadingDate(BookId, readingDateId.ToString());
+
+            if (res.IsSuccess)
+            {
+                Snackbar.Add("Lecture supprimée.", Severity.Success);
+                await LoadBookAsync();
+            }
+            else
+            {
+                Snackbar.Add($"Erreur : {res.Error?.Description}", Severity.Error);
+            }
         }
     }
 
