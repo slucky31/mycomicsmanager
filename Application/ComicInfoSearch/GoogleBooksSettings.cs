@@ -2,5 +2,5 @@ namespace Application.ComicInfoSearch;
 
 public class GoogleBooksSettings
 {
-    public string BaseUrl { get; set; } = string.Empty;
+    public Uri? BaseUrl { get; set; } 
 }

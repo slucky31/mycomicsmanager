@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Application.Helpers;
 using Application.Interfaces;
 using Microsoft.Extensions.Options;
 
@@ -44,22 +45,22 @@ public partial class ComicSearchService : IComicSearchService
             {
                 Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
                 return await MapBookResultToComicSearchResultAsync(
-                    result, isbn, cancellationToken);
+                    result, cleanIsbn, cancellationToken);
             }
 
             // Fallback to Google Books
             Log.Information("OpenLibrary returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
-            var googleResult = await _googleBooksService.SearchByIsbnAsync(isbn, cancellationToken);
+            var googleResult = await _googleBooksService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
 
             if (googleResult.Found)
             {
                 Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
                 return await MapBookResultToComicSearchResultAsync(
-                    googleResult, isbn, cancellationToken);
+                    googleResult, cleanIsbn, cancellationToken);
             }
 
             Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
-            return CreateNotFoundResult(isbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
         catch (HttpRequestException ex)
         {
@@ -123,8 +124,7 @@ public partial class ComicSearchService : IComicSearchService
 
     private async Task<string> UploadCoverToCloudinaryAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken)
     {
-        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
-                           .Replace(" ", "", StringComparison.Ordinal);
+        var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
 
         var uploadResult = await _cloudinaryService.UploadImageFromUrlAsync(
             coverUrl,

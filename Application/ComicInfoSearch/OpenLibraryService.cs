@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Application.Helpers;
 using Application.Interfaces;
 
 namespace Application.ComicInfoSearch;
@@ -20,9 +21,7 @@ public class OpenLibraryService : IOpenLibraryService
 
     public async Task<OpenLibraryBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
     {
-        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
-                               .Replace(" ", "", StringComparison.Ordinal)
-                               .Trim();
+        var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
 
         try
         {

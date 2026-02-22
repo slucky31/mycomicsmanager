@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 
 @using Application.ComicInfoSearch
+@using Application.Helpers
 @using Application.Interfaces
 @using Microsoft.AspNetCore.Components
 @using Web.Services
@@ -125,9 +126,10 @@
             _isLoading = true;
             StateHasChanged();
 
+            string cleanedIsbn = IsbnHelper.NormalizeIsbn(Isbn);
+
             try
-            {
-                string cleanedIsbn = Isbn.Replace(Environment.NewLine, "").Trim();
+            {                
                 _searchResult = await ComicSearchService.SearchByIsbnAsync(cleanedIsbn);
 
                 if (_searchResult.Found)
@@ -151,7 +153,7 @@
                 {
                     _bookModel = new BookUiDto
                     {
-                        ISBN = Isbn,
+                        ISBN = cleanedIsbn,
                         VolumeNumber = 1
                     };
                     Snackbar.Add("Book not found. Please fill in the details manually.", Severity.Warning);
@@ -161,7 +163,7 @@
             {
                 _bookModel = new BookUiDto
                 {
-                    ISBN = Isbn,
+                    ISBN = cleanedIsbn,
                     VolumeNumber = 1
                 };
                 Snackbar.Add($"Error searching for book: {ex.Message}", Severity.Error);
