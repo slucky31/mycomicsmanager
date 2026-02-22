@@ -1,6 +1,8 @@
 using Application.Abstractions.Messaging;
+using Application.Books.AddReadingDate;
 using Application.Books.Create;
 using Application.Books.Delete;
+using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
 using Application.Books.List;
 using Application.Books.Update;
@@ -21,6 +23,8 @@ public sealed class BooksServiceTests
     private readonly ICommandHandler<CreateBookCommand, Book> _createBookHandler;
     private readonly ICommandHandler<UpdateBookCommand, Book> _updateBookHandler;
     private readonly ICommandHandler<DeleteBookCommand> _deleteBookHandler;
+    private readonly ICommandHandler<AddReadingDateCommand, ReadingDate> _addReadingDateHandler;
+    private readonly ICommandHandler<DeleteReadingDateCommand> _deleteReadingDateHandler;
     private readonly BooksService _service;
 
     public BooksServiceTests()
@@ -30,13 +34,17 @@ public sealed class BooksServiceTests
         _createBookHandler = Substitute.For<ICommandHandler<CreateBookCommand, Book>>();
         _updateBookHandler = Substitute.For<ICommandHandler<UpdateBookCommand, Book>>();
         _deleteBookHandler = Substitute.For<ICommandHandler<DeleteBookCommand>>();
+        _addReadingDateHandler = Substitute.For<ICommandHandler<AddReadingDateCommand, ReadingDate>>();
+        _deleteReadingDateHandler = Substitute.For<ICommandHandler<DeleteReadingDateCommand>>();
 
         _service = new BooksService(
             _getBookByIdHandler,
             _getBooksHandler,
             _createBookHandler,
             _updateBookHandler,
-            _deleteBookHandler);
+            _deleteBookHandler,
+            _addReadingDateHandler,
+            _deleteReadingDateHandler);
     }
 
     #region GetById Tests
@@ -196,7 +204,7 @@ public sealed class BooksServiceTests
         const string imageLink = "https://example.com/cover.jpg";
         const int rating = 4;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -227,7 +235,7 @@ public sealed class BooksServiceTests
         const string imageLink = "https://example.com/spiderman.jpg";
         const int rating = 5;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
+        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
@@ -243,7 +251,6 @@ public sealed class BooksServiceTests
         result.Value.ISBN.Should().Be(isbn);
         result.Value.VolumeNumber.Should().Be(volumeNumber);
         result.Value.ImageLink.Should().Be(imageLink);
-        result.Value.Rating.Should().Be(rating);
     }
 
     [Fact]
@@ -276,7 +283,7 @@ public sealed class BooksServiceTests
         const string imageLink = "https://example.com/cover.jpg";
         const int rating = 4;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -315,7 +322,7 @@ public sealed class BooksServiceTests
         var publishDate = new DateOnly(2012, 10, 10);
         const int numberOfPages = 160;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -354,7 +361,7 @@ public sealed class BooksServiceTests
         var publishDate = new DateOnly(1987, 9, 1);
         const int numberOfPages = 320;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
@@ -370,7 +377,6 @@ public sealed class BooksServiceTests
         result.Value.ISBN.Should().Be(isbn);
         result.Value.VolumeNumber.Should().Be(volumeNumber);
         result.Value.ImageLink.Should().Be(imageLink);
-        result.Value.Rating.Should().Be(rating);
         result.Value.Authors.Should().Be(authors);
         result.Value.Publishers.Should().Be(publishers);
         result.Value.PublishDate.Should().Be(publishDate);
@@ -384,7 +390,7 @@ public sealed class BooksServiceTests
         using var cts = new CancellationTokenSource();
         var publishDate = new DateOnly(2020, 1, 1);
         var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
+        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 100);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -407,7 +413,7 @@ public sealed class BooksServiceTests
         const string authors = "Unknown Author";
         const string publishers = "Unknown Publisher";
         var request = new CreateBookRequest(series, title, isbn, 1, "", 0, authors, publishers, null, null);
-        var book = Book.Create(series, title, isbn, 1, "", 0, authors, publishers, null, null);
+        var book = Book.Create(series, title, isbn, 1, "", authors, publishers, null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -430,7 +436,7 @@ public sealed class BooksServiceTests
     {
         // Arrange
         var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0");
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "", "", null, null);
+        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "", "", null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -453,7 +459,7 @@ public sealed class BooksServiceTests
         const string authors = "Stan Lee, Jack Kirby, Steve Ditko";
         const string publishers = "Marvel Comics, Timely Comics";
         var request = new CreateBookRequest("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", 0, authors, publishers);
-        var book = Book.Create("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", 0, authors, publishers, null, null);
+        var book = Book.Create("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", authors, publishers, null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -483,13 +489,12 @@ public sealed class BooksServiceTests
         const string isbn = "978-1-582406-72-1";
         const int volumeNumber = 1;
         const string imageLink = "https://example.com/twd.jpg";
-        const int rating = 5;
         const string authors = "Robert Kirkman, Tony Moore";
         const string publishers = "Image Comics";
         var publishDate = new DateOnly(2004, 10, 1);
         const int numberOfPages = 144;
-        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -506,7 +511,6 @@ public sealed class BooksServiceTests
                 c.ISBN == isbn &&
                 c.VolumeNumber == volumeNumber &&
                 c.ImageLink == imageLink &&
-                c.Rating == rating &&
                 c.Authors == authors &&
                 c.Publishers == publishers &&
                 c.PublishDate == publishDate &&
@@ -524,13 +528,12 @@ public sealed class BooksServiceTests
         const string isbn = "978-1-56389-980-9";
         const int volumeNumber = 1;
         const string imageLink = "https://example.com/ytlm.jpg";
-        const int rating = 5;
         const string authors = "Brian K. Vaughan, Pia Guerra";
         const string publishers = "Vertigo";
         var publishDate = new DateOnly(2003, 4, 1);
         const int numberOfPages = 128;
-        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
@@ -556,8 +559,8 @@ public sealed class BooksServiceTests
         var bookId = Guid.CreateVersion7();
         using var cts = new CancellationTokenSource();
         var publishDate = new DateOnly(2020, 5, 15);
-        var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 200);
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 200);
+        var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 200);
+        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 200);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -576,7 +579,7 @@ public sealed class BooksServiceTests
         // Arrange
         string? id = null;
         var publishDate = new DateOnly(2020, 1, 1);
-        var request = new UpdateBookRequest(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
+        var request = new UpdateBookRequest(id, "Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 100);
 
         // Act
         var result = await _service.Update(request);
@@ -593,7 +596,7 @@ public sealed class BooksServiceTests
         // Arrange
         const string id = "not-a-valid-guid";
         var publishDate = new DateOnly(2020, 1, 1);
-        var request = new UpdateBookRequest(id, "Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
+        var request = new UpdateBookRequest(id, "Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 100);
 
         // Act
         var result = await _service.Update(request);
@@ -609,8 +612,8 @@ public sealed class BooksServiceTests
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
-        var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0);
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "", "", null, null);
+        var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "");
+        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "", "", null, null);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -634,8 +637,8 @@ public sealed class BooksServiceTests
         // Arrange
         var bookId = Guid.CreateVersion7();
         var newPublishDate = new DateOnly(2021, 6, 15);
-        var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", 0, "New Author", "New Publisher", newPublishDate, 250);
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", 0, "New Author", "New Publisher", newPublishDate, 250);
+        var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", "New Author", "New Publisher", newPublishDate, 250);
+        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "New Author", "New Publisher", newPublishDate, 250);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -663,9 +666,8 @@ public sealed class BooksServiceTests
         const string isbn = "978-3-16-148410-0";
         const int volumeNumber = 7;
         const string imageLink = "https://example.com/updated.jpg";
-        const int rating = 3;
-        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
+        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink);
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -681,8 +683,7 @@ public sealed class BooksServiceTests
                 c.Title == title &&
                 c.ISBN == isbn &&
                 c.VolumeNumber == volumeNumber &&
-                c.ImageLink == imageLink &&
-                c.Rating == rating),
+                c.ImageLink == imageLink),
             Arg.Any<CancellationToken>());
     }
 
@@ -696,9 +697,8 @@ public sealed class BooksServiceTests
         const string isbn = "978-3-16-148410-0";
         const int volumeNumber = 15;
         const string imageLink = "https://example.com/batman.jpg";
-        const int rating = 5;
-        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, rating);
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
+        var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink);
+        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
@@ -712,7 +712,6 @@ public sealed class BooksServiceTests
         result.Value.Serie.Should().Be(series);
         result.Value.Title.Should().Be(title);
         result.Value.VolumeNumber.Should().Be(volumeNumber);
-        result.Value.Rating.Should().Be(rating);
     }
 
     #endregion
@@ -779,6 +778,354 @@ public sealed class BooksServiceTests
         Guard.Against.Null(result.Value);
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
+    }
+
+    #endregion
+
+    #region AddReadingDate Tests
+
+    [Fact]
+    public async Task AddReadingDate_ShouldReturnValidationError_WhenBookIdIsNull()
+    {
+        // Arrange
+        string? bookId = null;
+        const int rating = 4;
+
+        // Act
+        var result = await _service.AddReadingDate(bookId!, rating);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _addReadingDateHandler.DidNotReceive().Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldReturnValidationError_WhenBookIdIsEmpty()
+    {
+        // Arrange
+        var bookId = string.Empty;
+        const int rating = 4;
+
+        // Act
+        var result = await _service.AddReadingDate(bookId, rating);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _addReadingDateHandler.DidNotReceive().Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldReturnValidationError_WhenBookIdIsInvalidGuid()
+    {
+        // Arrange
+        const string bookId = "not-a-valid-guid";
+        const int rating = 5;
+
+        // Act
+        var result = await _service.AddReadingDate(bookId, rating);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _addReadingDateHandler.DidNotReceive().Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldCallHandler_WhenBookIdIsValidGuid()
+    {
+        // Arrange
+        var bookGuid = Guid.CreateVersion7();
+        var bookId = bookGuid.ToString();
+        const int rating = 4;
+        var readingDate = ReadingDate.Create(DateTime.UtcNow, rating, bookGuid);
+        _addReadingDateHandler.Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(readingDate);
+
+        // Act
+        var result = await _service.AddReadingDate(bookId, rating);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _addReadingDateHandler.Received(1).Handle(
+            Arg.Is<AddReadingDateCommand>(c => c.BookId == bookGuid && c.Rating == rating),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldReturnReadingDate_WhenSuccessful()
+    {
+        // Arrange
+        var bookGuid = Guid.CreateVersion7();
+        var bookId = bookGuid.ToString();
+        const int rating = 5;
+        var expectedReadingDate = ReadingDate.Create(DateTime.UtcNow, rating, bookGuid);
+        _addReadingDateHandler.Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(expectedReadingDate);
+
+        // Act
+        var result = await _service.AddReadingDate(bookId, rating);
+
+        // Assert
+        Guard.Against.Null(result.Value);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(expectedReadingDate);
+        result.Value.Rating.Should().Be(rating);
+        result.Value.BookId.Should().Be(bookGuid);
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldPassCancellationToken()
+    {
+        // Arrange
+        var bookGuid = Guid.CreateVersion7();
+        var bookId = bookGuid.ToString();
+        const int rating = 3;
+        using var cts = new CancellationTokenSource();
+        var readingDate = ReadingDate.Create(DateTime.UtcNow, rating, bookGuid);
+        _addReadingDateHandler.Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(readingDate);
+
+        // Act
+        await _service.AddReadingDate(bookId, rating, cts.Token);
+
+        // Assert
+        await _addReadingDateHandler.Received(1).Handle(
+            Arg.Any<AddReadingDateCommand>(),
+            Arg.Is<CancellationToken>(ct => ct == cts.Token));
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldHandleDifferentRatings()
+    {
+        // Arrange
+        var bookGuid = Guid.CreateVersion7();
+        var bookId = bookGuid.ToString();
+
+        for (int rating = 1; rating <= 5; rating++)
+        {
+            var readingDate = ReadingDate.Create(DateTime.UtcNow, rating, bookGuid);
+            _addReadingDateHandler.Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>())
+                .Returns(readingDate);
+
+            // Act
+            var result = await _service.AddReadingDate(bookId, rating);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            Guard.Against.Null(result.Value);
+            result.Value.Rating.Should().Be(rating);
+        }
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldReturnFailure_WhenHandlerReturnsFailure()
+    {
+        // Arrange
+        var bookGuid = Guid.CreateVersion7();
+        var bookId = bookGuid.ToString();
+        const int rating = 4;
+        var expectedError = BooksError.NotFound;
+        _addReadingDateHandler.Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ReadingDate>.Failure(expectedError));
+
+        // Act
+        var result = await _service.AddReadingDate(bookId, rating);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(expectedError);
+    }
+
+    #endregion
+
+    #region DeleteReadingDate Tests
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnValidationError_WhenBookIdIsNull()
+    {
+        // Arrange
+        string? bookId = null;
+        var readingDateId = Guid.CreateVersion7().ToString();
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId!, readingDateId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnValidationError_WhenBookIdIsEmpty()
+    {
+        // Arrange
+        var bookId = string.Empty;
+        var readingDateId = Guid.CreateVersion7().ToString();
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId, readingDateId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnValidationError_WhenBookIdIsInvalidGuid()
+    {
+        // Arrange
+        const string bookId = "invalid-guid";
+        var readingDateId = Guid.CreateVersion7().ToString();
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId, readingDateId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnValidationError_WhenReadingDateIdIsNull()
+    {
+        // Arrange
+        var bookId = Guid.CreateVersion7().ToString();
+        string? readingDateId = null;
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId, readingDateId!);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnValidationError_WhenReadingDateIdIsEmpty()
+    {
+        // Arrange
+        var bookId = Guid.CreateVersion7().ToString();
+        var readingDateId = string.Empty;
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId, readingDateId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnValidationError_WhenReadingDateIdIsInvalidGuid()
+    {
+        // Arrange
+        var bookId = Guid.CreateVersion7().ToString();
+        const string readingDateId = "not-valid-guid";
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId, readingDateId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnValidationError_WhenBothIdsAreInvalid()
+    {
+        // Arrange
+        const string bookId = "invalid-book-id";
+        const string readingDateId = "invalid-reading-date-id";
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId, readingDateId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldCallHandler_WhenBothIdsAreValidGuids()
+    {
+        // Arrange
+        var bookGuid = Guid.CreateVersion7();
+        var readingDateGuid = Guid.CreateVersion7();
+        var bookId = bookGuid.ToString();
+        var readingDateId = readingDateGuid.ToString();
+        _deleteReadingDateHandler.Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId, readingDateId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _deleteReadingDateHandler.Received(1).Handle(
+            Arg.Is<DeleteReadingDateCommand>(c => c.BookId == bookGuid && c.ReadingDateId == readingDateGuid),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnSuccess_WhenDeletionSucceeds()
+    {
+        // Arrange
+        var bookId = Guid.CreateVersion7().ToString();
+        var readingDateId = Guid.CreateVersion7().ToString();
+        _deleteReadingDateHandler.Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId, readingDateId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldPassCancellationToken()
+    {
+        // Arrange
+        var bookId = Guid.CreateVersion7().ToString();
+        var readingDateId = Guid.CreateVersion7().ToString();
+        using var cts = new CancellationTokenSource();
+        _deleteReadingDateHandler.Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // Act
+        await _service.DeleteReadingDate(bookId, readingDateId, cts.Token);
+
+        // Assert
+        await _deleteReadingDateHandler.Received(1).Handle(
+            Arg.Any<DeleteReadingDateCommand>(),
+            Arg.Is<CancellationToken>(ct => ct == cts.Token));
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnFailure_WhenHandlerReturnsFailure()
+    {
+        // Arrange
+        var bookId = Guid.CreateVersion7().ToString();
+        var readingDateId = Guid.CreateVersion7().ToString();
+        var expectedError = BooksError.NotFound;
+        _deleteReadingDateHandler.Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(expectedError));
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId, readingDateId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(expectedError);
     }
 
     #endregion

@@ -48,8 +48,8 @@ public class CreateBookCommandHandlerTests
         result.Value.ISBN.Should().Be(IsbnHelper.NormalizeIsbn(s_validCommand.ISBN));
         result.Value.VolumeNumber.Should().Be(s_validCommand.VolumeNumber);
         result.Value.ImageLink.Should().Be(s_validCommand.ImageLink);
-        result.Value.Rating.Should().Be(s_validCommand.Rating);
         result.Value.ReadingDates.Should().HaveCount(1);
+        result.Value.ReadingDates[0].Rating.Should().Be(s_validCommand.Rating);
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
     }
@@ -167,7 +167,7 @@ public class CreateBookCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnDuplicate_WhenBookWithSameISBNAlreadyExists()
     {
-        // Arrange        
+        // Arrange
         var existingBook = Book.Create(s_validCommand.Serie, s_validCommand.Title, s_validCommand.ISBN);
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
         _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns(existingBook);
@@ -236,13 +236,14 @@ public class CreateBookCommandHandlerTests
         Guard.Against.Null(result.Value);
         result.Value.VolumeNumber.Should().Be(1);
         result.Value.ImageLink.Should().Be(string.Empty);
-        result.Value.ReadingDates.Should().BeEmpty();
+        result.Value.ReadingDates.Should().HaveCount(1);
+        result.Value.ReadingDates[0].Rating.Should().Be(0);
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_Should_AddReadingDate_WhenRatingIsProvided()
+    public async Task Handle_Should_AddReadingDate_WithRatingOnReadingDate_WhenRatingIsProvided()
     {
         // Arrange
         var commandWithRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", 1, "", 5);
@@ -255,12 +256,12 @@ public class CreateBookCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         Guard.Against.Null(result.Value);
-        result.Value.Rating.Should().Be(5);
         result.Value.ReadingDates.Should().HaveCount(1);
+        result.Value.ReadingDates[0].Rating.Should().Be(5);
     }
 
     [Fact]
-    public async Task Handle_Should_NotAddReadingDate_WhenRatingIsZero()
+    public async Task Handle_Should_AlwaysAddReadingDate_EvenWhenRatingIsZero()
     {
         // Arrange
         var commandWithoutRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", 1, "", 0);
@@ -273,8 +274,8 @@ public class CreateBookCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         Guard.Against.Null(result.Value);
-        result.Value.Rating.Should().Be(0);
-        result.Value.ReadingDates.Should().BeEmpty();
+        result.Value.ReadingDates.Should().HaveCount(1);
+        result.Value.ReadingDates[0].Rating.Should().Be(0);
     }
 
     [Fact]
@@ -624,14 +625,71 @@ public class CreateBookCommandHandlerTests
         result.Value.ISBN.Should().Be(normalizedIsbn);
         result.Value.VolumeNumber.Should().Be(volumeNumber);
         result.Value.ImageLink.Should().Be(imageLink);
-        result.Value.Rating.Should().Be(rating);
         result.Value.Authors.Should().Be(authors);
         result.Value.Publishers.Should().Be(publishers);
         result.Value.PublishDate.Should().Be(publishDate);
         result.Value.NumberOfPages.Should().Be(numberOfPages);
-        result.Value.ReadingDates.Should().HaveCount(1); // Rating > 0, so reading date is added
+        result.Value.ReadingDates.Should().HaveCount(1);
+        result.Value.ReadingDates[0].Rating.Should().Be(rating);
+    }
+
+    [Fact]
+    public async Task Handle_Should_CreateReadingDateWithCurrentUtcTime_WhenCreatingBook()
+    {
+        // Arrange
+        var beforeCreation = DateTime.UtcNow;
+        var command = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", 1, "", 5);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(command.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+        var afterCreation = DateTime.UtcNow;
+
+        // Assert
+        Guard.Against.Null(result.Value);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ReadingDates.Should().HaveCount(1);
+        result.Value.ReadingDates[0].Date.Should().BeOnOrAfter(beforeCreation);
+        result.Value.ReadingDates[0].Date.Should().BeOnOrBefore(afterCreation);
+        result.Value.ReadingDates[0].BookId.Should().Be(result.Value.Id);
+    }
+
+    [Fact]
+    public async Task Handle_Should_CreateReadingDateWithNegativeRating_WhenProvidedNegativeRating()
+    {
+        // Arrange
+        var command = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", 1, "", -1);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(command.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        Guard.Against.Null(result.Value);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ReadingDates.Should().HaveCount(1);
+        result.Value.ReadingDates[0].Rating.Should().Be(-1);
+    }
+
+    [Fact]
+    public async Task Handle_Should_CreateReadingDateWithHighRating_WhenProvidedHighRating()
+    {
+        // Arrange
+        var command = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", 1, "", 100);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(command.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        Guard.Against.Null(result.Value);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ReadingDates.Should().HaveCount(1);
+        result.Value.ReadingDates[0].Rating.Should().Be(100);
     }
 
     #endregion
 }
-

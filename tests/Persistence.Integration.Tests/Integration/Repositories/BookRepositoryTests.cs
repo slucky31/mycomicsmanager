@@ -58,8 +58,8 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var book = Book.Create("X-Men", "Uncanny X-Men", "9780785134567");
-        book.AddReadingDate(DateTime.UtcNow);
-        book.AddReadingDate(DateTime.UtcNow.AddDays(-30));
+        book.AddReadingDate(DateTime.UtcNow, 4);
+        book.AddReadingDate(DateTime.UtcNow.AddDays(-30), 3);
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -115,7 +115,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        book.Update("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg", 4);
+        book.Update("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg");
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -126,7 +126,6 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         savedBook.Title.Should().Be("New Avengers");
         savedBook.VolumeNumber.Should().Be(2);
         savedBook.ImageLink.Should().Be("http://example.com/image.jpg");
-        savedBook.Rating.Should().Be(4);
     }
 
     [Fact]
@@ -211,10 +210,10 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var book1 = Book.Create("Fantastic Four", "Fantastic Four Vol 1", "9780785195678");
-        book1.AddReadingDate(DateTime.UtcNow);
+        book1.AddReadingDate(DateTime.UtcNow, 4);
         var book2 = Book.Create("Guardians of the Galaxy", "Guardians Vol 1", "9780785196789");
-        book2.AddReadingDate(DateTime.UtcNow);
-        book2.AddReadingDate(DateTime.UtcNow.AddDays(-10));
+        book2.AddReadingDate(DateTime.UtcNow, 5);
+        book2.AddReadingDate(DateTime.UtcNow.AddDays(-10), 3);
         BookRepository.Add(book1);
         BookRepository.Add(book2);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
@@ -388,7 +387,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var publishDate = new DateOnly(2023, 6, 15);
-        var book = Book.Create("Saga", "Saga Vol 1", "9781607066019", 1, "", 0,
+        var book = Book.Create("Saga", "Saga Vol 1", "9781607066019", 1, "",
             "Brian K. Vaughan, Fiona Staples", "Image Comics", publishDate, 160);
 
         // Act
@@ -409,14 +408,14 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var originalPublishDate = new DateOnly(2023, 6, 15);
-        var book = Book.Create("Saga", "Saga Vol 1", "9781607066927", 1, "", 0,
+        var book = Book.Create("Saga", "Saga Vol 1", "9781607066927", 1, "",
             "Brian K. Vaughan", "Image Comics", originalPublishDate, 160);
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
         var updatedPublishDate = new DateOnly(2024, 1, 10);
-        book.Update("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg", 5,
+        book.Update("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg",
             "Brian K. Vaughan, Fiona Staples", "Image Comics, DC Comics", updatedPublishDate, 240);
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
@@ -428,5 +427,109 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         savedBook.Publishers.Should().Be("Image Comics, DC Comics");
         savedBook.PublishDate.Should().Be(updatedPublishDate);
         savedBook.NumberOfPages.Should().Be(240);
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldPersistReadingDate_WhenReadingDateIsAdded()
+    {
+        // Arrange
+        var book = Book.Create("Doctor Strange", "Doctor Strange Vol 1", "9780785203456");
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        var readingDate = book.AddReadingDate(DateTime.UtcNow, 5);
+
+        // Act
+        BookRepository.AddReadingDate(readingDate);
+        BookRepository.Update(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        var savedBook = await BookRepository.GetByIdAsync(book.Id);
+        Guard.Against.Null(savedBook);
+        savedBook.ReadingDates.Should().HaveCount(1);
+        savedBook.ReadingDates[0].Id.Should().Be(readingDate.Id);
+        savedBook.ReadingDates[0].Rating.Should().Be(5);
+        savedBook.ReadingDates[0].BookId.Should().Be(book.Id);
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldPersistMultipleReadingDates_WhenMultipleReadingDatesAreAdded()
+    {
+        // Arrange
+        var book = Book.Create("Captain America", "Captain America Vol 1", "9780785204567");
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        var readingDate1 = book.AddReadingDate(DateTime.UtcNow.AddDays(-60), 3);
+        var readingDate2 = book.AddReadingDate(DateTime.UtcNow.AddDays(-30), 4);
+        var readingDate3 = book.AddReadingDate(DateTime.UtcNow, 5);
+
+        // Act
+        BookRepository.AddReadingDate(readingDate1);
+        BookRepository.AddReadingDate(readingDate2);
+        BookRepository.AddReadingDate(readingDate3);
+        BookRepository.Update(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        var savedBook = await BookRepository.GetByIdAsync(book.Id);
+        Guard.Against.Null(savedBook);
+        savedBook.ReadingDates.Should().HaveCount(3);
+        savedBook.ReadingDates.Should().Contain(rd => rd.Id == readingDate1.Id && rd.Rating == 3);
+        savedBook.ReadingDates.Should().Contain(rd => rd.Id == readingDate2.Id && rd.Rating == 4);
+        savedBook.ReadingDates.Should().Contain(rd => rd.Id == readingDate3.Id && rd.Rating == 5);
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldPersistReadingDateWithCorrectDateTime_WhenReadingDateHasSpecificTime()
+    {
+        // Arrange
+        var book = Book.Create("Ant-Man", "Ant-Man Vol 1", "9780785205678");
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        var specificDate = new DateTime(2024, 6, 15, 14, 30, 0, DateTimeKind.Utc);
+        var readingDate = book.AddReadingDate(specificDate, 4);
+
+        // Act
+        BookRepository.AddReadingDate(readingDate);
+        BookRepository.Update(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        var savedBook = await BookRepository.GetByIdAsync(book.Id);
+        Guard.Against.Null(savedBook);
+        savedBook.ReadingDates.Should().HaveCount(1);
+        savedBook.ReadingDates[0].Date.Should().Be(specificDate);
+        savedBook.ReadingDates[0].Rating.Should().Be(4);
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldMaintainReadingDateAfterBookUpdate_WhenBookIsUpdated()
+    {
+        // Arrange
+        var book = Book.Create("Black Widow", "Black Widow Vol 1", "9780785206789");
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        var readingDate = book.AddReadingDate(DateTime.UtcNow, 5);
+        BookRepository.AddReadingDate(readingDate);
+        BookRepository.Update(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act - Update the book
+        book.Update("Black Widow", "Black Widow Vol 2", "9780785206789", 2, "http://example.com/bw2.jpg");
+        BookRepository.Update(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        var savedBook = await BookRepository.GetByIdAsync(book.Id);
+        Guard.Against.Null(savedBook);
+        savedBook.Title.Should().Be("Black Widow Vol 2");
+        savedBook.VolumeNumber.Should().Be(2);
+        savedBook.ReadingDates.Should().HaveCount(1);
+        savedBook.ReadingDates[0].Id.Should().Be(readingDate.Id);
+        savedBook.ReadingDates[0].Rating.Should().Be(5);
     }
 }
