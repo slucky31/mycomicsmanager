@@ -278,7 +278,7 @@ public sealed class GoogleBooksServiceTests
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_HandleCancellation()
+    public async Task SearchByIsbnAsync_Should_ThrowTaskCanceledException_WhenCallerCancels()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -337,7 +337,7 @@ public sealed class GoogleBooksServiceTests
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_UpgradeHttpToHttps_ForCoverUrl()
+    public async Task SearchByIsbnAsync_Should_UpgradeHttpToHttps_WhenCoverUrlIsHttp()
     {
         // Arrange – realistic Google Books URL where edge=curl appears after other params
         var jsonResponse = """
@@ -446,7 +446,7 @@ public sealed class GoogleBooksServiceTests
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_WrapSinglePublisher_InList()
+    public async Task SearchByIsbnAsync_Should_WrapSinglePublisher_InList_WhenPublisherIsPresent()
     {
         // Arrange
         var jsonResponse = """
