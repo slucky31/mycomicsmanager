@@ -51,6 +51,20 @@ builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
+// Config Google Books settings
+var googleBooksSection = configuration.GetSection("GoogleBooks");
+builder.Services.AddOptions<GoogleBooksSettings>()
+    .Bind(googleBooksSection)
+    .Validate(cfg => cfg.BaseUrl is not null, "GoogleBooks:BaseUrl is required")
+    .ValidateOnStart();
+
+// Config Google Books service for ISBN lookup (fallback)
+builder.Services.AddHttpClient<IGoogleBooksService, GoogleBooksService>(client =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 builder.Services
     .AddApplication()
     .AddInfrastructure(connectionString, configuration["LocalStorage:RootPath"]!, configuration);

@@ -9,7 +9,7 @@ public record OpenLibraryBookResult(
     int? NumberOfPages,
     Uri? CoverUrl,
     bool Found
-);
+) : IBookSearchResult;
 
 public interface IOpenLibraryService
 {

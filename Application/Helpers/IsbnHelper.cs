@@ -107,6 +107,8 @@ public static class IsbnHelper
         }
         return isbn.Replace("-", "", StringComparison.Ordinal)
                    .Replace(" ", "", StringComparison.Ordinal)
+                   .Replace(Environment.NewLine, "", StringComparison.Ordinal)
+                   .Trim()
                    .ToUpperInvariant();
     }
 }

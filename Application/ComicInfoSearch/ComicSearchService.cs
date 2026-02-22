@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Application.Helpers;
 using Application.Interfaces;
 using Microsoft.Extensions.Options;
 
@@ -10,92 +11,120 @@ public partial class ComicSearchService : IComicSearchService
     private static Serilog.ILogger Log => Serilog.Log.ForContext<ComicSearchService>();
 
     private readonly IOpenLibraryService _openLibraryService;
+    private readonly IGoogleBooksService _googleBooksService;
     private readonly ICloudinaryService _cloudinaryService;
     private readonly CloudinarySettings _cloudinarySettings;
 
     public ComicSearchService(
         IOpenLibraryService openLibraryService,
+        IGoogleBooksService googleBooksService,
         ICloudinaryService cloudinaryService,
         IOptions<CloudinarySettings> cloudinarySettings)
     {
         _openLibraryService = openLibraryService;
+        _googleBooksService = googleBooksService;
         _cloudinaryService = cloudinaryService;
         _cloudinarySettings = cloudinarySettings.Value;
     }
 
     public async Task<ComicSearchResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
     {
+
+        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
+                               .Replace(" ", "", StringComparison.Ordinal)
+                               .Trim();
+
         try
         {
-            var result = await _openLibraryService.SearchByIsbnAsync(isbn, cancellationToken);
+            
 
-            if (!result.Found)
+            // Try OpenLibrary first
+            var result = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
+
+            if (result.Found)
             {
-                Log.Warning("No data found for ISBN {Isbn}", isbn);
-                return CreateNotFoundResult(isbn);
+                Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
+                return await MapBookResultToComicSearchResultAsync(
+                    result, cleanIsbn, cancellationToken);
             }
 
-            // Extract series and volume from title if possible
-            // OpenLibrary often has titles like "Series Name - Tome 1" or "Series Name, Vol. 2"
-            var (serie, volumeNumber) = ParseVolumeAndSerie(result.Title);
+            // Fallback to Google Books
+            Log.Information("OpenLibrary returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
+            var googleResult = await _googleBooksService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
 
-            var title = string.IsNullOrEmpty(result.Subtitle) ? result.Title : result.Subtitle;
-
-            // Upload cover to Cloudinary if available
-            var imageUrl = string.Empty;
-            if (result.CoverUrl != null)
+            if (googleResult.Found)
             {
-                imageUrl = await UploadCoverToCloudinaryAsync(result.CoverUrl, isbn, cancellationToken);
+                Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
+                return await MapBookResultToComicSearchResultAsync(
+                    googleResult, cleanIsbn, cancellationToken);
             }
 
-            // Combine authors and publishers as comma-separated strings
-            var authors = string.Join(", ", result.Authors);
-            var publishers = string.Join(", ", result.Publishers);
-
-            // Parse publish date from OpenLibrary format
-            var publishDate = ParsePublishDate(result.PublishDate);
-
-            Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
-
-            return new ComicSearchResult(
-                Title: title,
-                Serie: serie,
-                Isbn: isbn,
-                VolumeNumber: volumeNumber,
-                ImageUrl: imageUrl,
-                Authors: authors,
-                Publishers: publishers,
-                PublishDate: publishDate,
-                NumberOfPages: result.NumberOfPages,
-                Found: true
-            );
+            Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
         catch (HttpRequestException ex)
         {
-            Log.Error(ex, "HTTP error searching for ISBN {Isbn}", isbn);
-            return CreateNotFoundResult(isbn);
+            Log.Error(ex, "HTTP error searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
         catch (InvalidOperationException ex)
         {
-            Log.Error(ex, "Invalid operation searching for ISBN {Isbn}", isbn);
-            return CreateNotFoundResult(isbn);
+            Log.Error(ex, "Invalid operation searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            Log.Error(ex, "Timeout searching for ISBN {Isbn}", isbn);
-            return CreateNotFoundResult(isbn);
+            Log.Error(ex, "Timeout searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
         catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {
-            Log.Warning(ex, "Search cancelled for ISBN {Isbn}", isbn);
-            return CreateNotFoundResult(isbn);
+            Log.Warning(ex, "Search cancelled for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
+    }
+
+    private async Task<ComicSearchResult> MapBookResultToComicSearchResultAsync(
+        IBookSearchResult bookResult,
+        string isbn,
+        CancellationToken cancellationToken)
+    {
+        var (serie, volumeNumber) = ParseVolumeAndSerie(bookResult.Title);
+
+        // If subtitle exists, use it as title; otherwise use series name
+        // This strips volume info from the title (e.g. "Fullmetal Alchemist Tome 23" → "Fullmetal Alchemist")
+        var title = string.IsNullOrEmpty(bookResult.Subtitle) ? serie : bookResult.Subtitle;
+
+        // Upload cover to Cloudinary if available
+        var imageUrl = string.Empty;
+        if (bookResult.CoverUrl != null)
+        {
+            imageUrl = await UploadCoverToCloudinaryAsync(bookResult.CoverUrl, isbn, cancellationToken);
+        }
+
+        var authors = string.Join(", ", bookResult.Authors);
+        var publishers = string.Join(", ", bookResult.Publishers);
+        var publishDate = ParsePublishDate(bookResult.PublishDate);
+
+        Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
+
+        return new ComicSearchResult(
+            Title: title,
+            Serie: serie,
+            Isbn: isbn,
+            VolumeNumber: volumeNumber,
+            ImageUrl: imageUrl,
+            Authors: authors,
+            Publishers: publishers,
+            PublishDate: publishDate,
+            NumberOfPages: bookResult.NumberOfPages,
+            Found: true
+        );
     }
 
     private async Task<string> UploadCoverToCloudinaryAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken)
     {
-        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
-                           .Replace(" ", "", StringComparison.Ordinal);
+        var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
 
         var uploadResult = await _cloudinaryService.UploadImageFromUrlAsync(
             coverUrl,
@@ -121,6 +150,10 @@ public partial class ComicSearchService : IComicSearchService
     // "Soda - tome 1"
     [GeneratedRegex(@"^(.+?)\s*-\s*tome\s+(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
     private static partial Regex DashTomePattern();
+
+    // "Soda Tome 1" or "Fullmetal Alchemist Tome 23"
+    [GeneratedRegex(@"^(.+?)\s+tome\s+(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex SpaceTomePattern();
 
     // "Soda, vol. 1" or "Soda, vol 1"
     [GeneratedRegex(@"^(.+?),\s*vol\.?\s*(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
@@ -153,6 +186,7 @@ public partial class ComicSearchService : IComicSearchService
         {
             CommaTomePattern,
             DashTomePattern,
+            SpaceTomePattern,
             CommaVolPattern,
             DashVolPattern,
             SpaceVolPattern,
