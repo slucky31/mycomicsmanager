@@ -1,0 +1,55 @@
+::deep .add-book-choice-page {
+    min-height: 100vh;
+    background: var(--mud-palette-background);
+}
+
+::deep .add-book-choice-header {
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    padding: 16px 24px;
+    color: white;
+}
+
+::deep .add-book-choice-content {
+    padding: 24px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+::deep .add-book-option {
+    border: 2px solid var(--mud-palette-lines-default);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    background: var(--mud-palette-surface);
+}
+
+::deep .add-book-option:hover {
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-primary-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+::deep .add-book-option-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+::deep .add-book-option-primary .add-book-option-icon {
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+}
+
+::deep .add-book-option-secondary .add-book-option-icon {
+    background: linear-gradient(135deg, var(--mud-palette-secondary) 0%, var(--mud-palette-secondary-darken) 100%);
+}
+
+::deep .add-book-option-tertiary .add-book-option-icon {
+    background: linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-tertiary-darken) 100%);
+}

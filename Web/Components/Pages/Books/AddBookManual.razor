@@ -4,45 +4,6 @@
 @using Application.Helpers
 @using Microsoft.AspNetCore.Components
 
-@inject NavigationManager NavigationManager
-@inject ISnackbar Snackbar
-
-<style>
-    .add-book-manual-page {
-        min-height: 100vh;
-        background: var(--mud-palette-background);
-    }
-
-    .add-book-manual-header {
-        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
-        padding: 16px 24px;
-        color: white;
-    }
-
-    .add-book-manual-content {
-        padding: 24px;
-        max-width: 500px;
-        margin: 0 auto;
-    }
-
-    .isbn-input-card {
-        padding: 32px;
-        border-radius: 16px;
-        text-align: center;
-    }
-
-    .isbn-icon-container {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 24px;
-        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
-    }
-</style>
-
 <div class="add-book-manual-page">
     @* Header *@
     <div class="add-book-manual-header">
@@ -109,46 +70,3 @@
         </MudText>
     </div>
 </div>
-
-@code {
-    private string _isbn = string.Empty;
-    private bool _hasError;
-    private string _errorMessage = string.Empty;
-
-    private void HandleKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_isbn))
-        {
-            SearchByIsbn();
-        }
-    }
-
-    private void SearchByIsbn()
-    {
-        _hasError = false;
-        _errorMessage = string.Empty;
-
-        var normalizedIsbn = _isbn.Replace("-", "").Replace(" ", "").Trim();
-
-        if (string.IsNullOrWhiteSpace(normalizedIsbn))
-        {
-            _hasError = true;
-            _errorMessage = "Please enter an ISBN number.";
-            return;
-        }
-
-        if (!IsbnHelper.IsValidISBN(normalizedIsbn))
-        {
-            _hasError = true;
-            _errorMessage = "Invalid ISBN format. Please enter a valid 10 or 13 digit ISBN.";
-            return;
-        }
-
-        NavigationManager.NavigateTo($"/books/add/form?isbn={Uri.EscapeDataString(normalizedIsbn)}");
-    }
-
-    private void GoBack()
-    {
-        NavigationManager.NavigateTo("/books/add");
-    }
-}

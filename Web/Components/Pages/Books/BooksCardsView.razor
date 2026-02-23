@@ -1,72 +1,6 @@
 @using Domain.Books
 
-<style>
-    .book-card {
-        display: flex;
-        flex-direction: row;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 12px;
-        overflow: hidden;
-        background: linear-gradient(145deg, var(--mud-palette-surface) 0%, var(--mud-palette-background) 100%);
-        height: 180px;
-    }
-
-    .book-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .book-card-image-container {
-        flex-shrink: 0;
-        width: 120px;
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .book-card-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-
-    .book-card:hover .book-card-image {
-        transform: scale(1.08);
-    }
-
-    .book-card-image-placeholder {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
-    }
-
-    .book-card-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        padding: 16px;
-        min-width: 0;
-        position: relative;
-    }
-
-    .book-card-volume-badge {
-        position: absolute;
-        bottom: 8px;
-        left: 8px;
-        background: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(4px);
-        border-radius: 6px;
-        padding: 4px 8px;
-        color: white;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-</style>
-
+<div>
 <MudGrid Spacing="4">
     @foreach (var book in Books)
     {
@@ -131,3 +65,4 @@
         </MudItem>
     }
 </MudGrid>
+</div>

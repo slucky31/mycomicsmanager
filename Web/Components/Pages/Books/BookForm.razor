@@ -1,27 +1,5 @@
 @using Web.Validators
 
-<style>
-    .book-form-cover {
-        width: 140px;
-        height: 200px;
-        object-fit: cover;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    }
-
-    .book-form-cover-placeholder {
-        width: 140px;
-        height: 200px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
-        border-radius: 12px;
-        color: white;
-    }
-</style>
-
 <MudForm @ref="_form" Model="@Model" Validation="@(_bookValidator.ValidateValue)">
     <MudGrid Spacing="3">
         @* Left column - Cover preview *@
@@ -150,30 +128,3 @@
         </MudItem>
     </MudGrid>
 </MudForm>
-
-@code {
-    [Parameter]
-    public BookUiDto Model { get; set; } = new();
-
-    [Parameter]
-    public bool IsbnReadOnly { get; set; } = false;
-
-    [Parameter]
-    public bool ShowRating { get; set; } = true;
-
-    private readonly BookValidator _bookValidator = new();
-    private MudForm _form = default!;
-
-    // Conversion property for MudDatePicker (DateTime?) to DateOnly?
-    private DateTime? PublishDateTime
-    {
-        get => Model.PublishDate?.ToDateTime(TimeOnly.MinValue);
-        set => Model.PublishDate = value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
-    }
-
-    public async Task<bool> ValidateAsync()
-    {
-        await _form.Validate();
-        return _form.IsValid;
-    }
-}

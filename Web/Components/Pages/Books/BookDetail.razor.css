@@ -1,0 +1,48 @@
+::deep .book-detail-page {
+    min-height: 100vh;
+    background: var(--mud-palette-background);
+}
+
+::deep .book-detail-header {
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    padding: 16px 24px;
+    color: white;
+}
+
+::deep .book-detail-content {
+    padding: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+::deep .book-detail-cover {
+    width: 200px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+::deep .book-detail-cover-placeholder {
+    width: 200px;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
+    border-radius: 12px;
+    color: white;
+}
+
+::deep .book-detail-info-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--mud-palette-lines-default);
+}
+
+::deep .book-detail-info-item:last-child {
+    border-bottom: none;
+}

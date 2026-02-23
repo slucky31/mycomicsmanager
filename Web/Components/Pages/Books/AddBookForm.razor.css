@@ -1,0 +1,16 @@
+::deep .add-book-page {
+    min-height: 100vh;
+    background: var(--mud-palette-background);
+}
+
+::deep .add-book-header {
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    padding: 16px 24px;
+    color: white;
+}
+
+::deep .add-book-content {
+    padding: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+}
