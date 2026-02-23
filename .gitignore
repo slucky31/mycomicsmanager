@@ -367,3 +367,6 @@ MyComicsManagerWeb/Covers/**
 /Web/appsettings.Production.json
 
 Web/wwwroot/temp/
+
+# Claude personal settings
+.claude/settings.local.json

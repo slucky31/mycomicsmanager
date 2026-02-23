@@ -15,7 +15,11 @@
       "Bash(find:*)",
       "WebFetch(domain:www.googleapis.com)",
       "Skill(blazor-refactor)",
-      "Bash(git:*)"
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
