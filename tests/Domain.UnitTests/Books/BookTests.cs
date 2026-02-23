@@ -23,7 +23,6 @@ public class BookTests
         book.ISBN.Should().Be(isbn);
         book.VolumeNumber.Should().Be(1);
         book.ImageLink.Should().Be(string.Empty);
-        book.Rating.Should().Be(0);
         book.ReadingDates.Should().BeEmpty();
     }
 
@@ -47,12 +46,11 @@ public class BookTests
         book.ISBN.Should().Be(isbn);
         book.VolumeNumber.Should().Be(volumeNumber);
         book.ImageLink.Should().Be(string.Empty);
-        book.Rating.Should().Be(0);
         book.ReadingDates.Should().BeEmpty();
     }
 
     [Fact]
-    public void Create_Should_CreateBookWithAllProperties()
+    public void Create_Should_CreateBookWithImageLink()
     {
         // Arrange
         const string series = "The Sandman";
@@ -60,10 +58,9 @@ public class BookTests
         const string isbn = "9781401284794";
         const int volumeNumber = 3;
         const string imageLink = "https://example.com/image.jpg";
-        const int rating = 4;
 
         // Act
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating);
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
 
         // Assert
         book.Should().NotBeNull();
@@ -73,7 +70,6 @@ public class BookTests
         book.ISBN.Should().Be(isbn);
         book.VolumeNumber.Should().Be(volumeNumber);
         book.ImageLink.Should().Be(imageLink);
-        book.Rating.Should().Be(rating);
         book.ReadingDates.Should().BeEmpty();
     }
 
@@ -101,14 +97,13 @@ public class BookTests
         const string isbn = "9781607066019";
         const int volumeNumber = 1;
         const string imageLink = "https://example.com/saga.jpg";
-        const int rating = 5;
         const string authors = "Brian K. Vaughan, Fiona Staples";
         const string publishers = "Image Comics";
         var publishDate = new DateOnly(2012, 10, 10);
         const int numberOfPages = 160;
 
         // Act
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
 
         // Assert
         book.Should().NotBeNull();
@@ -118,7 +113,6 @@ public class BookTests
         book.ISBN.Should().Be(isbn);
         book.VolumeNumber.Should().Be(volumeNumber);
         book.ImageLink.Should().Be(imageLink);
-        book.Rating.Should().Be(rating);
         book.Authors.Should().Be(authors);
         book.Publishers.Should().Be(publishers);
         book.PublishDate.Should().Be(publishDate);
@@ -146,7 +140,6 @@ public class BookTests
         book.NumberOfPages.Should().BeNull();
         book.VolumeNumber.Should().Be(1);
         book.ImageLink.Should().BeEmpty();
-        book.Rating.Should().Be(0);
     }
 
     [Fact]
@@ -201,7 +194,6 @@ public class BookTests
         // Assert
         book.VolumeNumber.Should().Be(1);
         book.ImageLink.Should().BeEmpty();
-        book.Rating.Should().Be(0);
         book.Authors.Should().BeEmpty();
         book.Publishers.Should().BeEmpty();
         book.PublishDate.Should().BeNull();
@@ -218,10 +210,9 @@ public class BookTests
         const string newIsbn = "9876543210";
         const int newVolumeNumber = 5;
         const string newImageLink = "https://example.com/new-image.jpg";
-        const int newRating = 5;
 
         // Act
-        book.Update(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink, newRating);
+        book.Update(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink);
 
         // Assert
         book.Serie.Should().Be(newSeries);
@@ -229,7 +220,6 @@ public class BookTests
         book.ISBN.Should().Be(newIsbn);
         book.VolumeNumber.Should().Be(newVolumeNumber);
         book.ImageLink.Should().Be(newImageLink);
-        book.Rating.Should().Be(newRating);
     }
 
     [Fact]
@@ -246,14 +236,13 @@ public class BookTests
         const string newIsbn = "9876543210";
         const int newVolumeNumber = 3;
         const string newImageLink = "https://example.com/updated.jpg";
-        const int newRating = 4;
         const string newAuthors = "New Author, Second Author";
         const string newPublishers = "New Publisher";
         var newPublishDate = new DateOnly(2024, 6, 15);
         const int newNumberOfPages = 250;
 
         // Act
-        book.Update(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink, newRating,
+        book.Update(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink,
             newAuthors, newPublishers, newPublishDate, newNumberOfPages);
 
         // Assert
@@ -262,7 +251,6 @@ public class BookTests
         book.ISBN.Should().Be(newIsbn);
         book.VolumeNumber.Should().Be(newVolumeNumber);
         book.ImageLink.Should().Be(newImageLink);
-        book.Rating.Should().Be(newRating);
         book.Authors.Should().Be(newAuthors);
         book.Publishers.Should().Be(newPublishers);
         book.PublishDate.Should().Be(newPublishDate);
@@ -278,7 +266,7 @@ public class BookTests
         const string newPublishers = "DC Comics, Vertigo";
 
         // Act
-        book.Update(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink, book.Rating,
+        book.Update(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink,
             newAuthors, newPublishers);
 
         // Assert
@@ -297,7 +285,7 @@ public class BookTests
         const int newNumberOfPages = 320;
 
         // Act
-        book.Update(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink, book.Rating,
+        book.Update(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink,
             publishDate: newPublishDate, numberOfPages: newNumberOfPages);
 
         // Assert
@@ -317,7 +305,7 @@ public class BookTests
             publishDate: originalPublishDate, numberOfPages: 100);
 
         // Act
-        book.Update(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink, book.Rating,
+        book.Update(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink,
             "", "", null, null);
 
         // Assert
@@ -340,7 +328,7 @@ public class BookTests
         const string newTitle = "New Title";
 
         // Act - update basic properties without metadata parameters
-        book.Update(newSeries, newTitle, book.ISBN, book.VolumeNumber, book.ImageLink, book.Rating);
+        book.Update(newSeries, newTitle, book.ISBN, book.VolumeNumber, book.ImageLink);
 
         // Assert - metadata should be cleared to defaults when not provided
         book.Serie.Should().Be(newSeries);
@@ -359,11 +347,12 @@ public class BookTests
         var date = new DateTime(2024, 1, 15);
 
         // Act
-        book.AddReadingDate(date);
+        book.AddReadingDate(date, 4);
 
         // Assert
         book.ReadingDates.Should().HaveCount(1);
         book.ReadingDates[0].Date.Should().Be(date);
+        book.ReadingDates[0].Rating.Should().Be(4);
         book.ReadingDates[0].BookId.Should().Be(book.Id);
     }
 
@@ -376,13 +365,15 @@ public class BookTests
         var date2 = new DateTime(2024, 1, 15);
 
         // Act
-        book.AddReadingDate(date1);
-        book.AddReadingDate(date2);
+        book.AddReadingDate(date1, 3);
+        book.AddReadingDate(date2, 5);
 
         // Assert
         book.ReadingDates.Should().HaveCount(2);
         book.ReadingDates[0].Date.Should().Be(date1);
+        book.ReadingDates[0].Rating.Should().Be(3);
         book.ReadingDates[1].Date.Should().Be(date2);
+        book.ReadingDates[1].Rating.Should().Be(5);
     }
 
     [Fact]
@@ -391,7 +382,7 @@ public class BookTests
         // Arrange
         var book = Book.Create("Saga", "Volume 1", "9781607066017");
         var date = new DateTime(2024, 1, 15);
-        book.AddReadingDate(date);
+        book.AddReadingDate(date, 4);
         var readingDateId = book.ReadingDates[0].Id;
 
         // Act
@@ -407,7 +398,7 @@ public class BookTests
         // Arrange
         var book = Book.Create("Fables", "Volume 1", "9781563899423");
         var date = new DateTime(2024, 1, 15);
-        book.AddReadingDate(date);
+        book.AddReadingDate(date, 3);
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -424,8 +415,8 @@ public class BookTests
         var book = Book.Create("Y: The Last Man", "Volume 1", "9781401219512");
         var date1 = new DateTime(2023, 6, 1);
         var date2 = new DateTime(2024, 1, 15);
-        book.AddReadingDate(date1);
-        book.AddReadingDate(date2);
+        book.AddReadingDate(date1, 3);
+        book.AddReadingDate(date2, 5);
         var firstReadingDateId = book.ReadingDates[0].Id;
 
         // Act
@@ -437,47 +428,11 @@ public class BookTests
     }
 
     [Fact]
-    public void UpdateReadingDate_Should_UpdateDate()
-    {
-        // Arrange
-        var book = Book.Create("Preacher", "Volume 1", "9781401240455");
-        var originalDate = new DateTime(2024, 1, 15);
-        book.AddReadingDate(originalDate);
-        var readingDateId = book.ReadingDates[0].Id;
-        var newDate = new DateTime(2024, 2, 20);
-
-        // Act
-        book.UpdateReadingDate(readingDateId, newDate);
-
-        // Assert
-        book.ReadingDates.Should().HaveCount(1);
-        book.ReadingDates[0].Date.Should().Be(newDate);
-    }
-
-    [Fact]
-    public void UpdateReadingDate_Should_DoNothing_WhenReadingDateNotFound()
-    {
-        // Arrange
-        var book = Book.Create("Transmetropolitan", "Volume 1", "9781401220846");
-        var originalDate = new DateTime(2024, 1, 15);
-        book.AddReadingDate(originalDate);
-        var nonExistentId = Guid.NewGuid();
-        var newDate = new DateTime(2024, 2, 20);
-
-        // Act
-        book.UpdateReadingDate(nonExistentId, newDate);
-
-        // Assert
-        book.ReadingDates.Should().HaveCount(1);
-        book.ReadingDates[0].Date.Should().Be(originalDate);
-    }
-
-    [Fact]
     public void ReadingDates_Should_ReturnReadOnlyCollection()
     {
         // Arrange
         var book = Book.Create("The Walking Dead", "Volume 1", "9781582406190");
-        book.AddReadingDate(new DateTime(2024, 1, 15));
+        book.AddReadingDate(new DateTime(2024, 1, 15), 4);
 
         // Act
         var readingDates = book.ReadingDates;

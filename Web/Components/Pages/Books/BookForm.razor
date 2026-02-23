@@ -40,10 +40,13 @@
                 }
 
                 @* Rating section *@
-                <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: var(--mud-palette-background-gray);">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">Your Rating</MudText>
-                    <MudRating @bind-SelectedValue="Model.Rating" MaxValue="5" Size="Size.Medium" />
-                </MudPaper>
+                @if (ShowRating)
+                {
+                    <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: var(--mud-palette-background-gray);">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">Your Rating</MudText>
+                        <MudRating @bind-SelectedValue="Model.Rating" MaxValue="5" Size="Size.Medium" />
+                    </MudPaper>
+                }
             </div>
         </MudItem>
 
@@ -154,6 +157,9 @@
 
     [Parameter]
     public bool IsbnReadOnly { get; set; } = false;
+
+    [Parameter]
+    public bool ShowRating { get; set; } = true;
 
     private readonly BookValidator _bookValidator = new();
     private MudForm _form = default!;

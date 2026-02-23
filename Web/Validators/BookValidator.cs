@@ -28,7 +28,8 @@ public class BookValidator : AbstractValidator<BookUiDto>
             .MaximumLength(BookConstants.MaxImageLinkLength).WithMessage($"Image link must not exceed {BookConstants.MaxImageLinkLength} characters.");
 
         RuleFor(x => x.Rating)
-            .InclusiveBetween(0, 5).WithMessage("Rating must be between 0 and 5.");
+            .GreaterThanOrEqualTo(1).WithMessage("La note est obligatoire (1 à 5 étoiles).")
+            .LessThanOrEqualTo(5).WithMessage("La note est obligatoire (1 à 5 étoiles).");
 
         RuleFor(x => x.Authors)
             .MaximumLength(BookConstants.MaxAuthorsLength).WithMessage($"Authors must not exceed {BookConstants.MaxAuthorsLength} characters.");

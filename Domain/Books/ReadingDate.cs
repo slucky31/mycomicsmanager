@@ -6,21 +6,25 @@ public class ReadingDate : Entity<Guid>
 {
     public DateTime Date { get; protected set; }
 
+    public int Rating { get; protected set; }
+
     public Guid BookId { get; protected set; }
 
-    public static ReadingDate Create(DateTime date, Guid bookId)
+    public static ReadingDate Create(DateTime date, int rating, Guid bookId)
     {
         var readingDate = new ReadingDate
         {
             Id = Guid.CreateVersion7(),
             Date = date,
+            Rating = rating,
             BookId = bookId
         };
         return readingDate;
     }
 
-    public void Update(DateTime date)
+    public void Update(DateTime date, int rating)
     {
         Date = date;
+        Rating = rating;
     }
 }

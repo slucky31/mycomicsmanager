@@ -14,4 +14,6 @@ public interface IBooksService
     Task<Result<Book>> Update(UpdateBookRequest request, CancellationToken cancellationToken = default);
     Task<Result<List<Book>>> GetAll();
     Task<Result> Delete(string? id, CancellationToken cancellationToken = default);
+    Task<Result<ReadingDate>> AddReadingDate(string bookId, int rating, CancellationToken cancellationToken = default);
+    Task<Result> DeleteReadingDate(string bookId, string readingDateId, CancellationToken cancellationToken = default);
 }

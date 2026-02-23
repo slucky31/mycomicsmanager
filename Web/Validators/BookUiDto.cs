@@ -46,7 +46,7 @@ public class BookUiDto : Entity<Guid>
             ISBN = book.ISBN,
             VolumeNumber = book.VolumeNumber,
             ImageLink = book.ImageLink,
-            Rating = book.Rating,
+            Rating = 0,
             Authors = book.Authors,
             Publishers = book.Publishers,
             PublishDate = book.PublishDate,

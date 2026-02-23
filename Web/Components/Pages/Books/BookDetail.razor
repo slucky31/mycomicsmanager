@@ -141,12 +141,15 @@
                                 </div>
                             }
 
-                            @* Rating *@
-                            @if (_book.Rating > 0)
+                            @* Latest rating *@
+                            @{
+                                var latestRating = _book.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
+                            }
+                            @if (latestRating > 0)
                             {
                                 <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: var(--mud-palette-background-gray);">
                                     <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1 text-center">Your Rating</MudText>
-                                    <MudRating SelectedValue="@_book.Rating" MaxValue="5" ReadOnly="true" Size="Size.Medium" />
+                                    <MudRating SelectedValue="@latestRating" MaxValue="5" ReadOnly="true" Size="Size.Medium" />
                                 </MudPaper>
                             }
                         </div>
@@ -227,22 +230,54 @@
                                 </div>
                             }
 
-                            @* Reading status *@
+                            @* Reading history *@
                             <div class="book-detail-info-item">
-                                <MudIcon Icon="@(_book.ReadingDates.Any() ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.RadioButtonUnchecked)"
-                                         Color="@(_book.ReadingDates.Any() ? Color.Success : Color.Secondary)" />
-                                <div>
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Reading Status</MudText>
+                                <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" />
+                                <div style="flex: 1;">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Historique de lectures</MudText>
                                     @if (_book.ReadingDates.Any())
                                     {
-                                        var lastRead = _book.ReadingDates.MaxBy(rd => rd.Date);
-                                        <MudText Typo="Typo.body1" Color="Color.Success">
-                                            Read on @lastRead!.Date.ToString("dd/MM/yyyy")
-                                        </MudText>
+                                        @foreach (var rd in _book.ReadingDates.OrderByDescending(r => r.Date))
+                                        {
+                                            <div class="d-flex align-center gap-2 mt-1">
+                                                <MudRating SelectedValue="@rd.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" />
+                                                <MudText Typo="Typo.body2">@rd.Date.ToString("dd/MM/yyyy")</MudText>
+                                            </div>
+                                        }
                                     }
                                     else
                                     {
-                                        <MudText Typo="Typo.body1">Not read yet</MudText>
+                                        <MudText Typo="Typo.body1">Non lu</MudText>
+                                    }
+                                    @* Add new reading *@
+                                    @if (_showAddReading)
+                                    {
+                                        <div class="d-flex align-center gap-2 mt-2">
+                                            <MudRating @bind-SelectedValue="_newRating" MaxValue="5" Size="Size.Small" />
+                                            <MudButton Variant="Variant.Filled"
+                                                       Color="Color.Primary"
+                                                       Size="Size.Small"
+                                                       OnClick="AddReadingDateAsync"
+                                                       Disabled="_isAddingReading">
+                                                Ajouter
+                                            </MudButton>
+                                            <MudButton Variant="Variant.Text"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => _showAddReading = false)">
+                                                Annuler
+                                            </MudButton>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <MudButton StartIcon="@Icons.Material.Filled.Add"
+                                                   Variant="Variant.Text"
+                                                   Color="Color.Primary"
+                                                   Size="Size.Small"
+                                                   Class="mt-2"
+                                                   OnClick="@(() => _showAddReading = true)">
+                                            Ajouter une lecture
+                                        </MudButton>
                                     }
                                 </div>
                             </div>
@@ -300,6 +335,9 @@
     private Book? _book;
     private bool _isLoading = true;
     private bool _loadError;
+    private bool _showAddReading;
+    private int _newRating = 1;
+    private bool _isAddingReading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -331,6 +369,33 @@
         }
 
         _isLoading = false;
+    }
+
+    private async Task AddReadingDateAsync()
+    {
+        _isAddingReading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await BooksService.AddReadingDate(BookId, _newRating);
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Lecture ajoutée.", Severity.Success);
+                _showAddReading = false;
+                _newRating = 1;
+                await LoadBookAsync();
+            }
+            else
+            {
+                Snackbar.Add($"Erreur : {result.Error?.Description}", Severity.Error);
+            }
+        }
+        finally
+        {
+            _isAddingReading = false;
+        }
     }
 
     private void EditBook()
