@@ -27,7 +27,7 @@ public partial class AddBookManual
         _hasError = false;
         _errorMessage = string.Empty;
 
-        var normalizedIsbn = _isbn.Replace("-", "").Replace(" ", "").Trim();
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(_isbn);
 
         if (string.IsNullOrWhiteSpace(normalizedIsbn))
         {
