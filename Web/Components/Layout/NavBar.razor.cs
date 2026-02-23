@@ -10,12 +10,12 @@ public partial class NavBar : IDisposable
 
     protected override void OnInitialized()
     {
-        NavigationManager.LocationChanged += OnLocationChanged;
+        NavigationManager.LocationChanged += OnLocationChangedAsync;
     }
 
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    private async void OnLocationChangedAsync(object? sender, LocationChangedEventArgs e)
     {
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
@@ -34,7 +34,7 @@ public partial class NavBar : IDisposable
         if (disposing)
         {
             // free managed resources
-            NavigationManager.LocationChanged -= OnLocationChanged;
+            NavigationManager.LocationChanged -= OnLocationChangedAsync;
         }
 
         _isDisposed = true;
