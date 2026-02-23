@@ -1,7 +1,7 @@
 using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Web.Components.Pages.Dialogs;
+using Web.Extensions;
 using Web.Services;
 using Web.Validators;
 
@@ -104,24 +104,12 @@ public partial class EditBook
 
     private async Task DeleteReadingDateAsync(Guid readingDateId)
     {
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ConfirmationMessage, "Voulez-vous vraiment supprimer cette lecture ?" },
-            { x => x.ActionText, "Supprimer" },
-            { x => x.ColorConfirmButton, Color.Error }
-        };
+        var confirmed = await DialogService.ShowConfirmationAsync(
+            "Confirmer la suppression",
+            "Voulez-vous vraiment supprimer cette lecture ?",
+            "Supprimer");
 
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.ExtraSmall,
-            CloseButton = false
-        };
-
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirmer la suppression", parameters, options);
-        var result = await dialog.Result;
-
-        if (result is not null && result.Data is not null && !result.Canceled)
+        if (confirmed)
         {
             var res = await BooksService.DeleteReadingDate(BookId, readingDateId.ToString());
 

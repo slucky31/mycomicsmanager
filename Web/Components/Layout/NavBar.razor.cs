@@ -27,7 +27,9 @@ public partial class NavBar : IDisposable
     protected virtual void Dispose(bool disposing)
     {
         if (_isDisposed)
+        {
             return;
+        }
 
         if (disposing)
         {

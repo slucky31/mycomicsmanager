@@ -1,7 +1,7 @@
 using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Web.Components.Pages.Dialogs;
+using Web.Extensions;
 using Web.Services;
 
 namespace Web.Components.Pages.Books;
@@ -89,24 +89,12 @@ public partial class BookDetail
 
     private async Task DeleteBookAsync()
     {
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ConfirmationMessage, "Do you really want to delete this book? This process cannot be undone." },
-            { x => x.ActionText, "Delete" },
-            { x => x.ColorConfirmButton, Color.Error }
-        };
+        var confirmed = await DialogService.ShowConfirmationAsync(
+            "Confirm Delete",
+            "Do you really want to delete this book? This process cannot be undone.",
+            "Delete");
 
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.ExtraSmall,
-            CloseButton = false
-        };
-
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Delete", parameters, options);
-        var result = await dialog.Result;
-
-        if (result is not null && result.Data is not null && !result.Canceled)
+        if (confirmed)
         {
             var res = await BooksService.Delete(BookId);
 
