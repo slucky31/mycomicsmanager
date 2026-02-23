@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 		.github\workflows\dotnet-core-publish.yml = .github\workflows\dotnet-core-publish.yml
 		.github\labeler.yml = .github\labeler.yml
 		.github\workflows\pr-labeler.yml = .github\workflows\pr-labeler.yml
+		README.md = README.md
 		.github\renovate.json = .github\renovate.json
 		.github\semantic.yml = .github\semantic.yml
 		TODO.md = TODO.md
