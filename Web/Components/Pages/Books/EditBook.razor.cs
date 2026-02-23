@@ -1,6 +1,7 @@
 using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Serilog;
 using Web.Extensions;
 using Web.Services;
 using Web.Validators;
@@ -53,7 +54,8 @@ public partial class EditBook
         catch (Exception ex)
         {
             _loadError = true;
-            Snackbar.Add($"Error loading book: {ex.Message}", Severity.Error);
+            Snackbar.Add("Error loading book", Severity.Error);
+            Log.Error(ex, "Error loading book");
         }
 
         _isLoading = false;

@@ -1,8 +1,8 @@
-using Application.ComicInfoSearch;
 using Application.Helpers;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Serilog;
 using Web.Services;
 using Web.Validators;
 
@@ -31,7 +31,7 @@ public partial class AddBookForm
             _isLoading = true;
             StateHasChanged();
 
-            string cleanedIsbn = IsbnHelper.NormalizeIsbn(Isbn);
+            var cleanedIsbn = IsbnHelper.NormalizeIsbn(Isbn);
 
             try
             {
@@ -64,14 +64,11 @@ public partial class AddBookForm
                     Snackbar.Add("Book not found. Please fill in the details manually.", Severity.Warning);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException or InvalidOperationException)
             {
-                _bookModel = new BookUiDto
-                {
-                    ISBN = cleanedIsbn,
-                    VolumeNumber = 1
-                };
-                Snackbar.Add($"Error searching for book: {ex.Message}", Severity.Error);
+                _bookModel = new BookUiDto { ISBN = cleanedIsbn, VolumeNumber = 1 };
+                Snackbar.Add("Error searching for book", Severity.Error);
+                Log.Error(ex, "Error  searching for book");
             }
 
             _isLoading = false;
@@ -84,10 +81,16 @@ public partial class AddBookForm
 
     private async Task SaveBookAsync()
     {
-        if (_bookForm is null) return;
+        if (_bookForm is null)
+        {
+            return;
+        }
 
         var isValid = await _bookForm.ValidateAsync();
-        if (!isValid) return;
+        if (!isValid)
+        {
+            return;
+        }
 
         _isSaving = true;
         StateHasChanged();

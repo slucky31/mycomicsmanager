@@ -9,18 +9,18 @@
 }
 
 ::deep .fixed-login-column {
-    position: fixed;
-    top: 0;
-    right: 0;
-    height: 100vh;
-    width: 375px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(20,20,20,0.65);
-    z-index: 10;
-    box-shadow: -4px 0 32px 0 rgba(0,0,0,0.18);
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: min(375px, 100vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20,20,20,0.65);
+  z-index: 10;
+  box-shadow: -4px 0 32px 0 rgba(0,0,0,0.18);
 }
 
 ::deep .logo-square img {
@@ -34,7 +34,7 @@
     font-weight: 400;
     color: #fff;
     letter-spacing: 0.01em;
-    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
     margin-bottom: 1rem;
 }
 
@@ -43,7 +43,7 @@
     color: #e0e0e0;
     margin-bottom: 1rem;
     text-align: center;
-    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 ::deep .sign-in-btn {

@@ -1,19 +1,17 @@
 using System.Security.Cryptography;
-using Microsoft.AspNetCore.Components;
 
 namespace Web.Components.Pages;
 
 public partial class Login
-{
-    [Inject] private NavigationManager Navigation { get; set; } = default!;
+{    
 
-    private static readonly Lazy<string[]> _backgroundImages = new(() => LoadBackgroundImages());
+    private static readonly Lazy<string[]> s_backgroundImages = new(() => LoadBackgroundImages());
     private string? _selectedImage;
-    const int MaxFiles = 10;
+    private const int MaxFiles = 10;
 
     protected override void OnInitialized()
     {
-        var images = _backgroundImages.Value;
+        var images = s_backgroundImages.Value;
         if (images.Length == 0)
         {
             _selectedImage = string.Empty;
@@ -43,7 +41,7 @@ public partial class Login
             Console.WriteLine($"Error loading background images: {ex.Message}");
         }
 
-        return Array.Empty<string>();
+        return [];
     }
 
     private static bool IsValidImageFile(string filePath)

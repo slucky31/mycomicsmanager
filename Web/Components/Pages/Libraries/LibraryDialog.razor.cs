@@ -1,4 +1,3 @@
-using Application.Libraries;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Web.Validators;
@@ -13,18 +12,20 @@ public partial class LibraryDialog
     [Parameter]
     public LibraryUiDto library { get; set; } = new LibraryUiDto();
 
-    private MudForm? form;
+    private MudForm? _form;
 
-    private LibraryValidator libraryValidator = new LibraryValidator();
+    private readonly LibraryValidator _libraryValidator = new();
 
-    private async Task Submit()
+    private async Task SubmitAsync()
     {
-        if (form is null)
+        if (_form is null)
+        {
             return;
+        }
 
-        await form.Validate();
+        await _form.Validate();
 
-        if (form.IsValid && MudDialog is not null)
+        if (_form.IsValid && MudDialog is not null)
         {
             MudDialog.Close(DialogResult.Ok(library));
         }
@@ -32,9 +33,6 @@ public partial class LibraryDialog
 
     private void Cancel()
     {
-        if (MudDialog is not null)
-        {
-            MudDialog.Cancel();
-        }
+        MudDialog?.Cancel();
     }
 }

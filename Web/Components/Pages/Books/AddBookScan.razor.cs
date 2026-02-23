@@ -93,13 +93,13 @@ public partial class AddBookScan : IAsyncDisposable
         return Application.Helpers.IsbnHelper.IsValidISBN(isbn);
     }
 
-    private async Task GoBack()
+    private async Task GoBackAsync()
     {
         await StopScanningAsync();
         NavigationManager.NavigateTo("/books/add");
     }
 
-    private async Task GoToManualInput()
+    private async Task GoToManualInputAsync()
     {
         await StopScanningAsync();
         NavigationManager.NavigateTo("/books/add/manual");

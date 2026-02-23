@@ -46,10 +46,7 @@
                     @{
                         var coverRating = book.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
                     }
-                    @if (coverRating >= 0)
-                    {
-                        <MudRating SelectedValue="@coverRating" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />
-                    }
+                    <MudRating SelectedValue="@coverRating" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />                    
                 </div>
             </MudPaper>
         </MudItem>

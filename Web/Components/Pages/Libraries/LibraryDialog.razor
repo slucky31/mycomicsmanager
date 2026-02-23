@@ -3,13 +3,13 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm Model="@library" @ref="@form" Validation="@(libraryValidator.ValidateValue)" ValidationDelay="0">
+        <MudForm Model="@library" @ref="@_form" Validation="@(_libraryValidator.ValidateValue)" ValidationDelay="0">
             <MudTextField @bind-Value="library.Name" For="@(() => library.Name)" Immediate="true" />
             <MudTextField Value="library.RelativePath" For="@(() => library.RelativePath)" ReadOnly="true" />
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">OK</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SubmitAsync">OK</MudButton>
     </DialogActions>
 </MudDialog>
