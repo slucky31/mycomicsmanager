@@ -47,7 +47,7 @@ public partial class BookDetail
                 _loadError = true;
             }
         }
-        catch
+        catch (Exception)
         {
             _loadError = true;
         }
@@ -75,6 +75,10 @@ public partial class BookDetail
             {
                 Snackbar.Add($"Erreur : {result.Error?.Description}", Severity.Error);
             }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur inattendue : {ex.Message}", Severity.Error);
         }
         finally
         {

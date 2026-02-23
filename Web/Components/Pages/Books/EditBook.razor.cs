@@ -61,10 +61,16 @@ public partial class EditBook
 
     private async Task SaveBookAsync()
     {
-        if (_bookForm is null || _bookModel is null) return;
+        if (_bookForm is null || _bookModel is null)
+        {
+            return;
+        }
 
         var isValid = await _bookForm.ValidateAsync();
-        if (!isValid) return;
+        if (!isValid)
+        {
+            return;
+        }
 
         _isSaving = true;
         StateHasChanged();
@@ -96,9 +102,14 @@ public partial class EditBook
                 Snackbar.Add($"Failed to update book: {result.Error?.Description}", Severity.Error);
             }
         }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Unexpected error: {ex.Message}", Severity.Error);
+        }
         finally
         {
             _isSaving = false;
+            StateHasChanged();
         }
     }
 
