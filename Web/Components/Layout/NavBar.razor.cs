@@ -5,6 +5,7 @@ namespace Web.Components.Layout;
 
 public partial class NavBar : IDisposable
 {
+    private bool _isDisposed;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     protected override void OnInitialized()
@@ -19,7 +20,22 @@ public partial class NavBar : IDisposable
 
     public void Dispose()
     {
-        NavigationManager.LocationChanged -= OnLocationChanged;
+        Dispose(true);
+        GC.SuppressFinalize(this);        
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_isDisposed)
+            return;
+
+        if (disposing)
+        {
+            // free managed resources
+            NavigationManager.LocationChanged -= OnLocationChanged;
+        }
+
+        _isDisposed = true;
     }
 
     private bool IsActive(string path)
