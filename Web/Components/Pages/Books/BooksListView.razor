@@ -1,0 +1,121 @@
+@using Domain.Books
+
+<style>
+    .book-list-row {
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        margin-bottom: 8px;
+    }
+
+    .book-list-row:hover {
+        background-color: var(--mud-palette-action-default-hover);
+        transform: translateX(4px);
+    }
+
+    .book-list-image {
+        width: 50px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .book-list-placeholder {
+        width: 50px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
+        border-radius: 6px;
+        color: white;
+    }
+
+    /* Hide cover column on mobile/tablet (matches MudTable Sm breakpoint) */
+    @@media (max-width: 959.95px) {
+        .list-cover-cell {
+            display: none !important;
+        }
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+    }
+</style>
+
+<MudPaper Elevation="0">
+    <MudTable Items="@Books" Hover="true" Breakpoint="Breakpoint.Xs" Dense="true" Striped="true" Class="rounded-lg">
+        <HeaderContent>
+            <MudTh Class="list-cover-cell"></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Title)">Title</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Serie)">Series</MudTableSortLabel></MudTh>
+            <MudTh>ISBN</MudTh>
+            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.VolumeNumber)">Vol.</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0)">Rating</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align: center;">Read</MudTh>
+            <MudTh Style="text-align: right;">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Cover" Style="width: 70px;" Class="list-cover-cell">
+                @if (!string.IsNullOrEmpty(context.ImageLink))
+                {
+                    <MudImage Src="@context.ImageLink" Alt="@context.Title" Class="book-list-image" />
+                }
+                else
+                {
+                    <div class="book-list-placeholder">
+                        <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
+                    </div>
+                }
+            </MudTd>
+            <MudTd DataLabel="Title">
+                <MudText Typo="Typo.body2" Class="font-weight-medium">@context.Title</MudText>
+            </MudTd>
+            <MudTd DataLabel="Series">
+                <MudText Typo="Typo.body2" Color="Color.Primary">@context.Serie</MudText>
+            </MudTd>
+            <MudTd DataLabel="ISBN">
+                <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.ISBN</MudText>
+            </MudTd>
+            <MudTd DataLabel="Volume" Style="text-align: center;">
+                <MudChip T="string" Size="Size.Small" Color="Color.Default">@context.VolumeNumber</MudChip>
+            </MudTd>
+            <MudTd DataLabel="Rating" Style="text-align: center;">
+                @{
+                    var listRating = context.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
+                }
+                @if (listRating > 0)
+                {
+                    <MudRating SelectedValue="@listRating" MaxValue="5" Disabled="true" Size="Size.Small" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
+                }
+            </MudTd>
+            <MudTd DataLabel="Read" Style="text-align: center;">
+                @if (context.ReadingDates.Any())
+                {
+                    <MudTooltip Text="@($"Last read: {context.ReadingDates.MaxBy(rd => rd.Date)!.Date:d}")">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
+                    </MudTooltip>
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Outlined.RadioButtonUnchecked" Color="Color.Default" Size="Size.Small" />
+                }
+            </MudTd>
+            <MudTd DataLabel="Actions" Style="text-align: right;" Class="list-actions-cell">
+                <div class="action-buttons">
+                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Default" Href="@($"/books/{context.Id}")" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/edit")" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(context.Id))" />
+                </div>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+        </PagerContent>
+    </MudTable>
+</MudPaper>

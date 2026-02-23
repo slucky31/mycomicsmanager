@@ -1,0 +1,133 @@
+@using Domain.Books
+
+<style>
+    .book-card {
+        display: flex;
+        flex-direction: row;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        overflow: hidden;
+        background: linear-gradient(145deg, var(--mud-palette-surface) 0%, var(--mud-palette-background) 100%);
+        height: 180px;
+    }
+
+    .book-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .book-card-image-container {
+        flex-shrink: 0;
+        width: 120px;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .book-card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .book-card:hover .book-card-image {
+        transform: scale(1.08);
+    }
+
+    .book-card-image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
+    }
+
+    .book-card-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        min-width: 0;
+        position: relative;
+    }
+
+    .book-card-volume-badge {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(4px);
+        border-radius: 6px;
+        padding: 4px 8px;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+</style>
+
+<MudGrid Spacing="4">
+    @foreach (var book in Books)
+    {
+        <MudItem xs="12" sm="6" md="4" lg="3">
+            <MudPaper Class="book-card" Elevation="2">
+                <div class="book-card-image-container">
+                    @if (!string.IsNullOrEmpty(book.ImageLink))
+                    {
+                        <MudImage Src="@book.ImageLink" Alt="@book.Title" Class="book-card-image" />
+                    }
+                    else
+                    {
+                        <div class="book-card-image-placeholder">
+                            <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Style="color: white; opacity: 0.7;" />
+                        </div>
+                    }
+                    @if (book.VolumeNumber > 0)
+                    {
+                        <div class="book-card-volume-badge">Vol. @book.VolumeNumber</div>
+                    }
+                </div>
+
+                <div class="book-card-content">
+                    <div class="d-flex justify-space-between align-start">
+                        <div class="flex-grow-1 pr-2" style="min-width: 0;">
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Style="line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@book.Title</MudText>
+                            @if (!string.IsNullOrEmpty(book.Serie))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Primary" Class="font-weight-medium" Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@book.Serie</MudText>
+                            }
+                        </div>
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                            <MudMenuItem Icon="@Icons.Material.Filled.Visibility" Href="@($"/books/{book.Id}")">View</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(book.Id))">Delete</MudMenuItem>
+                        </MudMenu>
+                    </div>
+
+                    <div class="d-flex flex-column gap-1 mt-3 flex-grow-1">
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Small" Color="Color.Secondary" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-family: monospace;">@book.ISBN</MudText>
+                        </div>
+                        @{
+                            var cardRating = book.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
+                        }
+                        @if (cardRating > 0)
+                        {
+                            <MudRating SelectedValue="@cardRating" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />
+                        }
+                    </div>
+
+                    @if (book.ReadingDates.Any())
+                    {
+                        <div class="d-flex align-center gap-1 mt-auto pt-2">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Success" />
+                            <MudText Typo="Typo.caption" Color="Color.Success">Read @book.ReadingDates.MaxBy(rd => rd.Date)!.Date.ToString("MMM yyyy")</MudText>
+                        </div>
+                    }
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
