@@ -26,6 +26,16 @@ public partial class BooksList
 
     private List<Book> Books { get; set; } = [];
 
+    private string SearchTerm { get; set; } = string.Empty;
+
+    private IReadOnlyList<Book> FilteredBooks =>
+        string.IsNullOrWhiteSpace(SearchTerm)
+            ? Books
+            : Books.Where(b =>
+                b.Title.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)))
+              .ToList();
+
     private ViewMode CurrentViewMode { get; set; } = ViewMode.Cards;
 
     protected override async Task OnInitializedAsync()

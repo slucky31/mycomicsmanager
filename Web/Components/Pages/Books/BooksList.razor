@@ -22,7 +22,7 @@
         <div class="d-flex align-center">
             <MudIcon Class="mr-2" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Color="Color.Primary" />
             <MudText Typo="Typo.h4" Class="font-weight-bold">Books</MudText>
-            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="ml-3">@Books.Count</MudChip>
+            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="ml-3">@FilteredBooks.Count</MudChip>
         </div>
 
         <div class="d-flex align-center gap-2">
@@ -60,6 +60,16 @@
         </div>
     </div>
 
+    <!-- Search bar -->
+    <MudTextField @bind-Value="SearchTerm"
+                  Placeholder="Search by title or series…"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  Clearable="true"
+                  Immediate="true"
+                  Variant="Variant.Outlined"
+                  Class="mb-4" />
+
     <!-- Content based on view mode -->
     @if (Books.Count == 0)
     {
@@ -72,18 +82,28 @@
             </MudButton>
         </MudPaper>
     }
+    else if (FilteredBooks.Count == 0)
+    {
+        <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Style="min-height: 300px;" Elevation="0">
+            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Secondary" Style="font-size: 64px; opacity: 0.5;" />
+            <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-4">No results for "@SearchTerm"</MudText>
+            <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mt-2" OnClick="@(() => SearchTerm = string.Empty)">
+                Clear search
+            </MudButton>
+        </MudPaper>
+    }
     else
     {
         @switch (CurrentViewMode)
         {
             case ViewMode.Cards:
-                <BooksCardsView Books="@Books" OnDelete="@DeleteAsync" />
+                <BooksCardsView Books="@FilteredBooks" OnDelete="@DeleteAsync" />
                 break;
             case ViewMode.Covers:
-                <BooksCoversView Books="@Books" OnDelete="@DeleteAsync" />
+                <BooksCoversView Books="@FilteredBooks" OnDelete="@DeleteAsync" />
                 break;
             case ViewMode.List:
-                <BooksListView Books="@Books" OnDelete="@DeleteAsync" />
+                <BooksListView Books="@FilteredBooks" OnDelete="@DeleteAsync" />
                 break;
         }
     }
