@@ -115,10 +115,10 @@
     right: 10%;
     height: 2px;
     background: linear-gradient(90deg, transparent, var(--mud-palette-warning), transparent);
-    animation: scan-line 2s ease-in-out infinite;
+    animation: isbn-scanner-line 2s ease-in-out infinite;
 }
 
-@keyframes scan-line {
+@keyframes isbn-scanner-line {
     0%, 100% { top: 20%; opacity: 0; }
     50% { top: 80%; opacity: 1; }
 }
