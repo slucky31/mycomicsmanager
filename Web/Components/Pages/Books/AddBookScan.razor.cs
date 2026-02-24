@@ -97,6 +97,7 @@ public sealed partial class AddBookScan : IAsyncDisposable
     public void OnScanErrorFromJs(string error)
     {
         _errorMessage = error;
+        _isScanning = false;
         StateHasChanged();
     }
 
@@ -122,13 +123,20 @@ public sealed partial class AddBookScan : IAsyncDisposable
     {
         if (_jsModule != null)
         {
-            try
+            if (_isScanning)
             {
-                await _jsModule.InvokeVoidAsync("stopScan");
-            }
-            catch (JSDisconnectedException)
-            {
-                // Ignore
+                try
+                {
+                    await _jsModule.InvokeVoidAsync("stopScan");
+                }
+                catch (JSDisconnectedException)
+                {
+                    // Ignore
+                }
+                catch (JSException)
+                {
+                    // Ignore
+                }
             }
 
             try
@@ -136,6 +144,10 @@ public sealed partial class AddBookScan : IAsyncDisposable
                 await _jsModule.DisposeAsync();
             }
             catch (JSDisconnectedException)
+            {
+                // Ignore
+            }
+            catch (JSException)
             {
                 // Ignore
             }
