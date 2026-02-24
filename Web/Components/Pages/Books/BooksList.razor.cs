@@ -26,15 +26,30 @@ public partial class BooksList
 
     private List<Book> Books { get; set; } = [];
 
-    private string SearchTerm { get; set; } = string.Empty;
+    private string _searchTerm = string.Empty;
+    private List<Book> _filteredBooks = [];
 
-    private IReadOnlyList<Book> FilteredBooks =>
-        string.IsNullOrWhiteSpace(SearchTerm)
+    private string SearchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            _searchTerm = value;
+            UpdateFilteredBooks();
+        }
+    }
+
+    private IReadOnlyList<Book> FilteredBooks => _filteredBooks;
+
+    private void UpdateFilteredBooks()
+    {
+        _filteredBooks = string.IsNullOrWhiteSpace(_searchTerm)
             ? Books
             : Books.Where(b =>
-                b.Title.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)))
+                b.Title.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)))
               .ToList();
+    }
 
     private ViewMode CurrentViewMode { get; set; } = ViewMode.Cards;
 
@@ -49,6 +64,7 @@ public partial class BooksList
         if (result.IsSuccess && result.Value is not null)
         {
             Books = result.Value;
+            UpdateFilteredBooks();
             StateHasChanged();
         }
         else
