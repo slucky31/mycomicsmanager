@@ -92,7 +92,7 @@
             @if (_book is not null)
             {
                 <MudPaper Class="pa-6 rounded-lg mt-4" Elevation="2">
-                    <MudText Typo="Typo.h6" Class="mb-4">Lectures</MudText>
+                    <MudText Typo="Typo.h6" Class="mb-4">Reading History</MudText>
                     @if (_book.ReadingDates.Any())
                     {
                         @foreach (var rd in _book.ReadingDates.OrderByDescending(r => r.Date))
@@ -111,7 +111,7 @@
                     }
                     else
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Aucune lecture enregistrée.</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">No readings recorded.</MudText>
                     }
                 </MudPaper>
             }

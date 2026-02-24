@@ -68,7 +68,7 @@ public partial class AddBookForm
             {
                 _bookModel = new BookUiDto { ISBN = cleanedIsbn, VolumeNumber = 1 };
                 Snackbar.Add("Error searching for book", Severity.Error);
-                Log.Error(ex, "Error  searching for book");
+                Log.Error(ex, "Error searching for book");
             }
 
             _isLoading = false;
@@ -95,37 +95,33 @@ public partial class AddBookForm
         _isSaving = true;
         StateHasChanged();
 
-        try
-        {
-            var request = new CreateBookRequest(
-                _bookModel.Serie,
-                _bookModel.Title,
-                _bookModel.ISBN,
-                _bookModel.VolumeNumber,
-                _bookModel.ImageLink,
-                _bookModel.Rating,
-                _bookModel.Authors,
-                _bookModel.Publishers,
-                _bookModel.PublishDate,
-                _bookModel.NumberOfPages
-            );
+        var request = new CreateBookRequest(
+            _bookModel.Serie,
+            _bookModel.Title,
+            _bookModel.ISBN,
+            _bookModel.VolumeNumber,
+            _bookModel.ImageLink,
+            _bookModel.Rating,
+            _bookModel.Authors,
+            _bookModel.Publishers,
+            _bookModel.PublishDate,
+            _bookModel.NumberOfPages
+        );
 
-            var result = await BooksService.Create(request);
+        var result = await BooksService.Create(request);
 
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Book added successfully!", Severity.Success);
-                NavigationManager.NavigateTo("/books/list");
-            }
-            else
-            {
-                Snackbar.Add($"Failed to add book: {result.Error?.Description}", Severity.Error);
-            }
-        }
-        finally
+        if (result.IsSuccess)
         {
-            _isSaving = false;
+            Snackbar.Add("Book added successfully!", Severity.Success);
+            NavigationManager.NavigateTo("/books/list");
         }
+        else
+        {
+            Snackbar.Add($"Failed to add book: {result.Error?.Description}", Severity.Error);
+        }
+
+        _isSaving = false;
+
     }
 
     private void GoBack()

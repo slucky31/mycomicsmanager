@@ -85,14 +85,14 @@ public partial class EditBook
         var result = await BooksService.Update(request);
 
         if (result.IsSuccess)
-        {
-            Snackbar.Add("Book updated successfully!", Severity.Success);
+        {            
             NavigationManager.NavigateTo($"/books/{BookId}");
         }
         else
         {
             _isSaving = false;
             Snackbar.Add($"Failed to update book: {result.Error?.Description}", Severity.Error);
+            Log.Error("Failed to update book: {Description}", result.Error?.Description);
             StateHasChanged();
         }
 
@@ -101,9 +101,9 @@ public partial class EditBook
     private async Task DeleteReadingDateAsync(Guid readingDateId)
     {
         var confirmed = await DialogService.ShowConfirmationAsync(
-            "Confirmer la suppression",
-            "Voulez-vous vraiment supprimer cette lecture ?",
-            "Supprimer");
+            "Confirm Deletion",
+            "Are you sure you want to delete this reading?",
+            "Delete");
 
         if (confirmed)
         {
@@ -111,12 +111,12 @@ public partial class EditBook
 
             if (res.IsSuccess)
             {
-                Snackbar.Add("Lecture supprimée.", Severity.Success);
+                Snackbar.Add("Reading deleted.", Severity.Success);
                 await LoadBookAsync();
             }
             else
             {
-                Snackbar.Add($"Erreur : {res.Error?.Description}", Severity.Error);
+                Snackbar.Add($"Error: {res.Error?.Description}", Severity.Error);
             }
         }
     }
