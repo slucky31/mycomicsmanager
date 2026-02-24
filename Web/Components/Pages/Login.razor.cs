@@ -4,7 +4,7 @@ using Serilog;
 
 namespace Web.Components.Pages;
 
-public partial class Login : IDisposable
+public sealed partial class Login : IDisposable
 {
     [Inject] private IWebHostEnvironment WebHostEnvironment { get; set; } = default!;
     [Inject] private PersistentComponentState ApplicationState { get; set; } = default!;
@@ -59,9 +59,13 @@ public partial class Login : IDisposable
                     .ToArray();
             }
         }
-        catch (Exception ex)
+        catch (IOException ex)
         {
-            Log.Error($"Error loading background images: {ex.Message}");
+            Log.Error(ex, "Error loading background images due to I/O issue");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Log.Error(ex, "Error loading background images due to access denied");
         }
 
         return [];
