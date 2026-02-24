@@ -5,9 +5,13 @@ namespace Web.Components.Pages.Books;
 
 public partial class BooksCardsView
 {
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
     [Parameter, EditorRequired]
     public IReadOnlyList<Book> Books { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public EventCallback<Guid> OnDelete { get; set; }
+
+    private void NavigateToBook(Guid id) => NavigationManager.NavigateTo($"/books/{id}");
 }

@@ -5,7 +5,7 @@
     @foreach (var book in Books)
     {
         <MudItem @key="book.Id" xs="12" sm="6" md="4" lg="3">
-            <MudPaper Class="book-card" Elevation="2">
+            <MudPaper Class="book-card" Elevation="2" @onclick="@(() => NavigateToBook(book.Id))">
                 <div class="book-card-image-container">
                     @if (!string.IsNullOrEmpty(book.ImageLink))
                     {
@@ -17,50 +17,73 @@
                             <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Style="color: white; opacity: 0.7;" />
                         </div>
                     }
-                    @if (book.VolumeNumber > 0)
-                    {
-                        <div class="book-card-volume-badge">Vol. @book.VolumeNumber</div>
-                    }
                 </div>
 
                 <div class="book-card-content">
                     <div class="d-flex justify-space-between align-start">
                         <div class="flex-grow-1 pr-2" style="min-width: 0;">
-                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Style="line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@book.Title</MudText>
+                            <div class="d-flex align-center gap-1" style="min-width: 0;">
+                                <MudText Typo="Typo.subtitle2" Class="font-weight-bold book-card-title">@book.Title</MudText>
+                                @if (book.VolumeNumber > 0)
+                                {
+                                    <span class="book-card-volume-badge">#@book.VolumeNumber</span>
+                                }
+                            </div>
                             @if (!string.IsNullOrEmpty(book.Serie))
                             {
-                                <MudText Typo="Typo.caption" Color="Color.Primary" Class="font-weight-medium" Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@book.Serie</MudText>
+                                <MudText Typo="Typo.caption" Class="book-card-serie">@book.Serie</MudText>
                             }
                         </div>
-                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                            <MudMenuItem Icon="@Icons.Material.Filled.Visibility" Href="@($"/books/{book.Id}")">View</MudMenuItem>
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" @onclick:stopPropagation="true">
                             <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
                             <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(book.Id))">Delete</MudMenuItem>
                         </MudMenu>
                     </div>
 
-                    <div class="d-flex flex-column gap-1 mt-3 flex-grow-1">
-                        <div class="d-flex align-center gap-2">
-                            <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Small" Color="Color.Secondary" />
-                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-family: monospace;">@book.ISBN</MudText>
-                        </div>
-                        @{
-                                var lastRead = book.ReadingDates.OrderByDescending(rd => rd.Date).FirstOrDefault();
-                                var cardRating = lastRead?.Rating ?? 0;
-                        }
-                        @if (cardRating > 0)
+                    <div class="d-flex flex-column gap-1 mt-1 flex-grow-1">
+                        @if (!string.IsNullOrEmpty(book.Authors))
                         {
-                            <MudRating SelectedValue="@cardRating" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />
+                            <div class="d-flex align-center gap-1">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Class="book-card-meta-icon" />
+                                <MudText Typo="Typo.caption" Class="book-card-meta-text">@book.Authors</MudText>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(book.Publishers))
+                        {
+                            <div class="d-flex align-center gap-1">
+                                <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" Class="book-card-meta-icon" />
+                                <MudText Typo="Typo.caption" Class="book-card-meta-text">@book.Publishers</MudText>
+                            </div>
                         }
                     </div>
 
-                    @if (lastRead is not null)
-                    {
-                        <div class="d-flex align-center gap-1 mt-auto pt-2">
-                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Success" />
-                            <MudText Typo="Typo.caption" Color="Color.Success">Read @lastRead.Date.ToString("dd/MM/yyyy")</MudText>
+                    <div class="d-flex align-center justify-space-between mt-auto pt-2">
+                        <div class="d-flex align-center gap-2">
+                            @if (!string.IsNullOrEmpty(book.ISBN))
+                            {
+                                <MudTooltip Text="@book.ISBN" Placement="Placement.Top">
+                                    <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Small" Class="book-card-meta-icon" />
+                                </MudTooltip>
+                            }
+                            @{
+                                var lastRating = book.ReadingDates.OrderByDescending(rd => rd.Date).FirstOrDefault()?.Rating ?? 0;
+                            }
+                            @if (lastRating > 0)
+                            {
+                                <MudRating SelectedValue="@lastRating" MaxValue="5" Disabled="true" Size="Size.Small" />
+                            }
                         </div>
-                    }
+                        @{
+                            var readCount = book.ReadingDates.Count;
+                        }
+                        @if (readCount > 0)
+                        {
+                            <div class="d-flex align-center gap-1">
+                                <MudIcon Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" Class="book-card-meta-icon" />
+                                <MudText Typo="Typo.caption" Class="book-card-meta-text">@(readCount == 1 ? "Read" : $"Read {readCount}\u00d7")</MudText>
+                            </div>
+                        }
+                    </div>
                 </div>
             </MudPaper>
         </MudItem>
