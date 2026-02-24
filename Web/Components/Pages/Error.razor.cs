@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Components;
 
 namespace Web.Components.Pages;
 
-public partial class Error
+public class ErrorPage : ComponentBase
 {
     [CascadingParameter]
     private HttpContext? HttpContext { get; set; }
 
-    private string? RequestId { get; set; }
-    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    protected string? RequestId { get; set; }
+    protected bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 
     protected override void OnInitialized() =>
         RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
