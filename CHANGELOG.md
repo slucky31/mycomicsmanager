@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.2.0"></a>
+## [10.2.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.2.0) (2026-02-24)
+
+### ✨ Features
+
+* UI Improvement ([42b63f3](https://www.github.com/slucky31/mycomicsmanager/commit/42b63f3ab49d97fb15c1888b0f0103d2350e23f6))
+
 <a name="10.1.2"></a>
 ## [10.1.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.1.2) (2026-02-23)
 
