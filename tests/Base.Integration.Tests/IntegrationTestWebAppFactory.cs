@@ -87,7 +87,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
     protected override IHost CreateHost(IHostBuilder builder)
     {
         var host = base.CreateHost(builder);
-        
+
         try
         {
             // Run migrations after host is created to avoid deadlocks
@@ -95,11 +95,11 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<IntegrationTestWebAppFactory>>();
-                
+
                 try
-                {                    
+                {
                     db.Database.Migrate();
-                    
+
                     logger.LogInformation("Database migrations completed successfully.");
                 }
                 catch (Exception ex)
@@ -114,7 +114,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
                     );
                 }
             }
-            
+
             return host;
         }
         catch

@@ -1,7 +1,7 @@
+using Application.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
-using Application.Helpers;
 
 namespace Web.Components.Pages.Books;
 
@@ -69,6 +69,11 @@ public sealed partial class AddBookScan : IAsyncDisposable
     [JSInvokable]
     public async Task OnIsbnScannedFromJsAsync(string isbn)
     {
+        if (_isbnDetected)
+        {
+            return;
+        }
+
         _isbnDetected = true;
         StateHasChanged();
 
@@ -76,6 +81,13 @@ public sealed partial class AddBookScan : IAsyncDisposable
         await Task.Delay(300);
 
         await StopScanningAsync();
+
+        if (!IsbnHelper.IsValidISBN(isbn))
+        {
+            Snackbar.Add($"Invalid ISBN scanned: {isbn}", Severity.Error);
+            _isbnDetected = false;
+            return;
+        }
 
         Snackbar.Add($"ISBN detected: {isbn}", Severity.Success);
         NavigationManager.NavigateTo($"/books/add/form?isbn={Uri.EscapeDataString(isbn)}");

@@ -85,7 +85,7 @@ public partial class EditBook
         var result = await BooksService.Update(request);
 
         if (result.IsSuccess)
-        {            
+        {
             NavigationManager.NavigateTo($"/books/{BookId}");
         }
         else

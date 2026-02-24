@@ -1,11 +1,12 @@
 .landing-background {
-    min-height: 100vh;
-    width: 100vw;
-    background-size: cover;
-    background-position: center;
-    position: fixed;
-    top: 0; left: 0;
-    z-index: -1;
+  min-height: 100vh;
+  width: 100vw;
+  background-size: cover;
+  background-position: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
 }
 
 .fixed-login-column {
@@ -18,6 +19,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
   background: rgba(20,20,20,0.65);
   z-index: 10;
   box-shadow: -4px 0 32px 0 rgba(0,0,0,0.18);
@@ -25,50 +27,50 @@
 }
 
 .logo-square img {
-    width: 100px;
-    height: 100px;
-    margin-bottom: 1rem;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 1rem;
 }
 
 .app-title {
-    font-size: 2.5rem;
-    font-weight: 400;
-    color: #fff;
-    letter-spacing: 0.01em;
-    margin-bottom: 1rem;
+  font-size: 2.5rem;
+  font-weight: 400;
+  color: #fff;
+  letter-spacing: 0.01em;
+  margin-bottom: 1rem;
 }
 
 .subtitle {
-    font-size: 1.15rem;
-    color: #e0e0e0;
-    margin-bottom: 1rem;
-    text-align: center;
+  font-size: 1.15rem;
+  color: #e0e0e0;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 /* ::deep is required here: MudButton renders its HTML outside Login.razor's scope */
 ::deep .sign-in-btn {
-    width: 95%;
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: #fff;
-    background: linear-gradient(90deg, #1d4ed8 0%, #7c3aed 100%);
-    border: none;
-    border-radius: 1rem;
-    cursor: pointer;
-    transition: filter 0.15s;
-    box-shadow: 0 2px 8px 0 rgba(80,80,80,0.10);
+  width: 95%;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #fff;
+  background: linear-gradient(90deg, #1d4ed8 0%, #7c3aed 100%);
+  border: none;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: filter 0.15s;
+  box-shadow: 0 2px 8px 0 rgba(80,80,80,0.10);
 }
 
-::deep .sign-in-btn:hover {
+  ::deep .sign-in-btn:hover {
     filter: brightness(1.08);
-}
+  }
 
 .copyright {
-    position: absolute;
-    bottom: 24px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    color: #bbb;
-    font-size: 1rem;
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #bbb;
+  font-size: 1rem;
 }

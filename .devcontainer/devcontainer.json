@@ -6,7 +6,7 @@
 	"image": "mcr.microsoft.com/devcontainers/dotnet:2-10.0-noble",
 	"features": {
 		"ghcr.io/nikiforovall/devcontainer-features/dotnet-csharpier:1": {},
-		"ghcr.io/daniellindemann/dev-container-features/dotnet-usersecrets-persistence:0": {}
+		"ghcr.io/daniellindemann/dev-container-features/dotnet-usersecrets-persistence:0.0.1": {}
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.

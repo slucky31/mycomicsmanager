@@ -21,7 +21,7 @@ public partial class NavBar : IDisposable
     public void Dispose()
     {
         Dispose(true);
-        GC.SuppressFinalize(this);        
+        GC.SuppressFinalize(this);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -43,6 +43,13 @@ public partial class NavBar : IDisposable
     private bool IsActive(string path)
     {
         var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        return relativePath.StartsWith(path.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
+        var trimmed = path.TrimStart('/');
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            return string.IsNullOrEmpty(relativePath);
+        }
+        return relativePath.Equals(trimmed, StringComparison.OrdinalIgnoreCase) || relativePath.StartsWith(trimmed + "/", StringComparison.OrdinalIgnoreCase);
     }
+
+
 }

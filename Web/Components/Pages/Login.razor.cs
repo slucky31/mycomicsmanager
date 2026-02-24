@@ -52,10 +52,10 @@ public sealed partial class Login : IDisposable
             if (Directory.Exists(backgroundDir))
             {
                 return Directory
-                    .EnumerateFiles(backgroundDir, "*.*", SearchOption.TopDirectoryOnly)                    
+                    .EnumerateFiles(backgroundDir, "*.*", SearchOption.TopDirectoryOnly)
                     .Where(f => IsValidImageFile(f))
                     .Take(MaxFiles)
-                    .Select(f => $"background/{SanitizeFileName(Path.GetFileName(f))}")
+                    .Select(f => $"background/{SanitizeFileName(f)}")
                     .ToArray();
             }
         }
@@ -74,10 +74,10 @@ public sealed partial class Login : IDisposable
     private static bool IsValidImageFile(string filePath)
     {
         var extension = Path.GetExtension(filePath);
-            return  extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                    extension.Equals(".webp", StringComparison.OrdinalIgnoreCase) ||
-                    extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                    extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
+        return extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".webp", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string SanitizeFileName(string fileName)
