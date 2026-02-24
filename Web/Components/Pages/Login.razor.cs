@@ -1,18 +1,22 @@
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Components;
 using Serilog;
 
 namespace Web.Components.Pages;
 
 public partial class Login
-{    
+{
 
-    private static readonly Lazy<string[]> s_backgroundImages = new(() => LoadBackgroundImages());
+    [Inject] private IWebHostEnvironment WebHostEnvironment { get; set; } = default!;
+    private string[]? _allBackgroundImages;
+
     private string? _selectedImage;
     private const int MaxFiles = 10;
 
     protected override void OnInitialized()
     {
-        var images = s_backgroundImages.Value;
+        _allBackgroundImages ??= LoadBackgroundImages(WebHostEnvironment.WebRootPath);
+        var images = _allBackgroundImages;
         if (images.Length == 0)
         {
             _selectedImage = string.Empty;
@@ -22,17 +26,17 @@ public partial class Login
         _selectedImage = images[RandomNumberGenerator.GetInt32(images.Length)];
     }
 
-    private static string[] LoadBackgroundImages()
+    private static string[] LoadBackgroundImages(string webRootPath)
     {
         try
         {
-            var backgroundDir = Path.Combine(Environment.CurrentDirectory, "wwwroot", "background");
+            var backgroundDir = Path.Combine(webRootPath, "background");
             if (Directory.Exists(backgroundDir))
             {
                 return Directory
-                    .EnumerateFiles(backgroundDir, "*.*", SearchOption.TopDirectoryOnly)
-                    .Take(MaxFiles)
+                    .EnumerateFiles(backgroundDir, "*.*", SearchOption.TopDirectoryOnly)                    
                     .Where(f => IsValidImageFile(f))
+                    .Take(MaxFiles)
                     .Select(f => $"background/{SanitizeFileName(Path.GetFileName(f))}")
                     .ToArray();
             }
