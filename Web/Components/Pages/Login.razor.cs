@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Serilog;
 
 namespace Web.Components.Pages;
 
@@ -38,7 +39,7 @@ public partial class Login
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading background images: {ex.Message}");
+            Log.Error($"Error loading background images: {ex.Message}");
         }
 
         return [];
