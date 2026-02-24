@@ -26,28 +26,27 @@ public partial class BooksList
 
     private List<Book> Books { get; set; } = [];
 
-    private string _searchTerm = string.Empty;
     private List<Book> _filteredBooks = [];
 
     private string SearchTerm
     {
-        get => _searchTerm;
+        get;
         set
         {
-            _searchTerm = value;
+            field = value;
             UpdateFilteredBooks();
         }
-    }
+    } = string.Empty;
 
     private IReadOnlyList<Book> FilteredBooks => _filteredBooks;
 
     private void UpdateFilteredBooks()
     {
-        _filteredBooks = string.IsNullOrWhiteSpace(_searchTerm)
+        _filteredBooks = string.IsNullOrWhiteSpace(SearchTerm)
             ? Books
             : Books.Where(b =>
-                b.Title.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)))
+                b.Title.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)))
               .ToList();
     }
 

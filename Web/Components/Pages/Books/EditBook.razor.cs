@@ -36,21 +36,38 @@ public partial class EditBook
         _loadError = false;
         StateHasChanged();
 
-        var result = await BooksService.GetById(BookId);
-
-        if (result.IsSuccess && result.Value is not null)
+        try
         {
-            _book = result.Value;
-            _bookModel = BookUiDto.Convert(result.Value);
+            var result = await BooksService.GetById(BookId);
+
+            if (result.IsSuccess && result.Value is not null)
+            {
+                _book = result.Value;
+                _bookModel = BookUiDto.Convert(result.Value);
+            }
+            else
+            {
+                _loadError = true;
+                Snackbar.Add("Book not found.", Severity.Error);
+                Log.Error("Error loading book {BookId}", BookId);
+            }
         }
-        else
+        catch (OperationCanceledException ex)
         {
             _loadError = true;
-            Snackbar.Add("Book not found.", Severity.Error);
-            Log.Error("Error loading book");
+            Snackbar.Add("The operation was cancelled.", Severity.Warning);
+            Log.Warning(ex, "Loading book {BookId} was cancelled", BookId);
         }
-
-        _isLoading = false;
+        catch (InvalidOperationException ex)
+        {
+            _loadError = true;
+            Snackbar.Add("An unexpected error occurred while loading the book.", Severity.Error);
+            Log.Error(ex, "Unexpected error loading book {BookId}", BookId);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     private async Task SaveBookAsync()

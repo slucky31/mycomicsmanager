@@ -74,10 +74,12 @@ public sealed partial class Login : IDisposable
     private static bool IsValidImageFile(string filePath)
     {
         var extension = Path.GetExtension(filePath);
-        return extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                extension.Equals(".webp", StringComparison.OrdinalIgnoreCase) ||
-                extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
+
+        return
+            extension.Equals(".png", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".webp", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string SanitizeFileName(string fileName)
