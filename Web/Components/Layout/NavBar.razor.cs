@@ -42,6 +42,7 @@ public partial class NavBar : IDisposable
 
     private bool IsActive(string path)
     {
-        return NavigationManager.Uri.Contains(path, StringComparison.OrdinalIgnoreCase);
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        return relativePath.StartsWith(path.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
     }
 }
