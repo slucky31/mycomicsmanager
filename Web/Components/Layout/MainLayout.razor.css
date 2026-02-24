@@ -8,15 +8,10 @@ main {
     flex: 1;
 }
 
-/* Mobile: Add padding for bottom navigation */
-::deep .mud-main-content {
-    padding-bottom: 80px;
-}
-
-/* Desktop: Remove bottom padding */
-@media (min-width: 960px) {
-    ::deep .mud-main-content {
-        padding-bottom: 0;
+/* Mobile: Add padding so content is not hidden behind the fixed bottom nav bar */
+@media (max-width: 959.95px) {
+    .page-body {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
     }
 }
 

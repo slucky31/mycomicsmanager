@@ -1,14 +1,5 @@
 @inherits LayoutComponentBase
 
-<style>
-    /* On mobile, push content above the fixed bottom nav bar */
-    @@media (max-width: 959.95px) {
-        .mud-main-content {
-            padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
-        }
-    }
-</style>
-
 <MudThemeProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
@@ -26,6 +17,8 @@
 <MudLayout>
     <NavBar />
     <MudMainContent>
-        @Body
+        <div class="page-body">
+            @Body
+        </div>
     </MudMainContent>    
 </MudLayout>
