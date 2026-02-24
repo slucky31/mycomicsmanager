@@ -97,7 +97,6 @@ public partial class BooksList
 
             if (res.IsSuccess)
             {
-                Snackbar.Add("Book deleted successfully", Severity.Success);
                 await LoadBooksAsync();
             }
             else

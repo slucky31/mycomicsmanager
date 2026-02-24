@@ -43,6 +43,11 @@ public partial class NavBar : IDisposable
     private bool IsActive(string path)
     {
         var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var queryOrFragmentIndex = relativePath.IndexOfAny(['?', '#']);
+        if (queryOrFragmentIndex >= 0)
+        {
+            relativePath = relativePath[..queryOrFragmentIndex];
+        }
         var trimmed = path.TrimStart('/');
         if (string.IsNullOrEmpty(trimmed))
         {

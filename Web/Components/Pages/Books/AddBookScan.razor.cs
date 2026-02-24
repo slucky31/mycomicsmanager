@@ -86,10 +86,10 @@ public sealed partial class AddBookScan : IAsyncDisposable
         {
             Snackbar.Add($"Invalid ISBN scanned: {isbn}", Severity.Error);
             _isbnDetected = false;
+            StateHasChanged();
             return;
         }
-
-        Snackbar.Add($"ISBN detected: {isbn}", Severity.Success);
+        
         NavigationManager.NavigateTo($"/books/add/form?isbn={Uri.EscapeDataString(isbn)}");
     }
 

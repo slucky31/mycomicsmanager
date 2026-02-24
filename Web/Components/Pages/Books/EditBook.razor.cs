@@ -63,7 +63,7 @@ public partial class EditBook
             _loadError = true;
             Snackbar.Add("An unexpected error occurred while loading the book.", Severity.Error);
             Log.Error(ex, "Unexpected error loading book {BookId}", BookId);
-        }
+        }        
         finally
         {
             _isLoading = false;
@@ -117,24 +117,36 @@ public partial class EditBook
 
     private async Task DeleteReadingDateAsync(Guid readingDateId)
     {
-        var confirmed = await DialogService.ShowConfirmationAsync(
-            "Confirm Deletion",
-            "Are you sure you want to delete this reading?",
-            "Delete");
-
-        if (confirmed)
+        try
         {
-            var res = await BooksService.DeleteReadingDate(BookId, readingDateId.ToString());
+            var confirmed = await DialogService.ShowConfirmationAsync(
+                "Confirm Deletion",
+                "Are you sure you want to delete this reading?",
+                "Delete");
 
-            if (res.IsSuccess)
+            if (confirmed)
             {
-                Snackbar.Add("Reading deleted.", Severity.Success);
-                await LoadBookAsync();
+                var res = await BooksService.DeleteReadingDate(BookId, readingDateId.ToString());
+
+                if (res.IsSuccess)
+                {
+                    await LoadBookAsync();
+                }
+                else
+                {
+                    Snackbar.Add($"Error: {res.Error?.Description}", Severity.Error);
+                }
             }
-            else
-            {
-                Snackbar.Add($"Error: {res.Error?.Description}", Severity.Error);
-            }
+        }
+        catch (OperationCanceledException ex)
+        {
+            Snackbar.Add("The operation was cancelled.", Severity.Warning);
+            Log.Warning(ex, "Delete reading date {ReadingDateId} for book {BookId} was cancelled", readingDateId, BookId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Snackbar.Add("An unexpected error occurred while deleting the reading.", Severity.Error);
+            Log.Error(ex, "Unexpected error deleting reading date {ReadingDateId} for book {BookId}", readingDateId, BookId);
         }
     }
 

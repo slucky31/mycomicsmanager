@@ -52,7 +52,6 @@ public partial class AddBookForm
                         PublishDate = _searchResult.PublishDate,
                         NumberOfPages = _searchResult.NumberOfPages
                     };
-                    Snackbar.Add($"Found: {_searchResult.Title}", Severity.Success);
                 }
                 else
                 {
@@ -112,7 +111,6 @@ public partial class AddBookForm
 
         if (result.IsSuccess)
         {
-            Snackbar.Add("Book added successfully!", Severity.Success);
             NavigationManager.NavigateTo("/books/list");
         }
         else

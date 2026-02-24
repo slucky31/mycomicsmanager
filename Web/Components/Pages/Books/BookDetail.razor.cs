@@ -67,7 +67,6 @@ public partial class BookDetail
 
             if (result.IsSuccess)
             {
-                Snackbar.Add("Lecture ajoutée.", Severity.Success);
                 _showAddReading = false;
                 _newRating = 1;
                 await LoadBookAsync();
