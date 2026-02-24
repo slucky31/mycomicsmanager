@@ -8,7 +8,6 @@ namespace Web.Components.Pages.Books;
 public partial class AddBookManual
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private string _isbn = string.Empty;
     private bool _hasError;
