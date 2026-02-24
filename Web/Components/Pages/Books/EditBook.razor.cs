@@ -36,26 +36,18 @@ public partial class EditBook
         _loadError = false;
         StateHasChanged();
 
-        try
-        {
-            var result = await BooksService.GetById(BookId);
+        var result = await BooksService.GetById(BookId);
 
-            if (result.IsSuccess && result.Value is not null)
-            {
-                _book = result.Value;
-                _bookModel = BookUiDto.Convert(result.Value);
-            }
-            else
-            {
-                _loadError = true;
-                Snackbar.Add("Book not found.", Severity.Error);
-            }
+        if (result.IsSuccess && result.Value is not null)
+        {
+            _book = result.Value;
+            _bookModel = BookUiDto.Convert(result.Value);
         }
-        catch (Exception ex)
+        else
         {
             _loadError = true;
-            Snackbar.Add("Error loading book", Severity.Error);
-            Log.Error(ex, "Error loading book");
+            Snackbar.Add("Book not found.", Severity.Error);
+            Log.Error("Error loading book");
         }
 
         _isLoading = false;
@@ -77,42 +69,33 @@ public partial class EditBook
         _isSaving = true;
         StateHasChanged();
 
-        try
-        {
-            var request = new UpdateBookRequest(
-                _bookModel.Id.ToString(),
-                _bookModel.Serie,
-                _bookModel.Title,
-                _bookModel.ISBN,
-                _bookModel.VolumeNumber,
-                _bookModel.ImageLink,
-                _bookModel.Authors,
-                _bookModel.Publishers,
-                _bookModel.PublishDate,
-                _bookModel.NumberOfPages
-            );
+        var request = new UpdateBookRequest(
+            _bookModel.Id.ToString(),
+            _bookModel.Serie,
+            _bookModel.Title,
+            _bookModel.ISBN,
+            _bookModel.VolumeNumber,
+            _bookModel.ImageLink,
+            _bookModel.Authors,
+            _bookModel.Publishers,
+            _bookModel.PublishDate,
+            _bookModel.NumberOfPages
+        );
 
-            var result = await BooksService.Update(request);
+        var result = await BooksService.Update(request);
 
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Book updated successfully!", Severity.Success);
-                NavigationManager.NavigateTo($"/books/{BookId}");
-            }
-            else
-            {
-                Snackbar.Add($"Failed to update book: {result.Error?.Description}", Severity.Error);
-            }
-        }
-        catch (Exception ex)
+        if (result.IsSuccess)
         {
-            Snackbar.Add($"Unexpected error: {ex.Message}", Severity.Error);
+            Snackbar.Add("Book updated successfully!", Severity.Success);
+            NavigationManager.NavigateTo($"/books/{BookId}");
         }
-        finally
+        else
         {
             _isSaving = false;
+            Snackbar.Add($"Failed to update book: {result.Error?.Description}", Severity.Error);
             StateHasChanged();
         }
+
     }
 
     private async Task DeleteReadingDateAsync(Guid readingDateId)
