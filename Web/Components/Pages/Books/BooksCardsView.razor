@@ -45,7 +45,8 @@
                             <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-family: monospace;">@book.ISBN</MudText>
                         </div>
                         @{
-                            var cardRating = book.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
+                                var lastRead = book.ReadingDates.MaxBy(rd => rd.Date);
+                                var cardRating = lastRead?.Rating ?? 0;
                         }
                         @if (cardRating > 0)
                         {
@@ -57,7 +58,7 @@
                     {
                         <div class="d-flex align-center gap-1 mt-auto pt-2">
                             <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Success" />
-                            <MudText Typo="Typo.caption" Color="Color.Success">Read @book.ReadingDates.MaxBy(rd => rd.Date)!.Date.ToString("MMM yyyy")</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Success">Read @lastRead!.Date.ToString("dd/MM/yyyy")</MudText>
                         </div>
                     }
                 </div>
