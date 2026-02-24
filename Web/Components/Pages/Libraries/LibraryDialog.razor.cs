@@ -10,7 +10,7 @@ public partial class LibraryDialog
     private IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter]
-    public LibraryUiDto library { get; set; } = new LibraryUiDto();
+    public LibraryUiDto Library { get; set; } = new LibraryUiDto();
 
     private MudForm? _form;
 
@@ -27,7 +27,7 @@ public partial class LibraryDialog
 
         if (_form.IsValid && MudDialog is not null)
         {
-            MudDialog.Close(DialogResult.Ok(library));
+            MudDialog.Close(DialogResult.Ok(Library));
         }
     }
 

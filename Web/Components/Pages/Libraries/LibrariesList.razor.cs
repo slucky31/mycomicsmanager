@@ -83,7 +83,7 @@ public partial class LibrariesList
         }
         parameters = new DialogParameters<LibraryDialog>
         {
-            { x => x.library, library }
+            { x => x.Library, library }
         };
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };

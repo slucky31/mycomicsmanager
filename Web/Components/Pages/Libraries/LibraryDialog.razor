@@ -3,9 +3,9 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm Model="@library" @ref="@_form" Validation="@(_libraryValidator.ValidateValue)" ValidationDelay="0">
-            <MudTextField @bind-Value="library.Name" For="@(() => library.Name)" Immediate="true" />
-            <MudTextField Value="library.RelativePath" For="@(() => library.RelativePath)" ReadOnly="true" />
+        <MudForm Model="@Library" @ref="@_form" Validation="@(_libraryValidator.ValidateValue)" ValidationDelay="0">
+            <MudTextField @bind-Value="Library.Name" For="@(() => Library.Name)" Immediate="true" />
+            <MudTextField Value="Library.RelativePath" For="@(() => Library.RelativePath)" ReadOnly="true" />
         </MudForm>
     </DialogContent>
     <DialogActions>
