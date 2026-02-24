@@ -11,4 +11,7 @@
 <h1>Welcome, @_username!</h1>
 You can only see this content if you're authenticated.
 <br />
-<img src="@_picture">
+@if (!string.IsNullOrWhiteSpace(_picture))
+{
+    <img src="@_picture" alt="User avatar">
+}

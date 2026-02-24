@@ -16,7 +16,7 @@ public partial class Admin
         {
             var state = await AuthenticationState;
 
-            _username = state?.User?.Identity?.Name ?? string.Empty;
+            _username = state?.User?.Identity?.Name ?? _username;
 
             _picture = state?.User?.Claims?
                         .Where(c => c.Type.Equals("picture", StringComparison.Ordinal))
