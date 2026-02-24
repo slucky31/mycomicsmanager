@@ -5,7 +5,7 @@ using Application.Helpers;
 
 namespace Web.Components.Pages.Books;
 
-public partial class AddBookScan : IAsyncDisposable
+public sealed partial class AddBookScan : IAsyncDisposable
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
@@ -130,6 +130,5 @@ public partial class AddBookScan : IAsyncDisposable
         }
 
         _dotNetObjectRef?.Dispose();
-        GC.SuppressFinalize(this);
     }
 }
