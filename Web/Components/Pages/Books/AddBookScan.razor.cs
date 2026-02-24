@@ -62,6 +62,10 @@ public sealed partial class AddBookScan : IAsyncDisposable
             {
                 // Ignore
             }
+            catch (JSException)
+            {
+                // Ignore
+            }
         }
         _isScanning = false;
     }

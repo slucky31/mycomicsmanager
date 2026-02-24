@@ -22,7 +22,10 @@
                 <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.ISBN</MudText>
             </MudTd>
             <MudTd DataLabel="Volume" Style="text-align: center;">
-                <MudChip T="string" Size="Size.Small" Color="Color.Default">@context.VolumeNumber</MudChip>
+                @if (context.VolumeNumber > 0)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default">@context.VolumeNumber</MudChip>
+                }
             </MudTd>
             <MudTd DataLabel="Rating" Style="text-align: center;">
                 @{

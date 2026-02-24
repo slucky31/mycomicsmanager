@@ -52,8 +52,15 @@ public partial class BookDetail
         {
             _loadError = true;
         }
-
-        _isLoading = false;
+        catch (Exception ex)
+        {
+            _loadError = true;
+            Log.Error(ex, "Unexpected error while loading book");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     private async Task AddReadingDateAsync()
@@ -78,7 +85,7 @@ public partial class BookDetail
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
-            Snackbar.Add($"Erreur inattendue", Severity.Error);
+            Snackbar.Add($"Unexpected error while adding reading date", Severity.Error);
             Log.Error(ex, "Unexpected error while adding reading date");
         }
         finally
