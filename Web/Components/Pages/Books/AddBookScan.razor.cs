@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
+using Application.Helpers;
 
 namespace Web.Components.Pages.Books;
 
@@ -90,7 +91,7 @@ public partial class AddBookScan : IAsyncDisposable
     [JSInvokable]
     public bool ValidateIsbn(string isbn)
     {
-        return Application.Helpers.IsbnHelper.IsValidISBN(isbn);
+        return IsbnHelper.IsValidISBN(isbn);
     }
 
     private async Task GoBackAsync()
