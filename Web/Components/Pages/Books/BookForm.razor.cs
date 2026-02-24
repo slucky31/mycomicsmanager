@@ -10,7 +10,7 @@ public partial class BookForm
     public BookUiDto Model { get; set; } = new();
 
     [Parameter]
-    public bool IsbnReadOnly { get; set; } = false;
+    public bool IsbnReadOnly { get; set; }
 
     [Parameter]
     public bool ShowRating { get; set; } = true;
