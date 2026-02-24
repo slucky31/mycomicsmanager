@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -67,12 +68,8 @@ public partial class ImportBook
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
             _loadError = true;
-        }
-        catch (Exception ex)
-        {
-            _loadError = true;
             Log.Error(ex, "Unexpected error loading book for import {BookId}", BookId);
-        }
+        }      
         finally
         {
             _isLoading = false;
@@ -107,7 +104,7 @@ public partial class ImportBook
                 _googleParsed = new ParsedTitleInfo(title, serie, volumeNumber);
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
             Log.Error(ex, "Error fetching web services for ISBN {ISBN}", _currentBook.ISBN);
         }
@@ -117,11 +114,11 @@ public partial class ImportBook
     {
         "title"         => _olParsed?.Title,
         "serie"         => _olParsed?.Serie,
-        "volumeNumber"  => _olParsed?.VolumeNumber.ToString(),
+        "volumeNumber"  => _olParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
         "authors"       => _olResult?.Found == true ? string.Join(", ", _olResult.Authors) : null,
         "publishers"    => _olResult?.Found == true ? string.Join(", ", _olResult.Publishers) : null,
         "publishDate"   => _olResult?.Found == true ? _olResult.PublishDate : null,
-        "numberOfPages" => _olResult?.Found == true ? _olResult.NumberOfPages?.ToString() : null,
+        "numberOfPages" => _olResult?.Found == true ? _olResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
         "cover"         => _olResult?.CoverUrl?.ToString(),
         _ => null
     };
@@ -130,11 +127,11 @@ public partial class ImportBook
     {
         "title"         => _googleParsed?.Title,
         "serie"         => _googleParsed?.Serie,
-        "volumeNumber"  => _googleParsed?.VolumeNumber.ToString(),
+        "volumeNumber"  => _googleParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
         "authors"       => _googleResult?.Found == true ? string.Join(", ", _googleResult.Authors) : null,
         "publishers"    => _googleResult?.Found == true ? string.Join(", ", _googleResult.Publishers) : null,
         "publishDate"   => _googleResult?.Found == true ? _googleResult.PublishDate : null,
-        "numberOfPages" => _googleResult?.Found == true ? _googleResult.NumberOfPages?.ToString() : null,
+        "numberOfPages" => _googleResult?.Found == true ? _googleResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
         "cover"         => _googleResult?.CoverUrl?.ToString(),
         _ => null
     };
@@ -166,11 +163,11 @@ public partial class ImportBook
     {
         "title"         => _currentBook?.Title,
         "serie"         => _currentBook?.Serie,
-        "volumeNumber"  => _currentBook?.VolumeNumber.ToString(),
+        "volumeNumber"  => _currentBook?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
         "authors"       => _currentBook?.Authors,
         "publishers"    => _currentBook?.Publishers,
-        "publishDate"   => _currentBook?.PublishDate?.ToString("dd/MM/yyyy"),
-        "numberOfPages" => _currentBook?.NumberOfPages?.ToString(),
+        "publishDate"   => _currentBook?.PublishDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
+        "numberOfPages" => _currentBook?.NumberOfPages?.ToString(CultureInfo.InvariantCulture),
         "cover"         => _currentBook?.ImageLink,
         _ => null
     };
@@ -180,7 +177,10 @@ public partial class ImportBook
 
     private async Task ApplyAndSaveAsync()
     {
-        if (_currentBook is null) return;
+        if (_currentBook is null)
+        {
+            return;
+        }
 
         _isSaving = true;
         StateHasChanged();
@@ -195,7 +195,7 @@ public partial class ImportBook
             ? vol
             : _currentBook.VolumeNumber;
 
-        DateOnly? publishDate = _currentBook.PublishDate;
+       var publishDate = _currentBook.PublishDate;
         var publishDateStr = GetResolvedValue("publishDate");
         if (!string.IsNullOrEmpty(publishDateStr) &&
             DateOnly.TryParse(publishDateStr, out var pd))
@@ -203,7 +203,7 @@ public partial class ImportBook
             publishDate = pd;
         }
 
-        int? numberOfPages = _currentBook.NumberOfPages;
+        var numberOfPages = _currentBook.NumberOfPages;
         var pagesStr = GetResolvedValue("numberOfPages");
         if (!string.IsNullOrEmpty(pagesStr) && int.TryParse(pagesStr, out var pages))
         {

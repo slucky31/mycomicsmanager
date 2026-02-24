@@ -51,12 +51,8 @@ public partial class BookDetail
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
             _loadError = true;
-        }
-        catch (Exception ex)
-        {
-            _loadError = true;
             Log.Error(ex, "Unexpected error while loading book");
-        }
+        }        
         finally
         {
             _isLoading = false;
