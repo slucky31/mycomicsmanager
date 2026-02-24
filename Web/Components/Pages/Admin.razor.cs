@@ -9,12 +9,12 @@ public partial class Admin
     private string _picture = "";
 
     [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
     protected override async Task OnInitializedAsync()
     {
-        if (authenticationState is not null)
+        if (AuthenticationState is not null)
         {
-            var state = await authenticationState;
+            var state = await AuthenticationState;
 
             _username = state?.User?.Identity?.Name ?? string.Empty;
 
