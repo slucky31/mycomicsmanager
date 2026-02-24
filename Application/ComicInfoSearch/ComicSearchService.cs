@@ -84,6 +84,13 @@ public partial class ComicSearchService : IComicSearchService
         }
     }
 
+    public (string Title, string Serie, int VolumeNumber) ParseTitleInfo(string rawTitle, string? subtitle)
+    {
+        var (serie, volumeNumber) = ParseVolumeAndSerie(rawTitle);
+        var title = string.IsNullOrEmpty(subtitle) ? serie : subtitle;
+        return (title, serie, volumeNumber);
+    }
+
     private async Task<ComicSearchResult> MapBookResultToComicSearchResultAsync(
         IBookSearchResult bookResult,
         string isbn,

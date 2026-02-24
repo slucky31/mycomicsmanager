@@ -35,6 +35,7 @@
                             }
                         </div>
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" @onclick:stopPropagation="true">
+                            <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" Href="@($"/books/{book.Id}/import")">Import from Web</MudMenuItem>
                             <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
                             <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(book.Id))">Delete</MudMenuItem>
                         </MudMenu>

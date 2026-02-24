@@ -94,10 +94,9 @@ public partial class BookDetail
         }
     }
 
-    private void EditBook()
-    {
-        NavigationManager.NavigateTo($"/books/{BookId}/edit");
-    }
+    private void ImportFromWeb() => NavigationManager.NavigateTo($"/books/{BookId}/import");
+
+    private void EditBook() => NavigationManager.NavigateTo($"/books/{BookId}/edit");
 
     private async Task DeleteBookAsync()
     {

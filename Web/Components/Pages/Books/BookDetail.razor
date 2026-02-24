@@ -33,6 +33,9 @@
             @if (_book is not null)
             {
                 <div class="d-flex gap-2">
+                    <MudIconButton Icon="@Icons.Material.Filled.CloudDownload"
+                                   Color="Color.Inherit"
+                                   OnClick="ImportFromWeb" />
                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                    Color="Color.Inherit"
                                    OnClick="EditBook" />
@@ -249,21 +252,30 @@
                         </div>
 
                         @* Action buttons (for mobile) *@
-                        <div class="d-flex gap-2 mt-6 d-sm-none">
+                        <div class="d-flex flex-column gap-2 mt-6 d-sm-none">
                             <MudButton Variant="Variant.Outlined"
-                                       Color="Color.Primary"
-                                       StartIcon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Secondary"
+                                       StartIcon="@Icons.Material.Filled.CloudDownload"
                                        FullWidth="true"
-                                       OnClick="EditBook">
-                                Edit
+                                       OnClick="ImportFromWeb">
+                                Import from Web
                             </MudButton>
-                            <MudButton Variant="Variant.Outlined"
-                                       Color="Color.Error"
-                                       StartIcon="@Icons.Material.Filled.Delete"
-                                       FullWidth="true"
-                                       OnClick="DeleteBookAsync">
-                                Delete
-                            </MudButton>
+                            <div class="d-flex gap-2">
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.Edit"
+                                           FullWidth="true"
+                                           OnClick="EditBook">
+                                    Edit
+                                </MudButton>
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Error"
+                                           StartIcon="@Icons.Material.Filled.Delete"
+                                           FullWidth="true"
+                                           OnClick="DeleteBookAsync">
+                                    Delete
+                                </MudButton>
+                            </div>
                         </div>
                     </MudItem>
                 </MudGrid>
