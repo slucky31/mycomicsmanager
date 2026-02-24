@@ -1,4 +1,4 @@
-::deep .landing-background {
+.landing-background {
     min-height: 100vh;
     width: 100vw;
     background-size: cover;
@@ -8,7 +8,7 @@
     z-index: -1;
 }
 
-::deep .fixed-login-column {
+.fixed-login-column {
   position: fixed;
   top: 0;
   right: 0;
@@ -23,13 +23,13 @@
   box-shadow: -4px 0 32px 0 rgba(0,0,0,0.18);
 }
 
-::deep .logo-square img {
+.logo-square img {
     width: 100px;
     height: 100px;
     margin-bottom: 1rem;
 }
 
-::deep .app-title {
+.app-title {
     font-size: 2.5rem;
     font-weight: 400;
     color: #fff;
@@ -38,7 +38,7 @@
     margin-bottom: 1rem;
 }
 
-::deep .subtitle {
+.subtitle {
     font-size: 1.15rem;
     color: #e0e0e0;
     margin-bottom: 1rem;
@@ -46,6 +46,7 @@
     font-family: 'Segoe UI', Arial, sans-serif;
 }
 
+/* ::deep is required here: MudButton renders its HTML outside Login.razor's scope */
 ::deep .sign-in-btn {
     width: 95%;
     font-size: 1.25rem;
@@ -63,7 +64,7 @@
     filter: brightness(1.08);
 }
 
-::deep .copyright {
+.copyright {
     position: absolute;
     bottom: 24px;
     left: 0;
