@@ -25,7 +25,7 @@ public class OpenLibraryService : IOpenLibraryService
 
         try
         {
-            
+
             var url = new Uri($"{BaseUrl}/isbn/{cleanIsbn}.json");
 
             Log.Information("Searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);

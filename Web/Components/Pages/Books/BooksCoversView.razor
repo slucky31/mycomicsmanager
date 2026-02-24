@@ -1,0 +1,55 @@
+@using Domain.Books
+
+<div>
+<MudGrid Spacing="3">
+    @foreach (var book in Books)
+    {
+            <MudItem @key="book.Id" xs="6" sm="4" md="3" lg="2">
+            <MudPaper Class="book-cover-card" Elevation="4">
+                @if (!string.IsNullOrEmpty(book.ImageLink))
+                {
+                    <MudImage Src="@book.ImageLink" Alt="@book.Title" Class="book-cover-image" />
+                }
+                else
+                {
+                    <div class="book-cover-placeholder">
+                        <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Style="opacity: 0.8; margin-bottom: 8px;" />
+                        <MudText Typo="Typo.subtitle2" Class="font-weight-bold">@book.Title</MudText>
+                        @if (!string.IsNullOrEmpty(book.Serie))
+                        {
+                            <MudText Typo="Typo.caption" Style="opacity: 0.8;">@book.Serie</MudText>
+                        }
+                    </div>
+                }
+
+                @if (book.VolumeNumber > 0)
+                {
+                    <div class="book-cover-badge">
+                        <MudText Typo="Typo.caption" Style="color: white; font-weight: 600;">Vol. @book.VolumeNumber</MudText>
+                    </div>
+                }
+
+                <div class="book-cover-actions">
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Visibility" Href="@($"/books/{book.Id}")">View</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(book.Id))">Delete</MudMenuItem>
+                    </MudMenu>
+                </div>
+
+                <div class="book-cover-overlay">
+                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Style="color: white; line-height: 1.2;">@book.Title</MudText>
+                    @if (!string.IsNullOrEmpty(book.Serie))
+                    {
+                        <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.8);">@book.Serie</MudText>
+                    }
+                    @{
+                        var coverRating = book.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
+                    }
+                    <MudRating SelectedValue="@coverRating" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />                    
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+</div>

@@ -55,7 +55,6 @@ public partial class LibrariesList
         }
         else
         {
-            Snackbar.Add(Msg_LibCorrectlyDeleted, Severity.Success);
             await ReloadDataAsync();
         }
 
@@ -83,7 +82,7 @@ public partial class LibrariesList
         }
         parameters = new DialogParameters<LibraryDialog>
         {
-            { x => x.library, library }
+            { x => x.Library, library }
         };
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
@@ -136,11 +135,7 @@ public partial class LibrariesList
                 return;
         }
 
-        if (resultCreateOrEdit.IsSuccess)
-        {
-            Snackbar.Add(successMessage, Severity.Success);
-        }
-        else
+        if (!resultCreateOrEdit.IsSuccess)
         {
             Guard.Against.Null(resultCreateOrEdit.Error);
             Guard.Against.Null(resultCreateOrEdit.Error.Description);

@@ -1,0 +1,131 @@
+.add-book-scan-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+}
+
+::deep .scanner-video-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+::deep .scanner-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+::deep .scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+::deep .scanner-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 24px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    pointer-events: auto;
+    z-index: 10;
+}
+
+::deep .scanner-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    text-align: center;
+    pointer-events: auto;
+    z-index: 10;
+}
+
+::deep .scanner-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 300px;
+    aspect-ratio: 3/1;
+    border: 3px solid var(--mud-palette-warning);
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+}
+
+::deep .scanner-guide-corner {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-color: white;
+    border-style: solid;
+}
+
+::deep .scanner-guide-corner.top-left {
+    top: -2px;
+    left: -2px;
+    border-width: 4px 0 0 4px;
+    border-radius: 10px 0 0 0;
+}
+
+::deep .scanner-guide-corner.top-right {
+    top: -2px;
+    right: -2px;
+    border-width: 4px 4px 0 0;
+    border-radius: 0 10px 0 0;
+}
+
+::deep .scanner-guide-corner.bottom-left {
+    bottom: -2px;
+    left: -2px;
+    border-width: 0 0 4px 4px;
+    border-radius: 0 0 0 10px;
+}
+
+::deep .scanner-guide-corner.bottom-right {
+    bottom: -2px;
+    right: -2px;
+    border-width: 0 4px 4px 0;
+    border-radius: 0 0 10px 0;
+}
+
+::deep .scanner-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--mud-palette-warning), transparent);
+    animation: isbn-scanner-line 2s ease-in-out infinite;
+}
+
+@keyframes isbn-scanner-line {
+    0%, 100% { top: 20%; opacity: 0; }
+    50% { top: 80%; opacity: 1; }
+}
+
+::deep .scanner-guide.detected {
+    border-color: var(--mud-palette-success);
+}
+
+::deep .scanner-guide.detected .scanner-line {
+    background: linear-gradient(90deg, transparent, var(--mud-palette-success), transparent);
+}

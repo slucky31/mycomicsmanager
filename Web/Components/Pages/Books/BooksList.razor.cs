@@ -6,7 +6,7 @@ using Web.Services;
 
 namespace Web.Components.Pages.Books;
 
-public enum ViewMode
+internal enum ViewMode
 {
     Cards,
     Covers,
@@ -26,6 +26,30 @@ public partial class BooksList
 
     private List<Book> Books { get; set; } = [];
 
+    private List<Book> _filteredBooks = [];
+
+    private string SearchTerm
+    {
+        get;
+        set
+        {
+            field = value;
+            UpdateFilteredBooks();
+        }
+    } = string.Empty;
+
+    private IReadOnlyList<Book> FilteredBooks => _filteredBooks;
+
+    private void UpdateFilteredBooks()
+    {
+        _filteredBooks = string.IsNullOrWhiteSpace(SearchTerm)
+            ? Books
+            : Books.Where(b =>
+                b.Title.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)))
+              .ToList();
+    }
+
     private ViewMode CurrentViewMode { get; set; } = ViewMode.Cards;
 
     protected override async Task OnInitializedAsync()
@@ -39,6 +63,7 @@ public partial class BooksList
         if (result.IsSuccess && result.Value is not null)
         {
             Books = result.Value;
+            UpdateFilteredBooks();
             StateHasChanged();
         }
         else
@@ -72,7 +97,6 @@ public partial class BooksList
 
             if (res.IsSuccess)
             {
-                Snackbar.Add("Book deleted successfully", Severity.Success);
                 await LoadBooksAsync();
             }
             else

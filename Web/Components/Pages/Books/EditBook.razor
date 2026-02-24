@@ -7,30 +7,6 @@
 @using Web.Services
 @using Web.Validators
 
-@inject NavigationManager NavigationManager
-@inject IBooksService BooksService
-@inject IDialogService DialogService
-@inject ISnackbar Snackbar
-
-<style>
-    .edit-book-page {
-        min-height: 100vh;
-        background: var(--mud-palette-background);
-    }
-
-    .edit-book-header {
-        background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
-        padding: 16px 24px;
-        color: white;
-    }
-
-    .edit-book-content {
-        padding: 24px;
-        max-width: 800px;
-        margin: 0 auto;
-    }
-</style>
-
 <div class="edit-book-page">
     @* Header *@
     <div class="edit-book-header">
@@ -116,7 +92,7 @@
             @if (_book is not null)
             {
                 <MudPaper Class="pa-6 rounded-lg mt-4" Elevation="2">
-                    <MudText Typo="Typo.h6" Class="mb-4">Lectures</MudText>
+                    <MudText Typo="Typo.h6" Class="mb-4">Reading History</MudText>
                     @if (_book.ReadingDates.Any())
                     {
                         @foreach (var rd in _book.ReadingDates.OrderByDescending(r => r.Date))
@@ -135,140 +111,10 @@
                     }
                     else
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Aucune lecture enregistrée.</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">No readings recorded.</MudText>
                     }
                 </MudPaper>
             }
         }
     </div>
 </div>
-
-@code {
-    [Parameter]
-    public string BookId { get; set; } = string.Empty;
-
-    private BookForm? _bookForm;
-    private BookUiDto? _bookModel;
-    private Book? _book;
-    private bool _isLoading = true;
-    private bool _loadError;
-    private bool _isSaving;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadBookAsync();
-    }
-
-    private async Task LoadBookAsync()
-    {
-        _isLoading = true;
-        _loadError = false;
-        StateHasChanged();
-
-        try
-        {
-            var result = await BooksService.GetById(BookId);
-
-            if (result.IsSuccess && result.Value is not null)
-            {
-                _book = result.Value;
-                _bookModel = BookUiDto.Convert(result.Value);
-            }
-            else
-            {
-                _loadError = true;
-                Snackbar.Add("Book not found.", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            _loadError = true;
-            Snackbar.Add($"Error loading book: {ex.Message}", Severity.Error);
-        }
-
-        _isLoading = false;
-    }
-
-    private async Task SaveBookAsync()
-    {
-        if (_bookForm is null || _bookModel is null) return;
-
-        var isValid = await _bookForm.ValidateAsync();
-        if (!isValid) return;
-
-        _isSaving = true;
-        StateHasChanged();
-
-        try
-        {
-            var request = new UpdateBookRequest(
-                _bookModel.Id.ToString(),
-                _bookModel.Serie,
-                _bookModel.Title,
-                _bookModel.ISBN,
-                _bookModel.VolumeNumber,
-                _bookModel.ImageLink,
-                _bookModel.Authors,
-                _bookModel.Publishers,
-                _bookModel.PublishDate,
-                _bookModel.NumberOfPages
-            );
-
-            var result = await BooksService.Update(request);
-
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Book updated successfully!", Severity.Success);
-                NavigationManager.NavigateTo($"/books/{BookId}");
-            }
-            else
-            {
-                Snackbar.Add($"Failed to update book: {result.Error?.Description}", Severity.Error);
-            }
-        }
-        finally
-        {
-            _isSaving = false;
-        }
-    }
-
-    private async Task DeleteReadingDateAsync(Guid readingDateId)
-    {
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ConfirmationMessage, "Voulez-vous vraiment supprimer cette lecture ?" },
-            { x => x.ActionText, "Supprimer" },
-            { x => x.ColorConfirmButton, Color.Error }
-        };
-
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.ExtraSmall,
-            CloseButton = false
-        };
-
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirmer la suppression", parameters, options);
-        var result = await dialog.Result;
-
-        if (result is not null && result.Data is not null && !result.Canceled)
-        {
-            var res = await BooksService.DeleteReadingDate(BookId, readingDateId.ToString());
-
-            if (res.IsSuccess)
-            {
-                Snackbar.Add("Lecture supprimée.", Severity.Success);
-                await LoadBookAsync();
-            }
-            else
-            {
-                Snackbar.Add($"Erreur : {res.Error?.Description}", Severity.Error);
-            }
-        }
-    }
-
-    private void GoBack()
-    {
-        NavigationManager.NavigateTo($"/books/{BookId}");
-    }
-}

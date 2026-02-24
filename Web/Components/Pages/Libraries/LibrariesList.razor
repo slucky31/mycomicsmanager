@@ -5,17 +5,11 @@
 
 @page "/libraries/list"
 
-<style>
-    .blue-left-border {
-        border-left: 4px solid #1976d2; /* Material Blue 700 */
-    }
-</style>
-
 <PageWithAction Title="Libraries" Icon="@Icons.Material.Filled.CollectionsBookmark" ActionName="New library" ActionIcon="@Icons.Material.Filled.Add" OnActionClick="@(e => CreateOrEditAsync(FormMode.Create, null))">
     <MudGrid Spacing="4" Justify="Justify.FlexStart">
         @foreach (var lib in Libraries)
         {
-            <MudItem xs="12" sm="6" md="3">
+            <MudItem @key="lib.Id" xs="12" sm="6" md="3">
                 <MudCard Class="blue-left-border" Outlined="true">
                     <MudCardHeader>
                         <CardHeaderContent>

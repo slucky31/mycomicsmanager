@@ -36,7 +36,7 @@ public partial class ComicSearchService : IComicSearchService
 
         try
         {
-            
+
 
             // Try OpenLibrary first
             var result = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);

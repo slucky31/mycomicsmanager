@@ -1,0 +1,16 @@
+::deep .book-list-row {
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+::deep .book-list-row:hover {
+    background-color: var(--mud-palette-action-default-hover);
+    transform: translateX(4px);
+}
+
+
+::deep .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+}

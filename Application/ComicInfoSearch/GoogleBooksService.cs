@@ -28,7 +28,7 @@ public class GoogleBooksService : IGoogleBooksService
 
         try
         {
-            
+
             var url = new Uri(_settings.BaseUrl + SearchPath + cleanIsbn);
 
             Log.Information("Searching Google Books for ISBN: {Isbn}", cleanIsbn);
