@@ -4,7 +4,7 @@
 <MudGrid Spacing="3">
     @foreach (var book in Books)
     {
-        <MudItem xs="6" sm="4" md="3" lg="2">
+            <MudItem @key="book.Id" xs="6" sm="4" md="3" lg="2">
             <MudPaper Class="book-cover-card" Elevation="4">
                 @if (!string.IsNullOrEmpty(book.ImageLink))
                 {

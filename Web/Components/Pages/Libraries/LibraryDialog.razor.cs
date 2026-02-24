@@ -10,7 +10,7 @@ public partial class LibraryDialog
     private IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter]
-    public LibraryUiDto Library { get; set; } = new LibraryUiDto();
+    public LibraryUiDto Library { get; set; } = new();
 
     private MudForm? _form;
 
