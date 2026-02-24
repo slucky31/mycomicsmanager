@@ -6,7 +6,7 @@ using Web.Services;
 
 namespace Web.Components.Pages.Books;
 
-public enum ViewMode
+internal enum ViewMode
 {
     Cards,
     Covers,
