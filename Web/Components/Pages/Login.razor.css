@@ -21,6 +21,7 @@
   background: rgba(20,20,20,0.65);
   z-index: 10;
   box-shadow: -4px 0 32px 0 rgba(0,0,0,0.18);
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 .logo-square img {
@@ -34,7 +35,6 @@
     font-weight: 400;
     color: #fff;
     letter-spacing: 0.01em;
-    font-family: 'Segoe UI', Arial, sans-serif;
     margin-bottom: 1rem;
 }
 
@@ -43,7 +43,6 @@
     color: #e0e0e0;
     margin-bottom: 1rem;
     text-align: center;
-    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 /* ::deep is required here: MudButton renders its HTML outside Login.razor's scope */
