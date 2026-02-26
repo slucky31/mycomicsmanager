@@ -42,7 +42,7 @@ public class OpenLibraryServiceTests
         result.Title.Should().Be("Le Jardin secret - Tome 1");
         result.Authors.Should().ContainSingle().Which.Should().Be("Test Author");
         result.Publishers.Should().ContainSingle().Which.Should().Be("DARGAUD");
-        result.PublishDate.Should().Be("Apr 23, 2021");
+        result.PublishDate.Should().Be(new DateOnly(2021, 4, 23));
         result.NumberOfPages.Should().Be(96);
         result.CoverUrl.Should().NotBeNull();
         result.CoverUrl!.ToString().Should().Be("https://covers.openlibrary.org/b/id/10874957-L.jpg");

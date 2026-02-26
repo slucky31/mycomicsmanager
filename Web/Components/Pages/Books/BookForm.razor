@@ -1,3 +1,4 @@
+@using Application.Helpers
 @using Web.Validators
 
 <MudForm @ref="_form" Model="@Model" Validation="@(_bookValidator.ValidateValue)">
@@ -109,8 +110,8 @@
                                        Label="Publish Date"
                                        Variant="Variant.Outlined"
                                        Editable="true"
-                                       DateFormat="dd/MM/yyyy"
-                                       Placeholder="dd/MM/yyyy"
+                                       DateFormat="@PublishDateHelper.DisplayFormat"
+                                       Placeholder="@PublishDateHelper.DisplayFormat"
                                        Adornment="Adornment.Start"
                                        AdornmentIcon="@Icons.Material.Filled.CalendarMonth" />
                     </MudItem>

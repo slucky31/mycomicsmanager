@@ -64,7 +64,7 @@ public class OpenLibraryService : IOpenLibraryService
                 Subtitle: bookData.Subtitle,
                 Authors: authors,
                 Publishers: bookData.Publishers ?? [],
-                PublishDate: bookData.PublishDate,
+                PublishDate: PublishDateHelper.ParsePublishDate(bookData.PublishDate),
                 NumberOfPages: bookData.NumberOfPages,
                 CoverUrl: coverUrl,
                 Found: true

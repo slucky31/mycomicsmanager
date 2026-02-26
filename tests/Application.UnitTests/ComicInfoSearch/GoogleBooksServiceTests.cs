@@ -59,7 +59,7 @@ public sealed class GoogleBooksServiceTests
         result.Authors.Should().Contain("Jim");
         result.Authors.Should().Contain("Pierre Brochard");
         result.Publishers.Should().ContainSingle().Which.Should().Be("DARGAUD");
-        result.PublishDate.Should().Be("2021-04-23");
+        result.PublishDate.Should().Be(new DateOnly(2021, 4, 23));
         result.NumberOfPages.Should().Be(96);
         result.Description.Should().Be("A beautiful comic about gardens.");
         result.Categories.Should().ContainSingle().Which.Should().Be("Comics & Graphic Novels");
@@ -618,7 +618,7 @@ public sealed class GoogleBooksServiceTests
         result.Title.Should().Be("Fullmetal Alchemist Tome 23");
         result.Authors.Should().ContainSingle().Which.Should().Be("Hiromu Arakawa");
         result.Publishers.Should().ContainSingle().Which.Should().Be("Kurokawa");
-        result.PublishDate.Should().Be("2010-04-08");
+        result.PublishDate.Should().Be(new DateOnly(2010, 4, 8));
         result.NumberOfPages.Should().Be(176);
         result.Language.Should().Be("fr");
     }

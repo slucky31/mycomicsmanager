@@ -6,7 +6,7 @@ public interface IBookSearchResult
     string? Subtitle { get; }
     IReadOnlyList<string> Authors { get; }
     IReadOnlyList<string> Publishers { get; }
-    string? PublishDate { get; }
+    DateOnly? PublishDate { get; }
     int? NumberOfPages { get; }
     Uri? CoverUrl { get; }
     bool Found { get; }

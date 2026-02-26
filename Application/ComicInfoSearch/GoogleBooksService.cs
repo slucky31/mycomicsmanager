@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Application.Helpers;
 using Application.Interfaces;
 using Microsoft.Extensions.Options;
 
@@ -77,7 +78,7 @@ public class GoogleBooksService : IGoogleBooksService
                 Subtitle: volumeInfo.Subtitle,
                 Authors: volumeInfo.Authors ?? [],
                 Publishers: publishers,
-                PublishDate: volumeInfo.PublishedDate,
+                PublishDate: PublishDateHelper.ParsePublishDate(volumeInfo.PublishedDate),
                 NumberOfPages: volumeInfo.PageCount,
                 CoverUrl: coverUrl,
                 Description: volumeInfo.Description,

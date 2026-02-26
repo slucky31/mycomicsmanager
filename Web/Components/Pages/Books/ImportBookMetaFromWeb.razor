@@ -1,0 +1,193 @@
+@page "/books/{BookId}/import"
+@rendermode InteractiveServer
+
+@using Application.Helpers
+@using Application.Interfaces
+@using Web.Services
+@using Web.Validators
+
+<div class="import-page">
+
+    @* ── Header ── *@
+    <div class="import-header">
+        <div class="d-flex align-center gap-3">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           Color="Color.Inherit"
+                           OnClick="Cancel" />
+            <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
+                Import from Web
+            </MudText>
+        </div>
+    </div>
+
+    @* ── Body ── *@
+    <div class="import-content">
+        @if (_isLoading)
+        {
+            <div class="d-flex flex-column align-center justify-center pa-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">Loading…</MudText>
+            </div>
+        }
+        else if (_loadError || _currentBook is null)
+        {
+            <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Error" Style="font-size: 80px; opacity: 0.5;" />
+                <MudText Typo="Typo.h6" Color="Color.Error" Class="mt-4">Book not found</MudText>
+                <MudButton Class="mt-4" OnClick="Cancel">Go Back</MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            
+                RenderFragment SourceOption(BookSource source, string label, string? value) =>
+                @<MudRadio T="BookSource" Value="@source" Dense="true" Disabled="@(value is null)">
+                    <div class="import-option">
+                        <span class="import-source-label">@label</span>
+                        <span class="import-source-value">@(value ?? "—")</span>
+                    </div>
+                </MudRadio>;
+            
+
+            <div class="import-fields">
+
+                @* TITLE *@
+                <div class="import-field-card">
+                    <div class="import-field-label">TITLE</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedTitle" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.Title)
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Title))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Title))
+                    </MudRadioGroup>
+                </div>
+
+                @* SERIE *@
+                <div class="import-field-card">
+                    <div class="import-field-label">SERIE</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedSerie" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Serie))
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Serie))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Serie))
+                    </MudRadioGroup>
+                </div>
+
+                @* VOLUME NUMBER *@
+                <div class="import-field-card">
+                    <div class="import-field-label">VOLUME NUMBER</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedVolumeNumber" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.VolumeNumber.ToString())
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.VolumeNumber))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.VolumeNumber))
+                    </MudRadioGroup>
+                </div>
+
+                @* AUTHORS *@
+                <div class="import-field-card">
+                    <div class="import-field-label">AUTHORS</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedAuthors" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Authors))
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Authors))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Authors))
+                    </MudRadioGroup>
+                </div>
+
+                @* PUBLISHERS *@
+                <div class="import-field-card">
+                    <div class="import-field-label">PUBLISHERS</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishers" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Publishers))
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Publishers))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Publishers))
+                    </MudRadioGroup>
+                </div>
+
+                @* PUBLISH DATE *@
+                <div class="import-field-card">
+                    <div class="import-field-label">PUBLISH DATE</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishDate" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.PublishDate?.ToString(PublishDateHelper.DisplayFormat))
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.PublishDate))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.PublishDate))
+                    </MudRadioGroup>
+                </div>
+
+                @* NUMBER OF PAGES *@
+                <div class="import-field-card">
+                    <div class="import-field-label">NUMBER OF PAGES</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedNumberOfPages" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.NumberOfPages?.ToString())
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.NumberOfPages))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.NumberOfPages))
+                    </MudRadioGroup>
+                </div>
+
+                @* COVER IMAGE *@
+                <div class="import-field-card">
+                    <div class="import-field-label">COVER IMAGE</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedCover" Class="import-radio-group">
+                        <MudRadio T="BookSource" Value="BookSource.Current" Dense="true">
+                            <div class="import-option">
+                                <span class="import-source-label">CURRENT</span>
+                                @if (!string.IsNullOrEmpty(_currentBook.ImageLink))
+                                {
+                                    <img src="@_currentBook.ImageLink" class="import-cover-thumb" alt="current cover" />
+                                }
+                                else
+                                {
+                                    <span class="import-source-value">—</span>
+                                }
+                            </div>
+                        </MudRadio>
+                        <MudRadio T="BookSource" Value="BookSource.OpenLibrary" Dense="true" Disabled="@(_olResult?.CoverUrl is null)">
+                            <div class="import-option">
+                                <span class="import-source-label">OPENLIBRARY</span>
+                                @if (_olResult?.CoverUrl is not null)
+                                {
+                                    <img src="@_olResult.CoverUrl" class="import-cover-thumb" alt="openlibrary cover" />
+                                }
+                                else
+                                {
+                                    <span class="import-source-value">—</span>
+                                }
+                            </div>
+                        </MudRadio>
+                        <MudRadio T="BookSource" Value="BookSource.Google" Dense="true" Disabled="@(_googleResult?.CoverUrl is null)">
+                            <div class="import-option">
+                                <span class="import-source-label">GOOGLE BOOKS</span>
+                                @if (_googleResult?.CoverUrl is not null)
+                                {
+                                    <img src="@_googleResult.CoverUrl" class="import-cover-thumb" alt="google cover" />
+                                }
+                                else
+                                {
+                                    <span class="import-source-value">—</span>
+                                }
+                            </div>
+                        </MudRadio>
+                    </MudRadioGroup>
+                </div>
+
+            </div>
+
+            @* ── Actions ── *@
+            <div class="import-actions">
+                <MudButton Variant="Variant.Text"
+                           OnClick="Cancel"
+                           Disabled="_isSaving">
+                    Cancel
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Save"
+                           OnClick="ApplyAndSaveAsync"
+                           Disabled="_isSaving">
+                    @if (_isSaving)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    Apply &amp; Save
+                </MudButton>
+            </div>
+        }
+    </div>
+</div>

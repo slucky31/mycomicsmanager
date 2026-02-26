@@ -1,6 +1,7 @@
 @page "/books/{BookId}"
 @rendermode InteractiveServer
 
+@using Application.Helpers
 @using Domain.Books
 @using Microsoft.AspNetCore.Components
 @using Web.Components.Pages.Dialogs
@@ -33,6 +34,9 @@
             @if (_book is not null)
             {
                 <div class="d-flex gap-2">
+                    <MudIconButton Icon="@Icons.Material.Filled.CloudDownload"
+                                   Color="Color.Inherit"
+                                   OnClick="ImportFromWeb" />
                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                    Color="Color.Inherit"
                                    OnClick="EditBook" />
@@ -157,7 +161,7 @@
                                     <MudIcon Icon="@Icons.Material.Filled.Event" Color="Color.Secondary" />
                                     <div>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">Publish Date</MudText>
-                                        <MudText Typo="Typo.body1">@_book.PublishDate.Value.ToString("dd/MM/yyyy")</MudText>
+                                        <MudText Typo="Typo.body1">@_book.PublishDate.Value.ToString(PublishDateHelper.DisplayFormat)</MudText>
                                     </div>
                                 </div>
                             }
@@ -185,7 +189,7 @@
                                         {
                                             <div class="d-flex align-center gap-2 mt-1">
                                                 <MudRating SelectedValue="@rd.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" />
-                                                <MudText Typo="Typo.body2">@rd.Date.ToString("dd/MM/yyyy")</MudText>
+                                                <MudText Typo="Typo.body2">@rd.Date.ToString(PublishDateHelper.DisplayFormat)</MudText>
                                             </div>
                                         }
                                     }
@@ -231,7 +235,7 @@
                                 <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" />
                                 <div>
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">Added to Collection</MudText>
-                                    <MudText Typo="Typo.body1">@_book.CreatedOnUtc.ToString("dd/MM/yyyy")</MudText>
+                                    <MudText Typo="Typo.body1">@_book.CreatedOnUtc.ToString(PublishDateHelper.DisplayFormat)</MudText>
                                 </div>
                             </div>
 
@@ -242,28 +246,37 @@
                                     <MudIcon Icon="@Icons.Material.Filled.EditCalendar" Color="Color.Secondary" />
                                     <div>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">Last Modified</MudText>
-                                        <MudText Typo="Typo.body1">@_book.ModifiedOnUtc.Value.ToString("dd/MM/yyyy")</MudText>
+                                        <MudText Typo="Typo.body1">@_book.ModifiedOnUtc.Value.ToString(PublishDateHelper.DisplayFormat)</MudText>
                                     </div>
                                 </div>
                             }
                         </div>
 
                         @* Action buttons (for mobile) *@
-                        <div class="d-flex gap-2 mt-6 d-sm-none">
+                        <div class="d-flex flex-column gap-2 mt-6 d-sm-none">
                             <MudButton Variant="Variant.Outlined"
-                                       Color="Color.Primary"
-                                       StartIcon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Secondary"
+                                       StartIcon="@Icons.Material.Filled.CloudDownload"
                                        FullWidth="true"
-                                       OnClick="EditBook">
-                                Edit
+                                       OnClick="ImportFromWeb">
+                                Import from Web
                             </MudButton>
-                            <MudButton Variant="Variant.Outlined"
-                                       Color="Color.Error"
-                                       StartIcon="@Icons.Material.Filled.Delete"
-                                       FullWidth="true"
-                                       OnClick="DeleteBookAsync">
-                                Delete
-                            </MudButton>
+                            <div class="d-flex gap-2">
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.Edit"
+                                           FullWidth="true"
+                                           OnClick="EditBook">
+                                    Edit
+                                </MudButton>
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Error"
+                                           StartIcon="@Icons.Material.Filled.Delete"
+                                           FullWidth="true"
+                                           OnClick="DeleteBookAsync">
+                                    Delete
+                                </MudButton>
+                            </div>
                         </div>
                     </MudItem>
                 </MudGrid>
