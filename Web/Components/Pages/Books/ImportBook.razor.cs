@@ -109,6 +109,7 @@ public partial class ImportBook
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
             Log.Error(ex, "Error fetching web services for ISBN {ISBN}", _currentBook.ISBN);
+            Snackbar.Add("Could not fetch data from web services. You can still save with current values.", Severity.Error);
         }
     }
 
