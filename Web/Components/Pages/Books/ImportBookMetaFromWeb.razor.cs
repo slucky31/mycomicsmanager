@@ -41,7 +41,7 @@ public partial class ImportBookMetaFromWeb
     private BookSource _selectedNumberOfPages = BookSource.Current;
     private BookSource _selectedCover = BookSource.Current;
 
-    private record ParsedTitleInfo(string Title, string Serie, int VolumeNumber);
+    private sealed record ParsedTitleInfo(string Title, string Serie, int VolumeNumber);
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,21 +86,29 @@ public partial class ImportBookMetaFromWeb
             return;
         }
 
+        // Start both requests concurrently, then await each independently so that
+        // a failure in one provider does not prevent the other's result from being used.
+        var olTask = OpenLibraryService.SearchByIsbnAsync(_currentBook.ISBN);
+        var googleTask = GoogleBooksService.SearchByIsbnAsync(_currentBook.ISBN);
+
         try
         {
-            var olTask = OpenLibraryService.SearchByIsbnAsync(_currentBook.ISBN);
-            var googleTask = GoogleBooksService.SearchByIsbnAsync(_currentBook.ISBN);
-            await Task.WhenAll(olTask, googleTask);
-
             _olResult = await olTask;
-            _googleResult = await googleTask;
-
             if (_olResult.Found)
             {
                 var (title, serie, volumeNumber) = ComicSearchService.ParseTitleInfo(_olResult.Title, _olResult.Subtitle);
                 _olParsed = new ParsedTitleInfo(title, serie, volumeNumber);
             }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
+        {
+            Log.Error(ex, "Error fetching OpenLibrary for ISBN {ISBN}", _currentBook.ISBN);
+            Snackbar.Add("Could not fetch data from OpenLibrary. You can still save with current values.", Severity.Warning);
+        }
 
+        try
+        {
+            _googleResult = await googleTask;
             if (_googleResult.Found)
             {
                 var (title, serie, volumeNumber) = ComicSearchService.ParseTitleInfo(_googleResult.Title, _googleResult.Subtitle);
@@ -109,8 +117,8 @@ public partial class ImportBookMetaFromWeb
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
-            Log.Error(ex, "Error fetching web services for ISBN {ISBN}", _currentBook.ISBN);
-            Snackbar.Add("Could not fetch data from web services. You can still save with current values.", Severity.Error);
+            Log.Error(ex, "Error fetching Google Books for ISBN {ISBN}", _currentBook.ISBN);
+            Snackbar.Add("Could not fetch data from Google Books. You can still save with current values.", Severity.Warning);
         }
     }
 
@@ -119,8 +127,8 @@ public partial class ImportBookMetaFromWeb
         BookFieldKeys.Title => _olParsed?.Title,
         BookFieldKeys.Serie => _olParsed?.Serie,
         BookFieldKeys.VolumeNumber => _olParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
-        BookFieldKeys.Authors => _olResult?.Found == true ? string.Join(", ", _olResult.Authors) : null,
-        BookFieldKeys.Publishers => _olResult?.Found == true ? string.Join(", ", _olResult.Publishers) : null,
+        BookFieldKeys.Authors => _olResult?.Found == true ? NullIfEmpty(string.Join(", ", _olResult.Authors)) : null,
+        BookFieldKeys.Publishers => _olResult?.Found == true ? NullIfEmpty(string.Join(", ", _olResult.Publishers)) : null,
         BookFieldKeys.PublishDate => _olResult?.Found == true ? _olResult.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture) : null,
         BookFieldKeys.NumberOfPages => _olResult?.Found == true ? _olResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
         BookFieldKeys.Cover => _olResult?.CoverUrl?.ToString(),
@@ -132,8 +140,8 @@ public partial class ImportBookMetaFromWeb
         BookFieldKeys.Title => _googleParsed?.Title,
         BookFieldKeys.Serie => _googleParsed?.Serie,
         BookFieldKeys.VolumeNumber => _googleParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
-        BookFieldKeys.Authors => _googleResult?.Found == true ? string.Join(", ", _googleResult.Authors) : null,
-        BookFieldKeys.Publishers => _googleResult?.Found == true ? string.Join(", ", _googleResult.Publishers) : null,
+        BookFieldKeys.Authors => _googleResult?.Found == true ? NullIfEmpty(string.Join(", ", _googleResult.Authors)) : null,
+        BookFieldKeys.Publishers => _googleResult?.Found == true ? NullIfEmpty(string.Join(", ", _googleResult.Publishers)) : null,
         BookFieldKeys.PublishDate => _googleResult?.Found == true ? _googleResult.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture) : null,
         BookFieldKeys.NumberOfPages => _googleResult?.Found == true ? _googleResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
         BookFieldKeys.Cover => _googleResult?.CoverUrl?.ToString(),

@@ -186,7 +186,9 @@ foreach ($ProjectName in $ProjectsToRun) {
 
     # Collecte les fichiers de couverture générés
     $Generated = Get-ChildItem $ResultPath -Recurse -Filter "coverage.cobertura.xml"
-    $CoverageFiles += $Generated.FullName
+    if ($Generated) {
+        $CoverageFiles += $Generated.FullName
+    }
 }
 
 # ─── Vérification des fichiers de couverture ─────────────────────────────────
