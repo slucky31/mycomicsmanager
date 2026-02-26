@@ -1,6 +1,7 @@
 @page "/books/{BookId}/import"
 @rendermode InteractiveServer
 
+@using Application.Helpers
 @using Application.Interfaces
 @using Web.Services
 @using Web.Validators
@@ -39,8 +40,8 @@
         else
         {
             
-                RenderFragment SourceOption(string source, string label, string? value) =>
-                @<MudRadio T="string" Value="@source" Dense="true" Disabled="@(value is null)">
+                RenderFragment SourceOption(BookSource source, string label, string? value) =>
+                @<MudRadio T="BookSource" Value="@source" Dense="true" Disabled="@(value is null)">
                     <div class="import-option">
                         <span class="import-source-label">@label</span>
                         <span class="import-source-value">@(value ?? "—")</span>
@@ -53,78 +54,78 @@
                 @* TITLE *@
                 <div class="import-field-card">
                     <div class="import-field-label">TITLE</div>
-                    <MudRadioGroup T="string" @bind-Value="_selectedTitle" Class="import-radio-group">
-                        @SourceOption("current",     "CURRENT",      _currentBook.Title)
-                        @SourceOption("openlibrary", "OPENLIBRARY",  GetOlValue(BookFieldKeys.Title))
-                        @SourceOption("google",      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Title))
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedTitle" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.Title)
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Title))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Title))
                     </MudRadioGroup>
                 </div>
 
                 @* SERIE *@
                 <div class="import-field-card">
                     <div class="import-field-label">SERIE</div>
-                    <MudRadioGroup T="string" @bind-Value="_selectedSerie" Class="import-radio-group">
-                        @SourceOption("current",     "CURRENT",      NullIfEmpty(_currentBook.Serie))
-                        @SourceOption("openlibrary", "OPENLIBRARY",  GetOlValue(BookFieldKeys.Serie))
-                        @SourceOption("google",      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Serie))
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedSerie" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Serie))
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Serie))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Serie))
                     </MudRadioGroup>
                 </div>
 
                 @* VOLUME NUMBER *@
                 <div class="import-field-card">
                     <div class="import-field-label">VOLUME NUMBER</div>
-                    <MudRadioGroup T="string" @bind-Value="_selectedVolumeNumber" Class="import-radio-group">
-                        @SourceOption("current",     "CURRENT",      _currentBook.VolumeNumber.ToString())
-                        @SourceOption("openlibrary", "OPENLIBRARY",  GetOlValue(BookFieldKeys.VolumeNumber))
-                        @SourceOption("google",      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.VolumeNumber))
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedVolumeNumber" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.VolumeNumber.ToString())
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.VolumeNumber))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.VolumeNumber))
                     </MudRadioGroup>
                 </div>
 
                 @* AUTHORS *@
                 <div class="import-field-card">
                     <div class="import-field-label">AUTHORS</div>
-                    <MudRadioGroup T="string" @bind-Value="_selectedAuthors" Class="import-radio-group">
-                        @SourceOption("current",     "CURRENT",      NullIfEmpty(_currentBook.Authors))
-                        @SourceOption("openlibrary", "OPENLIBRARY",  GetOlValue(BookFieldKeys.Authors))
-                        @SourceOption("google",      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Authors))
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedAuthors" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Authors))
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Authors))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Authors))
                     </MudRadioGroup>
                 </div>
 
                 @* PUBLISHERS *@
                 <div class="import-field-card">
                     <div class="import-field-label">PUBLISHERS</div>
-                    <MudRadioGroup T="string" @bind-Value="_selectedPublishers" Class="import-radio-group">
-                        @SourceOption("current",     "CURRENT",      NullIfEmpty(_currentBook.Publishers))
-                        @SourceOption("openlibrary", "OPENLIBRARY",  GetOlValue(BookFieldKeys.Publishers))
-                        @SourceOption("google",      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Publishers))
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishers" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Publishers))
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Publishers))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Publishers))
                     </MudRadioGroup>
                 </div>
 
                 @* PUBLISH DATE *@
                 <div class="import-field-card">
                     <div class="import-field-label">PUBLISH DATE</div>
-                    <MudRadioGroup T="string" @bind-Value="_selectedPublishDate" Class="import-radio-group">
-                        @SourceOption("current",     "CURRENT",      _currentBook.PublishDate?.ToString("dd/MM/yyyy"))
-                        @SourceOption("openlibrary", "OPENLIBRARY",  GetOlValue(BookFieldKeys.PublishDate))
-                        @SourceOption("google",      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.PublishDate))
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishDate" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.PublishDate?.ToString(PublishDateHelper.DisplayFormat))
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.PublishDate))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.PublishDate))
                     </MudRadioGroup>
                 </div>
 
                 @* NUMBER OF PAGES *@
                 <div class="import-field-card">
                     <div class="import-field-label">NUMBER OF PAGES</div>
-                    <MudRadioGroup T="string" @bind-Value="_selectedNumberOfPages" Class="import-radio-group">
-                        @SourceOption("current",     "CURRENT",      _currentBook.NumberOfPages?.ToString())
-                        @SourceOption("openlibrary", "OPENLIBRARY",  GetOlValue(BookFieldKeys.NumberOfPages))
-                        @SourceOption("google",      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.NumberOfPages))
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedNumberOfPages" Class="import-radio-group">
+                        @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.NumberOfPages?.ToString())
+                        @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.NumberOfPages))
+                        @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.NumberOfPages))
                     </MudRadioGroup>
                 </div>
 
                 @* COVER IMAGE *@
                 <div class="import-field-card">
                     <div class="import-field-label">COVER IMAGE</div>
-                    <MudRadioGroup T="string" @bind-Value="_selectedCover" Class="import-radio-group">
-                        <MudRadio T="string" Value="@("current")" Dense="true">
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedCover" Class="import-radio-group">
+                        <MudRadio T="BookSource" Value="BookSource.Current" Dense="true">
                             <div class="import-option">
                                 <span class="import-source-label">CURRENT</span>
                                 @if (!string.IsNullOrEmpty(_currentBook.ImageLink))
@@ -137,7 +138,7 @@
                                 }
                             </div>
                         </MudRadio>
-                        <MudRadio T="string" Value="@("openlibrary")" Dense="true" Disabled="@(_olResult?.CoverUrl is null)">
+                        <MudRadio T="BookSource" Value="BookSource.OpenLibrary" Dense="true" Disabled="@(_olResult?.CoverUrl is null)">
                             <div class="import-option">
                                 <span class="import-source-label">OPENLIBRARY</span>
                                 @if (_olResult?.CoverUrl is not null)
@@ -150,7 +151,7 @@
                                 }
                             </div>
                         </MudRadio>
-                        <MudRadio T="string" Value="@("google")" Dense="true" Disabled="@(_googleResult?.CoverUrl is null)">
+                        <MudRadio T="BookSource" Value="BookSource.Google" Dense="true" Disabled="@(_googleResult?.CoverUrl is null)">
                             <div class="import-option">
                                 <span class="import-source-label">GOOGLE BOOKS</span>
                                 @if (_googleResult?.CoverUrl is not null)

@@ -4,6 +4,8 @@ namespace Application.Helpers;
 
 public static class PublishDateHelper
 {
+    public const string DisplayFormat = "dd/MM/yyyy";
+
     private static Serilog.ILogger Log => Serilog.Log.ForContext(typeof(PublishDateHelper));
 
     public static DateOnly? ParsePublishDate(string? dateString)
@@ -23,7 +25,7 @@ public static class PublishDateHelper
             "MMM dd, yyyy",      // "Sep 16, 1987"
             "yyyy-MM-dd",        // "1987-09-16"
             "yyyy/MM/dd",        // "1987/09/16"
-            "dd/MM/yyyy",        // "16/09/1987"
+            DisplayFormat,       // "16/09/1987"
             "MM/dd/yyyy",        // "09/16/1987"
             "MMMM yyyy",         // "September 1987"
             "MMM yyyy",          // "Sep 1987"

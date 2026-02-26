@@ -1,4 +1,5 @@
 using System.Globalization;
+using Application.Helpers;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -30,15 +31,15 @@ public partial class ImportBookMetaFromWeb
     private bool _loadError;
     private bool _isSaving;
 
-    // Per-field selected source ("current" | "openlibrary" | "google")
-    private string _selectedTitle = "current";
-    private string _selectedSerie = "current";
-    private string _selectedVolumeNumber = "current";
-    private string _selectedAuthors = "current";
-    private string _selectedPublishers = "current";
-    private string _selectedPublishDate = "current";
-    private string _selectedNumberOfPages = "current";
-    private string _selectedCover = "current";
+    // Per-field selected source
+    private BookSource _selectedTitle = BookSource.Current;
+    private BookSource _selectedSerie = BookSource.Current;
+    private BookSource _selectedVolumeNumber = BookSource.Current;
+    private BookSource _selectedAuthors = BookSource.Current;
+    private BookSource _selectedPublishers = BookSource.Current;
+    private BookSource _selectedPublishDate = BookSource.Current;
+    private BookSource _selectedNumberOfPages = BookSource.Current;
+    private BookSource _selectedCover = BookSource.Current;
 
     private record ParsedTitleInfo(string Title, string Serie, int VolumeNumber);
 
@@ -120,7 +121,7 @@ public partial class ImportBookMetaFromWeb
         BookFieldKeys.VolumeNumber => _olParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
         BookFieldKeys.Authors => _olResult?.Found == true ? string.Join(", ", _olResult.Authors) : null,
         BookFieldKeys.Publishers => _olResult?.Found == true ? string.Join(", ", _olResult.Publishers) : null,
-        BookFieldKeys.PublishDate => _olResult?.Found == true ? _olResult.PublishDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : null,
+        BookFieldKeys.PublishDate => _olResult?.Found == true ? _olResult.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture) : null,
         BookFieldKeys.NumberOfPages => _olResult?.Found == true ? _olResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
         BookFieldKeys.Cover => _olResult?.CoverUrl?.ToString(),
         _ => null
@@ -133,7 +134,7 @@ public partial class ImportBookMetaFromWeb
         BookFieldKeys.VolumeNumber => _googleParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
         BookFieldKeys.Authors => _googleResult?.Found == true ? string.Join(", ", _googleResult.Authors) : null,
         BookFieldKeys.Publishers => _googleResult?.Found == true ? string.Join(", ", _googleResult.Publishers) : null,
-        BookFieldKeys.PublishDate => _googleResult?.Found == true ? _googleResult.PublishDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : null,
+        BookFieldKeys.PublishDate => _googleResult?.Found == true ? _googleResult.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture) : null,
         BookFieldKeys.NumberOfPages => _googleResult?.Found == true ? _googleResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
         BookFieldKeys.Cover => _googleResult?.CoverUrl?.ToString(),
         _ => null
@@ -151,13 +152,13 @@ public partial class ImportBookMetaFromWeb
             BookFieldKeys.PublishDate => _selectedPublishDate,
             BookFieldKeys.NumberOfPages => _selectedNumberOfPages,
             BookFieldKeys.Cover => _selectedCover,
-            _ => "current"
+            _ => BookSource.Current
         };
 
         return source switch
         {
-            "openlibrary" => GetOlValue(field),
-            "google" => GetGoogleValue(field),
+            BookSource.OpenLibrary => GetOlValue(field),
+            BookSource.Google => GetGoogleValue(field),
             _ => GetCurrentValue(field)
         };
     }
@@ -169,7 +170,7 @@ public partial class ImportBookMetaFromWeb
         BookFieldKeys.VolumeNumber => _currentBook?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
         BookFieldKeys.Authors => _currentBook?.Authors,
         BookFieldKeys.Publishers => _currentBook?.Publishers,
-        BookFieldKeys.PublishDate => _currentBook?.PublishDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
+        BookFieldKeys.PublishDate => _currentBook?.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture),
         BookFieldKeys.NumberOfPages => _currentBook?.NumberOfPages?.ToString(CultureInfo.InvariantCulture),
         BookFieldKeys.Cover => _currentBook?.ImageLink,
         _ => null
@@ -201,7 +202,7 @@ public partial class ImportBookMetaFromWeb
         var publishDate = _currentBook.PublishDate;
         var publishDateStr = GetResolvedValue(BookFieldKeys.PublishDate);
         if (!string.IsNullOrEmpty(publishDateStr) &&
-            DateOnly.TryParseExact(publishDateStr, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var pd))
+            DateOnly.TryParseExact(publishDateStr, PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var pd))
         {
             publishDate = pd;
         }
@@ -241,4 +242,11 @@ public partial class ImportBookMetaFromWeb
     }
 
     private void Cancel() => NavigationManager.NavigateTo($"/books/{BookId}");
+}
+
+public enum BookSource
+{
+    Current,
+    OpenLibrary,
+    Google
 }

@@ -1,6 +1,7 @@
 @page "/books/{BookId}"
 @rendermode InteractiveServer
 
+@using Application.Helpers
 @using Domain.Books
 @using Microsoft.AspNetCore.Components
 @using Web.Components.Pages.Dialogs
@@ -160,7 +161,7 @@
                                     <MudIcon Icon="@Icons.Material.Filled.Event" Color="Color.Secondary" />
                                     <div>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">Publish Date</MudText>
-                                        <MudText Typo="Typo.body1">@_book.PublishDate.Value.ToString("dd/MM/yyyy")</MudText>
+                                        <MudText Typo="Typo.body1">@_book.PublishDate.Value.ToString(PublishDateHelper.DisplayFormat)</MudText>
                                     </div>
                                 </div>
                             }
@@ -188,7 +189,7 @@
                                         {
                                             <div class="d-flex align-center gap-2 mt-1">
                                                 <MudRating SelectedValue="@rd.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" />
-                                                <MudText Typo="Typo.body2">@rd.Date.ToString("dd/MM/yyyy")</MudText>
+                                                <MudText Typo="Typo.body2">@rd.Date.ToString(PublishDateHelper.DisplayFormat)</MudText>
                                             </div>
                                         }
                                     }
@@ -234,7 +235,7 @@
                                 <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" />
                                 <div>
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">Added to Collection</MudText>
-                                    <MudText Typo="Typo.body1">@_book.CreatedOnUtc.ToString("dd/MM/yyyy")</MudText>
+                                    <MudText Typo="Typo.body1">@_book.CreatedOnUtc.ToString(PublishDateHelper.DisplayFormat)</MudText>
                                 </div>
                             </div>
 
@@ -245,7 +246,7 @@
                                     <MudIcon Icon="@Icons.Material.Filled.EditCalendar" Color="Color.Secondary" />
                                     <div>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">Last Modified</MudText>
-                                        <MudText Typo="Typo.body1">@_book.ModifiedOnUtc.Value.ToString("dd/MM/yyyy")</MudText>
+                                        <MudText Typo="Typo.body1">@_book.ModifiedOnUtc.Value.ToString(PublishDateHelper.DisplayFormat)</MudText>
                                     </div>
                                 </div>
                             }
