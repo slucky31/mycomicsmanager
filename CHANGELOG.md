@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.3.0"></a>
+## [10.3.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.3.0) (2026-02-26)
+
+### ✨ Features
+
+* Add ImportBook page with multi-source field mapping ([#936](https://www.github.com/slucky31/mycomicsmanager/issues/936)) ([6216313](https://www.github.com/slucky31/mycomicsmanager/commit/62163137758df95cba1a58a89ee62168af0c9058))
+
 <a name="10.2.0"></a>
 ## [10.2.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.2.0) (2026-02-24)
 
