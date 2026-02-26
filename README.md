@@ -1,9 +1,6 @@
 # MyComicsManager
 
 [![.NET Core Build](https://github.com/slucky31/mycomicsmanager/actions/workflows/dotnet-core-build.yml/badge.svg)](https://github.com/slucky31/mycomicsmanager/actions/workflows/dotnet-core-build.yml)
-[![CodeQL](https://github.com/slucky31/mycomicsmanager/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/slucky31/mycomicsmanager/actions/workflows/codeql-analysis.yml)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/e27ff8f3ad2f453d93e2a6b5462c6c9f)](https://app.codacy.com/gh/slucky31/mycomicsmanager/dashboard)
-[![Codacy Coverage](https://app.codacy.com/project/badge/Coverage/e27ff8f3ad2f453d93e2a6b5462c6c9f)](https://app.codacy.com/gh/slucky31/mycomicsmanager/dashboard)
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![Blazor](https://img.shields.io/badge/Blazor-Server-512BD4?logo=blazor)](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor)
@@ -14,8 +11,6 @@
 [![Serilog](https://img.shields.io/badge/Serilog-10.0.0-0099A0?logo=serilog)](https://serilog.net/)
 [![Docker](https://img.shields.io/badge/Docker-linux%2Farm64-2496ED?logo=docker)](https://www.docker.com/)
 
-[![xUnit](https://img.shields.io/badge/xUnit-2.9.3-blue)](https://xunit.net/)
-[![NSubstitute](https://img.shields.io/badge/NSubstitute-5.3.0-blue)](https://nsubstitute.github.io/)
 [![License](https://img.shields.io/github/license/slucky31/mycomicsmanager)](LICENSE)
 
 ---
