@@ -124,7 +124,7 @@
                 <div class="import-field-card">
                     <div class="import-field-label">COVER IMAGE</div>
                     <MudRadioGroup T="string" @bind-Value="_selectedCover" Class="import-radio-group">
-                        <MudRadio T="string" Value="@("Current")" Dense="true">
+                        <MudRadio T="string" Value="@("current")" Dense="true">
                             <div class="import-option">
                                 <span class="import-source-label">CURRENT</span>
                                 @if (!string.IsNullOrEmpty(_currentBook.ImageLink))
@@ -137,7 +137,7 @@
                                 }
                             </div>
                         </MudRadio>
-                        <MudRadio T="string" Value="@("OpenLibrary")" Dense="true" Disabled="@(_olResult?.CoverUrl is null)">
+                        <MudRadio T="string" Value="@("openlibrary")" Dense="true" Disabled="@(_olResult?.CoverUrl is null)">
                             <div class="import-option">
                                 <span class="import-source-label">OPENLIBRARY</span>
                                 @if (_olResult?.CoverUrl is not null)
@@ -150,7 +150,7 @@
                                 }
                             </div>
                         </MudRadio>
-                        <MudRadio T="string" Value="@("Google Books")" Dense="true" Disabled="@(_googleResult?.CoverUrl is null)">
+                        <MudRadio T="string" Value="@("google")" Dense="true" Disabled="@(_googleResult?.CoverUrl is null)">
                             <div class="import-option">
                                 <span class="import-source-label">GOOGLE BOOKS</span>
                                 @if (_googleResult?.CoverUrl is not null)
