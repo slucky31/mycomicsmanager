@@ -48,6 +48,11 @@ public partial class ImportBookMetaFromWeb
         await LoadBookThenFetchAsync();
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadBookThenFetchAsync();
+    }
+
     private async Task LoadBookThenFetchAsync()
     {
         _isLoading = true;

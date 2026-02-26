@@ -144,18 +144,24 @@ foreach ($ProjectName in $ProjectsToRun) {
         # 2. Repli : sous-dossier contenant un .csproj dont le nom commence par le premier segment
         if (-not $ProjectPath) {
             $firstToken = $ProjectName.Split('.')[0]
-            $ProjectPath = Get-ChildItem $TestsDir -Directory |
+            $candidates = @(Get-ChildItem $TestsDir -Directory |
                 Where-Object {
                     Get-ChildItem $_.FullName -Filter "*.csproj" -File |
                         Where-Object { $_.BaseName.StartsWith($firstToken, [System.StringComparison]::OrdinalIgnoreCase) }
                 } |
-                Select-Object -First 1 -ExpandProperty FullName
+                Sort-Object FullName)
+
+            if ($candidates.Count -gt 1) {
+                Write-Fail "Ambiguïté : $($candidates.Count) dossiers correspondent au préfixe '$firstToken' pour le projet '$ProjectName' : $($candidates.FullName -join ', '). Abandon."
+                exit 1
+            }
+            $ProjectPath = $candidates | Select-Object -First 1 -ExpandProperty FullName
         }
     }
 
     if (-not $ProjectPath -or -not (Test-Path $ProjectPath)) {
-        Write-Warn "Projet introuvable : $ProjectName — ignoré."
-        continue
+        Write-Fail "Projet introuvable : '$ProjectName' dans '$TestsDir'. Abandon."
+        exit 1
     }
 
     $ResultPath = Join-Path $ResultsDir $ProjectName
