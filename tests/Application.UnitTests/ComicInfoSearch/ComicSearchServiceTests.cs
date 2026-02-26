@@ -92,7 +92,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: ["Philippe Tome", "Luc Wartholz"],
             Publishers: ["Dupuis"],
-            PublishDate: "1987",
+            PublishDate: new DateOnly(1987, 1, 1),
             NumberOfPages: 48,
             CoverUrl: new Uri("https://covers.openlibrary.org/b/id/12345-L.jpg"),
             Found: true);
@@ -140,7 +140,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: subtitle,
             Authors: ["Stan Lee"],
             Publishers: ["Marvel"],
-            PublishDate: "2001-01-01",
+            PublishDate: null,
             NumberOfPages: 120,
             CoverUrl: null,
             Found: true);
@@ -166,7 +166,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: coverUrl,
             Found: true);
@@ -209,7 +209,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: coverUrl,
             Found: true);
@@ -246,7 +246,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -343,7 +343,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -370,7 +370,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: ["Alan Moore"],
             Publishers: ["DC Comics"],
-            PublishDate: "1987",
+            PublishDate: null,
             NumberOfPages: 416,
             CoverUrl: null,
             Found: true);
@@ -384,109 +384,6 @@ public sealed class ComicSearchServiceTests
         // Assert
         result.Serie.Should().Be(title);
         result.VolumeNumber.Should().Be(1);
-    }
-
-    #endregion
-
-    #region ParsePublishDate Tests
-
-    [Theory]
-    [InlineData("September 16, 1987", 1987, 9, 16)]
-    [InlineData("September 06, 1987", 1987, 9, 6)]
-    [InlineData("Sep 16, 1987", 1987, 9, 16)]
-    [InlineData("Sep 06, 1987", 1987, 9, 6)]
-    [InlineData("1987-09-16", 1987, 9, 16)]
-    [InlineData("1987/09/16", 1987, 9, 16)]
-    [InlineData("16/09/1987", 1987, 9, 16)]
-    [InlineData("09/16/1987", 1987, 9, 16)]
-    [InlineData("September 1987", 1987, 9, 1)]
-    [InlineData("Sep 1987", 1987, 9, 1)]
-    [InlineData("1987", 1987, 1, 1)]
-    [InlineData("2024", 2024, 1, 1)]
-    public async Task SearchByIsbnAsync_ShouldParsePublishDate_WithVariousFormats(
-        string publishDate,
-        int expectedYear,
-        int expectedMonth,
-        int expectedDay)
-    {
-        // Arrange
-        const string isbn = "9781234567890";
-        var openLibraryResult = new OpenLibraryBookResult(
-            Title: "Test Comic",
-            Subtitle: null,
-            Authors: SingleAuthorArray,
-            Publishers: SinglePublisherArray,
-            PublishDate: publishDate,
-            NumberOfPages: 100,
-            CoverUrl: null,
-            Found: true);
-
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .Returns(openLibraryResult);
-
-        // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
-
-        // Assert
-        result.PublishDate.Should().Be(new DateOnly(expectedYear, expectedMonth, expectedDay));
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public async Task SearchByIsbnAsync_ShouldReturnNullPublishDate_WhenDateStringIsNullOrEmpty(string? publishDate)
-    {
-        // Arrange
-        const string isbn = "9781234567890";
-        var openLibraryResult = new OpenLibraryBookResult(
-            Title: "Test Comic",
-            Subtitle: null,
-            Authors: SingleAuthorArray,
-            Publishers: SinglePublisherArray,
-            PublishDate: publishDate,
-            NumberOfPages: 100,
-            CoverUrl: null,
-            Found: true);
-
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .Returns(openLibraryResult);
-
-        // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
-
-        // Assert
-        result.PublishDate.Should().BeNull();
-    }
-
-    [Theory]
-    [InlineData("invalid-date")]
-    [InlineData("not a date")]
-    [InlineData("999")]
-    [InlineData("10000")]
-    [InlineData("13/45/2020")]
-    public async Task SearchByIsbnAsync_ShouldReturnNullPublishDate_WhenDateStringIsInvalid(string publishDate)
-    {
-        // Arrange
-        const string isbn = "9781234567890";
-        var openLibraryResult = new OpenLibraryBookResult(
-            Title: "Test Comic",
-            Subtitle: null,
-            Authors: SingleAuthorArray,
-            Publishers: SinglePublisherArray,
-            PublishDate: publishDate,
-            NumberOfPages: 100,
-            CoverUrl: null,
-            Found: true);
-
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .Returns(openLibraryResult);
-
-        // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
-
-        // Assert
-        result.PublishDate.Should().BeNull();
     }
 
     #endregion
@@ -511,7 +408,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -543,7 +440,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -570,7 +467,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -604,7 +501,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: coverUrl,
             Found: true);
@@ -637,46 +534,6 @@ public sealed class ComicSearchServiceTests
 
     #endregion
 
-    #region Additional Date Format Tests
-
-    [Theory]
-    [InlineData("January 1, 2000", 2000, 1, 1)]
-    [InlineData("December 31, 1999", 1999, 12, 31)]
-    [InlineData("Feb 29, 2020", 2020, 2, 29)]
-    [InlineData("2020/02/29", 2020, 2, 29)]
-    [InlineData("29/02/2020", 2020, 2, 29)]
-    [InlineData("March 2021", 2021, 3, 1)]
-    [InlineData("Dec 2019", 2019, 12, 1)]
-    public async Task SearchByIsbnAsync_ShouldParsePublishDate_WithAdditionalFormats(
-        string publishDate,
-        int expectedYear,
-        int expectedMonth,
-        int expectedDay)
-    {
-        // Arrange
-        const string isbn = "9781234567890";
-        var openLibraryResult = new OpenLibraryBookResult(
-            Title: "Test Comic",
-            Subtitle: null,
-            Authors: SingleAuthorArray,
-            Publishers: SinglePublisherArray,
-            PublishDate: publishDate,
-            NumberOfPages: 100,
-            CoverUrl: null,
-            Found: true);
-
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .Returns(openLibraryResult);
-
-        // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
-
-        // Assert
-        result.PublishDate.Should().Be(new DateOnly(expectedYear, expectedMonth, expectedDay));
-    }
-
-    #endregion
-
     #region Multiple Volume Patterns Tests
 
     [Theory]
@@ -695,7 +552,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -724,7 +581,6 @@ public sealed class ComicSearchServiceTests
         const string subtitle = "Chapter One";
         var authors = new[] { "Brian K. Vaughan", "Fiona Staples" };
         var publishers = new[] { "Image Comics" };
-        const string publishDate = "October 10, 2012";
         const int numberOfPages = 160;
         var coverUrl = new Uri("https://covers.openlibrary.org/b/id/12345-L.jpg");
 
@@ -733,7 +589,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: subtitle,
             Authors: authors,
             Publishers: publishers,
-            PublishDate: publishDate,
+            PublishDate: new DateOnly(2012, 10, 10),
             NumberOfPages: numberOfPages,
             CoverUrl: coverUrl,
             Found: true);
@@ -779,7 +635,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: null,
             CoverUrl: null,
             Found: true);
@@ -853,7 +709,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: ["Stan Lee", "Jack Kirby", "Steve Ditko"],
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -878,7 +734,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: ["Marvel Comics", "DC Comics", "Image Comics"],
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -903,7 +759,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: EmptyStringArray,
             Publishers: EmptyStringArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -1020,7 +876,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: "Prières et balistique",
             Authors: ["Philippe Tome", "Luc Warnant"],
             Publishers: ["Dupuis"],
-            PublishDate: "1987",
+            PublishDate: new DateOnly(1987, 1, 1),
             NumberOfPages: 48,
             CoverUrl: new Uri("https://books.google.com/content?id=test"),
             Description: "A comic book.",
@@ -1070,7 +926,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: null,
             Found: true);
@@ -1103,7 +959,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: null,
             Authors: SingleAuthorArray,
             Publishers: SinglePublisherArray,
-            PublishDate: "2024",
+            PublishDate: null,
             NumberOfPages: 100,
             CoverUrl: googleCoverUrl,
             Description: null,
@@ -1186,7 +1042,7 @@ public sealed class ComicSearchServiceTests
             Subtitle: "Chapter One",
             Authors: ["Brian K. Vaughan", "Fiona Staples"],
             Publishers: ["Image Comics"],
-            PublishDate: "2012-10-10",
+            PublishDate: new DateOnly(2012, 10, 10),
             NumberOfPages: 160,
             CoverUrl: new Uri("https://books.google.com/content?id=test"),
             Description: "An epic space opera.",

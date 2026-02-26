@@ -5,7 +5,7 @@ public record OpenLibraryBookResult(
     string? Subtitle,
     IReadOnlyList<string> Authors,
     IReadOnlyList<string> Publishers,
-    string? PublishDate,
+    DateOnly? PublishDate,
     int? NumberOfPages,
     Uri? CoverUrl,
     bool Found

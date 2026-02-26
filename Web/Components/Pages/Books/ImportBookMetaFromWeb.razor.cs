@@ -8,7 +8,7 @@ using Web.Validators;
 
 namespace Web.Components.Pages.Books;
 
-public partial class ImportBook
+public partial class ImportBookMetaFromWeb
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
@@ -71,7 +71,7 @@ public partial class ImportBook
         {
             _loadError = true;
             Log.Error(ex, "Unexpected error loading book for import {BookId}", BookId);
-        }      
+        }
         finally
         {
             _isLoading = false;
@@ -115,27 +115,27 @@ public partial class ImportBook
 
     private string? GetOlValue(string field) => field switch
     {
-        BookFieldKeys.Title         => _olParsed?.Title,
-        BookFieldKeys.Serie         => _olParsed?.Serie,
-        BookFieldKeys.VolumeNumber  => _olParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
-        BookFieldKeys.Authors       => _olResult?.Found == true ? string.Join(", ", _olResult.Authors) : null,
-        BookFieldKeys.Publishers    => _olResult?.Found == true ? string.Join(", ", _olResult.Publishers) : null,
-        BookFieldKeys.PublishDate   => _olResult?.Found == true ? _olResult.PublishDate : null,
+        BookFieldKeys.Title => _olParsed?.Title,
+        BookFieldKeys.Serie => _olParsed?.Serie,
+        BookFieldKeys.VolumeNumber => _olParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
+        BookFieldKeys.Authors => _olResult?.Found == true ? string.Join(", ", _olResult.Authors) : null,
+        BookFieldKeys.Publishers => _olResult?.Found == true ? string.Join(", ", _olResult.Publishers) : null,
+        BookFieldKeys.PublishDate => _olResult?.Found == true ? _olResult.PublishDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : null,
         BookFieldKeys.NumberOfPages => _olResult?.Found == true ? _olResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
-        BookFieldKeys.Cover         => _olResult?.CoverUrl?.ToString(),
+        BookFieldKeys.Cover => _olResult?.CoverUrl?.ToString(),
         _ => null
     };
 
     private string? GetGoogleValue(string field) => field switch
     {
-        BookFieldKeys.Title         => _googleParsed?.Title,
-        BookFieldKeys.Serie         => _googleParsed?.Serie,
-        BookFieldKeys.VolumeNumber  => _googleParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
-        BookFieldKeys.Authors       => _googleResult?.Found == true ? string.Join(", ", _googleResult.Authors) : null,
-        BookFieldKeys.Publishers    => _googleResult?.Found == true ? string.Join(", ", _googleResult.Publishers) : null,
-        BookFieldKeys.PublishDate   => _googleResult?.Found == true ? _googleResult.PublishDate : null,
+        BookFieldKeys.Title => _googleParsed?.Title,
+        BookFieldKeys.Serie => _googleParsed?.Serie,
+        BookFieldKeys.VolumeNumber => _googleParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
+        BookFieldKeys.Authors => _googleResult?.Found == true ? string.Join(", ", _googleResult.Authors) : null,
+        BookFieldKeys.Publishers => _googleResult?.Found == true ? string.Join(", ", _googleResult.Publishers) : null,
+        BookFieldKeys.PublishDate => _googleResult?.Found == true ? _googleResult.PublishDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : null,
         BookFieldKeys.NumberOfPages => _googleResult?.Found == true ? _googleResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
-        BookFieldKeys.Cover         => _googleResult?.CoverUrl?.ToString(),
+        BookFieldKeys.Cover => _googleResult?.CoverUrl?.ToString(),
         _ => null
     };
 
@@ -143,35 +143,35 @@ public partial class ImportBook
     {
         var source = field switch
         {
-            BookFieldKeys.Title         => _selectedTitle,
-            BookFieldKeys.Serie         => _selectedSerie,
-            BookFieldKeys.VolumeNumber  => _selectedVolumeNumber,
-            BookFieldKeys.Authors       => _selectedAuthors,
-            BookFieldKeys.Publishers    => _selectedPublishers,
-            BookFieldKeys.PublishDate   => _selectedPublishDate,
+            BookFieldKeys.Title => _selectedTitle,
+            BookFieldKeys.Serie => _selectedSerie,
+            BookFieldKeys.VolumeNumber => _selectedVolumeNumber,
+            BookFieldKeys.Authors => _selectedAuthors,
+            BookFieldKeys.Publishers => _selectedPublishers,
+            BookFieldKeys.PublishDate => _selectedPublishDate,
             BookFieldKeys.NumberOfPages => _selectedNumberOfPages,
-            BookFieldKeys.Cover         => _selectedCover,
+            BookFieldKeys.Cover => _selectedCover,
             _ => "current"
         };
 
         return source switch
         {
             "openlibrary" => GetOlValue(field),
-            "google"      => GetGoogleValue(field),
-            _             => GetCurrentValue(field)
+            "google" => GetGoogleValue(field),
+            _ => GetCurrentValue(field)
         };
     }
 
     private string? GetCurrentValue(string field) => field switch
     {
-        BookFieldKeys.Title         => _currentBook?.Title,
-        BookFieldKeys.Serie         => _currentBook?.Serie,
-        BookFieldKeys.VolumeNumber  => _currentBook?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
-        BookFieldKeys.Authors       => _currentBook?.Authors,
-        BookFieldKeys.Publishers    => _currentBook?.Publishers,
-        BookFieldKeys.PublishDate   => _currentBook?.PublishDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
+        BookFieldKeys.Title => _currentBook?.Title,
+        BookFieldKeys.Serie => _currentBook?.Serie,
+        BookFieldKeys.VolumeNumber => _currentBook?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
+        BookFieldKeys.Authors => _currentBook?.Authors,
+        BookFieldKeys.Publishers => _currentBook?.Publishers,
+        BookFieldKeys.PublishDate => _currentBook?.PublishDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
         BookFieldKeys.NumberOfPages => _currentBook?.NumberOfPages?.ToString(CultureInfo.InvariantCulture),
-        BookFieldKeys.Cover         => _currentBook?.ImageLink,
+        BookFieldKeys.Cover => _currentBook?.ImageLink,
         _ => null
     };
 
@@ -198,7 +198,7 @@ public partial class ImportBook
             ? vol
             : _currentBook.VolumeNumber;
 
-       var publishDate = _currentBook.PublishDate;
+        var publishDate = _currentBook.PublishDate;
         var publishDateStr = GetResolvedValue(BookFieldKeys.PublishDate);
         if (!string.IsNullOrEmpty(publishDateStr) &&
             DateOnly.TryParse(publishDateStr, out var pd))

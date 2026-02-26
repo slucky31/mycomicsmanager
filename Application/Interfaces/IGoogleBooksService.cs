@@ -5,7 +5,7 @@ public record GoogleBooksBookResult(
     string? Subtitle,
     IReadOnlyList<string> Authors,
     IReadOnlyList<string> Publishers,
-    string? PublishDate,
+    DateOnly? PublishDate,
     int? NumberOfPages,
     Uri? CoverUrl,
     string? Description,

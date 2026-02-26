@@ -132,10 +132,8 @@
 /* ── Action bar ──────────────────────────────────────────────── */
 
 .import-actions {
-    position: fixed;
+    position: sticky;
     bottom: 0;
-    left: 0;
-    right: 0;
     display: flex;
     justify-content: flex-end;
     gap: 8px;
