@@ -63,6 +63,8 @@ public partial class ImportBook
             }
 
             _currentBook = BookUiDto.Convert(result.Value);
+            _isLoading = false;
+            StateHasChanged();
             await FetchWebServicesAsync();
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
