@@ -96,11 +96,7 @@ public partial class ComicSearchService : IComicSearchService
         string isbn,
         CancellationToken cancellationToken)
     {
-        var (serie, volumeNumber) = ParseVolumeAndSerie(bookResult.Title);
-
-        // If subtitle exists, use it as title; otherwise use series name
-        // This strips volume info from the title (e.g. "Fullmetal Alchemist Tome 23" → "Fullmetal Alchemist")
-        var title = string.IsNullOrEmpty(bookResult.Subtitle) ? serie : bookResult.Subtitle;
+        var (title, serie, volumeNumber) = ParseTitleInfo(bookResult.Title, bookResult.Subtitle);
 
         // Upload cover to Cloudinary if available
         var imageUrl = string.Empty;
