@@ -13,9 +13,6 @@
 .PARAMETER SkipIntegration
     Ignore les projets de tests d'intégration (nécessitent une base de données).
 
-.PARAMETER OutputDir
-    Répertoire de sortie du rapport (défaut : ./coverage-report).
-
 .PARAMETER ConnectionString
     Connection string Neon pour les tests d'intégration.
     Si absent, la variable d'environnement ConnectionStrings__NeonConnectionUnitTests est utilisée.
@@ -24,14 +21,13 @@
     ./Generate-CoverageReport.ps1
     ./Generate-CoverageReport.ps1 -OpenReport
     ./Generate-CoverageReport.ps1 -SkipIntegration -OpenReport
-    ./Generate-CoverageReport.ps1 -ConnectionString "Host=...;Database=...;Username=...;Password=..." -OpenReport
+    ./Generate-CoverageReport.ps1 -SkipIntegration -ConnectionString "Host=...;Database=...;Username=...;Password=..." -OpenReport
 #>
 
 [CmdletBinding()]
 param(
     [switch]$OpenReport,
     [switch]$SkipIntegration,
-    [string]$OutputDir = "coverage-report",
     [string]$ConnectionString = ""
 )
 
@@ -47,10 +43,10 @@ function Write-Fail  { param($msg) Write-Host "  ✗ $msg" -ForegroundColor Red 
 # ─── Chemins ──────────────────────────────────────────────────────────────────
 $RepoRoot    = Split-Path $PSScriptRoot -Parent
 $TestsDir    = Join-Path $RepoRoot "tests"
-$CoverageDir = Join-Path $RepoRoot $OutputDir
+$CoverageDir = Join-Path $RepoRoot "coverage-report"
 $ResultsDir  = Join-Path $CoverageDir "raw"
 
-# Projets de tests unitaires (toujours inclus)
+# Projets de tests unitaires
 $UnitTestProjects = @(
     "Application.UnitTests"
     "Domain.UnitTests"
@@ -100,7 +96,23 @@ if (-not $SkipIntegration) {
     }
 }
 
-# ─── Nettoyage ────────────────────────────────────────────────────────────────
+# ─── Build unique ───────────────────────────────────────────────────────
+Write-Step "Build de la solution"
+
+$SolutionFile = Get-ChildItem $RepoRoot -Filter "*.sln" | Select-Object -First 1
+if (-not $SolutionFile) {
+    Write-Fail "Aucun fichier .sln trouvé dans $RepoRoot. Abandon."
+    exit 1
+}
+
+dotnet build $SolutionFile.FullName --configuration Release --no-restore
+if ($LASTEXITCODE -ne 0) {
+    Write-Fail "La compilation a échoué. Abandon."
+    exit 1
+}
+Write-Ok "Solution compilée : $($SolutionFile.Name)"
+
+# ─── Nettoyage ────────────────────────────────────────────────────────
 Write-Step "Nettoyage du répertoire de sortie"
 
 if (Test-Path $CoverageDir) {
@@ -123,10 +135,22 @@ foreach ($ProjectName in $ProjectsToRun) {
 
     $ProjectPath = Join-Path $TestsDir $ProjectName
     if (-not (Test-Path $ProjectPath)) {
-        # Cherche un sous-dossier avec un .csproj (ex: Persistence.Tests)
-        $ProjectPath = Get-ChildItem $TestsDir -Directory | Where-Object {
-            $_.Name -like "*$($ProjectName.Split('.')[0])*"
-        } | Select-Object -First 1 -ExpandProperty FullName
+        # Cherche un sous-dossier contenant le .csproj attendu :
+        # 1. Correspondance exacte : sous-dossier contenant "$ProjectName.csproj"
+        $ProjectPath = Get-ChildItem $TestsDir -Directory |
+            Where-Object { Test-Path (Join-Path $_.FullName "$ProjectName.csproj") } |
+            Select-Object -First 1 -ExpandProperty FullName
+
+        # 2. Repli : sous-dossier contenant un .csproj dont le nom commence par le premier segment
+        if (-not $ProjectPath) {
+            $firstToken = $ProjectName.Split('.')[0]
+            $ProjectPath = Get-ChildItem $TestsDir -Directory |
+                Where-Object {
+                    Get-ChildItem $_.FullName -Filter "*.csproj" -File |
+                        Where-Object { $_.BaseName.StartsWith($firstToken, [System.StringComparison]::OrdinalIgnoreCase) }
+                } |
+                Select-Object -First 1 -ExpandProperty FullName
+        }
     }
 
     if (-not $ProjectPath -or -not (Test-Path $ProjectPath)) {
@@ -142,6 +166,7 @@ foreach ($ProjectName in $ProjectsToRun) {
         $ProjectPath
         "--configuration", "Release"
         "--no-restore"
+        "--no-build"
         "--collect:XPlat Code Coverage"
         "--results-directory", $ResultPath
         "--"
@@ -210,11 +235,12 @@ if (Test-Path $SummaryFile) {
 $IndexFile = Join-Path $ReportPath "index.html"
 Write-Ok "Rapport généré : $IndexFile"
 
-if ($FailedProjects.Count -gt 0) {
-    Write-Warn "Projets avec des échecs de tests : $($FailedProjects -join ', ')"
-}
-
 if ($OpenReport) {
     Write-Step "Ouverture du rapport"
     Start-Process $IndexFile
+}
+
+if ($FailedProjects.Count -gt 0) {
+    Write-Warn "Projets avec des échecs de tests : $($FailedProjects -join ', ')"
+    exit 1
 }

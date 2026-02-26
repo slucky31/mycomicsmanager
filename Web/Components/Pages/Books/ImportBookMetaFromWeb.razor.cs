@@ -201,7 +201,7 @@ public partial class ImportBookMetaFromWeb
         var publishDate = _currentBook.PublishDate;
         var publishDateStr = GetResolvedValue(BookFieldKeys.PublishDate);
         if (!string.IsNullOrEmpty(publishDateStr) &&
-            DateOnly.TryParse(publishDateStr, out var pd))
+            DateOnly.TryParseExact(publishDateStr, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var pd))
         {
             publishDate = pd;
         }
