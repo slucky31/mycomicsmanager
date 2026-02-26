@@ -1,0 +1,220 @@
+#Requires -Version 7.0
+<#
+.SYNOPSIS
+    Génère un rapport de couverture de tests pour MyComicsManager.
+
+.DESCRIPTION
+    Exécute les tests avec collecte de couverture via coverlet, puis génère
+    un rapport HTML avec dotnet-reportgenerator-globaltool.
+
+.PARAMETER OpenReport
+    Ouvre le rapport HTML dans le navigateur après génération.
+
+.PARAMETER SkipIntegration
+    Ignore les projets de tests d'intégration (nécessitent une base de données).
+
+.PARAMETER OutputDir
+    Répertoire de sortie du rapport (défaut : ./coverage-report).
+
+.PARAMETER ConnectionString
+    Connection string Neon pour les tests d'intégration.
+    Si absent, la variable d'environnement ConnectionStrings__NeonConnectionUnitTests est utilisée.
+
+.EXAMPLE
+    ./Generate-CoverageReport.ps1
+    ./Generate-CoverageReport.ps1 -OpenReport
+    ./Generate-CoverageReport.ps1 -SkipIntegration -OpenReport
+    ./Generate-CoverageReport.ps1 -ConnectionString "Host=...;Database=...;Username=...;Password=..." -OpenReport
+#>
+
+[CmdletBinding()]
+param(
+    [switch]$OpenReport,
+    [switch]$SkipIntegration,
+    [string]$OutputDir = "coverage-report",
+    [string]$ConnectionString = ""
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+# ─── Couleurs & helpers ────────────────────────────────────────────────────────
+function Write-Step  { param($msg) Write-Host "`n▶ $msg" -ForegroundColor Cyan }
+function Write-Ok    { param($msg) Write-Host "  ✓ $msg" -ForegroundColor Green }
+function Write-Warn  { param($msg) Write-Host "  ⚠ $msg" -ForegroundColor Yellow }
+function Write-Fail  { param($msg) Write-Host "  ✗ $msg" -ForegroundColor Red }
+
+# ─── Chemins ──────────────────────────────────────────────────────────────────
+$RepoRoot    = Split-Path $PSScriptRoot -Parent
+$TestsDir    = Join-Path $RepoRoot "tests"
+$CoverageDir = Join-Path $RepoRoot $OutputDir
+$ResultsDir  = Join-Path $CoverageDir "raw"
+
+# Projets de tests unitaires (toujours inclus)
+$UnitTestProjects = @(
+    "Application.UnitTests"
+    "Domain.UnitTests"
+    "Architecture.Tests"
+    "Web.Tests"
+)
+
+# Projets d'intégration (nécessitent ConnectionStrings__NeonConnectionUnitTests)
+$IntegrationTestProjects = @(
+    "Persistence.Integration.Tests"
+)
+
+# ─── Vérifications préalables ─────────────────────────────────────────────────
+Write-Step "Vérification des prérequis"
+
+# dotnet
+if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+    Write-Fail "dotnet SDK introuvable. Installez le .NET SDK."
+    exit 1
+}
+Write-Ok "dotnet $(dotnet --version)"
+
+# reportgenerator
+if (-not (Get-Command reportgenerator -ErrorAction SilentlyContinue)) {
+    Write-Warn "reportgenerator introuvable. Installation en cours..."
+    dotnet tool install --global dotnet-reportgenerator-globaltool
+    if ($LASTEXITCODE -ne 0) {
+        Write-Fail "Impossible d'installer reportgenerator."
+        exit 1
+    }
+    Write-Ok "reportgenerator installé."
+} else {
+    Write-Ok "reportgenerator $(reportgenerator --version 2>&1 | Select-String '\d+\.\d+\.\d+' | ForEach-Object { $_.Matches[0].Value })"
+}
+
+# Variable d'env pour les tests d'intégration
+if (-not $SkipIntegration) {
+    if ($ConnectionString) {
+        $env:ConnectionStrings__NeonConnectionUnitTests = $ConnectionString
+        Write-Ok "Connection string définie via -ConnectionString."
+    } elseif (-not $env:ConnectionStrings__NeonConnectionUnitTests) {
+        Write-Warn "Aucune connection string fournie (-ConnectionString) ni variable d'environnement définie."
+        Write-Warn "Les tests d'intégration seront ignorés (utilisez -SkipIntegration pour supprimer cet avertissement)."
+        $SkipIntegration = $true
+    } else {
+        Write-Ok "Connection string lue depuis la variable d'environnement."
+    }
+}
+
+# ─── Nettoyage ────────────────────────────────────────────────────────────────
+Write-Step "Nettoyage du répertoire de sortie"
+
+if (Test-Path $CoverageDir) {
+    Remove-Item $CoverageDir -Recurse -Force
+}
+New-Item -ItemType Directory -Path $ResultsDir | Out-Null
+Write-Ok "Répertoire créé : $CoverageDir"
+
+# ─── Exécution des tests ──────────────────────────────────────────────────────
+$ProjectsToRun = $UnitTestProjects
+if (-not $SkipIntegration) {
+    $ProjectsToRun += $IntegrationTestProjects
+}
+
+$CoverageFiles = @()
+$FailedProjects = @()
+
+foreach ($ProjectName in $ProjectsToRun) {
+    Write-Step "Tests : $ProjectName"
+
+    $ProjectPath = Join-Path $TestsDir $ProjectName
+    if (-not (Test-Path $ProjectPath)) {
+        # Cherche un sous-dossier avec un .csproj (ex: Persistence.Tests)
+        $ProjectPath = Get-ChildItem $TestsDir -Directory | Where-Object {
+            $_.Name -like "*$($ProjectName.Split('.')[0])*"
+        } | Select-Object -First 1 -ExpandProperty FullName
+    }
+
+    if (-not $ProjectPath -or -not (Test-Path $ProjectPath)) {
+        Write-Warn "Projet introuvable : $ProjectName — ignoré."
+        continue
+    }
+
+    $ResultPath = Join-Path $ResultsDir $ProjectName
+    New-Item -ItemType Directory -Path $ResultPath | Out-Null
+
+    $TestArgs = @(
+        "test"
+        $ProjectPath
+        "--configuration", "Release"
+        "--no-restore"
+        "--collect:XPlat Code Coverage"
+        "--results-directory", $ResultPath
+        "--"
+        "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura"
+        "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include=[Domain]*,[Application]*,[Persistence]*,[Web]*"
+        "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude=[*.Tests]*,[*.UnitTests]*,[*.Integration.Tests]*"
+    )
+
+    dotnet @TestArgs
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Fail "$ProjectName : des tests ont échoué (code $LASTEXITCODE)."
+        $FailedProjects += $ProjectName
+    } else {
+        Write-Ok "$ProjectName : OK"
+    }
+
+    # Collecte les fichiers de couverture générés
+    $Generated = Get-ChildItem $ResultPath -Recurse -Filter "coverage.cobertura.xml"
+    $CoverageFiles += $Generated.FullName
+}
+
+# ─── Vérification des fichiers de couverture ─────────────────────────────────
+Write-Step "Fichiers de couverture collectés"
+
+if ($CoverageFiles.Count -eq 0) {
+    Write-Fail "Aucun fichier coverage.cobertura.xml trouvé. Abandon."
+    exit 1
+}
+
+foreach ($f in $CoverageFiles) {
+    Write-Ok $f
+}
+
+# ─── Génération du rapport ────────────────────────────────────────────────────
+Write-Step "Génération du rapport HTML"
+
+$ReportPath = Join-Path $CoverageDir "html"
+$ReportsArg = $CoverageFiles -join ";"
+
+reportgenerator `
+    "-reports:$ReportsArg" `
+    "-targetdir:$ReportPath" `
+    "-reporttypes:Html;HtmlSummary;Badges;TextSummary" `
+    "-assemblyfilters:+Domain;+Application;+Persistence;+Web;-*.Tests;-*.UnitTests" `
+    "-classfilters:-*Migrations*" `
+    "-filefilters:-*.g.cs;-*RegexGenerator*;-*GlobalUsings*" `
+    "-title:MyComicsManager Coverage" `
+    "-verbosity:Warning"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Fail "reportgenerator a échoué."
+    exit 1
+}
+
+# ─── Résumé textuel ───────────────────────────────────────────────────────────
+$SummaryFile = Join-Path $ReportPath "Summary.txt"
+if (Test-Path $SummaryFile) {
+    Write-Host ""
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+    Get-Content $SummaryFile | Write-Host
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+}
+
+# ─── Résultat final ───────────────────────────────────────────────────────────
+$IndexFile = Join-Path $ReportPath "index.html"
+Write-Ok "Rapport généré : $IndexFile"
+
+if ($FailedProjects.Count -gt 0) {
+    Write-Warn "Projets avec des échecs de tests : $($FailedProjects -join ', ')"
+}
+
+if ($OpenReport) {
+    Write-Step "Ouverture du rapport"
+    Start-Process $IndexFile
+}

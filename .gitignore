@@ -370,3 +370,6 @@ Web/wwwroot/temp/
 
 # Claude personal settings
 .claude/settings.local.json
+
+# Coverage reports
+coverage-report/
