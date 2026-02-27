@@ -23,16 +23,16 @@ public sealed class CurrentUserServiceTests
         _service = new CurrentUserService(_authStateProvider, _userReadService);
     }
 
-    private static AuthenticationState CreateAuthState(string? email)
+    private static AuthenticationState CreateAuthState(string? sub)
     {
-        if (string.IsNullOrEmpty(email))
+        if (string.IsNullOrEmpty(sub))
         {
             var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
             return new AuthenticationState(anonymous);
         }
 
         var identity = new ClaimsIdentity(
-            [new Claim(ClaimTypes.Name, email)],
+            [new Claim("sub", sub)],
             authenticationType: "test");
         return new AuthenticationState(new ClaimsPrincipal(identity));
     }
@@ -41,11 +41,10 @@ public sealed class CurrentUserServiceTests
     public async Task CurrentUserService_Should_ReturnUserId_WhenUserAuthenticated()
     {
         // Arrange
-        const string email = "user@example.com";
-        var userId = Guid.CreateVersion7();
-        var user = User.Create(email, "auth-id-123");
-        _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(email));
-        _userReadService.GetUserByEmail(email).Returns(user);
+        const string sub = "auth0|user123";
+        var user = User.Create("user@example.com", sub);
+        _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(sub));
+        _userReadService.GetUserByAuthId(sub).Returns(user);
 
         // Act
         var result = await _service.GetCurrentUserIdAsync();
@@ -67,16 +66,16 @@ public sealed class CurrentUserServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UsersError.NotFound);
-        await _userReadService.DidNotReceive().GetUserByEmail(Arg.Any<string>());
+        await _userReadService.DidNotReceive().GetUserByAuthId(Arg.Any<string>());
     }
 
     [Fact]
-    public async Task CurrentUserService_Should_ReturnError_WhenUserEmailNotFoundInDatabase()
+    public async Task CurrentUserService_Should_ReturnError_WhenUserNotFoundInDatabase()
     {
         // Arrange
-        const string email = "unknown@example.com";
-        _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(email));
-        _userReadService.GetUserByEmail(email).Returns(Result<User>.Failure(UsersError.NotFound));
+        const string sub = "auth0|unknown";
+        _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(sub));
+        _userReadService.GetUserByAuthId(sub).Returns(Result<User>.Failure(UsersError.NotFound));
 
         // Act
         var result = await _service.GetCurrentUserIdAsync();
@@ -87,18 +86,18 @@ public sealed class CurrentUserServiceTests
     }
 
     [Fact]
-    public async Task CurrentUserService_Should_CallUserReadService_WhenEmailIsPresent()
+    public async Task CurrentUserService_Should_CallUserReadService_WhenSubIsPresent()
     {
         // Arrange
-        const string email = "test@example.com";
-        var user = User.Create(email, "auth-sid");
-        _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(email));
-        _userReadService.GetUserByEmail(email).Returns(user);
+        const string sub = "auth0|test123";
+        var user = User.Create("test@example.com", sub);
+        _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(sub));
+        _userReadService.GetUserByAuthId(sub).Returns(user);
 
         // Act
         await _service.GetCurrentUserIdAsync();
 
         // Assert
-        await _userReadService.Received(1).GetUserByEmail(email);
+        await _userReadService.Received(1).GetUserByAuthId(sub);
     }
 }

@@ -47,7 +47,8 @@ public partial class LibrariesList
         {
             Guard.Against.Null(result.Error);
             Guard.Against.Null(result.Error.Description);
-            Snackbar.Add(result.Error.Description, Severity.Error);
+            Snackbar.Add("Failed to delete library", Severity.Error);
+
         }
         else
         {

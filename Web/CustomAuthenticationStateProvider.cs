@@ -27,9 +27,9 @@ internal class CustomAuthenticationStateProvider(
         if (user.Identity.IsAuthenticated)
         {
             var email = user.Identity.Name;
-            var authId = user.FindFirstValue("sid");
+            var authId = user.FindFirstValue("sub");
 
-            var userResult = await _userReadService.GetUserByEmail(email);
+            var userResult = await _userReadService.GetUserByAuthId(authId);
             if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(authId) && userResult.IsFailure && userResult.Error == UsersError.NotFound)
             {
                 var usr = User.Create(email, authId);

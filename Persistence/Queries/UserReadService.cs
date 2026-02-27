@@ -71,4 +71,22 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
         return user;
     }
 
+    public async Task<Result<User>> GetUserByAuthId(string? authId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(authId))
+        {
+            return UsersError.BadRequest;
+        }
+
+        var user = await context.Users.AsNoTracking()
+            .Where(u => u.AuthId == authId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (user is null)
+        {
+            return UsersError.NotFound;
+        }
+        return user;
+    }
+
 }

@@ -13,18 +13,14 @@ public class CurrentUserService(
     public async Task<Result<Guid>> GetCurrentUserIdAsync()
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
-        var email = authState.User.Identity?.Name;
+        var sub = authState.User.FindFirst("sub")?.Value;
 
-        if (string.IsNullOrEmpty(email))
-        {
+        if (string.IsNullOrEmpty(sub))
             return UsersError.NotFound;
-        }
 
-        var userResult = await userReadService.GetUserByEmail(email);
+        var userResult = await userReadService.GetUserByAuthId(sub);
         if (userResult.IsFailure)
-        {
             return userResult.Error;
-        }
 
         return userResult.Value!.Id;
     }
