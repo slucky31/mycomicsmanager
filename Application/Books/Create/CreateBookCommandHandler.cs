@@ -48,8 +48,8 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
             return LibrariesError.NotFound;
         }
 
-        // Verify ownership when UserId is provided
-        if (request.UserId != Guid.Empty && library.UserId != request.UserId)
+        // Verify ownership
+        if (library.UserId != request.UserId)
         {
             return LibrariesError.NotFound;
         }

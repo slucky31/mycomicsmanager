@@ -53,14 +53,14 @@ public class BooksService(
             request.Title,
             request.Isbn,
             request.LibraryId,
+            userIdResult.Value,
             request.VolumeNumber,
             request.ImageLink,
             request.Rating,
             request.Authors,
             request.Publishers,
             request.PublishDate,
-            request.NumberOfPages,
-            UserId: userIdResult.Value);
+            request.NumberOfPages);
 
         return await createBookHandler.Handle(command, cancellationToken);
     }

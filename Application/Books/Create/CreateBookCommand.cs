@@ -8,12 +8,12 @@ public record CreateBookCommand(
     string Title,
     string ISBN,
     Guid LibraryId,
+    Guid UserId,
     int VolumeNumber = 1,
     string ImageLink = "",
     int Rating = 1,
     string Authors = "",
     string Publishers = "",
     DateOnly? PublishDate = null,
-    int? NumberOfPages = null,
-    Guid UserId = default
+    int? NumberOfPages = null
 ) : ICommand<Book>;
