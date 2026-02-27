@@ -2,11 +2,15 @@ using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
+using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Application.Books.DeleteReadingDate;
 
-public sealed class DeleteReadingDateCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork) : ICommandHandler<DeleteReadingDateCommand>
+public sealed class DeleteReadingDateCommandHandler(
+    IBookRepository bookRepository,
+    IUnitOfWork unitOfWork,
+    IRepository<Library, Guid> libraryRepository) : ICommandHandler<DeleteReadingDateCommand>
 {
     public async Task<Result> Handle(DeleteReadingDateCommand request, CancellationToken cancellationToken)
     {
@@ -16,6 +20,15 @@ public sealed class DeleteReadingDateCommandHandler(IBookRepository bookReposito
         if (book is null)
         {
             return BooksError.NotFound;
+        }
+
+        if (request.UserId != Guid.Empty)
+        {
+            var library = await libraryRepository.GetByIdAsync(book.LibraryId);
+            if (library is null || library.UserId != request.UserId)
+            {
+                return BooksError.NotFound;
+            }
         }
 
         book.RemoveReadingDate(request.ReadingDateId);

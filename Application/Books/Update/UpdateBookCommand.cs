@@ -13,5 +13,6 @@ public record UpdateBookCommand(
     string Authors = "",
     string Publishers = "",
     DateOnly? PublishDate = null,
-    int? NumberOfPages = null
+    int? NumberOfPages = null,
+    Guid UserId = default
 ) : ICommand<Book>;

@@ -3,13 +3,16 @@ using Application.Books.Update;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
+using Domain.Libraries;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
 
 public class UpdateBookCommandHandlerTests
 {
+    private static readonly Guid s_userId = Guid.CreateVersion7();
     private static readonly Guid s_bookId = Guid.CreateVersion7();
+    private static readonly Guid s_libraryId = Guid.CreateVersion7();
     private static readonly UpdateBookCommand s_validCommand = new(
         s_bookId,
         "Updated Serie",
@@ -22,16 +25,18 @@ public class UpdateBookCommandHandlerTests
     private readonly UpdateBookCommandHandler _handler;
     private readonly IBookRepository _bookRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
+    private readonly IRepository<Library, Guid> _libraryRepositoryMock;
 
     public UpdateBookCommandHandlerTests()
     {
         _bookRepositoryMock = Substitute.For<IBookRepository>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+        _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
 
-        _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock);
+        _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock);
     }
 
-    private static readonly Guid s_testLibraryId = Guid.CreateVersion7();
+    private static readonly Guid s_testLibraryId = s_libraryId;
 
     private static Book CreateBookWithId(Guid id, string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
     {
@@ -446,4 +451,45 @@ public class UpdateBookCommandHandlerTests
         result.Error.Should().Be(BooksError.Duplicate);
     }
 
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenBookBelongsToOtherUser()
+    {
+        // Arrange
+        var requestingUserId = Guid.CreateVersion7();
+        var command = new UpdateBookCommand(s_bookId, "Serie", "Title", "978-0-306-40615-7", 1, "", UserId: requestingUserId);
+        var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
+        var library = Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!;
+
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(existingBook);
+        _bookRepositoryMock.GetByIsbnAsync("9780306406157", Arg.Any<CancellationToken>()).Returns((Book?)null);
+        _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(library);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.NotFound);
+        _bookRepositoryMock.DidNotReceive().Update(Arg.Any<Book>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnSuccess_WhenOwnershipVerified()
+    {
+        // Arrange
+        var command = new UpdateBookCommand(s_bookId, "Updated Serie", "Updated Title", "978-0-306-40615-7", 2, "", UserId: s_userId);
+        var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
+        var library = Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!;
+
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(existingBook);
+        _bookRepositoryMock.GetByIsbnAsync("9780306406157", Arg.Any<CancellationToken>()).Returns((Book?)null);
+        _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(library);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _bookRepositoryMock.Received(1).Update(existingBook);
+    }
 }

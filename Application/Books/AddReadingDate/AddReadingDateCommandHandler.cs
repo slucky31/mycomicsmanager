@@ -2,11 +2,15 @@ using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
+using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Application.Books.AddReadingDate;
 
-public sealed class AddReadingDateCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork) : ICommandHandler<AddReadingDateCommand, ReadingDate>
+public sealed class AddReadingDateCommandHandler(
+    IBookRepository bookRepository,
+    IUnitOfWork unitOfWork,
+    IRepository<Library, Guid> libraryRepository) : ICommandHandler<AddReadingDateCommand, ReadingDate>
 {
     public async Task<Result<ReadingDate>> Handle(AddReadingDateCommand request, CancellationToken cancellationToken)
     {
@@ -16,6 +20,15 @@ public sealed class AddReadingDateCommandHandler(IBookRepository bookRepository,
         if (book is null)
         {
             return BooksError.NotFound;
+        }
+
+        if (request.UserId != Guid.Empty)
+        {
+            var library = await libraryRepository.GetByIdAsync(book.LibraryId);
+            if (library is null || library.UserId != request.UserId)
+            {
+                return BooksError.NotFound;
+            }
         }
 
         var readingDate = book.AddReadingDate(DateTime.UtcNow, request.Rating);

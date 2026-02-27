@@ -1,27 +1,35 @@
 using Application.Books.Delete;
 using Application.Interfaces;
 using Domain.Books;
+using Domain.Libraries;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
 
 public class DeleteBookCommandHandlerTests
 {
+    private static readonly Guid s_userId = Guid.CreateVersion7();
     private static readonly Guid s_bookId = Guid.CreateVersion7();
+    private static readonly Guid s_libraryId = Guid.CreateVersion7();
     private static readonly DeleteBookCommand s_command = new(s_bookId);
-    private static readonly Book s_existingBook = PhysicalBook.Create("Test Serie", "Test Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
+    private static readonly Book s_existingBook = PhysicalBook.Create("Test Serie", "Test Title", "978-3-16-148410-0", libraryId: s_libraryId).Value!;
 
     private readonly DeleteBookCommandHandler _handler;
     private readonly IBookRepository _bookRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
+    private readonly IRepository<Library, Guid> _libraryRepositoryMock;
 
     public DeleteBookCommandHandlerTests()
     {
         _bookRepositoryMock = Substitute.For<IBookRepository>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+        _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
 
-        _handler = new DeleteBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock);
+        _handler = new DeleteBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock);
     }
+
+    private static Library CreateLibrary(Guid userId)
+        => Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, userId).Value!;
 
     [Fact]
     public async Task Handle_Should_ReturnSuccess_WhenBookExists()
@@ -150,5 +158,42 @@ public class DeleteBookCommandHandlerTests
 
         // Assert
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenBookBelongsToOtherUser()
+    {
+        // Arrange
+        var requestingUserId = Guid.CreateVersion7();
+        var command = new DeleteBookCommand(s_bookId, UserId: requestingUserId);
+        var library = CreateLibrary(s_userId); // different owner
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(s_existingBook);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(library);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.NotFound);
+        _bookRepositoryMock.DidNotReceive().Remove(Arg.Any<Book>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnSuccess_WhenOwnershipVerified()
+    {
+        // Arrange
+        var command = new DeleteBookCommand(s_bookId, UserId: s_userId);
+        var library = CreateLibrary(s_userId);
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(s_existingBook);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(library);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _bookRepositoryMock.Received(1).Remove(s_existingBook);
     }
 }

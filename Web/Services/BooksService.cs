@@ -29,7 +29,13 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var query = new GetBookByIdQuery(guidId);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error;
+        }
+
+        var query = new GetBookByIdQuery(guidId, UserId: userIdResult.Value);
 
         return await getBookByIdHandler.Handle(query, CancellationToken.None);
     }
@@ -66,6 +72,12 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error;
+        }
+
         var command = new UpdateBookCommand(
             guidId,
             request.Series,
@@ -76,7 +88,8 @@ public class BooksService(
             request.Authors,
             request.Publishers,
             request.PublishDate,
-            request.NumberOfPages);
+            request.NumberOfPages,
+            UserId: userIdResult.Value);
 
         return await updateBookHandler.Handle(command, cancellationToken);
     }
@@ -88,7 +101,13 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var command = new AddReadingDateCommand(guidId, rating);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error;
+        }
+
+        var command = new AddReadingDateCommand(guidId, rating, UserId: userIdResult.Value);
         return await addReadingDateHandler.Handle(command, cancellationToken);
     }
 
@@ -99,7 +118,13 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var command = new DeleteReadingDateCommand(bookGuidId, readingDateGuidId);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error;
+        }
+
+        var command = new DeleteReadingDateCommand(bookGuidId, readingDateGuidId, UserId: userIdResult.Value);
         return await deleteReadingDateHandler.Handle(command, cancellationToken);
     }
 
@@ -130,7 +155,13 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var command = new DeleteBookCommand(guidId);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error;
+        }
+
+        var command = new DeleteBookCommand(guidId, UserId: userIdResult.Value);
 
         return await deleteBookHandler.Handle(command, cancellationToken);
     }
