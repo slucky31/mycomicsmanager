@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Serilog;
 using Web.Services;
 using Web.Validators;
 
@@ -53,12 +54,12 @@ public partial class AddLibrary
 
         if (result.IsSuccess)
         {
-            Snackbar.Add("Library created successfully!", Severity.Success);
             NavigationManager.NavigateTo("/libraries/list");
         }
         else
         {
-            Snackbar.Add(result.Error?.Description ?? "Failed to create library", Severity.Error);
+            Snackbar.Add("Failed to create library", Severity.Error);
+            Log.Error("Failed to create library: {Error}", result.Error?.Description);
             _isSaving = false;
         }
     }

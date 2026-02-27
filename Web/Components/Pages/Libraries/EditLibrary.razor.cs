@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Serilog;
 using Web.Services;
 using Web.Validators;
 
@@ -56,12 +57,12 @@ public partial class EditLibrary
 
         if (result.IsSuccess)
         {
-            Snackbar.Add("Library updated successfully!", Severity.Success);
             NavigationManager.NavigateTo($"/libraries/{LibraryId}");
         }
         else
         {
-            Snackbar.Add(result.Error?.Description ?? "Failed to update library", Severity.Error);
+            Snackbar.Add("Failed to update library", Severity.Error);
+            Log.Error("Failed to update library: {Error}", result.Error);
             _isSaving = false;
         }
     }

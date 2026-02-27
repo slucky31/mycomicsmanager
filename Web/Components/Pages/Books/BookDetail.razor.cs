@@ -76,7 +76,8 @@ public partial class BookDetail
             }
             else
             {
-                Snackbar.Add($"Erreur : {result.Error?.Description}", Severity.Error);
+                Snackbar.Add($"Unexpected error while adding reading date", Severity.Error);
+                Log.Error("Unexpected error while adding reading date");
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
@@ -106,13 +107,13 @@ public partial class BookDetail
             var res = await BooksService.Delete(BookId);
 
             if (res.IsSuccess)
-            {
-                Snackbar.Add("Book deleted successfully!", Severity.Success);
+            {                
                 NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
             }
             else
             {
-                Snackbar.Add($"Failed to delete book: {res.Error?.Description}", Severity.Error);
+                Snackbar.Add("Failed to delete book", Severity.Error);
+                Log.Error("Failed to delete book: {Description}", res.Error?.Description);
             }
         }
     }

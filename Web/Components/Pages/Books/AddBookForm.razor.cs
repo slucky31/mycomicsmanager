@@ -150,7 +150,8 @@ public partial class AddBookForm
         }
         else
         {
-            Snackbar.Add($"Failed to add book: {result.Error?.Description}", Severity.Error);
+            Snackbar.Add($"Failed to add book", Severity.Error);
+            Log.Error("Failed to add book: {Description}", result.Error?.Description);
         }
 
         _isSaving = false;

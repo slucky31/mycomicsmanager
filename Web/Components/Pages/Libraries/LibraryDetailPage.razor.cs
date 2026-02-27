@@ -1,6 +1,7 @@
 using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Serilog;
 using Web.Components.Pages.Dialogs;
 using Web.Enums;
 using Web.Services;
@@ -113,7 +114,8 @@ public partial class LibraryDetailPage
             }
             else
             {
-                Snackbar.Add($"Failed to delete book: {res.Error?.Description}", Severity.Error);
+                Snackbar.Add("Failed to delete book", Severity.Error);
+                Log.Error($"Failed to delete book with ID {bookId}: {res.Error?.Description}");
             }
         }
     }
