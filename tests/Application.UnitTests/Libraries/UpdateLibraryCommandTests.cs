@@ -4,9 +4,7 @@ using Application.Libraries.Update;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
-using MockQueryable;
 using NSubstitute;
-using Persistence.Queries.Helpers;
 
 namespace Application.UnitTests.Libraries;
 
@@ -69,11 +67,7 @@ public class UpdateLibraryCommandTests
     public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExist()
     {
         // Arrange
-        List<Library> list = [s_library];
-        var query = list.BuildMock();
-        var pagedList = new PagedList<Library>(query);
-        await pagedList.ExecuteQueryAsync(1, 2);
-        _libraryReadServiceMock.GetLibrariesAsync(s_command.Name, LibrariesColumn.Name, null, 1, 1, s_command.UserId, Arg.Any<CancellationToken>()).Returns(pagedList);
+        _libraryReadServiceMock.ExistsByNameAsync(s_command.Name, s_command.UserId, s_command.Id, Arg.Any<CancellationToken>()).Returns(true);
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
 
         // Act

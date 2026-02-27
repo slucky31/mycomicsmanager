@@ -1,9 +1,8 @@
-﻿using Application.Books.List;
+using Application.Books.List;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
 using Domain.Libraries;
-using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;

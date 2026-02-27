@@ -35,4 +35,17 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
         var librariesPagedList = new PagedList<Library>(librariesQuery);
         return await librariesPagedList.ExecuteQueryAsync(page, pageSize, cancellationToken);
     }
+
+    public async Task<bool> ExistsByNameAsync(string name, Guid userId, Guid? excludeId = null, CancellationToken cancellationToken = default)
+    {
+        var query = context.Libraries.AsNoTracking()
+            .Where(l => l.UserId == userId && l.Name == name);
+
+        if (excludeId.HasValue)
+        {
+            query = query.Where(l => l.Id != excludeId.Value);
+        }
+
+        return await query.AnyAsync(cancellationToken);
+    }
 }

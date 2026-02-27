@@ -14,4 +14,10 @@ public interface ILibraryReadService
         int pageSize,
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    Task<bool> ExistsByNameAsync(
+        string name,
+        Guid userId,
+        Guid? excludeId = null,
+        CancellationToken cancellationToken = default);
 }

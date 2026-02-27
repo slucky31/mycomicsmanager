@@ -1,6 +1,5 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
-using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
 
@@ -32,10 +31,8 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         // Update name only if provided
         if (request.Name is not null)
         {
-            // Check for duplicate name within same user
-            var pagedList = await libraryReadService.GetLibrariesAsync(request.Name, LibrariesColumn.Name, null, 1, 1, request.UserId, cancellationToken);
-            Guard.Against.Null(pagedList);
-            if (pagedList.TotalCount > 0)
+            // Check for duplicate name within same user (excluding this library)
+            if (await libraryReadService.ExistsByNameAsync(request.Name, request.UserId, request.Id, cancellationToken))
             {
                 return LibrariesError.Duplicate;
             }
