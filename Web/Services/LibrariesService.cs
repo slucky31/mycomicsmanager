@@ -1,6 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Application.Libraries.Create;
+using Application.Libraries.CreateDefault;
 using Application.Libraries.Delete;
 using Application.Libraries.GetById;
 using Application.Libraries.List;
@@ -14,8 +15,10 @@ public class LibrariesService(
     IQueryHandler<GetLibraryQuery, Library> getLibraryHandler,
     IQueryHandler<GetLibrariesQuery, IPagedList<Library>> getLibrariesHandler,
     ICommandHandler<CreateLibraryCommand, Library> createLibraryHandler,
+    ICommandHandler<CreateDefaultLibraryCommand, Library> createDefaultLibraryHandler,
     ICommandHandler<UpdateLibraryCommand, Library> updateLibraryHandler,
-    ICommandHandler<DeleteLibraryCommand> deleteLibraryHandler) : ILibrariesService
+    ICommandHandler<DeleteLibraryCommand> deleteLibraryHandler,
+    ICurrentUserService currentUserService) : ILibrariesService
 {
     public async Task<Result<Library>> GetById(string? id)
     {
@@ -29,55 +32,78 @@ public class LibrariesService(
         return await getLibraryHandler.Handle(query, CancellationToken.None);
     }
 
-    // TODO(Prompt 3): Replace Guid.Empty with actual userId from ICurrentUserService
-    public async Task<Result<Library>> Create(string? name)
+    public async Task<Result<Library>> Create(CreateLibraryRequest request, CancellationToken cancellationToken = default)
     {
-        var command = new CreateLibraryCommand(
-            name ?? "",
-            LibraryConstants.DefaultLibraryColor,
-            LibraryConstants.DefaultLibraryIcon,
-            LibraryBookType.Physical,
-            Guid.Empty);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+            return userIdResult.Error;
 
-        return await createLibraryHandler.Handle(command, CancellationToken.None);
+        var command = new CreateLibraryCommand(
+            request.Name,
+            request.Color,
+            request.Icon,
+            request.BookType,
+            userIdResult.Value);
+
+        return await createLibraryHandler.Handle(command, cancellationToken);
     }
 
-    // TODO(Prompt 3): Replace Guid.Empty with actual userId from ICurrentUserService
-    public async Task<Result<Library>> Update(string? id, string? name)
+    public async Task<Result<Library>> CreateDefault(CancellationToken cancellationToken = default)
     {
-        if (!Guid.TryParse(id, out var guidId))
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+            return userIdResult.Error;
+
+        var command = new CreateDefaultLibraryCommand(userIdResult.Value);
+
+        return await createDefaultLibraryHandler.Handle(command, cancellationToken);
+    }
+
+    public async Task<Result<Library>> Update(UpdateLibraryRequest request, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(request.Id, out var guidId))
         {
             return LibrariesError.ValidationError;
         }
+
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+            return userIdResult.Error;
 
         var command = new UpdateLibraryCommand(
             guidId,
-            name ?? "",
-            LibraryConstants.DefaultLibraryColor,
-            LibraryConstants.DefaultLibraryIcon,
-            Guid.Empty);
+            request.Name,
+            request.Color,
+            request.Icon,
+            userIdResult.Value);
 
-        return await updateLibraryHandler.Handle(command, CancellationToken.None);
+        return await updateLibraryHandler.Handle(command, cancellationToken);
     }
 
-    // TODO(Prompt 3): Replace Guid.Empty with actual userId from ICurrentUserService
-    public async Task<Result<IPagedList<Library>>> FilterBy(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
+    public async Task<Result<IPagedList<Library>>> FilterBy(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize, Guid.Empty);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+            return userIdResult.Error;
 
-        return await getLibrariesHandler.Handle(query, CancellationToken.None);
+        var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize, userIdResult.Value);
+
+        return await getLibrariesHandler.Handle(query, cancellationToken);
     }
 
-    // TODO(Prompt 3): Replace Guid.Empty with actual userId from ICurrentUserService
-    public async Task<Result> Delete(string? id)
+    public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(id, out var guidId))
         {
             return LibrariesError.ValidationError;
         }
 
-        var command = new DeleteLibraryCommand(guidId, Guid.Empty);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+            return userIdResult.Error;
 
-        return await deleteLibraryHandler.Handle(command, CancellationToken.None);
+        var command = new DeleteLibraryCommand(guidId, userIdResult.Value);
+
+        return await deleteLibraryHandler.Handle(command, cancellationToken);
     }
 }

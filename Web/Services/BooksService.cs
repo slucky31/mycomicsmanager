@@ -6,6 +6,7 @@ using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
 using Application.Books.List;
 using Application.Books.Update;
+using Application.Interfaces;
 using Domain.Books;
 using Domain.Primitives;
 
@@ -18,7 +19,8 @@ public class BooksService(
     ICommandHandler<UpdateBookCommand, Book> updateBookHandler,
     ICommandHandler<DeleteBookCommand> deleteBookHandler,
     ICommandHandler<AddReadingDateCommand, ReadingDate> addReadingDateHandler,
-    ICommandHandler<DeleteReadingDateCommand> deleteReadingDateHandler) : IBooksService
+    ICommandHandler<DeleteReadingDateCommand> deleteReadingDateHandler,
+    ICurrentUserService currentUserService) : IBooksService
 {
     public async Task<Result<Book>> GetById(string? id)
     {
@@ -34,19 +36,23 @@ public class BooksService(
 
     public async Task<Result<Book>> Create(CreateBookRequest request, CancellationToken cancellationToken = default)
     {
-        // TODO(Prompt 3): Replace Guid.Empty with actual LibraryId from request
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+            return userIdResult.Error;
+
         var command = new CreateBookCommand(
             request.Series,
             request.Title,
             request.Isbn,
-            Guid.Empty,
+            request.LibraryId,
             request.VolumeNumber,
             request.ImageLink,
             request.Rating,
             request.Authors,
             request.Publishers,
             request.PublishDate,
-            request.NumberOfPages);
+            request.NumberOfPages,
+            UserId: userIdResult.Value);
 
         return await createBookHandler.Handle(command, cancellationToken);
     }

@@ -98,6 +98,7 @@ public partial class AddBookForm
             _bookModel.Serie,
             _bookModel.Title,
             _bookModel.ISBN,
+            Guid.Empty, // TODO(Prompt 4): replace with actual LibraryId from user selection
             _bookModel.VolumeNumber,
             _bookModel.ImageLink,
             _bookModel.Rating,

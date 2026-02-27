@@ -1,6 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Application.Libraries.Create;
+using Application.Libraries.CreateDefault;
 using Application.Libraries.Delete;
 using Application.Libraries.GetById;
 using Application.Libraries.List;
@@ -9,6 +10,7 @@ using Ardalis.GuardClauses;
 using AwesomeAssertions;
 using Domain.Libraries;
 using Domain.Primitives;
+using Domain.Users;
 using NSubstitute;
 using Web.Services;
 using Xunit;
@@ -20,24 +22,33 @@ public sealed class LibrariesServiceTests
     private readonly IQueryHandler<GetLibraryQuery, Library> _getLibraryHandler;
     private readonly IQueryHandler<GetLibrariesQuery, IPagedList<Library>> _getLibrariesHandler;
     private readonly ICommandHandler<CreateLibraryCommand, Library> _createLibraryHandler;
+    private readonly ICommandHandler<CreateDefaultLibraryCommand, Library> _createDefaultLibraryHandler;
     private readonly ICommandHandler<UpdateLibraryCommand, Library> _updateLibraryHandler;
     private readonly ICommandHandler<DeleteLibraryCommand> _deleteLibraryHandler;
+    private readonly ICurrentUserService _currentUserService;
     private readonly LibrariesService _service;
+
+    private static readonly Guid DefaultUserId = Guid.CreateVersion7();
 
     public LibrariesServiceTests()
     {
         _getLibraryHandler = Substitute.For<IQueryHandler<GetLibraryQuery, Library>>();
         _getLibrariesHandler = Substitute.For<IQueryHandler<GetLibrariesQuery, IPagedList<Library>>>();
         _createLibraryHandler = Substitute.For<ICommandHandler<CreateLibraryCommand, Library>>();
+        _createDefaultLibraryHandler = Substitute.For<ICommandHandler<CreateDefaultLibraryCommand, Library>>();
         _updateLibraryHandler = Substitute.For<ICommandHandler<UpdateLibraryCommand, Library>>();
         _deleteLibraryHandler = Substitute.For<ICommandHandler<DeleteLibraryCommand>>();
+        _currentUserService = Substitute.For<ICurrentUserService>();
+        _currentUserService.GetCurrentUserIdAsync().Returns(DefaultUserId);
 
         _service = new LibrariesService(
             _getLibraryHandler,
             _getLibrariesHandler,
             _createLibraryHandler,
+            _createDefaultLibraryHandler,
             _updateLibraryHandler,
-            _deleteLibraryHandler);
+            _deleteLibraryHandler,
+            _currentUserService);
     }
 
     private static Library CreateLibrary(string name)
@@ -133,21 +144,26 @@ public sealed class LibrariesServiceTests
     #region Create Tests
 
     [Fact]
-    public async Task Create_ShouldCallHandler_WhenNameIsProvided()
+    public async Task Create_ShouldCallHandler_WhenRequestIsValid()
     {
         // Arrange
-        const string name = "New Library";
-        var library = CreateLibrary(name);
+        var request = new CreateLibraryRequest("New Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical);
+        var library = CreateLibrary(request.Name);
         _createLibraryHandler.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
 
         // Act
-        var result = await _service.Create(name);
+        var result = await _service.Create(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         await _createLibraryHandler.Received(1).Handle(
-            Arg.Is<CreateLibraryCommand>(c => c.Name == name),
+            Arg.Is<CreateLibraryCommand>(c =>
+                c.Name == request.Name &&
+                c.Color == request.Color &&
+                c.Icon == request.Icon &&
+                c.BookType == request.BookType &&
+                c.UserId == DefaultUserId),
             Arg.Any<CancellationToken>());
     }
 
@@ -155,57 +171,72 @@ public sealed class LibrariesServiceTests
     public async Task Create_ShouldReturnCreatedLibrary()
     {
         // Arrange
-        const string name = "Comics Collection";
-        var expectedLibrary = CreateLibrary(name);
+        var request = new CreateLibraryRequest("Comics Collection", "#5C6BC0", "Bookmark", LibraryBookType.Physical);
+        var expectedLibrary = CreateLibrary(request.Name);
         _createLibraryHandler.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedLibrary);
 
         // Act
-        var result = await _service.Create(name);
+        var result = await _service.Create(request);
 
         // Assert
         Guard.Against.Null(result.Value);
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().Be(expectedLibrary);
-        result.Value.Name.Should().Be(name);
+        result.Value.Name.Should().Be(request.Name);
     }
 
     [Fact]
-    public async Task Create_ShouldUseEmptyString_WhenNameIsNull()
+    public async Task LibrariesService_Create_Should_ReturnValidationError_WhenUserNotResolved()
     {
         // Arrange
-        const string? name = null;
-        var library = CreateLibrary("Default");
-        _createLibraryHandler.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
-            .Returns(library);
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        var request = new CreateLibraryRequest("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical);
 
         // Act
-        var result = await _service.Create(name);
+        var result = await _service.Create(request);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _createLibraryHandler.DidNotReceive().Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region CreateDefault Tests
+
+    [Fact]
+    public async Task CreateDefault_ShouldCallHandler_WhenUserIsResolved()
+    {
+        // Arrange
+        var defaultLibrary = Library.CreateDefault(DefaultUserId);
+        _createDefaultLibraryHandler.Handle(Arg.Any<CreateDefaultLibraryCommand>(), Arg.Any<CancellationToken>())
+            .Returns(defaultLibrary);
+
+        // Act
+        var result = await _service.CreateDefault();
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        await _createLibraryHandler.Received(1).Handle(
-            Arg.Is<CreateLibraryCommand>(c => c.Name == ""),
+        await _createDefaultLibraryHandler.Received(1).Handle(
+            Arg.Is<CreateDefaultLibraryCommand>(c => c.UserId == DefaultUserId),
             Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Create_ShouldUseEmptyString_WhenNameIsEmpty()
+    public async Task CreateDefault_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        var name = string.Empty;
-        var library = CreateLibrary("Default");
-        _createLibraryHandler.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
-            .Returns(library);
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
 
         // Act
-        var result = await _service.Create(name);
+        var result = await _service.CreateDefault();
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        await _createLibraryHandler.Received(1).Handle(
-            Arg.Is<CreateLibraryCommand>(c => c.Name == ""),
-            Arg.Any<CancellationToken>());
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _createDefaultLibraryHandler.DidNotReceive().Handle(Arg.Any<CreateDefaultLibraryCommand>(), Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -216,10 +247,10 @@ public sealed class LibrariesServiceTests
     public async Task Update_ShouldReturnValidationError_WhenIdIsNull()
     {
         // Arrange
-        string? id = null;
+        var request = new UpdateLibraryRequest(null, "New Name", "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(id, "New Name");
+        var result = await _service.Update(request);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -231,10 +262,10 @@ public sealed class LibrariesServiceTests
     public async Task Update_ShouldReturnValidationError_WhenIdIsInvalidGuid()
     {
         // Arrange
-        const string id = "not-a-guid";
+        var request = new UpdateLibraryRequest("not-a-guid", "New Name", "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(id, "New Name");
+        var result = await _service.Update(request);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -251,16 +282,18 @@ public sealed class LibrariesServiceTests
         var library = CreateLibrary(name);
         _updateLibraryHandler.Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
+        var request = new UpdateLibraryRequest(libraryId.ToString(), name, "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(libraryId.ToString(), name);
+        var result = await _service.Update(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         await _updateLibraryHandler.Received(1).Handle(
             Arg.Is<UpdateLibraryCommand>(c =>
                 c.Id == libraryId &&
-                c.Name == name),
+                c.Name == name &&
+                c.UserId == DefaultUserId),
             Arg.Any<CancellationToken>());
     }
 
@@ -273,9 +306,10 @@ public sealed class LibrariesServiceTests
         var expectedLibrary = CreateLibrary(name);
         _updateLibraryHandler.Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedLibrary);
+        var request = new UpdateLibraryRequest(libraryId.ToString(), name, "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(libraryId.ToString(), name);
+        var result = await _service.Update(request);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -285,23 +319,40 @@ public sealed class LibrariesServiceTests
     }
 
     [Fact]
-    public async Task Update_ShouldUseEmptyString_WhenNameIsNull()
+    public async Task Update_ShouldPassNullName_WhenNameIsNull()
     {
         // Arrange
         var libraryId = Guid.CreateVersion7();
-        string? name = null;
         var library = CreateLibrary("Default");
         _updateLibraryHandler.Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
+        var request = new UpdateLibraryRequest(libraryId.ToString(), null, "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(libraryId.ToString(), name);
+        var result = await _service.Update(request);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         await _updateLibraryHandler.Received(1).Handle(
-            Arg.Is<UpdateLibraryCommand>(c => c.Name == ""),
+            Arg.Is<UpdateLibraryCommand>(c => c.Name == null),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Update_ShouldReturnError_WhenUserNotResolved()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        var libraryId = Guid.CreateVersion7();
+        var request = new UpdateLibraryRequest(libraryId.ToString(), "Name", "#5C6BC0", "Bookmark");
+
+        // Act
+        var result = await _service.Update(request);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _updateLibraryHandler.DidNotReceive().Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -332,7 +383,8 @@ public sealed class LibrariesServiceTests
                 q.sortColumn == sortColumn &&
                 q.sortOrder == sortOrder &&
                 q.page == page &&
-                q.pageSize == pageSize),
+                q.pageSize == pageSize &&
+                q.UserId == DefaultUserId),
             Arg.Any<CancellationToken>());
     }
 
@@ -472,6 +524,21 @@ public sealed class LibrariesServiceTests
             Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task FilterBy_ShouldReturnError_WhenUserNotResolved()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        // Act
+        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, 10);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _getLibrariesHandler.DidNotReceive().Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>());
+    }
+
     #endregion
 
     #region Delete Tests
@@ -535,7 +602,7 @@ public sealed class LibrariesServiceTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         await _deleteLibraryHandler.Received(1).Handle(
-            Arg.Is<DeleteLibraryCommand>(c => c.Id == libraryId),
+            Arg.Is<DeleteLibraryCommand>(c => c.Id == libraryId && c.UserId == DefaultUserId),
             Arg.Any<CancellationToken>());
     }
 
@@ -569,6 +636,38 @@ public sealed class LibrariesServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(expectedError);
+    }
+
+    [Fact]
+    public async Task LibrariesService_Delete_Should_ReturnCannotDeleteDefault_WhenDefaultLibrary()
+    {
+        // Arrange
+        var libraryId = Guid.CreateVersion7();
+        _deleteLibraryHandler.Handle(Arg.Any<DeleteLibraryCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(LibrariesError.CannotDeleteDefault));
+
+        // Act
+        var result = await _service.Delete(libraryId.ToString());
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.CannotDeleteDefault);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldReturnError_WhenUserNotResolved()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        var libraryId = Guid.CreateVersion7();
+
+        // Act
+        var result = await _service.Delete(libraryId.ToString());
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _deleteLibraryHandler.DidNotReceive().Handle(Arg.Any<DeleteLibraryCommand>(), Arg.Any<CancellationToken>());
     }
 
     #endregion

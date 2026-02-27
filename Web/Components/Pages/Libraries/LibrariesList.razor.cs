@@ -124,11 +124,15 @@ public partial class LibrariesList
         switch (mode)
         {
             case FormMode.Create:
-                resultCreateOrEdit = await LibrariesService.Create(libraryFromDialog.Name);
+                // TODO(Prompt 4): use full CreateLibraryRequest with Color, Icon, BookType from dialog
+                resultCreateOrEdit = await LibrariesService.Create(
+                    new CreateLibraryRequest(libraryFromDialog.Name, LibraryConstants.DefaultLibraryColor, LibraryConstants.DefaultLibraryIcon, LibraryBookType.Physical));
                 successMessage = Msg_LibCorrectlyCreated;
                 break;
             case FormMode.Edit:
-                resultCreateOrEdit = await LibrariesService.Update(libraryFromDialog.Id.ToString(), libraryFromDialog.Name);
+                // TODO(Prompt 4): use full UpdateLibraryRequest with Color, Icon from dialog
+                resultCreateOrEdit = await LibrariesService.Update(
+                    new UpdateLibraryRequest(libraryFromDialog.Id.ToString(), libraryFromDialog.Name, LibraryConstants.DefaultLibraryColor, LibraryConstants.DefaultLibraryIcon));
                 successMessage = Msg_LibCorrectlyUpdated;
                 break;
             default:

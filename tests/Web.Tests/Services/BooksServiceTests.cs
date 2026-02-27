@@ -6,10 +6,12 @@ using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
 using Application.Books.List;
 using Application.Books.Update;
+using Application.Interfaces;
 using Ardalis.GuardClauses;
 using AwesomeAssertions;
 using Domain.Books;
 using Domain.Primitives;
+using Domain.Users;
 using NSubstitute;
 using Web.Services;
 using Xunit;
@@ -25,7 +27,11 @@ public sealed class BooksServiceTests
     private readonly ICommandHandler<DeleteBookCommand> _deleteBookHandler;
     private readonly ICommandHandler<AddReadingDateCommand, ReadingDate> _addReadingDateHandler;
     private readonly ICommandHandler<DeleteReadingDateCommand> _deleteReadingDateHandler;
+    private readonly ICurrentUserService _currentUserService;
     private readonly BooksService _service;
+
+    private static readonly Guid DefaultUserId = Guid.CreateVersion7();
+    private static readonly Guid DefaultLibraryId = Guid.CreateVersion7();
 
     public BooksServiceTests()
     {
@@ -37,6 +43,9 @@ public sealed class BooksServiceTests
         _addReadingDateHandler = Substitute.For<ICommandHandler<AddReadingDateCommand, ReadingDate>>();
         _deleteReadingDateHandler = Substitute.For<ICommandHandler<DeleteReadingDateCommand>>();
 
+        _currentUserService = Substitute.For<ICurrentUserService>();
+        _currentUserService.GetCurrentUserIdAsync().Returns(DefaultUserId);
+
         _service = new BooksService(
             _getBookByIdHandler,
             _getBooksHandler,
@@ -44,7 +53,8 @@ public sealed class BooksServiceTests
             _updateBookHandler,
             _deleteBookHandler,
             _addReadingDateHandler,
-            _deleteReadingDateHandler);
+            _deleteReadingDateHandler,
+            _currentUserService);
     }
 
     private static Book CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
@@ -149,7 +159,7 @@ public sealed class BooksServiceTests
         const string series = "Test Series";
         const string title = "Test Title";
         const string isbn = "978-3-16-148410-0";
-        var request = new CreateBookRequest(series, title, isbn);
+        var request = new CreateBookRequest(series, title, isbn, DefaultLibraryId);
         var book = CreateBook(series, title, isbn, 1, "");
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -177,7 +187,7 @@ public sealed class BooksServiceTests
         const string title = "Test Title";
         const string isbn = "978-3-16-148410-0";
         const int volumeNumber = 3;
-        var request = new CreateBookRequest(series, title, isbn, volumeNumber);
+        var request = new CreateBookRequest(series, title, isbn, DefaultLibraryId, volumeNumber);
         var book = CreateBook(series, title, isbn, volumeNumber, "");
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -207,7 +217,7 @@ public sealed class BooksServiceTests
         const int volumeNumber = 5;
         const string imageLink = "https://example.com/cover.jpg";
         const int rating = 4;
-        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
+        var request = new CreateBookRequest(series, title, isbn, DefaultLibraryId, volumeNumber, imageLink, rating);
         var book = CreateBook(series, title, isbn, volumeNumber, imageLink);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -238,7 +248,7 @@ public sealed class BooksServiceTests
         const int volumeNumber = 10;
         const string imageLink = "https://example.com/spiderman.jpg";
         const int rating = 5;
-        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
+        var request = new CreateBookRequest(series, title, isbn, DefaultLibraryId, volumeNumber, imageLink, rating);
         var expectedBook = CreateBook(series, title, isbn, volumeNumber, imageLink);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
@@ -262,7 +272,7 @@ public sealed class BooksServiceTests
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0");
+        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", DefaultLibraryId);
         var book = CreateBook("Series", "Title", "978-3-16-148410-0");
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -286,7 +296,7 @@ public sealed class BooksServiceTests
         const int volumeNumber = 5;
         const string imageLink = "https://example.com/cover.jpg";
         const int rating = 4;
-        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
+        var request = new CreateBookRequest(series, title, isbn, DefaultLibraryId, volumeNumber, imageLink, rating);
         var book = CreateBook(series, title, isbn, volumeNumber, imageLink);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -325,7 +335,7 @@ public sealed class BooksServiceTests
         const string publishers = "Image Comics";
         var publishDate = new DateOnly(2012, 10, 10);
         const int numberOfPages = 160;
-        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var request = new CreateBookRequest(series, title, isbn, DefaultLibraryId, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         var book = CreateBook(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -364,7 +374,7 @@ public sealed class BooksServiceTests
         const string publishers = "DC Comics";
         var publishDate = new DateOnly(1987, 9, 1);
         const int numberOfPages = 320;
-        var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
+        var request = new CreateBookRequest(series, title, isbn, DefaultLibraryId, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
         var expectedBook = CreateBook(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
@@ -393,7 +403,7 @@ public sealed class BooksServiceTests
         // Arrange
         using var cts = new CancellationTokenSource();
         var publishDate = new DateOnly(2020, 1, 1);
-        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
+        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", DefaultLibraryId, 1, "", 0, "Author", "Publisher", publishDate, 100);
         var book = CreateBook("Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 100);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -416,7 +426,7 @@ public sealed class BooksServiceTests
         const string isbn = "978-3-16-148410-0";
         const string authors = "Unknown Author";
         const string publishers = "Unknown Publisher";
-        var request = new CreateBookRequest(series, title, isbn, 1, "", 0, authors, publishers, null, null);
+        var request = new CreateBookRequest(series, title, isbn, DefaultLibraryId, 1, "", 0, authors, publishers, null, null);
         var book = CreateBook(series, title, isbn, 1, "", authors, publishers, null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -439,7 +449,7 @@ public sealed class BooksServiceTests
     public async Task Create_ShouldHandleEmptyAuthorsAndPublishers()
     {
         // Arrange
-        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0");
+        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", DefaultLibraryId);
         var book = CreateBook("Series", "Title", "978-3-16-148410-0", 1, "", "", "", null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -462,7 +472,7 @@ public sealed class BooksServiceTests
         // Arrange
         const string authors = "Stan Lee, Jack Kirby, Steve Ditko";
         const string publishers = "Marvel Comics, Timely Comics";
-        var request = new CreateBookRequest("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", 0, authors, publishers);
+        var request = new CreateBookRequest("Marvel", "Fantastic Four", "978-3-16-148410-0", DefaultLibraryId, 1, "", 0, authors, publishers);
         var book = CreateBook("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", authors, publishers, null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
@@ -477,6 +487,42 @@ public sealed class BooksServiceTests
                 c.Authors == authors &&
                 c.Publishers == publishers),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task BooksService_Create_Should_PassLibraryId_WhenCalled()
+    {
+        // Arrange
+        var libraryId = Guid.CreateVersion7();
+        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", libraryId);
+        var book = CreateBook("Series", "Title", "978-3-16-148410-0");
+        _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
+            .Returns(book);
+
+        // Act
+        var result = await _service.Create(request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _createBookHandler.Received(1).Handle(
+            Arg.Is<CreateBookCommand>(c => c.LibraryId == libraryId && c.UserId == DefaultUserId),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Create_ShouldReturnError_WhenUserNotResolved()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", DefaultLibraryId);
+
+        // Act
+        var result = await _service.Create(request);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _createBookHandler.DidNotReceive().Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>());
     }
 
     #endregion

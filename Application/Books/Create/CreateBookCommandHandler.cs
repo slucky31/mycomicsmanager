@@ -42,6 +42,12 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
             return LibrariesError.NotFound;
         }
 
+        // Verify ownership when UserId is provided
+        if (request.UserId != Guid.Empty && library.UserId != request.UserId)
+        {
+            return LibrariesError.NotFound;
+        }
+
         // Create Book
         var createResult = PhysicalBook.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink,
             request.Authors, request.Publishers, request.PublishDate, request.NumberOfPages, request.LibraryId);
