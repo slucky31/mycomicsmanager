@@ -265,4 +265,52 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         result.Error.Should().Be(LibraryLocalStorageError.UnknownFolder);
     }
 
+    [Fact]
+    public void Create_ShouldReturnError_WhenFolderNameTraversesOutsideRoot()
+    {
+        // Act
+        var result = LibraryLocalStorage.Create("../../etc");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+    }
+
+    [Fact]
+    public void Move_ShouldReturnError_WhenOriginFolderNameTraversesOutsideRoot()
+    {
+        // Act
+        var result = LibraryLocalStorage.Move("../../etc", "destination");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+    }
+
+    [Fact]
+    public void Move_ShouldReturnError_WhenDestinationFolderNameTraversesOutsideRoot()
+    {
+        // Arrange
+        var folder = Guid.NewGuid().ToString();
+        LibraryLocalStorage.Create(folder);
+
+        // Act
+        var result = LibraryLocalStorage.Move(folder, "../../etc");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+    }
+
+    [Fact]
+    public void Delete_ShouldReturnError_WhenFolderNameTraversesOutsideRoot()
+    {
+        // Act
+        var result = LibraryLocalStorage.Delete("../../etc");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+    }
+
 }
