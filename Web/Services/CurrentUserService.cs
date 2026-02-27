@@ -3,6 +3,7 @@ using Application.Users;
 using Domain.Primitives;
 using Domain.Users;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
 
 namespace Web.Services;
 
@@ -13,19 +14,28 @@ public class CurrentUserService(
     public async Task<Result<Guid>> GetCurrentUserIdAsync()
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
-        var sub = authState.User.FindFirst("sub")?.Value;
+        var principal = authState.User;
 
-        if (string.IsNullOrEmpty(sub))
+        // Try stable sub claim first (raw "sub" or .NET OIDC-mapped to NameIdentifier)
+        var sub = principal.FindFirstValue("sub")
+               ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrEmpty(sub))
         {
+            var byAuthId = await userReadService.GetUserByAuthId(sub);
+            if (byAuthId.IsSuccess)
+                return byAuthId.Value!.Id;
+        }
+
+        // Fallback: email lookup for users not yet migrated to sub-based AuthId
+        var email = principal.Identity?.Name;
+        if (string.IsNullOrEmpty(email))
             return UsersError.NotFound;
-        }
 
-        var userResult = await userReadService.GetUserByAuthId(sub);
-        if (userResult.IsFailure)
-        {
-            return userResult.Error!;
-        }
+        var byEmail = await userReadService.GetUserByEmail(email);
+        if (byEmail.IsFailure)
+            return byEmail.Error;
 
-        return userResult.Value!.Id;
+        return byEmail.Value!.Id;
     }
 }

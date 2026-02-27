@@ -5,13 +5,15 @@ using Ardalis.GuardClauses;
 using Domain.Users;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
+using Microsoft.Extensions.Logging;
 
 namespace Web;
 
 internal class CustomAuthenticationStateProvider(
     IUserReadService userReadService,
     IRepository<User, Guid> userRepository,
-    IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
+    IUnitOfWork unitOfWork,
+    ILogger<CustomAuthenticationStateProvider> logger) : ServerAuthenticationStateProvider
 {
     private readonly IUserReadService _userReadService = userReadService;
     private readonly IRepository<User, Guid> _userRepository = userRepository;
@@ -19,7 +21,6 @@ internal class CustomAuthenticationStateProvider(
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-
         var authState = await base.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -27,18 +28,53 @@ internal class CustomAuthenticationStateProvider(
         if (user.Identity.IsAuthenticated)
         {
             var email = user.Identity.Name;
-            var authId = user.FindFirstValue("sub");
 
-            var userResult = await _userReadService.GetUserByAuthId(authId);
-            if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(authId) && userResult.IsFailure && userResult.Error == UsersError.NotFound)
+            // Auth0 sub claim: raw "sub" or mapped by .NET OIDC to NameIdentifier
+            var sub = user.FindFirstValue("sub")
+                   ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            logger.LogDebug("Auth provisioning — email: {Email}, sub: {Sub}", email, sub ?? "(null)");
+
+            if (!string.IsNullOrEmpty(sub))
             {
-                var usr = User.Create(email, authId);
-                _userRepository.Add(usr);
-                await _unitOfWork.SaveChangesAsync(default);
+                var userByAuthId = await _userReadService.GetUserByAuthId(sub);
+                if (userByAuthId.IsFailure && userByAuthId.Error == UsersError.NotFound)
+                {
+                    // Check if user exists by email (existing users migrating from sid-based AuthId)
+                    var userByEmail = await _userReadService.GetUserByEmail(email);
+                    if (userByEmail.IsSuccess)
+                    {
+                        // Migrate: update AuthId to the stable sub value
+                        userByEmail.Value!.Update(email!, sub);
+                        _userRepository.Update(userByEmail.Value);
+                        await _unitOfWork.SaveChangesAsync(default);
+                        logger.LogInformation("Migrated AuthId to sub for user {Email}", email);
+                    }
+                    else if (!string.IsNullOrEmpty(email))
+                    {
+                        var newUser = User.Create(email, sub);
+                        _userRepository.Add(newUser);
+                        await _unitOfWork.SaveChangesAsync(default);
+                        logger.LogInformation("Provisioned new user {Email} with sub", email);
+                    }
+                }
+            }
+            else if (!string.IsNullOrEmpty(email))
+            {
+                // sub claim unavailable — fall back to email-based provisioning
+                logger.LogWarning("sub claim not found for {Email}; falling back to email-based provisioning", email);
+                var userByEmail = await _userReadService.GetUserByEmail(email);
+                if (userByEmail.IsFailure && userByEmail.Error == UsersError.NotFound)
+                {
+                    var sid = user.FindFirstValue("sid") ?? string.Empty;
+                    var newUser = User.Create(email, sid);
+                    _userRepository.Add(newUser);
+                    await _unitOfWork.SaveChangesAsync(default);
+                    logger.LogInformation("Provisioned new user {Email} via email fallback", email);
+                }
             }
         }
 
-        // return the modified principal
         return await Task.FromResult(new AuthenticationState(user));
     }
 }
