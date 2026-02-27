@@ -17,11 +17,11 @@ public sealed class GetBooksQueryHandler(
 
         if (!request.LibraryId.HasValue)
         {
-            return await bookRepository.ListAsync();
+            return await bookRepository.ListByUserIdAsync(request.UserId, cancellationToken);
         }
 
         var library = await libraryRepository.GetByIdAsync(request.LibraryId.Value);
-        if (library is null || (request.UserId.HasValue && library.UserId != request.UserId.Value))
+        if (library is null || library.UserId != request.UserId)
         {
             return LibrariesError.NotFound;
         }

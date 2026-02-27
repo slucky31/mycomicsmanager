@@ -3,4 +3,4 @@ using Domain.Books;
 
 namespace Application.Books.AddReadingDate;
 
-public record AddReadingDateCommand(Guid BookId, int Rating, Guid UserId = default) : ICommand<ReadingDate>;
+public record AddReadingDateCommand(Guid BookId, int Rating, Guid UserId) : ICommand<ReadingDate>;

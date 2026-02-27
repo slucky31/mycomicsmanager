@@ -34,7 +34,7 @@ public class AddReadingDateCommandHandlerTests
     public async Task Handle_Should_ReturnNotFound_WhenBookDoesNotExist()
     {
         // Arrange
-        var command = new AddReadingDateCommand(Guid.NewGuid(), 4);
+        var command = new AddReadingDateCommand(Guid.NewGuid(), 4, s_userId);
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns((Book?)null);
 
         // Act
@@ -53,8 +53,9 @@ public class AddReadingDateCommandHandlerTests
     {
         // Arrange
         var book = CreateBook();
-        var command = new AddReadingDateCommand(book.Id, 5);
+        var command = new AddReadingDateCommand(book.Id, 5, s_userId);
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns(book);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
         var result = await _handler.Handle(command, default);
@@ -75,8 +76,9 @@ public class AddReadingDateCommandHandlerTests
         // Arrange
         var book = CreateBook();
         const int rating = 3;
-        var command = new AddReadingDateCommand(book.Id, rating);
+        var command = new AddReadingDateCommand(book.Id, rating, s_userId);
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns(book);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
         var result = await _handler.Handle(command, default);
@@ -93,9 +95,10 @@ public class AddReadingDateCommandHandlerTests
     {
         // Arrange
         var book = CreateBook();
-        var command = new AddReadingDateCommand(book.Id, 4);
+        var command = new AddReadingDateCommand(book.Id, 4, s_userId);
         var cancellationToken = new CancellationToken();
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns(book);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
         await _handler.Handle(command, cancellationToken);

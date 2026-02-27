@@ -22,13 +22,10 @@ public sealed class DeleteBookCommandHandler(
             return BooksError.NotFound;
         }
 
-        if (request.UserId != Guid.Empty)
+        var library = await libraryRepository.GetByIdAsync(book.LibraryId);
+        if (library is null || library.UserId != request.UserId)
         {
-            var library = await libraryRepository.GetByIdAsync(book.LibraryId);
-            if (library is null || library.UserId != request.UserId)
-            {
-                return BooksError.NotFound;
-            }
+            return BooksError.NotFound;
         }
 
         bookRepository.Remove(book);

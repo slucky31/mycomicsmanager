@@ -10,9 +10,9 @@ public record UpdateBookCommand(
     string ISBN,
     int VolumeNumber,
     string ImageLink,
+    Guid UserId,
     string Authors = "",
     string Publishers = "",
     DateOnly? PublishDate = null,
-    int? NumberOfPages = null,
-    Guid UserId = default
+    int? NumberOfPages = null
 ) : ICommand<Book>;

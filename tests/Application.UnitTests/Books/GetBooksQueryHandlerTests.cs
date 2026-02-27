@@ -9,7 +9,8 @@ namespace Application.UnitTests.Books;
 
 public class GetBooksQueryHandlerTests
 {
-    private static readonly GetBooksQuery s_query = new();
+    private static readonly Guid s_userId = Guid.CreateVersion7();
+    private static readonly GetBooksQuery s_query = new(s_userId);
 
     private readonly GetBooksQueryHandler _handler;
     private readonly IBookRepository _bookRepositoryMock;
@@ -37,7 +38,7 @@ public class GetBooksQueryHandlerTests
         var book3 = CreateBook("Serie 3", "Title 3", "978-0-451-52493-5");
         var books = new List<Book> { book1, book2, book3 };
 
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -49,7 +50,7 @@ public class GetBooksQueryHandlerTests
         result.Value.Should().Contain(book1);
         result.Value.Should().Contain(book2);
         result.Value.Should().Contain(book3);
-        await _bookRepositoryMock.Received(1).ListAsync();
+        await _bookRepositoryMock.Received(1).ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -57,7 +58,7 @@ public class GetBooksQueryHandlerTests
     {
         // Arrange
         var emptyBooks = new List<Book>();
-        _bookRepositoryMock.ListAsync().Returns(emptyBooks);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(emptyBooks);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -66,7 +67,7 @@ public class GetBooksQueryHandlerTests
         Guard.Against.Null(result.Value);
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
-        await _bookRepositoryMock.Received(1).ListAsync();
+        await _bookRepositoryMock.Received(1).ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -74,13 +75,13 @@ public class GetBooksQueryHandlerTests
     {
         // Arrange
         var books = new List<Book>();
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         await _handler.Handle(s_query, CancellationToken.None);
 
         // Assert
-        await _bookRepositoryMock.Received(1).ListAsync();
+        await _bookRepositoryMock.Received(1).ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -91,7 +92,7 @@ public class GetBooksQueryHandlerTests
         var book2 = CreateBook("Lord of the Rings", "Fellowship of the Ring", "978-0-306-40615-7", 1, "https://example.com/lotr1.jpg");
         var books = new List<Book> { book1, book2 };
 
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -123,7 +124,7 @@ public class GetBooksQueryHandlerTests
         var singleBook = CreateBook("Test Serie", "Test Title", "978-3-16-148410-0");
         var books = new List<Book> { singleBook };
 
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -145,7 +146,7 @@ public class GetBooksQueryHandlerTests
             books.Add(CreateBook($"Serie {i}", $"Title {i}", $"978-3-16-14841{i:D}-0"));
         }
 
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -165,7 +166,7 @@ public class GetBooksQueryHandlerTests
         var book3 = CreateBook("Serie C", "Title C", "978-0-451-52493-5");
         var books = new List<Book> { book1, book2, book3 };
 
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -187,7 +188,7 @@ public class GetBooksQueryHandlerTests
         var book3 = CreateBook("Same Serie", "Volume 3", "978-0-451-52493-5", 3);
         var books = new List<Book> { book1, book2, book3 };
 
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -211,7 +212,7 @@ public class GetBooksQueryHandlerTests
             CreateBook("Serie 2", "Title 2", "978-0-306-40615-7")
         };
 
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -231,7 +232,7 @@ public class GetBooksQueryHandlerTests
         var book3 = CreateBook("Serie 3", "Title 3", "978-0-451-52493-5");
         var books = new List<Book> { book1, book2, book3 };
 
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -249,7 +250,7 @@ public class GetBooksQueryHandlerTests
     {
         // Arrange
         var books = new List<Book> { CreateBook("Serie", "Title", "978-3-16-148410-0") };
-        _bookRepositoryMock.ListAsync().Returns(books);
+        _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
         var result = await _handler.Handle(s_query, CancellationToken.None);
@@ -328,7 +329,7 @@ public class GetBooksQueryHandlerTests
         // Arrange
         var userId = Guid.CreateVersion7();
         var libraryId = Guid.CreateVersion7();
-        var query = new GetBooksQuery(LibraryId: libraryId);
+        var query = new GetBooksQuery(userId, LibraryId: libraryId);
 
         var library = CreateLibrary(userId);
         var books = new List<Book> { CreateBook("Serie 1", "Title 1", "978-3-16-148410-0") };

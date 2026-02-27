@@ -23,7 +23,10 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         var normalizedRoot = Path.GetFullPath(rootPath) + Path.DirectorySeparatorChar;
         var fullPath = Path.GetFullPath(Path.Combine(rootPath, folderName));
         if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+        {
             return LibraryLocalStorageError.InvalidPath;
+        }
+
         return Result.Success();
     }
 
@@ -39,7 +42,9 @@ public class LibraryLocalStorage : ILibraryLocalStorage
 
         var pathValidation = ValidatePath(folderName);
         if (pathValidation.IsFailure)
+        {
             return pathValidation.Error;
+        }
 
         var path = new StringBuilder();
         path.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(folderName);
@@ -61,11 +66,15 @@ public class LibraryLocalStorage : ILibraryLocalStorage
 
         var originValidation = ValidatePath(originFolderName);
         if (originValidation.IsFailure)
+        {
             return originValidation.Error;
+        }
 
         var destinationValidation = ValidatePath(destinationFolderName);
         if (destinationValidation.IsFailure)
+        {
             return destinationValidation.Error;
+        }
 
         var originPath = new StringBuilder();
         originPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(originFolderName.RemoveDiacritics());
@@ -99,7 +108,9 @@ public class LibraryLocalStorage : ILibraryLocalStorage
 
         var pathValidation = ValidatePath(folderName);
         if (pathValidation.IsFailure)
+        {
             return pathValidation.Error;
+        }
 
         var path = new StringBuilder();
         path.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(folderName.RemoveDiacritics());

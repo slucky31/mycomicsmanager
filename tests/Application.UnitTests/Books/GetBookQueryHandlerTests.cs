@@ -10,6 +10,8 @@ namespace Application.UnitTests.Books;
 
 public sealed class GetBookQueryHandlerTests
 {
+    private static readonly Guid s_userId = Guid.CreateVersion7();
+
     private readonly IBookRepository _bookRepository;
     private readonly IRepository<Library, Guid> _libraryRepositoryMock;
     private readonly GetBookQueryHandler _handler;
@@ -43,7 +45,7 @@ public sealed class GetBookQueryHandlerTests
     public async Task Handle_ShouldReturnBadRequest_WhenIdIsEmpty()
     {
         // Arrange
-        var query = new GetBookByIdQuery(Guid.Empty);
+        var query = new GetBookByIdQuery(Guid.Empty, s_userId);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -59,7 +61,7 @@ public sealed class GetBookQueryHandlerTests
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
-        var query = new GetBookByIdQuery(bookId);
+        var query = new GetBookByIdQuery(bookId, s_userId);
         _bookRepository.GetByIdAsync(bookId).ReturnsNull();
 
         // Act
@@ -77,8 +79,10 @@ public sealed class GetBookQueryHandlerTests
         // Arrange
         var bookId = Guid.CreateVersion7();
         var expectedBook = PhysicalBook.Create("Test Serie", "Test Title", "978-3-16-148410-0", 1, "https://example.com/image.jpg", libraryId: Guid.CreateVersion7()).Value!;
-        var query = new GetBookByIdQuery(bookId);
+        var query = new GetBookByIdQuery(bookId, s_userId);
+        var library = CreateLibrary(s_userId);
         _bookRepository.GetByIdAsync(bookId).Returns(expectedBook);
+        _libraryRepositoryMock.GetByIdAsync(expectedBook.LibraryId).Returns(library);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -101,8 +105,10 @@ public sealed class GetBookQueryHandlerTests
         // Arrange
         var specificId = Guid.CreateVersion7();
         var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
-        var query = new GetBookByIdQuery(specificId);
+        var query = new GetBookByIdQuery(specificId, s_userId);
+        var library = CreateLibrary(s_userId);
         _bookRepository.GetByIdAsync(specificId).Returns(book);
+        _libraryRepositoryMock.GetByIdAsync(book.LibraryId).Returns(library);
 
         // Act
         await _handler.Handle(query, CancellationToken.None);

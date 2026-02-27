@@ -40,13 +40,10 @@ public sealed class UpdateBookCommandHandler(
             return BooksError.NotFound;
         }
 
-        if (request.UserId != Guid.Empty)
+        var library = await libraryRepository.GetByIdAsync(book.LibraryId);
+        if (library is null || library.UserId != request.UserId)
         {
-            var library = await libraryRepository.GetByIdAsync(book.LibraryId);
-            if (library is null || library.UserId != request.UserId)
-            {
-                return BooksError.NotFound;
-            }
+            return BooksError.NotFound;
         }
 
         book.Update(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink,

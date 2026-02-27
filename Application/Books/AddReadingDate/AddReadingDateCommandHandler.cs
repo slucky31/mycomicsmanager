@@ -22,13 +22,10 @@ public sealed class AddReadingDateCommandHandler(
             return BooksError.NotFound;
         }
 
-        if (request.UserId != Guid.Empty)
+        var library = await libraryRepository.GetByIdAsync(book.LibraryId);
+        if (library is null || library.UserId != request.UserId)
         {
-            var library = await libraryRepository.GetByIdAsync(book.LibraryId);
-            if (library is null || library.UserId != request.UserId)
-            {
-                return BooksError.NotFound;
-            }
+            return BooksError.NotFound;
         }
 
         var readingDate = book.AddReadingDate(DateTime.UtcNow, request.Rating);

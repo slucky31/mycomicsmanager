@@ -29,7 +29,7 @@ public class GetLibraryCommandTests
         var library = Library.Create("test", "#5C6BC0", "Bookmark", LibraryBookType.Physical, userId).Value!;
         var libraryId = library.Id;
         _librayRepositoryMock.GetByIdAsync(libraryId).Returns(library);
-        var query = new GetLibraryQuery(libraryId);
+        var query = new GetLibraryQuery(libraryId, userId);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -47,8 +47,9 @@ public class GetLibraryCommandTests
     {
         // Arrange
         var libraryId = Guid.CreateVersion7();
+        var userId = Guid.CreateVersion7();
         _librayRepositoryMock.GetByIdAsync(libraryId).ReturnsNull();
-        var query = new GetLibraryQuery(libraryId);
+        var query = new GetLibraryQuery(libraryId, userId);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);

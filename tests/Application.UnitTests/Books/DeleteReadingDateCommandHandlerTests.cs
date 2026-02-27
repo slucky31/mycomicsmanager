@@ -34,7 +34,7 @@ public class DeleteReadingDateCommandHandlerTests
     public async Task Handle_Should_ReturnNotFound_WhenBookDoesNotExist()
     {
         // Arrange
-        var command = new DeleteReadingDateCommand(Guid.NewGuid(), Guid.NewGuid());
+        var command = new DeleteReadingDateCommand(Guid.NewGuid(), Guid.NewGuid(), s_userId);
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns((Book?)null);
 
         // Act
@@ -54,8 +54,9 @@ public class DeleteReadingDateCommandHandlerTests
         var book = CreateBook();
         book.AddReadingDate(DateTime.UtcNow, 4);
         var readingDateId = book.ReadingDates[0].Id;
-        var command = new DeleteReadingDateCommand(book.Id, readingDateId);
+        var command = new DeleteReadingDateCommand(book.Id, readingDateId, s_userId);
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns(book);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
         var result = await _handler.Handle(command, default);
@@ -74,8 +75,9 @@ public class DeleteReadingDateCommandHandlerTests
         var book = CreateBook();
         book.AddReadingDate(DateTime.UtcNow, 4);
         var nonExistentReadingDateId = Guid.NewGuid();
-        var command = new DeleteReadingDateCommand(book.Id, nonExistentReadingDateId);
+        var command = new DeleteReadingDateCommand(book.Id, nonExistentReadingDateId, s_userId);
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns(book);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
         var result = await _handler.Handle(command, default);
@@ -92,9 +94,10 @@ public class DeleteReadingDateCommandHandlerTests
         var book = CreateBook();
         book.AddReadingDate(DateTime.UtcNow, 3);
         var readingDateId = book.ReadingDates[0].Id;
-        var command = new DeleteReadingDateCommand(book.Id, readingDateId);
+        var command = new DeleteReadingDateCommand(book.Id, readingDateId, s_userId);
         var cancellationToken = new CancellationToken();
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns(book);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
         await _handler.Handle(command, cancellationToken);

@@ -771,8 +771,7 @@ public sealed class BooksServiceTests
 
     [Fact]
     public async Task GetAll_ShouldCallHandler()
-    {
-        // Arrange
+    {        // Arrange
         var books = new List<Book>
         {
             CreateBook("Series 1", "Title 1", "978-3-16-148410-0"),
@@ -829,6 +828,21 @@ public sealed class BooksServiceTests
         Guard.Against.Null(result.Value);
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetAll_ShouldReturnError_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(Domain.Users.UsersError.NotFound));
+
+        // Act
+        var result = await _service.GetAll();
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(Domain.Users.UsersError.NotFound);
+        await _getBooksHandler.DidNotReceive().Handle(Arg.Any<GetBooksQuery>(), Arg.Any<CancellationToken>());
     }
 
     #endregion

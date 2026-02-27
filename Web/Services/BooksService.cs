@@ -85,11 +85,11 @@ public class BooksService(
             request.Isbn,
             request.VolumeNumber,
             request.ImageLink,
+            userIdResult.Value,
             request.Authors,
             request.Publishers,
             request.PublishDate,
-            request.NumberOfPages,
-            UserId: userIdResult.Value);
+            request.NumberOfPages);
 
         return await updateBookHandler.Handle(command, cancellationToken);
     }
@@ -130,7 +130,13 @@ public class BooksService(
 
     public async Task<Result<List<Book>>> GetAll()
     {
-        var query = new GetBooksQuery();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error;
+        }
+
+        var query = new GetBooksQuery(userIdResult.Value);
 
         return await getBooksHandler.Handle(query, CancellationToken.None);
     }
@@ -143,7 +149,7 @@ public class BooksService(
             return userIdResult.Error;
         }
 
-        var query = new GetBooksQuery(LibraryId: libraryId, UserId: userIdResult.Value);
+        var query = new GetBooksQuery(userIdResult.Value, LibraryId: libraryId);
 
         return await getBooksHandler.Handle(query, cancellationToken);
     }
