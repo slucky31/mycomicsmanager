@@ -27,7 +27,7 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         }
 
         // Validate rating range
-        if (request.Rating < 1 || request.Rating > 5)
+        if (request.Rating is < 1 or > 5)
         {
             return BooksError.InvalidRating;
         }
@@ -59,7 +59,7 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
             request.Authors, request.Publishers, request.PublishDate, request.NumberOfPages, request.LibraryId);
         if (createResult.IsFailure)
         {
-            return createResult.Error;
+            return createResult.Error!;
         }
 
         var book = createResult.Value!;
@@ -68,7 +68,7 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         var canContainResult = library.CanContain(book);
         if (canContainResult.IsFailure)
         {
-            return canContainResult.Error;
+            return canContainResult.Error!;
         }
 
         // Always add a reading date with the provided rating

@@ -23,7 +23,7 @@ public class GetBooksQueryHandlerTests
         _handler = new GetBooksQueryHandler(_bookRepositoryMock, _libraryRepositoryMock);
     }
 
-    private static Book CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
+    private static PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
         => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, libraryId: Guid.CreateVersion7()).Value!;
 
     private static Library CreateLibrary(Guid userId)

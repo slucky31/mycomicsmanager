@@ -39,7 +39,7 @@ public class UpdateBookCommandHandlerTests
 
     private static readonly Guid s_testLibraryId = s_libraryId;
 
-    private static Book CreateBookWithId(Guid id, string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
+    private static PhysicalBook CreateBookWithId(Guid id, string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
     {
         var book = PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, libraryId: s_testLibraryId).Value!;
 

@@ -43,7 +43,7 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         var pathValidation = ValidatePath(folderName);
         if (pathValidation.IsFailure)
         {
-            return pathValidation.Error;
+            return pathValidation.Error!;
         }
 
         var path = new StringBuilder();
@@ -67,13 +67,13 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         var originValidation = ValidatePath(originFolderName);
         if (originValidation.IsFailure)
         {
-            return originValidation.Error;
+            return originValidation.Error!;
         }
 
         var destinationValidation = ValidatePath(destinationFolderName);
         if (destinationValidation.IsFailure)
         {
-            return destinationValidation.Error;
+            return destinationValidation.Error!;
         }
 
         var originPath = new StringBuilder();
@@ -109,7 +109,7 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         var pathValidation = ValidatePath(folderName);
         if (pathValidation.IsFailure)
         {
-            return pathValidation.Error;
+            return pathValidation.Error!;
         }
 
         var path = new StringBuilder();

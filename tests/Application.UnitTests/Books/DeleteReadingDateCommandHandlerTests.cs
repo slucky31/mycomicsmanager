@@ -24,7 +24,7 @@ public class DeleteReadingDateCommandHandlerTests
         _handler = new DeleteReadingDateCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock);
     }
 
-    private static Book CreateBook()
+    private static PhysicalBook CreateBook()
         => PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: s_libraryId).Value!;
 
     private static Library CreateLibrary(Guid userId)

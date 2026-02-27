@@ -28,7 +28,7 @@ public class LibrariesService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var query = new GetLibraryQuery(guidId, UserId: userIdResult.Value);
@@ -41,7 +41,7 @@ public class LibrariesService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var command = new CreateLibraryCommand(
@@ -64,7 +64,7 @@ public class LibrariesService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var command = new UpdateLibraryCommand(
@@ -82,7 +82,7 @@ public class LibrariesService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize, userIdResult.Value);
@@ -100,7 +100,7 @@ public class LibrariesService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var command = new DeleteLibraryCommand(guidId, userIdResult.Value);

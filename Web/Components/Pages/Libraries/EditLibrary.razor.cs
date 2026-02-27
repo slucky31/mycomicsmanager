@@ -26,7 +26,7 @@ public partial class EditLibrary
 
         if (result.IsSuccess)
         {
-            _model = LibraryUiDto.Convert(result.Value);
+            _model = LibraryUiDto.Convert(result.Value!);
         }
         else
         {

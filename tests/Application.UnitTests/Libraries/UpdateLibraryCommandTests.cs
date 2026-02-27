@@ -67,7 +67,7 @@ public class UpdateLibraryCommandTests
     public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExist()
     {
         // Arrange
-        _libraryReadServiceMock.ExistsByNameAsync(s_command.Name, s_command.UserId, s_command.Id, Arg.Any<CancellationToken>()).Returns(true);
+        _libraryReadServiceMock.ExistsByNameAsync(s_command.Name!, s_command.UserId, s_command.Id, Arg.Any<CancellationToken>()).Returns(true);
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
 
         // Act

@@ -4,7 +4,7 @@
              Style="@($"min-width: 40px; color: var(--mud-palette-primary);")" />
     <MudAutocomplete T="string"
                      Value="@_selectedName"
-                     ValueChanged="@OnNameChanged"
+                     ValueChanged="@OnNameChangedAsync"
                      SearchFunc="@SearchIconNamesAsync"
                      Label="@Label"
                      Variant="Variant.Outlined"

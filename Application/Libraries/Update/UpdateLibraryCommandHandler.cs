@@ -25,7 +25,7 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         var updateResult = library.Update(request.Color, request.Icon);
         if (updateResult.IsFailure)
         {
-            return updateResult.Error;
+            return updateResult.Error!;
         }
 
         // Update name only if provided
@@ -42,7 +42,7 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             var updateNameResult = library.UpdateName(request.Name);
             if (updateNameResult.IsFailure)
             {
-                return updateNameResult.Error;
+                return updateNameResult.Error!;
             }
 
             // Move folder only for digital libraries

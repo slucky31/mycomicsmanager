@@ -57,7 +57,7 @@ public sealed class BooksServiceTests
             _currentUserService);
     }
 
-    private static Book CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
+    private static PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
         string authors = "", string publishers = "", DateOnly? publishDate = null, int? numberOfPages = null)
         => PhysicalBook.Create(serie,
             title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages, Guid.CreateVersion7()).Value!;

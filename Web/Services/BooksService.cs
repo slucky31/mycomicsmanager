@@ -32,7 +32,7 @@ public class BooksService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var query = new GetBookByIdQuery(guidId, UserId: userIdResult.Value);
@@ -45,7 +45,7 @@ public class BooksService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var command = new CreateBookCommand(
@@ -75,7 +75,7 @@ public class BooksService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var command = new UpdateBookCommand(
@@ -104,7 +104,7 @@ public class BooksService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var command = new AddReadingDateCommand(guidId, rating, UserId: userIdResult.Value);
@@ -121,7 +121,7 @@ public class BooksService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var command = new DeleteReadingDateCommand(bookGuidId, readingDateGuidId, UserId: userIdResult.Value);
@@ -133,7 +133,7 @@ public class BooksService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var query = new GetBooksQuery(userIdResult.Value);
@@ -146,7 +146,7 @@ public class BooksService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var query = new GetBooksQuery(userIdResult.Value, LibraryId: libraryId);
@@ -164,7 +164,7 @@ public class BooksService(
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {
-            return userIdResult.Error;
+            return userIdResult.Error!;
         }
 
         var command = new DeleteBookCommand(guidId, UserId: userIdResult.Value);

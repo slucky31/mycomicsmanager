@@ -16,11 +16,15 @@ public class CurrentUserService(
         var sub = authState.User.FindFirst("sub")?.Value;
 
         if (string.IsNullOrEmpty(sub))
+        {
             return UsersError.NotFound;
+        }
 
         var userResult = await userReadService.GetUserByAuthId(sub);
         if (userResult.IsFailure)
-            return userResult.Error;
+        {
+            return userResult.Error!;
+        }
 
         return userResult.Value!.Id;
     }

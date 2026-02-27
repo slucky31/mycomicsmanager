@@ -24,7 +24,7 @@ public class AddReadingDateCommandHandlerTests
         _handler = new AddReadingDateCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock);
     }
 
-    private static Book CreateBook()
+    private static PhysicalBook CreateBook()
         => PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: s_libraryId).Value!;
 
     private static Library CreateLibrary(Guid userId)
@@ -142,6 +142,7 @@ public class AddReadingDateCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
         result.Value.Rating.Should().Be(4);
     }
 }

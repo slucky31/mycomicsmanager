@@ -59,7 +59,7 @@ public partial class LibraryDetailPage
             return;
         }
 
-        _library = LibraryUiDto.Convert(libResult.Value);
+        _library = LibraryUiDto.Convert(libResult.Value!);
 
         var booksResult = await BooksService.GetByLibrary(libraryGuid);
         if (booksResult.IsSuccess && booksResult.Value is not null)

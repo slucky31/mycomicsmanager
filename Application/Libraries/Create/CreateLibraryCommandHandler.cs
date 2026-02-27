@@ -22,7 +22,7 @@ public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libra
         var createResult = Library.Create(request.Name, request.Color, request.Icon, request.BookType, request.UserId);
         if (createResult.IsFailure)
         {
-            return createResult.Error;
+            return createResult.Error!;
         }
 
         var library = createResult.Value!;

@@ -2,11 +2,11 @@ using System.Reflection;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-namespace Web.Components.Shared;
+namespace Web.Components.SharedComponents;
 
 public partial class IconPicker : ComponentBase
 {
-    private static readonly Dictionary<string, string> _iconMap =
+    private static readonly Dictionary<string, string> s_iconMap =
         typeof(Icons.Material.Filled)
             .GetFields(BindingFlags.Public | BindingFlags.Static)
             .Where(f => f.FieldType == typeof(string))
@@ -25,7 +25,7 @@ public partial class IconPicker : ComponentBase
 
     /// <summary>Resolves an icon name to its MudBlazor SVG path constant.</summary>
     public static string Resolve(string? name)
-        => !string.IsNullOrEmpty(name) && _iconMap.TryGetValue(name, out var svg)
+        => !string.IsNullOrEmpty(name) && s_iconMap.TryGetValue(name, out var svg)
             ? svg
             : Icons.Material.Filled.Star;
 
@@ -37,12 +37,12 @@ public partial class IconPicker : ComponentBase
     private static Task<IEnumerable<string>> SearchIconNamesAsync(string value, CancellationToken ct)
     {
         var results = string.IsNullOrEmpty(value)
-            ? _iconMap.Keys.Take(50)
-            : _iconMap.Keys.Where(n => n.Contains(value, StringComparison.OrdinalIgnoreCase)).Take(50);
+            ? s_iconMap.Keys.Take(50)
+            : s_iconMap.Keys.Where(n => n.Contains(value, StringComparison.OrdinalIgnoreCase)).Take(50);
         return Task.FromResult<IEnumerable<string>>(results);
     }
 
-    private async Task OnNameChanged(string name)
+    private async Task OnNameChangedAsync(string name)
     {
         _selectedName = name;
         await ValueChanged.InvokeAsync(name);
