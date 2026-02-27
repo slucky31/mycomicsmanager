@@ -20,6 +20,11 @@ public sealed class GetLibraryQueryHandler(IRepository<Library, Guid> librayRepo
             return LibrariesError.NotFound;
         }
 
+        if (request.UserId != Guid.Empty && library.UserId != request.UserId)
+        {
+            return LibrariesError.NotFound;
+        }
+
         return library;
     }
 }

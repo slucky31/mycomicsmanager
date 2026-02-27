@@ -25,7 +25,13 @@ public class LibrariesService(
             return LibrariesError.ValidationError;
         }
 
-        var query = new GetLibraryQuery(guidId);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error;
+        }
+
+        var query = new GetLibraryQuery(guidId, UserId: userIdResult.Value);
 
         return await getLibraryHandler.Handle(query, CancellationToken.None);
     }
