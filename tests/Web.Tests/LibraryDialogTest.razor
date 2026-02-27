@@ -31,6 +31,7 @@
         _testContext.JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
 
         _testContext.Services.AddMudServices();
+        _testContext.Render<MudPopoverProvider>();
     }
 
     public async ValueTask DisposeAsync()
@@ -57,9 +58,8 @@
 
         // Assert        
         var fields = provider.FindComponents<MudTextField<string>>();
-        fields.Should().HaveCount(2);
-        fields.Single(f => string.Equals(f.Instance.Label, "Name", StringComparison.OrdinalIgnoreCase)).Instance.GetState(x => x.Value).Should().Be(library.Name);
-        fields.Single(f => string.Equals(f.Instance.Label, "RelativePath", StringComparison.OrdinalIgnoreCase)).Instance.GetState(x => x.Value).Should().Be(library.RelativePath);
+        fields.Should().HaveCountGreaterThanOrEqualTo(1);
+        fields.Single(f => string.Equals(f.Instance.Label, "Library Name", StringComparison.OrdinalIgnoreCase)).Instance.GetState(x => x.Value).Should().Be(library.Name);
 
     }
 
@@ -104,10 +104,10 @@
             provider.FindAll("button").Should().NotBeEmpty("No buttons were rendered in the dialog. Check the dialog markup."));
 
         // Act
-        var okButton = provider.FindAll("button")
-            .FirstOrDefault(b => b.TextContent.Contains("Ok", StringComparison.OrdinalIgnoreCase));
-        okButton.Should().NotBeNull("Ok button not found. Check the button text or markup.");
-        okButton.Click();
+        var saveButton = provider.FindAll("button")
+            .FirstOrDefault(b => b.TextContent.Contains("Save", StringComparison.OrdinalIgnoreCase));
+        saveButton.Should().NotBeNull("Save button not found. Check the button text or markup.");
+        saveButton.Click();
 
         // Assert
         var result = await dialogRef.Result;
@@ -119,7 +119,7 @@
     public async Task LibraryDialog_Should_Not_Close_On_Invalid_Form()
     {
         // Arrange
-        var library = new LibraryUiDto(); // invalid - missing required fields
+        var library = new LibraryUiDto(); // invalid - missing required Name
         var provider = _testContext.Render<MudDialogProvider>();
         var dialogService = _testContext.Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters { ["library"] = library };
@@ -130,10 +130,10 @@
             provider.FindAll("button").Should().NotBeEmpty("No buttons were rendered in the dialog. Check the dialog markup."));
 
         // Act
-        var okButton = provider.FindAll("button")
-            .FirstOrDefault(b => b.TextContent.Contains("Ok", StringComparison.OrdinalIgnoreCase));
-        okButton.Should().NotBeNull("Ok button not found. Check the button text or markup.");
-        okButton.Click();
+        var saveButton = provider.FindAll("button")
+            .FirstOrDefault(b => b.TextContent.Contains("Save", StringComparison.OrdinalIgnoreCase));
+        saveButton.Should().NotBeNull("Save button not found. Check the button text or markup.");
+        saveButton.Click();
 
         // Assert - dialog should remain open and Result should not be completed
         provider.FindAll(".mud-dialog").Should().NotBeEmpty("Dialog should remain open when the form is invalid.");

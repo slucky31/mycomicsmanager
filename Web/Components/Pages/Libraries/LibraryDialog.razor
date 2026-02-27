@@ -1,15 +1,92 @@
 @using Application.Libraries
+@using Domain.Libraries
 @using Web.Validators
 
 <MudDialog>
     <DialogContent>
-        <MudForm Model="@Library" @ref="@_form" Validation="@(_libraryValidator.ValidateValue)" ValidationDelay="0">
-            <MudTextField @bind-Value="Library.Name" For="@(() => Library.Name)" Immediate="true" />
-            <MudTextField Value="Library.RelativePath" For="@(() => Library.RelativePath)" ReadOnly="true" />
+        <MudForm Model="@Library" @ref="@_form"
+                 Validation="@(_libraryValidator.ValidateValue)"
+                 ValidationDelay="0">
+            <MudStack Spacing="3">
+
+                @* Name — hidden for default library *@
+                @if (!Library.IsDefault)
+                {
+                    <MudTextField @bind-Value="Library.Name"
+                                  For="@(() => Library.Name)"
+                                  Immediate="true"
+                                  Label="Library Name"
+                                  Variant="Variant.Outlined"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.LibraryBooks" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.subtitle1">
+                        <strong>@Library.Name</strong>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary"
+                                 Class="ml-2">Default</MudChip>
+                    </MudText>
+                }
+
+                @* Book type — only for new (non-default) libraries *@
+                @if (!Library.IsDefault && Library.Id == default)
+                {
+                    <MudSelect T="LibraryBookType"
+                               @bind-Value="Library.BookType"
+                               For="@(() => Library.BookType)"
+                               Label="Library Type"
+                               Variant="Variant.Outlined"
+                               Adornment="Adornment.Start"
+                               AdornmentIcon="@Icons.Material.Filled.Category">
+                        <MudSelectItem Value="LibraryBookType.Physical">
+                            Physical books
+                        </MudSelectItem>
+                        <MudSelectItem Value="LibraryBookType.Digital">
+                            Digital books (eBooks)
+                        </MudSelectItem>
+                    </MudSelect>
+                }
+
+                @* Color picker — always visible *@
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Color</MudText>
+                <div class="color-palette">
+                    @foreach (var hex in ColorPalette)
+                    {
+                        <div class="color-swatch @(Library.Color == hex ? "selected" : "")"
+                             style="background-color: @hex"
+                             @onclick="@(() => SelectColor(hex))">
+                            @if (Library.Color == hex)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Check"
+                                         Size="Size.Small"
+                                         Style="color: white;" />
+                            }
+                        </div>
+                    }
+                </div>
+
+                @* Icon picker — always visible *@
+                <IconPicker @bind-Value="Library.Icon" Label="Icon" />
+
+                @* Live preview *@
+                <MudPaper Class="pa-3" Style="@($"border-left: 4px solid {Library.Color};")"
+                          Outlined="true">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@IconPicker.Resolve(Library.Icon)"
+                                 Style="@($"color: {Library.Color};")"
+                                 Size="Size.Medium" />
+                        <MudText Typo="Typo.subtitle1">
+                            @(string.IsNullOrEmpty(Library.Name) ? "Library preview" : Library.Name)
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+
+            </MudStack>
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="SubmitAsync">OK</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SubmitAsync">Save</MudButton>
     </DialogActions>
 </MudDialog>

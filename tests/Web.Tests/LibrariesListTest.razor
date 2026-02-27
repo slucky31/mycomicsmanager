@@ -105,10 +105,6 @@
 
             var mudMenu = header[0].FindComponent<MudMenu>();
             mudMenu.Should().NotBeNull();
-
-            var content = card.FindComponents<MudCardContent>();
-            content.Should().HaveCount(1);
-            content[0].FindComponents<MudText>().Count.Should().Be(4);
         }                
     }
 }

@@ -122,7 +122,7 @@ public sealed class LibraryUiDtoTests
         library.ModifiedOnUtc = new DateTime(2024, 1, 20, 14, 45, 0, DateTimeKind.Utc);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Id.Should().Be(library.Id);
@@ -138,7 +138,7 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary("A");
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be("A");
@@ -151,7 +151,7 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary("Image Comics");
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Id.Should().NotBe(default(Guid));
@@ -165,7 +165,7 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary("Dark Horse Comics");
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.ModifiedOnUtc.Should().BeNull();
@@ -183,7 +183,7 @@ public sealed class LibraryUiDtoTests
         library.ModifiedOnUtc = modifiedDate;
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Id.Should().Be(library.Id);
@@ -199,8 +199,8 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary("IDW Publishing");
 
         // Act
-        var dto1 = LibraryUiDto.convert(library);
-        var dto2 = LibraryUiDto.convert(library);
+        var dto1 = LibraryUiDto.Convert(library);
+        var dto2 = LibraryUiDto.Convert(library);
 
         // Assert
         dto1.Should().NotBeSameAs(dto2);
@@ -215,7 +215,7 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary(longName);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(longName);
@@ -230,7 +230,7 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(name);
@@ -244,7 +244,7 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.RelativePath.Should().Be("COMIC FRANCAIS");
@@ -259,7 +259,7 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(name);
@@ -274,7 +274,7 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(name);
@@ -286,7 +286,7 @@ public sealed class LibraryUiDtoTests
         // Arrange
         const string name = "Test Library éàù";
         var library = CreateLibrary(name);
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Act & Assert
         dto.RelativePath.Should().Be(library.RelativePath);
@@ -300,7 +300,7 @@ public sealed class LibraryUiDtoTests
         var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(name);

@@ -1,4 +1,5 @@
 using FluentValidation;
+using Domain.Libraries;
 
 namespace Web.Validators;
 
@@ -6,13 +7,25 @@ public class LibraryValidator : AbstractValidator<LibraryUiDto>
 {
     public LibraryValidator()
     {
-        const int maxNameLength = 100;
-
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required.")
-            .MaximumLength(maxNameLength).WithMessage($"Name must not exceed {maxNameLength} characters.");
-        RuleFor(x => x.RelativePath)
-            .MaximumLength(maxNameLength).WithMessage($"RelativePath must not exceed {maxNameLength} characters.");
+            .MaximumLength(LibraryConstants.MaxNameLength)
+            .WithMessage($"Name must not exceed {LibraryConstants.MaxNameLength} characters.")
+            .When(x => !x.IsDefault);
+
+        RuleFor(x => x.Color)
+            .NotEmpty().WithMessage("Color is required.")
+            .MaximumLength(LibraryConstants.MaxColorLength)
+            .WithMessage("Invalid color format.");
+
+        RuleFor(x => x.Icon)
+            .NotEmpty().WithMessage("Icon is required.")
+            .MaximumLength(LibraryConstants.MaxIconLength)
+            .WithMessage($"Icon name must not exceed {LibraryConstants.MaxIconLength} characters.");
+
+        RuleFor(x => x.BookType)
+            .IsInEnum().WithMessage("Please select a valid library type.")
+            .When(x => !x.IsDefault);
     }
 
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
@@ -35,5 +48,4 @@ public class LibraryValidator : AbstractValidator<LibraryUiDto>
         }
         return result.Errors.Select(e => e.ErrorMessage);
     };
-
 }

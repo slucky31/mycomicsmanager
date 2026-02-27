@@ -40,7 +40,7 @@ public partial class LibrariesList
         {
             Libraries.Clear();
 
-            Libraries.AddRange(result.Value.Items.Select(LibraryUiDto.convert));
+            Libraries.AddRange(result.Value.Items.Select(LibraryUiDto.Convert));
         }
     }
 
@@ -124,15 +124,13 @@ public partial class LibrariesList
         switch (mode)
         {
             case FormMode.Create:
-                // TODO(Prompt 4): use full CreateLibraryRequest with Color, Icon, BookType from dialog
                 resultCreateOrEdit = await LibrariesService.Create(
-                    new CreateLibraryRequest(libraryFromDialog.Name, LibraryConstants.DefaultLibraryColor, LibraryConstants.DefaultLibraryIcon, LibraryBookType.Physical));
+                    new CreateLibraryRequest(libraryFromDialog.Name, libraryFromDialog.Color, libraryFromDialog.Icon, libraryFromDialog.BookType));
                 successMessage = Msg_LibCorrectlyCreated;
                 break;
             case FormMode.Edit:
-                // TODO(Prompt 4): use full UpdateLibraryRequest with Color, Icon from dialog
                 resultCreateOrEdit = await LibrariesService.Update(
-                    new UpdateLibraryRequest(libraryFromDialog.Id.ToString(), libraryFromDialog.Name, LibraryConstants.DefaultLibraryColor, LibraryConstants.DefaultLibraryIcon));
+                    new UpdateLibraryRequest(libraryFromDialog.Id.ToString(), libraryFromDialog.IsDefault ? null : libraryFromDialog.Name, libraryFromDialog.Color, libraryFromDialog.Icon));
                 successMessage = Msg_LibCorrectlyUpdated;
                 break;
             default:

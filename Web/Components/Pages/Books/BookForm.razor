@@ -32,6 +32,35 @@
         @* Right column - Form fields *@
         <MudItem xs="12" sm="8">
             <MudStack Spacing="3">
+                @* Library selector — only shown when libraries are available *@
+                @if (Libraries.Count > 0)
+                {
+                    <MudSelect T="Guid"
+                               @bind-Value="Model.LibraryId"
+                               For="@(() => Model.LibraryId)"
+                               Label="Library"
+                               Variant="Variant.Outlined"
+                               Adornment="Adornment.Start"
+                               AdornmentIcon="@Icons.Material.Filled.CollectionsBookmark">
+                        @foreach (var lib in Libraries)
+                        {
+                            <MudSelectItem T="Guid" Value="@lib.Id">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                    <MudIcon Icon="@IconPicker.Resolve(lib.Icon)"
+                                             Size="Size.Small"
+                                             Style="@($"color: {lib.Color};")" />
+                                    <MudText>@lib.Name</MudText>
+                                    @if (lib.IsDefault)
+                                    {
+                                        <MudChip T="string" Size="Size.Small"
+                                                 Color="Color.Primary">Default</MudChip>
+                                    }
+                                </MudStack>
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+
                 @* Title *@
                 <MudTextField @bind-Value="Model.Title"
                               For="@(() => Model.Title)"

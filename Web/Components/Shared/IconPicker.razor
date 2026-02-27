@@ -1,0 +1,15 @@
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+    <MudIcon Icon="@IconPicker.Resolve(Value)"
+             Size="Size.Large"
+             Style="@($"min-width: 40px; color: var(--mud-palette-primary);")" />
+    <MudAutocomplete T="string"
+                     Value="@_selectedName"
+                     ValueChanged="@OnNameChanged"
+                     SearchFunc="@SearchIconNamesAsync"
+                     Label="@Label"
+                     Variant="Variant.Outlined"
+                     Clearable="true"
+                     ResetValueOnEmptyText="true"
+                     MaxItems="50"
+                     Class="flex-grow-1" />
+</MudStack>

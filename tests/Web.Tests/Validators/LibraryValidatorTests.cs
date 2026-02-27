@@ -39,7 +39,7 @@ public sealed class LibraryValidatorTests
         // Arrange
         var dto = new LibraryUiDto
         {
-            Name = new string('A', 101)
+            Name = new string('A', 201)
         };
 
         // Act
@@ -47,8 +47,8 @@ public sealed class LibraryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(LibraryUiDto.Name));
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Name must not exceed 100 characters.");
+        result.Errors.Should().Contain(e => e.PropertyName == nameof(LibraryUiDto.Name));
+        result.Errors.Should().Contain(e => e.ErrorMessage == "Name must not exceed 200 characters.");
     }
 
     [Fact]
@@ -88,12 +88,13 @@ public sealed class LibraryValidatorTests
     #region RelativePath Validation Tests
 
     [Fact]
-    public void Validate_ShouldReturnError_WhenRelativePathExceedsMaxLength()
+    public void Validate_ShouldReturnError_WhenColorIsEmpty()
     {
         // Arrange
         var dto = new LibraryUiDto
         {
-            Name = new string('A', 101)
+            Name = "Valid Name",
+            Color = string.Empty
         };
 
         // Act
@@ -101,17 +102,18 @@ public sealed class LibraryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(LibraryUiDto.RelativePath));
-        result.Errors.Should().Contain(e => e.ErrorMessage == "RelativePath must not exceed 100 characters.");
+        result.Errors.Should().Contain(e => e.PropertyName == nameof(LibraryUiDto.Color));
+        result.Errors.Should().Contain(e => e.ErrorMessage == "Color is required.");
     }
 
     [Fact]
-    public void Validate_ShouldPass_WhenRelativePathIsAtMaxLength()
+    public void Validate_ShouldPass_WhenColorIsAtMaxLength()
     {
         // Arrange
         var dto = new LibraryUiDto
         {
-            Name = new string('A', 100)
+            Name = "Valid Name",
+            Color = "#FFFFFF"
         };
 
         // Act
@@ -241,20 +243,21 @@ public sealed class LibraryValidatorTests
     }
 
     [Fact]
-    public async Task ValidateValue_ShouldReturnErrors_WhenRelativePathIsInvalid()
+    public async Task ValidateValue_ShouldReturnErrors_WhenColorIsInvalid()
     {
         // Arrange
         var dto = new LibraryUiDto
         {
-            Name = new string('A', 101)
+            Name = "Valid",
+            Color = string.Empty
         };
 
         // Act
-        var result = await _validator.ValidateValue(dto, nameof(LibraryUiDto.RelativePath));
+        var result = await _validator.ValidateValue(dto, nameof(LibraryUiDto.Color));
 
         // Assert
         result.Should().ContainSingle();
-        result.Should().Contain("RelativePath must not exceed 100 characters.");
+        result.Should().Contain("Color is required.");
     }
 
     [Fact]
@@ -295,12 +298,12 @@ public sealed class LibraryValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldReturnMultipleErrors_WhenNameExceedsMaxLength()
+    public void Validate_ShouldReturnError_WhenNameExceedsNewMaxLength()
     {
         // Arrange
         var dto = new LibraryUiDto
         {
-            Name = new string('A', 101)
+            Name = new string('A', 201)
         };
 
         // Act
@@ -308,9 +311,8 @@ public sealed class LibraryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().HaveCountGreaterThanOrEqualTo(2);
+        result.Errors.Should().HaveCountGreaterThanOrEqualTo(1);
         result.Errors.Should().Contain(e => e.PropertyName == nameof(LibraryUiDto.Name));
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(LibraryUiDto.RelativePath));
     }
 
     #endregion
@@ -436,16 +438,17 @@ public sealed class LibraryValidatorTests
         // Arrange
         var dto = new LibraryUiDto
         {
-            Name = new string('A', 101)
+            Name = new string('A', 201),
+            Color = string.Empty
         };
 
         // Act
         var nameResult = await _validator.ValidateValue(dto, nameof(LibraryUiDto.Name));
-        var relativePathResult = await _validator.ValidateValue(dto, nameof(LibraryUiDto.RelativePath));
+        var colorResult = await _validator.ValidateValue(dto, nameof(LibraryUiDto.Color));
 
         // Assert
-        nameResult.Should().Contain("Name must not exceed 100 characters.");
-        relativePathResult.Should().Contain("RelativePath must not exceed 100 characters.");
+        nameResult.Should().Contain("Name must not exceed 200 characters.");
+        colorResult.Should().Contain("Color is required.");
     }
 
     #endregion

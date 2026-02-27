@@ -55,7 +55,11 @@
         else
         {
             <MudPaper Class="pa-6 rounded-lg" Elevation="2">
-                <BookForm @ref="_bookForm" Model="_bookModel" IsbnReadOnly="@(!string.IsNullOrEmpty(Isbn))" />
+                <BookForm @ref="_bookForm"
+                          Model="_bookModel"
+                          Libraries="_libraries"
+                          ShowRating="true"
+                          IsbnReadOnly="@(!string.IsNullOrWhiteSpace(Isbn))" />
 
                 @* Action buttons *@
                 <div class="d-flex justify-end gap-2 mt-6">

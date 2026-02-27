@@ -36,6 +36,9 @@ public class BookUiDto : Entity<Guid>
     [Label("Number of Pages")]
     public int? NumberOfPages { get; set; }
 
+    [Label("Library")]
+    public Guid LibraryId { get; set; } = Guid.Empty;
+
     public static BookUiDto Convert(Book book)
     {
         return new BookUiDto
@@ -51,6 +54,7 @@ public class BookUiDto : Entity<Guid>
             Publishers = book.Publishers,
             PublishDate = book.PublishDate,
             NumberOfPages = book.NumberOfPages,
+            LibraryId = book.LibraryId,
             CreatedOnUtc = book.CreatedOnUtc,
             ModifiedOnUtc = book.ModifiedOnUtc
         };
