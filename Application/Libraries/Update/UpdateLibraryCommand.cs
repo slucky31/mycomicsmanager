@@ -3,4 +3,10 @@ using Domain.Libraries;
 
 namespace Application.Libraries.Update;
 
-public record UpdateLibraryCommand(Guid Id, string Name) : ICommand<Library>;
+public record UpdateLibraryCommand(
+    Guid Id,
+    string? Name,
+    string Color,
+    string Icon,
+    Guid UserId
+) : ICommand<Library>;

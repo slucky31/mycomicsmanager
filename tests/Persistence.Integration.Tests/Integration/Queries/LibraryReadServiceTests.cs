@@ -8,18 +8,19 @@ namespace Persistence.Tests.Integration.Queries;
 [Collection("DatabaseCollectionTests")]
 public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
-    private readonly Library _lib1 = Library.Create("1-Bande dessinées");
-    private readonly Library _lib2 = Library.Create("2-comics");
-    private readonly Library _lib3 = Library.Create("3-manga");
-    private readonly Library _lib4 = Library.Create("4-manhwa");
-    private readonly Library _lib5 = Library.Create("5-webcomics");
-    private readonly Library _lib6 = Library.Create("6-graphics novels");
-    private readonly Library _lib7 = Library.Create("7-comics strips");
+    private static readonly Guid s_userId = Guid.CreateVersion7();
+
+    private readonly Library _lib1 = Library.Create("1-Bande dessinées", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+    private readonly Library _lib2 = Library.Create("2-comics", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+    private readonly Library _lib3 = Library.Create("3-manga", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+    private readonly Library _lib4 = Library.Create("4-manhwa", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+    private readonly Library _lib5 = Library.Create("5-webcomics", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+    private readonly Library _lib6 = Library.Create("6-graphics novels", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+    private readonly Library _lib7 = Library.Create("7-comics strips", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
     private readonly List<Library> _libs = [];
 
     private async Task CreateLibraries()
     {
-
         LibraryRepository.Add(_lib1);
         LibraryRepository.Add(_lib2);
         LibraryRepository.Add(_lib3);
@@ -47,7 +48,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Ascending, 1, 2);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Ascending, 1, 2, s_userId);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -63,7 +64,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync("comics", null, null, 1, 3);
+        var pagedList = await LibraryReadService.GetLibrariesAsync("comics", null, null, 1, 3, s_userId);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -80,7 +81,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, s_userId);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -101,7 +102,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync("", null, null, 1, 10);
+        var pagedList = await LibraryReadService.GetLibrariesAsync("", null, null, 1, 10, s_userId);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -122,14 +123,13 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, s_userId);
 
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(7);
         Guard.Against.Null(pagedList.Items);
         pagedList.Items.Select(l => l.Id).Should().ContainInOrder(_libs.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
-
     }
 
     [Fact]
@@ -139,14 +139,13 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Id, null, 1, 10);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Id, null, 1, 10, s_userId);
 
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(7);
         Guard.Against.Null(pagedList.Items);
         pagedList.Items.Select(l => l.Id).Should().ContainInOrder(_libs.OrderBy(l => l.Id).Select(l => l.Id).ToArray());
-
     }
 
     [Fact]
@@ -156,14 +155,13 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, null, 1, 10);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, null, 1, 10, s_userId);
 
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(7);
         Guard.Against.Null(pagedList.Items);
         pagedList.Items.Select(l => l.Name).Should().ContainInOrder(_libs.OrderBy(l => l.Name).Select(l => l.Name).ToArray());
-
     }
 
     [Fact]
@@ -173,14 +171,12 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Descending, 1, 10);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Descending, 1, 10, s_userId);
 
         //Assert
         pagedList.Should().NotBeNull();
         pagedList.Items.Should().HaveCount(7);
         Guard.Against.Null(pagedList.Items);
         pagedList.Items.Select(l => l.Name).Should().ContainInOrder(_libs.OrderByDescending(l => l.Name).Select(l => l.Name).ToArray());
-
     }
-
 }

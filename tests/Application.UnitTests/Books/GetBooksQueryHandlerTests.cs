@@ -19,13 +19,16 @@ public class GetBooksQueryHandlerTests
         _handler = new GetBooksQueryHandler(_bookRepositoryMock);
     }
 
+    private static Book CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
+        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, libraryId: Guid.CreateVersion7()).Value!;
+
     [Fact]
     public async Task Handle_Should_ReturnSuccess_WhenBooksExist()
     {
         // Arrange
-        var book1 = Book.Create("Serie 1", "Title 1", "978-3-16-148410-0");
-        var book2 = Book.Create("Serie 2", "Title 2", "978-0-306-40615-7");
-        var book3 = Book.Create("Serie 3", "Title 3", "978-0-451-52493-5");
+        var book1 = CreateBook("Serie 1", "Title 1", "978-3-16-148410-0");
+        var book2 = CreateBook("Serie 2", "Title 2", "978-0-306-40615-7");
+        var book3 = CreateBook("Serie 3", "Title 3", "978-0-451-52493-5");
         var books = new List<Book> { book1, book2, book3 };
 
         _bookRepositoryMock.ListAsync().Returns(books);
@@ -78,8 +81,8 @@ public class GetBooksQueryHandlerTests
     public async Task Handle_Should_ReturnAllBooksWithCorrectProperties()
     {
         // Arrange
-        var book1 = Book.Create("Harry Potter", "Philosopher's Stone", "978-3-16-148410-0", 1, "https://example.com/hp1.jpg");
-        var book2 = Book.Create("Lord of the Rings", "Fellowship of the Ring", "978-0-306-40615-7", 1, "https://example.com/lotr1.jpg");
+        var book1 = CreateBook("Harry Potter", "Philosopher's Stone", "978-3-16-148410-0", 1, "https://example.com/hp1.jpg");
+        var book2 = CreateBook("Lord of the Rings", "Fellowship of the Ring", "978-0-306-40615-7", 1, "https://example.com/lotr1.jpg");
         var books = new List<Book> { book1, book2 };
 
         _bookRepositoryMock.ListAsync().Returns(books);
@@ -111,7 +114,7 @@ public class GetBooksQueryHandlerTests
     public async Task Handle_Should_ReturnSingleBook_WhenOnlyOneBookExists()
     {
         // Arrange
-        var singleBook = Book.Create("Test Serie", "Test Title", "978-3-16-148410-0");
+        var singleBook = CreateBook("Test Serie", "Test Title", "978-3-16-148410-0");
         var books = new List<Book> { singleBook };
 
         _bookRepositoryMock.ListAsync().Returns(books);
@@ -133,7 +136,7 @@ public class GetBooksQueryHandlerTests
         var books = new List<Book>();
         for (var i = 1; i <= 10; i++)
         {
-            books.Add(Book.Create($"Serie {i}", $"Title {i}", $"978-3-16-14841{i:D}-0"));
+            books.Add(CreateBook($"Serie {i}", $"Title {i}", $"978-3-16-14841{i:D}-0"));
         }
 
         _bookRepositoryMock.ListAsync().Returns(books);
@@ -151,9 +154,9 @@ public class GetBooksQueryHandlerTests
     public async Task Handle_Should_ReturnBooksInCorrectOrder()
     {
         // Arrange
-        var book1 = Book.Create("Serie A", "Title A", "978-3-16-148410-0");
-        var book2 = Book.Create("Serie B", "Title B", "978-0-306-40615-7");
-        var book3 = Book.Create("Serie C", "Title C", "978-0-451-52493-5");
+        var book1 = CreateBook("Serie A", "Title A", "978-3-16-148410-0");
+        var book2 = CreateBook("Serie B", "Title B", "978-0-306-40615-7");
+        var book3 = CreateBook("Serie C", "Title C", "978-0-451-52493-5");
         var books = new List<Book> { book1, book2, book3 };
 
         _bookRepositoryMock.ListAsync().Returns(books);
@@ -173,9 +176,9 @@ public class GetBooksQueryHandlerTests
     public async Task Handle_Should_ReturnListWithDifferentVolumeNumbers()
     {
         // Arrange
-        var book1 = Book.Create("Same Serie", "Volume 1", "978-3-16-148410-0", 1);
-        var book2 = Book.Create("Same Serie", "Volume 2", "978-0-306-40615-7", 2);
-        var book3 = Book.Create("Same Serie", "Volume 3", "978-0-451-52493-5", 3);
+        var book1 = CreateBook("Same Serie", "Volume 1", "978-3-16-148410-0", 1);
+        var book2 = CreateBook("Same Serie", "Volume 2", "978-0-306-40615-7", 2);
+        var book3 = CreateBook("Same Serie", "Volume 3", "978-0-451-52493-5", 3);
         var books = new List<Book> { book1, book2, book3 };
 
         _bookRepositoryMock.ListAsync().Returns(books);
@@ -198,8 +201,8 @@ public class GetBooksQueryHandlerTests
         // Arrange
         var books = new List<Book>
         {
-            Book.Create("Serie 1", "Title 1", "978-3-16-148410-0"),
-            Book.Create("Serie 2", "Title 2", "978-0-306-40615-7")
+            CreateBook("Serie 1", "Title 1", "978-3-16-148410-0"),
+            CreateBook("Serie 2", "Title 2", "978-0-306-40615-7")
         };
 
         _bookRepositoryMock.ListAsync().Returns(books);
@@ -217,9 +220,9 @@ public class GetBooksQueryHandlerTests
     public async Task Handle_Should_ReturnBooksWithDefaultAndCustomImageLinks()
     {
         // Arrange
-        var book1 = Book.Create("Serie 1", "Title 1", "978-3-16-148410-0", 1, "https://example.com/image1.jpg");
-        var book2 = Book.Create("Serie 2", "Title 2", "978-0-306-40615-7", 1, "");
-        var book3 = Book.Create("Serie 3", "Title 3", "978-0-451-52493-5");
+        var book1 = CreateBook("Serie 1", "Title 1", "978-3-16-148410-0", 1, "https://example.com/image1.jpg");
+        var book2 = CreateBook("Serie 2", "Title 2", "978-0-306-40615-7", 1, "");
+        var book3 = CreateBook("Serie 3", "Title 3", "978-0-451-52493-5");
         var books = new List<Book> { book1, book2, book3 };
 
         _bookRepositoryMock.ListAsync().Returns(books);
@@ -239,7 +242,7 @@ public class GetBooksQueryHandlerTests
     public async Task Handle_Should_ReturnSuccessResult()
     {
         // Arrange
-        var books = new List<Book> { Book.Create("Serie", "Title", "978-3-16-148410-0") };
+        var books = new List<Book> { CreateBook("Serie", "Title", "978-3-16-148410-0") };
         _bookRepositoryMock.ListAsync().Returns(books);
 
         // Act

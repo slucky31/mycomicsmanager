@@ -47,6 +47,10 @@ public sealed class BooksServiceTests
             _deleteReadingDateHandler);
     }
 
+    private static Book CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
+        string authors = "", string publishers = "", DateOnly? publishDate = null, int? numberOfPages = null)
+        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages, Guid.CreateVersion7()).Value!;
+
     #region GetById Tests
 
     [Fact]
@@ -99,7 +103,7 @@ public sealed class BooksServiceTests
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
-        var book = Book.Create("Test Serie", "Test Title", "978-3-16-148410-0");
+        var book = CreateBook("Test Serie", "Test Title", "978-3-16-148410-0");
         _getBookByIdHandler.Handle(Arg.Any<GetBookByIdQuery>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -118,7 +122,7 @@ public sealed class BooksServiceTests
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
-        var expectedBook = Book.Create("Serie", "Title", "978-3-16-148410-0", 5, "https://example.com/cover.jpg");
+        var expectedBook = CreateBook("Serie", "Title", "978-3-16-148410-0", 5, "https://example.com/cover.jpg");
         _getBookByIdHandler.Handle(Arg.Any<GetBookByIdQuery>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
@@ -146,7 +150,7 @@ public sealed class BooksServiceTests
         const string title = "Test Title";
         const string isbn = "978-3-16-148410-0";
         var request = new CreateBookRequest(series, title, isbn);
-        var book = Book.Create(series, title, isbn, 1, "");
+        var book = CreateBook(series, title, isbn, 1, "");
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -174,7 +178,7 @@ public sealed class BooksServiceTests
         const string isbn = "978-3-16-148410-0";
         const int volumeNumber = 3;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber);
-        var book = Book.Create(series, title, isbn, volumeNumber, "");
+        var book = CreateBook(series, title, isbn, volumeNumber, "");
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -204,7 +208,7 @@ public sealed class BooksServiceTests
         const string imageLink = "https://example.com/cover.jpg";
         const int rating = 4;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        var book = CreateBook(series, title, isbn, volumeNumber, imageLink);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -235,7 +239,7 @@ public sealed class BooksServiceTests
         const string imageLink = "https://example.com/spiderman.jpg";
         const int rating = 5;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        var expectedBook = CreateBook(series, title, isbn, volumeNumber, imageLink);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
@@ -259,7 +263,7 @@ public sealed class BooksServiceTests
         // Arrange
         using var cts = new CancellationTokenSource();
         var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0");
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0");
+        var book = CreateBook("Series", "Title", "978-3-16-148410-0");
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -283,7 +287,7 @@ public sealed class BooksServiceTests
         const string imageLink = "https://example.com/cover.jpg";
         const int rating = 4;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        var book = CreateBook(series, title, isbn, volumeNumber, imageLink);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -322,7 +326,7 @@ public sealed class BooksServiceTests
         var publishDate = new DateOnly(2012, 10, 10);
         const int numberOfPages = 160;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var book = CreateBook(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -361,7 +365,7 @@ public sealed class BooksServiceTests
         var publishDate = new DateOnly(1987, 9, 1);
         const int numberOfPages = 320;
         var request = new CreateBookRequest(series, title, isbn, volumeNumber, imageLink, rating, authors, publishers, publishDate, numberOfPages);
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var expectedBook = CreateBook(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
@@ -390,7 +394,7 @@ public sealed class BooksServiceTests
         using var cts = new CancellationTokenSource();
         var publishDate = new DateOnly(2020, 1, 1);
         var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", 1, "", 0, "Author", "Publisher", publishDate, 100);
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 100);
+        var book = CreateBook("Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 100);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -413,7 +417,7 @@ public sealed class BooksServiceTests
         const string authors = "Unknown Author";
         const string publishers = "Unknown Publisher";
         var request = new CreateBookRequest(series, title, isbn, 1, "", 0, authors, publishers, null, null);
-        var book = Book.Create(series, title, isbn, 1, "", authors, publishers, null, null);
+        var book = CreateBook(series, title, isbn, 1, "", authors, publishers, null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -436,7 +440,7 @@ public sealed class BooksServiceTests
     {
         // Arrange
         var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0");
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "", "", null, null);
+        var book = CreateBook("Series", "Title", "978-3-16-148410-0", 1, "", "", "", null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -459,7 +463,7 @@ public sealed class BooksServiceTests
         const string authors = "Stan Lee, Jack Kirby, Steve Ditko";
         const string publishers = "Marvel Comics, Timely Comics";
         var request = new CreateBookRequest("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", 0, authors, publishers);
-        var book = Book.Create("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", authors, publishers, null, null);
+        var book = CreateBook("Marvel", "Fantastic Four", "978-3-16-148410-0", 1, "", authors, publishers, null, null);
         _createBookHandler.Handle(Arg.Any<CreateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -494,7 +498,7 @@ public sealed class BooksServiceTests
         var publishDate = new DateOnly(2004, 10, 1);
         const int numberOfPages = 144;
         var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var book = CreateBook(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -533,7 +537,7 @@ public sealed class BooksServiceTests
         var publishDate = new DateOnly(2003, 4, 1);
         const int numberOfPages = 128;
         var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var expectedBook = CreateBook(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
@@ -560,7 +564,7 @@ public sealed class BooksServiceTests
         using var cts = new CancellationTokenSource();
         var publishDate = new DateOnly(2020, 5, 15);
         var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 200);
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 200);
+        var book = CreateBook("Series", "Title", "978-3-16-148410-0", 1, "", "Author", "Publisher", publishDate, 200);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -613,7 +617,7 @@ public sealed class BooksServiceTests
         // Arrange
         var bookId = Guid.CreateVersion7();
         var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "");
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "", "", null, null);
+        var book = CreateBook("Series", "Title", "978-3-16-148410-0", 1, "", "", "", null, null);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -638,7 +642,7 @@ public sealed class BooksServiceTests
         var bookId = Guid.CreateVersion7();
         var newPublishDate = new DateOnly(2021, 6, 15);
         var request = new UpdateBookRequest(bookId.ToString(), "Series", "Title", "978-3-16-148410-0", 1, "", "New Author", "New Publisher", newPublishDate, 250);
-        var book = Book.Create("Series", "Title", "978-3-16-148410-0", 1, "", "New Author", "New Publisher", newPublishDate, 250);
+        var book = CreateBook("Series", "Title", "978-3-16-148410-0", 1, "", "New Author", "New Publisher", newPublishDate, 250);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -667,7 +671,7 @@ public sealed class BooksServiceTests
         const int volumeNumber = 7;
         const string imageLink = "https://example.com/updated.jpg";
         var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink);
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        var book = CreateBook(series, title, isbn, volumeNumber, imageLink);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(book);
 
@@ -698,7 +702,7 @@ public sealed class BooksServiceTests
         const int volumeNumber = 15;
         const string imageLink = "https://example.com/batman.jpg";
         var request = new UpdateBookRequest(bookId.ToString(), series, title, isbn, volumeNumber, imageLink);
-        var expectedBook = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        var expectedBook = CreateBook(series, title, isbn, volumeNumber, imageLink);
         _updateBookHandler.Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedBook);
 
@@ -724,8 +728,8 @@ public sealed class BooksServiceTests
         // Arrange
         var books = new List<Book>
         {
-            Book.Create("Series 1", "Title 1", "978-3-16-148410-0"),
-            Book.Create("Series 2", "Title 2", "978-3-16-148410-1")
+            CreateBook("Series 1", "Title 1", "978-3-16-148410-0"),
+            CreateBook("Series 2", "Title 2", "978-3-16-148410-1")
         };
         _getBooksHandler.Handle(Arg.Any<GetBooksQuery>(), Arg.Any<CancellationToken>())
             .Returns(books);
@@ -746,9 +750,9 @@ public sealed class BooksServiceTests
         // Arrange
         var expectedBooks = new List<Book>
         {
-            Book.Create("Series 1", "Title 1", "978-3-16-148410-0", 1, "https://example.com/1.jpg"),
-            Book.Create("Series 2", "Title 2", "978-3-16-148410-1", 2, "https://example.com/2.jpg"),
-            Book.Create("Series 3", "Title 3", "978-3-16-148410-2", 3, "https://example.com/3.jpg")
+            CreateBook("Series 1", "Title 1", "978-3-16-148410-0", 1, "https://example.com/1.jpg"),
+            CreateBook("Series 2", "Title 2", "978-3-16-148410-1", 2, "https://example.com/2.jpg"),
+            CreateBook("Series 3", "Title 3", "978-3-16-148410-2", 3, "https://example.com/3.jpg")
         };
         _getBooksHandler.Handle(Arg.Any<GetBooksQuery>(), Arg.Any<CancellationToken>())
             .Returns(expectedBooks);

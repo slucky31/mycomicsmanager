@@ -12,14 +12,8 @@ public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libra
     {
         Guard.Against.Null(request);
 
-        // Check if parameter are not null or empty
-        if (string.IsNullOrEmpty(request.Name))
-        {
-            return LibrariesError.BadRequest;
-        }
-
-        // Check if a library with the same name doesn't already exist
-        var pagedList = await libraryReadService.GetLibrariesAsync(request.Name, LibrariesColumn.Name, null, 1, 1, cancellationToken);
+        // Check if a library with the same name and userId doesn't already exist
+        var pagedList = await libraryReadService.GetLibrariesAsync(request.Name, LibrariesColumn.Name, null, 1, 1, request.UserId, cancellationToken);
         Guard.Against.Null(pagedList);
         if (pagedList.TotalCount > 0)
         {
@@ -27,13 +21,22 @@ public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libra
         }
 
         // Create Library
-        var library = Library.Create(request.Name);
-
-        // Create the directory for the library
-        var result = libraryLocalStorage.Create(library.RelativePath);
-        if (result.IsFailure)
+        var createResult = Library.Create(request.Name, request.Color, request.Icon, request.BookType, request.UserId);
+        if (createResult.IsFailure)
         {
-            return LibrariesError.FolderNotCreated;
+            return createResult.Error;
+        }
+
+        var library = createResult.Value!;
+
+        // Create the directory only for digital libraries
+        if (request.BookType == LibraryBookType.Digital)
+        {
+            var result = libraryLocalStorage.Create(library.RelativePath);
+            if (result.IsFailure)
+            {
+                return LibrariesError.FolderNotCreated;
+            }
         }
 
         libraryRepository.Add(library);
@@ -41,5 +44,4 @@ public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libra
 
         return library;
     }
-
 }

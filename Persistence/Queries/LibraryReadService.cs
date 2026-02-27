@@ -10,9 +10,9 @@ namespace Persistence.Queries;
 
 public class LibraryReadService(ApplicationDbContext context) : ILibraryReadService
 {
-    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, Guid userId, CancellationToken cancellationToken = default)
     {
-        var librariesQuery = context.Libraries.AsNoTracking();
+        var librariesQuery = context.Libraries.AsNoTracking().Where(l => l.UserId == userId);
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -34,5 +34,13 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
         };
         var librariesPagedList = new PagedList<Library>(librariesQuery);
         return await librariesPagedList.ExecuteQueryAsync(page, pageSize, cancellationToken);
+    }
+
+    public async Task<Library?> GetDefaultLibraryAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await context.Libraries
+            .AsNoTracking()
+            .Where(l => l.UserId == userId && l.IsDefault)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

@@ -34,10 +34,12 @@ public class BooksService(
 
     public async Task<Result<Book>> Create(CreateBookRequest request, CancellationToken cancellationToken = default)
     {
+        // TODO(Prompt 3): Replace Guid.Empty with actual LibraryId from request
         var command = new CreateBookCommand(
             request.Series,
             request.Title,
             request.Isbn,
+            Guid.Empty,
             request.VolumeNumber,
             request.ImageLink,
             request.Rating,

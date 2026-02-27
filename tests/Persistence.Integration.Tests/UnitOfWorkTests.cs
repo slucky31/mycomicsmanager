@@ -8,13 +8,15 @@ namespace Persistence.Tests;
 [Collection("DatabaseCollectionTests")]
 public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
+    private static readonly Guid s_userId = Guid.CreateVersion7();
+
     [Fact]
     public async Task Savechanges_Create()
     {
         // Arrange
         var guid = Guid.NewGuid().ToString();
         var libName = "Create_" + guid;
-        var lib = Library.Create(libName);
+        var lib = Library.Create(libName, "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
         Context.Libraries.Add(lib);
 
         // Act
@@ -34,12 +36,12 @@ public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : LibraryInte
         // Arrange
         var guid = Guid.NewGuid().ToString();
         var libName = "Create_" + guid;
-        var lib = Library.Create(libName);
+        var lib = Library.Create(libName, "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
         lib.CreatedOnUtc.Should().NotBe(null);
         Context.Libraries.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         libName += "_modified";
-        lib.Update(libName);
+        lib.UpdateName(libName);
         Context.Libraries.Update(lib);
 
         // Act
@@ -55,6 +57,4 @@ public class UnitOfWorkTests(IntegrationTestWebAppFactory factory) : LibraryInte
         Guard.Against.Null(savedLib.ModifiedOnUtc);
         savedLib.CreatedOnUtc.Should().BeBefore(savedLib.ModifiedOnUtc.Value);
     }
-
-
 }

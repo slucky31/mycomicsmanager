@@ -40,7 +40,7 @@ public class AddReadingDateCommandHandlerTests
     public async Task Handle_Should_ReturnSuccess_WhenBookExists()
     {
         // Arrange
-        var book = Book.Create("Serie", "Title", "978-3-16-148410-0");
+        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
         var command = new AddReadingDateCommand(book.Id, 5);
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns(book);
 
@@ -61,7 +61,7 @@ public class AddReadingDateCommandHandlerTests
     public async Task Handle_Should_AddReadingDateWithCorrectRating()
     {
         // Arrange
-        var book = Book.Create("Serie", "Title", "978-3-16-148410-0");
+        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
         const int rating = 3;
         var command = new AddReadingDateCommand(book.Id, rating);
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns(book);
@@ -80,7 +80,7 @@ public class AddReadingDateCommandHandlerTests
     public async Task Handle_Should_PassCancellationToken()
     {
         // Arrange
-        var book = Book.Create("Serie", "Title", "978-3-16-148410-0");
+        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
         var command = new AddReadingDateCommand(book.Id, 4);
         var cancellationToken = new CancellationToken();
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns(book);

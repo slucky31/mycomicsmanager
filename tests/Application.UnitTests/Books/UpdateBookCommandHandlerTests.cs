@@ -3,6 +3,7 @@ using Application.Books.Update;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
+using Domain.Libraries;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
@@ -31,9 +32,12 @@ public class UpdateBookCommandHandlerTests
         _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock);
     }
 
+    private static readonly Guid s_testLibraryId = Guid.CreateVersion7();
+    private static readonly Guid s_testUserId = Guid.CreateVersion7();
+
     private static Book CreateBookWithId(Guid id, string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
     {
-        var book = Book.Create(serie, title, isbn, volumeNumber, imageLink);
+        var book = PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, libraryId: s_testLibraryId).Value!;
 
         // Use reflection to set the Id property
         // TODO :  Consider adding a test-specific factory method or constructor in the test project (e.g., via internal visibility or a test helper) to create Book instances with specific IDs for testing purposes.

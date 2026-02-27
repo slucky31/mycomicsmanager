@@ -7,6 +7,7 @@ public record CreateBookCommand(
     string Serie,
     string Title,
     string ISBN,
+    Guid LibraryId,
     int VolumeNumber = 1,
     string ImageLink = "",
     int Rating = 0,

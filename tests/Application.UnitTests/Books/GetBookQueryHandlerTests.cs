@@ -70,7 +70,7 @@ public sealed class GetBookQueryHandlerTests
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
-        var expectedBook = Book.Create("Test Serie", "Test Title", "978-3-16-148410-0", 1, "https://example.com/image.jpg");
+        var expectedBook = PhysicalBook.Create("Test Serie", "Test Title", "978-3-16-148410-0", 1, "https://example.com/image.jpg", libraryId: Guid.CreateVersion7()).Value!;
         var query = new GetBookByIdQuery(bookId);
         _bookRepository.GetByIdAsync(bookId).Returns(expectedBook);
 
@@ -94,7 +94,7 @@ public sealed class GetBookQueryHandlerTests
     {
         // Arrange
         var specificId = Guid.CreateVersion7();
-        var book = Book.Create("Serie", "Title", "978-3-16-148410-0");
+        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
         var query = new GetBookByIdQuery(specificId);
         _bookRepository.GetByIdAsync(specificId).Returns(book);
 

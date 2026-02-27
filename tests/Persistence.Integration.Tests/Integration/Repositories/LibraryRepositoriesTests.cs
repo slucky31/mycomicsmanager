@@ -9,11 +9,16 @@ namespace Persistence.Tests.Integration.Repositories;
 [Collection("DatabaseCollectionTests")]
 public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factory) : LibraryIntegrationTest(factory)
 {
+    private static readonly Guid s_userId = Guid.CreateVersion7();
+
+    private static Library CreateLib(string name)
+        => Library.Create(name, "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+
     [Fact]
     public async Task Add_ShouldAddLib()
     {
         // Arrange
-        var lib = Library.Create("name");
+        var lib = CreateLib("name");
 
         // Act
         LibraryRepository.Add(lib);
@@ -31,7 +36,7 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
     public async Task Add_ShouldThrowException_WhenAddLibWithSameIdTwice()
     {
         // Arrange
-        var lib = Library.Create("name");
+        var lib = CreateLib("name");
         LibraryRepository.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         LibraryRepository.Add(lib);
@@ -46,15 +51,14 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
     public async Task Update_ShouldUpdateLib()
     {
         // Arrange
-        var lib = Library.Create("name");
+        var lib = CreateLib("name");
         LibraryRepository.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        lib.Update("name-update");
+        lib.UpdateName("name-update");
         LibraryRepository.Update(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
-
 
         // Assert
         LibraryRepository.Count().Should().Be(1);
@@ -68,7 +72,7 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
     public async Task Remove_ShouldRemoveLib()
     {
         // Arrange
-        var lib = Library.Create("name");
+        var lib = CreateLib("name");
         LibraryRepository.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -86,9 +90,9 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
     public async Task List_ShouldListLib()
     {
         // Arrange
-        var lib1 = Library.Create("name");
-        var lib2 = Library.Create("name2");
-        var lib3 = Library.Create("name3");
+        var lib1 = CreateLib("name");
+        var lib2 = CreateLib("name2");
+        var lib3 = CreateLib("name3");
         LibraryRepository.Add(lib1);
         LibraryRepository.Add(lib2);
         LibraryRepository.Add(lib3);
@@ -101,5 +105,4 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
         LibraryRepository.Count().Should().Be(3);
         list.Count.Should().Be(3);
     }
-
 }

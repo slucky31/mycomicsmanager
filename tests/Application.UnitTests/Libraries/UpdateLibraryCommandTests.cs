@@ -12,8 +12,10 @@ namespace Application.UnitTests.Libraries;
 
 public class UpdateLibraryCommandTests
 {
-    private static readonly UpdateLibraryCommand s_command = new(Guid.CreateVersion7(), "library");
-    private static readonly Library s_library = Library.Create("library");
+    private static readonly Guid s_userId = Guid.CreateVersion7();
+    private static readonly UpdateLibraryCommand s_command = new(Guid.CreateVersion7(), "library", "#5C6BC0", "Bookmark", s_userId);
+    private static readonly Library s_library = Library.Create("library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+    private static readonly Library s_digitalLibrary = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
 
     private readonly UpdateLibraryCommandHandler _handler;
     private readonly IRepository<Library, Guid> _librayRepositoryMock;
@@ -48,6 +50,22 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_Should_ReturnError_WhenUserDoesNotOwnLibrary()
+    {
+        // Arrange
+        var anotherUserId = Guid.CreateVersion7();
+        var commandFromOtherUser = new UpdateLibraryCommand(s_command.Id, "new-name", "#5C6BC0", "Bookmark", anotherUserId);
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
+
+        // Act
+        var result = await _handler.Handle(commandFromOtherUser, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.NotFound);
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExist()
     {
         // Arrange
@@ -55,7 +73,7 @@ public class UpdateLibraryCommandTests
         var query = list.BuildMock();
         var pagedList = new PagedList<Library>(query);
         await pagedList.ExecuteQueryAsync(1, 2);
-        _libraryReadServiceMock.GetLibrariesAsync(s_command.Name, LibrariesColumn.Name, null, 1, 1).Returns(pagedList);
+        _libraryReadServiceMock.GetLibrariesAsync(s_command.Name, LibrariesColumn.Name, null, 1, 1, s_command.UserId, Arg.Any<CancellationToken>()).Returns(pagedList);
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
 
         // Act
@@ -70,11 +88,12 @@ public class UpdateLibraryCommandTests
     public async Task Handle_ShouldReturnFolderNotMoved_WhenDirectoryWasNotMoved()
     {
         // Arrange
-        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
+        var digitalCommand = new UpdateLibraryCommand(s_command.Id, "new-digital-name", "#5C6BC0", "Bookmark", s_userId);
+        _librayRepositoryMock.GetByIdAsync(digitalCommand.Id).Returns(s_digitalLibrary);
         _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Failure(TError.Any));
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(digitalCommand, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -82,11 +101,10 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess()
+    public async Task Handle_Should_ReturnSuccess_ForPhysicalLibraryWithNameChange()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
-        _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
 
         // Act
         var result = await _handler.Handle(s_command, default);
@@ -97,6 +115,25 @@ public class UpdateLibraryCommandTests
         result.Value.Name.Should().Be(s_command.Name);
         _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        _libraryLocalStorage.DidNotReceive().Move(Arg.Any<string>(), Arg.Any<string>());
     }
 
+    [Fact]
+    public async Task Handle_Should_ReturnSuccess_WithoutNameChange()
+    {
+        // Arrange
+        var commandWithoutName = new UpdateLibraryCommand(s_command.Id, null, "#FF0000", "Star", s_userId);
+        _librayRepositoryMock.GetByIdAsync(commandWithoutName.Id).Returns(s_library);
+
+        // Act
+        var result = await _handler.Handle(commandWithoutName, default);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        Guard.Against.Null(result.Value);
+        result.Value.Color.Should().Be("#FF0000");
+        result.Value.Icon.Should().Be("Star");
+        _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+    }
 }

@@ -25,7 +25,8 @@ public class GetLibraryCommandTests
     public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
-        var library = Library.Create("test");
+        var userId = Guid.CreateVersion7();
+        var library = Library.Create("test", "#5C6BC0", "Bookmark", LibraryBookType.Physical, userId).Value!;
         var libraryId = library.Id;
         _librayRepositoryMock.GetByIdAsync(libraryId).Returns(library);
         var query = new GetLibraryQuery(libraryId);

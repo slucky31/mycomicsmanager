@@ -9,7 +9,6 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
 {
     public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {
-
         if (request is null)
         {
             return LibrariesError.ValidationError;
@@ -17,19 +16,27 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
 
         var library = await librayRepository.GetByIdAsync(request.Id);
 
-        if (library is null)
+        if (library is null || library.UserId != request.UserId)
         {
             return LibrariesError.NotFound;
         }
 
-        var result = libraryLocalStorage.Delete(library.RelativePath);
-        if (result.IsFailure)
+        if (library.IsDefault)
         {
-            return LibrariesError.FolderNotDeleted;
+            return LibrariesError.CannotDeleteDefault;
+        }
+
+        // Delete folder only for digital libraries
+        if (library.BookType == LibraryBookType.Digital)
+        {
+            var result = libraryLocalStorage.Delete(library.RelativePath);
+            if (result.IsFailure)
+            {
+                return LibrariesError.FolderNotDeleted;
+            }
         }
 
         librayRepository.Remove(library);
-
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

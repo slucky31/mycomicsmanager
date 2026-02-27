@@ -39,7 +39,7 @@ public class DeleteReadingDateCommandHandlerTests
     public async Task Handle_Should_ReturnSuccess_AndRemoveReadingDate_WhenBookExists()
     {
         // Arrange
-        var book = Book.Create("Serie", "Title", "978-3-16-148410-0");
+        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
         book.AddReadingDate(DateTime.UtcNow, 4);
         var readingDateId = book.ReadingDates[0].Id;
         var command = new DeleteReadingDateCommand(book.Id, readingDateId);
@@ -59,7 +59,7 @@ public class DeleteReadingDateCommandHandlerTests
     public async Task Handle_Should_ReturnSuccess_WhenReadingDateDoesNotExist()
     {
         // Arrange
-        var book = Book.Create("Serie", "Title", "978-3-16-148410-0");
+        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
         book.AddReadingDate(DateTime.UtcNow, 4);
         var nonExistentReadingDateId = Guid.NewGuid();
         var command = new DeleteReadingDateCommand(book.Id, nonExistentReadingDateId);
@@ -77,7 +77,7 @@ public class DeleteReadingDateCommandHandlerTests
     public async Task Handle_Should_PassCancellationToken()
     {
         // Arrange
-        var book = Book.Create("Serie", "Title", "978-3-16-148410-0");
+        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
         book.AddReadingDate(DateTime.UtcNow, 3);
         var readingDateId = book.ReadingDates[0].Id;
         var command = new DeleteReadingDateCommand(book.Id, readingDateId);

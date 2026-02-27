@@ -16,7 +16,7 @@ public sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadServ
             return LibrariesError.ValidationError;
         }
 
-        var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize, cancellationToken);
+        var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize, request.UserId, cancellationToken);
 
         return Result<IPagedList<Library>>.Success(list);
     }

@@ -40,6 +40,9 @@ public sealed class LibrariesServiceTests
             _deleteLibraryHandler);
     }
 
+    private static Library CreateLibrary(string name)
+        => Library.Create(name, "#5C6BC0", "Bookmark", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
+
     #region GetById Tests
 
     [Fact]
@@ -92,7 +95,7 @@ public sealed class LibrariesServiceTests
     {
         // Arrange
         var libraryId = Guid.CreateVersion7();
-        var library = Library.Create("Test Library");
+        var library = CreateLibrary("Test Library");
         _getLibraryHandler.Handle(Arg.Any<GetLibraryQuery>(), Arg.Any<CancellationToken>())
             .Returns(library);
 
@@ -111,7 +114,7 @@ public sealed class LibrariesServiceTests
     {
         // Arrange
         var libraryId = Guid.CreateVersion7();
-        var expectedLibrary = Library.Create("My Comics Library");
+        var expectedLibrary = CreateLibrary("My Comics Library");
         _getLibraryHandler.Handle(Arg.Any<GetLibraryQuery>(), Arg.Any<CancellationToken>())
             .Returns(expectedLibrary);
 
@@ -134,7 +137,7 @@ public sealed class LibrariesServiceTests
     {
         // Arrange
         const string name = "New Library";
-        var library = Library.Create(name);
+        var library = CreateLibrary(name);
         _createLibraryHandler.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
 
@@ -153,7 +156,7 @@ public sealed class LibrariesServiceTests
     {
         // Arrange
         const string name = "Comics Collection";
-        var expectedLibrary = Library.Create(name);
+        var expectedLibrary = CreateLibrary(name);
         _createLibraryHandler.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedLibrary);
 
@@ -172,7 +175,7 @@ public sealed class LibrariesServiceTests
     {
         // Arrange
         const string? name = null;
-        var library = Library.Create("");
+        var library = CreateLibrary("Default");
         _createLibraryHandler.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
 
@@ -191,7 +194,7 @@ public sealed class LibrariesServiceTests
     {
         // Arrange
         var name = string.Empty;
-        var library = Library.Create("");
+        var library = CreateLibrary("Default");
         _createLibraryHandler.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
 
@@ -245,7 +248,7 @@ public sealed class LibrariesServiceTests
         // Arrange
         var libraryId = Guid.CreateVersion7();
         const string name = "Updated Library Name";
-        var library = Library.Create(name);
+        var library = CreateLibrary(name);
         _updateLibraryHandler.Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
 
@@ -267,7 +270,7 @@ public sealed class LibrariesServiceTests
         // Arrange
         var libraryId = Guid.CreateVersion7();
         const string name = "Renamed Library";
-        var expectedLibrary = Library.Create(name);
+        var expectedLibrary = CreateLibrary(name);
         _updateLibraryHandler.Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedLibrary);
 
@@ -287,7 +290,7 @@ public sealed class LibrariesServiceTests
         // Arrange
         var libraryId = Guid.CreateVersion7();
         string? name = null;
-        var library = Library.Create("");
+        var library = CreateLibrary("Default");
         _updateLibraryHandler.Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
 
@@ -339,8 +342,8 @@ public sealed class LibrariesServiceTests
         // Arrange
         var pagedList = Substitute.For<IPagedList<Library>>();
         pagedList.Items.Returns([
-            Library.Create("Library 1"),
-            Library.Create("Library 2")
+            CreateLibrary("Library 1"),
+            CreateLibrary("Library 2")
         ]);
         pagedList.TotalCount.Returns(2);
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())

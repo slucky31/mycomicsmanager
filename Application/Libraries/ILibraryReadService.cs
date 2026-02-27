@@ -6,6 +6,14 @@ namespace Application.Libraries;
 
 public interface ILibraryReadService
 {
-    Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<IPagedList<Library>> GetLibrariesAsync(
+        string? searchTerm,
+        LibrariesColumn? sortColumn,
+        SortOrder? sortOrder,
+        int page,
+        int pageSize,
+        Guid userId,
+        CancellationToken cancellationToken = default);
 
+    Task<Library?> GetDefaultLibraryAsync(Guid userId, CancellationToken cancellationToken = default);
 }

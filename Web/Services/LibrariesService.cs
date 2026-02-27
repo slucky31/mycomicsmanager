@@ -29,13 +29,20 @@ public class LibrariesService(
         return await getLibraryHandler.Handle(query, CancellationToken.None);
     }
 
+    // TODO(Prompt 3): Replace Guid.Empty with actual userId from ICurrentUserService
     public async Task<Result<Library>> Create(string? name)
     {
-        var command = new CreateLibraryCommand(name ?? "");
+        var command = new CreateLibraryCommand(
+            name ?? "",
+            LibraryConstants.DefaultLibraryColor,
+            LibraryConstants.DefaultLibraryIcon,
+            LibraryBookType.Physical,
+            Guid.Empty);
 
         return await createLibraryHandler.Handle(command, CancellationToken.None);
     }
 
+    // TODO(Prompt 3): Replace Guid.Empty with actual userId from ICurrentUserService
     public async Task<Result<Library>> Update(string? id, string? name)
     {
         if (!Guid.TryParse(id, out var guidId))
@@ -43,18 +50,25 @@ public class LibrariesService(
             return LibrariesError.ValidationError;
         }
 
-        var command = new UpdateLibraryCommand(guidId, name ?? "");
+        var command = new UpdateLibraryCommand(
+            guidId,
+            name ?? "",
+            LibraryConstants.DefaultLibraryColor,
+            LibraryConstants.DefaultLibraryIcon,
+            Guid.Empty);
 
         return await updateLibraryHandler.Handle(command, CancellationToken.None);
     }
 
+    // TODO(Prompt 3): Replace Guid.Empty with actual userId from ICurrentUserService
     public async Task<Result<IPagedList<Library>>> FilterBy(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize)
     {
-        var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize);
+        var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize, Guid.Empty);
 
         return await getLibrariesHandler.Handle(query, CancellationToken.None);
     }
 
+    // TODO(Prompt 3): Replace Guid.Empty with actual userId from ICurrentUserService
     public async Task<Result> Delete(string? id)
     {
         if (!Guid.TryParse(id, out var guidId))
@@ -62,7 +76,7 @@ public class LibrariesService(
             return LibrariesError.ValidationError;
         }
 
-        var command = new DeleteLibraryCommand(guidId);
+        var command = new DeleteLibraryCommand(guidId, Guid.Empty);
 
         return await deleteLibraryHandler.Handle(command, CancellationToken.None);
     }

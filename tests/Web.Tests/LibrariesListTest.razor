@@ -70,7 +70,7 @@
         List<Library> list = new();
         for (int i = 0; i < nbItems; i++)
         {
-            Library lib = Library.Create("lib-" + i);
+            Library lib = Library.Create("lib-" + i, "#5C6BC0", "Bookmark", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
             list.Add(lib);
         }
 

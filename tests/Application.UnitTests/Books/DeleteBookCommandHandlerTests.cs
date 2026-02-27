@@ -9,7 +9,7 @@ public class DeleteBookCommandHandlerTests
 {
     private static readonly Guid s_bookId = Guid.CreateVersion7();
     private static readonly DeleteBookCommand s_command = new(s_bookId);
-    private static readonly Book s_existingBook = Book.Create("Test Serie", "Test Title", "978-3-16-148410-0");
+    private static readonly Book s_existingBook = PhysicalBook.Create("Test Serie", "Test Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
 
     private readonly DeleteBookCommandHandler _handler;
     private readonly IBookRepository _bookRepositoryMock;

@@ -14,7 +14,9 @@ namespace Application.UnitTests.Libraries;
 
 public class CreateLibraryCommandTests
 {
-    private static readonly CreateLibraryCommand s_command = new("test-name");
+    private static readonly Guid s_userId = Guid.CreateVersion7();
+    private static readonly CreateLibraryCommand s_command = new("test-name", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId);
+    private static readonly CreateLibraryCommand s_digitalCommand = new("digital-lib", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId);
 
     private readonly CreateLibraryCommandHandler _handler;
     private readonly IRepository<Library, Guid> _libraryRepositoryMock;
@@ -37,7 +39,6 @@ public class CreateLibraryCommandTests
     {
         // Arrange
         _libraryRepositoryMock.Add(Arg.Any<Library>());
-        _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(Result.Success());
 
         // Act
         var result = await _handler.Handle(s_command, default);
@@ -55,7 +56,6 @@ public class CreateLibraryCommandTests
     {
         // Arrange
         _libraryRepositoryMock.Add(Arg.Any<Library>());
-        _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(Result.Success());
 
         // Act
         await _handler.Handle(s_command, default);
@@ -65,10 +65,10 @@ public class CreateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadREquest_WhenCommandNameIsEmpty()
+    public async Task Handle_ShouldReturnBadRequest_WhenCommandNameIsEmpty()
     {
         // Arrange
-        var emptyCommand = new CreateLibraryCommand(string.Empty);
+        var emptyCommand = new CreateLibraryCommand(string.Empty, "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId);
 
         // Act
         var result = await _handler.Handle(emptyCommand, default);
@@ -86,7 +86,7 @@ public class CreateLibraryCommandTests
         _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(LibraryLocalStorageError.ArgumentNullOrEmpty);
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_digitalCommand, default);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -94,14 +94,27 @@ public class CreateLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_ShouldNotCreateFolder_WhenBookTypeIsPhysical()
+    {
+        // Arrange
+        _libraryRepositoryMock.Add(Arg.Any<Library>());
+
+        // Act
+        await _handler.Handle(s_command, default);
+
+        // Assert
+        _libraryLocalStorageMock.DidNotReceive().Create(Arg.Any<string>());
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExist()
     {
         // Arrange
-        List<Library> list = [Library.Create(s_command.Name)];
+        List<Library> list = [Library.Create(s_command.Name, s_command.Color, s_command.Icon, s_command.BookType, s_command.UserId).Value!];
         var query = list.BuildMock();
         var pagedList = new PagedList<Library>(query);
         await pagedList.ExecuteQueryAsync(1, 2);
-        _libraryReadServiceMock.GetLibrariesAsync(s_command.Name, LibrariesColumn.Name, null, 1, 1).Returns(pagedList);
+        _libraryReadServiceMock.GetLibrariesAsync(s_command.Name, LibrariesColumn.Name, null, 1, 1, s_command.UserId, Arg.Any<CancellationToken>()).Returns(pagedList);
 
         // Act
         var result = await _handler.Handle(s_command, default);
@@ -110,5 +123,4 @@ public class CreateLibraryCommandTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.Duplicate);
     }
-
 }

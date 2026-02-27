@@ -3,11 +3,12 @@ using Application.Helpers;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
+using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Application.Books.Create;
 
-public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork) : ICommandHandler<CreateBookCommand, Book>
+public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork, IRepository<Library, Guid> libraryRepository) : ICommandHandler<CreateBookCommand, Book>
 {
     public async Task<Result<Book>> Handle(CreateBookCommand request, CancellationToken cancellationToken)
     {
@@ -34,9 +35,29 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
             return BooksError.Duplicate;
         }
 
+        // Fetch the library
+        var library = await libraryRepository.GetByIdAsync(request.LibraryId);
+        if (library is null)
+        {
+            return LibrariesError.NotFound;
+        }
+
         // Create Book
-        var book = Book.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink,
-            request.Authors, request.Publishers, request.PublishDate, request.NumberOfPages);
+        var createResult = PhysicalBook.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink,
+            request.Authors, request.Publishers, request.PublishDate, request.NumberOfPages, request.LibraryId);
+        if (createResult.IsFailure)
+        {
+            return createResult.Error;
+        }
+
+        var book = createResult.Value!;
+
+        // Validate book type compatibility with library
+        var canContainResult = library.CanContain(book);
+        if (canContainResult.IsFailure)
+        {
+            return canContainResult.Error;
+        }
 
         // Always add a reading date with the provided rating
         book.AddReadingDate(DateTime.UtcNow, request.Rating);
@@ -46,5 +67,4 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
 
         return book;
     }
-
 }

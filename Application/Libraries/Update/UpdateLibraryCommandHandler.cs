@@ -17,31 +17,49 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
 
         var library = await libraryRepository.GetByIdAsync(request.Id);
 
-        if (library is null)
+        if (library is null || library.UserId != request.UserId)
         {
             return LibrariesError.NotFound;
         }
 
-        // Check if a library with the same name doesn't already exist
-        var pagedList = await libraryReadService.GetLibrariesAsync(request.Name, LibrariesColumn.Name, null, 1, 1, cancellationToken);
-        Guard.Against.Null(pagedList);
-        if (pagedList.TotalCount > 0)
+        // Update color and icon
+        var updateResult = library.Update(request.Color, request.Icon);
+        if (updateResult.IsFailure)
         {
-            return LibrariesError.Duplicate;
+            return updateResult.Error;
         }
 
-        var originPath = library.RelativePath;
-
-        library.Update(request.Name);
-
-        var result = libraryLocalStorage.Move(originPath, library.RelativePath);
-        if (result.IsFailure)
+        // Update name only if provided and library is not default
+        if (request.Name is not null && !library.IsDefault)
         {
-            return LibrariesError.FolderNotMoved;
+            // Check for duplicate name within same user
+            var pagedList = await libraryReadService.GetLibrariesAsync(request.Name, LibrariesColumn.Name, null, 1, 1, request.UserId, cancellationToken);
+            Guard.Against.Null(pagedList);
+            if (pagedList.TotalCount > 0)
+            {
+                return LibrariesError.Duplicate;
+            }
+
+            var originPath = library.RelativePath;
+
+            var updateNameResult = library.UpdateName(request.Name);
+            if (updateNameResult.IsFailure)
+            {
+                return updateNameResult.Error;
+            }
+
+            // Move folder only for digital libraries
+            if (library.BookType == LibraryBookType.Digital)
+            {
+                var moveResult = libraryLocalStorage.Move(originPath, library.RelativePath);
+                if (moveResult.IsFailure)
+                {
+                    return LibrariesError.FolderNotMoved;
+                }
+            }
         }
 
         libraryRepository.Update(library);
-
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return library;
