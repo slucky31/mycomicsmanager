@@ -22,8 +22,23 @@
                 @if (ShowRating)
                 {
                     <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: var(--mud-palette-background-gray);">
-                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">Your Rating</MudText>
-                        <MudRating @bind-SelectedValue="Model.Rating" MaxValue="5" Size="Size.Medium" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">Your Rating</MudText>
+                        <MudToggleGroup T="int"
+                                        Value="Model.Rating"
+                                        ValueChanged="@((int v) => { if (v != 0) Model.Rating = v; })"
+                                        For="@(() => Model.Rating)"
+                                        SelectionMode="SelectionMode.SingleSelection"
+                                        Color="Color.Warning"
+                                        Rounded="true">
+                            @for (var i = 1; i <= 5; i++)
+                            {
+                                var rating = i;
+                                <MudToggleItem Value="@rating">
+                                    <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="mr-1" />
+                                    @rating
+                                </MudToggleItem>
+                            }
+                        </MudToggleGroup>
                     </MudPaper>
                 }
             </div>

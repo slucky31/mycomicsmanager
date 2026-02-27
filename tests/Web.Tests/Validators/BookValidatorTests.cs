@@ -1106,6 +1106,116 @@ public sealed class BookValidatorTests
 
     #endregion
 
+    #region Rating Validation Tests
+
+    [Fact]
+    public void Validate_ShouldReturnError_WhenRatingIsZero()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Rating = 0
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Rating));
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "La note est obligatoire (1 à 5 étoiles).");
+    }
+
+    [Fact]
+    public void Validate_ShouldReturnError_WhenRatingIsNegative()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Rating = -1
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Rating));
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "La note est obligatoire (1 à 5 étoiles).");
+    }
+
+    [Fact]
+    public void Validate_ShouldReturnError_WhenRatingIsGreaterThanFive()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Rating = 6
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Rating));
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "La note est obligatoire (1 à 5 étoiles).");
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenRatingIsOne()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Rating = 1
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_ShouldPass_WhenRatingIsFive()
+    {
+        // Arrange
+        var dto = new BookUiDto
+        {
+            Title = "Test Title",
+            ISBN = "0306406152",
+            Serie = "Test Serie",
+            VolumeNumber = 1,
+            Rating = 5
+        };
+
+        // Act
+        var result = _validator.Validate(dto);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    #endregion
+
     #region Edge Cases Tests
 
     [Fact]

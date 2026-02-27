@@ -249,8 +249,6 @@ public class CreateBookCommandHandlerTests
         Guard.Against.Null(result.Value);
         result.Value.VolumeNumber.Should().Be(1);
         result.Value.ImageLink.Should().Be(string.Empty);
-        result.Value.ReadingDates.Should().HaveCount(1);
-        result.Value.ReadingDates[0].Rating.Should().Be(0);
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -275,7 +273,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_AlwaysAddReadingDate_EvenWhenRatingIsZero()
+    public async Task Handle_Should_ReturnInvalidRating_WhenRatingIsZero()
     {
         // Arrange
         var commandWithoutRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", s_libraryId, 1, "", 0);
@@ -287,10 +285,28 @@ public class CreateBookCommandHandlerTests
         var result = await _handler.Handle(commandWithoutRating, default);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        Guard.Against.Null(result.Value);
-        result.Value.ReadingDates.Should().HaveCount(1);
-        result.Value.ReadingDates[0].Rating.Should().Be(0);
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.InvalidRating);
+        _bookRepositoryMock.Received(0).Add(Arg.Any<Book>());
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnInvalidRating_WhenRatingIsGreaterThanFive()
+    {
+        // Arrange
+        var commandWithHighRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", 1, "", 6);
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(commandWithHighRating.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+
+        // Act
+        var result = await _handler.Handle(commandWithHighRating, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.InvalidRating);
+        _bookRepositoryMock.Received(0).Add(Arg.Any<Book>());
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -367,7 +383,8 @@ public class CreateBookCommandHandlerTests
             "978-1-4012-4525-2",
             s_libraryId,
             Authors: authors,
-            Publishers: publishers
+            Publishers: publishers,
+            Rating: 1
         );
 
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(command.ISBN);
@@ -487,7 +504,8 @@ public class CreateBookCommandHandlerTests
             "978-3-16-148410-0",
             s_libraryId,
             Authors: "",
-            Publishers: ""
+            Publishers: "",
+            Rating: 1
         );
 
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(command.ISBN);
@@ -571,7 +589,7 @@ public class CreateBookCommandHandlerTests
             s_libraryId,
             15,
             "",
-            0,
+            1,
             "Stan Lee, Steve Ditko",
             "Marvel Comics",
             publishDate,
@@ -605,7 +623,7 @@ public class CreateBookCommandHandlerTests
             s_libraryId,
             1,
             "",
-            0,
+            1,
             "Alan Moore",
             "DC Comics",
             new DateOnly(1987, 9, 1),
