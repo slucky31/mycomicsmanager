@@ -24,8 +24,10 @@ public partial class IconPicker : ComponentBase
     private string _selectedName = string.Empty;
 
     /// <summary>Resolves an icon name to its MudBlazor SVG path constant.</summary>
-    public static string Resolve(string name)
-        => _iconMap.TryGetValue(name, out var svg) ? svg : Icons.Material.Filled.Star;
+    public static string Resolve(string? name)
+        => !string.IsNullOrEmpty(name) && _iconMap.TryGetValue(name, out var svg)
+            ? svg
+            : Icons.Material.Filled.Star;
 
     protected override void OnParametersSet()
     {

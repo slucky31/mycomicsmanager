@@ -18,17 +18,13 @@ public sealed class PhysicalBook : Book
         int? numberOfPages = null,
         Guid libraryId = default)
     {
-        if (string.IsNullOrWhiteSpace(serie))
+        if (string.IsNullOrWhiteSpace(serie) ||
+            string.IsNullOrWhiteSpace(title) ||
+            string.IsNullOrWhiteSpace(isbn) ||
+            libraryId == Guid.Empty)
+        {
             return BooksError.BadRequest;
-
-        if (string.IsNullOrWhiteSpace(title))
-            return BooksError.BadRequest;
-
-        if (string.IsNullOrWhiteSpace(isbn))
-            return BooksError.BadRequest;
-
-        if (libraryId == Guid.Empty)
-            return BooksError.BadRequest;
+        }
 
         var book = new PhysicalBook
         {

@@ -52,7 +52,7 @@ public partial class BookDetail
         {
             _loadError = true;
             Log.Error(ex, "Unexpected error while loading book");
-        }        
+        }
         finally
         {
             _isLoading = false;

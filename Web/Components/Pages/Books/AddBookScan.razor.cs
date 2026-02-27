@@ -93,7 +93,7 @@ public sealed partial class AddBookScan : IAsyncDisposable
             StateHasChanged();
             return;
         }
-        
+
         NavigationManager.NavigateTo($"/books/add/form?isbn={Uri.EscapeDataString(isbn)}");
     }
 

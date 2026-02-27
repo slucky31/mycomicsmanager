@@ -1,11 +1,10 @@
-using Application.Interfaces;
+using System.Security.Claims;
 using Application.Users;
 using AwesomeAssertions;
 using Domain.Primitives;
 using Domain.Users;
 using Microsoft.AspNetCore.Components.Authorization;
 using NSubstitute;
-using System.Security.Claims;
 using Web.Services;
 using Xunit;
 

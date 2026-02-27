@@ -63,7 +63,7 @@ public partial class EditBook
             _loadError = true;
             Snackbar.Add("An unexpected error occurred while loading the book.", Severity.Error);
             Log.Error(ex, "Unexpected error loading book {BookId}", BookId);
-        }        
+        }
         finally
         {
             _isLoading = false;

@@ -1,5 +1,5 @@
-using FluentValidation;
 using Domain.Libraries;
+using FluentValidation;
 
 namespace Web.Validators;
 
