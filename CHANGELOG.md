@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.3.1"></a>
+## [10.3.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.3.1) (2026-02-27)
+
+### 🐛 Bug Fixes
+
+* Enforce rating validation (1-5) for book creation ([#938](https://www.github.com/slucky31/mycomicsmanager/issues/938)) ([61ec0b0](https://www.github.com/slucky31/mycomicsmanager/commit/61ec0b039e565eac481e82a9cdeb96861dd18a05))
+
 <a name="10.3.0"></a>
 ## [10.3.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.3.0) (2026-02-26)
 
