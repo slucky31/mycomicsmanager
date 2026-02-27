@@ -9,6 +9,7 @@ public static class BooksError
     public static readonly TError Duplicate = new("BOK409", "A book is already created with this ISBN");
     public static readonly TError ValidationError = new("BOK504", "The parameters were not validated");
     public static readonly TError InvalidISBN = new("BOK505", "The ISBN format is invalid");
+    public static readonly TError InvalidRating = new("BOK506", "The rating must be between 1 and 5");
     public static readonly TError DialogError = new("BOK701", "Dialog initialisation error");
     public static readonly TError DialogCanceled = new("BOK702", "Dialog canceled by user");
     public static readonly TError ScanError = new("BOK801", "ISBN scanning failed");

@@ -25,6 +25,12 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
             return BooksError.InvalidISBN;
         }
 
+        // Validate rating range
+        if (request.Rating < 1 || request.Rating > 5)
+        {
+            return BooksError.InvalidRating;
+        }
+
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);
 
         // Check if a book with the same ISBN doesn't already exist
