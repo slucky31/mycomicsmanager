@@ -295,7 +295,7 @@ public class CreateBookCommandHandlerTests
     public async Task Handle_Should_ReturnInvalidRating_WhenRatingIsGreaterThanFive()
     {
         // Arrange
-        var commandWithHighRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", 1, "", 6);
+        var commandWithHighRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", s_libraryId, 1, "", 6);
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(commandWithHighRating.ISBN);
         _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
 

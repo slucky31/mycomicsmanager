@@ -1,0 +1,43 @@
+::deep .edit-library-page {
+    min-height: 100vh;
+    background: var(--mud-palette-background);
+}
+
+::deep .edit-library-header {
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    padding: 16px 24px;
+    color: white;
+}
+
+::deep .edit-library-content {
+    padding: 24px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.color-swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.color-swatch:hover {
+    transform: scale(1.15);
+}
+
+.color-swatch.selected {
+    border-color: rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}

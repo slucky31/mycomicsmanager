@@ -9,7 +9,7 @@
                 Icon="@Icons.Material.Filled.CollectionsBookmark"
                 ActionName="New library"
                 ActionIcon="@Icons.Material.Filled.Add"
-                OnActionClick="@(e => CreateOrEditAsync(FormMode.Create, null))">
+                OnActionClick="@(e => NavigationManager.NavigateTo("/libraries/add"))">
 
     <MudGrid Spacing="4" Justify="Justify.FlexStart">
         @foreach (var lib in Libraries)
@@ -38,7 +38,7 @@
                                 <MudMenu Icon="@Icons.Material.Filled.MoreVert"
                                          AriaLabel="Actions">
                                     <MudMenuItem Label="Edit"
-                                                 OnClick="@(e => CreateOrEditAsync(FormMode.Edit, lib))" />
+                                                 OnClick="@(e => NavigationManager.NavigateTo($"/libraries/{lib.Id}/edit"))" />
                                     <MudMenuItem Label="Delete"
                                                  OnClick="@(e => OnClickDeleteAsync(lib.Id))" />
                                 </MudMenu>

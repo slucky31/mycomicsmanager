@@ -32,71 +32,90 @@
                     </div>
                 </div>
                 <div class="d-flex gap-2">
-                    <MudIconButton Icon="@Icons.Material.Filled.ViewModule"
-                                   Color="@(_currentViewMode == ViewMode.Cards ? Color.Warning : Color.Inherit)"
-                                   OnClick="@(() => _currentViewMode = ViewMode.Cards)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.GridView"
-                                   Color="@(_currentViewMode == ViewMode.Covers ? Color.Warning : Color.Inherit)"
-                                   OnClick="@(() => _currentViewMode = ViewMode.Covers)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.ViewList"
-                                   Color="@(_currentViewMode == ViewMode.List ? Color.Warning : Color.Inherit)"
-                                   OnClick="@(() => _currentViewMode = ViewMode.List)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Add"
-                                   Color="Color.Inherit"
-                                   OnClick="AddBook" />
+                    <MudButtonGroup OverrideStyles="false" Class="mr-2">
+                        <MudTooltip Text="Card View">
+                            <MudIconButton Icon="@Icons.Material.Filled.ViewModule"
+                                           Color="@(_currentViewMode == ViewMode.Cards ? Color.Primary : Color.Default)"
+                                           Variant="@(_currentViewMode == ViewMode.Cards ? Variant.Filled : Variant.Outlined)"
+                                           OnClick="@(() => _currentViewMode = ViewMode.Cards)"
+                                           Class="view-toggle-btn" />
+                        </MudTooltip>
+                        <MudTooltip Text="Cover View">
+                            <MudIconButton Icon="@Icons.Material.Filled.GridView"
+                                           Color="@(_currentViewMode == ViewMode.Covers ? Color.Primary : Color.Default)"
+                                           Variant="@(_currentViewMode == ViewMode.Covers ? Variant.Filled : Variant.Outlined)"
+                                           OnClick="@(() => _currentViewMode = ViewMode.Covers)"
+                                           Class="view-toggle-btn" />
+                        </MudTooltip>
+                        <MudTooltip Text="List View">
+                            <MudIconButton Icon="@Icons.Material.Filled.ViewList"
+                                           Color="@(_currentViewMode == ViewMode.List ? Color.Primary : Color.Default)"
+                                           Variant="@(_currentViewMode == ViewMode.List ? Variant.Filled : Variant.Outlined)"
+                                           OnClick="@(() => _currentViewMode = ViewMode.List)"
+                                           Class="view-toggle-btn" />
+                        </MudTooltip>
+                    </MudButtonGroup>
+
+                    <MudButton StartIcon="@Icons.Material.Filled.Add"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="AddBook">
+                        New Book
+                    </MudButton>
+                                       
                 </div>
             </div>
         </div>
 
         <div class="library-detail-content">
-        @* Search bar *@
-        <MudTextField @bind-Value="_searchTerm"
-                      Placeholder="Search by title or series…"
-                      Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Filled.Search"
-                      Clearable="true"
-                      Immediate="true"
-                      Variant="Variant.Outlined"
-                      Class="mb-4" />
+            @* Search bar *@
+            <MudTextField @bind-Value="_searchTerm"
+                          Placeholder="Search by title or series…"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Clearable="true"
+                          Immediate="true"
+                          Variant="Variant.Outlined"
+                          Class="mb-4" />
 
-        @* Books display *@
-        @if (_books.Count == 0)
-        {
-            <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Style="min-height: 400px;" Elevation="0">
-                <MudIcon Icon="@IconPicker.Resolve(_library?.Icon)"
-                         Style="@($"color: {_library?.Color}; font-size: 80px; opacity: 0.4;")" />
-                <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-4">No books in this library yet</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Start by adding your first book</MudText>
-                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBook">
-                    Add Your First Book
-                </MudButton>
-            </MudPaper>
-        }
-        else if (_filteredBooks.Count == 0)
-        {
-            <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Style="min-height: 300px;" Elevation="0">
-                <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Secondary" Style="font-size: 64px; opacity: 0.5;" />
-                <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-4">No results for "@_searchTerm"</MudText>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mt-2" OnClick="@(() => _searchTerm = string.Empty)">
-                    Clear search
-                </MudButton>
-            </MudPaper>
-        }
-        else
-        {
-            @switch (_currentViewMode)
+            @* Books display *@
+            @if (_books.Count == 0)
             {
-                case ViewMode.Cards:
-                    <BooksCardsView Books="@_filteredBooks" OnDelete="@DeleteAsync" />
-                    break;
-                case ViewMode.Covers:
-                    <BooksCoversView Books="@_filteredBooks" OnDelete="@DeleteAsync" />
-                    break;
-                case ViewMode.List:
-                    <BooksListView Books="@_filteredBooks" OnDelete="@DeleteAsync" />
-                    break;
+                <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Style="min-height: 400px;" Elevation="0">
+                    <MudIcon Icon="@IconPicker.Resolve(_library?.Icon)"
+                             Style="@($"color: {_library?.Color}; font-size: 80px; opacity: 0.4;")" />
+                    <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-4">No books in this library yet</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Start by adding your first book</MudText>
+                    <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBook">
+                        Add Your First Book
+                    </MudButton>
+                </MudPaper>
             }
-        }
+            else if (_filteredBooks.Count == 0)
+            {
+                <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Style="min-height: 300px;" Elevation="0">
+                    <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Secondary" Style="font-size: 64px; opacity: 0.5;" />
+                    <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-4">No results for "@_searchTerm"</MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mt-2" OnClick="@(() => _searchTerm = string.Empty)">
+                        Clear search
+                    </MudButton>
+                </MudPaper>
+            }
+            else
+            {
+                @switch (_currentViewMode)
+                {
+                    case ViewMode.Cards:
+                        <BooksCardsView Books="@_filteredBooks" OnDelete="@DeleteAsync" />
+                        break;
+                    case ViewMode.Covers:
+                        <BooksCoversView Books="@_filteredBooks" OnDelete="@DeleteAsync" />
+                        break;
+                    case ViewMode.List:
+                        <BooksListView Books="@_filteredBooks" OnDelete="@DeleteAsync" />
+                        break;
+                }
+            }
         </div>
     }
 </div>

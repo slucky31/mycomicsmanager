@@ -12,6 +12,4 @@ public static class LibrariesError
     public static readonly TError FolderNotMoved = new("LIB503", "The library directory was not moved");
     public static readonly TError ValidationError = new("LIB504", "The parameter were not validated");
     public static readonly TError BookTypeMismatch = new("LIB505", "Book type does not match library type");
-    public static readonly TError DialogError = new("LIB701", "Dialog initialisation error");
-    public static readonly TError DialogCanceled = new("LIB702", "Dialog canceled by user");
 }
