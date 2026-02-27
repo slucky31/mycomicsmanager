@@ -1,7 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Application.Libraries.Create;
-using Application.Libraries.CreateDefault;
 using Application.Libraries.Delete;
 using Application.Libraries.GetById;
 using Application.Libraries.List;
@@ -15,7 +14,6 @@ public class LibrariesService(
     IQueryHandler<GetLibraryQuery, Library> getLibraryHandler,
     IQueryHandler<GetLibrariesQuery, IPagedList<Library>> getLibrariesHandler,
     ICommandHandler<CreateLibraryCommand, Library> createLibraryHandler,
-    ICommandHandler<CreateDefaultLibraryCommand, Library> createDefaultLibraryHandler,
     ICommandHandler<UpdateLibraryCommand, Library> updateLibraryHandler,
     ICommandHandler<DeleteLibraryCommand> deleteLibraryHandler,
     ICurrentUserService currentUserService) : ILibrariesService
@@ -36,7 +34,9 @@ public class LibrariesService(
     {
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
+        {
             return userIdResult.Error;
+        }
 
         var command = new CreateLibraryCommand(
             request.Name,
@@ -48,17 +48,6 @@ public class LibrariesService(
         return await createLibraryHandler.Handle(command, cancellationToken);
     }
 
-    public async Task<Result<Library>> CreateDefault(CancellationToken cancellationToken = default)
-    {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
-        if (userIdResult.IsFailure)
-            return userIdResult.Error;
-
-        var command = new CreateDefaultLibraryCommand(userIdResult.Value);
-
-        return await createDefaultLibraryHandler.Handle(command, cancellationToken);
-    }
-
     public async Task<Result<Library>> Update(UpdateLibraryRequest request, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(request.Id, out var guidId))
@@ -68,7 +57,9 @@ public class LibrariesService(
 
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
+        {
             return userIdResult.Error;
+        }
 
         var command = new UpdateLibraryCommand(
             guidId,
@@ -84,7 +75,9 @@ public class LibrariesService(
     {
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
+        {
             return userIdResult.Error;
+        }
 
         var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize, userIdResult.Value);
 
@@ -100,7 +93,9 @@ public class LibrariesService(
 
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
+        {
             return userIdResult.Error;
+        }
 
         var command = new DeleteLibraryCommand(guidId, userIdResult.Value);
 

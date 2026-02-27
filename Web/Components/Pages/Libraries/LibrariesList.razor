@@ -16,7 +16,8 @@
         {
             <MudItem @key="lib.Id" xs="12" sm="6" md="3">
                 <MudCard Outlined="true"
-                         Style="@($"border-left: 4px solid {lib.Color}; height: 100%;")">
+                         Style="@($"border-left: 4px solid {lib.Color}; height: 100%; cursor: pointer;")"
+                         @onclick="@(() => NavigationManager.NavigateTo($"/libraries/{lib.Id}"))">
                     <MudCardHeader>
                         <CardHeaderAvatar>
                             <MudIcon Icon="@IconPicker.Resolve(lib.Icon)"
@@ -31,23 +32,17 @@
                                      Style="@($"border-color: {lib.Color}; color: {lib.Color};")">
                                 @lib.BookType.ToString()
                             </MudChip>
-                            @if (lib.IsDefault)
-                            {
-                                <MudChip T="string" Size="Size.Small"
-                                         Color="Color.Primary" Class="ml-1">Default</MudChip>
-                            }
                         </CardHeaderContent>
                         <CardHeaderActions>
-                            <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                                     AriaLabel="Actions">
-                                <MudMenuItem Label="Edit"
-                                             OnClick="@(e => CreateOrEditAsync(FormMode.Edit, lib))" />
-                                @if (!lib.IsDefault)
-                                {
+                            <div @onclick:stopPropagation="true">
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                         AriaLabel="Actions">
+                                    <MudMenuItem Label="Edit"
+                                                 OnClick="@(e => CreateOrEditAsync(FormMode.Edit, lib))" />
                                     <MudMenuItem Label="Delete"
                                                  OnClick="@(e => OnClickDeleteAsync(lib.Id))" />
-                                }
-                            </MudMenu>
+                                </MudMenu>
+                            </div>
                         </CardHeaderActions>
                     </MudCardHeader>
                 </MudCard>

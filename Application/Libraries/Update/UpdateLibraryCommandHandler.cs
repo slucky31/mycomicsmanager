@@ -29,8 +29,8 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             return updateResult.Error;
         }
 
-        // Update name only if provided and library is not default
-        if (request.Name is not null && !library.IsDefault)
+        // Update name only if provided
+        if (request.Name is not null)
         {
             // Check for duplicate name within same user
             var pagedList = await libraryReadService.GetLibrariesAsync(request.Name, LibrariesColumn.Name, null, 1, 1, request.UserId, cancellationToken);

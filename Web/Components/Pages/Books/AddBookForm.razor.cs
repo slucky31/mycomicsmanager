@@ -21,6 +21,9 @@ public partial class AddBookForm
     [SupplyParameterFromQuery]
     public string? Isbn { get; set; }
 
+    [SupplyParameterFromQuery]
+    public string? LibraryId { get; set; }
+
     private BookForm? _bookForm;
     private BookUiDto _bookModel = new();
     private List<LibraryUiDto> _libraries = [];
@@ -38,14 +41,17 @@ public partial class AddBookForm
         {
             _libraries = libResult.Value.Items
                 .Select(LibraryUiDto.Convert)
-                .Where(l => l.BookType == LibraryBookType.Physical
-                         || l.BookType == LibraryBookType.All)
+                .Where(l => l.BookType == LibraryBookType.Physical)
                 .ToList();
 
-            var defaultLib = _libraries.FirstOrDefault(l => l.IsDefault);
-            if (defaultLib is not null)
+            // Pre-select library from query param if provided
+            if (Guid.TryParse(LibraryId, out var preselectedId))
             {
-                _bookModel.LibraryId = defaultLib.Id;
+                var match = _libraries.FirstOrDefault(l => l.Id == preselectedId);
+                if (match is not null)
+                {
+                    _bookModel.LibraryId = match.Id;
+                }
             }
         }
 
@@ -137,7 +143,10 @@ public partial class AddBookForm
 
         if (result.IsSuccess)
         {
-            NavigationManager.NavigateTo("/books/list");
+            var redirect = !string.IsNullOrEmpty(LibraryId)
+                ? $"/libraries/{LibraryId}"
+                : "/libraries/list";
+            NavigationManager.NavigateTo(redirect);
         }
         else
         {
@@ -150,6 +159,7 @@ public partial class AddBookForm
 
     private void GoBack()
     {
-        NavigationManager.NavigateTo("/books/add");
+        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add" : $"/books/add?libraryId={LibraryId}";
+        NavigationManager.NavigateTo(url);
     }
 }

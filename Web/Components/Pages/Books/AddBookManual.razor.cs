@@ -8,6 +8,9 @@ public partial class AddBookManual
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
+    [SupplyParameterFromQuery]
+    public string? LibraryId { get; set; }
+
     private string _isbn = string.Empty;
     private bool _hasError;
     private string _errorMessage = string.Empty;
@@ -41,11 +44,18 @@ public partial class AddBookManual
             return;
         }
 
-        NavigationManager.NavigateTo($"/books/add/form?isbn={Uri.EscapeDataString(normalizedIsbn)}");
+        var url = $"/books/add/form?isbn={Uri.EscapeDataString(normalizedIsbn)}";
+        if (!string.IsNullOrEmpty(LibraryId))
+        {
+            url += $"&libraryId={LibraryId}";
+        }
+
+        NavigationManager.NavigateTo(url);
     }
 
     private void GoBack()
     {
-        NavigationManager.NavigateTo("/books/add");
+        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add" : $"/books/add?libraryId={LibraryId}";
+        NavigationManager.NavigateTo(url);
     }
 }

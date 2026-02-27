@@ -38,7 +38,9 @@ public class BooksService(
     {
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
+        {
             return userIdResult.Error;
+        }
 
         var command = new CreateBookCommand(
             request.Series,
@@ -106,6 +108,13 @@ public class BooksService(
         var query = new GetBooksQuery();
 
         return await getBooksHandler.Handle(query, CancellationToken.None);
+    }
+
+    public async Task<Result<List<Book>>> GetByLibrary(Guid libraryId, CancellationToken cancellationToken = default)
+    {
+        var query = new GetBooksQuery(LibraryId: libraryId);
+
+        return await getBooksHandler.Handle(query, cancellationToken);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)

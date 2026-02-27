@@ -35,12 +35,4 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
         var librariesPagedList = new PagedList<Library>(librariesQuery);
         return await librariesPagedList.ExecuteQueryAsync(page, pageSize, cancellationToken);
     }
-
-    public async Task<Library?> GetDefaultLibraryAsync(Guid userId, CancellationToken cancellationToken = default)
-    {
-        return await context.Libraries
-            .AsNoTracking()
-            .Where(l => l.UserId == userId && l.IsDefault)
-            .FirstOrDefaultAsync(cancellationToken);
-    }
 }

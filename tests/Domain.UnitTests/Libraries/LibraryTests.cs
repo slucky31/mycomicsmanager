@@ -8,47 +8,6 @@ public class LibraryTests
     private static readonly Guid DefaultUserId = Guid.CreateVersion7();
 
     // -------------------------------------------------------
-    // CreateDefault
-    // -------------------------------------------------------
-
-    [Fact]
-    public void CreateDefault_Should_CreateDefaultLibrary_WithAllBookType()
-    {
-        // Act
-        var library = Library.CreateDefault(DefaultUserId);
-
-        // Assert
-        library.Should().NotBeNull();
-        library.Id.Should().NotBe(Guid.Empty);
-        library.Name.Should().Be(LibraryConstants.DefaultLibraryName);
-        library.Color.Should().Be(LibraryConstants.DefaultLibraryColor);
-        library.Icon.Should().Be(LibraryConstants.DefaultLibraryIcon);
-        library.BookType.Should().Be(LibraryBookType.All);
-        library.IsDefault.Should().BeTrue();
-        library.UserId.Should().Be(DefaultUserId);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_GenerateVersion7Guid()
-    {
-        // Act
-        var library = Library.CreateDefault(DefaultUserId);
-
-        // Assert
-        library.Id.Should().NotBe(Guid.Empty);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_HaveComputedRelativePath()
-    {
-        // Act
-        var library = Library.CreateDefault(DefaultUserId);
-
-        // Assert
-        library.RelativePath.Should().Be("READ BOOKS");
-    }
-
-    // -------------------------------------------------------
     // Create
     // -------------------------------------------------------
 
@@ -70,7 +29,6 @@ public class LibraryTests
         library.Color.Should().Be(color);
         library.Icon.Should().Be(icon);
         library.BookType.Should().Be(LibraryBookType.Physical);
-        library.IsDefault.Should().BeFalse();
         library.UserId.Should().Be(DefaultUserId);
         library.Id.Should().NotBe(Guid.Empty);
     }
@@ -166,7 +124,7 @@ public class LibraryTests
     public void Update_Should_UpdateColorAndIcon_WhenValid()
     {
         // Arrange
-        var library = Library.CreateDefault(DefaultUserId);
+        var library = Library.Create("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, DefaultUserId).Value!;
 
         // Act
         var result = library.Update("#FF7043", "MenuBook");
@@ -181,7 +139,7 @@ public class LibraryTests
     public void Update_Should_ReturnBadRequest_WhenColorIsEmpty()
     {
         // Arrange
-        var library = Library.CreateDefault(DefaultUserId);
+        var library = Library.Create("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, DefaultUserId).Value!;
 
         // Act
         var result = library.Update("", "MenuBook");
@@ -195,7 +153,7 @@ public class LibraryTests
     public void Update_Should_ReturnBadRequest_WhenIconIsEmpty()
     {
         // Arrange
-        var library = Library.CreateDefault(DefaultUserId);
+        var library = Library.Create("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, DefaultUserId).Value!;
 
         // Act
         var result = library.Update("#5C6BC0", "");
@@ -224,20 +182,6 @@ public class LibraryTests
     }
 
     [Fact]
-    public void UpdateName_Should_ReturnCannotRenameDefault_WhenDefaultLibrary()
-    {
-        // Arrange
-        var library = Library.CreateDefault(DefaultUserId);
-
-        // Act
-        var result = library.UpdateName("Something Else");
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibrariesError.CannotRenameDefault);
-    }
-
-    [Fact]
     public void UpdateName_Should_ReturnBadRequest_WhenNameIsEmpty()
     {
         // Arrange
@@ -254,20 +198,6 @@ public class LibraryTests
     // -------------------------------------------------------
     // CanContain
     // -------------------------------------------------------
-
-    [Fact]
-    public void CanContain_Should_ReturnSuccess_WhenBookTypeIsAll()
-    {
-        // Arrange
-        var library = Library.CreateDefault(DefaultUserId); // BookType = All
-        var physicalBook = PhysicalBook.Create("Series", "Title", "isbn", libraryId: library.Id).Value!;
-
-        // Act
-        var result = library.CanContain(physicalBook);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-    }
 
     [Fact]
     public void CanContain_Should_ReturnSuccess_WhenPhysicalLibraryContainsPhysicalBook()
@@ -325,19 +255,5 @@ public class LibraryTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.BookTypeMismatch);
-    }
-
-    [Fact]
-    public void CanContain_Should_ReturnSuccess_WhenAllLibraryContainsDigitalBook()
-    {
-        // Arrange
-        var library = Library.CreateDefault(DefaultUserId); // BookType = All
-        var digitalBook = (DigitalBook)Activator.CreateInstance(typeof(DigitalBook), nonPublic: true)!;
-
-        // Act
-        var result = library.CanContain(digitalBook);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
     }
 }

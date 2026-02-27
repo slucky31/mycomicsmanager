@@ -21,11 +21,6 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
             return LibrariesError.NotFound;
         }
 
-        if (library.IsDefault)
-        {
-            return LibrariesError.CannotDeleteDefault;
-        }
-
         // Delete folder only for digital libraries
         if (library.BookType == LibraryBookType.Digital)
         {

@@ -32,7 +32,6 @@ public class UpdateBookCommandHandlerTests
     }
 
     private static readonly Guid s_testLibraryId = Guid.CreateVersion7();
-    private static readonly Guid s_testUserId = Guid.CreateVersion7();
 
     private static Book CreateBookWithId(Guid id, string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
     {

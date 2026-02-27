@@ -10,8 +10,7 @@ public class LibraryValidator : AbstractValidator<LibraryUiDto>
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required.")
             .MaximumLength(LibraryConstants.MaxNameLength)
-            .WithMessage($"Name must not exceed {LibraryConstants.MaxNameLength} characters.")
-            .When(x => !x.IsDefault);
+            .WithMessage($"Name must not exceed {LibraryConstants.MaxNameLength} characters.");
 
         RuleFor(x => x.Color)
             .NotEmpty().WithMessage("Color is required.")
@@ -24,8 +23,7 @@ public class LibraryValidator : AbstractValidator<LibraryUiDto>
             .WithMessage($"Icon name must not exceed {LibraryConstants.MaxIconLength} characters.");
 
         RuleFor(x => x.BookType)
-            .IsInEnum().WithMessage("Please select a valid library type.")
-            .When(x => !x.IsDefault);
+            .IsInEnum().WithMessage("Please select a valid library type.");
     }
 
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>

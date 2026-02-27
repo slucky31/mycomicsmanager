@@ -13,9 +13,6 @@ public interface ILibrariesService
     Task<Result<Library>> Create(CreateLibraryRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<Result<Library>> CreateDefault(
-        CancellationToken cancellationToken = default);
-
     Task<Result<Library>> GetById(string? id);
 
     Task<Result<Library>> Update(UpdateLibraryRequest request,

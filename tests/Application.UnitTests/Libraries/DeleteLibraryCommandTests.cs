@@ -61,22 +61,6 @@ public class DeleteLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenLibraryIsDefault()
-    {
-        // Arrange
-        var defaultLibrary = Library.CreateDefault(s_userId);
-        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(defaultLibrary);
-
-        // Act
-        var result = await _handler.Handle(s_command, default);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibrariesError.CannotDeleteDefault);
-        _librayRepositoryMock.Received(0).Remove(Arg.Any<Library>());
-    }
-
-    [Fact]
     public async Task Handle_Should_ReturnSuccess_ForPhysicalLibrary()
     {
         // Arrange

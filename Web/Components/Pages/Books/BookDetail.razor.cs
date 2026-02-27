@@ -108,7 +108,7 @@ public partial class BookDetail
             if (res.IsSuccess)
             {
                 Snackbar.Add("Book deleted successfully!", Severity.Success);
-                NavigationManager.NavigateTo("/books/list");
+                NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
             }
             else
             {
@@ -119,6 +119,6 @@ public partial class BookDetail
 
     private void GoBack()
     {
-        NavigationManager.NavigateTo("/books/list");
+        NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
     }
 }

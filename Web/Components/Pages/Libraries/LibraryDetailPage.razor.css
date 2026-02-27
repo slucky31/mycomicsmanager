@@ -1,0 +1,14 @@
+.library-detail-page {
+    min-height: 100vh;
+    background: var(--mud-palette-background);
+}
+
+.library-detail-header {
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    padding: 16px 24px;
+    color: white;
+}
+
+.library-detail-content {
+    padding: 24px;
+}

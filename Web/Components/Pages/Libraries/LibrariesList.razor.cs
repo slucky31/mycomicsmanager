@@ -14,7 +14,7 @@ public partial class LibrariesList
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
-
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
 
     private List<LibraryUiDto> Libraries { get; } = [];
@@ -130,7 +130,7 @@ public partial class LibrariesList
                 break;
             case FormMode.Edit:
                 resultCreateOrEdit = await LibrariesService.Update(
-                    new UpdateLibraryRequest(libraryFromDialog.Id.ToString(), libraryFromDialog.IsDefault ? null : libraryFromDialog.Name, libraryFromDialog.Color, libraryFromDialog.Icon));
+                    new UpdateLibraryRequest(libraryFromDialog.Id.ToString(), libraryFromDialog.Name, libraryFromDialog.Color, libraryFromDialog.Icon));
                 successMessage = Msg_LibCorrectlyUpdated;
                 break;
             default:

@@ -6,23 +6,29 @@ public partial class AddBook
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
+    [SupplyParameterFromQuery]
+    public string? LibraryId { get; set; }
+
     private void GoToScan()
     {
-        NavigationManager.NavigateTo("/books/add/scan");
+        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add/scan" : $"/books/add/scan?libraryId={LibraryId}";
+        NavigationManager.NavigateTo(url);
     }
 
     private void GoToManual()
     {
-        NavigationManager.NavigateTo("/books/add/manual");
+        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add/manual" : $"/books/add/manual?libraryId={LibraryId}";
+        NavigationManager.NavigateTo(url);
     }
 
     private void GoToForm()
     {
-        NavigationManager.NavigateTo("/books/add/form");
+        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add/form" : $"/books/add/form?libraryId={LibraryId}";
+        NavigationManager.NavigateTo(url);
     }
 
     private void GoBack()
     {
-        NavigationManager.NavigateTo("/books/list");
+        NavigationManager.NavigateTo("/libraries/list");
     }
 }

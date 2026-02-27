@@ -9,28 +9,17 @@
                  ValidationDelay="0">
             <MudStack Spacing="3">
 
-                @* Name — hidden for default library *@
-                @if (!Library.IsDefault)
-                {
-                    <MudTextField @bind-Value="Library.Name"
-                                  For="@(() => Library.Name)"
-                                  Immediate="true"
-                                  Label="Library Name"
-                                  Variant="Variant.Outlined"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.LibraryBooks" />
-                }
-                else
-                {
-                    <MudText Typo="Typo.subtitle1">
-                        <strong>@Library.Name</strong>
-                        <MudChip T="string" Size="Size.Small" Color="Color.Primary"
-                                 Class="ml-2">Default</MudChip>
-                    </MudText>
-                }
+                @* Name *@
+                <MudTextField @bind-Value="Library.Name"
+                              For="@(() => Library.Name)"
+                              Immediate="true"
+                              Label="Library Name"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.LibraryBooks" />
 
-                @* Book type — only for new (non-default) libraries *@
-                @if (!Library.IsDefault && Library.Id == default)
+                @* Book type — only for new libraries *@
+                @if (Library.Id == default)
                 {
                     <MudSelect T="LibraryBookType"
                                @bind-Value="Library.BookType"

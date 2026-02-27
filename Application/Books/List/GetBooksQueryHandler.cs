@@ -13,6 +13,12 @@ public sealed class GetBooksQueryHandler(IBookRepository bookRepository) : IQuer
         Guard.Against.Null(request);
 
         var books = await bookRepository.ListAsync();
+
+        if (request.LibraryId.HasValue)
+        {
+            books = books.Where(b => b.LibraryId == request.LibraryId.Value).ToList();
+        }
+
         return books;
     }
 }

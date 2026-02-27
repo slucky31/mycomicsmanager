@@ -1,7 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Application.Libraries.Create;
-using Application.Libraries.CreateDefault;
 using Application.Libraries.Delete;
 using Application.Libraries.GetById;
 using Application.Libraries.List;
@@ -22,7 +21,6 @@ public sealed class LibrariesServiceTests
     private readonly IQueryHandler<GetLibraryQuery, Library> _getLibraryHandler;
     private readonly IQueryHandler<GetLibrariesQuery, IPagedList<Library>> _getLibrariesHandler;
     private readonly ICommandHandler<CreateLibraryCommand, Library> _createLibraryHandler;
-    private readonly ICommandHandler<CreateDefaultLibraryCommand, Library> _createDefaultLibraryHandler;
     private readonly ICommandHandler<UpdateLibraryCommand, Library> _updateLibraryHandler;
     private readonly ICommandHandler<DeleteLibraryCommand> _deleteLibraryHandler;
     private readonly ICurrentUserService _currentUserService;
@@ -35,7 +33,6 @@ public sealed class LibrariesServiceTests
         _getLibraryHandler = Substitute.For<IQueryHandler<GetLibraryQuery, Library>>();
         _getLibrariesHandler = Substitute.For<IQueryHandler<GetLibrariesQuery, IPagedList<Library>>>();
         _createLibraryHandler = Substitute.For<ICommandHandler<CreateLibraryCommand, Library>>();
-        _createDefaultLibraryHandler = Substitute.For<ICommandHandler<CreateDefaultLibraryCommand, Library>>();
         _updateLibraryHandler = Substitute.For<ICommandHandler<UpdateLibraryCommand, Library>>();
         _deleteLibraryHandler = Substitute.For<ICommandHandler<DeleteLibraryCommand>>();
         _currentUserService = Substitute.For<ICurrentUserService>();
@@ -45,7 +42,6 @@ public sealed class LibrariesServiceTests
             _getLibraryHandler,
             _getLibrariesHandler,
             _createLibraryHandler,
-            _createDefaultLibraryHandler,
             _updateLibraryHandler,
             _deleteLibraryHandler,
             _currentUserService);
@@ -200,43 +196,6 @@ public sealed class LibrariesServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UsersError.NotFound);
         await _createLibraryHandler.DidNotReceive().Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>());
-    }
-
-    #endregion
-
-    #region CreateDefault Tests
-
-    [Fact]
-    public async Task CreateDefault_ShouldCallHandler_WhenUserIsResolved()
-    {
-        // Arrange
-        var defaultLibrary = Library.CreateDefault(DefaultUserId);
-        _createDefaultLibraryHandler.Handle(Arg.Any<CreateDefaultLibraryCommand>(), Arg.Any<CancellationToken>())
-            .Returns(defaultLibrary);
-
-        // Act
-        var result = await _service.CreateDefault();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        await _createDefaultLibraryHandler.Received(1).Handle(
-            Arg.Is<CreateDefaultLibraryCommand>(c => c.UserId == DefaultUserId),
-            Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task CreateDefault_ShouldReturnError_WhenUserNotResolved()
-    {
-        // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
-
-        // Act
-        var result = await _service.CreateDefault();
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(UsersError.NotFound);
-        await _createDefaultLibraryHandler.DidNotReceive().Handle(Arg.Any<CreateDefaultLibraryCommand>(), Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -636,22 +595,6 @@ public sealed class LibrariesServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(expectedError);
-    }
-
-    [Fact]
-    public async Task LibrariesService_Delete_Should_ReturnCannotDeleteDefault_WhenDefaultLibrary()
-    {
-        // Arrange
-        var libraryId = Guid.CreateVersion7();
-        _deleteLibraryHandler.Handle(Arg.Any<DeleteLibraryCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure(LibrariesError.CannotDeleteDefault));
-
-        // Act
-        var result = await _service.Delete(libraryId.ToString());
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(LibrariesError.CannotDeleteDefault);
     }
 
     [Fact]

@@ -14,6 +14,4 @@ public interface ILibraryReadService
         int pageSize,
         Guid userId,
         CancellationToken cancellationToken = default);
-
-    Task<Library?> GetDefaultLibraryAsync(Guid userId, CancellationToken cancellationToken = default);
 }
