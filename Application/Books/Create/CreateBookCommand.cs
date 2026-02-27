@@ -10,7 +10,7 @@ public record CreateBookCommand(
     Guid LibraryId,
     int VolumeNumber = 1,
     string ImageLink = "",
-    int Rating = 0,
+    int Rating = 1,
     string Authors = "",
     string Publishers = "",
     DateOnly? PublishDate = null,

@@ -1,7 +1,9 @@
-using Application.Books.List;
+﻿using Application.Books.List;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
+using Domain.Libraries;
+using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
@@ -12,15 +14,20 @@ public class GetBooksQueryHandlerTests
 
     private readonly GetBooksQueryHandler _handler;
     private readonly IBookRepository _bookRepositoryMock;
+    private readonly IRepository<Library, Guid> _libraryRepositoryMock;
 
     public GetBooksQueryHandlerTests()
     {
         _bookRepositoryMock = Substitute.For<IBookRepository>();
-        _handler = new GetBooksQueryHandler(_bookRepositoryMock);
+        _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
+        _handler = new GetBooksQueryHandler(_bookRepositoryMock, _libraryRepositoryMock);
     }
 
     private static Book CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
         => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, libraryId: Guid.CreateVersion7()).Value!;
+
+    private static Library CreateLibrary(Guid userId)
+        => Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, userId).Value!;
 
     [Fact]
     public async Task Handle_Should_ReturnSuccess_WhenBooksExist()
@@ -252,5 +259,88 @@ public class GetBooksQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.IsFailure.Should().BeFalse();
         result.Error.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenLibraryDoesNotExist()
+    {
+        // Arrange
+        var libraryId = Guid.CreateVersion7();
+        var userId = Guid.CreateVersion7();
+        var query = new GetBooksQuery(LibraryId: libraryId, UserId: userId);
+
+        _libraryRepositoryMock.GetByIdAsync(libraryId).Returns((Library?)null);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.NotFound);
+        await _bookRepositoryMock.DidNotReceive().ListByLibraryIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenLibraryBelongsToOtherUser()
+    {
+        // Arrange
+        var libraryId = Guid.CreateVersion7();
+        var ownerId = Guid.CreateVersion7();
+        var requestingUserId = Guid.CreateVersion7();
+        var query = new GetBooksQuery(LibraryId: libraryId, UserId: requestingUserId);
+
+        var library = CreateLibrary(ownerId);
+        _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(library);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.NotFound);
+        await _bookRepositoryMock.DidNotReceive().ListByLibraryIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBooks_WhenLibraryOwnershipVerified()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var libraryId = Guid.CreateVersion7();
+        var query = new GetBooksQuery(LibraryId: libraryId, UserId: userId);
+
+        var library = CreateLibrary(userId);
+        var books = new List<Book> { CreateBook("Serie 1", "Title 1", "978-3-16-148410-0") };
+        _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(library);
+        _bookRepositoryMock.ListByLibraryIdAsync(libraryId, Arg.Any<CancellationToken>()).Returns(books);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(1);
+        await _bookRepositoryMock.Received(1).ListByLibraryIdAsync(libraryId, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBooks_WhenNoUserIdProvided_AndLibraryExists()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var libraryId = Guid.CreateVersion7();
+        var query = new GetBooksQuery(LibraryId: libraryId);
+
+        var library = CreateLibrary(userId);
+        var books = new List<Book> { CreateBook("Serie 1", "Title 1", "978-3-16-148410-0") };
+        _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(library);
+        _bookRepositoryMock.ListByLibraryIdAsync(libraryId, Arg.Any<CancellationToken>()).Returns(books);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(1);
     }
 }

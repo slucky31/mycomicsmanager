@@ -56,6 +56,14 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Book>> ListByLibraryIdAsync(Guid libraryId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<Book>()
+            .Include(b => b.ReadingDates)
+            .Where(b => b.LibraryId == libraryId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<Book?> GetByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(isbn))

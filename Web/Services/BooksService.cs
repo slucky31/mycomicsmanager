@@ -112,7 +112,13 @@ public class BooksService(
 
     public async Task<Result<List<Book>>> GetByLibrary(Guid libraryId, CancellationToken cancellationToken = default)
     {
-        var query = new GetBooksQuery(LibraryId: libraryId);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error;
+        }
+
+        var query = new GetBooksQuery(LibraryId: libraryId, UserId: userIdResult.Value);
 
         return await getBooksHandler.Handle(query, cancellationToken);
     }
