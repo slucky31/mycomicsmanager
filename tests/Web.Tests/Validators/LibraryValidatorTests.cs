@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Domain.Libraries;
 using Web.Validators;
 using Xunit;
 
@@ -39,7 +40,7 @@ public sealed class LibraryValidatorTests
         // Arrange
         var dto = new LibraryUiDto
         {
-            Name = new string('A', 201)
+            Name = new string('A', LibraryConstants.MaxNameLength + 1)
         };
 
         // Act
@@ -57,7 +58,7 @@ public sealed class LibraryValidatorTests
         // Arrange
         var dto = new LibraryUiDto
         {
-            Name = new string('A', 100)
+            Name = new string('A', LibraryConstants.MaxNameLength)
         };
 
         // Act

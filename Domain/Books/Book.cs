@@ -1,3 +1,4 @@
+using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Domain.Books;
@@ -5,6 +6,8 @@ namespace Domain.Books;
 public abstract class Book : Entity<Guid>
 {
     public Guid LibraryId { get; protected set; }
+
+    public Library? Library { get; protected set; }
 
     public string Serie { get; protected set; } = string.Empty;
 

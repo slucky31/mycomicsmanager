@@ -115,7 +115,7 @@ public partial class LibraryDetailPage
             else
             {
                 Snackbar.Add("Failed to delete book", Severity.Error);
-                Log.Error($"Failed to delete book with ID {bookId}: {res.Error?.Description}");
+                Log.Error("Failed to delete book with ID {BookId}: {ErrorDescription}", bookId, res.Error?.Description);
             }
         }
     }

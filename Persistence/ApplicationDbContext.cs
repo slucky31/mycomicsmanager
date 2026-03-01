@@ -46,6 +46,12 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
                 .HasForeignKey(rd => rd.BookId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Book>()
+                .HasOne(b => b.Library)
+                .WithMany(l => l.Books)
+                .HasForeignKey(b => b.LibraryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // TPT (Table Per Type) for Book hierarchy
             modelBuilder.Entity<PhysicalBook>().ToTable("PhysicalBooks");
             modelBuilder.Entity<DigitalBook>().ToTable("DigitalBooks");

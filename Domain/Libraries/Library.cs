@@ -18,6 +18,9 @@ public class Library : Entity<Guid>
 
     public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 
+    private readonly List<Book> _books = [];
+    public IReadOnlyList<Book> Books => _books.AsReadOnly();
+
     protected Library() { }
 
     public static Result<Library> Create(
