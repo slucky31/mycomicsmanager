@@ -15,7 +15,7 @@ internal class CustomAuthenticationStateProvider(
 {
     private readonly IUserReadService _userReadService = userReadService;
     private readonly IRepository<User, Guid> _userRepository = userRepository;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;    
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
@@ -34,33 +34,10 @@ internal class CustomAuthenticationStateProvider(
             if (!string.IsNullOrEmpty(sub))
             {
                 var userByAuthId = await _userReadService.GetUserByAuthId(sub);
-                if (userByAuthId.IsFailure && userByAuthId.Error == UsersError.NotFound)
+                if (userByAuthId.IsFailure && userByAuthId.Error == UsersError.NotFound
+                    && !string.IsNullOrEmpty(email))
                 {
-                    // Check if user exists by email (existing users migrating from sid-based AuthId)
-                    var userByEmail = await _userReadService.GetUserByEmail(email);
-                    if (userByEmail.IsSuccess)
-                    {
-                        // Migrate: update AuthId to the stable sub value
-                        userByEmail.Value!.Update(email!, sub);
-                        _userRepository.Update(userByEmail.Value);
-                        await _unitOfWork.SaveChangesAsync(default);
-                    }
-                    else if (!string.IsNullOrEmpty(email))
-                    {
-                        var newUser = User.Create(email, sub);
-                        _userRepository.Add(newUser);
-                        await _unitOfWork.SaveChangesAsync(default);
-                    }
-                }
-            }
-            else if (!string.IsNullOrEmpty(email))
-            {
-                // sub claim unavailable — fall back to email-based provisioning
-                var userByEmail = await _userReadService.GetUserByEmail(email);
-                if (userByEmail.IsFailure && userByEmail.Error == UsersError.NotFound)
-                {
-                    var sid = user.FindFirstValue("sid") ?? string.Empty;
-                    var newUser = User.Create(email, sid);
+                    var newUser = User.Create(email, sub);
                     _userRepository.Add(newUser);
                     await _unitOfWork.SaveChangesAsync(default);
                 }
