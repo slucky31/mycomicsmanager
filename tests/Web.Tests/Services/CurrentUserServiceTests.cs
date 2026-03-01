@@ -33,9 +33,14 @@ public sealed class CurrentUserServiceTests
 
         var claims = new List<Claim>();
         if (!string.IsNullOrEmpty(sub))
+        {
             claims.Add(new Claim("sub", sub));
+        }
+
         if (!string.IsNullOrEmpty(email))
+        {
             claims.Add(new Claim(ClaimTypes.Name, email));
+        }
 
         var identity = new ClaimsIdentity(claims, authenticationType: "test");
         return new AuthenticationState(new ClaimsPrincipal(identity));

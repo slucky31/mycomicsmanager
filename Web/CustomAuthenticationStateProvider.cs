@@ -5,15 +5,13 @@ using Ardalis.GuardClauses;
 using Domain.Users;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
-using Microsoft.Extensions.Logging;
 
 namespace Web;
 
 internal class CustomAuthenticationStateProvider(
     IUserReadService userReadService,
     IRepository<User, Guid> userRepository,
-    IUnitOfWork unitOfWork,
-    ILogger<CustomAuthenticationStateProvider> logger) : ServerAuthenticationStateProvider
+    IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
 {
     private readonly IUserReadService _userReadService = userReadService;
     private readonly IRepository<User, Guid> _userRepository = userRepository;
@@ -31,9 +29,7 @@ internal class CustomAuthenticationStateProvider(
 
             // Auth0 sub claim: raw "sub" or mapped by .NET OIDC to NameIdentifier
             var sub = user.FindFirstValue("sub")
-                   ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            logger.LogDebug("Auth provisioning — email: {Email}, sub: {Sub}", email, sub ?? "(null)");
+                   ?? user.FindFirstValue(ClaimTypes.NameIdentifier);            
 
             if (!string.IsNullOrEmpty(sub))
             {
@@ -48,21 +44,18 @@ internal class CustomAuthenticationStateProvider(
                         userByEmail.Value!.Update(email!, sub);
                         _userRepository.Update(userByEmail.Value);
                         await _unitOfWork.SaveChangesAsync(default);
-                        logger.LogInformation("Migrated AuthId to sub for user {Email}", email);
                     }
                     else if (!string.IsNullOrEmpty(email))
                     {
                         var newUser = User.Create(email, sub);
                         _userRepository.Add(newUser);
                         await _unitOfWork.SaveChangesAsync(default);
-                        logger.LogInformation("Provisioned new user {Email} with sub", email);
                     }
                 }
             }
             else if (!string.IsNullOrEmpty(email))
             {
                 // sub claim unavailable — fall back to email-based provisioning
-                logger.LogWarning("sub claim not found for {Email}; falling back to email-based provisioning", email);
                 var userByEmail = await _userReadService.GetUserByEmail(email);
                 if (userByEmail.IsFailure && userByEmail.Error == UsersError.NotFound)
                 {
@@ -70,7 +63,6 @@ internal class CustomAuthenticationStateProvider(
                     var newUser = User.Create(email, sid);
                     _userRepository.Add(newUser);
                     await _unitOfWork.SaveChangesAsync(default);
-                    logger.LogInformation("Provisioned new user {Email} via email fallback", email);
                 }
             }
         }

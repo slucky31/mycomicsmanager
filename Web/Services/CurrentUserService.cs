@@ -24,17 +24,23 @@ public class CurrentUserService(
         {
             var byAuthId = await userReadService.GetUserByAuthId(sub);
             if (byAuthId.IsSuccess)
+            {
                 return byAuthId.Value!.Id;
+            }
         }
 
         // Fallback: email lookup for users not yet migrated to sub-based AuthId
         var email = principal.Identity?.Name;
         if (string.IsNullOrEmpty(email))
+        {
             return UsersError.NotFound;
+        }
 
         var byEmail = await userReadService.GetUserByEmail(email);
         if (byEmail.IsFailure)
-            return byEmail.Error;
+        {
+            return byEmail.Error!;
+        }
 
         return byEmail.Value!.Id;
     }
