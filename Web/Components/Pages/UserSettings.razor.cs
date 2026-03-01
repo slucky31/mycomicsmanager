@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Web.Components.Pages;
 
-public partial class Settings
+public partial class UserSettings
 {
     private string _username = string.Empty;
     private string _email = string.Empty;
