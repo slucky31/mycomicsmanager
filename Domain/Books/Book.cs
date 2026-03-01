@@ -1,9 +1,14 @@
+using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Domain.Books;
 
-public class Book : Entity<Guid>
+public abstract class Book : Entity<Guid>
 {
+    public Guid LibraryId { get; protected set; }
+
+    public Library? Library { get; protected set; }
+
     public string Serie { get; protected set; } = string.Empty;
 
     public string Title { get; protected set; } = string.Empty;
@@ -25,32 +30,7 @@ public class Book : Entity<Guid>
     private readonly List<ReadingDate> _readingDates = [];
     public IReadOnlyList<ReadingDate> ReadingDates => _readingDates.AsReadOnly();
 
-    public static Book Create(
-        string series,
-        string title,
-        string isbn,
-        int volumeNumber = 1,
-        string imageLink = "",
-        string authors = "",
-        string publishers = "",
-        DateOnly? publishDate = null,
-        int? numberOfPages = null)
-    {
-        var book = new Book
-        {
-            Id = Guid.CreateVersion7(),
-            Serie = series,
-            Title = title,
-            ISBN = isbn,
-            VolumeNumber = volumeNumber,
-            ImageLink = imageLink,
-            Authors = authors,
-            Publishers = publishers,
-            PublishDate = publishDate,
-            NumberOfPages = numberOfPages
-        };
-        return book;
-    }
+    protected Book() { }
 
     public void Update(
         string series,

@@ -15,12 +15,6 @@
                    StartIcon="@Icons.Material.Filled.CollectionsBookmark">
             Libraries
         </MudButton>
-        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/books") ? "active" : "")}")"
-                   Variant="Variant.Text"
-                   Href="/books/list"
-                   StartIcon="@Icons.Material.Filled.MenuBook">
-            Books
-        </MudButton>
         <MudButton Class="@($"ml-3 navbar-item {(IsActive("/statistics") ? "active" : "")}")"
                    Variant="Variant.Text"
                    Href="/statistics"
@@ -47,10 +41,6 @@
     <a href="/libraries/list" class="bottom-nav-item @(IsActive("/libraries") ? "active" : "")">
         <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" />
         <span class="bottom-nav-label">Libraries</span>
-    </a>
-    <a href="/books/list" class="bottom-nav-item @(IsActive("/books") ? "active" : "")">
-        <MudIcon Icon="@Icons.Material.Filled.MenuBook" />
-        <span class="bottom-nav-label">Books</span>
     </a>
     <a href="/statistics" class="bottom-nav-item @(IsActive("/statistics") ? "active" : "")">
         <MudIcon Icon="@Icons.Material.Filled.BarChart" />

@@ -4,8 +4,10 @@ namespace Domain.UnitTests.Books;
 
 public class BookTests
 {
+    private static readonly Guid DefaultLibraryId = Guid.CreateVersion7();
+
     [Fact]
-    public void Create_Should_CreateBookWithRequiredProperties()
+    public void Create_Should_CreatePhysicalBookWithRequiredProperties()
     {
         // Arrange
         const string series = "The Sandman";
@@ -13,9 +15,11 @@ public class BookTests
         const string isbn = "9781401284770";
 
         // Act
-        var book = Book.Create(series, title, isbn);
+        var result = PhysicalBook.Create(series, title, isbn, libraryId: DefaultLibraryId);
 
         // Assert
+        result.IsSuccess.Should().BeTrue();
+        var book = result.Value!;
         book.Should().NotBeNull();
         book.Id.Should().NotBe(Guid.Empty);
         book.Serie.Should().Be(series);
@@ -24,10 +28,11 @@ public class BookTests
         book.VolumeNumber.Should().Be(1);
         book.ImageLink.Should().Be(string.Empty);
         book.ReadingDates.Should().BeEmpty();
+        book.LibraryId.Should().Be(DefaultLibraryId);
     }
 
     [Fact]
-    public void Create_Should_CreateBookWithVolumeNumber()
+    public void Create_Should_CreatePhysicalBookWithVolumeNumber()
     {
         // Arrange
         const string series = "The Sandman";
@@ -36,21 +41,21 @@ public class BookTests
         const int volumeNumber = 2;
 
         // Act
-        var book = Book.Create(series, title, isbn, volumeNumber);
+        var result = PhysicalBook.Create(series, title, isbn, volumeNumber, libraryId: DefaultLibraryId);
 
         // Assert
+        result.IsSuccess.Should().BeTrue();
+        var book = result.Value!;
         book.Should().NotBeNull();
-        book.Id.Should().NotBe(Guid.Empty);
         book.Serie.Should().Be(series);
         book.Title.Should().Be(title);
         book.ISBN.Should().Be(isbn);
         book.VolumeNumber.Should().Be(volumeNumber);
-        book.ImageLink.Should().Be(string.Empty);
         book.ReadingDates.Should().BeEmpty();
     }
 
     [Fact]
-    public void Create_Should_CreateBookWithImageLink()
+    public void Create_Should_CreatePhysicalBookWithImageLink()
     {
         // Arrange
         const string series = "The Sandman";
@@ -60,36 +65,28 @@ public class BookTests
         const string imageLink = "https://example.com/image.jpg";
 
         // Act
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink);
+        var result = PhysicalBook.Create(series, title, isbn, volumeNumber, imageLink, libraryId: DefaultLibraryId);
 
         // Assert
-        book.Should().NotBeNull();
-        book.Id.Should().NotBe(Guid.Empty);
-        book.Serie.Should().Be(series);
-        book.Title.Should().Be(title);
-        book.ISBN.Should().Be(isbn);
-        book.VolumeNumber.Should().Be(volumeNumber);
+        result.IsSuccess.Should().BeTrue();
+        var book = result.Value!;
         book.ImageLink.Should().Be(imageLink);
-        book.ReadingDates.Should().BeEmpty();
+        book.VolumeNumber.Should().Be(volumeNumber);
     }
 
     [Fact]
     public void Create_Should_GenerateVersion7Guid()
     {
-        // Arrange
-        const string series = "Watchmen";
-        const string title = "Watchmen";
-        const string isbn = "9781401245252";
-
-        // Act
-        var book = Book.Create(series, title, isbn);
+        // Arrange & Act
+        var result = PhysicalBook.Create("Watchmen", "Watchmen", "9781401245252", libraryId: DefaultLibraryId);
 
         // Assert
-        book.Id.Should().NotBe(Guid.Empty);
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Id.Should().NotBe(Guid.Empty);
     }
 
     [Fact]
-    public void Create_Should_CreateBookWithAllMetadata()
+    public void Create_Should_CreatePhysicalBookWithAllMetadata()
     {
         // Arrange
         const string series = "Saga";
@@ -103,11 +100,12 @@ public class BookTests
         const int numberOfPages = 160;
 
         // Act
-        var book = Book.Create(series, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var result = PhysicalBook.Create(series, title, isbn, volumeNumber, imageLink,
+            authors, publishers, publishDate, numberOfPages, DefaultLibraryId);
 
         // Assert
-        book.Should().NotBeNull();
-        book.Id.Should().NotBe(Guid.Empty);
+        result.IsSuccess.Should().BeTrue();
+        var book = result.Value!;
         book.Serie.Should().Be(series);
         book.Title.Should().Be(title);
         book.ISBN.Should().Be(isbn);
@@ -121,77 +119,58 @@ public class BookTests
     }
 
     [Fact]
-    public void Create_Should_CreateBookWithAuthorsAndPublishers()
+    public void Create_Should_ReturnFailure_WhenSerieIsEmpty()
     {
-        // Arrange
-        const string series = "Watchmen";
-        const string title = "Watchmen";
-        const string isbn = "9781401245252";
-        const string authors = "Alan Moore, Dave Gibbons";
-        const string publishers = "DC Comics";
-
         // Act
-        var book = Book.Create(series, title, isbn, authors: authors, publishers: publishers);
+        var result = PhysicalBook.Create("", "Title", "9781401245252", libraryId: DefaultLibraryId);
 
         // Assert
-        book.Authors.Should().Be(authors);
-        book.Publishers.Should().Be(publishers);
-        book.PublishDate.Should().BeNull();
-        book.NumberOfPages.Should().BeNull();
-        book.VolumeNumber.Should().Be(1);
-        book.ImageLink.Should().BeEmpty();
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
     }
 
     [Fact]
-    public void Create_Should_CreateBookWithPublishDate()
+    public void Create_Should_ReturnFailure_WhenTitleIsEmpty()
     {
-        // Arrange
-        const string series = "The Walking Dead";
-        const string title = "Days Gone Bye";
-        const string isbn = "9781582406190";
-        var publishDate = new DateOnly(2004, 10, 1);
-
         // Act
-        var book = Book.Create(series, title, isbn, publishDate: publishDate);
+        var result = PhysicalBook.Create("Series", "", "9781401245252", libraryId: DefaultLibraryId);
 
         // Assert
-        book.PublishDate.Should().Be(publishDate);
-        book.Authors.Should().BeEmpty();
-        book.Publishers.Should().BeEmpty();
-        book.NumberOfPages.Should().BeNull();
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
     }
 
     [Fact]
-    public void Create_Should_CreateBookWithNumberOfPages()
+    public void Create_Should_ReturnFailure_WhenIsbnIsEmpty()
     {
-        // Arrange
-        const string series = "Y: The Last Man";
-        const string title = "Unmanned";
-        const string isbn = "9781401219512";
-        const int numberOfPages = 128;
-
         // Act
-        var book = Book.Create(series, title, isbn, numberOfPages: numberOfPages);
+        var result = PhysicalBook.Create("Series", "Title", "", libraryId: DefaultLibraryId);
 
         // Assert
-        book.NumberOfPages.Should().Be(numberOfPages);
-        book.Authors.Should().BeEmpty();
-        book.Publishers.Should().BeEmpty();
-        book.PublishDate.Should().BeNull();
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
+    }
+
+    [Fact]
+    public void Create_Should_ReturnFailure_WhenLibraryIdIsEmpty()
+    {
+        // Act
+        var result = PhysicalBook.Create("Series", "Title", "9781401245252", libraryId: Guid.Empty);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
     }
 
     [Fact]
     public void Create_Should_UseDefaultValues_WhenOptionalParametersNotProvided()
     {
-        // Arrange
-        const string series = "Fables";
-        const string title = "Volume 1";
-        const string isbn = "9781563899423";
-
         // Act
-        var book = Book.Create(series, title, isbn);
+        var result = PhysicalBook.Create("Fables", "Volume 1", "9781563899423", libraryId: DefaultLibraryId);
 
         // Assert
+        result.IsSuccess.Should().BeTrue();
+        var book = result.Value!;
         book.VolumeNumber.Should().Be(1);
         book.ImageLink.Should().BeEmpty();
         book.Authors.Should().BeEmpty();
@@ -204,7 +183,7 @@ public class BookTests
     public void Update_Should_UpdateAllProperties()
     {
         // Arrange
-        var book = Book.Create("Old Series", "Old Title", "1234567890");
+        var book = PhysicalBook.Create("Old Series", "Old Title", "1234567890", libraryId: DefaultLibraryId).Value!;
         const string newSeries = "New Series";
         const string newTitle = "New Title";
         const string newIsbn = "9876543210";
@@ -226,83 +205,36 @@ public class BookTests
     public void Update_Should_UpdateAllMetadataFields()
     {
         // Arrange
-        var originalPublishDate = new DateOnly(2020, 1, 1);
-        var book = Book.Create("Old Series", "Old Title", "1234567890",
+        var book = PhysicalBook.Create("Old Series", "Old Title", "1234567890",
             authors: "Old Author", publishers: "Old Publisher",
-            publishDate: originalPublishDate, numberOfPages: 100);
-
-        const string newSeries = "Updated Series";
-        const string newTitle = "Updated Title";
-        const string newIsbn = "9876543210";
-        const int newVolumeNumber = 3;
-        const string newImageLink = "https://example.com/updated.jpg";
-        const string newAuthors = "New Author, Second Author";
-        const string newPublishers = "New Publisher";
-        var newPublishDate = new DateOnly(2024, 6, 15);
-        const int newNumberOfPages = 250;
+            publishDate: new DateOnly(2020, 1, 1), numberOfPages: 100,
+            libraryId: DefaultLibraryId).Value!;
 
         // Act
-        book.Update(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink,
-            newAuthors, newPublishers, newPublishDate, newNumberOfPages);
+        book.Update("Updated Series", "Updated Title", "9876543210", 3,
+            "https://example.com/updated.jpg",
+            "New Author, Second Author", "New Publisher",
+            new DateOnly(2024, 6, 15), 250);
 
         // Assert
-        book.Serie.Should().Be(newSeries);
-        book.Title.Should().Be(newTitle);
-        book.ISBN.Should().Be(newIsbn);
-        book.VolumeNumber.Should().Be(newVolumeNumber);
-        book.ImageLink.Should().Be(newImageLink);
-        book.Authors.Should().Be(newAuthors);
-        book.Publishers.Should().Be(newPublishers);
-        book.PublishDate.Should().Be(newPublishDate);
-        book.NumberOfPages.Should().Be(newNumberOfPages);
-    }
-
-    [Fact]
-    public void Update_Should_UpdateOnlyAuthorsAndPublishers()
-    {
-        // Arrange
-        var book = Book.Create("Series", "Title", "1234567890");
-        const string newAuthors = "Alan Moore, Dave Gibbons";
-        const string newPublishers = "DC Comics, Vertigo";
-
-        // Act
-        book.Update(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink,
-            newAuthors, newPublishers);
-
-        // Assert
-        book.Authors.Should().Be(newAuthors);
-        book.Publishers.Should().Be(newPublishers);
-        book.PublishDate.Should().BeNull();
-        book.NumberOfPages.Should().BeNull();
-    }
-
-    [Fact]
-    public void Update_Should_UpdatePublishDateAndNumberOfPages()
-    {
-        // Arrange
-        var book = Book.Create("Series", "Title", "1234567890");
-        var newPublishDate = new DateOnly(2021, 3, 15);
-        const int newNumberOfPages = 320;
-
-        // Act
-        book.Update(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink,
-            publishDate: newPublishDate, numberOfPages: newNumberOfPages);
-
-        // Assert
-        book.PublishDate.Should().Be(newPublishDate);
-        book.NumberOfPages.Should().Be(newNumberOfPages);
-        book.Authors.Should().BeEmpty();
-        book.Publishers.Should().BeEmpty();
+        book.Serie.Should().Be("Updated Series");
+        book.Title.Should().Be("Updated Title");
+        book.ISBN.Should().Be("9876543210");
+        book.VolumeNumber.Should().Be(3);
+        book.Authors.Should().Be("New Author, Second Author");
+        book.Publishers.Should().Be("New Publisher");
+        book.PublishDate.Should().Be(new DateOnly(2024, 6, 15));
+        book.NumberOfPages.Should().Be(250);
     }
 
     [Fact]
     public void Update_Should_ClearMetadata_WhenSetToEmptyValues()
     {
         // Arrange
-        var originalPublishDate = new DateOnly(2020, 1, 1);
-        var book = Book.Create("Series", "Title", "1234567890",
+        var book = PhysicalBook.Create("Series", "Title", "1234567890",
             authors: "Original Author", publishers: "Original Publisher",
-            publishDate: originalPublishDate, numberOfPages: 100);
+            publishDate: new DateOnly(2020, 1, 1), numberOfPages: 100,
+            libraryId: DefaultLibraryId).Value!;
 
         // Act
         book.Update(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink,
@@ -316,34 +248,10 @@ public class BookTests
     }
 
     [Fact]
-    public void Update_Should_PreserveMetadata_WhenNotProvided()
-    {
-        // Arrange
-        var originalPublishDate = new DateOnly(2020, 1, 1);
-        var book = Book.Create("Old Series", "Old Title", "1234567890",
-            authors: "Original Author", publishers: "Original Publisher",
-            publishDate: originalPublishDate, numberOfPages: 100);
-
-        const string newSeries = "New Series";
-        const string newTitle = "New Title";
-
-        // Act - update basic properties without metadata parameters
-        book.Update(newSeries, newTitle, book.ISBN, book.VolumeNumber, book.ImageLink);
-
-        // Assert - metadata should be cleared to defaults when not provided
-        book.Serie.Should().Be(newSeries);
-        book.Title.Should().Be(newTitle);
-        book.Authors.Should().BeEmpty();
-        book.Publishers.Should().BeEmpty();
-        book.PublishDate.Should().BeNull();
-        book.NumberOfPages.Should().BeNull();
-    }
-
-    [Fact]
     public void AddReadingDate_Should_AddReadingDateToCollection()
     {
         // Arrange
-        var book = Book.Create("Batman", "Year One", "9781401207526");
+        var book = PhysicalBook.Create("Batman", "Year One", "9781401207526", libraryId: DefaultLibraryId).Value!;
         var date = new DateTime(2024, 1, 15);
 
         // Act
@@ -360,7 +268,7 @@ public class BookTests
     public void AddReadingDate_Should_AddMultipleReadingDates()
     {
         // Arrange
-        var book = Book.Create("V for Vendetta", "V for Vendetta", "9781401207922");
+        var book = PhysicalBook.Create("V for Vendetta", "V for Vendetta", "9781401207922", libraryId: DefaultLibraryId).Value!;
         var date1 = new DateTime(2023, 6, 1);
         var date2 = new DateTime(2024, 1, 15);
 
@@ -380,9 +288,8 @@ public class BookTests
     public void RemoveReadingDate_Should_RemoveReadingDateFromCollection()
     {
         // Arrange
-        var book = Book.Create("Saga", "Volume 1", "9781607066017");
-        var date = new DateTime(2024, 1, 15);
-        book.AddReadingDate(date, 4);
+        var book = PhysicalBook.Create("Saga", "Volume 1", "9781607066017", libraryId: DefaultLibraryId).Value!;
+        book.AddReadingDate(new DateTime(2024, 1, 15), 4);
         var readingDateId = book.ReadingDates[0].Id;
 
         // Act
@@ -396,9 +303,8 @@ public class BookTests
     public void RemoveReadingDate_Should_DoNothing_WhenReadingDateNotFound()
     {
         // Arrange
-        var book = Book.Create("Fables", "Volume 1", "9781563899423");
-        var date = new DateTime(2024, 1, 15);
-        book.AddReadingDate(date, 3);
+        var book = PhysicalBook.Create("Fables", "Volume 1", "9781563899423", libraryId: DefaultLibraryId).Value!;
+        book.AddReadingDate(new DateTime(2024, 1, 15), 3);
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -412,7 +318,7 @@ public class BookTests
     public void RemoveReadingDate_Should_RemoveOnlySpecifiedReadingDate()
     {
         // Arrange
-        var book = Book.Create("Y: The Last Man", "Volume 1", "9781401219512");
+        var book = PhysicalBook.Create("Y: The Last Man", "Volume 1", "9781401219512", libraryId: DefaultLibraryId).Value!;
         var date1 = new DateTime(2023, 6, 1);
         var date2 = new DateTime(2024, 1, 15);
         book.AddReadingDate(date1, 3);
@@ -431,7 +337,7 @@ public class BookTests
     public void ReadingDates_Should_ReturnReadOnlyCollection()
     {
         // Arrange
-        var book = Book.Create("The Walking Dead", "Volume 1", "9781582406190");
+        var book = PhysicalBook.Create("The Walking Dead", "Volume 1", "9781582406190", libraryId: DefaultLibraryId).Value!;
         book.AddReadingDate(new DateTime(2024, 1, 15), 4);
 
         // Act
@@ -439,5 +345,16 @@ public class BookTests
 
         // Assert
         readingDates.Should().BeAssignableTo<IReadOnlyList<ReadingDate>>();
+    }
+
+    [Fact]
+    public void PhysicalBook_Should_BeAssignableToBook()
+    {
+        // Act
+        var result = PhysicalBook.Create("Series", "Title", "9781401245252", libraryId: DefaultLibraryId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeAssignableTo<Book>();
     }
 }

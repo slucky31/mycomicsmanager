@@ -11,6 +11,9 @@ public sealed partial class AddBookScan : IAsyncDisposable
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
+    [SupplyParameterFromQuery]
+    public string? LibraryId { get; set; }
+
     private IJSObjectReference? _jsModule;
     private DotNetObjectReference<AddBookScan>? _dotNetObjectRef;
     private readonly string _videoElementId = $"video-scanner-{Guid.NewGuid():N}";
@@ -93,8 +96,14 @@ public sealed partial class AddBookScan : IAsyncDisposable
             StateHasChanged();
             return;
         }
-        
-        NavigationManager.NavigateTo($"/books/add/form?isbn={Uri.EscapeDataString(isbn)}");
+
+        var url = $"/books/add/form?isbn={Uri.EscapeDataString(isbn)}";
+        if (!string.IsNullOrEmpty(LibraryId))
+        {
+            url += $"&libraryId={LibraryId}";
+        }
+
+        NavigationManager.NavigateTo(url);
     }
 
     [JSInvokable]
@@ -114,13 +123,15 @@ public sealed partial class AddBookScan : IAsyncDisposable
     private async Task GoBackAsync()
     {
         await StopScanningAsync();
-        NavigationManager.NavigateTo("/books/add");
+        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add" : $"/books/add?libraryId={LibraryId}";
+        NavigationManager.NavigateTo(url);
     }
 
     private async Task GoToManualInputAsync()
     {
         await StopScanningAsync();
-        NavigationManager.NavigateTo("/books/add/manual");
+        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add/manual" : $"/books/add/manual?libraryId={LibraryId}";
+        NavigationManager.NavigateTo(url);
     }
 
     public async ValueTask DisposeAsync()

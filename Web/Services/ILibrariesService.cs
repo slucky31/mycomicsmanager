@@ -10,9 +10,18 @@ namespace Web.Services;
 
 public interface ILibrariesService
 {
-    Task<Result<Library>> Create(string? name);
+    Task<Result<Library>> Create(CreateLibraryRequest request,
+        CancellationToken cancellationToken = default);
+
     Task<Result<Library>> GetById(string? id);
-    Task<Result<Library>> Update(string? id, string? name);
-    Task<Result<IPagedList<Library>>> FilterBy(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize);
-    Task<Result> Delete(string? id);
+
+    Task<Result<Library>> Update(UpdateLibraryRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<IPagedList<Library>>> FilterBy(string? searchTerm,
+        LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize,
+        CancellationToken cancellationToken = default);
+
+    Task<Result> Delete(string? id,
+        CancellationToken cancellationToken = default);
 }

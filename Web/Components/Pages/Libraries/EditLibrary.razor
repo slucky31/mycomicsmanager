@@ -1,0 +1,132 @@
+@rendermode InteractiveServer
+
+@page "/libraries/{LibraryId}/edit"
+
+@using Domain.Libraries
+@using Web.Components.SharedComponents
+@using Web.Validators
+
+<PageTitle>Edit Library — MyComicsManager</PageTitle>
+
+<div class="edit-library-page">
+    @* Header *@
+    <div class="edit-library-header">
+        <div class="d-flex align-center gap-3">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           Color="Color.Inherit"
+                           OnClick="GoBack" />
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
+                    Edit Library
+                </MudText>
+                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
+                    @if (_isLoading)
+                    {
+                        <text>Loading…</text>
+                    }
+                    else if (_model is not null)
+                    {
+                        @_model.Name
+                    }
+                </MudText>
+            </div>
+        </div>
+    </div>
+
+    @* Content *@
+    <div class="edit-library-content">
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center pa-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            </div>
+        }
+        else if (_model is null)
+        {
+            <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Error" Style="font-size: 80px; opacity: 0.5;" />
+                <MudText Typo="Typo.h6" Color="Color.Error" Class="mt-4">Library not found</MudText>
+                <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4"
+                           OnClick="@(() => NavigationManager.NavigateTo("/libraries/list"))">
+                    Back to Libraries
+                </MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            <MudPaper Class="pa-6 rounded-lg" Elevation="2">
+                <MudForm Model="@_model" @ref="@_form"
+                         Validation="@(_validator.ValidateValue)"
+                         ValidationDelay="0">
+                    <MudStack Spacing="3">
+
+                        @* Name *@
+                        <MudTextField @bind-Value="_model.Name"
+                                      For="@(() => _model.Name)"
+                                      Immediate="true"
+                                      Label="Library Name"
+                                      Variant="Variant.Outlined"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.LibraryBooks" />
+
+                        @* Color picker *@
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Color</MudText>
+                        <div class="color-palette">
+                            @foreach (var hex in AddLibrary.ColorPalette)
+                            {
+                                <button type="button"
+                                        class="color-swatch @(_model.Color == hex ? "selected" : "")"
+                                        style="background-color: @hex"
+                                        aria-label="@($"Select color {hex}")"
+                                        aria-pressed="@(_model.Color == hex ? "true" : "false")"
+                                        @onclick="@(() => SelectColor(hex))">
+                                    @if (_model.Color == hex)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Check"
+                                                 Size="Size.Small"
+                                                 Style="color: white;" />
+                                    }
+                                </button>
+                            }
+                        </div>
+
+                        @* Icon picker *@
+                        <IconPicker @bind-Value="_model.Icon" Label="Icon" />
+
+                        @* Live preview *@
+                        <MudPaper Class="pa-3" Style="@($"border-left: 4px solid {_model.Color};")" Outlined="true">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@IconPicker.Resolve(_model.Icon)"
+                                         Style="@($"color: {_model.Color};")"
+                                         Size="Size.Medium" />
+                                <MudText Typo="Typo.subtitle1">
+                                    @(string.IsNullOrEmpty(_model.Name) ? "Library preview" : _model.Name)
+                                </MudText>
+                            </MudStack>
+                        </MudPaper>
+
+                    </MudStack>
+                </MudForm>
+
+                <div class="d-flex justify-end gap-2 mt-6">
+                    <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="GoBack">Cancel</MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="SaveAsync"
+                               Disabled="_isSaving">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            <text>Saving…</text>
+                        }
+                        else
+                        {
+                            <text>Save Changes</text>
+                        }
+                    </MudButton>
+                </div>
+            </MudPaper>
+        }
+    </div>
+</div>

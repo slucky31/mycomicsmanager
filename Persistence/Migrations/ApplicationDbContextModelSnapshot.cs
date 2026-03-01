@@ -46,6 +46,9 @@ namespace Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<Guid>("LibraryId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("ModifiedOnUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -75,7 +78,11 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LibraryId");
+
                     b.ToTable("Books", (string)null);
+
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("Domain.Books.ReadingDate", b =>
@@ -112,15 +119,32 @@ namespace Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("BookType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)");
+
                     b.Property<DateTime>("CreatedOnUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("ModifiedOnUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -152,6 +176,31 @@ namespace Persistence.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Books.DigitalBook", b =>
+                {
+                    b.HasBaseType("Domain.Books.Book");
+
+                    b.ToTable("DigitalBooks", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Books.PhysicalBook", b =>
+                {
+                    b.HasBaseType("Domain.Books.Book");
+
+                    b.ToTable("PhysicalBooks", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Books.Book", b =>
+                {
+                    b.HasOne("Domain.Libraries.Library", "Library")
+                        .WithMany("Books")
+                        .HasForeignKey("LibraryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Library");
+                });
+
             modelBuilder.Entity("Domain.Books.ReadingDate", b =>
                 {
                     b.HasOne("Domain.Books.Book", null)
@@ -161,9 +210,32 @@ namespace Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Books.DigitalBook", b =>
+                {
+                    b.HasOne("Domain.Books.Book", null)
+                        .WithOne()
+                        .HasForeignKey("Domain.Books.DigitalBook", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Books.PhysicalBook", b =>
+                {
+                    b.HasOne("Domain.Books.Book", null)
+                        .WithOne()
+                        .HasForeignKey("Domain.Books.PhysicalBook", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Books.Book", b =>
                 {
                     b.Navigation("ReadingDates");
+                });
+
+            modelBuilder.Entity("Domain.Libraries.Library", b =>
+                {
+                    b.Navigation("Books");
                 });
 #pragma warning restore 612, 618
         }

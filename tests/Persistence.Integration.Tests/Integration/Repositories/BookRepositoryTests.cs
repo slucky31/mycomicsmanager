@@ -7,11 +7,15 @@ namespace Persistence.Tests.Integration.Repositories;
 [Collection("DatabaseCollectionTests")]
 public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : BookIntegrationTest(factory)
 {
+    private PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
+        string authors = "", string publishers = "", DateOnly? publishDate = null, int? numberOfPages = null)
+        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages, DefaultLibrary.Id).Value!;
+
     [Fact]
     public async Task GetByIdAsync_ShouldReturnBook_WhenBookExists()
     {
         // Arrange
-        var book = Book.Create("Spider-Man", "Amazing Spider-Man", "9780785123456");
+        var book = CreateBook("Spider-Man", "Amazing Spider-Man", "9780785123456");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -57,7 +61,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIdAsync_ShouldIncludeReadingDates_WhenBookHasReadingDates()
     {
         // Arrange
-        var book = Book.Create("X-Men", "Uncanny X-Men", "9780785134567");
+        var book = CreateBook("X-Men", "Uncanny X-Men", "9780785134567");
         book.AddReadingDate(DateTime.UtcNow, 4);
         book.AddReadingDate(DateTime.UtcNow.AddDays(-30), 3);
         BookRepository.Add(book);
@@ -76,7 +80,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task Add_ShouldAddBook_WhenBookIsValid()
     {
         // Arrange
-        var book = Book.Create("Batman", "The Dark Knight Returns", "9780785145678");
+        var book = CreateBook("Batman", "The Dark Knight Returns", "9780785145678");
 
         // Act
         BookRepository.Add(book);
@@ -95,7 +99,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task Add_ShouldThrowException_WhenAddBookWithSameIdTwice()
     {
         // Arrange
-        var book = Book.Create("Superman", "Man of Steel", "9780785156789");
+        var book = CreateBook("Superman", "Man of Steel", "9780785156789");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         BookRepository.Add(book);
@@ -110,7 +114,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task Update_ShouldUpdateBook_WhenBookExists()
     {
         // Arrange
-        var book = Book.Create("Avengers", "The Avengers", "9780785167890", 1);
+        var book = CreateBook("Avengers", "The Avengers", "9780785167890", 1);
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -132,7 +136,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task Remove_ShouldRemoveBook_WhenBookExists()
     {
         // Arrange
-        var book = Book.Create("Wonder Woman", "Wonder Woman Vol 1", "9780785178901");
+        var book = CreateBook("Wonder Woman", "Wonder Woman Vol 1", "9780785178901");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -160,9 +164,9 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task Count_ShouldReturnCorrectCount_WhenBooksExist()
     {
         // Arrange
-        var book1 = Book.Create("Flash", "The Flash", "9780785189012");
-        var book2 = Book.Create("Green Lantern", "Green Lantern Corps", "9780785190123");
-        var book3 = Book.Create("Aquaman", "Aquaman", "9780785191234");
+        var book1 = CreateBook("Flash", "The Flash", "9780785189012");
+        var book2 = CreateBook("Green Lantern", "Green Lantern Corps", "9780785190123");
+        var book3 = CreateBook("Aquaman", "Aquaman", "9780785191234");
         BookRepository.Add(book1);
         BookRepository.Add(book2);
         BookRepository.Add(book3);
@@ -179,9 +183,9 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task ListAsync_ShouldReturnAllBooks_WhenBooksExist()
     {
         // Arrange
-        var book1 = Book.Create("Justice League", "Justice League Vol 1", "9780785192345");
-        var book2 = Book.Create("Teen Titans", "Teen Titans Vol 1", "9780785193456");
-        var book3 = Book.Create("Doom Patrol", "Doom Patrol Vol 1", "9780785194567");
+        var book1 = CreateBook("Justice League", "Justice League Vol 1", "9780785192345");
+        var book2 = CreateBook("Teen Titans", "Teen Titans Vol 1", "9780785193456");
+        var book3 = CreateBook("Doom Patrol", "Doom Patrol Vol 1", "9780785194567");
         BookRepository.Add(book1);
         BookRepository.Add(book2);
         BookRepository.Add(book3);
@@ -209,9 +213,9 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task ListAsync_ShouldIncludeReadingDates_WhenBooksHaveReadingDates()
     {
         // Arrange
-        var book1 = Book.Create("Fantastic Four", "Fantastic Four Vol 1", "9780785195678");
+        var book1 = CreateBook("Fantastic Four", "Fantastic Four Vol 1", "9780785195678");
         book1.AddReadingDate(DateTime.UtcNow, 4);
-        var book2 = Book.Create("Guardians of the Galaxy", "Guardians Vol 1", "9780785196789");
+        var book2 = CreateBook("Guardians of the Galaxy", "Guardians Vol 1", "9780785196789");
         book2.AddReadingDate(DateTime.UtcNow, 5);
         book2.AddReadingDate(DateTime.UtcNow.AddDays(-10), 3);
         BookRepository.Add(book1);
@@ -235,8 +239,8 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task ListAsyncWithCancellationToken_ShouldReturnAllBooks_WhenBooksExist()
     {
         // Arrange
-        var book1 = Book.Create("Black Panther", "Black Panther Vol 1", "9780785197890");
-        var book2 = Book.Create("Captain Marvel", "Captain Marvel Vol 1", "9780785198901");
+        var book1 = CreateBook("Black Panther", "Black Panther Vol 1", "9780785197890");
+        var book2 = CreateBook("Captain Marvel", "Captain Marvel Vol 1", "9780785198901");
         BookRepository.Add(book1);
         BookRepository.Add(book2);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
@@ -252,7 +256,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldReturnBook_WhenIsbnExists()
     {
         // Arrange
-        var book = Book.Create("Daredevil", "Daredevil Vol 1", "9780785199012");
+        var book = CreateBook("Daredevil", "Daredevil Vol 1", "9780785199012");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -270,7 +274,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldReturnBook_WhenIsbnIsNormalized()
     {
         // Arrange
-        var book = Book.Create("Punisher", "The Punisher", "9780785200123");
+        var book = CreateBook("Punisher", "The Punisher", "9780785200123");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -287,7 +291,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldReturnNull_WhenIsbnDoesNotExist()
     {
         // Arrange
-        var book = Book.Create("Hawkeye", "Hawkeye Vol 1", "9780785201234");
+        var book = CreateBook("Hawkeye", "Hawkeye Vol 1", "9780785201234");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -335,7 +339,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldHandleIsbn10Format_WhenProvided()
     {
         // Arrange
-        var book = Book.Create("Iron Man", "Iron Man Vol 1", "043965548X");
+        var book = CreateBook("Iron Man", "Iron Man Vol 1", "043965548X");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -352,7 +356,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldHandleIsbnWithSpaces_WhenProvided()
     {
         // Arrange
-        var book = Book.Create("Thor", "Thor Vol 1", "9780785202345");
+        var book = CreateBook("Thor", "Thor Vol 1", "9780785202345");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -369,7 +373,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldBeCaseInsensitive_WhenIsbn10HasX()
     {
         // Arrange
-        var book = Book.Create("Loki", "Loki Vol 1", "043965548X");
+        var book = CreateBook("Loki", "Loki Vol 1", "043965548X");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -387,7 +391,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var publishDate = new DateOnly(2023, 6, 15);
-        var book = Book.Create("Saga", "Saga Vol 1", "9781607066019", 1, "",
+        var book = CreateBook("Saga", "Saga Vol 1", "9781607066019", 1, "",
             "Brian K. Vaughan, Fiona Staples", "Image Comics", publishDate, 160);
 
         // Act
@@ -408,7 +412,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     {
         // Arrange
         var originalPublishDate = new DateOnly(2023, 6, 15);
-        var book = Book.Create("Saga", "Saga Vol 1", "9781607066927", 1, "",
+        var book = CreateBook("Saga", "Saga Vol 1", "9781607066927", 1, "",
             "Brian K. Vaughan", "Image Comics", originalPublishDate, 160);
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);

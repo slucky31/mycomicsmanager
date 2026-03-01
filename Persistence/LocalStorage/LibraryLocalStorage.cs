@@ -18,6 +18,27 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         this.rootPath = rootPath;
     }
 
+    private Result ValidatePath(string folderName)
+    {
+        try
+        {
+            var normalizedRoot = Path.GetFullPath(rootPath);
+            var fullPath = Path.GetFullPath(Path.Combine(rootPath, folderName));
+            if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                return LibraryLocalStorageError.InvalidPath;
+            }
+            return Result.Success();
+        }
+        catch (Exception ex) when (
+            ex is ArgumentException or
+            NotSupportedException or
+            PathTooLongException)
+        {
+            return LibraryLocalStorageError.InvalidPath;
+        }
+    }
+
     public Result Create(string folderName)
     {
         Guard.Against.Null(rootPath);
@@ -26,6 +47,12 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         if (string.IsNullOrEmpty(rootPath) || string.IsNullOrEmpty(folderName))
         {
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
+        }
+
+        var pathValidation = ValidatePath(folderName);
+        if (pathValidation.IsFailure)
+        {
+            return pathValidation.Error!;
         }
 
         var path = new StringBuilder();
@@ -44,6 +71,18 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         if (string.IsNullOrEmpty(rootPath) || string.IsNullOrEmpty(originFolderName) || string.IsNullOrEmpty(destinationFolderName))
         {
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
+        }
+
+        var originValidation = ValidatePath(originFolderName);
+        if (originValidation.IsFailure)
+        {
+            return originValidation.Error!;
+        }
+
+        var destinationValidation = ValidatePath(destinationFolderName);
+        if (destinationValidation.IsFailure)
+        {
+            return destinationValidation.Error!;
         }
 
         var originPath = new StringBuilder();
@@ -74,6 +113,12 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         if (string.IsNullOrEmpty(rootPath) || string.IsNullOrEmpty(folderName))
         {
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
+        }
+
+        var pathValidation = ValidatePath(folderName);
+        if (pathValidation.IsFailure)
+        {
+            return pathValidation.Error!;
         }
 
         var path = new StringBuilder();

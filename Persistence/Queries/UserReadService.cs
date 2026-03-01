@@ -71,4 +71,29 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
         return user;
     }
 
+    public async Task<Result<User>> GetUserByAuthId(string? authId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(authId))
+        {
+            return UsersError.BadRequest;
+        }
+
+        var users = await context.Users.AsNoTracking()
+            .Where(u => u.AuthId == authId)
+            .Take(2)
+            .ToListAsync(cancellationToken);
+
+        if (users.Count == 0)
+        {
+            return UsersError.NotFound;
+        }
+
+        if (users.Count > 1)
+        {
+            return UsersError.Duplicate;
+        }
+
+        return users[0];
+    }
+
 }

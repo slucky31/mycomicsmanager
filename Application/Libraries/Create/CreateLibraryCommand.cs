@@ -3,4 +3,10 @@ using Domain.Libraries;
 
 namespace Application.Libraries.Create;
 
-public record CreateLibraryCommand(string Name) : ICommand<Library>;
+public record CreateLibraryCommand(
+    string Name,
+    string Color,
+    string Icon,
+    LibraryBookType BookType,
+    Guid UserId
+) : ICommand<Library>;

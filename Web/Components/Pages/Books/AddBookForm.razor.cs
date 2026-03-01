@@ -1,5 +1,7 @@
 using Application.Helpers;
 using Application.Interfaces;
+using Domain.Libraries;
+using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Serilog;
@@ -12,20 +14,47 @@ public partial class AddBookForm
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
+    [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IComicSearchService ComicSearchService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     [SupplyParameterFromQuery]
     public string? Isbn { get; set; }
 
+    [SupplyParameterFromQuery]
+    public string? LibraryId { get; set; }
+
     private BookForm? _bookForm;
     private BookUiDto _bookModel = new();
+    private List<LibraryUiDto> _libraries = [];
     private ComicSearchResult? _searchResult;
     private bool _isLoading;
     private bool _isSaving;
 
     protected override async Task OnInitializedAsync()
     {
+        // Load user's libraries (Physical + All only)
+        var libResult = await LibrariesService.FilterBy(
+            "", LibrariesColumn.Name, SortOrder.Ascending, 1, 100);
+
+        if (libResult.IsSuccess && libResult.Value?.Items is not null)
+        {
+            _libraries = libResult.Value.Items
+                .Select(LibraryUiDto.Convert)
+                .Where(l => l.BookType == LibraryBookType.Physical)
+                .ToList();
+
+            // Pre-select library from query param if provided
+            if (Guid.TryParse(LibraryId, out var preselectedId))
+            {
+                var match = _libraries.FirstOrDefault(l => l.Id == preselectedId);
+                if (match is not null)
+                {
+                    _bookModel.LibraryId = match.Id;
+                }
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(Isbn))
         {
             _isLoading = true;
@@ -50,7 +79,8 @@ public partial class AddBookForm
                         Authors = _searchResult.Authors,
                         Publishers = _searchResult.Publishers,
                         PublishDate = _searchResult.PublishDate,
-                        NumberOfPages = _searchResult.NumberOfPages
+                        NumberOfPages = _searchResult.NumberOfPages,
+                        LibraryId = _bookModel.LibraryId
                     };
                 }
                 else
@@ -58,14 +88,15 @@ public partial class AddBookForm
                     _bookModel = new BookUiDto
                     {
                         ISBN = cleanedIsbn,
-                        VolumeNumber = 1
+                        VolumeNumber = 1,
+                        LibraryId = _bookModel.LibraryId
                     };
                     Snackbar.Add("Book not found. Please fill in the details manually.", Severity.Warning);
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException or InvalidOperationException)
             {
-                _bookModel = new BookUiDto { ISBN = cleanedIsbn, VolumeNumber = 1 };
+                _bookModel = new BookUiDto { ISBN = cleanedIsbn, VolumeNumber = 1, LibraryId = _bookModel.LibraryId };
                 Snackbar.Add("Error searching for book", Severity.Error);
                 Log.Error(ex, "Error searching for book");
             }
@@ -74,7 +105,7 @@ public partial class AddBookForm
         }
         else
         {
-            _bookModel = new BookUiDto { VolumeNumber = 1 };
+            _bookModel = new BookUiDto { VolumeNumber = 1, LibraryId = _bookModel.LibraryId };
         }
     }
 
@@ -98,6 +129,7 @@ public partial class AddBookForm
             _bookModel.Serie,
             _bookModel.Title,
             _bookModel.ISBN,
+            _bookModel.LibraryId,
             _bookModel.VolumeNumber,
             _bookModel.ImageLink,
             _bookModel.Rating,
@@ -111,11 +143,16 @@ public partial class AddBookForm
 
         if (result.IsSuccess)
         {
-            NavigationManager.NavigateTo("/books/list");
+            var selectedLibraryId = _bookModel.LibraryId.ToString();
+            var redirect = !string.IsNullOrEmpty(selectedLibraryId)
+                ? $"/libraries/{LibraryId}"
+                : "/libraries/list";
+            NavigationManager.NavigateTo(redirect);
         }
         else
         {
-            Snackbar.Add($"Failed to add book: {result.Error?.Description}", Severity.Error);
+            Snackbar.Add($"Failed to add book", Severity.Error);
+            Log.Error("Failed to add book: {Description}", result.Error?.Description);
         }
 
         _isSaving = false;
@@ -124,6 +161,8 @@ public partial class AddBookForm
 
     private void GoBack()
     {
-        NavigationManager.NavigateTo("/books/add");
+        var selectedLibraryId = _bookModel.LibraryId.ToString() ?? LibraryId;
+        var url = string.IsNullOrWhiteSpace(selectedLibraryId) ? "/libraries/list" : $"/libraries/{selectedLibraryId}";
+        NavigationManager.NavigateTo(url);
     }
 }

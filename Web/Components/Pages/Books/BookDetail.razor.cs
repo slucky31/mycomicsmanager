@@ -52,7 +52,7 @@ public partial class BookDetail
         {
             _loadError = true;
             Log.Error(ex, "Unexpected error while loading book");
-        }        
+        }
         finally
         {
             _isLoading = false;
@@ -76,7 +76,8 @@ public partial class BookDetail
             }
             else
             {
-                Snackbar.Add($"Erreur : {result.Error?.Description}", Severity.Error);
+                Snackbar.Add($"Unexpected error while adding reading date", Severity.Error);
+                Log.Error("Unexpected error while adding reading date");
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
@@ -107,18 +108,18 @@ public partial class BookDetail
 
             if (res.IsSuccess)
             {
-                Snackbar.Add("Book deleted successfully!", Severity.Success);
-                NavigationManager.NavigateTo("/books/list");
+                NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
             }
             else
             {
-                Snackbar.Add($"Failed to delete book: {res.Error?.Description}", Severity.Error);
+                Snackbar.Add("Failed to delete book", Severity.Error);
+                Log.Error("Failed to delete book: {Description}", res.Error?.Description);
             }
         }
     }
 
     private void GoBack()
     {
-        NavigationManager.NavigateTo("/books/list");
+        NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
     }
 }

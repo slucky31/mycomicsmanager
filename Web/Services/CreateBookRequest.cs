@@ -4,6 +4,7 @@ public sealed record CreateBookRequest(
     string Series,
     string Title,
     string Isbn,
+    Guid LibraryId,
     int VolumeNumber = 1,
     string ImageLink = "",
     int Rating = 0,

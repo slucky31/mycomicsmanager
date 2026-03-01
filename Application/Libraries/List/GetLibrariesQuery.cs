@@ -10,5 +10,6 @@ public record GetLibrariesQuery(
     LibrariesColumn? sortColumn,
     SortOrder? sortOrder,
     int page,
-    int pageSize) : IQuery<IPagedList<Library>>;
-
+    int pageSize,
+    Guid UserId
+) : IQuery<IPagedList<Library>>;

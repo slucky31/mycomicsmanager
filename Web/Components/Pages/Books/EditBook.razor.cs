@@ -63,7 +63,7 @@ public partial class EditBook
             _loadError = true;
             Snackbar.Add("An unexpected error occurred while loading the book.", Severity.Error);
             Log.Error(ex, "Unexpected error loading book {BookId}", BookId);
-        }        
+        }
         finally
         {
             _isLoading = false;
@@ -108,7 +108,7 @@ public partial class EditBook
         else
         {
             _isSaving = false;
-            Snackbar.Add($"Failed to update book: {result.Error?.Description}", Severity.Error);
+            Snackbar.Add("Failed to update book", Severity.Error);
             Log.Error("Failed to update book: {Description}", result.Error?.Description);
             StateHasChanged();
         }
@@ -134,13 +134,14 @@ public partial class EditBook
                 }
                 else
                 {
-                    Snackbar.Add($"Error: {res.Error?.Description}", Severity.Error);
+                    Snackbar.Add("An unexpected error occurred while deleting the reading.", Severity.Error);
+                    Log.Error("An unexpected error occurred while deleting reading date {ReadingDateId} for book {BookId}: {Description}", readingDateId, BookId, res.Error?.Description);
                 }
             }
         }
         catch (OperationCanceledException ex)
         {
-            Snackbar.Add("The operation was cancelled.", Severity.Warning);
+            Snackbar.Add("The operation was cancelled.", Severity.Error);
             Log.Warning(ex, "Delete reading date {ReadingDateId} for book {BookId} was cancelled", readingDateId, BookId);
         }
         catch (InvalidOperationException ex)

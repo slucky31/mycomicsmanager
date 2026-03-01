@@ -12,4 +12,5 @@ public interface IUserReadService
 
     Task<Result<User>> GetUserByAuthIdAndEmail(string? email, string? authId, CancellationToken cancellationToken = default);
 
+    Task<Result<User>> GetUserByAuthId(string? authId, CancellationToken cancellationToken = default);
 }

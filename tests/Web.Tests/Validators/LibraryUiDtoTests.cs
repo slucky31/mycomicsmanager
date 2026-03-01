@@ -7,6 +7,9 @@ namespace Web.Tests.Validators;
 
 public sealed class LibraryUiDtoTests
 {
+    private static Library CreateLibrary(string name)
+        => Library.Create(name, "#5C6BC0", "Bookmark", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
+
     #region Constructor Tests
 
     [Fact]
@@ -114,12 +117,12 @@ public sealed class LibraryUiDtoTests
     {
         // Arrange
         const string name = "DC Comics";
-        var library = Library.Create(name);
+        var library = CreateLibrary(name);
         library.CreatedOnUtc = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
         library.ModifiedOnUtc = new DateTime(2024, 1, 20, 14, 45, 0, DateTimeKind.Utc);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Id.Should().Be(library.Id);
@@ -129,26 +132,26 @@ public sealed class LibraryUiDtoTests
     }
 
     [Fact]
-    public void Convert_ShouldHandleEmptyString()
+    public void Convert_Should_MapName_WhenNameHasSingleCharacter()
     {
         // Arrange
-        var library = Library.Create("");
+        var library = CreateLibrary("A");
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
-        dto.Name.Should().Be(string.Empty);
+        dto.Name.Should().Be("A");
     }
 
     [Fact]
     public void Convert_ShouldPreserveGuidId()
     {
         // Arrange
-        var library = Library.Create("Image Comics");
+        var library = CreateLibrary("Image Comics");
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Id.Should().NotBe(default(Guid));
@@ -159,10 +162,10 @@ public sealed class LibraryUiDtoTests
     public void Convert_ShouldHandleNullModifiedOnUtc()
     {
         // Arrange
-        var library = Library.Create("Dark Horse Comics");
+        var library = CreateLibrary("Dark Horse Comics");
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.ModifiedOnUtc.Should().BeNull();
@@ -173,14 +176,14 @@ public sealed class LibraryUiDtoTests
     {
         // Arrange
         const string name = "Vertigo Comics";
-        var library = Library.Create(name);
+        var library = CreateLibrary(name);
         var createdDate = new DateTime(2023, 6, 1, 8, 0, 0, DateTimeKind.Utc);
         var modifiedDate = new DateTime(2023, 6, 15, 16, 30, 0, DateTimeKind.Utc);
         library.CreatedOnUtc = createdDate;
         library.ModifiedOnUtc = modifiedDate;
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Id.Should().Be(library.Id);
@@ -193,11 +196,11 @@ public sealed class LibraryUiDtoTests
     public void Convert_ShouldCreateNewInstance_EachTime()
     {
         // Arrange
-        var library = Library.Create("IDW Publishing");
+        var library = CreateLibrary("IDW Publishing");
 
         // Act
-        var dto1 = LibraryUiDto.convert(library);
-        var dto2 = LibraryUiDto.convert(library);
+        var dto1 = LibraryUiDto.Convert(library);
+        var dto2 = LibraryUiDto.Convert(library);
 
         // Assert
         dto1.Should().NotBeSameAs(dto2);
@@ -208,14 +211,15 @@ public sealed class LibraryUiDtoTests
     public void Convert_ShouldHandleLongStrings()
     {
         // Arrange
-        var longName = new string('A', 1000);
-        var library = Library.Create(longName);
+        var longName = new string('A', 100);
+        var library = CreateLibrary(longName);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(longName);
+        dto.Name.Length.Should().Be(100);
     }
 
     [Fact]
@@ -223,10 +227,10 @@ public sealed class LibraryUiDtoTests
     {
         // Arrange
         const string name = "Bibliothèque française & européenne";
-        var library = Library.Create(name);
+        var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(name);
@@ -237,10 +241,10 @@ public sealed class LibraryUiDtoTests
     {
         // Arrange
         const string name = "Comic français";
-        var library = Library.Create(name);
+        var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.RelativePath.Should().Be("COMIC FRANCAIS");
@@ -252,10 +256,10 @@ public sealed class LibraryUiDtoTests
     {
         // Arrange
         const string name = "Library 2024";
-        var library = Library.Create(name);
+        var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(name);
@@ -267,10 +271,10 @@ public sealed class LibraryUiDtoTests
     {
         // Arrange
         const string name = "  Multiple   Spaces  ";
-        var library = Library.Create(name);
+        var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(name);
@@ -281,8 +285,8 @@ public sealed class LibraryUiDtoTests
     {
         // Arrange
         const string name = "Test Library éàù";
-        var library = Library.Create(name);
-        var dto = LibraryUiDto.convert(library);
+        var library = CreateLibrary(name);
+        var dto = LibraryUiDto.Convert(library);
 
         // Act & Assert
         dto.RelativePath.Should().Be(library.RelativePath);
@@ -293,10 +297,10 @@ public sealed class LibraryUiDtoTests
     {
         // Arrange
         const string name = "MiXeD CaSe LiBrArY";
-        var library = Library.Create(name);
+        var library = CreateLibrary(name);
 
         // Act
-        var dto = LibraryUiDto.convert(library);
+        var dto = LibraryUiDto.Convert(library);
 
         // Assert
         dto.Name.Should().Be(name);

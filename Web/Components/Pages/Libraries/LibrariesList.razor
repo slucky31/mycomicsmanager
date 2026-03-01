@@ -1,37 +1,51 @@
 @using Domain.Libraries
+@using Web.Components.SharedComponents
 @using Web.Enums
 
 @rendermode InteractiveServer
 
 @page "/libraries/list"
 
-<PageWithAction Title="Libraries" Icon="@Icons.Material.Filled.CollectionsBookmark" ActionName="New library" ActionIcon="@Icons.Material.Filled.Add" OnActionClick="@(e => CreateOrEditAsync(FormMode.Create, null))">
+<PageWithAction Title="Libraries"
+                Icon="@Icons.Material.Filled.CollectionsBookmark"
+                ActionName="New library"
+                ActionIcon="@Icons.Material.Filled.Add"
+                OnActionClick="@(e => NavigationManager.NavigateTo("/libraries/add"))">
+
     <MudGrid Spacing="4" Justify="Justify.FlexStart">
         @foreach (var lib in Libraries)
         {
             <MudItem @key="lib.Id" xs="12" sm="6" md="3">
-                <MudCard Class="blue-left-border" Outlined="true">
+                <MudCard Outlined="true"
+                         Style="@($"border-left: 4px solid {lib.Color}; height: 100%; cursor: pointer;")"
+                         @onclick="@(() => NavigationManager.NavigateTo($"/libraries/{lib.Id}"))">
                     <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudIcon Icon="@IconPicker.Resolve(lib.Icon)"
+                                     Style="@($"color: {lib.Color};")"
+                                     Size="Size.Medium" />
+                        </CardHeaderAvatar>
                         <CardHeaderContent>
                             <MudText Typo="Typo.h6">@lib.Name</MudText>
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Variant="Variant.Outlined"
+                                     Style="@($"border-color: {lib.Color}; color: {lib.Color};")">
+                                @lib.BookType.ToString()
+                            </MudChip>
                         </CardHeaderContent>
                         <CardHeaderActions>
-                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Actions">
-                                <MudMenuItem Label="Edit" OnClick="@(e => CreateOrEditAsync(FormMode.Edit, @lib))" />
-                                <MudMenuItem Label="Delete" OnClick="@(e => OnClickDeleteAsync(@lib.Id))" />
-                            </MudMenu>
+                            <div @onclick:stopPropagation="true">
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                         AriaLabel="Actions">
+                                    <MudMenuItem Label="Edit"
+                                                 OnClick="@(e => NavigationManager.NavigateTo($"/libraries/{lib.Id}/edit"))" />
+                                    <MudMenuItem Label="Delete"
+                                                 OnClick="@(e => OnClickDeleteAsync(lib.Id))" />
+                                </MudMenu>
+                            </div>
                         </CardHeaderActions>
                     </MudCardHeader>
-                    <MudCardContent>
-                        <div class="d-flex">
-                            <MudText Class="ml-2" Typo="Typo.body2"><strong>Books : </strong></MudText>
-                            <MudText Class="ml-2" Typo="Typo.body2">???</MudText>
-                        </div>
-                        <div class="d-flex">
-                            <MudText Class="ml-2" Typo="Typo.body2"><strong>Path : </strong></MudText>
-                            <MudText Class="ml-2" Typo="Typo.body2">@lib.RelativePath</MudText>
-                        </div>
-                    </MudCardContent>
                 </MudCard>
             </MudItem>
         }

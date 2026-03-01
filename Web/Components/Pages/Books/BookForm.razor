@@ -1,4 +1,5 @@
 @using Application.Helpers
+@using Web.Components.SharedComponents
 @using Web.Validators
 
 <MudForm @ref="_form" Model="@Model" Validation="@(_bookValidator.ValidateValue)">
@@ -23,22 +24,10 @@
                 {
                     <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: var(--mud-palette-background-gray);">
                         <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">Your Rating</MudText>
-                        <MudToggleGroup T="int"
-                                        Value="Model.Rating"
-                                        ValueChanged="@((int v) => { if (v != 0) Model.Rating = v; })"
-                                        For="@(() => Model.Rating)"
-                                        SelectionMode="SelectionMode.SingleSelection"
-                                        Color="Color.Warning"
-                                        Rounded="true">
-                            @for (var i = 1; i <= 5; i++)
-                            {
-                                var rating = i;
-                                <MudToggleItem Value="@rating">
-                                    <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="mr-1" />
-                                    @rating
-                                </MudToggleItem>
-                            }
-                        </MudToggleGroup>
+                        <MudRating @bind-SelectedValue="Model.Rating"
+                                   MaxValue="5"
+                                   Color="Color.Warning"
+                                   Size="Size.Medium" />
                     </MudPaper>
                 }
             </div>
@@ -47,6 +36,30 @@
         @* Right column - Form fields *@
         <MudItem xs="12" sm="8">
             <MudStack Spacing="3">
+                @* Library selector — only shown when libraries are available *@
+                @if (Libraries.Count > 0)
+                {
+                    <MudSelect T="Guid"
+                               @bind-Value="Model.LibraryId"
+                               For="@(() => Model.LibraryId)"
+                               Label="Library"
+                               Variant="Variant.Outlined"
+                               Adornment="Adornment.Start"
+                               AdornmentIcon="@Icons.Material.Filled.CollectionsBookmark">
+                        @foreach (var lib in Libraries)
+                        {
+                            <MudSelectItem T="Guid" Value="@lib.Id">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                    <MudIcon Icon="@IconPicker.Resolve(lib.Icon)"
+                                             Size="Size.Small"
+                                             Style="@($"color: {lib.Color};")" />
+                                    <MudText>@lib.Name</MudText>
+                                </MudStack>
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+
                 @* Title *@
                 <MudTextField @bind-Value="Model.Title"
                               For="@(() => Model.Title)"

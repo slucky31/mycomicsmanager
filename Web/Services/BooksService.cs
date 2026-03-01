@@ -6,6 +6,7 @@ using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
 using Application.Books.List;
 using Application.Books.Update;
+using Application.Interfaces;
 using Domain.Books;
 using Domain.Primitives;
 
@@ -18,7 +19,8 @@ public class BooksService(
     ICommandHandler<UpdateBookCommand, Book> updateBookHandler,
     ICommandHandler<DeleteBookCommand> deleteBookHandler,
     ICommandHandler<AddReadingDateCommand, ReadingDate> addReadingDateHandler,
-    ICommandHandler<DeleteReadingDateCommand> deleteReadingDateHandler) : IBooksService
+    ICommandHandler<DeleteReadingDateCommand> deleteReadingDateHandler,
+    ICurrentUserService currentUserService) : IBooksService
 {
     public async Task<Result<Book>> GetById(string? id)
     {
@@ -27,17 +29,31 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var query = new GetBookByIdQuery(guidId);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var query = new GetBookByIdQuery(guidId, UserId: userIdResult.Value);
 
         return await getBookByIdHandler.Handle(query, CancellationToken.None);
     }
 
     public async Task<Result<Book>> Create(CreateBookRequest request, CancellationToken cancellationToken = default)
     {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
         var command = new CreateBookCommand(
             request.Series,
             request.Title,
             request.Isbn,
+            request.LibraryId,
+            userIdResult.Value,
             request.VolumeNumber,
             request.ImageLink,
             request.Rating,
@@ -56,6 +72,12 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
         var command = new UpdateBookCommand(
             guidId,
             request.Series,
@@ -63,6 +85,7 @@ public class BooksService(
             request.Isbn,
             request.VolumeNumber,
             request.ImageLink,
+            userIdResult.Value,
             request.Authors,
             request.Publishers,
             request.PublishDate,
@@ -78,7 +101,13 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var command = new AddReadingDateCommand(guidId, rating);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var command = new AddReadingDateCommand(guidId, rating, UserId: userIdResult.Value);
         return await addReadingDateHandler.Handle(command, cancellationToken);
     }
 
@@ -89,15 +118,45 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var command = new DeleteReadingDateCommand(bookGuidId, readingDateGuidId);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var command = new DeleteReadingDateCommand(bookGuidId, readingDateGuidId, UserId: userIdResult.Value);
         return await deleteReadingDateHandler.Handle(command, cancellationToken);
     }
 
     public async Task<Result<List<Book>>> GetAll()
     {
-        var query = new GetBooksQuery();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var query = new GetBooksQuery(userIdResult.Value);
 
         return await getBooksHandler.Handle(query, CancellationToken.None);
+    }
+
+    public async Task<Result<List<Book>>> GetByLibrary(Guid libraryId, CancellationToken cancellationToken = default)
+    {
+        if (libraryId == Guid.Empty)
+        {
+            return BooksError.ValidationError;
+        }
+
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var query = new GetBooksQuery(userIdResult.Value, LibraryId: libraryId);
+
+        return await getBooksHandler.Handle(query, cancellationToken);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)
@@ -107,7 +166,13 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var command = new DeleteBookCommand(guidId);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var command = new DeleteBookCommand(guidId, UserId: userIdResult.Value);
 
         return await deleteBookHandler.Handle(command, cancellationToken);
     }

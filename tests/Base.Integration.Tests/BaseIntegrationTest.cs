@@ -109,10 +109,15 @@ public class BookIntegrationTest : BaseIntegrationTest
 {
     protected IBookRepository BookRepository { get; }
 
+    protected Library DefaultLibrary { get; }
 
     public BookIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
     {
         BookRepository = _scope.ServiceProvider.GetRequiredService<IBookRepository>();
+        var libraryRepository = _scope.ServiceProvider.GetRequiredService<IRepository<Library, Guid>>();
+        DefaultLibrary = Library.Create("Default", "#000000", "book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
+        libraryRepository.Add(DefaultLibrary);
+        UnitOfWork.SaveChangesAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
 }

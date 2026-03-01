@@ -14,6 +14,10 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
 
     public DbSet<Book> Books => Set<Book>();
 
+    public DbSet<PhysicalBook> PhysicalBooks => Set<PhysicalBook>();
+
+    public DbSet<DigitalBook> DigitalBooks => Set<DigitalBook>();
+
     public DbSet<ReadingDate> ReadingDates => Set<ReadingDate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -23,6 +27,9 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
         {
             modelBuilder.Entity<Library>().ToTable("Libraries");
             modelBuilder.Entity<Library>().Ignore("RelativePath");
+            modelBuilder.Entity<Library>().Property(l => l.Name).HasMaxLength(LibraryConstants.MaxNameLength);
+            modelBuilder.Entity<Library>().Property(l => l.Color).HasMaxLength(LibraryConstants.MaxColorLength);
+            modelBuilder.Entity<Library>().Property(l => l.Icon).HasMaxLength(LibraryConstants.MaxIconLength);
 
             modelBuilder.Entity<User>().ToTable("Users");
 
@@ -39,8 +46,17 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
                 .HasForeignKey(rd => rd.BookId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Book>()
+                .HasOne(b => b.Library)
+                .WithMany(l => l.Books)
+                .HasForeignKey(b => b.LibraryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TPT (Table Per Type) for Book hierarchy
+            modelBuilder.Entity<PhysicalBook>().ToTable("PhysicalBooks");
+            modelBuilder.Entity<DigitalBook>().ToTable("DigitalBooks");
+
             modelBuilder.Entity<ReadingDate>().ToTable("ReadingDates");
         }
     }
-
 }

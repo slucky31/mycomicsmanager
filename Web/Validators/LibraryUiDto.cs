@@ -10,17 +10,26 @@ public class LibraryUiDto : Entity<Guid>
     [Label("Name")]
     public string Name { get; set; } = string.Empty;
 
+    [Label("Color")]
+    public string Color { get; set; } = "#5C6BC0";
+
+    [Label("Icon")]
+    public string Icon { get; set; } = "CollectionsBookmark";
+
+    [Label("Type")]
+    public LibraryBookType BookType { get; set; } = LibraryBookType.Physical;
+
     [Label("RelativePath")]
     public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 
-    public static LibraryUiDto convert(Library library)
+    public static LibraryUiDto Convert(Library library) => new()
     {
-        return new LibraryUiDto
-        {
-            Name = library.Name,
-            Id = library.Id,
-            CreatedOnUtc = library.CreatedOnUtc,
-            ModifiedOnUtc = library.ModifiedOnUtc
-        };
-    }
+        Id = library.Id,
+        Name = library.Name,
+        Color = library.Color,
+        Icon = library.Icon,
+        BookType = library.BookType,
+        CreatedOnUtc = library.CreatedOnUtc,
+        ModifiedOnUtc = library.ModifiedOnUtc
+    };
 }

@@ -7,6 +7,10 @@ namespace Web.Tests.Validators;
 
 public sealed class BookUiDtoTests
 {
+    private static PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
+        string authors = "", string publishers = "", DateOnly? publishDate = null, int? numberOfPages = null)
+        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages, Guid.CreateVersion7()).Value!;
+
     #region Constructor Tests
 
     [Fact]
@@ -123,7 +127,7 @@ public sealed class BookUiDtoTests
         var publishDate = new DateOnly(1986, 2, 1);
         const int numberOfPages = 224;
 
-        var book = Book.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var book = CreateBook(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         book.CreatedOnUtc = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
         book.ModifiedOnUtc = new DateTime(2024, 1, 20, 14, 45, 0, DateTimeKind.Utc);
 
@@ -147,18 +151,18 @@ public sealed class BookUiDtoTests
     }
 
     [Fact]
-    public void Convert_ShouldHandleEmptyStrings()
+    public void Convert_ShouldHandleDefaultOptionalFields()
     {
         // Arrange
-        var book = Book.Create("", "", "");
+        var book = CreateBook("Minimal Serie", "Minimal Title", "ISBN-001");
 
         // Act
         var dto = BookUiDto.Convert(book);
 
         // Assert
-        dto.Serie.Should().Be(string.Empty);
-        dto.Title.Should().Be(string.Empty);
-        dto.ISBN.Should().Be(string.Empty);
+        dto.Serie.Should().Be("Minimal Serie");
+        dto.Title.Should().Be("Minimal Title");
+        dto.ISBN.Should().Be("ISBN-001");
         dto.ImageLink.Should().Be(string.Empty);
         dto.Authors.Should().Be(string.Empty);
         dto.Publishers.Should().Be(string.Empty);
@@ -170,7 +174,7 @@ public sealed class BookUiDtoTests
     public void Convert_ShouldHandleDefaultVolumeNumber()
     {
         // Arrange
-        var book = Book.Create("Test Serie", "Test Title", "123-456");
+        var book = CreateBook("Test Serie", "Test Title", "123-456");
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -183,7 +187,7 @@ public sealed class BookUiDtoTests
     public void Convert_ShouldHandleEmptyImageLink()
     {
         // Arrange
-        var book = Book.Create("Serie", "Title", "ISBN", 5);
+        var book = CreateBook("Serie", "Title", "ISBN", 5);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -196,7 +200,7 @@ public sealed class BookUiDtoTests
     public void Convert_ShouldPreserveGuidId()
     {
         // Arrange
-        var book = Book.Create("X-Men", "Days of Future Past", "978-0-785-19-4");
+        var book = CreateBook("X-Men", "Days of Future Past", "978-0-785-19-4");
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -210,7 +214,7 @@ public sealed class BookUiDtoTests
     public void Convert_ShouldHandleNullModifiedOnUtc()
     {
         // Arrange
-        var book = Book.Create("Series", "Title", "ISBN");
+        var book = CreateBook("Series", "Title", "ISBN");
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -233,7 +237,7 @@ public sealed class BookUiDtoTests
         var publishDate = new DateOnly(2004, 10, 1);
         const int numberOfPages = 144;
 
-        var book = Book.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var book = CreateBook(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
         var createdDate = new DateTime(2023, 6, 1, 8, 0, 0, DateTimeKind.Utc);
         var modifiedDate = new DateTime(2023, 6, 15, 16, 30, 0, DateTimeKind.Utc);
         book.CreatedOnUtc = createdDate;
@@ -262,7 +266,7 @@ public sealed class BookUiDtoTests
     public void Convert_ShouldCreateNewInstance_EachTime()
     {
         // Arrange
-        var book = Book.Create("Series", "Title", "ISBN");
+        var book = CreateBook("Series", "Title", "ISBN");
 
         // Act
         var dto1 = BookUiDto.Convert(book);
@@ -278,7 +282,7 @@ public sealed class BookUiDtoTests
     {
         // Arrange
         const int volumeNumber = 999;
-        var book = Book.Create("One Piece", "Chapter 999", "ISBN", volumeNumber);
+        var book = CreateBook("One Piece", "Chapter 999", "ISBN", volumeNumber);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -296,7 +300,7 @@ public sealed class BookUiDtoTests
         var longIsbn = new string('1', 100);
         var longImageLink = new string('/', 1000);
 
-        var book = Book.Create(longSerie, longTitle, longIsbn, 1, longImageLink);
+        var book = CreateBook(longSerie, longTitle, longIsbn, 1, longImageLink);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -317,7 +321,7 @@ public sealed class BookUiDtoTests
         const string isbn = "978-ä-öü-ß";
 
 
-        var book = Book.Create(serie, title, isbn);
+        var book = CreateBook(serie, title, isbn);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -333,7 +337,7 @@ public sealed class BookUiDtoTests
     {
         // Arrange
         const string authors = "Stan Lee, Jack Kirby, Steve Ditko";
-        var book = Book.Create("Marvel", "The Avengers", "978-0-785-12345-6", 1, "", authors, "", null, null);
+        var book = CreateBook("Marvel", "The Avengers", "978-0-785-12345-6", 1, "", authors, "", null, null);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -347,7 +351,7 @@ public sealed class BookUiDtoTests
     {
         // Arrange
         const string publishers = "Marvel Comics, DC Comics";
-        var book = Book.Create("Crossover", "JLA/Avengers", "978-0-785-11234-5", 1, "", "", publishers, null, null);
+        var book = CreateBook("Crossover", "JLA/Avengers", "978-0-785-11234-5", 1, "", "", publishers, null, null);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -361,7 +365,7 @@ public sealed class BookUiDtoTests
     {
         // Arrange
         var publishDate = new DateOnly(1962, 8, 1); // Amazing Fantasy #15
-        var book = Book.Create("Amazing Fantasy", "Spider-Man's First Appearance", "N/A", 15, "", "Stan Lee, Steve Ditko", "Marvel Comics", publishDate, 11);
+        var book = CreateBook("Amazing Fantasy", "Spider-Man's First Appearance", "N/A", 15, "", "Stan Lee, Steve Ditko", "Marvel Comics", publishDate, 11);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -374,7 +378,7 @@ public sealed class BookUiDtoTests
     public void Convert_ShouldHandleNullPublishDate()
     {
         // Arrange
-        var book = Book.Create("Unknown", "Mystery Comic", "ISBN", 1, "", "", "", null, null);
+        var book = CreateBook("Unknown", "Mystery Comic", "ISBN", 1, "", "", "", null, null);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -388,7 +392,7 @@ public sealed class BookUiDtoTests
     {
         // Arrange
         const int numberOfPages = 320;
-        var book = Book.Create("Watchmen", "Watchmen", "978-0-930289-23-2", 1, "", "Alan Moore", "DC Comics", new DateOnly(1987, 9, 1), numberOfPages);
+        var book = CreateBook("Watchmen", "Watchmen", "978-0-930289-23-2", 1, "", "Alan Moore", "DC Comics", new DateOnly(1987, 9, 1), numberOfPages);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -401,7 +405,7 @@ public sealed class BookUiDtoTests
     public void Convert_ShouldHandleNullNumberOfPages()
     {
         // Arrange
-        var book = Book.Create("Unknown", "Mystery Pages", "ISBN");
+        var book = CreateBook("Unknown", "Mystery Pages", "ISBN");
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -414,7 +418,7 @@ public sealed class BookUiDtoTests
     public void Convert_ShouldHandleEmptyAuthorsAndPublishers()
     {
         // Arrange
-        var book = Book.Create("Series", "Title", "ISBN", 1, "", "", "", null, null);
+        var book = CreateBook("Series", "Title", "ISBN", 1, "", "", "", null, null);
 
         // Act
         var dto = BookUiDto.Convert(book);
@@ -438,7 +442,7 @@ public sealed class BookUiDtoTests
         var publishDate = new DateOnly(2012, 10, 10);
         const int numberOfPages = 160;
 
-        var book = Book.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+        var book = CreateBook(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
 
         // Act
         var dto = BookUiDto.Convert(book);

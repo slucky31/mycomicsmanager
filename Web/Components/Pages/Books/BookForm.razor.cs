@@ -15,6 +15,9 @@ public partial class BookForm
     [Parameter]
     public bool ShowRating { get; set; } = true;
 
+    [Parameter]
+    public List<LibraryUiDto> Libraries { get; init; } = [];
+
     private readonly BookValidator _bookValidator = new();
     private MudForm _form = default!;
 

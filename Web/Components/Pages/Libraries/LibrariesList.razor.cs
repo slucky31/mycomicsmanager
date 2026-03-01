@@ -3,7 +3,6 @@ using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Web.Enums;
 using Web.Services;
 using Web.Validators;
 
@@ -13,16 +12,13 @@ public partial class LibrariesList
 {
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private IDialogService DialogService { get; set; } = default!;
-
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
 
     private List<LibraryUiDto> Libraries { get; } = [];
 
     public static readonly string Msg_NoRecordsFound = "No matching records found";
     public static readonly string Msg_LibCorrectlyDeleted = "The library was correctly deleted";
-    public static readonly string Msg_LibCorrectlyCreated = "The library was correctly created";
-    public static readonly string Msg_LibCorrectlyUpdated = "The library was correctly updated";
 
     protected override async Task OnInitializedAsync()
     {
@@ -40,7 +36,7 @@ public partial class LibrariesList
         {
             Libraries.Clear();
 
-            Libraries.AddRange(result.Value.Items.Select(LibraryUiDto.convert));
+            Libraries.AddRange(result.Value.Items.Select(LibraryUiDto.Convert));
         }
     }
 
@@ -51,100 +47,13 @@ public partial class LibrariesList
         {
             Guard.Against.Null(result.Error);
             Guard.Against.Null(result.Error.Description);
-            Snackbar.Add(result.Error.Description, Severity.Error);
+            Snackbar.Add("Failed to delete library", Severity.Error);
+
         }
         else
         {
             await ReloadDataAsync();
         }
-
     }
-
-    private async Task<Result<LibraryUiDto>> OpenLibraryDialogAsync(FormMode mode, LibraryUiDto? editLibrary)
-    {
-        DialogParameters<LibraryDialog> parameters;
-        LibraryUiDto library;
-
-        switch (mode)
-        {
-            case FormMode.Create:
-                library = new LibraryUiDto();
-                break;
-            case FormMode.Edit:
-                if (editLibrary is null)
-                {
-                    return LibrariesError.DialogError;
-                }
-                library = editLibrary;
-                break;
-            default:
-                return LibrariesError.DialogError;
-        }
-        parameters = new DialogParameters<LibraryDialog>
-        {
-            { x => x.Library, library }
-        };
-
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
-        var dialogTitle = mode == FormMode.Create ? "Create" : "Edit";
-        dialogTitle += " Library";
-
-        var result = await DialogService.ShowAsync<LibraryDialog>(dialogTitle, parameters, options);
-        var dialog = await result.Result;
-
-        if (dialog is null || dialog.Data is null || dialog.Data is not LibraryUiDto)
-        {
-            return LibrariesError.DialogError;
-        }
-        if (dialog.Canceled)
-        {
-            return LibrariesError.DialogCanceled;
-        }
-        return (LibraryUiDto)dialog.Data;
-    }
-
-
-    private async Task CreateOrEditAsync(FormMode mode, LibraryUiDto? editLibrary)
-    {
-        if (mode == FormMode.Edit && editLibrary is null)
-        {
-            return;
-        }
-
-        var result = await OpenLibraryDialogAsync(mode, editLibrary);
-        if (result.IsFailure || result.Value is null)
-        {
-            return;
-        }
-        var libraryFromDialog = result.Value;
-
-        Result<Domain.Libraries.Library> resultCreateOrEdit;
-        string successMessage;
-
-        switch (mode)
-        {
-            case FormMode.Create:
-                resultCreateOrEdit = await LibrariesService.Create(libraryFromDialog.Name);
-                successMessage = Msg_LibCorrectlyCreated;
-                break;
-            case FormMode.Edit:
-                resultCreateOrEdit = await LibrariesService.Update(libraryFromDialog.Id.ToString(), libraryFromDialog.Name);
-                successMessage = Msg_LibCorrectlyUpdated;
-                break;
-            default:
-                return;
-        }
-
-        if (!resultCreateOrEdit.IsSuccess)
-        {
-            Guard.Against.Null(resultCreateOrEdit.Error);
-            Guard.Against.Null(resultCreateOrEdit.Error.Description);
-            Snackbar.Add(resultCreateOrEdit.Error.Description, Severity.Error);
-        }
-
-        await ReloadDataAsync();
-
-    }
-
 }
 

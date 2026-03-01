@@ -5,7 +5,7 @@ using Domain.Primitives;
 
 namespace Application.Libraries.GetById;
 
-public sealed class GetLibraryQueryHandler(IRepository<Library, Guid> librayRepository) : IQueryHandler<GetLibraryQuery, Library>
+public sealed class GetLibraryQueryHandler(IRepository<Library, Guid> libraryRepository) : IQueryHandler<GetLibraryQuery, Library>
 {
     public async Task<Result<Library>> Handle(GetLibraryQuery request, CancellationToken cancellationToken)
     {
@@ -14,8 +14,13 @@ public sealed class GetLibraryQueryHandler(IRepository<Library, Guid> librayRepo
             return LibrariesError.ValidationError;
         }
 
-        var library = await librayRepository.GetByIdAsync(request.Id);
+        var library = await libraryRepository.GetByIdAsync(request.Id);
         if (library is null)
+        {
+            return LibrariesError.NotFound;
+        }
+
+        if (library.UserId != request.UserId)
         {
             return LibrariesError.NotFound;
         }

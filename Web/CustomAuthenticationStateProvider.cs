@@ -8,15 +8,17 @@ using Microsoft.AspNetCore.Components.Server;
 
 namespace Web;
 
-internal class CustomAuthenticationStateProvider(IUserReadService userReadService, IRepository<User, Guid> userRepository, IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
+internal class CustomAuthenticationStateProvider(
+    IUserReadService userReadService,
+    IRepository<User, Guid> userRepository,
+    IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider
 {
     private readonly IUserReadService _userReadService = userReadService;
     private readonly IRepository<User, Guid> _userRepository = userRepository;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;    
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-
         var authState = await base.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -24,18 +26,24 @@ internal class CustomAuthenticationStateProvider(IUserReadService userReadServic
         if (user.Identity.IsAuthenticated)
         {
             var email = user.Identity.Name;
-            var authId = user.FindFirstValue("sid");
 
-            var userResult = await _userReadService.GetUserByEmail(email);
-            if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(authId) && userResult.IsFailure && userResult.Error == UsersError.NotFound)
+            // Auth0 sub claim: raw "sub" or mapped by .NET OIDC to NameIdentifier
+            var sub = user.FindFirstValue("sub")
+                   ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!string.IsNullOrEmpty(sub))
             {
-                var usr = User.Create(email, authId);
-                _userRepository.Add(usr);
-                await _unitOfWork.SaveChangesAsync(default);
+                var userByAuthId = await _userReadService.GetUserByAuthId(sub);
+                if (userByAuthId.IsFailure && userByAuthId.Error == UsersError.NotFound
+                    && !string.IsNullOrEmpty(email))
+                {
+                    var newUser = User.Create(email, sub);
+                    _userRepository.Add(newUser);
+                    await _unitOfWork.SaveChangesAsync(default);
+                }
             }
         }
 
-        // return the modified principal
         return await Task.FromResult(new AuthenticationState(user));
     }
 }

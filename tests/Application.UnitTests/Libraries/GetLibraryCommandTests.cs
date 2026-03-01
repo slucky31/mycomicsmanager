@@ -25,10 +25,11 @@ public class GetLibraryCommandTests
     public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange
-        var library = Library.Create("test");
+        var userId = Guid.CreateVersion7();
+        var library = Library.Create("test", "#5C6BC0", "Bookmark", LibraryBookType.Physical, userId).Value!;
         var libraryId = library.Id;
         _librayRepositoryMock.GetByIdAsync(libraryId).Returns(library);
-        var query = new GetLibraryQuery(libraryId);
+        var query = new GetLibraryQuery(libraryId, userId);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -46,8 +47,9 @@ public class GetLibraryCommandTests
     {
         // Arrange
         var libraryId = Guid.CreateVersion7();
+        var userId = Guid.CreateVersion7();
         _librayRepositoryMock.GetByIdAsync(libraryId).ReturnsNull();
-        var query = new GetLibraryQuery(libraryId);
+        var query = new GetLibraryQuery(libraryId, userId);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -57,7 +59,39 @@ public class GetLibraryCommandTests
         result.Error.Should().Be(LibrariesError.NotFound);
         await _librayRepositoryMock.Received(1).GetByIdAsync(Arg.Any<Guid>());
     }
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenLibraryBelongsToOtherUser()
+    {
+        // Arrange
+        var ownerId = Guid.CreateVersion7();
+        var requestingUserId = Guid.CreateVersion7();
+        var library = Library.Create("test", "#5C6BC0", "Bookmark", LibraryBookType.Physical, ownerId).Value!;
+        _librayRepositoryMock.GetByIdAsync(library.Id).Returns(library);
+        var query = new GetLibraryQuery(library.Id, UserId: requestingUserId);
 
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
 
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.NotFound);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnLibrary_WhenOwnershipVerified()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var library = Library.Create("test", "#5C6BC0", "Bookmark", LibraryBookType.Physical, userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(library.Id).Returns(library);
+        var query = new GetLibraryQuery(library.Id, UserId: userId);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(library);
+    }
 
 }
