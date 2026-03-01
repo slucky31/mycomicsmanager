@@ -34,6 +34,17 @@ public class LibraryTests
     }
 
     [Fact]
+    public void Create_Should_ReturnBadRequest_WhenBookTypeIsUndefined()
+    {
+        // Act
+        var result = Library.Create("My Library", "#5C6BC0", "Book", (LibraryBookType)999, DefaultUserId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.BadRequest);
+    }
+
+    [Fact]
     public void Create_Should_ReturnBadRequest_WhenNameIsEmpty()
     {
         // Act
@@ -255,5 +266,16 @@ public class LibraryTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.BookTypeMismatch);
+    }
+
+    [Fact]
+    public void Books_Should_ReturnEmptyReadOnlyList_WhenLibraryIsCreated()
+    {
+        // Act
+        var library = Library.Create("My Library", "#5C6BC0", "Book", LibraryBookType.Physical, DefaultUserId).Value!;
+
+        // Assert
+        library.Books.Should().BeEmpty();
+        library.Books.Should().BeAssignableTo<IReadOnlyList<Book>>();
     }
 }

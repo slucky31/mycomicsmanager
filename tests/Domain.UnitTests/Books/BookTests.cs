@@ -357,4 +357,32 @@ public class BookTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeAssignableTo<Book>();
     }
+
+    [Fact]
+    public void Library_Should_BeNull_WhenBookIsCreated()
+    {
+        // Act
+        var book = PhysicalBook.Create("Series", "Title", "9781401245252", libraryId: DefaultLibraryId).Value!;
+
+        // Assert
+        book.Library.Should().BeNull();
+    }
+
+    [Fact]
+    public void AddReadingDate_Should_ReturnCreatedReadingDate()
+    {
+        // Arrange
+        var book = PhysicalBook.Create("Batman", "Year One", "9781401207526", libraryId: DefaultLibraryId).Value!;
+        var date = new DateTime(2024, 3, 10);
+
+        // Act
+        var readingDate = book.AddReadingDate(date, 5);
+
+        // Assert
+        readingDate.Should().NotBeNull();
+        readingDate.Date.Should().Be(date);
+        readingDate.Rating.Should().Be(5);
+        readingDate.BookId.Should().Be(book.Id);
+        readingDate.Id.Should().NotBe(Guid.Empty);
+    }
 }
