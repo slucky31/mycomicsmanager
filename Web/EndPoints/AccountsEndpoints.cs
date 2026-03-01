@@ -15,6 +15,7 @@ internal static class AccountsEndpoints
             var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
                     .WithRedirectUri(redirectUri)
                     .Build();
+            authenticationProperties.IsPersistent = true;
 
             // To Allow SSL offloading : Github Issue #522
             httpContext.Request.IsHttps = true;
