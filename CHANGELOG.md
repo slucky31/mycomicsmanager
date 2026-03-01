@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.5.0"></a>
+## [10.5.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.0) (2026-03-01)
+
+### ✨ Features
+
+* add user information in Settings ([#941](https://www.github.com/slucky31/mycomicsmanager/issues/941)) ([36c1ca0](https://www.github.com/slucky31/mycomicsmanager/commit/36c1ca032f80936cbc9371034ef18e6665b3c308))
+
 <a name="10.4.0"></a>
 ## [10.4.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.4.0) (2026-03-01)
 
