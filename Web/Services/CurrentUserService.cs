@@ -1,9 +1,9 @@
+using System.Security.Claims;
 using Application.Interfaces;
 using Application.Users;
 using Domain.Primitives;
 using Domain.Users;
 using Microsoft.AspNetCore.Components.Authorization;
-using System.Security.Claims;
 
 namespace Web.Services;
 

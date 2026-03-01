@@ -29,7 +29,7 @@ internal class CustomAuthenticationStateProvider(
 
             // Auth0 sub claim: raw "sub" or mapped by .NET OIDC to NameIdentifier
             var sub = user.FindFirstValue("sub")
-                   ?? user.FindFirstValue(ClaimTypes.NameIdentifier);            
+                   ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (!string.IsNullOrEmpty(sub))
             {

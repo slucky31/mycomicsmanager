@@ -107,7 +107,7 @@ public partial class BookDetail
             var res = await BooksService.Delete(BookId);
 
             if (res.IsSuccess)
-            {                
+            {
                 NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
             }
             else
