@@ -53,12 +53,14 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
     public async Task<List<Book>> ListAsync(CancellationToken cancellationToken)
     {
         return await dbContext.Set<Book>()
+            .Include(b => b.ReadingDates)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<List<Book>> ListByLibraryIdAsync(Guid libraryId, CancellationToken cancellationToken = default)
     {
         return await dbContext.Set<Book>()
+            .Include(b => b.ReadingDates)
             .Where(b => b.LibraryId == libraryId)
             .ToListAsync(cancellationToken);
     }
@@ -66,7 +68,8 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
     public async Task<List<Book>> ListByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await dbContext.Set<Book>()
-            .Join(dbContext.Set<Library>(), b => b.LibraryId, l => l.Id, (b, l) => new { b, l.UserId })
+            .Include(r => r.ReadingDates)
+            .Join(dbContext.Set<Library>(), b => b.LibraryId, l => l.Id, (b, l) => new { b, l.UserId })            
             .Where(x => x.UserId == userId)
             .Select(x => x.b)
             .ToListAsync(cancellationToken);
