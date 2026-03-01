@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Application.Users;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -13,9 +12,6 @@ public partial class Settings
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationState { get; set; }
-
-    [Inject]
-    private IUserReadService UserReadService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -32,17 +28,9 @@ public partial class Settings
                 .FirstOrDefault(c => c.Type.Equals("name", StringComparison.Ordinal))?.Value
                 ?? string.Empty;
 
-            var sub = user?.FindFirst("sub")?.Value
-                   ?? user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (!string.IsNullOrEmpty(sub))
-            {
-                var result = await UserReadService.GetUserByAuthId(sub);
-                if (result.IsSuccess)
-                {
-                    _email = result.Value!.Email;
-                }
-            }
+            _email = user?.FindFirstValue(ClaimTypes.Email)
+                  ?? user?.FindFirstValue("email")
+                  ?? string.Empty;
         }
         await base.OnInitializedAsync();
     }
