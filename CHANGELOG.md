@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.4.0"></a>
+## [10.4.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.4.0) (2026-03-01)
+
+### ✨ Features
+
+* Enhance library management with user ownership and UI improvements ([#940](https://www.github.com/slucky31/mycomicsmanager/issues/940)) ([743c11e](https://www.github.com/slucky31/mycomicsmanager/commit/743c11ef93333e9c4a5ab61f09a228002571a6f4))
+
 <a name="10.3.1"></a>
 ## [10.3.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.3.1) (2026-02-27)
 
