@@ -20,9 +20,14 @@ public partial class Settings
             var state = await AuthenticationState;
             var user = state?.User;
 
-            _picture = user?.Claims
+            var rawPicture = user?.Claims
                 .FirstOrDefault(c => c.Type.Equals("picture", StringComparison.Ordinal))?.Value
                 ?? string.Empty;
+
+            _picture = Uri.TryCreate(rawPicture, UriKind.Absolute, out var pictureUri)
+                       && pictureUri.Scheme == Uri.UriSchemeHttps
+                ? rawPicture
+                : string.Empty;
 
             _username = user?.Claims
                 .FirstOrDefault(c => c.Type.Equals("name", StringComparison.Ordinal))?.Value
