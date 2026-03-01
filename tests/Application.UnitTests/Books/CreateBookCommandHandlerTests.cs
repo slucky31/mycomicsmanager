@@ -327,6 +327,94 @@ public class CreateBookCommandHandlerTests
         await _unitOfWorkMock.Received(1).SaveChangesAsync(cancellationToken);
     }
 
+    // -------------------------------------------------------
+    // Library existence and ownership checks (lines 46-54)
+    // -------------------------------------------------------
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenLibraryDoesNotExist()
+    {
+        // Arrange
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+        _libraryRepositoryMock.GetByIdAsync(s_validCommand.LibraryId).Returns((Library?)null);
+
+        // Act
+        var result = await _handler.Handle(s_validCommand, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.NotFound);
+        _bookRepositoryMock.Received(0).Add(Arg.Any<Book>());
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenLibraryBelongsToDifferentUser()
+    {
+        // Arrange — s_library has s_userId; command has a different userId
+        var command = s_validCommand with { UserId = Guid.CreateVersion7() };
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(command.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+        _libraryRepositoryMock.GetByIdAsync(command.LibraryId).Returns(s_library);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.NotFound);
+        _bookRepositoryMock.Received(0).Add(Arg.Any<Book>());
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    // -------------------------------------------------------
+    // PhysicalBook.Create failure (lines 60-62)
+    // -------------------------------------------------------
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenBookCreationFails()
+    {
+        // Arrange — LibraryId = Guid.Empty bypasses the handler string checks
+        // but causes PhysicalBook.Create to return a failure
+        var command = s_validCommand with { LibraryId = Guid.Empty };
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(command.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+        _libraryRepositoryMock.GetByIdAsync(Guid.Empty).Returns(s_library);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
+        _bookRepositoryMock.Received(0).Add(Arg.Any<Book>());
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    // -------------------------------------------------------
+    // CanContain check (lines 69-71)
+    // -------------------------------------------------------
+
+    [Fact]
+    public async Task Handle_Should_ReturnBookTypeMismatch_WhenLibraryCannotContainBook()
+    {
+        // Arrange — handler always creates a PhysicalBook; a Digital library rejects it
+        var digitalLibrary = Library.Create("Digital Library", "#5C6BC0", "Book", LibraryBookType.Digital, s_userId).Value!;
+        var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns((Book?)null);
+        _libraryRepositoryMock.GetByIdAsync(s_validCommand.LibraryId).Returns(digitalLibrary);
+
+        // Act
+        var result = await _handler.Handle(s_validCommand, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.BookTypeMismatch);
+        _bookRepositoryMock.Received(0).Add(Arg.Any<Book>());
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
     #region Metadata Fields Tests
 
     [Fact]
