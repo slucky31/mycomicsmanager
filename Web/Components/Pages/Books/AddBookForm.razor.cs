@@ -143,7 +143,8 @@ public partial class AddBookForm
 
         if (result.IsSuccess)
         {
-            var redirect = !string.IsNullOrEmpty(LibraryId)
+            var selectedLibraryId = _bookModel.LibraryId.ToString();
+            var redirect = !string.IsNullOrEmpty(selectedLibraryId)
                 ? $"/libraries/{LibraryId}"
                 : "/libraries/list";
             NavigationManager.NavigateTo(redirect);
@@ -160,7 +161,8 @@ public partial class AddBookForm
 
     private void GoBack()
     {
-        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add" : $"/books/add?libraryId={LibraryId}";
+        var selectedLibraryId = _bookModel.LibraryId.ToString() ?? LibraryId;
+        var url = string.IsNullOrWhiteSpace(selectedLibraryId) ? "/libraries/list" : $"/libraries/{selectedLibraryId}";
         NavigationManager.NavigateTo(url);
     }
 }

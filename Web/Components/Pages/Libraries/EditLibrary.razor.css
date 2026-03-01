@@ -30,6 +30,7 @@
     align-items: center;
     justify-content: center;
     border: 2px solid transparent;
+    padding: 0;
     transition: transform 0.15s, border-color 0.15s;
 }
 

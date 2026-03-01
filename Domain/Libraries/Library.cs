@@ -30,6 +30,12 @@ public class Library : Entity<Guid>
         LibraryBookType bookType,
         Guid userId)
     {
+
+        if (!Enum.IsDefined(bookType))
+        {
+            return LibrariesError.BadRequest;
+        }
+
         if (string.IsNullOrWhiteSpace(name) || name.Length > LibraryConstants.MaxNameLength)
         {
             return LibrariesError.BadRequest;

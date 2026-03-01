@@ -53,14 +53,12 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
     public async Task<List<Book>> ListAsync(CancellationToken cancellationToken)
     {
         return await dbContext.Set<Book>()
-            .Include(b => b.ReadingDates)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<List<Book>> ListByLibraryIdAsync(Guid libraryId, CancellationToken cancellationToken = default)
     {
         return await dbContext.Set<Book>()
-            .Include(b => b.ReadingDates)
             .Where(b => b.LibraryId == libraryId)
             .ToListAsync(cancellationToken);
     }

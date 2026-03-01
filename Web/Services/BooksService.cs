@@ -143,6 +143,11 @@ public class BooksService(
 
     public async Task<Result<List<Book>>> GetByLibrary(Guid libraryId, CancellationToken cancellationToken = default)
     {
+        if (libraryId == Guid.Empty)
+        {
+            return BooksError.ValidationError;
+        }
+
         var userIdResult = await currentUserService.GetCurrentUserIdAsync();
         if (userIdResult.IsFailure)
         {

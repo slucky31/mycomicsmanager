@@ -132,7 +132,7 @@ public sealed class LibraryUiDtoTests
     }
 
     [Fact]
-    public void Convert_ShouldHandleMinimalName()
+    public void Convert_Should_MapName_WhenNameHasSingleCharacter()
     {
         // Arrange
         var library = CreateLibrary("A");

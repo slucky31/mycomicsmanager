@@ -60,16 +60,15 @@
                     <div class="color-palette">
                         @foreach (var hex in ColorPalette)
                         {
-                            <div class="color-swatch @(_model.Color == hex ? "selected" : "")"
-                                 style="background-color: @hex"
-                                 @onclick="@(() => _model.Color = hex)">
+                            <button type="button" class="color-swatch @(_model.Color == hex ? "selected" : "")" style="background-color: @hex"
+                                    @onclick="@(() => _model.Color = hex)" aria-label="@($"Select color {hex}")" aria-pressed="@(_model.Color == hex)">
                                 @if (_model.Color == hex)
                                 {
                                     <MudIcon Icon="@Icons.Material.Filled.Check"
                                              Size="Size.Small"
                                              Style="color: white;" />
                                 }
-                            </div>
+                            </button>
                         }
                     </div>
 

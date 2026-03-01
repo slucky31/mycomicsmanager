@@ -7,9 +7,9 @@ namespace Persistence.Tests.Integration.Repositories;
 [Collection("DatabaseCollectionTests")]
 public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : BookIntegrationTest(factory)
 {
-    private static PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
+    private PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
         string authors = "", string publishers = "", DateOnly? publishDate = null, int? numberOfPages = null)
-        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages, Guid.CreateVersion7()).Value!;
+        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages, DefaultLibrary.Id).Value!;
 
     [Fact]
     public async Task GetByIdAsync_ShouldReturnBook_WhenBookExists()

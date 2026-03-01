@@ -13,9 +13,9 @@ public class LibraryValidator : AbstractValidator<LibraryUiDto>
             .WithMessage($"Name must not exceed {LibraryConstants.MaxNameLength} characters.");
 
         RuleFor(x => x.Color)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Color is required.")
-            .MaximumLength(LibraryConstants.MaxColorLength)
-            .WithMessage("Invalid color format.");
+            .Matches(@"^#[0-9A-Fa-f]{6}$").WithMessage("Invalid color format.");
 
         RuleFor(x => x.Icon)
             .NotEmpty().WithMessage("Icon is required.")

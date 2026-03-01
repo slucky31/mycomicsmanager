@@ -38,8 +38,10 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 
     public async Task<bool> ExistsByNameAsync(string name, Guid userId, Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
+        var normalizedName = name.Trim().ToUpperInvariant();
+
         var query = context.Libraries.AsNoTracking()
-            .Where(l => l.UserId == userId && l.Name == name);
+            .Where(l => l.UserId == userId && l.Name.Equals(normalizedName, StringComparison.OrdinalIgnoreCase));
 
         if (excludeId.HasValue)
         {

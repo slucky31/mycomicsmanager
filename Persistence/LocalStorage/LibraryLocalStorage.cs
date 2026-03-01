@@ -20,14 +20,23 @@ public class LibraryLocalStorage : ILibraryLocalStorage
 
     private Result ValidatePath(string folderName)
     {
-        var normalizedRoot = Path.GetFullPath(rootPath) + Path.DirectorySeparatorChar;
-        var fullPath = Path.GetFullPath(Path.Combine(rootPath, folderName));
-        if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+        try
+        {
+            var normalizedRoot = Path.GetFullPath(rootPath);
+            var fullPath = Path.GetFullPath(Path.Combine(rootPath, folderName));
+            if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                return LibraryLocalStorageError.InvalidPath;
+            }
+            return Result.Success();
+        }
+        catch (Exception ex) when (
+            ex is ArgumentException or
+            NotSupportedException or
+            PathTooLongException)
         {
             return LibraryLocalStorageError.InvalidPath;
         }
-
-        return Result.Success();
     }
 
     public Result Create(string folderName)

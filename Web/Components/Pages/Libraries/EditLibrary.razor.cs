@@ -52,20 +52,40 @@ public partial class EditLibrary
 
         _isSaving = true;
 
-        var result = await LibrariesService.Update(
-            new UpdateLibraryRequest(_model.Id.ToString(), _model.Name, _model.Color, _model.Icon));
+        try
+        {
+            var result = await LibrariesService.Update(
+                new UpdateLibraryRequest(_model.Id.ToString(), _model.Name, _model.Color, _model.Icon));
 
-        if (result.IsSuccess)
-        {
-            NavigationManager.NavigateTo($"/libraries/{LibraryId}");
-        }
-        else
-        {
+            if (result.IsSuccess)
+            {
+                NavigationManager.NavigateTo($"/libraries/{LibraryId}");
+                return;
+            }
+
             Snackbar.Add("Failed to update library", Severity.Error);
             Log.Error("Failed to update library: {Error}", result.Error);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Snackbar.Add("Failed to update library", Severity.Error);
+            Log.Error(ex, "Failed to update library");
+        }
+        finally
+        {
             _isSaving = false;
         }
     }
 
     private void GoBack() => NavigationManager.NavigateTo($"/libraries/{LibraryId}");
+
+    private void SelectColor(string hex)
+    {
+        if (_model is null)
+        {
+            return;
+        }
+
+        _model.Color = hex;
+    }
 }

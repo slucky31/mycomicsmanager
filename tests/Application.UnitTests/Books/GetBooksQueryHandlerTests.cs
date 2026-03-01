@@ -324,7 +324,7 @@ public class GetBooksQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnBooks_WhenNoUserIdProvided_AndLibraryExists()
+    public async Task Handle_Should_ReturnBooks_WhenLibraryExistsForUser()
     {
         // Arrange
         var userId = Guid.CreateVersion7();

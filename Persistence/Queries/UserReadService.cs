@@ -78,15 +78,22 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
             return UsersError.BadRequest;
         }
 
-        var user = await context.Users.AsNoTracking()
+        var users = await context.Users.AsNoTracking()
             .Where(u => u.AuthId == authId)
-            .SingleOrDefaultAsync(cancellationToken);
+            .Take(2)
+            .ToListAsync(cancellationToken);
 
-        if (user is null)
+        if (users.Count == 0)
         {
             return UsersError.NotFound;
         }
-        return user;
+
+        if (users.Count > 1)
+        {
+            return UsersError.Duplicate;
+        }
+
+        return users[0];
     }
 
 }

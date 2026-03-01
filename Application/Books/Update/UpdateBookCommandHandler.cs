@@ -27,13 +27,7 @@ public sealed class UpdateBookCommandHandler(
             return BooksError.InvalidISBN;
         }
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);
-
-        var existingBook = await bookRepository.GetByIsbnAsync(normalizedIsbn, cancellationToken);
-        if (existingBook is not null && existingBook.Id != request.Id)
-        {
-            return BooksError.Duplicate;
-        }
-
+     
         var book = await bookRepository.GetByIdAsync(request.Id);
         if (book == null)
         {
@@ -44,6 +38,12 @@ public sealed class UpdateBookCommandHandler(
         if (library is null || library.UserId != request.UserId)
         {
             return BooksError.NotFound;
+        }
+
+        var existingBook = await bookRepository.GetByIsbnAsync(normalizedIsbn, cancellationToken);
+        if (existingBook is not null && existingBook.Id != request.Id)
+        {
+            return BooksError.Duplicate;
         }
 
         book.Update(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink,
