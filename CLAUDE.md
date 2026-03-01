@@ -106,3 +106,8 @@ Enforced via `.editorconfig`:
 - Serilog logging
 - FluentValidation
 - Central package management via `Directory.Packages.props`
+
+## Security & Configuration
+
+- Store secrets (Auth0, PostgreSQL, Serilog sinks) in environment variables; never commit production credentials.
+- Update `appsettings.Production.json` only with sanitized defaults; document overrides in the PR if configuration keys change.
