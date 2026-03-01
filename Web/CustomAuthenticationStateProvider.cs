@@ -25,7 +25,8 @@ internal class CustomAuthenticationStateProvider(
         Guard.Against.Null(user.Identity);
         if (user.Identity.IsAuthenticated)
         {
-            var email = user.Identity.Name;
+            var email = user.FindFirstValue(ClaimTypes.Email)
+                     ?? user.FindFirstValue("email");
 
             // Auth0 sub claim: raw "sub" or mapped by .NET OIDC to NameIdentifier
             var sub = user.FindFirstValue("sub")

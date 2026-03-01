@@ -67,3 +67,10 @@ Quel style de design préférez-vous pour les cartes de livres?
 
  Voir les infos de l'utilisateur
  Bouton de déconnexion
+
+
+Domain/Books/PhysicalBook.cs
+Method has 10 parameters, which is greater than the 7 authorized.
+
+Web/Services/BooksService.cs
+Constructor has 8 parameters, which is greater than the 7 authorized.

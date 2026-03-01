@@ -5,6 +5,7 @@ using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
 using HealthChecks.ApplicationStatus.DependencyInjection;
 using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MudBlazor;
@@ -82,7 +83,18 @@ builder.Services.AddOptions<Auth0Configuration>()
     .ValidateOnStart();
 
 // Add Auth0 services
-builder.Services.AddAuth0WebAppAuthentication(options => config.Bind(options));
+builder.Services.AddAuth0WebAppAuthentication(options =>
+{
+    config.Bind(options);
+    options.Scope = "openid profile email";
+});
+
+builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
+    .Configure(options =>
+    {
+        options.ExpireTimeSpan = TimeSpan.FromDays(3);
+        options.SlidingExpiration = true;
+    });
 
 // Register CustomAuthenticationStateProvider
 builder.Services.AddCascadingAuthenticationState();

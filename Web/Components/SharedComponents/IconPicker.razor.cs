@@ -34,7 +34,7 @@ public partial class IconPicker : ComponentBase
         _selectedName = Value;
     }
 
-    private static Task<IEnumerable<string>> SearchIconNamesAsync(string value, CancellationToken ct)
+    private static Task<IEnumerable<string>> SearchIconNamesAsync(string value, CancellationToken _)
     {
         var results = string.IsNullOrEmpty(value)
             ? s_iconMap.Keys.Take(50)
