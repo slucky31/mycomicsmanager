@@ -121,7 +121,7 @@ jobs:
         with:
           images: ghcr.io/slucky31/mcm
       - name: Build and push Docker image MyComicsManagerWeb
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/arm64
