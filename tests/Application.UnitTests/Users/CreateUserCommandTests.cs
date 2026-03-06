@@ -25,6 +25,19 @@ public class CreateUserCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenCommandIsNull()
+    {
+        // Act
+        var result = await _handler.Handle(null!, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.BadRequest);
+        _userRepositoryMock.DidNotReceive().Add(Arg.Any<User>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_Should_ExecuteSaveChangeAsyncOnce()
     {
         // Arrange

@@ -624,6 +624,201 @@ public sealed class GoogleBooksServiceTests
     }
 
     [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTimeoutOccurs()
+    {
+        // Arrange – TaskCanceledException from an internal timeout (CancellationToken.None is not cancelled)
+        using var handler = new MockHttpMessageHandler(new TaskCanceledException("Request timed out"));
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn, CancellationToken.None);
+
+        // Assert
+        result.Found.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_FallbackToSearchData_WhenDetailedVolumeJsonIsInvalid()
+    {
+        // Arrange
+        var searchResponse = """
+        {
+            "totalItems": 1,
+            "items": [{
+                "selfLink": "https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ",
+                "volumeInfo": {
+                    "title": "Fullmetal Alchemist",
+                    "authors": ["Hiromu Arakawa"]
+                }
+            }]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}"] = CreateJsonResponse(searchResponse),
+            ["https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ"] = CreateJsonResponse("invalid json {{{")
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Title.Should().Be("Fullmetal Alchemist");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_FallbackToSearchData_WhenDetailedVolumeFetchTimesOut()
+    {
+        // Arrange – timeout on the selfLink fetch while the caller token is not cancelled
+        var searchResponse = """
+        {
+            "totalItems": 1,
+            "items": [{
+                "selfLink": "https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ",
+                "volumeInfo": {
+                    "title": "Fullmetal Alchemist",
+                    "authors": ["Hiromu Arakawa"]
+                }
+            }]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(
+            new Dictionary<string, HttpResponseMessage>
+            {
+                [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}"] = CreateJsonResponse(searchResponse)
+            },
+            new Dictionary<string, Exception>
+            {
+                ["https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ"] = new TaskCanceledException("Timeout")
+            });
+
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn, CancellationToken.None);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Title.Should().Be("Fullmetal Alchemist");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_FallbackToSearchData_WhenDetailedVolumeInfoIsNull()
+    {
+        // Arrange – selfLink returns a valid volume JSON but with no volumeInfo
+        var searchResponse = """
+        {
+            "totalItems": 1,
+            "items": [{
+                "selfLink": "https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ",
+                "volumeInfo": {
+                    "title": "Fullmetal Alchemist",
+                    "authors": ["Hiromu Arakawa"]
+                }
+            }]
+        }
+        """;
+
+        var detailedResponse = """{"selfLink": "https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ"}""";
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}"] = CreateJsonResponse(searchResponse),
+            ["https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ"] = CreateJsonResponse(detailedResponse)
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Title.Should().Be("Fullmetal Alchemist");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnNullCoverUrl_WhenImageLinksHaveNoUrls()
+    {
+        // Arrange – imageLinks is present but all URL fields are absent (null)
+        var jsonResponse = """
+        {
+            "totalItems": 1,
+            "items": [{
+                "volumeInfo": {
+                    "title": "Book Without Any Image Url",
+                    "imageLinks": {}
+                }
+            }]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}"] = CreateJsonResponse(jsonResponse)
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.CoverUrl.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_PreferExtraLargeImage_WhenExtraLargeIsAvailable()
+    {
+        // Arrange
+        var jsonResponse = """
+        {
+            "totalItems": 1,
+            "items": [{
+                "volumeInfo": {
+                    "title": "Book With ExtraLarge",
+                    "imageLinks": {
+                        "smallThumbnail": "http://books.google.com/small.jpg",
+                        "thumbnail": "http://books.google.com/thumb.jpg",
+                        "medium": "http://books.google.com/medium.jpg",
+                        "large": "http://books.google.com/large.jpg",
+                        "extraLarge": "http://books.google.com/extralarge.jpg"
+                    }
+                }
+            }]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}"] = CreateJsonResponse(jsonResponse)
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.CoverUrl.Should().NotBeNull();
+        result.CoverUrl!.ToString().Should().Contain("extralarge");
+        result.CoverUrl.ToString().Should().StartWith("https://");
+    }
+
+    [Fact]
     public async Task SearchByIsbnAsync_Should_FallbackToSearchData_WhenSelfLinkFetchFails()
     {
         // Arrange
@@ -670,6 +865,7 @@ public sealed class GoogleBooksServiceTests
     private sealed class MockHttpMessageHandler : HttpMessageHandler
     {
         private readonly Dictionary<string, HttpResponseMessage>? _responses;
+        private readonly Dictionary<string, Exception>? _urlExceptions;
         private readonly Exception? _exception;
 
         public MockHttpMessageHandler(Dictionary<string, HttpResponseMessage> responses)
@@ -680,6 +876,14 @@ public sealed class GoogleBooksServiceTests
         public MockHttpMessageHandler(Exception exception)
         {
             _exception = exception;
+        }
+
+        public MockHttpMessageHandler(
+            Dictionary<string, HttpResponseMessage> responses,
+            Dictionary<string, Exception> urlExceptions)
+        {
+            _responses = responses;
+            _urlExceptions = urlExceptions;
         }
 
         protected override Task<HttpResponseMessage> SendAsync(
@@ -694,6 +898,11 @@ public sealed class GoogleBooksServiceTests
             }
 
             var url = request.RequestUri?.ToString() ?? string.Empty;
+
+            if (_urlExceptions != null && _urlExceptions.TryGetValue(url, out var urlEx))
+            {
+                throw urlEx;
+            }
 
             if (_responses != null && _responses.TryGetValue(url, out var response))
             {

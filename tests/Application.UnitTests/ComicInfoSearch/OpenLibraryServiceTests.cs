@@ -264,6 +264,157 @@ public class OpenLibraryServiceTests
     }
 
     [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTimeoutOccurs()
+    {
+        // Arrange – TaskCanceledException with a token different from the caller's (internal timeout)
+        using var cts = new CancellationTokenSource();
+
+        using var handler = new MockHttpMessageHandler(new TaskCanceledException("Request timed out"));
+        using var httpClient = new HttpClient(handler);
+        var service = new OpenLibraryService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn, cts.Token);
+
+        // Assert
+        result.Found.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenBookDataIsNull()
+    {
+        // Arrange – valid HTTP 200 but body deserializes to null
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://openlibrary.org/isbn/{ValidIsbn}.json"] = CreateJsonResponse("null")
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = new OpenLibraryService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.Found.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnResultWithoutAuthors_WhenAuthorsArrayIsEmpty()
+    {
+        // Arrange – authors present but empty array (Count == 0 path)
+        var jsonResponse = """{"title": "Book", "authors": [], "covers": [123]}""";
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://openlibrary.org/isbn/{ValidIsbn}.json"] = CreateJsonResponse(jsonResponse)
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = new OpenLibraryService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Authors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_SkipAuthor_WhenAuthorNameIsNull()
+    {
+        // Arrange – author endpoint returns valid JSON but with no name field
+        var jsonResponse = """
+        {
+            "title": "Book",
+            "authors": [{"key": "/authors/OL1A"}],
+            "covers": [123]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://openlibrary.org/isbn/{ValidIsbn}.json"] = CreateJsonResponse(jsonResponse),
+            ["https://openlibrary.org/authors/OL1A.json"] = CreateJsonResponse("""{"bio": "Some bio"}""")
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = new OpenLibraryService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Authors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ContinueWithOtherAuthors_WhenOneAuthorJsonIsInvalid()
+    {
+        // Arrange – first author returns invalid JSON, second returns valid
+        var jsonResponse = """
+        {
+            "title": "Book",
+            "authors": [{"key": "/authors/OL1A"}, {"key": "/authors/OL2A"}],
+            "covers": [123]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://openlibrary.org/isbn/{ValidIsbn}.json"] = CreateJsonResponse(jsonResponse),
+            ["https://openlibrary.org/authors/OL1A.json"] = CreateJsonResponse("invalid json {{{"),
+            ["https://openlibrary.org/authors/OL2A.json"] = CreateJsonResponse("""{"name": "Author Two"}""")
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = new OpenLibraryService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Authors.Should().ContainSingle().Which.Should().Be("Author Two");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ContinueWithOtherAuthors_WhenOneAuthorFetchTimesOut()
+    {
+        // Arrange – first author fetch times out (internal timeout, caller token not cancelled)
+        var jsonResponse = """
+        {
+            "title": "Book",
+            "authors": [{"key": "/authors/OL1A"}, {"key": "/authors/OL2A"}],
+            "covers": [123]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(
+            new Dictionary<string, HttpResponseMessage>
+            {
+                [$"https://openlibrary.org/isbn/{ValidIsbn}.json"] = CreateJsonResponse(jsonResponse),
+                ["https://openlibrary.org/authors/OL2A.json"] = CreateJsonResponse("""{"name": "Author Two"}""")
+            },
+            new Dictionary<string, Exception>
+            {
+                ["https://openlibrary.org/authors/OL1A.json"] = new TaskCanceledException("Timeout")
+            });
+
+        using var httpClient = new HttpClient(handler);
+        var service = new OpenLibraryService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn, CancellationToken.None);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Authors.Should().ContainSingle().Which.Should().Be("Author Two");
+    }
+
+    [Fact]
     public async Task SearchByIsbnAsync_Should_HandleCancellation()
     {
         // Arrange
@@ -294,6 +445,7 @@ public class OpenLibraryServiceTests
     private sealed class MockHttpMessageHandler : HttpMessageHandler
     {
         private readonly Dictionary<string, HttpResponseMessage>? _responses;
+        private readonly Dictionary<string, Exception>? _urlExceptions;
         private readonly Exception? _exception;
 
         public MockHttpMessageHandler(Dictionary<string, HttpResponseMessage> responses)
@@ -304,6 +456,14 @@ public class OpenLibraryServiceTests
         public MockHttpMessageHandler(Exception exception)
         {
             _exception = exception;
+        }
+
+        public MockHttpMessageHandler(
+            Dictionary<string, HttpResponseMessage> responses,
+            Dictionary<string, Exception> urlExceptions)
+        {
+            _responses = responses;
+            _urlExceptions = urlExceptions;
         }
 
         protected override Task<HttpResponseMessage> SendAsync(
@@ -318,6 +478,11 @@ public class OpenLibraryServiceTests
             }
 
             var url = request.RequestUri?.ToString() ?? string.Empty;
+
+            if (_urlExceptions != null && _urlExceptions.TryGetValue(url, out var urlEx))
+            {
+                throw urlEx;
+            }
 
             if (_responses != null && _responses.TryGetValue(url, out var response))
             {

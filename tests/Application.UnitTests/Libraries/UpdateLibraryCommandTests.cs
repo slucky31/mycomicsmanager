@@ -32,6 +32,70 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_Should_ReturnValidationError_WhenRequestIsNull()
+    {
+        // Act
+        var result = await _handler.Handle(null!, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.ValidationError);
+        _librayRepositoryMock.DidNotReceive().Update(Arg.Any<Library>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenColorIsInvalid()
+    {
+        // Arrange – empty color makes library.Update() fail
+        var commandWithBadColor = new UpdateLibraryCommand(s_command.Id, null, "", "Bookmark", s_userId);
+        _librayRepositoryMock.GetByIdAsync(commandWithBadColor.Id).Returns(s_library);
+
+        // Act
+        var result = await _handler.Handle(commandWithBadColor, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.BadRequest);
+        _librayRepositoryMock.DidNotReceive().Update(Arg.Any<Library>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenNameIsInvalidEmptyString()
+    {
+        // Arrange – empty string name is not null (enters name-update path) but fails UpdateName()
+        var commandWithEmptyName = new UpdateLibraryCommand(s_command.Id, "", "#5C6BC0", "Bookmark", s_userId);
+        _librayRepositoryMock.GetByIdAsync(commandWithEmptyName.Id).Returns(s_library);
+
+        // Act
+        var result = await _handler.Handle(commandWithEmptyName, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.BadRequest);
+        _librayRepositoryMock.DidNotReceive().Update(Arg.Any<Library>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnSuccess_ForDigitalLibraryWithNameChange()
+    {
+        // Arrange
+        var digitalCommand = new UpdateLibraryCommand(s_command.Id, "new-digital-name", "#5C6BC0", "Bookmark", s_userId);
+        _librayRepositoryMock.GetByIdAsync(digitalCommand.Id).Returns(s_digitalLibrary);
+        _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
+
+        // Act
+        var result = await _handler.Handle(digitalCommand, default);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Name.Should().Be("new-digital-name");
+        _libraryLocalStorage.Received(1).Move(Arg.Any<string>(), Arg.Any<string>());
+        _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+    }
+
+    [Fact]
     public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
     {
         // Arrange

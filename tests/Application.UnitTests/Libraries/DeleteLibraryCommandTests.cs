@@ -29,6 +29,19 @@ public class DeleteLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_Should_ReturnValidationError_WhenRequestIsNull()
+    {
+        // Act
+        var result = await _handler.Handle(null!, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.ValidationError);
+        _librayRepositoryMock.DidNotReceive().Remove(Arg.Any<Library>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(CancellationToken.None);
+    }
+
+    [Fact]
     public async Task Handle_Should_ReturnError_WhenLibraryIsNull()
     {
         // Arrange
