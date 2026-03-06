@@ -266,6 +266,64 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
     }
 
     [Fact]
+    public void Create_ShouldReturnError_WhenFolderNameContainsInvalidPathChars()
+    {
+        // Arrange – null character causes Path.GetFullPath to throw ArgumentException
+        var folder = "invalid\0name";
+
+        // Act
+        var result = LibraryLocalStorage.Create(folder);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+    }
+
+    [Fact]
+    public void Move_ShouldReturnError_WhenOriginFolderNameContainsInvalidPathChars()
+    {
+        // Arrange
+        var folder = "invalid\0name";
+
+        // Act
+        var result = LibraryLocalStorage.Move(folder, "destination");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+    }
+
+    [Fact]
+    public void Move_ShouldReturnError_WhenDestinationFolderNameContainsInvalidPathChars()
+    {
+        // Arrange
+        var folder = Guid.NewGuid().ToString();
+        LibraryLocalStorage.Create(folder);
+
+        // Act
+        var result = LibraryLocalStorage.Move(folder, "invalid\0name");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+    }
+
+    [Fact]
+    public void Delete_ShouldReturnError_WhenFolderNameContainsInvalidPathChars()
+    {
+        // Arrange – null character causes Path.GetFullPath to throw ArgumentException
+        var folder = "invalid\0name";
+
+        // Act
+        var result = LibraryLocalStorage.Delete(folder);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+    }
+
+
+    [Fact]
     public void Create_ShouldReturnError_WhenFolderNameTraversesOutsideRoot()
     {
         // Act

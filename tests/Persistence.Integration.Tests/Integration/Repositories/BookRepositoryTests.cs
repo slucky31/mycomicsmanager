@@ -408,6 +408,64 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
+    public async Task AddReadingDate_ShouldPersistReadingDate_WhenReadingDateIsValid()
+    {
+        // Arrange
+        var book = CreateBook("Thor", "Thor Vol 2", "9780785212345");
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+        var readingDate = ReadingDate.Create(DateTime.UtcNow, 5, book.Id);
+
+        // Act
+        BookRepository.AddReadingDate(readingDate);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        var savedBook = await BookRepository.GetByIdAsync(book.Id);
+        Ardalis.GuardClauses.Guard.Against.Null(savedBook);
+        savedBook.ReadingDates.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task ListByLibraryIdAsync_ShouldReturnBooks_WhenBooksExistForLibrary()
+    {
+        // Arrange
+        var book1 = CreateBook("Civil War", "Civil War Vol 1", "9780785213456");
+        var book2 = CreateBook("Civil War", "Civil War Vol 2", "9780785213457");
+        BookRepository.Add(book1);
+        BookRepository.Add(book2);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await BookRepository.ListByLibraryIdAsync(DefaultLibrary.Id, CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(b => b.Id == book1.Id);
+        result.Should().Contain(b => b.Id == book2.Id);
+    }
+
+    [Fact]
+    public async Task ListByUserIdAsync_ShouldReturnBooks_WhenBooksExistForUser()
+    {
+        // Arrange
+        var userId = DefaultLibrary.UserId;
+        var book1 = CreateBook("Secret Wars", "Secret Wars Vol 1", "9780785214567");
+        var book2 = CreateBook("Secret Wars", "Secret Wars Vol 2", "9780785214568");
+        BookRepository.Add(book1);
+        BookRepository.Add(book2);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await BookRepository.ListByUserIdAsync(userId, CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(b => b.Id == book1.Id);
+        result.Should().Contain(b => b.Id == book2.Id);
+    }
+
+    [Fact]
     public async Task Update_ShouldPersistUpdatedMetadataFields_WhenMetadataFieldsAreChanged()
     {
         // Arrange

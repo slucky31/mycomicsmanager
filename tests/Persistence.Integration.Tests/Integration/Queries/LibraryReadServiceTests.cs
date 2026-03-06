@@ -179,4 +179,59 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         Guard.Against.Null(pagedList.Items);
         pagedList.Items.Select(l => l.Name).Should().ContainInOrder(_libs.OrderByDescending(l => l.Name).Select(l => l.Name).ToArray());
     }
+
+    [Fact]
+    public async Task ExistsByNameAsync_ShouldReturnTrue_WhenLibraryWithSameNameExists()
+    {
+        // Arrange
+        await CreateLibraries();
+
+        // Act
+        var exists = await LibraryReadService.ExistsByNameAsync(_lib1.Name, s_userId);
+
+        // Assert
+        exists.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExistsByNameAsync_ShouldReturnFalse_WhenNoLibraryWithThatNameExists()
+    {
+        // Arrange
+        await CreateLibraries();
+
+        // Act
+        var exists = await LibraryReadService.ExistsByNameAsync("nonexistent-library", s_userId);
+
+        // Assert
+        exists.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExistsByNameAsync_ShouldReturnFalse_WhenMatchingLibraryIsExcluded()
+    {
+        // Arrange – same name exists but its id is excluded (update scenario)
+        await CreateLibraries();
+
+        // Act
+        var exists = await LibraryReadService.ExistsByNameAsync(_lib1.Name, s_userId, excludeId: _lib1.Id);
+
+        // Assert
+        exists.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExistsByNameAsync_ShouldReturnTrue_WhenOtherLibraryWithSameNameExistsAndDifferentIdIsExcluded()
+    {
+        // Arrange – two libraries with the same name; excluding one still leaves the other
+        await CreateLibraries();
+        var duplicateLib = Library.Create(_lib1.Name, "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+        LibraryRepository.Add(duplicateLib);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act – exclude duplicateLib but lib1 still has the same name → should find it
+        var exists = await LibraryReadService.ExistsByNameAsync(_lib1.Name, s_userId, excludeId: duplicateLib.Id);
+
+        // Assert
+        exists.Should().BeTrue();
+    }
 }
