@@ -30,7 +30,7 @@ public partial class BookForm
 
     public async Task<bool> ValidateAsync()
     {
-        await _form.Validate();
+        await _form.ValidateAsync();
         return _form.IsValid;
     }
 }

@@ -40,7 +40,7 @@ public partial class AddLibrary
             return;
         }
 
-        await _form.Validate();
+        await _form.ValidateAsync();
 
         if (!_form.IsValid)
         {
