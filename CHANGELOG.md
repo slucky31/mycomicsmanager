@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.5.4"></a>
+## [10.5.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.4) (2026-03-07)
+
+### 🐛 Bug Fixes
+
+* **deps:** update docker/metadata-action action to v6 ([#948](https://www.github.com/slucky31/mycomicsmanager/issues/948)) ([d9a38e4](https://www.github.com/slucky31/mycomicsmanager/commit/d9a38e413392de9b730d46d3207e89104786d99e))
+
 <a name="10.5.3"></a>
 ## [10.5.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.3) (2026-03-07)
 
