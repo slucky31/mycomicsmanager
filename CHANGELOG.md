@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.5.6"></a>
+## [10.5.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.6) (2026-03-07)
+
+### 🐛 Bug Fixes
+
+* **deps:** update docker/setup-qemu-action action to v4 ([#946](https://www.github.com/slucky31/mycomicsmanager/issues/946)) ([a08bf4c](https://www.github.com/slucky31/mycomicsmanager/commit/a08bf4c48861b6705f9a65cb43e1b560052dbdd7))
+
 <a name="10.5.5"></a>
 ## [10.5.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.5) (2026-03-07)
 
