@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.5.3"></a>
+## [10.5.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.3) (2026-03-07)
+
+### 🐛 Bug Fixes
+
+* **deps:** update docker/build-push-action action to v7 ([#949](https://www.github.com/slucky31/mycomicsmanager/issues/949)) ([8944cc8](https://www.github.com/slucky31/mycomicsmanager/commit/8944cc8302beabfd9d06e3849550bb64404916f1))
+
 <a name="10.5.2"></a>
 ## [10.5.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.2) (2026-03-02)
 
