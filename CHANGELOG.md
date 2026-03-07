@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.5.9"></a>
+## [10.5.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.9) (2026-03-07)
+
+### 🐛 Bug Fixes
+
+* replace obsolete MudForm.Validate() with ValidateAsync() ([#950](https://www.github.com/slucky31/mycomicsmanager/issues/950)) ([917bfad](https://www.github.com/slucky31/mycomicsmanager/commit/917bfade8724a0e7de4c17bef9916e478e0e0a73))
+
 <a name="10.5.8"></a>
 ## [10.5.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.8) (2026-03-07)
 
