@@ -13,7 +13,6 @@ public class UpdateLibraryCommandTests
     private static readonly Guid s_userId = Guid.CreateVersion7();
     private static readonly UpdateLibraryCommand s_command = new(Guid.CreateVersion7(), "library", "#5C6BC0", "Bookmark", s_userId);
     private static readonly Library s_library = Library.Create("library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
-    private static readonly Library s_digitalLibrary = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
 
     private readonly UpdateLibraryCommandHandler _handler;
     private readonly IRepository<Library, Guid> _librayRepositoryMock;
@@ -32,7 +31,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnValidationError_WhenRequestIsNull()
+    public async Task Handle_ShouldReturnValidationError_WhenRequestIsNull()
     {
         // Act
         var result = await _handler.Handle(null!, default);
@@ -45,7 +44,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnBadRequest_WhenColorIsInvalid()
+    public async Task Handle_ShouldReturnBadRequest_WhenColorIsInvalid()
     {
         // Arrange – empty color makes library.Update() fail
         var commandWithBadColor = new UpdateLibraryCommand(s_command.Id, null, "", "Bookmark", s_userId);
@@ -61,7 +60,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnBadRequest_WhenNameIsInvalidEmptyString()
+    public async Task Handle_ShouldReturnBadRequest_WhenNameIsInvalidEmptyString()
     {
         // Arrange – empty string name is not null (enters name-update path) but fails UpdateName()
         var commandWithEmptyName = new UpdateLibraryCommand(s_command.Id, "", "#5C6BC0", "Bookmark", s_userId);
@@ -77,7 +76,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_ForDigitalLibraryWithNameChange()
+    public async Task Handle_ShouldReturnSuccess_ForDigitalLibraryWithNameChange()
     {
         // Arrange
         var digitalCommand = new UpdateLibraryCommand(s_command.Id, "new-digital-name", "#5C6BC0", "Bookmark", s_userId);
@@ -97,7 +96,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenLibraryIsNotFound()
+    public async Task Handle_ShouldReturnError_WhenLibraryIsNotFound()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns((Library?)null);
@@ -113,7 +112,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_WhenUserDoesNotOwnLibrary()
+    public async Task Handle_ShouldReturnError_WhenUserDoesNotOwnLibrary()
     {
         // Arrange
         var anotherUserId = Guid.CreateVersion7();
@@ -161,7 +160,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_ForPhysicalLibraryWithNameChange()
+    public async Task Handle_ShouldReturnSuccess_ForPhysicalLibraryWithNameChange()
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
@@ -179,7 +178,7 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WithoutNameChange()
+    public async Task Handle_ShouldReturnSuccess_WithoutNameChange()
     {
         // Arrange
         var commandWithoutName = new UpdateLibraryCommand(s_command.Id, null, "#FF0000", "Star", s_userId);

@@ -66,4 +66,18 @@ public class UserTests
         user.Email.Should().BeEmpty();
         user.AuthId.Should().BeEmpty();
     }
+
+    [Fact]
+    public void Update_Should_AllowNullValues_WhenInputsAreNull()
+    {
+        // Arrange
+        var user = User.Create("old@example.com", "old-auth-id");
+
+        // Act
+        user.Update(null!, null!);
+
+        // Assert
+        user.Email.Should().BeNull();
+        user.AuthId.Should().BeNull();
+    }
 }

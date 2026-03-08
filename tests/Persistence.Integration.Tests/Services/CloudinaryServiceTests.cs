@@ -14,8 +14,8 @@ public class CloudinaryServiceTests
         var settings = Options.Create(new CloudinarySettings
         {
             CloudName = "testcloud",
-            ApiKey = "123456789012345",
-            ApiSecret = "abcdefsecretkey"
+            ApiKey = "test-api-key",
+            ApiSecret = "test-api-secret"
         });
 
         var service = new CloudinaryService(settings);
@@ -25,7 +25,10 @@ public class CloudinaryServiceTests
             .GetField("_cloudinary", BindingFlags.NonPublic | BindingFlags.Instance)!;
         var cloudinary = cloudinaryField.GetValue(service)!;
         var api = cloudinary.GetType().GetProperty("Api")!.GetValue(cloudinary)!;
+        // CA2000 suppressed: ownership of HttpClient is transferred to the cloudinary API field
+#pragma warning disable CA2000
         api.GetType().GetField("Client")!.SetValue(api, new HttpClient(handler));
+#pragma warning restore CA2000
 
         return service;
     }
@@ -34,12 +37,13 @@ public class CloudinaryServiceTests
     public async Task UploadImageFromUrlAsync_ShouldReturnSuccess_WhenUploadSucceeds()
     {
         // Arrange
-        var handler = new StaticResponseHandler(new HttpResponseMessage(HttpStatusCode.OK)
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(
                 """{"public_id":"covers/test","secure_url":"https://res.cloudinary.com/testcloud/image/upload/covers/test.jpg"}""",
                 Encoding.UTF8, "application/json")
-        });
+        };
+        using var handler = new StaticResponseHandler(response);
         var service = CreateServiceWithMockHandler(handler);
 
         // Act
@@ -57,12 +61,13 @@ public class CloudinaryServiceTests
     public async Task UploadImageFromUrlAsync_ShouldReturnFailure_WhenCloudinaryReturnsError()
     {
         // Arrange
-        var handler = new StaticResponseHandler(new HttpResponseMessage(HttpStatusCode.OK)
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(
                 """{"error":{"message":"Upload failed"}}""",
                 Encoding.UTF8, "application/json")
-        });
+        };
+        using var handler = new StaticResponseHandler(response);
         var service = CreateServiceWithMockHandler(handler);
 
         // Act
@@ -80,7 +85,7 @@ public class CloudinaryServiceTests
     public async Task UploadImageFromUrlAsync_ShouldReturnFailure_WhenHttpRequestExceptionThrown()
     {
         // Arrange
-        var handler = new ThrowingHandler(new HttpRequestException("Network error"));
+        using var handler = new ThrowingHandler(new HttpRequestException("Network error"));
         var service = CreateServiceWithMockHandler(handler);
 
         // Act
@@ -97,7 +102,7 @@ public class CloudinaryServiceTests
     {
         // Arrange – throw TaskCanceledException whose token is CancellationToken.None,
         // while the caller token is also None (not cancelled) → triggers the timeout catch branch
-        var handler = new ThrowingHandler(new TaskCanceledException());
+        using var handler = new ThrowingHandler(new TaskCanceledException());
         var service = CreateServiceWithMockHandler(handler);
 
         // Act
