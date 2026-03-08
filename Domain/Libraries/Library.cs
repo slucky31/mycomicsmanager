@@ -16,6 +16,8 @@ public class Library : Entity<Guid>
 
     public Guid UserId { get; protected set; }
 
+    public BookSortOrder DefaultBookSortOrder { get; protected set; } = BookSortOrder.IdDesc;
+
     public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 
     private readonly List<Book> _books = [];

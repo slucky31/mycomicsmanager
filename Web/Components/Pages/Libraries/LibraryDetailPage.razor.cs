@@ -1,4 +1,5 @@
 using Domain.Books;
+using Domain.Libraries;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Serilog;
@@ -35,6 +36,7 @@ public partial class LibraryDetailPage
     } = string.Empty;
 
     private ViewMode _currentViewMode = ViewMode.Cards;
+    private BookSortOrder _currentSortOrder = BookSortOrder.IdDesc;
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,6 +62,7 @@ public partial class LibraryDetailPage
         }
 
         _library = LibraryUiDto.Convert(libResult.Value!);
+        _currentSortOrder = _library.DefaultBookSortOrder;
 
         var booksResult = await BooksService.GetByLibrary(libraryGuid);
         if (booksResult.IsSuccess && booksResult.Value is not null)
@@ -73,12 +76,27 @@ public partial class LibraryDetailPage
 
     private void UpdateFilteredBooks()
     {
-        _filteredBooks = string.IsNullOrWhiteSpace(_searchTerm)
+        var filtered = string.IsNullOrWhiteSpace(_searchTerm)
             ? _books
             : _books.Where(b =>
                 b.Title.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)))
-              .ToList();
+                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)));
+
+        _filteredBooks = _currentSortOrder switch
+        {
+            BookSortOrder.IdAsc => filtered.OrderBy(b => b.Id).ToList(),
+            BookSortOrder.SerieAndVolumeAsc => filtered
+                .OrderBy(b => b.Serie, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(b => b.VolumeNumber)
+                .ToList(),
+            _ => filtered.OrderByDescending(b => b.Id).ToList()
+        };
+    }
+
+    private void SetSortOrder(BookSortOrder sortOrder)
+    {
+        _currentSortOrder = sortOrder;
+        UpdateFilteredBooks();
     }
 
     private void GoBack() => NavigationManager.NavigateTo("/libraries/list");
