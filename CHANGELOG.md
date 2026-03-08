@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.5.10"></a>
+## [10.5.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.10) (2026-03-08)
+
+### 🐛 Bug Fixes
+
+* Optimize and fix unit tests ([#942](https://www.github.com/slucky31/mycomicsmanager/issues/942)) ([fb65966](https://www.github.com/slucky31/mycomicsmanager/commit/fb65966ec93b2d6d9306f560170ab97369d198c6))
+
 <a name="10.5.9"></a>
 ## [10.5.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.9) (2026-03-07)
 
