@@ -129,6 +129,20 @@ public sealed class LibraryUiDtoTests
         dto.Name.Should().Be(name);
         dto.CreatedOnUtc.Should().Be(library.CreatedOnUtc);
         dto.ModifiedOnUtc.Should().Be(library.ModifiedOnUtc);
+        dto.DefaultBookSortOrder.Should().Be(library.DefaultBookSortOrder);
+    }
+
+    [Fact]
+    public void Convert_ShouldMapDefaultBookSortOrder_WhenLibraryHasIdDesc()
+    {
+        // Arrange
+        var library = CreateLibrary("My Library");
+
+        // Act
+        var dto = LibraryUiDto.Convert(library);
+
+        // Assert
+        dto.DefaultBookSortOrder.Should().Be(BookSortOrder.IdDesc);
     }
 
     [Fact]
