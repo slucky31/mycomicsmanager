@@ -1,6 +1,7 @@
 using Domain.Books;
 using Domain.Libraries;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Serilog;
 using Web.Components.Pages.Dialogs;
@@ -10,13 +11,14 @@ using Web.Validators;
 
 namespace Web.Components.Pages.Libraries;
 
-public partial class LibraryDetailPage
+public partial class LibraryDetailPage : IAsyncDisposable
 {
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 
     [Parameter] public string? LibraryId { get; set; }
 
@@ -41,6 +43,17 @@ public partial class LibraryDetailPage
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await JS.InvokeVoidAsync("bodyScroll.disable");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await JS.InvokeVoidAsync("bodyScroll.enable");
     }
 
     private async Task LoadDataAsync()
@@ -97,6 +110,19 @@ public partial class LibraryDetailPage
     {
         _currentSortOrder = sortOrder;
         UpdateFilteredBooks();
+    }
+
+    private string LibColorRgba(double alpha)
+    {
+        var hex = _library?.Color ?? "#5C6BC0";
+        if (hex.StartsWith('#') && hex.Length == 7)
+        {
+            var r = Convert.ToInt32(hex[1..3], 16);
+            var g = Convert.ToInt32(hex[3..5], 16);
+            var b = Convert.ToInt32(hex[5..7], 16);
+            return FormattableString.Invariant($"rgba({r},{g},{b},{alpha})");
+        }
+        return FormattableString.Invariant($"rgba(92,107,192,{alpha})");
     }
 
     private void GoBack() => NavigationManager.NavigateTo("/libraries/list");

@@ -24,6 +24,18 @@
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script>
+        window.bodyScroll = {
+            disable: function () {
+                document.documentElement.style.overflow = 'hidden';
+                document.body.style.overflow = 'hidden';
+            },
+            enable: function () {
+                document.documentElement.style.overflow = '';
+                document.body.style.overflow = '';
+            }
+        };
+    </script>
 </body>
 
 </html>
