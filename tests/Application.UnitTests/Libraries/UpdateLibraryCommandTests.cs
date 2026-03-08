@@ -81,7 +81,8 @@ public class UpdateLibraryCommandTests
     {
         // Arrange
         var digitalCommand = new UpdateLibraryCommand(s_command.Id, "new-digital-name", "#5C6BC0", "Bookmark", s_userId);
-        _librayRepositoryMock.GetByIdAsync(digitalCommand.Id).Returns(s_digitalLibrary);
+        var freshDigitalLibrary = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(digitalCommand.Id).Returns(freshDigitalLibrary);
         _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
 
         // Act
@@ -147,7 +148,8 @@ public class UpdateLibraryCommandTests
     {
         // Arrange
         var digitalCommand = new UpdateLibraryCommand(s_command.Id, "new-digital-name", "#5C6BC0", "Bookmark", s_userId);
-        _librayRepositoryMock.GetByIdAsync(digitalCommand.Id).Returns(s_digitalLibrary);
+        var freshDigitalLibrary = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(digitalCommand.Id).Returns(freshDigitalLibrary);
         _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Failure(TError.Any));
 
         // Act

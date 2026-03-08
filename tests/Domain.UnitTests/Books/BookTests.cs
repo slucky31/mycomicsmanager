@@ -6,12 +6,12 @@ public class BookTests
 {
     private static readonly Guid DefaultLibraryId = Guid.CreateVersion7();
 
-    public static TheoryData<string, string, string, string> InvalidCreateParameters => new()
+    public static TheoryData<string, string, string, Guid> InvalidCreateParameters => new()
     {
-        { "", "Title", "9781401245252", DefaultLibraryId.ToString() },
-        { "Series", "", "9781401245252", DefaultLibraryId.ToString() },
-        { "Series", "Title", "", DefaultLibraryId.ToString() },
-        { "Series", "Title", "9781401245252", Guid.Empty.ToString() },
+        { "", "Title", "9781401245252", DefaultLibraryId },
+        { "Series", "", "9781401245252", DefaultLibraryId },
+        { "Series", "Title", "", DefaultLibraryId },
+        { "Series", "Title", "9781401245252", Guid.Empty },
     };
 
     // -------------------------------------------------------
@@ -79,10 +79,10 @@ public class BookTests
     [Theory]
     [MemberData(nameof(InvalidCreateParameters))]
     public void Create_Should_ReturnBadRequest_WhenParameterIsInvalid(
-        string serie, string title, string isbn, string libraryId)
+        string serie, string title, string isbn, Guid libraryId)
     {
         // Act
-        var result = PhysicalBook.Create(serie, title, isbn, libraryId: Guid.Parse(libraryId));
+        var result = PhysicalBook.Create(serie, title, isbn, libraryId: libraryId);
 
         // Assert
         result.IsFailure.Should().BeTrue();

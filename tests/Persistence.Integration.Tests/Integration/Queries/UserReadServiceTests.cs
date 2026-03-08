@@ -302,7 +302,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthIdAndEmail_WithEmptyAuthId_ReturnsBadRequest()
+    public async Task GetUserByAuthIdAndEmail_ShouldReturnBadRequest_WhenAuthIdIsEmpty()
     {
         // Arrange – email valid but authId empty → covers the second IsNullOrWhiteSpace operand
         const string email = "test@test.com";
@@ -317,7 +317,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthId_WhenAuthIdIsEmpty_ReturnsBadRequest()
+    public async Task GetUserByAuthId_ShouldReturnBadRequest_WhenAuthIdIsEmpty()
     {
         // Act
         var result = await UserReadService.GetUserByAuthId(string.Empty);
@@ -328,7 +328,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthId_WhenUserNotFound_ReturnsNotFound()
+    public async Task GetUserByAuthId_ShouldReturnNotFound_WhenUserNotFound()
     {
         // Act
         var result = await UserReadService.GetUserByAuthId("nonexistent-auth-id");
@@ -339,7 +339,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthId_WhenUserFound_ReturnsUser()
+    public async Task GetUserByAuthId_ShouldReturnUser_WhenUserFound()
     {
         // Arrange
         var user = User.Create("authid@test.com", "unique-auth-id");
@@ -355,7 +355,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     }
 
     [Fact]
-    public async Task GetUserByAuthId_WhenMultipleUsersShareSameAuthId_ReturnsDuplicate()
+    public async Task GetUserByAuthId_ShouldReturnDuplicate_WhenMultipleUsersShareSameAuthId()
     {
         // Arrange – two users with the same AuthId (data integrity issue scenario)
         var user1 = User.Create("dup1@test.com", "shared-auth-id");

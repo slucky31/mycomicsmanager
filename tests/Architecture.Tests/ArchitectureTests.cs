@@ -78,9 +78,9 @@ public class ArchitectureTests
     {
         var testResult = Types.InAssembly(ApplicationAssembly)
             .That()
-            .HaveNameEndingWith("Query", StringComparison.Ordinal)
-            .Should()
             .ImplementInterface(typeof(IQuery<>))
+            .Should()
+            .HaveNameEndingWith("Query", StringComparison.Ordinal)
             .GetResult();
 
         testResult.IsSuccessful.Should().BeTrue();

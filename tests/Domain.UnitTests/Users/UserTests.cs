@@ -9,7 +9,7 @@ public class UserTests
     // -------------------------------------------------------
 
     [Fact]
-    public void Update_Should_UpdateEmailAndAuthId()
+    public void Update_Should_UpdateEmailAndAuthId_WhenValuesProvided()
     {
         // Arrange
         var user = User.Create("old@example.com", "old-auth-id");
@@ -25,7 +25,7 @@ public class UserTests
     }
 
     [Fact]
-    public void Update_Should_NotChangeId()
+    public void Update_Should_NotChangeId_WhenCalled()
     {
         // Arrange
         var user = User.Create("old@example.com", "old-auth-id");
@@ -54,7 +54,7 @@ public class UserTests
     }
 
     [Fact]
-    public void Update_Should_AllowEmptyValues()
+    public void Update_Should_AllowEmptyValues_WhenInputsAreEmpty()
     {
         // Arrange
         var user = User.Create("old@example.com", "old-auth-id");
