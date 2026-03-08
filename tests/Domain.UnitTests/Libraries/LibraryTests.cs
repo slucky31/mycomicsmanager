@@ -31,6 +31,18 @@ public class LibraryTests
         library.BookType.Should().Be(LibraryBookType.Physical);
         library.UserId.Should().Be(DefaultUserId);
         library.Id.Should().NotBe(Guid.Empty);
+        library.DefaultBookSortOrder.Should().Be(BookSortOrder.IdDesc);
+    }
+
+    [Fact]
+    public void Create_Should_SetDefaultBookSortOrderToIdDesc()
+    {
+        // Act
+        var result = Library.Create("My Library", "#5C6BC0", "Book", LibraryBookType.Physical, DefaultUserId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.DefaultBookSortOrder.Should().Be(BookSortOrder.IdDesc);
     }
 
     [Fact]

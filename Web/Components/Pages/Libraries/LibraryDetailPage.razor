@@ -3,6 +3,7 @@
 @page "/libraries/{LibraryId}"
 
 @using Domain.Books
+@using Domain.Libraries
 @using Web.Components.SharedComponents
 @using Web.Enums
 @using Web.Validators
@@ -17,8 +18,10 @@
     else
     {
         @* Library header *@
-        <div class="library-detail-header">
-            <div class="d-flex align-center justify-space-between">
+        <div class="library-detail-header"
+             style="@($"background: linear-gradient(135deg, {LibColorRgba(0.22)} 0%, rgba(0,0,0,0) 100%), rgba(255,255,255,0.04); border-bottom: 1px solid {LibColorRgba(0.35)};")">
+            <div class="library-color-blob" style="@($"background: {_library?.Color ?? "#5C6BC0"};")"></div>
+            <div class="library-detail-header-content d-flex align-center justify-space-between">
                 <div class="d-flex align-center gap-3">
                     <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
                                    Color="Color.Inherit"
@@ -26,9 +29,6 @@
                     <div>
                         <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
                             @_library?.Name
-                        </MudText>
-                        <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
-                            @_books.Count book(s)
                         </MudText>
                     </div>
                 </div>
@@ -57,10 +57,35 @@
                         </MudTooltip>
                     </MudButtonGroup>
 
+                    <MudButtonGroup OverrideStyles="false" Class="mr-2 d-none d-sm-flex">
+                        <MudTooltip Text="Sort: newest first">
+                            <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
+                                           Color="@(_currentSortOrder == BookSortOrder.IdDesc ? Color.Primary : Color.Default)"
+                                           Variant="@(_currentSortOrder == BookSortOrder.IdDesc ? Variant.Filled : Variant.Outlined)"
+                                           OnClick="@(() => SetSortOrder(BookSortOrder.IdDesc))"
+                                           Class="view-toggle-btn" />
+                        </MudTooltip>
+                        <MudTooltip Text="Sort: oldest first">
+                            <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
+                                           Color="@(_currentSortOrder == BookSortOrder.IdAsc ? Color.Primary : Color.Default)"
+                                           Variant="@(_currentSortOrder == BookSortOrder.IdAsc ? Variant.Filled : Variant.Outlined)"
+                                           OnClick="@(() => SetSortOrder(BookSortOrder.IdAsc))"
+                                           Class="view-toggle-btn" />
+                        </MudTooltip>
+                        <MudTooltip Text="Sort: series &amp; volume">
+                            <MudIconButton Icon="@Icons.Material.Filled.SortByAlpha"
+                                           Color="@(_currentSortOrder == BookSortOrder.SerieAndVolumeAsc ? Color.Primary : Color.Default)"
+                                           Variant="@(_currentSortOrder == BookSortOrder.SerieAndVolumeAsc ? Variant.Filled : Variant.Outlined)"
+                                           OnClick="@(() => SetSortOrder(BookSortOrder.SerieAndVolumeAsc))"
+                                           Class="view-toggle-btn" />
+                        </MudTooltip>
+                    </MudButtonGroup>
+
                     <MudButton StartIcon="@Icons.Material.Filled.Add"
                                Variant="Variant.Filled"
                                Color="Color.Primary"
-                               OnClick="AddBook">
+                               OnClick="AddBook"
+                               Class="d-none d-sm-flex">
                         New Book
                     </MudButton>
                                        
@@ -68,16 +93,17 @@
             </div>
         </div>
 
-        <div class="library-detail-content">
-            @* Search bar *@
+        @* Search bar — sticky with header *@
+        <div class="library-search-wrapper">
             <MudTextField @bind-Value="_searchTerm"
                           Placeholder="Search by title or series…"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
                           Clearable="true"
                           Immediate="true"
-                          Variant="Variant.Outlined"
-                          Class="mb-4" />
+                          Variant="Variant.Outlined" />
+        </div>
+        <div class="library-detail-content">
 
             @* Books display *@
             @if (_books.Count == 0)
@@ -120,3 +146,13 @@
         </div>
     }
 </div>
+
+@* FAB — outside page div to ensure viewport positioning *@
+@if (!_isLoading)
+{
+    <div class="fab-add-book d-sm-none">
+        <MudFab Color="Color.Primary"
+                StartIcon="@Icons.Material.Filled.Add"
+                OnClick="AddBook" />
+    </div>
+}

@@ -42,6 +42,10 @@
     <Content Remove="wwwroot\temp\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\favicon\" />
+  </ItemGroup>
+
 
   <!-- Source:  https://jonhilton.net/visual-studio-2022-blazor-css-intellisense/#:~:text=If%20you%20opt%20to%20use%20an,styles%20%28that%20come%20with%20the%20library%29.&text=If%20you%20opt%20to,come%20with%20the%20library%29.&text=opt%20to%20use%20an,styles%20%28that%20come%20with -->
   <Target Name="CollectMudBlazorStaticAssets" DependsOnTargets="ResolveStaticWebAssetsInputs" AfterTargets="Build" Condition=" '$(Configuration)' == 'Debug' ">
