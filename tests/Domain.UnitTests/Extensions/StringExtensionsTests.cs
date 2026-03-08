@@ -1,135 +1,40 @@
-
 using Domain.Extensions;
 
 namespace Domain.UnitTests.Extensions;
 
 public class StringExtensionsTests
 {
-    [Fact]
-    public void ToPascalCase_Returns_PascalCasedString()
+    [Theory]
+    [InlineData("héllo_wôrld123;:,-_", "HelloWorld123")]
+    [InlineData("", "")]
+    public void ToPascalCase_Should_ReturnExpectedString_WhenInputIsProvided(string input, string expected)
     {
-        // Arrange
-        const string input = "héllo_wôrld123;:,-_";
-        const string expectedOutput = "HelloWorld123";
-
-        // Act
-        var result = input.ToPascalCase();
-
-        // Assert
-        result.Should().Be(expectedOutput);
+        input.ToPascalCase().Should().Be(expected);
     }
 
-    [Fact]
-    public void ToPascalCase_ReturnsEmptyString_WhenGivenEmptyString()
+    [Theory]
+    [InlineData("héllo_wôrld123;:,-_", "helloWorld123")]
+    [InlineData("", "")]
+    public void ToCamlCase_Should_ReturnExpectedString_WhenInputIsProvided(string input, string expected)
     {
-        // Arrange
-        var input = string.Empty;
-        var expectedOutput = string.Empty;
-
-        // Act
-        var result = input.ToPascalCase();
-
-        // Assert
-        result.Should().Be(expectedOutput);
+        input.ToCamlCase().Should().Be(expected);
     }
 
-    [Fact]
-    public void ToCamlCase_Returns_CorrectString()
+    [Theory]
+    [InlineData("éèêëÈÉÊË-ûüùÛÜÙ-ôöÔÖ-âàäÀÂÄ-îïÎÏ", "eeeeEEEE-uuuUUU-ooOO-aaaAAA-iiII")]
+    [InlineData("", "")]
+    public void RemoveDiacritics_Should_ReturnExpectedString_WhenInputIsProvided(string input, string expected)
     {
-        // Arrange
-        const string input = "héllo_wôrld123;:,-_";
-        const string expectedOutput = "helloWorld123";
-
-        // Act
-        var result = input.ToCamlCase();
-
-        // Assert
-        result.Should().Be(expectedOutput);
+        input.RemoveDiacritics().Should().Be(expected);
     }
 
-    [Fact]
-    public void ToCamlCase_ReturnsEmptyString_WhenGivenEmptyString()
+    [Theory]
+    [InlineData("Hello World !", "wOrld", "Hello  !")]
+    [InlineData("Hello World !", "", "Hello World !")]
+    [InlineData("", "sdjqjgsqldkj", "")]
+    [InlineData("Hello World !", null, "Hello World !")]
+    public void Substract_Should_ReturnExpectedString_WhenInputIsProvided(string input, string? sub, string expected)
     {
-        // Arrange
-        var input = string.Empty;
-        var expectedOutput = string.Empty;
-
-        // Act
-        var result = input.ToCamlCase();
-
-        // Assert
-        result.Should().Be(expectedOutput);
+        input.Substract(sub).Should().Be(expected);
     }
-
-    [Fact]
-    public void RemoveDiacritics_RemovesDiacritics()
-    {
-        // Arrange
-        const string input = "éèêëÈÉÊË-ûüùÛÜÙ-ôöÔÖ-âàäÀÂÄ-îïÎÏ";
-        const string expectedOutput = "eeeeEEEE-uuuUUU-ooOO-aaaAAA-iiII";
-
-        // Act
-        var result = input.RemoveDiacritics();
-
-        // Assert
-        result.Should().Be(expectedOutput);
-    }
-
-    [Fact]
-    public void RemoveDiacritics_ReturnsEmptyString_WhenGivenEmptyString()
-    {
-        // Arrange
-        var input = string.Empty;
-        var expectedOutput = string.Empty;
-
-        // Act
-        var result = input.RemoveDiacritics();
-
-        // Assert
-        result.Should().Be(expectedOutput);
-    }
-
-    [Fact]
-    public void Substract_ReturnsSubstract()
-    {
-        // Arrange
-        const string input = "Hello World !";
-        const string sub = "wOrld";
-        const string expectedOutput = "Hello  !";
-
-        // Act
-        var result = input.Substract(sub);
-
-        // Assert
-        result.Should().Be(expectedOutput);
-    }
-
-    [Fact]
-    public void Substract_ReturnsInput_WhenSubIsEmpty()
-    {
-        // Arrange
-        const string input = "Hello World !";
-        var sub = string.Empty;
-
-        // Act
-        var result = input.Substract(sub);
-
-        // Assert
-        result.Should().Be(input);
-    }
-
-    [Fact]
-    public void Substract_ReturnsEmpty_WhenIsEmpty()
-    {
-        // Arrange
-        var input = string.Empty;
-        const string sub = "sdjqjgsqldkj";
-
-        // Act
-        var result = input.Substract(sub);
-
-        // Assert
-        result.Should().Be(input);
-    }
-
 }

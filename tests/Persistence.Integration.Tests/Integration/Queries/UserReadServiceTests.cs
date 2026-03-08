@@ -301,4 +301,75 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         result.Value.AuthId.Should().Be(user.AuthId);
     }
 
+    [Fact]
+    public async Task GetUserByAuthIdAndEmail_ShouldReturnBadRequest_WhenAuthIdIsEmpty()
+    {
+        // Arrange – email valid but authId empty → covers the second IsNullOrWhiteSpace operand
+        const string email = "test@test.com";
+        const string authId = "";
+
+        // Act
+        var result = await UserReadService.GetUserByAuthIdAndEmail(email, authId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetUserByAuthId_ShouldReturnBadRequest_WhenAuthIdIsEmpty()
+    {
+        // Act
+        var result = await UserReadService.GetUserByAuthId(string.Empty);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetUserByAuthId_ShouldReturnNotFound_WhenUserNotFound()
+    {
+        // Act
+        var result = await UserReadService.GetUserByAuthId("nonexistent-auth-id");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+    }
+
+    [Fact]
+    public async Task GetUserByAuthId_ShouldReturnUser_WhenUserFound()
+    {
+        // Arrange
+        var user = User.Create("authid@test.com", "unique-auth-id");
+        UserRepository.Add(user);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await UserReadService.GetUserByAuthId("unique-auth-id");
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.AuthId.Should().Be("unique-auth-id");
+    }
+
+    [Fact]
+    public async Task GetUserByAuthId_ShouldReturnDuplicate_WhenMultipleUsersShareSameAuthId()
+    {
+        // Arrange – two users with the same AuthId (data integrity issue scenario)
+        var user1 = User.Create("dup1@test.com", "shared-auth-id");
+        var user2 = User.Create("dup2@test.com", "shared-auth-id");
+        UserRepository.Add(user1);
+        UserRepository.Add(user2);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await UserReadService.GetUserByAuthId("shared-auth-id");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.Duplicate);
+    }
+
 }

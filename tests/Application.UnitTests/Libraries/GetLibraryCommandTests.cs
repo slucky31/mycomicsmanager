@@ -22,6 +22,18 @@ public class GetLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_Should_ReturnValidationError_WhenRequestIsNull()
+    {
+        // Act
+        var result = await _handler.Handle(null!, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.ValidationError);
+        await _librayRepositoryMock.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+    }
+
+    [Fact]
     public async Task Handle_Should_ReturnSuccess()
     {
         // Arrange

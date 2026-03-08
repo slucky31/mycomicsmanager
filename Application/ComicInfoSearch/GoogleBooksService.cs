@@ -205,7 +205,6 @@ public class GoogleBooksService : IGoogleBooksService
 
     // Internal DTOs for JSON deserialization
     private sealed record GoogleBooksSearchResponse(
-        [property: JsonPropertyName("totalItems")] int TotalItems,
         [property: JsonPropertyName("items")] IReadOnlyList<GoogleBooksVolume>? Items
     );
 
