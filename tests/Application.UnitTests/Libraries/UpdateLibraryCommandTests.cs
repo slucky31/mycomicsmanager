@@ -197,6 +197,24 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_ShouldReturnBadRequest_WhenDefaultBookSortOrderIsInvalid()
+    {
+        // Arrange
+        var commandWithInvalidSortOrder = new UpdateLibraryCommand(s_command.Id, null, "#5C6BC0", "Bookmark", s_userId, (BookSortOrder)999);
+        var freshLibrary = Library.Create("library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(commandWithInvalidSortOrder.Id).Returns(freshLibrary);
+
+        // Act
+        var result = await _handler.Handle(commandWithInvalidSortOrder, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.BadRequest);
+        _librayRepositoryMock.DidNotReceive().Update(Arg.Any<Library>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(CancellationToken.None);
+    }
+
+    [Fact]
     public async Task Handle_ShouldPersistDefaultBookSortOrder_WhenProvided()
     {
         // Arrange
