@@ -1,5 +1,9 @@
+using System.Globalization;
 using Domain.Books;
+using Domain.Libraries;
 using Microsoft.AspNetCore.Components;
+using Web.Models;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Serilog;
 using Web.Components.Pages.Dialogs;
@@ -9,19 +13,20 @@ using Web.Validators;
 
 namespace Web.Components.Pages.Libraries;
 
-public partial class LibraryDetailPage
+public partial class LibraryDetailPage : IAsyncDisposable
 {
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 
     [Parameter] public string? LibraryId { get; set; }
 
     private LibraryUiDto? _library;
     private List<Book> _books = [];
-    private List<Book> _filteredBooks = [];
+    private List<BookListItemViewModel> _filteredBooks = [];
     private bool _isLoading = true;
 
     private string _searchTerm
@@ -35,10 +40,25 @@ public partial class LibraryDetailPage
     } = string.Empty;
 
     private ViewMode _currentViewMode = ViewMode.Cards;
+    private BookSortOrder _currentSortOrder = BookSortOrder.IdDesc;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("bodyScroll.disable");
+        }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
+    public async ValueTask DisposeAsync()
+    {
+        await JS.InvokeVoidAsync("bodyScroll.enable");
     }
 
     private async Task LoadDataAsync()
@@ -60,6 +80,7 @@ public partial class LibraryDetailPage
         }
 
         _library = LibraryUiDto.Convert(libResult.Value!);
+        _currentSortOrder = _library.DefaultBookSortOrder;
 
         var booksResult = await BooksService.GetByLibrary(libraryGuid);
         if (booksResult.IsSuccess && booksResult.Value is not null)
@@ -73,12 +94,60 @@ public partial class LibraryDetailPage
 
     private void UpdateFilteredBooks()
     {
-        _filteredBooks = string.IsNullOrWhiteSpace(_searchTerm)
+        var filtered = string.IsNullOrWhiteSpace(_searchTerm)
             ? _books
             : _books.Where(b =>
                 b.Title.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)))
-              .ToList();
+                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)));
+
+        _filteredBooks = (_currentSortOrder switch
+        {
+            BookSortOrder.IdAsc => filtered.OrderBy(b => b.Id),
+            BookSortOrder.SerieAndVolumeAsc => filtered
+                .OrderBy(b => b.Serie, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(b => b.VolumeNumber),
+            _ => filtered.OrderByDescending(b => b.Id)
+        }).Select(BookListItemViewModel.From).ToList();
+    }
+
+    private async Task SetSortOrderAsync(BookSortOrder sortOrder)
+    {
+        if (_library is null)
+        {
+            return;
+        }
+
+        var result = await LibrariesService.Update(new UpdateLibraryRequest(
+            _library.Id.ToString(),
+            null,
+            _library.Color,
+            _library.Icon,
+            sortOrder));
+
+        if (result.IsSuccess)
+        {
+            _library.DefaultBookSortOrder = sortOrder;
+            _currentSortOrder = sortOrder;
+            UpdateFilteredBooks();
+        }
+        else
+        {
+            Snackbar.Add("Failed to save sort order", Severity.Error);
+            Log.Error("Failed to save sort order for library {LibraryId}: {ErrorDescription}", _library.Id, result.Error?.Description);
+        }
+    }
+
+    private string LibColorRgba(double alpha)
+    {
+        var hex = _library?.Color ?? "#5C6BC0";
+        if (hex.StartsWith('#') && hex.Length == 7
+            && int.TryParse(hex[1..3], NumberStyles.HexNumber, null, out var r)
+            && int.TryParse(hex[3..5], NumberStyles.HexNumber, null, out var g)
+            && int.TryParse(hex[5..7], NumberStyles.HexNumber, null, out var b))
+        {
+            return FormattableString.Invariant($"rgba({r},{g},{b},{alpha})");
+        }
+        return FormattableString.Invariant($"rgba(92,107,192,{alpha})");
     }
 
     private void GoBack() => NavigationManager.NavigateTo("/libraries/list");

@@ -28,31 +28,23 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             return updateResult.Error!;
         }
 
+        // Validate and apply sort order before any storage side-effects
+        if (request.DefaultBookSortOrder is not null)
+        {
+            var sortResult = library.UpdateDefaultBookSortOrder(request.DefaultBookSortOrder.Value);
+            if (sortResult.IsFailure)
+            {
+                return sortResult.Error!;
+            }
+        }
+
         // Update name only if provided
         if (request.Name is not null)
         {
-            // Check for duplicate name within same user (excluding this library)
-            if (await libraryReadService.ExistsByNameAsync(request.Name, request.UserId, request.Id, cancellationToken))
+            var nameResult = await ApplyNameUpdateAsync(library, request.Id, request.Name, request.UserId, cancellationToken);
+            if (nameResult.IsFailure)
             {
-                return LibrariesError.Duplicate;
-            }
-
-            var originPath = library.RelativePath;
-
-            var updateNameResult = library.UpdateName(request.Name);
-            if (updateNameResult.IsFailure)
-            {
-                return updateNameResult.Error!;
-            }
-
-            // Move folder only for digital libraries
-            if (library.BookType == LibraryBookType.Digital)
-            {
-                var moveResult = libraryLocalStorage.Move(originPath, library.RelativePath);
-                if (moveResult.IsFailure)
-                {
-                    return LibrariesError.FolderNotMoved;
-                }
+                return nameResult.Error!;
             }
         }
 
@@ -60,5 +52,33 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return library;
+    }
+
+    private async Task<Result> ApplyNameUpdateAsync(Library library, Guid libraryId, string name, Guid userId, CancellationToken cancellationToken)
+    {
+        if (await libraryReadService.ExistsByNameAsync(name, userId, libraryId, cancellationToken))
+        {
+            return LibrariesError.Duplicate;
+        }
+
+        var originPath = library.RelativePath;
+
+        var updateNameResult = library.UpdateName(name);
+        if (updateNameResult.IsFailure)
+        {
+            return updateNameResult.Error!;
+        }
+
+        // Move folder only for digital libraries
+        if (library.BookType == LibraryBookType.Digital)
+        {
+            var moveResult = libraryLocalStorage.Move(originPath, library.RelativePath);
+            if (moveResult.IsFailure)
+            {
+                return LibrariesError.FolderNotMoved;
+            }
+        }
+
+        return Result.Success();
     }
 }

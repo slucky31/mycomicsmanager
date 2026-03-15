@@ -1,0 +1,56 @@
+/* ── Standard header ─────────────────────────────────── */
+.page-header {
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    min-height: 64px;
+    padding: 0 24px;
+    color: white;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* ── Library color variant (glassmorphism) ───────────── */
+.page-header--library {
+    min-height: 64px;
+    padding: 0 20px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.page-header-blob {
+    position: absolute;
+    width: 320px;
+    height: 200px;
+    border-radius: 50%;
+    opacity: 0.7;
+    filter: blur(65px);
+    top: -80px;
+    left: -60px;
+    pointer-events: none;
+}
+
+.page-header-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+.page-header-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
+}
+
+/* ── Mobile ───────────────────────────────────────────── */
+@media (max-width: 599px) {
+    .page-header {
+        padding: 0 12px;
+    }
+
+    .page-header--library {
+        padding: 0 12px;
+    }
+}

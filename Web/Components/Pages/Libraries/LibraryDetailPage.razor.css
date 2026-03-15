@@ -1,14 +1,84 @@
 .library-detail-page {
-    min-height: 100vh;
-    background: var(--mud-palette-background);
+    display: flex;
+    flex-direction: column;
+    /* 64px = MudBlazor default AppBar height */
+    height: calc(100dvh - 64px);
 }
 
+/* ── Header ───────────────────────────────────────────── */
 .library-detail-header {
-    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
-    padding: 16px 24px;
+    min-height: 64px;
+    padding: 0 20px;
     color: white;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
+.library-color-blob {
+    position: absolute;
+    width: 320px;
+    height: 200px;
+    border-radius: 50%;
+    opacity: 0.7;
+    filter: blur(65px);
+    top: -80px;
+    left: -60px;
+    pointer-events: none;
+}
+
+.library-detail-header-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+/* ── Search bar ───────────────────────────────────────── */
+.library-search-wrapper {
+    background: var(--mud-palette-background);
+    padding: 12px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+/* ── Scrollable content ───────────────────────────────── */
 .library-detail-content {
-    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 16px 24px 24px;
+}
+
+/* ── FAB (mobile only, always viewport-fixed) ─────────── */
+.fab-add-book {
+    position: fixed;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 16px);
+    right: 20px;
+    z-index: 1200;
+}
+
+/* ── Mobile ───────────────────────────────────────────── */
+@media (max-width: 599px) {
+    .library-detail-page {
+        /* subtract bottom nav height (~72px) as well */
+        height: calc(100dvh - 64px - 72px - env(safe-area-inset-bottom, 0px));
+    }
+
+    .library-detail-header {
+        padding: 0 12px;
+    }
+
+    .library-search-wrapper {
+        padding: 8px 12px;
+    }
+
+    .library-detail-content {
+        padding: 12px;
+        /* clearance so last item isn't behind FAB */
+        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    }
 }

@@ -10,44 +10,54 @@
 
 <div class="book-detail-page">
     @* Header *@
-    <div class="book-detail-header">
-        <div class="d-flex align-center justify-space-between">
-            <div class="d-flex align-center gap-3">
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                               Color="Color.Inherit"
-                               OnClick="GoBack" />
-                <div>
-                    <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
-                        Book Details
-                    </MudText>
-                    <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
-                        @if (_isLoading)
-                        {
-                            <text>Loading...</text>
-                        }
-                        else if (_book is not null)
-                        {
-                            @_book.Title
-                        }
-                    </MudText>
-                </div>
-            </div>
+    <PageHeader Title="Book Details" OnBack="GoBack">
+        <SubtitleContent>
+            @if (_isLoading)
+            {
+                <text>Loading...</text>
+            }
+            else if (_book is not null)
+            {
+                @_book.Title
+            }
+        </SubtitleContent>
+        <Actions>
             @if (_book is not null)
             {
-                <div class="d-flex gap-2">
-                    <MudIconButton Icon="@Icons.Material.Filled.CloudDownload"
-                                   Color="Color.Inherit"
-                                   OnClick="ImportFromWeb" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                   Color="Color.Inherit"
-                                   OnClick="EditBook" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                   Color="Color.Inherit"
-                                   OnClick="DeleteBookAsync" />
-                </div>
+                @* Desktop: icon buttons *@
+                <MudIconButton Icon="@Icons.Material.Filled.CloudDownload"
+                               Color="Color.Inherit"
+                               OnClick="ImportFromWeb"
+                               aria-label="Import book"
+                               Class="d-none d-sm-flex" />
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                               Color="Color.Inherit"
+                               OnClick="EditBook"
+                               aria-label="Edit book"
+                               Class="d-none d-sm-flex" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Inherit"
+                               OnClick="DeleteBookAsync"
+                               aria-label="Delete book"
+                               Class="d-none d-sm-flex" />
+
+                @* Mobile: 3-dots menu *@
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                         Color="Color.Inherit"
+                         Dense="true"
+                         AriaLabel="More actions"
+                         Class="d-flex d-sm-none">
+                    <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload"
+                                 OnClick="ImportFromWeb">Import from Web</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Edit"
+                                 OnClick="EditBook">Edit</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Delete"
+                                 IconColor="Color.Error"
+                                 OnClick="DeleteBookAsync">Delete</MudMenuItem>
+                </MudMenu>
             }
-        </div>
-    </div>
+        </Actions>
+    </PageHeader>
 
     @* Content *@
     <div class="book-detail-content">
@@ -253,32 +263,6 @@
                             }
                         </div>
 
-                        @* Action buttons (for mobile) *@
-                        <div class="d-flex flex-column gap-2 mt-6 d-sm-none">
-                            <MudButton Variant="Variant.Outlined"
-                                       Color="Color.Secondary"
-                                       StartIcon="@Icons.Material.Filled.CloudDownload"
-                                       FullWidth="true"
-                                       OnClick="ImportFromWeb">
-                                Import from Web
-                            </MudButton>
-                            <div class="d-flex gap-2">
-                                <MudButton Variant="Variant.Outlined"
-                                           Color="Color.Primary"
-                                           StartIcon="@Icons.Material.Filled.Edit"
-                                           FullWidth="true"
-                                           OnClick="EditBook">
-                                    Edit
-                                </MudButton>
-                                <MudButton Variant="Variant.Outlined"
-                                           Color="Color.Error"
-                                           StartIcon="@Icons.Material.Filled.Delete"
-                                           FullWidth="true"
-                                           OnClick="DeleteBookAsync">
-                                    Delete
-                                </MudButton>
-                            </div>
-                        </div>
                     </MudItem>
                 </MudGrid>
             </MudPaper>

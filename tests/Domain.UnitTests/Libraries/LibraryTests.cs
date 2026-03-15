@@ -31,6 +31,7 @@ public class LibraryTests
         library.BookType.Should().Be(LibraryBookType.Physical);
         library.UserId.Should().Be(DefaultUserId);
         library.Id.Should().NotBe(Guid.Empty);
+        library.DefaultBookSortOrder.Should().Be(BookSortOrder.IdDesc);
     }
 
     [Fact]
@@ -200,6 +201,38 @@ public class LibraryTests
 
         // Act
         var result = library.UpdateName("");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.BadRequest);
+    }
+
+    // -------------------------------------------------------
+    // UpdateDefaultBookSortOrder
+    // -------------------------------------------------------
+
+    [Fact]
+    public void UpdateDefaultBookSortOrder_Should_UpdateSortOrder_WhenValid()
+    {
+        // Arrange
+        var library = Library.Create("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, DefaultUserId).Value!;
+
+        // Act
+        var result = library.UpdateDefaultBookSortOrder(BookSortOrder.SerieAndVolumeAsc);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        library.DefaultBookSortOrder.Should().Be(BookSortOrder.SerieAndVolumeAsc);
+    }
+
+    [Fact]
+    public void UpdateDefaultBookSortOrder_Should_ReturnBadRequest_WhenSortOrderIsUndefined()
+    {
+        // Arrange
+        var library = Library.Create("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, DefaultUserId).Value!;
+
+        // Act
+        var result = library.UpdateDefaultBookSortOrder((BookSortOrder)999);
 
         // Assert
         result.IsFailure.Should().BeTrue();

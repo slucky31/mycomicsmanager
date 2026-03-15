@@ -6,21 +6,9 @@
 
 <div class="add-book-choice-page">
     @* Header *@
-    <div class="add-book-choice-header">
-        <div class="d-flex align-center gap-3">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                           Color="Color.Inherit"
-                           OnClick="GoBack" />
-            <div>
-                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
-                    Add a Book
-                </MudText>
-                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
-                    Choose how you want to add your book
-                </MudText>
-            </div>
-        </div>
-    </div>
+    <PageHeader Title="Add a Book"
+                Subtitle="Choose how you want to add your book"
+                OnBack="GoBack" />
 
     @* Content *@
     <div class="add-book-choice-content">

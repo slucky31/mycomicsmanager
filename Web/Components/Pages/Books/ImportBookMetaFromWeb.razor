@@ -9,16 +9,7 @@
 <div class="import-page">
 
     @* ── Header ── *@
-    <div class="import-header">
-        <div class="d-flex align-center gap-3">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                           Color="Color.Inherit"
-                           OnClick="Cancel" />
-            <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
-                Import from Web
-            </MudText>
-        </div>
-    </div>
+    <PageHeader Title="Import from Web" OnBack="Cancel" />
 
     @* ── Body ── *@
     <div class="import-content">

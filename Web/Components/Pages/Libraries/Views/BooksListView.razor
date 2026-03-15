@@ -1,26 +1,19 @@
-@using Domain.Books
 @using Web.Components.SharedComponents
 
 <MudPaper Elevation="0">
     <MudTable Items="@Books" Hover="true" Breakpoint="Breakpoint.Xs" Dense="true" Striped="true" Class="rounded-lg">
         <HeaderContent>
-            <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Title)">Title</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Serie)">Series</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.Serie)">Series</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.VolumeNumber)">Vol.</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.Title)">Title</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.LastRead ?? DateTime.MinValue)">Last Read</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.LastRating)">Last Rating</MudTableSortLabel></MudTh>
             <MudTh>ISBN</MudTh>
-            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.VolumeNumber)">Vol.</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0)">Rating</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align: center;">Read</MudTh>
             <MudTh Style="text-align: right;">Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Title">
-                <MudText Typo="Typo.body2" Class="font-weight-medium">@context.Title</MudText>
-            </MudTd>
             <MudTd DataLabel="Series">
                 <MudText Typo="Typo.body2" Color="Color.Primary">@context.Serie</MudText>
-            </MudTd>
-            <MudTd DataLabel="ISBN">
-                <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.ISBN</MudText>
             </MudTd>
             <MudTd DataLabel="Volume" Style="text-align: center;">
                 @if (context.VolumeNumber > 0)
@@ -28,30 +21,31 @@
                     <MudChip T="string" Size="Size.Small" Color="Color.Default">@context.VolumeNumber</MudChip>
                 }
             </MudTd>
-            <MudTd DataLabel="Rating" Style="text-align: center;">
-                @{
-                    var listRating = context.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
-                }
-                @if (listRating > 0)
+            <MudTd DataLabel="Title">
+                <MudText Typo="Typo.body2" Class="font-weight-medium">@context.Title</MudText>
+            </MudTd>
+            <MudTd DataLabel="Last Read" Style="text-align: center;">
+                @if (context.LastRead.HasValue)
                 {
-                    <MudRating SelectedValue="@listRating" MaxValue="5" Disabled="true" Size="Size.Small" />
+                    <MudText Typo="Typo.caption">@context.LastRead.Value.ToString("d")</MudText>
                 }
                 else
                 {
                     <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
                 }
             </MudTd>
-            <MudTd DataLabel="Read" Style="text-align: center;">
-                @if (context.ReadingDates.Any())
+            <MudTd DataLabel="Last Rating" Style="text-align: center;">
+                @if (context.LastRating > 0)
                 {
-                    <MudTooltip Text="@($"Last read: {context.ReadingDates.MaxBy(rd => rd.Date)!.Date:d}")">
-                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
-                    </MudTooltip>
+                    <MudRating SelectedValue="@context.LastRating" MaxValue="5" Disabled="true" Size="Size.Small" />
                 }
                 else
                 {
-                    <MudIcon Icon="@Icons.Material.Outlined.RadioButtonUnchecked" Color="Color.Default" Size="Size.Small" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
                 }
+            </MudTd>
+            <MudTd DataLabel="ISBN">
+                <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.ISBN</MudText>
             </MudTd>
             <MudTd DataLabel="Actions" Style="text-align: right;" Class="list-actions-cell">
                 <div class="action-buttons">

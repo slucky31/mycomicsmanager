@@ -7,21 +7,9 @@
 
 <div class="add-book-manual-page">
     @* Header *@
-    <div class="add-book-manual-header">
-        <div class="d-flex align-center gap-3">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                           Color="Color.Inherit"
-                           OnClick="GoBack" />
-            <div>
-                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
-                    Enter ISBN
-                </MudText>
-                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
-                    Type the ISBN number manually
-                </MudText>
-            </div>
-        </div>
-    </div>
+    <PageHeader Title="Enter ISBN"
+                Subtitle="Type the ISBN number manually"
+                OnBack="GoBack" />
 
     @* Content *@
     <div class="add-book-manual-content">

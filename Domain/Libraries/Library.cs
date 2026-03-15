@@ -16,6 +16,8 @@ public class Library : Entity<Guid>
 
     public Guid UserId { get; protected set; }
 
+    public BookSortOrder DefaultBookSortOrder { get; protected set; } = BookSortOrder.IdDesc;
+
     public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 
     private readonly List<Book> _books = [];
@@ -96,6 +98,17 @@ public class Library : Entity<Guid>
 
         Name = name;
 
+        return Result.Success();
+    }
+
+    public Result UpdateDefaultBookSortOrder(BookSortOrder sortOrder)
+    {
+        if (!Enum.IsDefined(sortOrder))
+        {
+            return LibrariesError.BadRequest;
+        }
+
+        DefaultBookSortOrder = sortOrder;
         return Result.Success();
     }
 
