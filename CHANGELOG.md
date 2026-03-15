@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.6.0"></a>
+## [10.6.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.6.0) (2026-03-15)
+
+### ✨ Features
+
+* UI enhancement for book sorting and PWA/icon support ([#952](https://www.github.com/slucky31/mycomicsmanager/issues/952)) ([5718710](https://www.github.com/slucky31/mycomicsmanager/commit/5718710c3af9b3e451b997fb02333a0e0b3c1565))
+
 <a name="10.5.10"></a>
 ## [10.5.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.5.10) (2026-03-08)
 
