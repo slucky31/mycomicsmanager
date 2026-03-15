@@ -55,10 +55,10 @@ public partial class LibraryDetailPage : IAsyncDisposable
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
     public async ValueTask DisposeAsync()
     {
         await JS.InvokeVoidAsync("bodyScroll.enable");
-        GC.SuppressFinalize(this);
     }
 
     private async Task LoadDataAsync()

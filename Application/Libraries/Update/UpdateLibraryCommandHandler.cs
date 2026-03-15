@@ -41,28 +41,10 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         // Update name only if provided
         if (request.Name is not null)
         {
-            // Check for duplicate name within same user (excluding this library)
-            if (await libraryReadService.ExistsByNameAsync(request.Name, request.UserId, request.Id, cancellationToken))
+            var nameResult = await ApplyNameUpdateAsync(library, request.Name, request.UserId, cancellationToken);
+            if (nameResult.IsFailure)
             {
-                return LibrariesError.Duplicate;
-            }
-
-            var originPath = library.RelativePath;
-
-            var updateNameResult = library.UpdateName(request.Name);
-            if (updateNameResult.IsFailure)
-            {
-                return updateNameResult.Error!;
-            }
-
-            // Move folder only for digital libraries
-            if (library.BookType == LibraryBookType.Digital)
-            {
-                var moveResult = libraryLocalStorage.Move(originPath, library.RelativePath);
-                if (moveResult.IsFailure)
-                {
-                    return LibrariesError.FolderNotMoved;
-                }
+                return nameResult.Error!;
             }
         }
 
@@ -70,5 +52,33 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return library;
+    }
+
+    private async Task<Result> ApplyNameUpdateAsync(Library library, string name, Guid userId, CancellationToken cancellationToken)
+    {
+        if (await libraryReadService.ExistsByNameAsync(name, userId, library.Id, cancellationToken))
+        {
+            return LibrariesError.Duplicate;
+        }
+
+        var originPath = library.RelativePath;
+
+        var updateNameResult = library.UpdateName(name);
+        if (updateNameResult.IsFailure)
+        {
+            return updateNameResult.Error!;
+        }
+
+        // Move folder only for digital libraries
+        if (library.BookType == LibraryBookType.Digital)
+        {
+            var moveResult = libraryLocalStorage.Move(originPath, library.RelativePath);
+            if (moveResult.IsFailure)
+            {
+                return LibrariesError.FolderNotMoved;
+            }
+        }
+
+        return Result.Success();
     }
 }

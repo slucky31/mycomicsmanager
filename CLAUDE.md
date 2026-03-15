@@ -90,7 +90,6 @@ Enforced via `.editorconfig`:
 - CRLF endings, UTF-8 with BOM
 - Prefer `var` when type is clear
 - Sorted `using` directives
-- Test names: `Handle_ShouldReturnSuccess_WhenInputValid`
 
 ## Commit & PR Guidelines
 
@@ -111,3 +110,24 @@ Enforced via `.editorconfig`:
 
 - Store secrets (Auth0, PostgreSQL, Serilog sinks) in environment variables; never commit production credentials.
 - Update `appsettings.Production.json` only with sanitized defaults; document overrides in the PR if configuration keys change.
+
+## Code Quality Rules
+
+### Accessibility (Blazor / MudBlazor)
+- Every icon-only `MudIconButton` must have an `aria-label` attribute.
+- Every icon-only `MudMenu` trigger must have an `AriaLabel` parameter (e.g., `"More actions"`).
+
+### Defensive Parsing
+- Never use `Convert.ToInt32(str, 16)` to parse hex strings — use `int.TryParse` with `NumberStyles.HexNumber` and fall back to a safe default on failure.
+
+### Cognitive Complexity
+- Method cognitive complexity must not exceed 15 (SonarQube). Extract nested blocks into private methods when needed.
+
+### Testing
+- Do not add a test whose assertion is already fully covered by an existing test (no redundant tests).
+
+### CQRS Handlers — Side-effect Ordering
+- In a `CommandHandler`, all domain validations must complete successfully **before** any file-system side-effect (`ILibraryLocalStorage.Move`, etc.) to prevent divergence between storage and database.
+
+### View / ViewModel (Blazor)
+- Never perform repeated collection traversals (e.g., `ReadingDates.MaxBy(...)`) inside `SortBy` lambdas or Razor templates. Pre-compute derived values in a ViewModel (e.g., `BookListItemViewModel.From(Book)`) and pass that ViewModel to components.
