@@ -28,20 +28,24 @@
                 <MudIconButton Icon="@Icons.Material.Filled.CloudDownload"
                                Color="Color.Inherit"
                                OnClick="ImportFromWeb"
+                               aria-label="Import book"
                                Class="d-none d-sm-flex" />
                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                Color="Color.Inherit"
                                OnClick="EditBook"
+                               aria-label="Edit book"
                                Class="d-none d-sm-flex" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                Color="Color.Inherit"
                                OnClick="DeleteBookAsync"
+                               aria-label="Delete book"
                                Class="d-none d-sm-flex" />
 
                 @* Mobile: 3-dots menu *@
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert"
                          Color="Color.Inherit"
                          Dense="true"
+                         AriaLabel="More actions"
                          Class="d-flex d-sm-none">
                     <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload"
                                  OnClick="ImportFromWeb">Import from Web</MudMenuItem>

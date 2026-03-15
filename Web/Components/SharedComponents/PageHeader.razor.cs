@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 
 namespace Web.Components.SharedComponents;
@@ -18,11 +19,11 @@ public partial class PageHeader
     private string LibColorRgba(double alpha)
     {
         var hex = LibraryColor ?? "#5C6BC0";
-        if (hex.StartsWith('#') && hex.Length == 7)
+        if (hex.StartsWith('#') && hex.Length == 7
+            && int.TryParse(hex[1..3], NumberStyles.HexNumber, null, out var r)
+            && int.TryParse(hex[3..5], NumberStyles.HexNumber, null, out var g)
+            && int.TryParse(hex[5..7], NumberStyles.HexNumber, null, out var b))
         {
-            var r = Convert.ToInt32(hex[1..3], 16);
-            var g = Convert.ToInt32(hex[3..5], 16);
-            var b = Convert.ToInt32(hex[5..7], 16);
             return FormattableString.Invariant($"rgba({r},{g},{b},{alpha})");
         }
         return FormattableString.Invariant($"rgba(92,107,192,{alpha})");

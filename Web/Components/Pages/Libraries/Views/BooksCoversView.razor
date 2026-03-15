@@ -1,4 +1,3 @@
-@using Domain.Books
 @using Web.Components.SharedComponents
 
 <div>
@@ -44,10 +43,7 @@
                     {
                         <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.8);">@book.Serie</MudText>
                     }
-                    @{
-                        var coverRating = book.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
-                    }
-                    <MudRating SelectedValue="@coverRating" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />                    
+                    <MudRating SelectedValue="@book.LastRating" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />                    
                 </div>
             </MudPaper>
         </MudItem>

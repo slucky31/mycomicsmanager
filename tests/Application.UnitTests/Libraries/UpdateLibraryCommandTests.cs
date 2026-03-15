@@ -195,4 +195,22 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
     }
+
+    [Fact]
+    public async Task Handle_ShouldPersistDefaultBookSortOrder_WhenProvided()
+    {
+        // Arrange
+        var commandWithSortOrder = new UpdateLibraryCommand(s_command.Id, null, "#5C6BC0", "Bookmark", s_userId, BookSortOrder.SerieAndVolumeAsc);
+        var freshLibrary = Library.Create("library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(commandWithSortOrder.Id).Returns(freshLibrary);
+
+        // Act
+        var result = await _handler.Handle(commandWithSortOrder, default);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.DefaultBookSortOrder.Should().Be(BookSortOrder.SerieAndVolumeAsc);
+        _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+    }
 }

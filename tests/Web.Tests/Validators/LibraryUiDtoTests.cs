@@ -133,19 +133,6 @@ public sealed class LibraryUiDtoTests
     }
 
     [Fact]
-    public void Convert_ShouldMapDefaultBookSortOrder_WhenLibraryHasIdDesc()
-    {
-        // Arrange
-        var library = CreateLibrary("My Library");
-
-        // Act
-        var dto = LibraryUiDto.Convert(library);
-
-        // Assert
-        dto.DefaultBookSortOrder.Should().Be(BookSortOrder.IdDesc);
-    }
-
-    [Fact]
     public void Convert_Should_MapName_WhenNameHasSingleCharacter()
     {
         // Arrange

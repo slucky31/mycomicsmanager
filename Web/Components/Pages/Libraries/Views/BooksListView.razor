@@ -1,14 +1,13 @@
-@using Domain.Books
 @using Web.Components.SharedComponents
 
 <MudPaper Elevation="0">
     <MudTable Items="@Books" Hover="true" Breakpoint="Breakpoint.Xs" Dense="true" Striped="true" Class="rounded-lg">
         <HeaderContent>
-            <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Serie)">Series</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.VolumeNumber)">Vol.</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x => x.Title)">Title</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.ReadingDates.MaxBy(rd => rd.Date)?.Date ?? DateTime.MinValue)">Last Read</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Book, object>(x => x.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0)">Last Rating</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.Serie)">Series</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.VolumeNumber)">Vol.</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.Title)">Title</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.LastRead ?? DateTime.MinValue)">Last Read</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.LastRating)">Last Rating</MudTableSortLabel></MudTh>
             <MudTh>ISBN</MudTh>
             <MudTh Style="text-align: right;">Actions</MudTh>
         </HeaderContent>
@@ -26,12 +25,9 @@
                 <MudText Typo="Typo.body2" Class="font-weight-medium">@context.Title</MudText>
             </MudTd>
             <MudTd DataLabel="Last Read" Style="text-align: center;">
-                @{
-                    var lastRead = context.ReadingDates.MaxBy(rd => rd.Date)?.Date;
-                }
-                @if (lastRead.HasValue)
+                @if (context.LastRead.HasValue)
                 {
-                    <MudText Typo="Typo.caption">@lastRead.Value.ToString("d")</MudText>
+                    <MudText Typo="Typo.caption">@context.LastRead.Value.ToString("d")</MudText>
                 }
                 else
                 {
@@ -39,12 +35,9 @@
                 }
             </MudTd>
             <MudTd DataLabel="Last Rating" Style="text-align: center;">
-                @{
-                    var listRating = context.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
-                }
-                @if (listRating > 0)
+                @if (context.LastRating > 0)
                 {
-                    <MudRating SelectedValue="@listRating" MaxValue="5" Disabled="true" Size="Size.Small" />
+                    <MudRating SelectedValue="@context.LastRating" MaxValue="5" Disabled="true" Size="Size.Small" />
                 }
                 else
                 {

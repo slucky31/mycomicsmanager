@@ -56,6 +56,15 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             }
         }
 
+        if (request.DefaultBookSortOrder is not null)
+        {
+            var sortResult = library.UpdateDefaultBookSortOrder(request.DefaultBookSortOrder.Value);
+            if (sortResult.IsFailure)
+            {
+                return sortResult.Error!;
+            }
+        }
+
         libraryRepository.Update(library);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

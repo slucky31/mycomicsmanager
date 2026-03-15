@@ -101,6 +101,17 @@ public class Library : Entity<Guid>
         return Result.Success();
     }
 
+    public Result UpdateDefaultBookSortOrder(BookSortOrder sortOrder)
+    {
+        if (!Enum.IsDefined(sortOrder))
+        {
+            return LibrariesError.BadRequest;
+        }
+
+        DefaultBookSortOrder = sortOrder;
+        return Result.Success();
+    }
+
     public Result CanContain(Book book)
     {
         if (BookType == LibraryBookType.Physical && book is PhysicalBook)
