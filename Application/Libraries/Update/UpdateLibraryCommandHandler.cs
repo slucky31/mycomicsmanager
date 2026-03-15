@@ -28,6 +28,16 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             return updateResult.Error!;
         }
 
+        // Validate and apply sort order before any storage side-effects
+        if (request.DefaultBookSortOrder is not null)
+        {
+            var sortResult = library.UpdateDefaultBookSortOrder(request.DefaultBookSortOrder.Value);
+            if (sortResult.IsFailure)
+            {
+                return sortResult.Error!;
+            }
+        }
+
         // Update name only if provided
         if (request.Name is not null)
         {
@@ -53,15 +63,6 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
                 {
                     return LibrariesError.FolderNotMoved;
                 }
-            }
-        }
-
-        if (request.DefaultBookSortOrder is not null)
-        {
-            var sortResult = library.UpdateDefaultBookSortOrder(request.DefaultBookSortOrder.Value);
-            if (sortResult.IsFailure)
-            {
-                return sortResult.Error!;
             }
         }
 

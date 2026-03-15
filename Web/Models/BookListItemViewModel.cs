@@ -19,7 +19,7 @@ public sealed record BookListItemViewModel(
     {
         var lastEntry = book.ReadingDates.MaxBy(rd => rd.Date);
         return new(
-            book.Id ?? Guid.Empty,
+            book.Id,
             book.Serie,
             book.Title,
             book.ISBN,

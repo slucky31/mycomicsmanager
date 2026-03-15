@@ -50,12 +50,15 @@ public partial class LibraryDetailPage : IAsyncDisposable
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             await JS.InvokeVoidAsync("bodyScroll.disable");
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
         await JS.InvokeVoidAsync("bodyScroll.enable");
+        GC.SuppressFinalize(this);
     }
 
     private async Task LoadDataAsync()
@@ -107,9 +110,12 @@ public partial class LibraryDetailPage : IAsyncDisposable
         }).Select(BookListItemViewModel.From).ToList();
     }
 
-    private async Task SetSortOrder(BookSortOrder sortOrder)
+    private async Task SetSortOrderAsync(BookSortOrder sortOrder)
     {
-        if (_library is null) return;
+        if (_library is null)
+        {
+            return;
+        }
 
         var result = await LibrariesService.Update(new UpdateLibraryRequest(
             _library.Id.ToString(),
