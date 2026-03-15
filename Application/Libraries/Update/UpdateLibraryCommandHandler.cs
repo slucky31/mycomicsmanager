@@ -41,7 +41,7 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         // Update name only if provided
         if (request.Name is not null)
         {
-            var nameResult = await ApplyNameUpdateAsync(library, request.Name, request.UserId, cancellationToken);
+            var nameResult = await ApplyNameUpdateAsync(library, request.Id, request.Name, request.UserId, cancellationToken);
             if (nameResult.IsFailure)
             {
                 return nameResult.Error!;
@@ -54,9 +54,9 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         return library;
     }
 
-    private async Task<Result> ApplyNameUpdateAsync(Library library, string name, Guid userId, CancellationToken cancellationToken)
+    private async Task<Result> ApplyNameUpdateAsync(Library library, Guid libraryId, string name, Guid userId, CancellationToken cancellationToken)
     {
-        if (await libraryReadService.ExistsByNameAsync(name, userId, library.Id, cancellationToken))
+        if (await libraryReadService.ExistsByNameAsync(name, userId, libraryId, cancellationToken))
         {
             return LibrariesError.Duplicate;
         }
