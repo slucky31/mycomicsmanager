@@ -11,32 +11,22 @@
 
 <div class="edit-book-page">
     @* Header *@
-    <div class="edit-book-header">
-        <div class="d-flex align-center gap-3">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                           Color="Color.Inherit"
-                           OnClick="GoBack" />
-            <div>
-                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
-                    Edit Book
-                </MudText>
-                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
-                    @if (_isLoading)
-                    {
-                        <text>Loading book information...</text>
-                    }
-                    else if (_bookModel is not null)
-                    {
-                        @_bookModel.Title
-                    }
-                    else
-                    {
-                        <text>Book not found</text>
-                    }
-                </MudText>
-            </div>
-        </div>
-    </div>
+    <PageHeader Title="Edit Book" OnBack="GoBack">
+        <SubtitleContent>
+            @if (_isLoading)
+            {
+                <text>Loading book information...</text>
+            }
+            else if (_bookModel is not null)
+            {
+                @_bookModel.Title
+            }
+            else
+            {
+                <text>Book not found</text>
+            }
+        </SubtitleContent>
+    </PageHeader>
 
     @* Content *@
     <div class="edit-book-content">

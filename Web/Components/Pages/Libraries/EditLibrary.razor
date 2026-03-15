@@ -10,28 +10,18 @@
 
 <div class="edit-library-page">
     @* Header *@
-    <div class="edit-library-header">
-        <div class="d-flex align-center gap-3">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                           Color="Color.Inherit"
-                           OnClick="GoBack" />
-            <div>
-                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
-                    Edit Library
-                </MudText>
-                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
-                    @if (_isLoading)
-                    {
-                        <text>Loading…</text>
-                    }
-                    else if (_model is not null)
-                    {
-                        @_model.Name
-                    }
-                </MudText>
-            </div>
-        </div>
-    </div>
+    <PageHeader Title="Edit Library" OnBack="GoBack">
+        <SubtitleContent>
+            @if (_isLoading)
+            {
+                <text>Loading…</text>
+            }
+            else if (_model is not null)
+            {
+                @_model.Name
+            }
+        </SubtitleContent>
+    </PageHeader>
 
     @* Content *@
     <div class="edit-library-content">

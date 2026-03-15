@@ -10,21 +10,9 @@
 
 <div class="add-library-page">
     @* Header *@
-    <div class="add-library-header">
-        <div class="d-flex align-center gap-3">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                           Color="Color.Inherit"
-                           OnClick="GoBack" />
-            <div>
-                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
-                    New Library
-                </MudText>
-                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
-                    Fill in the details for your new library
-                </MudText>
-            </div>
-        </div>
-    </div>
+    <PageHeader Title="New Library"
+                Subtitle="Fill in the details for your new library"
+                OnBack="GoBack" />
 
     @* Content *@
     <div class="add-library-content">

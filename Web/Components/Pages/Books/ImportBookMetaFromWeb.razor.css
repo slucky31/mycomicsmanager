@@ -7,12 +7,6 @@
     background: var(--mud-palette-background);
 }
 
-.import-header {
-    background: var(--mud-palette-primary);
-    padding: 12px 16px;
-    color: white;
-}
-
 .import-content {
     flex: 1;
     overflow-y: auto;

@@ -1,0 +1,34 @@
+<div class="page-header @(LibraryColor != null ? "page-header--library" : "")"
+     style="@HeaderStyle">
+    @if (LibraryColor != null)
+    {
+        <div class="page-header-blob" style="background: @LibraryColor;"></div>
+    }
+    <div class="page-header-content d-flex align-center justify-space-between">
+        <div class="d-flex align-center gap-3">
+            @if (OnBack.HasDelegate)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                               Color="Color.Inherit"
+                               OnClick="OnBack" />
+            }
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
+                    @Title
+                </MudText>
+                @if (SubtitleContent != null)
+                {
+                    <div class="page-header-subtitle">@SubtitleContent</div>
+                }
+                else if (!string.IsNullOrEmpty(Subtitle))
+                {
+                    <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">@Subtitle</MudText>
+                }
+            </div>
+        </div>
+        @if (Actions != null)
+        {
+            <div class="d-flex gap-2">@Actions</div>
+        }
+    </div>
+</div>
