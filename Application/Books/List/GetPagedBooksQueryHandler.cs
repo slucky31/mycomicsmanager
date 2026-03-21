@@ -9,9 +9,9 @@ namespace Application.Books.List;
 
 public sealed class GetPagedBooksQueryHandler(
     IBookReadService bookReadService,
-    IRepository<Library, Guid> libraryRepository) : IQueryHandler<GetPagedBooksQuery, IPagedList<Book>>
+    IRepository<Library, Guid> libraryRepository) : IQueryHandler<GetPagedBooksQuery, IPagedList<BookSummaryDto>>
 {
-    public async Task<Result<IPagedList<Book>>> Handle(GetPagedBooksQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IPagedList<BookSummaryDto>>> Handle(GetPagedBooksQuery request, CancellationToken cancellationToken)
     {
         Guard.Against.Null(request);
 
@@ -35,6 +35,6 @@ public sealed class GetPagedBooksQueryHandler(
             request.SearchTerm,
             cancellationToken);
 
-        return Result<IPagedList<Book>>.Success(pagedList);
+        return Result<IPagedList<BookSummaryDto>>.Success(pagedList);
     }
 }

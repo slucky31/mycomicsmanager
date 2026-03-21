@@ -43,7 +43,10 @@
                     {
                         <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.8);">@book.Serie</MudText>
                     }
-                    <MudRating SelectedValue="@book.LastRating" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />                    
+                    @if (book.LastRating.HasValue)
+                    {
+                        <MudRating SelectedValue="@book.LastRating.Value" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />
+                    }                    
                 </div>
             </MudPaper>
         </MudItem>

@@ -1,3 +1,4 @@
+using Application.Books.List;
 using Application.Interfaces;
 using Domain.Books;
 using Domain.Libraries;
@@ -8,7 +9,7 @@ namespace Persistence.Queries;
 
 public class BookReadService(ApplicationDbContext context) : IBookReadService
 {
-    public async Task<IPagedList<Book>> GetPagedByLibraryAsync(
+    public async Task<IPagedList<BookSummaryDto>> GetPagedByLibraryAsync(
         Guid libraryId,
         Guid userId,
         int page,
@@ -18,15 +19,15 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
         CancellationToken cancellationToken = default)
     {
         var query = context.Set<Book>()
-            .Include(b => b.ReadingDates)
             .AsNoTracking()
             .Where(b => b.LibraryId == libraryId && b.Library!.UserId == userId);
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
+            var pattern = $"%{LikePatternHelper.EscapeLikeSpecialChars(searchTerm)}%";
             query = query.Where(b =>
-                EF.Functions.ILike(b.Title, $"%{searchTerm}%") ||
-                (b.Serie != null && EF.Functions.ILike(b.Serie, $"%{searchTerm}%")));
+                EF.Functions.ILike(b.Title, pattern, @"\") ||
+                (b.Serie != null && EF.Functions.ILike(b.Serie, pattern, @"\")));
         }
 
         query = sortOrder switch
@@ -39,6 +40,29 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
             _ => query.OrderByDescending(b => b.Id)
         };
 
-        return await new PagedList<Book>(query).ExecuteQueryAsync(page, pageSize, cancellationToken);
+#pragma warning disable CA1826 // EF Core expression tree — cannot use indexer; LINQ methods are required for SQL translation
+        var projected = query.Select(b => new BookSummaryDto
+        {
+            Id = b.Id,
+            Serie = b.Serie,
+            Title = b.Title,
+            ISBN = b.ISBN,
+            VolumeNumber = b.VolumeNumber,
+            ImageLink = b.ImageLink,
+            Authors = b.Authors,
+            Publishers = b.Publishers,
+            ReadCount = b.ReadingDates.Count(),
+            LastRead = b.ReadingDates
+                .OrderByDescending(rd => rd.Date)
+                .Select(rd => (DateTime?)rd.Date)
+                .FirstOrDefault(),
+            LastRating = b.ReadingDates
+                .OrderByDescending(rd => rd.Date)
+                .Select(rd => (int?)rd.Rating)
+                .FirstOrDefault()
+        });
+#pragma warning restore CA1826
+
+        return await new PagedList<BookSummaryDto>(projected).ExecuteQueryAsync(page, pageSize, cancellationToken);
     }
 }

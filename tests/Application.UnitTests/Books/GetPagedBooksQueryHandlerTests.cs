@@ -22,14 +22,14 @@ public class GetPagedBooksQueryHandlerTests
     private static Library CreateLibrary(Guid userId)
         => Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, userId).Value!;
 
-    private static FakePagedList<Book> CreatePagedList(IReadOnlyCollection<Book> items, bool hasNextPage = false)
+    private static FakePagedList<BookSummaryDto> CreatePagedList(IReadOnlyCollection<BookSummaryDto> items, bool hasNextPage = false)
         => new(items, hasNextPage);
 
     private sealed class FakePagedList<T>(IReadOnlyCollection<T> items, bool hasNextPage) : IPagedList<T>
     {
         public IReadOnlyCollection<T>? Items { get; } = items;
         public bool HasNextPage { get; } = hasNextPage;
-        public bool HasPreviousPage { get; } 
+        public bool HasPreviousPage { get; }
         public int Page { get; } = 1;
         public int PageSize { get; } = 24;
         public int TotalCount { get; } = items.Count;
@@ -111,7 +111,7 @@ public class GetPagedBooksQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(CreateLibrary(userId));
         _bookReadServiceMock
             .GetPagedByLibraryAsync(libraryId, userId, 1, 24, BookSortOrder.IdDesc, null, CancellationToken.None)
-            .Returns(Task.FromResult<IPagedList<Book>>(pagedList));
+            .Returns(Task.FromResult<IPagedList<BookSummaryDto>>(pagedList));
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -132,7 +132,7 @@ public class GetPagedBooksQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(CreateLibrary(userId));
         _bookReadServiceMock
             .GetPagedByLibraryAsync(libraryId, userId, 2, 24, BookSortOrder.SerieAndVolumeAsc, "naruto", CancellationToken.None)
-            .Returns(Task.FromResult<IPagedList<Book>>(CreatePagedList([])));
+            .Returns(Task.FromResult<IPagedList<BookSummaryDto>>(CreatePagedList([])));
 
         // Act
         await _handler.Handle(query, CancellationToken.None);
@@ -154,7 +154,7 @@ public class GetPagedBooksQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(CreateLibrary(userId));
         _bookReadServiceMock
             .GetPagedByLibraryAsync(libraryId, userId, 1, 24, BookSortOrder.IdDesc, null, CancellationToken.None)
-            .Returns(Task.FromResult<IPagedList<Book>>(pagedList));
+            .Returns(Task.FromResult<IPagedList<BookSummaryDto>>(pagedList));
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);

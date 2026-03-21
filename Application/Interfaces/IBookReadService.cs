@@ -1,11 +1,11 @@
-using Domain.Books;
+using Application.Books.List;
 using Domain.Libraries;
 
 namespace Application.Interfaces;
 
 public interface IBookReadService
 {
-    Task<IPagedList<Book>> GetPagedByLibraryAsync(
+    Task<IPagedList<BookSummaryDto>> GetPagedByLibraryAsync(
         Guid libraryId,
         Guid userId,
         int page,

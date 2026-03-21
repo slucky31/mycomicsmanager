@@ -21,6 +21,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
+    [Inject] private LibraryStateService LibraryStateService { get; set; } = default!;
 
     [Parameter] public string? LibraryId { get; set; }
 
@@ -43,19 +44,21 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private DotNetObjectReference<LibraryDetailPage>? _dotNetRef;
     private CancellationTokenSource? _searchCts;
 
+    private string _searchTermValue = string.Empty;
+
     private string _searchTerm
     {
-        get;
+        get => _searchTermValue;
         set
         {
-            field = value;
+            _searchTermValue = value;
             var previous = _searchCts;
             previous?.Cancel();
             previous?.Dispose();
             _searchCts = new CancellationTokenSource();
             _ = ReloadOnSearchAsync(_searchCts.Token);
         }
-    } = string.Empty;
+    }
 
     private ViewMode _currentViewMode = ViewMode.Cards;
     private BookSortOrder _currentSortOrder = BookSortOrder.IdDesc;
@@ -90,9 +93,20 @@ public partial class LibraryDetailPage : IAsyncDisposable
             await _searchCts.CancelAsync();
             _searchCts.Dispose();
         }
-        await JS.InvokeVoidAsync("bodyScroll.enable");
-        await JS.InvokeVoidAsync("infiniteScroll.dispose");
-        _dotNetRef?.Dispose();
+        try
+        {
+            await JS.InvokeVoidAsync("bodyScroll.enable");
+            await JS.InvokeVoidAsync("infiniteScroll.dispose");
+        }
+        catch (JSException)
+        {
+            // JS interop can fail when the Blazor circuit is already disconnected during disposal; intentionally ignored.
+        }
+        finally
+        {
+            LibraryStateService.Save(_libraryGuid, new LibraryPageState(_searchTerm, _currentViewMode));
+            _dotNetRef?.Dispose();
+        }
     }
 
     private async Task LoadDataAsync()
@@ -104,6 +118,13 @@ public partial class LibraryDetailPage : IAsyncDisposable
         {
             NavigationManager.NavigateTo("/libraries/list");
             return;
+        }
+
+        var saved = LibraryStateService.Load(_libraryGuid);
+        if (saved is not null)
+        {
+            _searchTermValue = saved.Search;
+            _currentViewMode = saved.View;
         }
 
         var libResult = await LibrariesService.GetById(LibraryId);

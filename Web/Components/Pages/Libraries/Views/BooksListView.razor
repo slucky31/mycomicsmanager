@@ -35,9 +35,9 @@
                 }
             </MudTd>
             <MudTd DataLabel="Last Rating" Style="text-align: center;">
-                @if (context.LastRating > 0)
+                @if (context.LastRating.HasValue)
                 {
-                    <MudRating SelectedValue="@context.LastRating" MaxValue="5" Disabled="true" Size="Size.Small" />
+                    <MudRating SelectedValue="@context.LastRating.Value" MaxValue="5" Disabled="true" Size="Size.Small" />
                 }
                 else
                 {

@@ -30,6 +30,45 @@ public class AddReadingDateCommandHandlerTests
     private static Library CreateLibrary(Guid userId)
         => Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, userId).Value!;
 
+    [Theory]
+    [InlineData(true, false)]   // empty BookId
+    [InlineData(false, true)]   // empty UserId
+    [InlineData(true, true)]    // both empty
+    public async Task Handle_Should_ReturnBadRequest_WhenBookIdOrUserIdIsEmpty(bool emptyBookId, bool emptyUserId)
+    {
+        // Arrange
+        var bookId = emptyBookId ? Guid.Empty : Guid.NewGuid();
+        var userId = emptyUserId ? Guid.Empty : s_userId;
+        var command = new AddReadingDateCommand(bookId, 3, userId);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
+        await _bookRepositoryMock.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(6)]
+    public async Task Handle_Should_ReturnInvalidRating_WhenRatingIsOutOfRange(int invalidRating)
+    {
+        // Arrange
+        var command = new AddReadingDateCommand(Guid.NewGuid(), invalidRating, s_userId);
+
+        // Act
+        var result = await _handler.Handle(command, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.InvalidRating);
+        await _bookRepositoryMock.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
     [Fact]
     public async Task Handle_Should_ReturnNotFound_WhenBookDoesNotExist()
     {
