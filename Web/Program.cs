@@ -129,6 +129,8 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 var app = builder.Build();
 
+Web.Components.SharedComponents.IconPicker.Resolve(string.Empty); // warm-up: forces static icon dictionary initialization at startup
+
 app.UseSerilogRequestLogging();
 
 app.UseExceptionHandler();
