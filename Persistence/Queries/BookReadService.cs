@@ -34,7 +34,8 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
             BookSortOrder.IdAsc => query.OrderBy(b => b.Id),
             BookSortOrder.SerieAndVolumeAsc => query
                 .OrderBy(b => b.Serie)
-                .ThenBy(b => b.VolumeNumber),
+                .ThenBy(b => b.VolumeNumber)
+                .ThenBy(b => b.Id),
             _ => query.OrderByDescending(b => b.Id)
         };
 

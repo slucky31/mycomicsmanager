@@ -49,7 +49,9 @@ public partial class LibraryDetailPage : IAsyncDisposable
         set
         {
             field = value;
-            _searchCts?.Cancel();
+            var previous = _searchCts;
+            previous?.Cancel();
+            previous?.Dispose();
             _searchCts = new CancellationTokenSource();
             _ = ReloadOnSearchAsync(_searchCts.Token);
         }
@@ -75,8 +77,8 @@ public partial class LibraryDetailPage : IAsyncDisposable
             && _currentViewMode != ViewMode.List
             && _displayedBooks.Count > 0)
         {
-            _observerInitialized = true;
             await JS.InvokeVoidAsync("infiniteScroll.observe", _dotNetRef, "scroll-sentinel", ".library-detail-content");
+            _observerInitialized = true;
         }
     }
 
@@ -136,6 +138,11 @@ public partial class LibraryDetailPage : IAsyncDisposable
             _displayedBooks.AddRange(result.Value.Items.Select(BookListItemViewModel.From));
             _hasNextPage = result.Value.HasNextPage;
         }
+        else if (result.IsFailure)
+        {
+            Snackbar.Add("Failed to load books", Severity.Error);
+            Log.Error("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error?.Description);
+        }
     }
 
     [JSInvokable]
@@ -149,11 +156,38 @@ public partial class LibraryDetailPage : IAsyncDisposable
         _isLoadingMore = true;
         await InvokeAsync(StateHasChanged);
 
-        _currentPage++;
-        await LoadBooksPageAsync();
+        var capturedLibrary = _libraryGuid;
+        var capturedSort = _currentSortOrder;
+        var capturedSearch = _searchTerm;
+        var nextPage = _currentPage + 1;
 
-        _isLoadingMore = false;
-        await InvokeAsync(StateHasChanged);
+        try
+        {
+            var result = await BooksService.GetPagedByLibrary(
+                capturedLibrary, nextPage, PageSize, capturedSort, capturedSearch);
+
+            if (_libraryGuid == capturedLibrary
+                && _currentSortOrder == capturedSort
+                && _searchTerm == capturedSearch)
+            {
+                if (result.IsSuccess && result.Value?.Items is not null)
+                {
+                    _displayedBooks.AddRange(result.Value.Items.Select(BookListItemViewModel.From));
+                    _hasNextPage = result.Value.HasNextPage;
+                    _currentPage = nextPage;
+                }
+                else if (result.IsFailure)
+                {
+                    Snackbar.Add("Failed to load books", Severity.Error);
+                    Log.Error("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error?.Description);
+                }
+            }
+        }
+        finally
+        {
+            _isLoadingMore = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     // ── List view ───────────────────────────────────────────────────────
@@ -171,6 +205,12 @@ public partial class LibraryDetailPage : IAsyncDisposable
                 Items = result.Value.Items.Select(BookListItemViewModel.From).ToList(),
                 TotalItems = result.Value.TotalCount
             };
+        }
+
+        if (result.IsFailure)
+        {
+            Snackbar.Add("Failed to load books", Severity.Error);
+            Log.Error("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error?.Description);
         }
 
         return new TableData<BookListItemViewModel> { Items = [], TotalItems = 0 };
@@ -203,12 +243,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
             _observerInitialized = false;
             await LoadBooksPageAsync(cancellationToken);
             await InvokeAsync(StateHasChanged);
-
-            if (!_observerInitialized && _displayedBooks.Count > 0)
-            {
-                _observerInitialized = true;
-                await JS.InvokeVoidAsync("infiniteScroll.observe", _dotNetRef, "scroll-sentinel", ".library-detail-content", cancellationToken);
-            }
         }
         catch (OperationCanceledException)
         {

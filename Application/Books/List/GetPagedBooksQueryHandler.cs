@@ -15,6 +15,11 @@ public sealed class GetPagedBooksQueryHandler(
     {
         Guard.Against.Null(request);
 
+        if (request.Page <= 0 || request.PageSize <= 0)
+        {
+            return BooksError.BadRequest;
+        }
+
         var library = await libraryRepository.GetByIdAsync(request.LibraryId);
         if (library is null || library.UserId != request.UserId)
         {

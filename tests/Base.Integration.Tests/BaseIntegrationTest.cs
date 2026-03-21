@@ -121,3 +121,14 @@ public class BookIntegrationTest : BaseIntegrationTest
     }
 
 }
+
+public class BookReadServiceIntegrationTest : BookIntegrationTest
+{
+    protected IBookReadService BookReadService { get; }
+
+    public BookReadServiceIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        BookReadService = _scope.ServiceProvider.GetRequiredService<IBookReadService>();
+    }
+
+}

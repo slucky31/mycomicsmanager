@@ -37,6 +37,29 @@ public class GetPagedBooksQueryHandlerTests
             => Task.FromResult<IPagedList<T>>(this);
     }
 
+    [Theory]
+    [InlineData(0, 24)]
+    [InlineData(-1, 24)]
+    [InlineData(1, 0)]
+    [InlineData(1, -1)]
+    public async Task Handle_Should_ReturnBadRequest_WhenPageOrPageSizeIsInvalid(int page, int pageSize)
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var libraryId = Guid.CreateVersion7();
+        var query = new GetPagedBooksQuery(userId, libraryId, page, pageSize, BookSortOrder.IdDesc);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
+        await _libraryRepositoryMock.DidNotReceiveWithAnyArgs().GetByIdAsync(default);
+        await _bookReadServiceMock.DidNotReceiveWithAnyArgs()
+            .GetPagedByLibraryAsync(default, default, default, default, default, default);
+    }
+
     [Fact]
     public async Task Handle_Should_ReturnNotFound_WhenLibraryDoesNotExist()
     {
