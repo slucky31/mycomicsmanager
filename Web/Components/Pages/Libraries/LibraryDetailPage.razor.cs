@@ -93,10 +93,17 @@ public partial class LibraryDetailPage : IAsyncDisposable
             await _searchCts.CancelAsync();
             _searchCts.Dispose();
         }
-        LibraryStateService.Save(_libraryGuid, new LibraryPageState(_searchTerm, _currentViewMode));
-        await JS.InvokeVoidAsync("bodyScroll.enable");
-        await JS.InvokeVoidAsync("infiniteScroll.dispose");
-        _dotNetRef?.Dispose();
+        try
+        {
+            await JS.InvokeVoidAsync("bodyScroll.enable");
+            await JS.InvokeVoidAsync("infiniteScroll.dispose");
+        }
+        catch (JSException) { }
+        finally
+        {
+            LibraryStateService.Save(_libraryGuid, new LibraryPageState(_searchTerm, _currentViewMode));
+            _dotNetRef?.Dispose();
+        }
     }
 
     private async Task LoadDataAsync()

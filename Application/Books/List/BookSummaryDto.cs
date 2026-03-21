@@ -11,6 +11,6 @@ public sealed class BookSummaryDto
     public string Authors { get; init; } = string.Empty;
     public string Publishers { get; init; } = string.Empty;
     public DateTime? LastRead { get; init; }
-    public int LastRating { get; init; }
+    public int? LastRating { get; init; }
     public int ReadCount { get; init; }
 }

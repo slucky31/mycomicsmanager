@@ -13,7 +13,7 @@ public sealed record BookListItemViewModel(
     string Authors,
     string Publishers,
     DateTime? LastRead,
-    int LastRating,
+    int? LastRating,
     int ReadCount)
 {
     public static BookListItemViewModel From(BookSummaryDto dto) =>
@@ -34,7 +34,7 @@ public sealed record BookListItemViewModel(
             book.Authors,
             book.Publishers,
             lastEntry?.Date,
-            lastEntry?.Rating ?? 0,
+            lastEntry?.Rating,
             book.ReadingDates.Count);
     }
 }

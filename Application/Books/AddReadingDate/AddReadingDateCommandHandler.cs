@@ -16,6 +16,11 @@ public sealed class AddReadingDateCommandHandler(
     {
         Guard.Against.Null(request);
 
+        if (request.Rating is < 1 or > 5)
+        {
+            return BooksError.InvalidRating;
+        }
+
         var book = await bookRepository.GetByIdAsync(request.BookId);
         if (book is null)
         {

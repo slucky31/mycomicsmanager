@@ -24,9 +24,10 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
+            var escaped = LikePatternHelper.EscapeLikeSpecialChars(searchTerm);
             query = query.Where(b =>
-                EF.Functions.ILike(b.Title, $"%{searchTerm}%") ||
-                (b.Serie != null && EF.Functions.ILike(b.Serie, $"%{searchTerm}%")));
+                EF.Functions.ILike(b.Title, $"%{escaped}%", @"\") ||
+                (b.Serie != null && EF.Functions.ILike(b.Serie, $"%{escaped}%", @"\")));
         }
 
         query = sortOrder switch
@@ -57,7 +58,7 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
                 .FirstOrDefault(),
             LastRating = b.ReadingDates
                 .OrderByDescending(rd => rd.Date)
-                .Select(rd => rd.Rating)
+                .Select(rd => (int?)rd.Rating)
                 .FirstOrDefault()
         });
 #pragma warning restore CA1826

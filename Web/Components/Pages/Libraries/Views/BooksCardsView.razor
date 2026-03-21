@@ -66,9 +66,9 @@
                                     <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Small" Class="book-card-meta-icon" />
                                 </MudTooltip>
                             }
-                            @if (book.LastRating > 0)
+                            @if (book.LastRating.HasValue)
                             {
-                                <MudRating SelectedValue="@book.LastRating" MaxValue="5" Disabled="true" Size="Size.Small" />
+                                <MudRating SelectedValue="@book.LastRating.Value" MaxValue="5" Disabled="true" Size="Size.Small" />
                             }
                         </div>
                         @if (book.ReadCount > 0)

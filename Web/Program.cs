@@ -127,10 +127,9 @@ builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();
+builder.Services.AddHostedService<IconPickerWarmupService>();
 
 var app = builder.Build();
-
-Web.Components.SharedComponents.IconPicker.Resolve(string.Empty); // warm-up: forces static icon dictionary initialization at startup
 
 app.UseSerilogRequestLogging();
 
