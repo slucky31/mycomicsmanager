@@ -98,7 +98,10 @@ public partial class LibraryDetailPage : IAsyncDisposable
             await JS.InvokeVoidAsync("bodyScroll.enable");
             await JS.InvokeVoidAsync("infiniteScroll.dispose");
         }
-        catch (JSException) { }
+        catch (JSException)
+        {
+            // JS interop can fail when the Blazor circuit is already disconnected during disposal; intentionally ignored.
+        }
         finally
         {
             LibraryStateService.Save(_libraryGuid, new LibraryPageState(_searchTerm, _currentViewMode));
