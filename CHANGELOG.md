@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.7.0"></a>
+## [10.7.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.7.0) (2026-03-21)
+
+### ✨ Features
+
+* Infinite scroll ([#960](https://www.github.com/slucky31/mycomicsmanager/issues/960)) ([14bf54c](https://www.github.com/slucky31/mycomicsmanager/commit/14bf54c3ffffe6b056c2343ac8f21bd5745833fc))
+
 <a name="10.6.3"></a>
 ## [10.6.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.6.3) (2026-03-19)
 
