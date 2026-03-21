@@ -115,6 +115,26 @@ public sealed class CurrentUserServiceTests
     }
 
     [Fact]
+    public async Task GetCurrentUserIdAsync_Should_ReturnError_WhenEmailLookupFails()
+    {
+        // Arrange — sub not in DB, email present but GetUserByEmail also fails
+        const string sub = "auth0|unknown";
+        const string email = "unknown@example.com";
+        _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(sub, email));
+        _userReadService.GetUserByAuthId(sub).Returns(Result<User>.Failure(UsersError.NotFound));
+        _userReadService.GetUserByEmail(email).Returns(Result<User>.Failure(UsersError.NotFound));
+
+        // Act
+        var result = await _service.GetCurrentUserIdAsync();
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _userReadService.Received(1).GetUserByAuthId(sub);
+        await _userReadService.Received(1).GetUserByEmail(email);
+    }
+
+    [Fact]
     public async Task CurrentUserService_Should_CallUserReadService_WhenSubIsPresent()
     {
         // Arrange

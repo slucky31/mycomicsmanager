@@ -10,6 +10,7 @@ using Application.Interfaces;
 using Ardalis.GuardClauses;
 using AwesomeAssertions;
 using Domain.Books;
+using Domain.Libraries;
 using Domain.Primitives;
 using Domain.Users;
 using NSubstitute;
@@ -22,6 +23,7 @@ public sealed class BooksServiceTests
 {
     private readonly IQueryHandler<GetBookByIdQuery, Book> _getBookByIdHandler;
     private readonly IQueryHandler<GetBooksQuery, List<Book>> _getBooksHandler;
+    private readonly IQueryHandler<GetPagedBooksQuery, IPagedList<Book>> _getPagedBooksHandler;
     private readonly ICommandHandler<CreateBookCommand, Book> _createBookHandler;
     private readonly ICommandHandler<UpdateBookCommand, Book> _updateBookHandler;
     private readonly ICommandHandler<DeleteBookCommand> _deleteBookHandler;
@@ -37,6 +39,7 @@ public sealed class BooksServiceTests
     {
         _getBookByIdHandler = Substitute.For<IQueryHandler<GetBookByIdQuery, Book>>();
         _getBooksHandler = Substitute.For<IQueryHandler<GetBooksQuery, List<Book>>>();
+        _getPagedBooksHandler = Substitute.For<IQueryHandler<GetPagedBooksQuery, IPagedList<Book>>>();
         _createBookHandler = Substitute.For<ICommandHandler<CreateBookCommand, Book>>();
         _updateBookHandler = Substitute.For<ICommandHandler<UpdateBookCommand, Book>>();
         _deleteBookHandler = Substitute.For<ICommandHandler<DeleteBookCommand>>();
@@ -49,6 +52,7 @@ public sealed class BooksServiceTests
         _service = new BooksService(
             _getBookByIdHandler,
             _getBooksHandler,
+            _getPagedBooksHandler,
             _createBookHandler,
             _updateBookHandler,
             _deleteBookHandler,
@@ -126,6 +130,22 @@ public sealed class BooksServiceTests
         await _getBookByIdHandler.Received(1).Handle(
             Arg.Is<GetBookByIdQuery>(q => q.Id == bookId),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetById_ShouldReturnError_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        var bookId = Guid.CreateVersion7();
+
+        // Act
+        var result = await _service.GetById(bookId.ToString());
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _getBookByIdHandler.DidNotReceive().Handle(Arg.Any<GetBookByIdQuery>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -529,6 +549,22 @@ public sealed class BooksServiceTests
     #endregion
 
     #region Update Tests
+
+    [Fact]
+    public async Task Update_ShouldReturnError_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        var request = new UpdateBookRequest(Guid.CreateVersion7().ToString(), "Series", "Title", "978-3-16-148410-0", 1, "");
+
+        // Act
+        var result = await _service.Update(request);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _updateBookHandler.DidNotReceive().Handle(Arg.Any<UpdateBookCommand>(), Arg.Any<CancellationToken>());
+    }
 
     [Fact]
     public async Task Update_ShouldCallHandlerWithAllMetadataFields()
@@ -946,6 +982,21 @@ public sealed class BooksServiceTests
     }
 
     [Fact]
+    public async Task Delete_ShouldReturnError_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        // Act
+        var result = await _service.Delete(Guid.CreateVersion7().ToString());
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _deleteBookHandler.DidNotReceive().Handle(Arg.Any<DeleteBookCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Delete_ShouldReturnFailure_WhenHandlerReturnsFailure()
     {
         // Arrange
@@ -960,6 +1011,227 @@ public sealed class BooksServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(expectedError);
+    }
+
+    #endregion
+
+    #region AddReadingDate Tests
+
+    [Fact]
+    public async Task AddReadingDate_ShouldReturnValidationError_WhenBookIdIsInvalidGuid()
+    {
+        // Act
+        var result = await _service.AddReadingDate("not-a-guid", 4);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _addReadingDateHandler.DidNotReceive().Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldReturnError_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        // Act
+        var result = await _service.AddReadingDate(Guid.CreateVersion7().ToString(), 3);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _addReadingDateHandler.DidNotReceive().Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddReadingDate_ShouldCallHandler_WhenParametersAreValid()
+    {
+        // Arrange
+        var bookId = Guid.CreateVersion7();
+        const int rating = 4;
+        var readingDate = ReadingDate.Create(DateTime.UtcNow, rating, bookId);
+        _addReadingDateHandler.Handle(Arg.Any<AddReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(readingDate);
+
+        // Act
+        var result = await _service.AddReadingDate(bookId.ToString(), rating);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _addReadingDateHandler.Received(1).Handle(
+            Arg.Is<AddReadingDateCommand>(c => c.BookId == bookId && c.Rating == rating && c.UserId == DefaultUserId),
+            Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region DeleteReadingDate Tests
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnValidationError_WhenBookIdIsInvalidGuid()
+    {
+        // Act
+        var result = await _service.DeleteReadingDate("not-a-guid", Guid.CreateVersion7().ToString());
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnValidationError_WhenReadingDateIdIsInvalidGuid()
+    {
+        // Act
+        var result = await _service.DeleteReadingDate(Guid.CreateVersion7().ToString(), "not-a-guid");
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldReturnError_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        // Act
+        var result = await _service.DeleteReadingDate(Guid.CreateVersion7().ToString(), Guid.CreateVersion7().ToString());
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _deleteReadingDateHandler.DidNotReceive().Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteReadingDate_ShouldCallHandler_WhenParametersAreValid()
+    {
+        // Arrange
+        var bookId = Guid.CreateVersion7();
+        var readingDateId = Guid.CreateVersion7();
+        _deleteReadingDateHandler.Handle(Arg.Any<DeleteReadingDateCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // Act
+        var result = await _service.DeleteReadingDate(bookId.ToString(), readingDateId.ToString());
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _deleteReadingDateHandler.Received(1).Handle(
+            Arg.Is<DeleteReadingDateCommand>(c => c.BookId == bookId && c.ReadingDateId == readingDateId && c.UserId == DefaultUserId),
+            Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region GetByLibrary Tests
+
+    [Fact]
+    public async Task GetByLibrary_ShouldReturnValidationError_WhenLibraryIdIsEmpty()
+    {
+        // Act
+        var result = await _service.GetByLibrary(Guid.Empty);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _getBooksHandler.DidNotReceive().Handle(Arg.Any<GetBooksQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetByLibrary_ShouldReturnError_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        // Act
+        var result = await _service.GetByLibrary(DefaultLibraryId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _getBooksHandler.DidNotReceive().Handle(Arg.Any<GetBooksQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetByLibrary_ShouldCallHandler_WhenParametersAreValid()
+    {
+        // Arrange
+        var books = new List<Book> { CreateBook("Serie", "Title", "978-3-16-148410-0") };
+        _getBooksHandler.Handle(Arg.Any<GetBooksQuery>(), Arg.Any<CancellationToken>())
+            .Returns(books);
+
+        // Act
+        var result = await _service.GetByLibrary(DefaultLibraryId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _getBooksHandler.Received(1).Handle(
+            Arg.Is<GetBooksQuery>(q => q.UserId == DefaultUserId && q.LibraryId == DefaultLibraryId),
+            Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region GetPagedByLibrary Tests
+
+    [Fact]
+    public async Task GetPagedByLibrary_ShouldReturnValidationError_WhenLibraryIdIsEmpty()
+    {
+        // Act
+        var result = await _service.GetPagedByLibrary(Guid.Empty, 1, 24, BookSortOrder.IdDesc);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _getPagedBooksHandler.DidNotReceive().Handle(Arg.Any<GetPagedBooksQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetPagedByLibrary_ShouldReturnError_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        // Act
+        var result = await _service.GetPagedByLibrary(DefaultLibraryId, 1, 24, BookSortOrder.IdDesc);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _getPagedBooksHandler.DidNotReceive().Handle(Arg.Any<GetPagedBooksQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetPagedByLibrary_ShouldCallHandler_WhenParametersAreValid()
+    {
+        // Arrange
+        const int page = 2;
+        const int pageSize = 12;
+        const BookSortOrder sortOrder = BookSortOrder.SerieAndVolumeAsc;
+        const string searchTerm = "naruto";
+        var pagedList = Substitute.For<IPagedList<Book>>();
+        _getPagedBooksHandler.Handle(Arg.Any<GetPagedBooksQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IPagedList<Book>>.Success(pagedList));
+
+        // Act
+        var result = await _service.GetPagedByLibrary(DefaultLibraryId, page, pageSize, sortOrder, searchTerm);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _getPagedBooksHandler.Received(1).Handle(
+            Arg.Is<GetPagedBooksQuery>(q =>
+                q.UserId == DefaultUserId &&
+                q.LibraryId == DefaultLibraryId &&
+                q.Page == page &&
+                q.PageSize == pageSize &&
+                q.SortOrder == sortOrder &&
+                q.SearchTerm == searchTerm),
+            Arg.Any<CancellationToken>());
     }
 
     #endregion

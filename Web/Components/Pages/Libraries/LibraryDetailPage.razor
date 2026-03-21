@@ -4,6 +4,7 @@
 
 @using Domain.Books
 @using Domain.Libraries
+@using Web.Components.Pages.Libraries.Views
 @using Web.Components.SharedComponents
 @using Web.Enums
 @using Web.Validators
@@ -28,21 +29,24 @@
                         <MudIconButton Icon="@Icons.Material.Filled.ViewModule"
                                        Color="@(_currentViewMode == ViewMode.Cards ? Color.Primary : Color.Default)"
                                        Variant="@(_currentViewMode == ViewMode.Cards ? Variant.Filled : Variant.Outlined)"
-                                       OnClick="@(() => _currentViewMode = ViewMode.Cards)"
+                                       OnClick="@(() => SetViewModeAsync(ViewMode.Cards))"
+                                       aria-label="Card View"
                                        Class="view-toggle-btn" />
                     </MudTooltip>
                     <MudTooltip Text="Cover View">
                         <MudIconButton Icon="@Icons.Material.Filled.GridView"
                                        Color="@(_currentViewMode == ViewMode.Covers ? Color.Primary : Color.Default)"
                                        Variant="@(_currentViewMode == ViewMode.Covers ? Variant.Filled : Variant.Outlined)"
-                                       OnClick="@(() => _currentViewMode = ViewMode.Covers)"
+                                       OnClick="@(() => SetViewModeAsync(ViewMode.Covers))"
+                                       aria-label="Cover View"
                                        Class="view-toggle-btn" />
                     </MudTooltip>
                     <MudTooltip Text="List View">
                         <MudIconButton Icon="@Icons.Material.Filled.ViewList"
                                        Color="@(_currentViewMode == ViewMode.List ? Color.Primary : Color.Default)"
                                        Variant="@(_currentViewMode == ViewMode.List ? Variant.Filled : Variant.Outlined)"
-                                       OnClick="@(() => _currentViewMode = ViewMode.List)"
+                                       OnClick="@(() => SetViewModeAsync(ViewMode.List))"
+                                       aria-label="List View"
                                        Class="view-toggle-btn" />
                     </MudTooltip>
                 </MudButtonGroup>
@@ -54,6 +58,7 @@
                                        Color="@(_currentSortOrder == BookSortOrder.IdDesc ? Color.Primary : Color.Default)"
                                        Variant="@(_currentSortOrder == BookSortOrder.IdDesc ? Variant.Filled : Variant.Outlined)"
                                        OnClick="@(() => SetSortOrderAsync(BookSortOrder.IdDesc))"
+                                       aria-label="Sort: newest first"
                                        Class="view-toggle-btn" />
                     </MudTooltip>
                     <MudTooltip Text="Sort: oldest first">
@@ -61,6 +66,7 @@
                                        Color="@(_currentSortOrder == BookSortOrder.IdAsc ? Color.Primary : Color.Default)"
                                        Variant="@(_currentSortOrder == BookSortOrder.IdAsc ? Variant.Filled : Variant.Outlined)"
                                        OnClick="@(() => SetSortOrderAsync(BookSortOrder.IdAsc))"
+                                       aria-label="Sort: oldest first"
                                        Class="view-toggle-btn" />
                     </MudTooltip>
                     <MudTooltip Text="Sort: series &amp; volume">
@@ -68,6 +74,7 @@
                                        Color="@(_currentSortOrder == BookSortOrder.SerieAndVolumeAsc ? Color.Primary : Color.Default)"
                                        Variant="@(_currentSortOrder == BookSortOrder.SerieAndVolumeAsc ? Variant.Filled : Variant.Outlined)"
                                        OnClick="@(() => SetSortOrderAsync(BookSortOrder.SerieAndVolumeAsc))"
+                                       aria-label="Sort: series and volume"
                                        Class="view-toggle-btn" />
                     </MudTooltip>
                 </MudButtonGroup>
@@ -82,19 +89,20 @@
 
                 @* Mobile: 3-dots menu with view + sort options *@
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                         AriaLabel="More actions"
                          Color="Color.Inherit"
                          Dense="true"
                          Class="d-flex d-sm-none">
                     <MudText Typo="Typo.overline" Class="px-4 pt-2 mud-text-secondary">View</MudText>
                     <MudMenuItem Icon="@Icons.Material.Filled.ViewModule"
                                  IconColor="@(_currentViewMode == ViewMode.Cards ? Color.Primary : Color.Default)"
-                                 OnClick="@(() => _currentViewMode = ViewMode.Cards)">Cards</MudMenuItem>
+                                 OnClick="@(() => SetViewModeAsync(ViewMode.Cards))">Cards</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.GridView"
                                  IconColor="@(_currentViewMode == ViewMode.Covers ? Color.Primary : Color.Default)"
-                                 OnClick="@(() => _currentViewMode = ViewMode.Covers)">Covers</MudMenuItem>
+                                 OnClick="@(() => SetViewModeAsync(ViewMode.Covers))">Covers</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.ViewList"
                                  IconColor="@(_currentViewMode == ViewMode.List ? Color.Primary : Color.Default)"
-                                 OnClick="@(() => _currentViewMode = ViewMode.List)">List</MudMenuItem>
+                                 OnClick="@(() => SetViewModeAsync(ViewMode.List))">List</MudMenuItem>
                     <MudDivider Class="my-1" />
                     <MudText Typo="Typo.overline" Class="px-4 mud-text-secondary">Sort</MudText>
                     <MudMenuItem Icon="@Icons.Material.Filled.ArrowDownward"
@@ -122,8 +130,13 @@
         </div>
         <div class="library-detail-content">
 
-            @* Books display *@
-            @if (_books.Count == 0)
+            @* List view: MudTable manages its own empty/no-results states *@
+            @if (_currentViewMode == ViewMode.List)
+            {
+                <BooksListView @ref="_booksListView" ServerData="LoadListDataAsync" OnDelete="@DeleteAsync" />
+            }
+            @* Cards / Covers: check empty states before rendering *@
+            else if (_displayedBooks.Count == 0 && string.IsNullOrWhiteSpace(_searchTerm))
             {
                 <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Style="min-height: 400px;" Elevation="0">
                     <MudIcon Icon="@IconPicker.Resolve(_library?.Icon)"
@@ -135,7 +148,7 @@
                     </MudButton>
                 </MudPaper>
             }
-            else if (_filteredBooks.Count == 0)
+            else if (_displayedBooks.Count == 0)
             {
                 <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Style="min-height: 300px;" Elevation="0">
                     <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Secondary" Style="font-size: 64px; opacity: 0.5;" />
@@ -150,15 +163,19 @@
                 @switch (_currentViewMode)
                 {
                     case ViewMode.Cards:
-                        <BooksCardsView Books="@_filteredBooks" OnDelete="@DeleteAsync" />
+                        <BooksCardsView Books="@_displayedBooks" OnDelete="@DeleteAsync" />
                         break;
                     case ViewMode.Covers:
-                        <BooksCoversView Books="@_filteredBooks" OnDelete="@DeleteAsync" />
-                        break;
-                    case ViewMode.List:
-                        <BooksListView Books="@_filteredBooks" OnDelete="@DeleteAsync" />
+                        <BooksCoversView Books="@_displayedBooks" OnDelete="@DeleteAsync" />
                         break;
                 }
+                @if (_isLoadingMore)
+                {
+                    <div class="d-flex justify-center pa-4">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
+                    </div>
+                }
+                <div id="scroll-sentinel"></div>
             }
         </div>
     }

@@ -81,7 +81,7 @@ Uses `Result<T>` pattern from `Domain/Primitives/` instead of exceptions for kno
 | Architecture.Tests | Layer boundary validation | NetArchTest |
 | Web.Tests | Blazor components | bUnit |
 
-**Test naming:** `Verb_Should_DoExpectation_WhenCondition`
+**Test naming:** `MethodName_Should_DoExpectation_WhenCondition` — start with the name of the method under test, not the class name.
 
 ## Code Style
 
@@ -131,3 +131,21 @@ Enforced via `.editorconfig`:
 
 ### View / ViewModel (Blazor)
 - Never perform repeated collection traversals (e.g., `ReadingDates.MaxBy(...)`) inside `SortBy` lambdas or Razor templates. Pre-compute derived values in a ViewModel (e.g., `BookListItemViewModel.From(Book)`) and pass that ViewModel to components.
+
+### CQRS Handlers — Input Validation
+- Validate all input parameters (format, value range, nullity) at the start of `Handle` and return an appropriate domain error before any call to a repository or external service.
+
+### Pagination — Deterministic Sort Order
+- Every paginated query must end with a unique tie-breaker key (e.g., `.ThenBy(b => b.Id)`) so ordering is stable and pages contain no duplicates or gaps.
+
+### Blazor — Error Handling in Load Methods
+- A data-loading method must never leave the UI in an inconsistent state on failure. Always add an `else if (result.IsFailure)` branch that shows the error via Snackbar + `Log.Error`, and only update local state when `result.IsSuccess`.
+
+### Blazor — Async Operations and Stale Results
+- Before any async call that could become stale (infinite scroll, filter change), capture the current query parameters. On response, verify the parameters have not changed before applying results, and use `try/finally` to always reset loading flags.
+
+### Blazor — JS Interop Side Effects
+- Any C# state mutation tied to a `JS.InvokeVoidAsync` call must happen **after** the call returns, never before, so that a JS exception leaves the state consistent and allows a retry on the next render.
+
+### IDisposable — Replace-and-Dispose
+- When replacing an `IDisposable` field (e.g., `CancellationTokenSource`), always call `.Dispose()` on the previous instance before assigning the new one to avoid resource leaks.
