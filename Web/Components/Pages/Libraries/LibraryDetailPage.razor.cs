@@ -7,6 +7,7 @@ using Microsoft.JSInterop;
 using MudBlazor;
 using Serilog;
 using Web.Components.Pages.Dialogs;
+using Web.Components.Pages.Libraries.Views;
 using Web.Enums;
 using Web.Services;
 using Web.Validators;
@@ -24,10 +25,24 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     [Parameter] public string? LibraryId { get; set; }
 
+    private const int PageSize = 24;
+
     private LibraryUiDto? _library;
-    private List<Book> _books = [];
-    private List<BookListItemViewModel> _filteredBooks = [];
+    private Guid _libraryGuid;
+
+    // Cards / Covers — accumulated pages
+    private readonly List<BookListItemViewModel> _displayedBooks = [];
+    private int _currentPage = 1;
+    private bool _hasNextPage;
+    private bool _isLoadingMore;
+
+    // List view — component reference for reload
+    private BooksListView? _booksListView;
+
     private bool _isLoading = true;
+    private bool _observerInitialized;
+    private DotNetObjectReference<LibraryDetailPage>? _dotNetRef;
+    private CancellationTokenSource? _searchCts;
 
     private string _searchTerm
     {
@@ -35,7 +50,9 @@ public partial class LibraryDetailPage : IAsyncDisposable
         set
         {
             field = value;
-            UpdateFilteredBooks();
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+            _ = ReloadOnSearchAsync(_searchCts.Token);
         }
     } = string.Empty;
 
@@ -52,20 +69,37 @@ public partial class LibraryDetailPage : IAsyncDisposable
         if (firstRender)
         {
             await JS.InvokeVoidAsync("bodyScroll.disable");
+            _dotNetRef = DotNetObjectReference.Create(this);
+        }
+
+        if (!_observerInitialized && !_isLoading
+            && _currentViewMode != ViewMode.List
+            && _displayedBooks.Count > 0)
+        {
+            _observerInitialized = true;
+            await JS.InvokeVoidAsync("infiniteScroll.observe", _dotNetRef, "scroll-sentinel", ".library-detail-content");
         }
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
     public async ValueTask DisposeAsync()
     {
+        if (_searchCts is not null)
+        {
+            await _searchCts.CancelAsync();
+            _searchCts.Dispose();
+        }
         await JS.InvokeVoidAsync("bodyScroll.enable");
+        await JS.InvokeVoidAsync("infiniteScroll.dispose");
+        _dotNetRef?.Dispose();
     }
 
     private async Task LoadDataAsync()
     {
         _isLoading = true;
+        _observerInitialized = false;
 
-        if (!Guid.TryParse(LibraryId, out var libraryGuid))
+        if (!Guid.TryParse(LibraryId, out _libraryGuid))
         {
             NavigationManager.NavigateTo("/libraries/list");
             return;
@@ -82,32 +116,105 @@ public partial class LibraryDetailPage : IAsyncDisposable
         _library = LibraryUiDto.Convert(libResult.Value!);
         _currentSortOrder = _library.DefaultBookSortOrder;
 
-        var booksResult = await BooksService.GetByLibrary(libraryGuid);
-        if (booksResult.IsSuccess && booksResult.Value is not null)
-        {
-            _books = booksResult.Value;
-            UpdateFilteredBooks();
-        }
+        // Always load first page so we can detect an empty library
+        _currentPage = 1;
+        _displayedBooks.Clear();
+        _hasNextPage = false;
+        await LoadBooksPageAsync();
 
         _isLoading = false;
     }
 
-    private void UpdateFilteredBooks()
-    {
-        var filtered = string.IsNullOrWhiteSpace(_searchTerm)
-            ? _books
-            : _books.Where(b =>
-                b.Title.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(b.Serie) && b.Serie.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)));
+    // ── Cards / Covers ─────────────────────────────────────────────────
 
-        _filteredBooks = (_currentSortOrder switch
+    private async Task LoadBooksPageAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await BooksService.GetPagedByLibrary(
+            _libraryGuid, _currentPage, PageSize, _currentSortOrder, _searchTerm, cancellationToken);
+
+        if (result.IsSuccess && result.Value?.Items is not null)
         {
-            BookSortOrder.IdAsc => filtered.OrderBy(b => b.Id),
-            BookSortOrder.SerieAndVolumeAsc => filtered
-                .OrderBy(b => b.Serie, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(b => b.VolumeNumber),
-            _ => filtered.OrderByDescending(b => b.Id)
-        }).Select(BookListItemViewModel.From).ToList();
+            _displayedBooks.AddRange(result.Value.Items.Select(BookListItemViewModel.From));
+            _hasNextPage = result.Value.HasNextPage;
+        }
+    }
+
+    [JSInvokable]
+    public async Task LoadMoreBooksAsync()
+    {
+        if (!_hasNextPage || _isLoadingMore)
+        {
+            return;
+        }
+
+        _isLoadingMore = true;
+        await InvokeAsync(StateHasChanged);
+
+        _currentPage++;
+        await LoadBooksPageAsync();
+
+        _isLoadingMore = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // ── List view ───────────────────────────────────────────────────────
+
+    public async Task<TableData<BookListItemViewModel>> LoadListDataAsync(TableState state, CancellationToken ct)
+    {
+        // MudTable pages are 0-based; our service is 1-based
+        var result = await BooksService.GetPagedByLibrary(
+            _libraryGuid, state.Page + 1, state.PageSize, _currentSortOrder, _searchTerm, ct);
+
+        if (result.IsSuccess && result.Value?.Items is not null)
+        {
+            return new TableData<BookListItemViewModel>
+            {
+                Items = result.Value.Items.Select(BookListItemViewModel.From).ToList(),
+                TotalItems = result.Value.TotalCount
+            };
+        }
+
+        return new TableData<BookListItemViewModel> { Items = [], TotalItems = 0 };
+    }
+
+    // ── Shared: search / sort ──────────────────────────────────────────
+
+    private async Task ReloadOnSearchAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(300, cancellationToken);
+
+            if (_currentViewMode == ViewMode.List)
+            {
+                await InvokeAsync(async () =>
+                {
+                    if (_booksListView is not null)
+                    {
+                        await _booksListView.ReloadAsync();
+                    }
+                    StateHasChanged();
+                });
+                return;
+            }
+
+            _currentPage = 1;
+            _displayedBooks.Clear();
+            _hasNextPage = false;
+            _observerInitialized = false;
+            await LoadBooksPageAsync(cancellationToken);
+            await InvokeAsync(StateHasChanged);
+
+            if (!_observerInitialized && _displayedBooks.Count > 0)
+            {
+                _observerInitialized = true;
+                await JS.InvokeVoidAsync("infiniteScroll.observe", _dotNetRef, "scroll-sentinel", ".library-detail-content", cancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Nouvelle frappe reçue : abandon silencieux
+        }
     }
 
     private async Task SetSortOrderAsync(BookSortOrder sortOrder)
@@ -128,7 +235,21 @@ public partial class LibraryDetailPage : IAsyncDisposable
         {
             _library.DefaultBookSortOrder = sortOrder;
             _currentSortOrder = sortOrder;
-            UpdateFilteredBooks();
+
+            if (_currentViewMode == ViewMode.List)
+            {
+                if (_booksListView is not null)
+                {
+                    await _booksListView.ReloadAsync();
+                }
+                return;
+            }
+
+            _currentPage = 1;
+            _displayedBooks.Clear();
+            _hasNextPage = false;
+            _observerInitialized = false;
+            await LoadBooksPageAsync();
         }
         else
         {
@@ -136,6 +257,30 @@ public partial class LibraryDetailPage : IAsyncDisposable
             Log.Error("Failed to save sort order for library {LibraryId}: {ErrorDescription}", _library.Id, result.Error?.Description);
         }
     }
+
+    private async Task SetViewModeAsync(ViewMode mode)
+    {
+        if (_currentViewMode == mode)
+        {
+            return;
+        }
+
+        // Switching away from Cards/Covers → disconnect observer
+        if (_currentViewMode != ViewMode.List && mode == ViewMode.List)
+        {
+            _observerInitialized = false;
+            await JS.InvokeVoidAsync("infiniteScroll.dispose");
+        }
+        // Switching back to Cards/Covers → let OnAfterRenderAsync re-init the observer
+        else if (_currentViewMode == ViewMode.List)
+        {
+            _observerInitialized = false;
+        }
+
+        _currentViewMode = mode;
+    }
+
+    // ── Utilities ──────────────────────────────────────────────────────
 
     private string LibColorRgba(double alpha)
     {
@@ -180,6 +325,10 @@ public partial class LibraryDetailPage : IAsyncDisposable
             if (res.IsSuccess)
             {
                 await LoadDataAsync();
+                if (_currentViewMode == ViewMode.List && _booksListView is not null)
+                {
+                    await _booksListView.ReloadAsync();
+                }
             }
             else
             {

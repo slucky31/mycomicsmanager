@@ -22,6 +22,7 @@ public sealed class BooksServiceTests
 {
     private readonly IQueryHandler<GetBookByIdQuery, Book> _getBookByIdHandler;
     private readonly IQueryHandler<GetBooksQuery, List<Book>> _getBooksHandler;
+    private readonly IQueryHandler<GetPagedBooksQuery, IPagedList<Book>> _getPagedBooksHandler;
     private readonly ICommandHandler<CreateBookCommand, Book> _createBookHandler;
     private readonly ICommandHandler<UpdateBookCommand, Book> _updateBookHandler;
     private readonly ICommandHandler<DeleteBookCommand> _deleteBookHandler;
@@ -37,6 +38,7 @@ public sealed class BooksServiceTests
     {
         _getBookByIdHandler = Substitute.For<IQueryHandler<GetBookByIdQuery, Book>>();
         _getBooksHandler = Substitute.For<IQueryHandler<GetBooksQuery, List<Book>>>();
+        _getPagedBooksHandler = Substitute.For<IQueryHandler<GetPagedBooksQuery, IPagedList<Book>>>();
         _createBookHandler = Substitute.For<ICommandHandler<CreateBookCommand, Book>>();
         _updateBookHandler = Substitute.For<ICommandHandler<UpdateBookCommand, Book>>();
         _deleteBookHandler = Substitute.For<ICommandHandler<DeleteBookCommand>>();
@@ -49,6 +51,7 @@ public sealed class BooksServiceTests
         _service = new BooksService(
             _getBookByIdHandler,
             _getBooksHandler,
+            _getPagedBooksHandler,
             _createBookHandler,
             _updateBookHandler,
             _deleteBookHandler,

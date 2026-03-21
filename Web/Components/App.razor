@@ -35,6 +35,32 @@
                 document.body.style.overflow = '';
             }
         };
+
+        window.infiniteScroll = {
+            _observer: null,
+            observe: function (dotNetRef, sentinelId, scrollContainerSelector) {
+                if (this._observer) { this._observer.disconnect(); }
+                var sentinel = document.getElementById(sentinelId);
+                if (!sentinel) return;
+                var root = document.querySelector(scrollContainerSelector) || null;
+                var self = this;
+                this._observer = new IntersectionObserver(
+                    function (entries) {
+                        if (entries[0].isIntersecting) {
+                            dotNetRef.invokeMethodAsync('LoadMoreBooksAsync');
+                        }
+                    },
+                    { root: root, rootMargin: '300px', threshold: 0 }
+                );
+                this._observer.observe(sentinel);
+            },
+            dispose: function () {
+                if (this._observer) {
+                    this._observer.disconnect();
+                    this._observer = null;
+                }
+            }
+        };
     </script>
 </body>
 

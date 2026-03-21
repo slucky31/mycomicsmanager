@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 using Web.Models;
 
 namespace Web.Components.Pages.Libraries.Views;
@@ -6,8 +7,12 @@ namespace Web.Components.Pages.Libraries.Views;
 public partial class BooksListView
 {
     [Parameter, EditorRequired]
-    public IReadOnlyList<BookListItemViewModel> Books { get; set; } = default!;
+    public Func<TableState, CancellationToken, Task<TableData<BookListItemViewModel>>> ServerData { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public EventCallback<Guid> OnDelete { get; set; }
+
+    private MudTable<BookListItemViewModel>? _table;
+
+    public Task ReloadAsync() => _table?.ReloadServerData() ?? Task.CompletedTask;
 }

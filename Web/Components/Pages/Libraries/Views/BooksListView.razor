@@ -1,13 +1,13 @@
 @using Web.Components.SharedComponents
 
 <MudPaper Elevation="0">
-    <MudTable Items="@Books" Hover="true" Breakpoint="Breakpoint.Xs" Dense="true" Striped="true" Class="rounded-lg">
+    <MudTable @ref="_table" ServerData="ServerData" Hover="true" Breakpoint="Breakpoint.Xs" Dense="true" Striped="true" Class="rounded-lg">
         <HeaderContent>
-            <MudTh><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.Serie)">Series</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.VolumeNumber)">Vol.</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.Title)">Title</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.LastRead ?? DateTime.MinValue)">Last Read</MudTableSortLabel></MudTh>
-            <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<BookListItemViewModel, object>(x => x.LastRating)">Last Rating</MudTableSortLabel></MudTh>
+            <MudTh>Series</MudTh>
+            <MudTh Style="text-align: center;">Vol.</MudTh>
+            <MudTh>Title</MudTh>
+            <MudTh Style="text-align: center;">Last Read</MudTh>
+            <MudTh Style="text-align: center;">Last Rating</MudTh>
             <MudTh>ISBN</MudTh>
             <MudTh Style="text-align: right;">Actions</MudTh>
         </HeaderContent>
@@ -49,14 +49,20 @@
             </MudTd>
             <MudTd DataLabel="Actions" Style="text-align: right;" Class="list-actions-cell">
                 <div class="action-buttons">
-                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Default" Href="@($"/books/{context.Id}")" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/edit")" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(context.Id))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Default" Href="@($"/books/{context.Id}")" aria-label="View book" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/edit")" aria-label="Edit book" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(context.Id))" aria-label="Delete book" />
                 </div>
             </MudTd>
         </RowTemplate>
+        <NoRecordsContent>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-4">No books found.</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-4">Loading…</MudText>
+        </LoadingContent>
         <PagerContent>
-            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+            <MudTablePager PageSizeOptions="new int[] { 25, 50, 100 }" />
         </PagerContent>
     </MudTable>
 </MudPaper>
