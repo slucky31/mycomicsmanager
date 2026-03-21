@@ -22,14 +22,14 @@ public class GetPagedBooksQueryHandlerTests
     private static Library CreateLibrary(Guid userId)
         => Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, userId).Value!;
 
-    private static IPagedList<Book> CreatePagedList(IReadOnlyCollection<Book> items, bool hasNextPage = false)
-        => new FakePagedList<Book>(items, hasNextPage);
+    private static FakePagedList<Book> CreatePagedList(IReadOnlyCollection<Book> items, bool hasNextPage = false)
+        => new(items, hasNextPage);
 
     private sealed class FakePagedList<T>(IReadOnlyCollection<T> items, bool hasNextPage) : IPagedList<T>
     {
         public IReadOnlyCollection<T>? Items { get; } = items;
         public bool HasNextPage { get; } = hasNextPage;
-        public bool HasPreviousPage { get; } = false;
+        public bool HasPreviousPage { get; } 
         public int Page { get; } = 1;
         public int PageSize { get; } = 24;
         public int TotalCount { get; } = items.Count;
