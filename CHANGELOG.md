@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.7.1"></a>
+## [10.7.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.7.1) (2026-03-21)
+
+### 🐛 Bug Fixes
+
+* Perf/search indexes and projection ([#961](https://www.github.com/slucky31/mycomicsmanager/issues/961)) ([c9ce57a](https://www.github.com/slucky31/mycomicsmanager/commit/c9ce57a76961309702793ce616df1326a49bb31e))
+
 <a name="10.7.0"></a>
 ## [10.7.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.7.0) (2026-03-21)
 
