@@ -16,7 +16,7 @@ namespace Web.Services;
 public class BooksService(
     IQueryHandler<GetBookByIdQuery, Book> getBookByIdHandler,
     IQueryHandler<GetBooksQuery, List<Book>> getBooksHandler,
-    IQueryHandler<GetPagedBooksQuery, IPagedList<Book>> getPagedBooksHandler,
+    IQueryHandler<GetPagedBooksQuery, IPagedList<BookSummaryDto>> getPagedBooksHandler,
     ICommandHandler<CreateBookCommand, Book> createBookHandler,
     ICommandHandler<UpdateBookCommand, Book> updateBookHandler,
     ICommandHandler<DeleteBookCommand> deleteBookHandler,
@@ -161,7 +161,7 @@ public class BooksService(
         return await getBooksHandler.Handle(query, cancellationToken);
     }
 
-    public async Task<Result<IPagedList<Book>>> GetPagedByLibrary(Guid libraryId, int page, int pageSize, BookSortOrder sortOrder, string? searchTerm = null, CancellationToken cancellationToken = default)
+    public async Task<Result<IPagedList<BookSummaryDto>>> GetPagedByLibrary(Guid libraryId, int page, int pageSize, BookSortOrder sortOrder, string? searchTerm = null, CancellationToken cancellationToken = default)
     {
         if (libraryId == Guid.Empty)
         {

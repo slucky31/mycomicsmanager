@@ -19,6 +19,23 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
     }
 
+    // ── Substring search (trigram index) ────────────────────────────────────
+
+    [Fact]
+    public async Task GetPagedByLibraryAsync_Should_MatchSubstring_WhenSearchTermIsInMiddleOfTitle()
+    {
+        // Arrange
+        var book = CreateBook("Marvel", "The Complete Naruto Box Set", "9780000000090");
+        await SeedAsync([book]);
+
+        // Act
+        var result = await BookReadService.GetPagedByLibraryAsync(
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, "plete");
+
+        // Assert
+        result.Items.Should().ContainSingle(b => b.Id == book.Id);
+    }
+
     // ── Case-insensitive search ──────────────────────────────────────────────
 
     [Fact]
@@ -192,5 +209,32 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Assert
         result.Items.Should().BeEmpty();
+    }
+
+    // ── ReadingDate aggregates ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetPagedByLibraryAsync_Should_ReturnCorrectReadingDateAggregates_WhenBookHasMultipleReadingDates()
+    {
+        // Arrange
+        var book = CreateBook("Berserk", "Vol 1", "9780000000060");
+        BookRepository.Add(book);
+        var olderDate = new DateTime(2024, 1, 10, 0, 0, 0, DateTimeKind.Utc);
+        var newerDate = new DateTime(2025, 6, 20, 0, 0, 0, DateTimeKind.Utc);
+        var olderEntry = book.AddReadingDate(olderDate, rating: 3);
+        var newerEntry = book.AddReadingDate(newerDate, rating: 5);
+        BookRepository.AddReadingDate(olderEntry);
+        BookRepository.AddReadingDate(newerEntry);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await BookReadService.GetPagedByLibraryAsync(
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, null);
+
+        // Assert
+        var item = result.Items.Should().ContainSingle(b => b.Id == book.Id).Subject;
+        item.ReadCount.Should().Be(2);
+        item.LastRead.Should().Be(newerDate);
+        item.LastRating.Should().Be(5);
     }
 }

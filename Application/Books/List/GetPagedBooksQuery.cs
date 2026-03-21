@@ -1,6 +1,5 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
-using Domain.Books;
 using Domain.Libraries;
 
 namespace Application.Books.List;
@@ -11,4 +10,4 @@ public record GetPagedBooksQuery(
     int Page,
     int PageSize,
     BookSortOrder SortOrder,
-    string? SearchTerm = null) : IQuery<IPagedList<Book>>;
+    string? SearchTerm = null) : IQuery<IPagedList<BookSummaryDto>>;
