@@ -16,6 +16,11 @@ public sealed class AddReadingDateCommandHandler(
     {
         Guard.Against.Null(request);
 
+        if (request.BookId == Guid.Empty || request.UserId == Guid.Empty)
+        {
+            return BooksError.BadRequest;
+        }
+
         if (request.Rating is < 1 or > 5)
         {
             return BooksError.InvalidRating;

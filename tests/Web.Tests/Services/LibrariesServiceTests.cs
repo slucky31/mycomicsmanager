@@ -98,6 +98,22 @@ public sealed class LibrariesServiceTests
     }
 
     [Fact]
+    public async Task GetById_ShouldReturnError_WhenUserNotResolved()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        var libraryId = Guid.CreateVersion7();
+
+        // Act
+        var result = await _service.GetById(libraryId.ToString());
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _getLibraryHandler.DidNotReceive().Handle(Arg.Any<GetLibraryQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task GetById_ShouldCallHandler_WhenIdIsValidGuid()
     {
         // Arrange

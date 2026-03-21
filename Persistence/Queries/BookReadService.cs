@@ -24,10 +24,10 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            var escaped = LikePatternHelper.EscapeLikeSpecialChars(searchTerm);
+            var pattern = $"%{LikePatternHelper.EscapeLikeSpecialChars(searchTerm)}%";
             query = query.Where(b =>
-                EF.Functions.ILike(b.Title, $"%{escaped}%", @"\") ||
-                (b.Serie != null && EF.Functions.ILike(b.Serie, $"%{escaped}%", @"\")));
+                EF.Functions.ILike(b.Title, pattern, @"\") ||
+                (b.Serie != null && EF.Functions.ILike(b.Serie, pattern, @"\")));
         }
 
         query = sortOrder switch
