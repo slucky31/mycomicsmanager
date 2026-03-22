@@ -15,14 +15,40 @@ public sealed class ComicSearchServiceTests
 
     private readonly IOpenLibraryService _openLibraryService;
     private readonly IGoogleBooksService _googleBooksService;
+    private readonly IBedethequeService _bedethequeService;
     private readonly ICloudinaryService _cloudinaryService;
     private readonly IOptions<CloudinarySettings> _cloudinarySettings;
     private readonly ComicSearchService _sut;
+
+    private static BedethequeBookResult BedethequeNotFound => new(
+        Title: string.Empty,
+        Serie: string.Empty,
+        VolumeNumber: 1,
+        Authors: [],
+        Publishers: [],
+        PublishDate: null,
+        NumberOfPages: null,
+        CoverUrl: null,
+        Found: false);
+
+    private static GoogleBooksBookResult GoogleBooksNotFound => new(
+        Title: string.Empty,
+        Subtitle: null,
+        Authors: [],
+        Publishers: [],
+        PublishDate: null,
+        NumberOfPages: null,
+        CoverUrl: null,
+        Description: null,
+        Categories: [],
+        Language: null,
+        Found: false);
 
     public ComicSearchServiceTests()
     {
         _openLibraryService = Substitute.For<IOpenLibraryService>();
         _googleBooksService = Substitute.For<IGoogleBooksService>();
+        _bedethequeService = Substitute.For<IBedethequeService>();
         _cloudinaryService = Substitute.For<ICloudinaryService>();
         _cloudinarySettings = Options.Create(new CloudinarySettings
         {
@@ -31,7 +57,14 @@ public sealed class ComicSearchServiceTests
             ApiSecret = "test-secret",
             Folder = "test-covers"
         });
-        _sut = new ComicSearchService(_openLibraryService, _googleBooksService, _cloudinaryService, _cloudinarySettings);
+
+        // Default: Bedetheque and Google Books return not found so tests focused on OpenLibrary still work
+        _bedethequeService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(BedethequeNotFound);
+        _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(GoogleBooksNotFound);
+
+        _sut = new ComicSearchService(_openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings);
     }
 
     #region SearchByIsbnAsync Tests
@@ -917,28 +950,32 @@ public sealed class ComicSearchServiceTests
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_ShouldNotCallGoogleBooks_WhenOpenLibraryReturnsData()
+    public async Task SearchByIsbnAsync_ShouldNotCallGoogleBooksOrOpenLibrary_WhenBedethequeReturnsData()
     {
         // Arrange
         const string isbn = "9781234567890";
-        var openLibraryResult = new OpenLibraryBookResult(
-            Title: "Test Comic",
-            Subtitle: null,
-            Authors: SingleAuthorArray,
-            Publishers: SinglePublisherArray,
-            PublishDate: null,
-            NumberOfPages: 100,
+        var bedethequeResult = new BedethequeBookResult(
+            Title: "L'Ankou",
+            Serie: "Biguden",
+            VolumeNumber: 1,
+            Authors: ["Stan Silas"],
+            Publishers: ["EP Media"],
+            PublishDate: new DateOnly(2014, 8, 1),
+            NumberOfPages: 62,
             CoverUrl: null,
             Found: true);
 
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .Returns(openLibraryResult);
+        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(bedethequeResult);
 
         // Act
         await _sut.SearchByIsbnAsync(isbn);
 
         // Assert
         await _googleBooksService.DidNotReceive().SearchByIsbnAsync(
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
+        await _openLibraryService.DidNotReceive().SearchByIsbnAsync(
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
     }

@@ -11,17 +11,20 @@ public partial class ComicSearchService : IComicSearchService
 
     private readonly IOpenLibraryService _openLibraryService;
     private readonly IGoogleBooksService _googleBooksService;
+    private readonly IBedethequeService _bedethequeService;
     private readonly ICloudinaryService _cloudinaryService;
     private readonly CloudinarySettings _cloudinarySettings;
 
     public ComicSearchService(
         IOpenLibraryService openLibraryService,
         IGoogleBooksService googleBooksService,
+        IBedethequeService bedethequeService,
         ICloudinaryService cloudinaryService,
         IOptions<CloudinarySettings> cloudinarySettings)
     {
         _openLibraryService = openLibraryService;
         _googleBooksService = googleBooksService;
+        _bedethequeService = bedethequeService;
         _cloudinaryService = cloudinaryService;
         _cloudinarySettings = cloudinarySettings.Value;
     }
@@ -35,20 +38,17 @@ public partial class ComicSearchService : IComicSearchService
 
         try
         {
+            // Try Bedetheque first
+            var bedethequeResult = await _bedethequeService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
 
-
-            // Try OpenLibrary first
-            var result = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
-
-            if (result.Found)
+            if (bedethequeResult.Found)
             {
-                Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
-                return await MapBookResultToComicSearchResultAsync(
-                    result, cleanIsbn, cancellationToken);
+                Log.Information("Book found via Bedetheque for ISBN {Isbn}", cleanIsbn);
+                return await MapBedethequeResultAsync(bedethequeResult, cleanIsbn, cancellationToken);
             }
 
             // Fallback to Google Books
-            Log.Information("OpenLibrary returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
+            Log.Information("Bedetheque returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
             var googleResult = await _googleBooksService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
 
             if (googleResult.Found)
@@ -56,6 +56,16 @@ public partial class ComicSearchService : IComicSearchService
                 Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
                 return await MapBookResultToComicSearchResultAsync(
                     googleResult, cleanIsbn, cancellationToken);
+            }
+
+            // Fallback to OpenLibrary
+            Log.Information("Google Books returned no result for ISBN {Isbn}, trying OpenLibrary", cleanIsbn);
+            var olResult = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
+
+            if (olResult.Found)
+            {
+                Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
+                return await MapBookResultToComicSearchResultAsync(olResult, cleanIsbn, cancellationToken);
             }
 
             Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
@@ -88,6 +98,36 @@ public partial class ComicSearchService : IComicSearchService
         var (serie, volumeNumber) = ParseVolumeAndSerie(rawTitle);
         var title = string.IsNullOrEmpty(subtitle) ? serie : subtitle;
         return (title, serie, volumeNumber);
+    }
+
+    private async Task<ComicSearchResult> MapBedethequeResultAsync(
+        BedethequeBookResult bedethequeResult,
+        string isbn,
+        CancellationToken cancellationToken)
+    {
+        var imageUrl = string.Empty;
+        if (bedethequeResult.CoverUrl != null)
+        {
+            imageUrl = await UploadCoverToCloudinaryAsync(bedethequeResult.CoverUrl, isbn, cancellationToken);
+        }
+
+        var authors = string.Join(", ", bedethequeResult.Authors);
+        var publishers = string.Join(", ", bedethequeResult.Publishers);
+
+        Log.Information("Mapped Bedetheque result: {Serie} T{Volume} - {Title}", bedethequeResult.Serie, bedethequeResult.VolumeNumber, bedethequeResult.Title);
+
+        return new ComicSearchResult(
+            Title: bedethequeResult.Title,
+            Serie: bedethequeResult.Serie,
+            Isbn: isbn,
+            VolumeNumber: bedethequeResult.VolumeNumber,
+            ImageUrl: imageUrl,
+            Authors: authors,
+            Publishers: publishers,
+            PublishDate: bedethequeResult.PublishDate,
+            NumberOfPages: bedethequeResult.NumberOfPages,
+            Found: true
+        );
     }
 
     private async Task<ComicSearchResult> MapBookResultToComicSearchResultAsync(

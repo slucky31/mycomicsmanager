@@ -13,6 +13,7 @@ public partial class ImportBookMetaFromWeb
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
+    [Inject] private IBedethequeService BedethequeService { get; set; } = default!;
     [Inject] private IOpenLibraryService OpenLibraryService { get; set; } = default!;
     [Inject] private IGoogleBooksService GoogleBooksService { get; set; } = default!;
     [Inject] private IComicSearchService ComicSearchService { get; set; } = default!;
@@ -22,6 +23,7 @@ public partial class ImportBookMetaFromWeb
     public string BookId { get; set; } = string.Empty;
 
     private BookUiDto? _currentBook;
+    private BedethequeBookResult? _bedethequeResult;
     private OpenLibraryBookResult? _olResult;
     private GoogleBooksBookResult? _googleResult;
     private ParsedTitleInfo? _olParsed;
@@ -91,10 +93,22 @@ public partial class ImportBookMetaFromWeb
             return;
         }
 
-        // Start both requests concurrently, then await each independently so that
+        // Start all requests concurrently, then await each independently so that
         // a failure in one provider does not prevent the other's result from being used.
+        var bedethequeTask = BedethequeService.SearchByIsbnAsync(_currentBook.ISBN);
         var olTask = OpenLibraryService.SearchByIsbnAsync(_currentBook.ISBN);
         var googleTask = GoogleBooksService.SearchByIsbnAsync(_currentBook.ISBN);
+
+        try
+        {
+            _bedethequeResult = await bedethequeTask;
+            StateHasChanged();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
+        {
+            Log.Error(ex, "Error fetching Bedetheque for ISBN {ISBN}", _currentBook.ISBN);
+            Snackbar.Add("Could not fetch data from Bedetheque. You can still save with current values.", Severity.Warning);
+        }
 
         try
         {
@@ -126,6 +140,19 @@ public partial class ImportBookMetaFromWeb
             Snackbar.Add("Could not fetch data from Google Books. You can still save with current values.", Severity.Warning);
         }
     }
+
+    private string? GetBedethequeValue(string field) => field switch
+    {
+        BookFieldKeys.Title => _bedethequeResult?.Found == true ? NullIfEmpty(_bedethequeResult.Title) : null,
+        BookFieldKeys.Serie => _bedethequeResult?.Found == true ? NullIfEmpty(_bedethequeResult.Serie) : null,
+        BookFieldKeys.VolumeNumber => _bedethequeResult?.Found == true ? _bedethequeResult.VolumeNumber.ToString(CultureInfo.InvariantCulture) : null,
+        BookFieldKeys.Authors => _bedethequeResult?.Found == true ? NullIfEmpty(string.Join(", ", _bedethequeResult.Authors)) : null,
+        BookFieldKeys.Publishers => _bedethequeResult?.Found == true ? NullIfEmpty(string.Join(", ", _bedethequeResult.Publishers)) : null,
+        BookFieldKeys.PublishDate => _bedethequeResult?.Found == true ? _bedethequeResult.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture) : null,
+        BookFieldKeys.NumberOfPages => _bedethequeResult?.Found == true ? _bedethequeResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
+        BookFieldKeys.Cover => _bedethequeResult?.Found == true ? _bedethequeResult.CoverUrl?.ToString() : null,
+        _ => null
+    };
 
     private string? GetOlValue(string field) => field switch
     {
@@ -170,6 +197,7 @@ public partial class ImportBookMetaFromWeb
 
         return source switch
         {
+            BookSource.Bedetheque => GetBedethequeValue(field),
             BookSource.OpenLibrary => GetOlValue(field),
             BookSource.Google => GetGoogleValue(field),
             _ => GetCurrentValue(field)
@@ -260,6 +288,7 @@ public partial class ImportBookMetaFromWeb
 public enum BookSource
 {
     Current,
+    Bedetheque,
     OpenLibrary,
     Google
 }

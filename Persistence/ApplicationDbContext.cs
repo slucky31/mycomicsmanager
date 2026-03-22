@@ -20,6 +20,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
 
     public DbSet<ReadingDate> ReadingDates => Set<ReadingDate>();
 
+    public DbSet<IsbnBedethequeUrl> IsbnBedethequeUrls => Set<IsbnBedethequeUrl>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -57,6 +59,11 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<DigitalBook>().ToTable("DigitalBooks");
 
             modelBuilder.Entity<ReadingDate>().ToTable("ReadingDates");
+
+            modelBuilder.Entity<IsbnBedethequeUrl>().ToTable("IsbnBedethequeUrls");
+            modelBuilder.Entity<IsbnBedethequeUrl>().Property(x => x.ISBN).HasMaxLength(20);
+            modelBuilder.Entity<IsbnBedethequeUrl>().Property(x => x.Url).HasMaxLength(500);
+            modelBuilder.Entity<IsbnBedethequeUrl>().HasIndex(x => x.ISBN).IsUnique();
         }
     }
 }
