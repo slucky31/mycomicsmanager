@@ -13,8 +13,8 @@ public partial class BedethequeService : IBedethequeService
 {
     private static Serilog.ILogger Log => Serilog.Log.ForContext<BedethequeService>();
 
-    private const string BdUrlPrefix = "https://www.bedetheque.com/BD";
-    private const string CoversBaseUrl = "https://www.bedetheque.com/media/Couvertures/Couv_";
+    private const string BdUrlPrefix = "/BD";
+    private const string CoversBaseUrl = "/media/Couvertures/Couv_";
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IIsbnBedethequeCacheRepository _cacheRepository;
