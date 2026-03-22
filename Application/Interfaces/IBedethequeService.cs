@@ -1,6 +1,5 @@
 namespace Application.Interfaces;
 
-// URI parameters/properties should not be strings
 public record BedethequeBookResult(
     string Title,
     string Serie,
