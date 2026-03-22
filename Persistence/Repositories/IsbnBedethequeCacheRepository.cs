@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Domain.Books;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Persistence.Repositories;
 
@@ -18,6 +19,14 @@ public class IsbnBedethequeCacheRepository(ApplicationDbContext dbContext) : IIs
     {
         var entity = IsbnBedethequeUrl.Create(isbn, url);
         dbContext.IsbnBedethequeUrls.Add(entity);
-        await dbContext.SaveChangesAsync(ct);
+        try
+        {
+            await dbContext.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+        {
+            // Another concurrent request already cached this ISBN → ignore
+            dbContext.Entry(entity).State = EntityState.Detached;
+        }
     }
 }

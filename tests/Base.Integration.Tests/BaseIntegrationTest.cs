@@ -132,3 +132,13 @@ public class BookReadServiceIntegrationTest : BookIntegrationTest
     }
 
 }
+
+public class IsbnBedethequeCacheIntegrationTest : BaseIntegrationTest
+{
+    protected IIsbnBedethequeCacheRepository CacheRepository { get; }
+
+    public IsbnBedethequeCacheIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        CacheRepository = _scope.ServiceProvider.GetRequiredService<IIsbnBedethequeCacheRepository>();
+    }
+}

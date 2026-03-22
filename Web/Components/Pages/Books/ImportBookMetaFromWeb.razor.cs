@@ -124,6 +124,10 @@ public partial class ImportBookMetaFromWeb
             Log.Error(ex, "Error fetching OpenLibrary for ISBN {ISBN}", _currentBook.ISBN);
             Snackbar.Add("Could not fetch data from OpenLibrary. You can still save with current values.", Severity.Warning);
         }
+        finally
+        {
+            StateHasChanged();
+        }
 
         try
         {
@@ -139,20 +143,32 @@ public partial class ImportBookMetaFromWeb
             Log.Error(ex, "Error fetching Google Books for ISBN {ISBN}", _currentBook.ISBN);
             Snackbar.Add("Could not fetch data from Google Books. You can still save with current values.", Severity.Warning);
         }
+        finally
+        {
+            StateHasChanged();
+        }
     }
 
-    private string? GetBedethequeValue(string field) => field switch
+    private string? GetBedethequeValue(string field)
     {
-        BookFieldKeys.Title => _bedethequeResult?.Found == true ? NullIfEmpty(_bedethequeResult.Title) : null,
-        BookFieldKeys.Serie => _bedethequeResult?.Found == true ? NullIfEmpty(_bedethequeResult.Serie) : null,
-        BookFieldKeys.VolumeNumber => _bedethequeResult?.Found == true ? _bedethequeResult.VolumeNumber.ToString(CultureInfo.InvariantCulture) : null,
-        BookFieldKeys.Authors => _bedethequeResult?.Found == true ? NullIfEmpty(string.Join(", ", _bedethequeResult.Authors)) : null,
-        BookFieldKeys.Publishers => _bedethequeResult?.Found == true ? NullIfEmpty(string.Join(", ", _bedethequeResult.Publishers)) : null,
-        BookFieldKeys.PublishDate => _bedethequeResult?.Found == true ? _bedethequeResult.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture) : null,
-        BookFieldKeys.NumberOfPages => _bedethequeResult?.Found == true ? _bedethequeResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
-        BookFieldKeys.Cover => _bedethequeResult?.Found == true ? _bedethequeResult.CoverUrl?.ToString() : null,
-        _ => null
-    };
+        if (_bedethequeResult is not { Found: true } r)
+        {
+            return null;
+        }
+
+        return field switch
+        {
+            BookFieldKeys.Title => NullIfEmpty(r.Title),
+            BookFieldKeys.Serie => NullIfEmpty(r.Serie),
+            BookFieldKeys.VolumeNumber => r.VolumeNumber.ToString(CultureInfo.InvariantCulture),
+            BookFieldKeys.Authors => NullIfEmpty(string.Join(", ", r.Authors)),
+            BookFieldKeys.Publishers => NullIfEmpty(string.Join(", ", r.Publishers)),
+            BookFieldKeys.PublishDate => r.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture),
+            BookFieldKeys.NumberOfPages => r.NumberOfPages?.ToString(CultureInfo.InvariantCulture),
+            BookFieldKeys.Cover => r.CoverUrl?.ToString(),
+            _ => null
+        };
+    }
 
     private string? GetOlValue(string field) => field switch
     {
