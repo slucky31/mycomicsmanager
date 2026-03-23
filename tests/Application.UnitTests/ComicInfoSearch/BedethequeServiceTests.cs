@@ -149,8 +149,9 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = PageFactory();
         var service = CreateService(factory, cache);
 
-        await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
 
+        Assert.NotNull(result);
         factory.DidNotReceive().CreateClient("SerpApi");
     }
 

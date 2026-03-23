@@ -13,12 +13,11 @@ public partial class BedethequeService : IBedethequeService
 {
     private static Serilog.ILogger Log => Serilog.Log.ForContext<BedethequeService>();
 
-    private const string BdUrlPrefix = "https://www.bedetheque.com/BD";
-    private const string CoversBaseUrl = "https://www.bedetheque.com/media/Couvertures/Couv_";
-
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IIsbnBedethequeCacheRepository _cacheRepository;
     private readonly BedethequeSettings _settings;
+    private readonly string _bdUrlPrefix;
+    private readonly string _coversBaseUrl;
 
     public BedethequeService(
         IHttpClientFactory httpClientFactory,
@@ -28,6 +27,9 @@ public partial class BedethequeService : IBedethequeService
         _httpClientFactory = httpClientFactory;
         _cacheRepository = cacheRepository;
         _settings = settings.Value;
+        var baseUrl = _settings.BaseUrl.ToString().TrimEnd('/');
+        _bdUrlPrefix = $"{baseUrl}/BD";
+        _coversBaseUrl = $"{baseUrl}/media/Couvertures/Couv_";
     }
 
     public async Task<BedethequeBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default)
@@ -49,7 +51,7 @@ public partial class BedethequeService : IBedethequeService
                 return CreateNotFoundResult();
             }
 
-            return ParsePage(html, url);
+            return ParsePage(html, url, _coversBaseUrl);
         }
         catch (HttpRequestException ex)
         {
@@ -100,7 +102,7 @@ public partial class BedethequeService : IBedethequeService
         var serpResult = await response.Content.ReadFromJsonAsync<SerpApiResponse>(JsonOptions, ct);
 
         var bdLinks = serpResult?.OrganicResults?
-            .Where(r => r.Link?.StartsWith(BdUrlPrefix, StringComparison.OrdinalIgnoreCase) == true)
+            .Where(r => r.Link?.StartsWith(_bdUrlPrefix, StringComparison.OrdinalIgnoreCase) == true)
             .Select(r => r.Link!)
             .ToList() ?? [];
 
@@ -137,7 +139,7 @@ public partial class BedethequeService : IBedethequeService
         return await response.Content.ReadAsStringAsync(ct);
     }
 
-    private static BedethequeBookResult ParsePage(string html, string pageUrl)
+    private static BedethequeBookResult ParsePage(string html, string pageUrl, string coversBaseUrl)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
@@ -149,7 +151,7 @@ public partial class BedethequeService : IBedethequeService
         var publishers = ParsePublishers(doc);
         var publishDate = ParsePublishDate(doc);
         var numberOfPages = ParseNumberOfPages(doc);
-        var coverUrl = BuildCoverUrl(pageUrl);
+        var coverUrl = BuildCoverUrl(pageUrl, coversBaseUrl);
 
         Log.Information("Parsed Bedetheque page: {Serie} T{Volume} - {Title}", serie, volumeNumber, title);
 
@@ -301,16 +303,15 @@ public partial class BedethequeService : IBedethequeService
     [GeneratedRegex(@"-(\d+)\.html$", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex PageIdRegex();
 
-    private static Uri? BuildCoverUrl(string pageUrl)
+    private static Uri? BuildCoverUrl(string pageUrl, string coversBaseUrl)
     {
-        // Extract the last numeric ID from the URL: /BD-...-224335.html → 224335
         var match = PageIdRegex().Match(pageUrl);
         if (!match.Success)
         {
             return null;
         }
 
-        return new Uri($"{CoversBaseUrl}{match.Groups[1].Value}.jpg");
+        return new Uri($"{coversBaseUrl}{match.Groups[1].Value}.jpg");
     }
 
     private static BedethequeBookResult CreateNotFoundResult() =>
