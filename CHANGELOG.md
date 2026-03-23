@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.8.0"></a>
+## [10.8.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.8.0) (2026-03-23)
+
+### ✨ Features
+
+* Add Bedetheque as primary comic metadata provider ([#962](https://www.github.com/slucky31/mycomicsmanager/issues/962)) ([86f54c0](https://www.github.com/slucky31/mycomicsmanager/commit/86f54c062e66a944c293c6f341f81e453de260e2))
+
 <a name="10.7.1"></a>
 ## [10.7.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.7.1) (2026-03-21)
 
