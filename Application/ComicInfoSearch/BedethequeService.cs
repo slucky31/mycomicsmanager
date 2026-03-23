@@ -38,7 +38,13 @@ public partial class BedethequeService : IBedethequeService
 
         try
         {
-            var url = await GetBedethequeUrlAsync(cleanIsbn, ct);
+            var cachedUrl = await _cacheRepository.GetUrlByIsbnAsync(cleanIsbn, ct);
+            if (cachedUrl is not null)
+            {
+                Log.Information("Cache hit for ISBN {Isbn}: {Url}", cleanIsbn, cachedUrl);
+            }
+
+            var url = cachedUrl ?? await ResolveFromSerpApiAsync(cleanIsbn, ct);
             if (url is null)
             {
                 return CreateNotFoundResult();
@@ -51,7 +57,15 @@ public partial class BedethequeService : IBedethequeService
                 return CreateNotFoundResult();
             }
 
-            return ParsePage(html, url, _coversBaseUrl);
+            var result = ParsePage(html, url, _coversBaseUrl);
+
+            if (result.Found && cachedUrl is null)
+            {
+                await _cacheRepository.SaveAsync(cleanIsbn, url, ct);
+                Log.Information("Cached Bedetheque URL for ISBN {Isbn}: {Url}", cleanIsbn, url);
+            }
+
+            return result;
         }
         catch (HttpRequestException ex)
         {
@@ -70,16 +84,8 @@ public partial class BedethequeService : IBedethequeService
         }
     }
 
-    private async Task<string?> GetBedethequeUrlAsync(string isbn, CancellationToken ct)
+    private async Task<string?> ResolveFromSerpApiAsync(string isbn, CancellationToken ct)
     {
-        // Check cache first
-        var cachedUrl = await _cacheRepository.GetUrlByIsbnAsync(isbn, ct);
-        if (cachedUrl is not null)
-        {
-            Log.Information("Cache hit for ISBN {Isbn}: {Url}", isbn, cachedUrl);
-            return cachedUrl;
-        }
-
         if (string.IsNullOrWhiteSpace(_settings.SerpApiKey))
         {
             Log.Warning("SerpApi key is not configured, skipping Bedetheque search for ISBN {Isbn}", isbn);
@@ -112,11 +118,7 @@ public partial class BedethequeService : IBedethequeService
             return null;
         }
 
-        var bdUrl = bdLinks[0];
-        await _cacheRepository.SaveAsync(isbn, bdUrl, ct);
-        Log.Information("Cached Bedetheque URL for ISBN {Isbn}: {Url}", isbn, bdUrl);
-
-        return bdUrl;
+        return bdLinks[0];
     }
 
     private string BuildSerpApiUrl(string isbn)
@@ -197,18 +199,32 @@ public partial class BedethequeService : IBedethequeService
 
         var scenarioLi = doc.DocumentNode.SelectSingleNode(
             "//ul[contains(@class,'infos-albums')]//li[label[contains(.,'Scénario')]]");
-        var scenario = scenarioLi?.SelectSingleNode(".//a")?.InnerText.Trim();
-        if (!string.IsNullOrWhiteSpace(scenario))
+        var scenarioAnchors = scenarioLi?.SelectNodes(".//a");
+        if (scenarioAnchors != null)
         {
-            authors.Add(HtmlEntity.DeEntitize(scenario));
+            foreach (var anchor in scenarioAnchors)
+            {
+                var name = HtmlEntity.DeEntitize(anchor.InnerText.Trim());
+                if (!string.IsNullOrWhiteSpace(name) && !authors.Contains(name))
+                {
+                    authors.Add(name);
+                }
+            }
         }
 
         var dessinLi = doc.DocumentNode.SelectSingleNode(
             "//ul[contains(@class,'infos-albums')]//li[label[contains(.,'Dessin')]]");
-        var dessin = dessinLi?.SelectSingleNode(".//a")?.InnerText.Trim();
-        if (!string.IsNullOrWhiteSpace(dessin) && !authors.Contains(HtmlEntity.DeEntitize(dessin)))
+        var dessinAnchors = dessinLi?.SelectNodes(".//a");
+        if (dessinAnchors != null)
         {
-            authors.Add(HtmlEntity.DeEntitize(dessin));
+            foreach (var anchor in dessinAnchors)
+            {
+                var name = HtmlEntity.DeEntitize(anchor.InnerText.Trim());
+                if (!string.IsNullOrWhiteSpace(name) && !authors.Contains(name))
+                {
+                    authors.Add(name);
+                }
+            }
         }
 
         return authors;

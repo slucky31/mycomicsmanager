@@ -158,7 +158,12 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSerpApiKeyIsEmpty()
     {
-        var settings = new BedethequeSettings { SerpApiKey = "" };
+        var settings = new BedethequeSettings 
+        { 
+            SerpApiKey = "",
+            BaseUrl = new Uri("https://www.bedetheque.com"),
+            SerpApiBaseUrl = new Uri("https://serpapi.com")
+        };      
         var service = CreateService(Substitute.For<IHttpClientFactory>(), settings: settings);
 
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -169,7 +174,12 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSerpApiKeyIsWhitespace()
     {
-        var settings = new BedethequeSettings { SerpApiKey = "   " };
+        var settings = new BedethequeSettings 
+        { 
+            SerpApiKey = "   ",
+            BaseUrl = new Uri("https://www.bedetheque.com"),
+            SerpApiBaseUrl = new Uri("https://serpapi.com")
+        };
         var service = CreateService(Substitute.For<IHttpClientFactory>(), settings: settings);
 
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -383,6 +393,40 @@ public sealed class BedethequeServiceTests : IDisposable
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
 
         result.Authors.Should().ContainSingle().Which.Should().Be("Silas, Stan");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ParseMultipleAuthors_WhenMultipleAnchorsUnderScenarioLabel()
+    {
+        var html = """
+            <html><body><ul class="infos-albums">
+              <li><label>Titre : </label>Album</li>
+              <li><label>Scénario :</label><a href="/auteur-1">Alpha, Jean</a><a href="/auteur-2">Beta, Marie</a></li>
+            </ul></body></html>
+            """;
+        var cache = CacheWithUrl(ValidIsbn, PageUrl);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+
+        result.Authors.Should().HaveCount(2);
+        result.Authors.Should().Contain("Alpha, Jean");
+        result.Authors.Should().Contain("Beta, Marie");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ParseMultipleAuthors_WhenMultipleAnchorsUnderDessinLabel()
+    {
+        var html = """
+            <html><body><ul class="infos-albums">
+              <li><label>Titre : </label>Album</li>
+              <li><label>Dessin :</label><a href="/auteur-1">Alpha, Jean</a><a href="/auteur-2">Beta, Marie</a></li>
+            </ul></body></html>
+            """;
+        var cache = CacheWithUrl(ValidIsbn, PageUrl);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+
+        result.Authors.Should().HaveCount(2);
+        result.Authors.Should().Contain("Alpha, Jean");
+        result.Authors.Should().Contain("Beta, Marie");
     }
 
     [Fact]
