@@ -43,6 +43,8 @@ public static class ProjectDependencyInjection
 
         services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
 
+        services.AddScoped<IIsbnBedethequeCacheRepository, IsbnBedethequeCacheRepository>();
+
         // Config Cloudinary service for cover image storage
         var cloudinarySection = configuration.GetSection("Cloudinary");
         services.AddOptions<CloudinarySettings>()

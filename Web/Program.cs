@@ -66,6 +66,23 @@ builder.Services.AddHttpClient<IGoogleBooksService, GoogleBooksService>(client =
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
+// Config Bedetheque settings
+var bedethequeSection = configuration.GetSection("Bedetheque");
+builder.Services.AddOptions<BedethequeSettings>()
+    .Bind(bedethequeSection)
+    .ValidateOnStart();
+
+// Config Bedetheque HTTP clients
+builder.Services.AddHttpClient("Bedetheque", client =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.FromSeconds(15));
+
+// Config Bedetheque service
+builder.Services.AddScoped<IBedethequeService, BedethequeService>();
+
 builder.Services
     .AddApplication()
     .AddInfrastructure(connectionString, configuration["LocalStorage:RootPath"]!, configuration);

@@ -13,6 +13,7 @@ public partial class ImportBookMetaFromWeb
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
+    [Inject] private IBedethequeService BedethequeService { get; set; } = default!;
     [Inject] private IOpenLibraryService OpenLibraryService { get; set; } = default!;
     [Inject] private IGoogleBooksService GoogleBooksService { get; set; } = default!;
     [Inject] private IComicSearchService ComicSearchService { get; set; } = default!;
@@ -22,6 +23,7 @@ public partial class ImportBookMetaFromWeb
     public string BookId { get; set; } = string.Empty;
 
     private BookUiDto? _currentBook;
+    private BedethequeBookResult? _bedethequeResult;
     private OpenLibraryBookResult? _olResult;
     private GoogleBooksBookResult? _googleResult;
     private ParsedTitleInfo? _olParsed;
@@ -91,10 +93,22 @@ public partial class ImportBookMetaFromWeb
             return;
         }
 
-        // Start both requests concurrently, then await each independently so that
+        // Start all requests concurrently, then await each independently so that
         // a failure in one provider does not prevent the other's result from being used.
+        var bedethequeTask = BedethequeService.SearchByIsbnAsync(_currentBook.ISBN);
         var olTask = OpenLibraryService.SearchByIsbnAsync(_currentBook.ISBN);
         var googleTask = GoogleBooksService.SearchByIsbnAsync(_currentBook.ISBN);
+
+        try
+        {
+            _bedethequeResult = await bedethequeTask;
+            StateHasChanged();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
+        {
+            Log.Error(ex, "Error fetching Bedetheque for ISBN {ISBN}", _currentBook.ISBN);
+            Snackbar.Add("Could not fetch data from Bedetheque. You can still save with current values.", Severity.Warning);
+        }
 
         try
         {
@@ -109,6 +123,10 @@ public partial class ImportBookMetaFromWeb
         {
             Log.Error(ex, "Error fetching OpenLibrary for ISBN {ISBN}", _currentBook.ISBN);
             Snackbar.Add("Could not fetch data from OpenLibrary. You can still save with current values.", Severity.Warning);
+        }
+        finally
+        {
+            StateHasChanged();
         }
 
         try
@@ -125,6 +143,31 @@ public partial class ImportBookMetaFromWeb
             Log.Error(ex, "Error fetching Google Books for ISBN {ISBN}", _currentBook.ISBN);
             Snackbar.Add("Could not fetch data from Google Books. You can still save with current values.", Severity.Warning);
         }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private string? GetBedethequeValue(string field)
+    {
+        if (_bedethequeResult is not { Found: true } r)
+        {
+            return null;
+        }
+
+        return field switch
+        {
+            BookFieldKeys.Title => NullIfEmpty(r.Title),
+            BookFieldKeys.Serie => NullIfEmpty(r.Serie),
+            BookFieldKeys.VolumeNumber => r.VolumeNumber.ToString(CultureInfo.InvariantCulture),
+            BookFieldKeys.Authors => NullIfEmpty(string.Join(", ", r.Authors)),
+            BookFieldKeys.Publishers => NullIfEmpty(string.Join(", ", r.Publishers)),
+            BookFieldKeys.PublishDate => r.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture),
+            BookFieldKeys.NumberOfPages => r.NumberOfPages?.ToString(CultureInfo.InvariantCulture),
+            BookFieldKeys.Cover => r.CoverUrl?.ToString(),
+            _ => null
+        };
     }
 
     private string? GetOlValue(string field) => field switch
@@ -170,6 +213,7 @@ public partial class ImportBookMetaFromWeb
 
         return source switch
         {
+            BookSource.Bedetheque => GetBedethequeValue(field),
             BookSource.OpenLibrary => GetOlValue(field),
             BookSource.Google => GetGoogleValue(field),
             _ => GetCurrentValue(field)
@@ -260,6 +304,7 @@ public partial class ImportBookMetaFromWeb
 public enum BookSource
 {
     Current,
+    Bedetheque,
     OpenLibrary,
     Google
 }

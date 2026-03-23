@@ -27,7 +27,7 @@ public sealed class UpdateBookCommandHandler(
             return BooksError.InvalidISBN;
         }
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);
-     
+
         var book = await bookRepository.GetByIdAsync(request.Id);
         if (book == null)
         {
