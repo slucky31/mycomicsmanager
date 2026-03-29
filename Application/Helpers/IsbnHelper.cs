@@ -162,35 +162,19 @@ public static class IsbnHelper
         return $"{nine[0]}-{nine[1..4]}-{nine[4..]}";
     }
 
-    private static int PublisherLength978Group2(string body)
-    {
-        if (!TryParseSlice(body, 2, out var p2)) { return 0; }
-        if (p2 <= 19)                            { return 2; }
-        if (!TryParseSlice(body, 3, out var p3)) { return 0; }
-        if (p3 is >= 200 and <= 699)             { return 3; }
-        if (!TryParseSlice(body, 4, out var p4)) { return 0; }
-        if (p4 is >= 7000 and <= 8499)           { return 4; }
-        if (!TryParseSlice(body, 5, out var p5)) { return 0; }
-        if (p5 is >= 85000 and <= 89999)         { return 5; }
-        if (!TryParseSlice(body, 6, out var p6)) { return 0; }
-        if (p6 is >= 900000 and <= 949999)       { return 6; }
-        if (!TryParseSlice(body, 7, out var p7)) { return 0; }
-        if (p7 is >= 9500000 and <= 9999999)     { return 7; }
-        return 0;
-    }
+    private static int PublisherLength978Group2(string body) =>
+        PublisherLength(body, [(2, 0, 19), (3, 200, 699), (4, 7000, 8499), (5, 85000, 89999), (6, 900000, 949999), (7, 9500000, 9999999)]);
 
-    private static int PublisherLength979Group10(string body)
+    private static int PublisherLength979Group10(string body) =>
+        PublisherLength(body, [(2, 0, 19), (3, 200, 699), (4, 7000, 8699), (5, 87000, 89999), (6, 900000, 974999)]);
+
+    private static int PublisherLength(string body, (int Length, int Min, int Max)[] ranges)
     {
-        if (!TryParseSlice(body, 2, out var p2)) { return 0; }
-        if (p2 <= 19)                            { return 2; }
-        if (!TryParseSlice(body, 3, out var p3)) { return 0; }
-        if (p3 is >= 200 and <= 699)             { return 3; }
-        if (!TryParseSlice(body, 4, out var p4)) { return 0; }
-        if (p4 is >= 7000 and <= 8699)           { return 4; }
-        if (!TryParseSlice(body, 5, out var p5)) { return 0; }
-        if (p5 is >= 87000 and <= 89999)         { return 5; }
-        if (!TryParseSlice(body, 6, out var p6)) { return 0; }
-        if (p6 is >= 900000 and <= 974999)       { return 6; }
+        foreach (var (length, min, max) in ranges)
+        {
+            if (!TryParseSlice(body, length, out var value)) { return 0; }
+            if (value >= min && value <= max)                { return length; }
+        }
         return 0;
     }
 
