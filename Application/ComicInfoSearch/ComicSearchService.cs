@@ -164,23 +164,34 @@ public partial class ComicSearchService : IComicSearchService
         );
     }
 
+    public Task<string> UploadCoverAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken = default)
+        => UploadCoverToCloudinaryAsync(coverUrl, isbn, cancellationToken);
+
     private async Task<string> UploadCoverToCloudinaryAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken)
     {
-        var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
-
-        var uploadResult = await _cloudinaryService.UploadImageFromUrlAsync(
-            coverUrl,
-            _cloudinarySettings.Folder,
-            cleanIsbn,
-            cancellationToken);
-
-        if (uploadResult.Success && uploadResult.Url != null)
+        try
         {
-            Log.Information("Cover uploaded to Cloudinary: {Url}", uploadResult.Url);
-            return uploadResult.Url.ToString();
+            var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
+
+            var uploadResult = await _cloudinaryService.UploadImageFromUrlAsync(
+                coverUrl,
+                _cloudinarySettings.Folder,
+                cleanIsbn,
+                cancellationToken);
+
+            if (uploadResult.Success && uploadResult.Url != null)
+            {
+                Log.Information("Cover uploaded to Cloudinary: {Url}", uploadResult.Url);
+                return uploadResult.Url.ToString();
+            }
+
+            Log.Warning("Failed to upload cover to Cloudinary: {Error}. Using original URL.", uploadResult.Error);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log.Warning(ex, "Unexpected error uploading cover to Cloudinary for {CoverUrl}. Using original URL.", coverUrl);
         }
 
-        Log.Warning("Failed to upload cover to Cloudinary: {Error}. Using original URL.", uploadResult.Error);
         return coverUrl.ToString();
     }
 

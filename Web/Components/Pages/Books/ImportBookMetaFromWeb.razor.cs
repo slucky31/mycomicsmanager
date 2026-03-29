@@ -252,6 +252,22 @@ public partial class ImportBookMetaFromWeb
         var publishers = GetResolvedValue(BookFieldKeys.Publishers) ?? _currentBook.Publishers;
         var cover = GetResolvedValue(BookFieldKeys.Cover) ?? _currentBook.ImageLink;
 
+        if (!string.IsNullOrEmpty(cover) &&
+            !cover.Contains("res.cloudinary.com", StringComparison.OrdinalIgnoreCase) &&
+            Uri.TryCreate(cover, UriKind.Absolute, out var coverUri) &&
+            (coverUri.Scheme == Uri.UriSchemeHttp || coverUri.Scheme == Uri.UriSchemeHttps))
+        {
+            try
+            {
+                cover = await ComicSearchService.UploadCoverAsync(coverUri, _currentBook.ISBN);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
+            {
+                Log.Error(ex, "Failed to upload cover to Cloudinary for book {BookId}, keeping original URL", BookId);
+                Snackbar.Add("Cover could not be uploaded to Cloudinary. The original URL will be saved.", Severity.Warning);
+            }
+        }
+
         var volumeNumber = int.TryParse(GetResolvedValue(BookFieldKeys.VolumeNumber), out var vol)
             ? vol
             : _currentBook.VolumeNumber;

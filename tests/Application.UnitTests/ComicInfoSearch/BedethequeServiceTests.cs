@@ -561,6 +561,247 @@ public sealed class BedethequeServiceTests : IDisposable
         result.Found.Should().BeFalse();
     }
 
+    // ── SearchByIsbnAsync — caching ──────────────────────────────────
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_NotSaveToCache_WhenCacheHit()
+    {
+        var cache = CacheWithUrl(ValidIsbn, PageUrl);
+        var service = CreateService(PageFactory(), cache);
+
+        await service.SearchByIsbnAsync(ValidIsbn);
+
+        await cache.DidNotReceive().SaveAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    // ── SearchByIsbnAsync — URL deduplication ────────────────────────
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnFound_WhenDuplicateBdLinksDeduplicatedToOne()
+    {
+        var serpJson = SerpApiJson(PageUrl, PageUrl);
+        var service = CreateService(SerpAndPageFactory(serpJson));
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        result.Found.Should().BeTrue();
+    }
+
+    // ── SearchByIsbnAsync — serie-bd link filtering ──────────────────
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenOnlySerieBdLinksPresent()
+    {
+        var serpJson = SerpApiJson("https://www.bedetheque.com/serie-bd-Foo-123.html");
+        var factory = FactoryWith(Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        result.Found.Should().BeFalse();
+    }
+
+    // ── SearchByIsbnAsync — serie page resolution ────────────────────
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnFound_WhenSeriePageContainsMatchingIsbn()
+    {
+        var serieUrl = "https://www.bedetheque.com/serie-Biguden-123.html";
+        var serieHtml = $"""
+            <html><body><ul>
+              <li itemscope itemtype="https://schema.org/Book">
+                <span itemprop="isbn">{ValidIsbn}</span>
+                <a itemprop="url" class="titre" href="{PageUrl}">L'Ankou</a>
+              </li>
+            </ul></body></html>
+            """;
+        var serpJson = SerpApiJson(serieUrl);
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
+            Track(new FakeHttpMessageHandler(req =>
+                req.RequestUri!.ToString().Contains("serie-")
+                    ? HtmlResponse(serieHtml)
+                    : HtmlResponse(FullAlbumHtml))));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        result.Found.Should().BeTrue();
+        result.Title.Should().Be("L'Ankou");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSeriePageHasNoMatchingIsbn()
+    {
+        var serieUrl = "https://www.bedetheque.com/serie-Biguden-123.html";
+        var serieHtml = """
+            <html><body><ul>
+              <li itemscope itemtype="https://schema.org/Book">
+                <span itemprop="isbn">9780000000000</span>
+                <a itemprop="url" class="titre" href="https://www.bedetheque.com/BD-Other-1.html">Other</a>
+              </li>
+            </ul></body></html>
+            """;
+        var serpJson = SerpApiJson(serieUrl);
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
+            Track(new FakeHttpMessageHandler(_ => HtmlResponse(serieHtml))));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        result.Found.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSeriePageFetchFails()
+    {
+        var serieUrl = "https://www.bedetheque.com/serie-Biguden-123.html";
+        var serpJson = SerpApiJson(serieUrl);
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
+            Track(new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound))));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        result.Found.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSeriePageHasNoBookItems()
+    {
+        var serieUrl = "https://www.bedetheque.com/serie-Biguden-123.html";
+        var serieHtml = "<html><body><p>No books here</p></body></html>";
+        var serpJson = SerpApiJson(serieUrl);
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
+            Track(new FakeHttpMessageHandler(_ => HtmlResponse(serieHtml))));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        result.Found.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_SkipItem_WhenSeriePageItemHasNoIsbnSpan()
+    {
+        var serieUrl = "https://www.bedetheque.com/serie-Biguden-123.html";
+        var serieHtml = $"""
+            <html><body><ul>
+              <li itemscope itemtype="https://schema.org/Book">
+                <a itemprop="url" class="titre" href="{PageUrl}">L'Ankou</a>
+              </li>
+            </ul></body></html>
+            """;
+        var serpJson = SerpApiJson(serieUrl);
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
+            Track(new FakeHttpMessageHandler(_ => HtmlResponse(serieHtml))));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        result.Found.Should().BeFalse();
+    }
+
+    // ── SearchByIsbnAsync — publisher from text node ─────────────────
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ParsePublisher_WhenEditeurHasNoSpan()
+    {
+        var html = """
+            <html><body><ul class="infos-albums">
+              <li><label>Titre : </label>Album</li>
+              <li><label>Editeur : </label>Publisher Without Span</li>
+            </ul></body></html>
+            """;
+        var cache = CacheWithUrl(ValidIsbn, PageUrl);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+
+        result.Publishers.Should().ContainSingle().Which.Should().Be("Publisher Without Span");
+    }
+
+    // ── SearchByIsbnAsync — publish date fallback ────────────────────
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ParsePublishDate_FromMonthYear_WhenParutionDateIsInvalid()
+    {
+        var html = """
+            <html><body><ul class="infos-albums">
+              <li><label>Titre : </label>Album</li>
+              <li><label>Dépot légal : </label>06/2020<span class="grise"> (Parution le 00/00/0000)</span></li>
+            </ul></body></html>
+            """;
+        var cache = CacheWithUrl(ValidIsbn, PageUrl);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+
+        result.PublishDate.Should().Be(new DateOnly(2020, 6, 1));
+    }
+
+    // ── SearchByIsbnAsync — pages from text node ─────────────────────
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ParseNumberOfPages_WhenPlanchesHasNoSpan()
+    {
+        var html = """
+            <html><body><ul class="infos-albums">
+              <li><label>Titre : </label>Album</li>
+              <li><label>Planches :</label>48</li>
+            </ul></body></html>
+            """;
+        var cache = CacheWithUrl(ValidIsbn, PageUrl);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+
+        result.NumberOfPages.Should().Be(48);
+    }
+
+    // ── SearchByIsbnAsync — multiple ISBN format fallback ────────────
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_TryHyphenatedIsbn_WhenPlainIsbnFindsNothing()
+    {
+        // First SerpApi call (plain ISBN) returns no results; second (hyphenated) returns a BD link.
+        var callCount = 0;
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ =>
+            {
+                callCount++;
+                return callCount == 2
+                    ? JsonResponse(SerpApiJson(PageUrl))
+                    : JsonResponse(SerpApiJson());
+            })),
+            Track(new FakeHttpMessageHandler(_ => HtmlResponse(FullAlbumHtml))));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        result.Found.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_TryShortIsbn_WhenPlainAndHyphenatedFindNothing()
+    {
+        // First two SerpApi calls return no results; third (short ISBN) returns a BD link.
+        var callCount = 0;
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ =>
+            {
+                callCount++;
+                return callCount == 3
+                    ? JsonResponse(SerpApiJson(PageUrl))
+                    : JsonResponse(SerpApiJson());
+            })),
+            Track(new FakeHttpMessageHandler(_ => HtmlResponse(FullAlbumHtml))));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn);
+
+        result.Found.Should().BeTrue();
+    }
+
     // ── Handler ──────────────────────────────────────────────────────
 
     private sealed class FakeHttpMessageHandler : HttpMessageHandler
