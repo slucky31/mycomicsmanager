@@ -18,6 +18,8 @@ public partial class BedethequeService : IBedethequeService
     private readonly BedethequeSettings _settings;
     private readonly string _bdUrlPrefix;
     private readonly string _coversBaseUrl;
+    private readonly string _serieUrlPrefix;
+    private readonly string _serieBdUrlPrefix;
 
     public BedethequeService(
         IHttpClientFactory httpClientFactory,
@@ -30,6 +32,8 @@ public partial class BedethequeService : IBedethequeService
         var baseUrl = _settings.BaseUrl.ToString().TrimEnd('/');
         _bdUrlPrefix = $"{baseUrl}/BD";
         _coversBaseUrl = $"{baseUrl}/media/Couvertures/Couv_";
+        _serieUrlPrefix = $"{baseUrl}/serie-";
+        _serieBdUrlPrefix = $"{baseUrl}/serie-bd";
     }
 
     public async Task<BedethequeBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default)
@@ -44,7 +48,7 @@ public partial class BedethequeService : IBedethequeService
                 Log.Information("Cache hit for ISBN {Isbn}: {Url}", cleanIsbn, cachedUrl);
             }
 
-            var url = cachedUrl ?? await ResolveFromSerpApiAsync(cleanIsbn, ct);
+            var url = cachedUrl ?? await ResolveUrlAsync(cleanIsbn, ct);
             if (url is null)
             {
                 return CreateNotFoundResult();
@@ -84,7 +88,7 @@ public partial class BedethequeService : IBedethequeService
         }
     }
 
-    private async Task<string?> ResolveFromSerpApiAsync(string isbn, CancellationToken ct)
+    private async Task<string?> ResolveUrlAsync(string isbn, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(_settings.SerpApiKey))
         {
@@ -92,33 +96,107 @@ public partial class BedethequeService : IBedethequeService
             return null;
         }
 
-        // Call SerpApi
-        var serpUrl = BuildSerpApiUrl(isbn);
-        Log.Information("Calling SerpApi for ISBN {Isbn}", isbn);
+        string?[] candidates = [isbn, IsbnHelper.ToHyphenatedIsbn(isbn), IsbnHelper.ToShortIsbn(isbn)];
+        foreach (var searchIsbn in candidates)
+        {
+            if (string.IsNullOrEmpty(searchIsbn))
+            {
+                continue;
+            }
+            var result = await TrySearchFormatAsync(searchIsbn, isbn, ct);
+            if (result is not null)
+            {
+                return result;
+            }
+        }
+        return null;
+    }
+
+    private async Task<string?> TrySearchFormatAsync(string searchIsbn, string normalizedIsbn, CancellationToken ct)
+    {
+        var serpUrl = BuildSerpApiUrl(searchIsbn);
+        Log.Information("Calling SerpApi for ISBN {Isbn} (search: {SearchIsbn})", normalizedIsbn, searchIsbn);
 
         var serpClient = _httpClientFactory.CreateClient("SerpApi");
         var response = await serpClient.GetAsync(new Uri(serpUrl), ct);
-
         if (!response.IsSuccessStatusCode)
         {
-            Log.Warning("SerpApi returned {StatusCode} for ISBN {Isbn}", response.StatusCode, isbn);
+            Log.Warning("SerpApi returned {StatusCode} for ISBN {SearchIsbn}", response.StatusCode, searchIsbn);
             return null;
         }
 
         var serpResult = await response.Content.ReadFromJsonAsync<SerpApiResponse>(JsonOptions, ct);
+        var links = serpResult?.OrganicResults?.Select(r => r.Link).OfType<string>().ToList() ?? [];
 
-        var bdLinks = serpResult?.OrganicResults?
-            .Where(r => r.Link?.StartsWith(_bdUrlPrefix, StringComparison.OrdinalIgnoreCase) == true)
-            .Select(r => r.Link!)
-            .ToList() ?? [];
-
-        if (bdLinks.Count != 1)
+        var bdLinks = links
+            .Where(l => l.StartsWith(_bdUrlPrefix, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        if (bdLinks.Count == 1)
         {
-            Log.Warning("Found {Count} BD links for ISBN {Isbn}, expected exactly 1 — skipping", bdLinks.Count, isbn);
+            return bdLinks[0];
+        }
+
+        var serieLinks = links
+            .Where(l => l.StartsWith(_serieUrlPrefix, StringComparison.OrdinalIgnoreCase) &&
+                        !l.StartsWith(_serieBdUrlPrefix, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        if (serieLinks.Count == 1)
+        {
+            var albumUrl = await ResolveSeriePageAsync(serieLinks[0], normalizedIsbn, ct);
+            if (albumUrl is not null)
+            {
+                return albumUrl;
+            }
+        }
+
+        Log.Warning("No match for search ISBN {SearchIsbn} ({BdCount} BD, {SerieCount} serie links)",
+            searchIsbn, bdLinks.Count, serieLinks.Count);
+        return null;
+    }
+
+    private async Task<string?> ResolveSeriePageAsync(string serieUrl, string isbn, CancellationToken ct)
+    {
+        Log.Information("Parsing serie page for ISBN {Isbn}: {SerieUrl}", isbn, serieUrl);
+        var html = await FetchPageAsync(serieUrl, ct);
+        if (html is null)
+        {
             return null;
         }
 
-        return bdLinks[0];
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+
+        var items = doc.DocumentNode.SelectNodes(
+            "//li[@itemscope and @itemtype='https://schema.org/Book']");
+        if (items is null)
+        {
+            return null;
+        }
+
+        foreach (var item in items)
+        {
+            var isbnSpan = item.SelectSingleNode(".//span[@itemprop='isbn']");
+            if (isbnSpan is null)
+            {
+                continue;
+            }
+            var pageIsbn = IsbnHelper.NormalizeIsbn(HtmlEntity.DeEntitize(isbnSpan.InnerText.Trim()));
+            if (!pageIsbn.Equals(isbn, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var anchor = item.SelectSingleNode(".//a[@itemprop='url' and contains(@class,'titre')]");
+            var href = anchor?.GetAttributeValue("href", string.Empty);
+            if (!string.IsNullOrEmpty(href))
+            {
+                Log.Information("Found album URL via serie page for ISBN {Isbn}: {Href}", isbn, href);
+                return href;
+            }
+        }
+
+        Log.Warning("ISBN {Isbn} not found in serie page {SerieUrl}", isbn, serieUrl);
+        return null;
     }
 
     private string BuildSerpApiUrl(string isbn)

@@ -111,4 +111,86 @@ public static class IsbnHelper
                    .Trim()
                    .ToUpperInvariant();
     }
+
+    // Returns the ISBN-13 formatted with dashes using official ISBN range rules for
+    // group 978-2 (France) and 979-10 (France). Returns null for unsupported prefixes.
+    public static string? ToHyphenatedIsbn(string isbn)
+    {
+        if (isbn.Length != 13)
+        {
+            return null;
+        }
+        if (isbn.StartsWith("9782", StringComparison.Ordinal))
+        {
+            var body = isbn[4..12];
+            var check = isbn[12];
+            var pubLen = PublisherLength978Group2(body);
+            if (pubLen == 0)
+            {
+                return null;
+            }
+            return $"978-2-{body[..pubLen]}-{body[pubLen..]}-{check}";
+        }
+        if (isbn.StartsWith("97910", StringComparison.Ordinal))
+        {
+            var body = isbn[5..12];
+            var check = isbn[12];
+            var pubLen = PublisherLength979Group10(body);
+            if (pubLen == 0)
+            {
+                return null;
+            }
+            return $"979-10-{body[..pubLen]}-{body[pubLen..]}-{check}";
+        }
+        return null;
+    }
+
+    // Strips the EAN prefix (3 digits) and check digit from an ISBN-13, returning
+    // the 9-digit body formatted as X-XXX-XXXXX. Returns null for non-978/979 ISBNs.
+    public static string? ToShortIsbn(string isbn)
+    {
+        if (isbn.Length != 13)
+        {
+            return null;
+        }
+        if (!isbn.StartsWith("978", StringComparison.Ordinal) &&
+            !isbn.StartsWith("979", StringComparison.Ordinal))
+        {
+            return null;
+        }
+        var nine = isbn[3..12];
+        return $"{nine[0]}-{nine[1..4]}-{nine[4..]}";
+    }
+
+    private static int PublisherLength978Group2(string body)
+    {
+        var p2 = int.Parse(body[..2], System.Globalization.CultureInfo.InvariantCulture);
+        var p3 = int.Parse(body[..3], System.Globalization.CultureInfo.InvariantCulture);
+        var p4 = int.Parse(body[..4], System.Globalization.CultureInfo.InvariantCulture);
+        var p5 = int.Parse(body[..5], System.Globalization.CultureInfo.InvariantCulture);
+        var p6 = int.Parse(body[..6], System.Globalization.CultureInfo.InvariantCulture);
+        var p7 = int.Parse(body[..7], System.Globalization.CultureInfo.InvariantCulture);
+        if (p2 <= 19)                        { return 2; }
+        if (p3 is >= 200 and <= 699)         { return 3; }
+        if (p4 is >= 7000 and <= 8499)       { return 4; }
+        if (p5 is >= 85000 and <= 89999)     { return 5; }
+        if (p6 is >= 900000 and <= 949999)   { return 6; }
+        if (p7 is >= 9500000 and <= 9999999) { return 7; }
+        return 0;
+    }
+
+    private static int PublisherLength979Group10(string body)
+    {
+        var p2 = int.Parse(body[..2], System.Globalization.CultureInfo.InvariantCulture);
+        var p3 = int.Parse(body[..3], System.Globalization.CultureInfo.InvariantCulture);
+        var p4 = int.Parse(body[..4], System.Globalization.CultureInfo.InvariantCulture);
+        var p5 = int.Parse(body[..5], System.Globalization.CultureInfo.InvariantCulture);
+        var p6 = int.Parse(body[..6], System.Globalization.CultureInfo.InvariantCulture);
+        if (p2 <= 19)                      { return 2; }
+        if (p3 is >= 200 and <= 699)       { return 3; }
+        if (p4 is >= 7000 and <= 8699)     { return 4; }
+        if (p5 is >= 87000 and <= 89999)   { return 5; }
+        if (p6 is >= 900000 and <= 974999) { return 6; }
+        return 0;
+    }
 }
