@@ -252,6 +252,13 @@ public partial class ImportBookMetaFromWeb
         var publishers = GetResolvedValue(BookFieldKeys.Publishers) ?? _currentBook.Publishers;
         var cover = GetResolvedValue(BookFieldKeys.Cover) ?? _currentBook.ImageLink;
 
+        if (!string.IsNullOrEmpty(cover) &&
+            !cover.Contains("res.cloudinary.com", StringComparison.OrdinalIgnoreCase) &&
+            Uri.TryCreate(cover, UriKind.Absolute, out var coverUri))
+        {
+            cover = await ComicSearchService.UploadCoverAsync(coverUri, _currentBook.ISBN);
+        }
+
         var volumeNumber = int.TryParse(GetResolvedValue(BookFieldKeys.VolumeNumber), out var vol)
             ? vol
             : _currentBook.VolumeNumber;

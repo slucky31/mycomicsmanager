@@ -164,6 +164,9 @@ public partial class ComicSearchService : IComicSearchService
         );
     }
 
+    public Task<string> UploadCoverAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken = default)
+        => UploadCoverToCloudinaryAsync(coverUrl, isbn, cancellationToken);
+
     private async Task<string> UploadCoverToCloudinaryAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken)
     {
         var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
