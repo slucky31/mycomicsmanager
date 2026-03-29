@@ -164,45 +164,36 @@ public static class IsbnHelper
 
     private static int PublisherLength978Group2(string body)
     {
-        if (!TryParseSlices(body, 2, 3, 4, 5, 6, 7, out var p2, out var p3, out var p4, out var p5, out var p6, out var p7))
-        {
-            return 0;
-        }
-        if (p2 <= 19)                        { return 2; }
-        if (p3 is >= 200 and <= 699)         { return 3; }
-        if (p4 is >= 7000 and <= 8499)       { return 4; }
-        if (p5 is >= 85000 and <= 89999)     { return 5; }
-        if (p6 is >= 900000 and <= 949999)   { return 6; }
-        if (p7 is >= 9500000 and <= 9999999) { return 7; }
+        if (!TryParseSlice(body, 2, out var p2)) { return 0; }
+        if (p2 <= 19)                            { return 2; }
+        if (!TryParseSlice(body, 3, out var p3)) { return 0; }
+        if (p3 is >= 200 and <= 699)             { return 3; }
+        if (!TryParseSlice(body, 4, out var p4)) { return 0; }
+        if (p4 is >= 7000 and <= 8499)           { return 4; }
+        if (!TryParseSlice(body, 5, out var p5)) { return 0; }
+        if (p5 is >= 85000 and <= 89999)         { return 5; }
+        if (!TryParseSlice(body, 6, out var p6)) { return 0; }
+        if (p6 is >= 900000 and <= 949999)       { return 6; }
+        if (!TryParseSlice(body, 7, out var p7)) { return 0; }
+        if (p7 is >= 9500000 and <= 9999999)     { return 7; }
         return 0;
     }
 
     private static int PublisherLength979Group10(string body)
     {
-        if (!TryParseSlices(body, 2, 3, 4, 5, 6, 0, out var p2, out var p3, out var p4, out var p5, out var p6, out _))
-        {
-            return 0;
-        }
-        if (p2 <= 19)                      { return 2; }
-        if (p3 is >= 200 and <= 699)       { return 3; }
-        if (p4 is >= 7000 and <= 8699)     { return 4; }
-        if (p5 is >= 87000 and <= 89999)   { return 5; }
-        if (p6 is >= 900000 and <= 974999) { return 6; }
+        if (!TryParseSlice(body, 2, out var p2)) { return 0; }
+        if (p2 <= 19)                            { return 2; }
+        if (!TryParseSlice(body, 3, out var p3)) { return 0; }
+        if (p3 is >= 200 and <= 699)             { return 3; }
+        if (!TryParseSlice(body, 4, out var p4)) { return 0; }
+        if (p4 is >= 7000 and <= 8699)           { return 4; }
+        if (!TryParseSlice(body, 5, out var p5)) { return 0; }
+        if (p5 is >= 87000 and <= 89999)         { return 5; }
+        if (!TryParseSlice(body, 6, out var p6)) { return 0; }
+        if (p6 is >= 900000 and <= 974999)       { return 6; }
         return 0;
     }
 
-    private static bool TryParseSlices(
-        string body,
-        int l2, int l3, int l4, int l5, int l6, int l7,
-        out int p2, out int p3, out int p4, out int p5, out int p6, out int p7)
-    {
-        p2 = p3 = p4 = p5 = p6 = p7 = 0;
-        var culture = System.Globalization.CultureInfo.InvariantCulture;
-        return (l2 == 0 || int.TryParse(body[..l2], culture, out p2))
-            && (l3 == 0 || int.TryParse(body[..l3], culture, out p3))
-            && (l4 == 0 || int.TryParse(body[..l4], culture, out p4))
-            && (l5 == 0 || int.TryParse(body[..l5], culture, out p5))
-            && (l6 == 0 || int.TryParse(body[..l6], culture, out p6))
-            && (l7 == 0 || int.TryParse(body[..l7], culture, out p7));
-    }
+    private static bool TryParseSlice(string body, int length, out int value)
+        => int.TryParse(body[..length], System.Globalization.CultureInfo.InvariantCulture, out value);
 }
