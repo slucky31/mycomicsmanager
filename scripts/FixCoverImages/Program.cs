@@ -41,10 +41,10 @@ string? cloudinaryCloud    = null;
 string? cloudinaryKey      = null;
 string? cloudinarySecret   = null;
 string? cloudinaryFolder   = null;
-int     delayMs            = 500;
-bool    dryRun             = false;
+var     delayMs            = 500;
+var    dryRun             = false;
 
-for (int i = 0; i < args.Length; i++)
+for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
     {
@@ -69,7 +69,7 @@ connectionString ??= config.GetConnectionString("Default");
 
 if (string.IsNullOrEmpty(connectionString))
 {
-    Console.Error.WriteLine("ERROR: --connection or ConnectionStrings__Default env var is required.");
+    await Console.Error.WriteLineAsync("ERROR: --connection or ConnectionStrings__Default env var is required.");
     return 1;
 }
 
@@ -79,12 +79,14 @@ var apiSecret   = cloudinarySecret  ?? config["Cloudinary:ApiSecret"];
 
 if (string.IsNullOrEmpty(cloudName) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiSecret))
 {
-    Console.Error.WriteLine("ERROR: Cloudinary credentials are required (--cloudinary-cloud/key/secret or Cloudinary__* env vars).");
+    await Console.Error.WriteLineAsync("ERROR: Cloudinary credentials are required (--cloudinary-cloud/key/secret or Cloudinary__* env vars).");
     return 1;
 }
 
 if (dryRun)
+{
     Console.WriteLine("DRY RUN — no changes will be saved.");
+}
 
 // ─── DI setup ─────────────────────────────────────────────────────────────────
 
@@ -96,7 +98,7 @@ var provider = services.BuildServiceProvider();
 
 // ─── Step 1 : Query books with non-Cloudinary cover ──────────────────────────
 
-const string CloudinaryHost = "res.cloudinary.com";
+const string cloudinaryHost = "res.cloudinary.com";
 
 List<(Guid Id, string ISBN, string ImageLink)> books;
 using (var scope = provider.CreateScope())
@@ -104,7 +106,7 @@ using (var scope = provider.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var rawBooks = await context.Books
         .Where(b => !string.IsNullOrEmpty(b.ImageLink) &&
-                    !b.ImageLink.Contains(CloudinaryHost))
+                    !b.ImageLink.Contains(cloudinaryHost))
         .Select(b => new { b.Id, b.ISBN, b.ImageLink })
         .ToListAsync();
     books = rawBooks.Select(b => (b.Id, b.ISBN, b.ImageLink)).ToList();
@@ -123,7 +125,7 @@ if (books.Count == 0)
 int updated = 0, skipped = 0, failed = 0;
 var ct = CancellationToken.None;
 
-for (int i = 0; i < books.Count; i++)
+for (var i = 0; i < books.Count; i++)
 {
     var (bookId, isbn, imageLink) = books[i];
     var prefix = $"[{i + 1,4}/{books.Count}] {bookId}";
@@ -172,19 +174,22 @@ for (int i = 0; i < books.Count; i++)
             }
             else
             {
-                Console.Error.WriteLine($"{prefix} → UPLOAD FAILED: {result.Error} (kept original URL)");
+                await Console.Error.WriteLineAsync($"{prefix} → UPLOAD FAILED: {result.Error} (kept original URL)");
                 failed++;
             }
         }
     }
-    catch (Exception ex)
+    catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException
+                                   or InvalidOperationException or Microsoft.EntityFrameworkCore.DbUpdateException)
     {
-        Console.Error.WriteLine($"{prefix} → EXCEPTION: {ex.Message}");
+        await Console.Error.WriteLineAsync($"{prefix} → EXCEPTION: {ex.Message}");
         failed++;
     }
 
     if (i < books.Count - 1)
+    {
         await Task.Delay(delayMs, ct);
+    }
 }
 
 // ─── Summary ──────────────────────────────────────────────────────────────────
@@ -198,8 +203,23 @@ return failed > 0 ? 2 : 0;
 static IEnumerable<KeyValuePair<string, string?>> BuildCloudinaryOverrides(
     string? cloudName, string? apiKey, string? apiSecret, string? folder)
 {
-    if (cloudName != null) yield return new("Cloudinary:CloudName", cloudName);
-    if (apiKey    != null) yield return new("Cloudinary:ApiKey",    apiKey);
-    if (apiSecret != null) yield return new("Cloudinary:ApiSecret", apiSecret);
-    if (folder    != null) yield return new("Cloudinary:Folder",    folder);
+    if (cloudName != null)
+    {
+        yield return new("Cloudinary:CloudName", cloudName);
+    }
+
+    if (apiKey    != null)
+    {
+        yield return new("Cloudinary:ApiKey",    apiKey);
+    }
+
+    if (apiSecret != null)
+    {
+        yield return new("Cloudinary:ApiSecret", apiSecret);
+    }
+
+    if (folder    != null)
+    {
+        yield return new("Cloudinary:Folder",    folder);
+    }
 }

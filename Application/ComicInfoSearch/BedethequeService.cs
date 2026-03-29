@@ -126,7 +126,8 @@ public partial class BedethequeService : IBedethequeService
         }
 
         var serpResult = await response.Content.ReadFromJsonAsync<SerpApiResponse>(JsonOptions, ct);
-        var links = serpResult?.OrganicResults?.Select(r => r.Link).OfType<string>().ToList() ?? [];
+        var links = serpResult?.OrganicResults?.Select(r => r.Link).OfType<string>()
+                        .Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? [];
 
         var bdLinks = links
             .Where(l => l.StartsWith(_bdUrlPrefix, StringComparison.OrdinalIgnoreCase))
