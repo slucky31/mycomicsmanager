@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.0"></a>
+## [10.9.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.0) (2026-03-29)
+
+### ✨ Features
+
+* Get Bedetheque Url and fix covers upload ([#963](https://www.github.com/slucky31/mycomicsmanager/issues/963)) ([0bdde4e](https://www.github.com/slucky31/mycomicsmanager/commit/0bdde4ed3972a448630bea28bd328c05ed75ff7e))
+
 <a name="10.8.0"></a>
 ## [10.8.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.8.0) (2026-03-23)
 
