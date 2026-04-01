@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.103-noble AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.201-noble AS build
 ARG TARGETARCH
 WORKDIR /source
 
@@ -16,7 +16,7 @@ COPY . .
 RUN dotnet publish "./Web/Web.csproj" -a $TARGETARCH -o /app
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0.3-noble
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.5-noble
 
 EXPOSE 8080
 WORKDIR /app
