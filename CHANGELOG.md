@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.2"></a>
+## [10.9.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.2) (2026-04-04)
+
+### 🐛 Bug Fixes
+
+* **deps:** update pascalgn/size-label-action action to v0.5.7 ([#959](https://www.github.com/slucky31/mycomicsmanager/issues/959)) ([af0bbd0](https://www.github.com/slucky31/mycomicsmanager/commit/af0bbd01e779fc84b1d83085d2e610eb7ad495ec))
+
 <a name="10.9.1"></a>
 ## [10.9.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.1) (2026-04-01)
 
