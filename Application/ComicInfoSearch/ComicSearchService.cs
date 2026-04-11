@@ -167,6 +167,171 @@ public partial class ComicSearchService : IComicSearchService
     public Task<string> UploadCoverAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken = default)
         => UploadCoverToCloudinaryAsync(coverUrl, isbn, cancellationToken);
 
+    public async Task<ComicSearchResult> SearchByIsbnWithLocalCoverAsync(
+        string isbn,
+        Stream? coverStream,
+        string? coverFileName,
+        CancellationToken cancellationToken = default)
+    {
+        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
+                           .Replace(" ", "", StringComparison.Ordinal)
+                           .Trim();
+
+        try
+        {
+            if (!string.IsNullOrEmpty(cleanIsbn))
+            {
+                // Try Bedetheque first
+                var bedethequeResult = await _bedethequeService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
+                if (bedethequeResult.Found)
+                {
+                    Log.Information("Book found via Bedetheque for ISBN {Isbn}", cleanIsbn);
+                    var imageUrl = await UploadCoverStreamOrRemoteAsync(
+                        coverStream, coverFileName, bedethequeResult.CoverUrl, cleanIsbn, cancellationToken);
+                    return MapBedethequeResultSync(bedethequeResult, cleanIsbn, imageUrl);
+                }
+
+                // Fallback to Google Books
+                Log.Information("Bedetheque returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
+                var googleResult = await _googleBooksService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
+                if (googleResult.Found)
+                {
+                    Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
+                    var imageUrl = await UploadCoverStreamOrRemoteAsync(
+                        coverStream, coverFileName, googleResult.CoverUrl, cleanIsbn, cancellationToken);
+                    return MapBookResultSync(googleResult, cleanIsbn, imageUrl);
+                }
+
+                // Fallback to OpenLibrary
+                Log.Information("Google Books returned no result for ISBN {Isbn}, trying OpenLibrary", cleanIsbn);
+                var olResult = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
+                if (olResult.Found)
+                {
+                    Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
+                    var imageUrl = await UploadCoverStreamOrRemoteAsync(
+                        coverStream, coverFileName, olResult.CoverUrl, cleanIsbn, cancellationToken);
+                    return MapBookResultSync(olResult, cleanIsbn, imageUrl);
+                }
+
+                Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
+            }
+
+            // No metadata found – upload local cover only (guid-based publicId when no ISBN)
+            var coverImageUrl = coverStream != null && coverFileName != null
+                ? await UploadLocalCoverAsync(coverStream, coverFileName, cleanIsbn, cancellationToken)
+                : string.Empty;
+
+            return CreateNotFoundResult(cleanIsbn) with { ImageUrl = coverImageUrl };
+        }
+        catch (HttpRequestException ex)
+        {
+            Log.Error(ex, "HTTP error searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Log.Error(ex, "Invalid operation searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
+        }
+        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            Log.Error(ex, "Timeout searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
+        }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            Log.Warning(ex, "Search cancelled for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
+        }
+    }
+
+    private static ComicSearchResult MapBedethequeResultSync(
+        BedethequeBookResult bedethequeResult, string isbn, string imageUrl) =>
+        new(
+            Title: bedethequeResult.Title,
+            Serie: bedethequeResult.Serie,
+            Isbn: isbn,
+            VolumeNumber: bedethequeResult.VolumeNumber,
+            ImageUrl: imageUrl,
+            Authors: string.Join(", ", bedethequeResult.Authors),
+            Publishers: string.Join(", ", bedethequeResult.Publishers),
+            PublishDate: bedethequeResult.PublishDate,
+            NumberOfPages: bedethequeResult.NumberOfPages,
+            Found: true
+        );
+
+    private ComicSearchResult MapBookResultSync(IBookSearchResult bookResult, string isbn, string imageUrl)
+    {
+        var (title, serie, volumeNumber) = ParseTitleInfo(bookResult.Title, bookResult.Subtitle);
+        return new ComicSearchResult(
+            Title: title,
+            Serie: serie,
+            Isbn: isbn,
+            VolumeNumber: volumeNumber,
+            ImageUrl: imageUrl,
+            Authors: string.Join(", ", bookResult.Authors),
+            Publishers: string.Join(", ", bookResult.Publishers),
+            PublishDate: bookResult.PublishDate,
+            NumberOfPages: bookResult.NumberOfPages,
+            Found: true
+        );
+    }
+
+    private async Task<string> UploadCoverStreamOrRemoteAsync(
+        Stream? coverStream,
+        string? coverFileName,
+        Uri? remoteCoverUrl,
+        string isbn,
+        CancellationToken cancellationToken)
+    {
+        if (coverStream != null && coverFileName != null)
+        {
+            return await UploadLocalCoverAsync(coverStream, coverFileName, isbn, cancellationToken);
+        }
+
+        if (remoteCoverUrl != null)
+        {
+            return await UploadCoverToCloudinaryAsync(remoteCoverUrl, isbn, cancellationToken);
+        }
+
+        return string.Empty;
+    }
+
+    private async Task<string> UploadLocalCoverAsync(
+        Stream coverStream,
+        string coverFileName,
+        string isbn,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var publicId = string.IsNullOrEmpty(isbn)
+                ? $"digital-{Guid.NewGuid():N}"
+                : IsbnHelper.NormalizeIsbn(isbn);
+
+            var uploadResult = await _cloudinaryService.UploadImageFromStreamAsync(
+                coverStream,
+                coverFileName,
+                _cloudinarySettings.Folder,
+                publicId,
+                cancellationToken);
+
+            if (uploadResult.Success && uploadResult.Url != null)
+            {
+                Log.Information("Local cover uploaded to Cloudinary: {Url}", uploadResult.Url);
+                return uploadResult.Url.ToString();
+            }
+
+            Log.Warning("Failed to upload local cover to Cloudinary: {Error}", uploadResult.Error);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log.Warning(ex, "Unexpected error uploading local cover for ISBN {Isbn}", isbn);
+        }
+
+        return string.Empty;
+    }
+
     private async Task<string> UploadCoverToCloudinaryAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken)
     {
         try

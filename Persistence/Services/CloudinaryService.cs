@@ -115,4 +115,47 @@ public class CloudinaryService : ICloudinaryService
             return new CloudinaryUploadResult(null, null, false, "Upload timeout");
         }
     }
+
+    public async Task<CloudinaryUploadResult> UploadImageFromStreamAsync(
+        Stream imageStream,
+        string fileName,
+        string folder,
+        string publicId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Log.Information("Uploading image to Cloudinary from stream {FileName} to folder {Folder}", fileName, folder);
+
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(fileName, imageStream),
+                Folder = folder,
+                PublicId = publicId,
+                Overwrite = true,
+                UniqueFilename = false
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams, cancellationToken);
+
+            if (uploadResult.Error != null)
+            {
+                Log.Error("Cloudinary upload failed: {Error}", uploadResult.Error.Message);
+                return new CloudinaryUploadResult(null, null, false, uploadResult.Error.Message);
+            }
+
+            Log.Information("Image uploaded successfully to Cloudinary: {Url}", uploadResult.SecureUrl);
+            return new CloudinaryUploadResult(uploadResult.SecureUrl, uploadResult.PublicId, true, null);
+        }
+        catch (HttpRequestException ex)
+        {
+            Log.Error(ex, "HTTP error uploading to Cloudinary from stream {FileName}", fileName);
+            return new CloudinaryUploadResult(null, null, false, ex.Message);
+        }
+        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            Log.Error(ex, "Timeout uploading to Cloudinary from stream {FileName}", fileName);
+            return new CloudinaryUploadResult(null, null, false, "Upload timeout");
+        }
+    }
 }
