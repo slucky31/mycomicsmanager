@@ -36,6 +36,7 @@ public static class ProjectDependencyInjection
         services.AddScoped<IRepository<User, Guid>, UserRepository>();
         services.AddScoped<IRepository<Book, Guid>, BookRepository>();
         services.AddScoped<IBookRepository, BookRepository>();
+        services.AddScoped<IImportJobRepository, ImportJobRepository>();
 
         services.AddScoped<ILibraryReadService, LibraryReadService>();
         services.AddScoped<IUserReadService, UserReadService>();
@@ -44,6 +45,12 @@ public static class ProjectDependencyInjection
         services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
 
         services.AddScoped<IIsbnBedethequeCacheRepository, IsbnBedethequeCacheRepository>();
+
+        services.AddScoped<IArchiveExtractor, ArchiveExtractorService>();
+        services.AddScoped<IPdfImageExtractor, PdfImageExtractorService>();
+        services.AddScoped<IImageProcessor, ImageProcessorService>();
+        services.AddScoped<IComicArchiveBuilder, ComicArchiveBuilderService>();
+        services.AddScoped<IComicInfoXmlService, ComicInfoXmlService>();
 
         // Config Cloudinary service for cover image storage
         var cloudinarySection = configuration.GetSection("Cloudinary");

@@ -1,4 +1,5 @@
 using Domain.Books;
+using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<ReadingDate> ReadingDates => Set<ReadingDate>();
 
     public DbSet<IsbnBedethequeUrl> IsbnBedethequeUrls => Set<IsbnBedethequeUrl>();
+
+    public DbSet<ImportJob> ImportJobs => Set<ImportJob>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,6 +60,15 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             // TPT (Table Per Type) for Book hierarchy
             modelBuilder.Entity<PhysicalBook>().ToTable("PhysicalBooks");
             modelBuilder.Entity<DigitalBook>().ToTable("DigitalBooks");
+            modelBuilder.Entity<DigitalBook>().Property(b => b.FilePath).HasMaxLength(BookConstants.MaxFilePathLength);
+
+            modelBuilder.Entity<ImportJob>().ToTable("ImportJobs");
+            modelBuilder.Entity<ImportJob>().Property(j => j.OriginalFileName).HasMaxLength(ImportJobConstants.MaxFileNameLength);
+            modelBuilder.Entity<ImportJob>().Property(j => j.OriginalFilePath).HasMaxLength(ImportJobConstants.MaxFilePathLength);
+            modelBuilder.Entity<ImportJob>().Property(j => j.ErrorMessage).HasMaxLength(ImportJobConstants.MaxErrorMessageLength);
+            modelBuilder.Entity<ImportJob>().Property(j => j.ErrorStep).HasMaxLength(ImportJobConstants.MaxErrorStepLength);
+            modelBuilder.Entity<ImportJob>().HasIndex(j => j.LibraryId);
+            modelBuilder.Entity<ImportJob>().HasIndex(j => j.Status);
 
             modelBuilder.Entity<ReadingDate>().ToTable("ReadingDates");
 
