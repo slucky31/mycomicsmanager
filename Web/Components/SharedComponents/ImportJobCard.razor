@@ -38,12 +38,32 @@
                 <MudText Typo="Typo.caption" Color="Color.Secondary">
                     @Job.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                 </MudText>
-                @if (Job.Status == "Completed" && Job.CompletedAt.HasValue)
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Success">
-                        Terminé @Job.CompletedAt.Value.ToLocalTime().ToString("HH:mm")
-                    </MudText>
-                }
+                <div class="d-flex align-center gap-1">
+                    @if (Job.Status == "Completed" && Job.CompletedAt.HasValue)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Success">
+                            Terminé @Job.CompletedAt.Value.ToLocalTime().ToString("HH:mm")
+                        </MudText>
+                    }
+                    @if (Job.IsTerminal && OnDelete.HasDelegate)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Size="Size.Small"
+                                       Color="Color.Default"
+                                       OnClick="@(() => OnDelete.InvokeAsync(Job.Id))"
+                                       aria-label="Supprimer cet import" />
+                    }
+                    @if (IsStuck && OnForceFail.HasDelegate)
+                    {
+                        <MudTooltip Text="Forcer l'état en Échoué (job bloqué)">
+                            <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                           Size="Size.Small"
+                                           Color="Color.Warning"
+                                           OnClick="@(() => OnForceFail.InvokeAsync(Job.Id))"
+                                           aria-label="Forcer l'état en Échoué" />
+                        </MudTooltip>
+                    }
+                </div>
             </div>
 
             @if (Job.Status == "Failed" && (!string.IsNullOrEmpty(Job.ErrorStep) || !string.IsNullOrEmpty(Job.ErrorMessage)))

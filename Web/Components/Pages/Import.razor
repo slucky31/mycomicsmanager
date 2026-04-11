@@ -79,7 +79,7 @@
         <MudText Typo="Typo.h6" Class="mb-2">Jobs d'import</MudText>
         @foreach (var job in _jobs)
         {
-            <ImportJobCard Job="@job" />
+        <ImportJobCard Job="@job" OnDelete="DeleteJobAsync" OnForceFail="ForceFailJobAsync" />
         }
     }
     else if (_selectedLibraryId != Guid.Empty)

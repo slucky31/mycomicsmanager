@@ -90,7 +90,7 @@ public partial class EditBook
             _bookModel.Id.ToString(),
             _bookModel.Serie,
             _bookModel.Title,
-            _bookModel.ISBN,
+            _bookModel.ISBN ?? string.Empty,
             _bookModel.VolumeNumber,
             _bookModel.ImageLink,
             _bookModel.Authors,

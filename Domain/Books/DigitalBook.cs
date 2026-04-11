@@ -13,7 +13,7 @@ public sealed class DigitalBook : Book
     public static Result<DigitalBook> Create(
         string serie,
         string title,
-        string isbn,
+        string? isbn,
         Guid libraryId,
         string filePath,
         long fileSize,
@@ -26,7 +26,6 @@ public sealed class DigitalBook : Book
     {
         if (string.IsNullOrWhiteSpace(serie) ||
             string.IsNullOrWhiteSpace(title) ||
-            string.IsNullOrWhiteSpace(isbn) ||
             string.IsNullOrWhiteSpace(filePath) ||
             libraryId == Guid.Empty ||
             fileSize <= 0)

@@ -128,7 +128,7 @@ public partial class AddBookForm
         var request = new CreateBookRequest(
             _bookModel.Serie,
             _bookModel.Title,
-            _bookModel.ISBN,
+            _bookModel.ISBN ?? string.Empty,
             _bookModel.LibraryId,
             _bookModel.VolumeNumber,
             _bookModel.ImageLink,

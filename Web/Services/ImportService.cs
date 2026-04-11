@@ -1,6 +1,8 @@
 using Application.Abstractions.Messaging;
 using Application.ImportJobs;
 using Application.ImportJobs.Create;
+using Application.ImportJobs.Delete;
+using Application.ImportJobs.ForceFail;
 using Application.ImportJobs.GetById;
 using Application.ImportJobs.List;
 using Application.Interfaces;
@@ -16,6 +18,8 @@ public class ImportService(
     IQueryHandler<ListImportJobsQuery, IReadOnlyList<ImportJob>> listImportJobsHandler,
     IQueryHandler<GetImportJobQuery, ImportJob> getImportJobHandler,
     ICommandHandler<CreateImportJobCommand, ImportJob> createImportJobHandler,
+    ICommandHandler<DeleteImportJobCommand> deleteImportJobHandler,
+    ICommandHandler<ForceFailImportJobCommand> forceFailImportJobHandler,
     IImportJobEnqueuer importJobEnqueuer,
     ICurrentUserService currentUserService,
     IOptions<ImportSettings> importSettings) : IImportService
@@ -75,7 +79,8 @@ public class ImportService(
         var safeFileName = Path.GetFileName(file.Name);
         var destPath = Path.Combine(importDir, $"{Guid.CreateVersion7()}_{safeFileName}");
 
-        const long maxFileSizeBytes = 500L * 1024 * 1024;
+        const long bytesPerMb = 1024L * 1024;
+        var maxFileSizeBytes = _settings.MaxFileSizeMb * bytesPerMb;
 
         await using (var dest = File.OpenWrite(destPath))
         {
@@ -105,5 +110,29 @@ public class ImportService(
         importJobEnqueuer.Enqueue(createResult.Value!.Id);
 
         return ImportJobViewModel.From(createResult.Value!);
+    }
+
+    public async Task<Result> DeleteImportJobAsync(Guid importJobId, CancellationToken ct = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var command = new DeleteImportJobCommand(importJobId, userIdResult.Value);
+        return await deleteImportJobHandler.Handle(command, ct);
+    }
+
+    public async Task<Result> ForceFailImportJobAsync(Guid importJobId, CancellationToken ct = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var command = new ForceFailImportJobCommand(importJobId, userIdResult.Value);
+        return await forceFailImportJobHandler.Handle(command, ct);
     }
 }

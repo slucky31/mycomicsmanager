@@ -124,35 +124,43 @@ public class UpdateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsEmpty()
+    public async Task Handle_ShouldSucceed_WhenISBNIsEmpty()
     {
         // Arrange
+        var existingBook = CreateBookWithId(s_bookId, "Serie", "Title", "978-3-16-148410-0");
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(existingBook);
+        _libraryRepositoryMock.GetByIdAsync(s_testLibraryId)
+            .Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
         var emptyIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", string.Empty, 1, "", s_userId);
 
         // Act
         var result = await _handler.Handle(emptyIsbnCommand, default);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(BooksError.BadRequest);
-        _bookRepositoryMock.Received(0).Update(Arg.Any<Book>());
-        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ISBN.Should().BeNull();
+        _bookRepositoryMock.Received(1).Update(Arg.Any<Book>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnBadRequest_WhenISBNIsNull()
+    public async Task Handle_ShouldSucceed_WhenISBNIsNull()
     {
         // Arrange
-        var nullIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", null!, 1, "", s_userId);
+        var existingBook = CreateBookWithId(s_bookId, "Serie", "Title", "978-3-16-148410-0");
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(existingBook);
+        _libraryRepositoryMock.GetByIdAsync(s_testLibraryId)
+            .Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
+        var nullIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", null, 1, "", s_userId);
 
         // Act
         var result = await _handler.Handle(nullIsbnCommand, default);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(BooksError.BadRequest);
-        _bookRepositoryMock.Received(0).Update(Arg.Any<Book>());
-        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ISBN.Should().BeNull();
+        _bookRepositoryMock.Received(1).Update(Arg.Any<Book>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]

@@ -8,6 +8,8 @@ public class ImportJobRepository(ApplicationDbContext context) : IImportJobRepos
 {
     public void Add(ImportJob importJob) => context.ImportJobs.Add(importJob);
 
+    public void Remove(ImportJob importJob) => context.ImportJobs.Remove(importJob);
+
     public async Task<ImportJob?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => await context.ImportJobs.FirstOrDefaultAsync(j => j.Id == id, ct);
 

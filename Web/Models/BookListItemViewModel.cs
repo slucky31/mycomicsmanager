@@ -7,7 +7,7 @@ public sealed record BookListItemViewModel(
     Guid Id,
     string Serie,
     string Title,
-    string ISBN,
+    string? ISBN,
     int VolumeNumber,
     string ImageLink,
     string Authors,

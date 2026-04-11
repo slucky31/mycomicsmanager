@@ -41,7 +41,7 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<Book>().ToTable("Books");
             modelBuilder.Entity<Book>().Property(b => b.Serie).HasMaxLength(BookConstants.MaxSerieLength);
             modelBuilder.Entity<Book>().Property(b => b.Title).HasMaxLength(BookConstants.MaxTitleLength);
-            modelBuilder.Entity<Book>().Property(b => b.ISBN).HasMaxLength(BookConstants.MaxIsbnLength);
+            modelBuilder.Entity<Book>().Property(b => b.ISBN).HasMaxLength(BookConstants.MaxIsbnLength).IsRequired(false);
             modelBuilder.Entity<Book>().Property(b => b.ImageLink).HasMaxLength(BookConstants.MaxImageLinkLength);
             modelBuilder.Entity<Book>().Property(b => b.Authors).HasMaxLength(BookConstants.MaxAuthorsLength);
             modelBuilder.Entity<Book>().Property(b => b.Publishers).HasMaxLength(BookConstants.MaxPublishersLength);

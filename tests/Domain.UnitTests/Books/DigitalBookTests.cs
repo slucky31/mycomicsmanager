@@ -68,14 +68,15 @@ public class DigitalBookTests
     }
 
     [Fact]
-    public void Create_Should_ReturnBadRequest_WhenIsbnIsEmpty()
+    public void Create_Should_Succeed_WhenIsbnIsEmpty()
     {
+        // ISBN is optional for digital books (set during import metadata search)
         // Act
         var result = DigitalBook.Create(DefaultSerie, DefaultTitle, string.Empty, DefaultLibraryId, DefaultFilePath, DefaultFileSize);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(BooksError.BadRequest);
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ISBN.Should().BeNullOrEmpty();
     }
 
     [Fact]

@@ -22,7 +22,7 @@ public sealed class BookUiDtoTests
         // Assert
         dto.Serie.Should().Be(string.Empty);
         dto.Title.Should().Be(string.Empty);
-        dto.ISBN.Should().Be(string.Empty);
+        dto.ISBN.Should().BeNull();
         dto.VolumeNumber.Should().Be(1);
         dto.ImageLink.Should().Be(string.Empty);
         dto.Rating.Should().Be(0);

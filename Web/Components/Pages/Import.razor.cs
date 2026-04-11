@@ -216,6 +216,40 @@ public partial class Import : IAsyncDisposable
         timer?.Dispose();
     }
 
+    private async Task DeleteJobAsync(Guid jobId)
+    {
+        var result = await ImportService.DeleteImportJobAsync(jobId);
+        if (result.IsSuccess)
+        {
+            _jobs.RemoveAll(j => j.Id == jobId);
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add(result.Error?.Description ?? "Impossible de supprimer le job", Severity.Error);
+        }
+    }
+
+    private async Task ForceFailJobAsync(Guid jobId)
+    {
+        var result = await ImportService.ForceFailImportJobAsync(jobId);
+        if (result.IsSuccess)
+        {
+            var capturedLibraryId = _selectedLibraryId;
+            var refreshResult = await ImportService.GetImportJobsAsync(capturedLibraryId);
+            if (refreshResult.IsSuccess && _selectedLibraryId == capturedLibraryId)
+            {
+                _jobs = refreshResult.Value!.OrderByDescending(j => j.CreatedAt).ToList();
+            }
+            Snackbar.Add("Import marqué comme échoué.", Severity.Warning);
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add(result.Error?.Description ?? "Impossible de forcer l'échec du job", Severity.Error);
+        }
+    }
+
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
     public async ValueTask DisposeAsync()
     {

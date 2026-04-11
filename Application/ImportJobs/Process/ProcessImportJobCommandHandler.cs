@@ -54,6 +54,15 @@ public sealed class ProcessImportJobCommandHandler(
 
         if (importJob.Status != ImportJobStatus.Pending)
         {
+            // Job stuck in intermediate state (e.g. Hangfire retry after unhandled exception)
+            if (importJob.Status is not (ImportJobStatus.Completed or ImportJobStatus.Failed))
+            {
+                Log.Warning("Import job {JobId} stuck in {Status} — marking as failed on retry",
+                    importJob.Id, importJob.Status);
+                return await FailJobAsync(importJob, importJob.Status.ToString(),
+                    ImportJobError.InvalidStatusTransition, cancellationToken);
+            }
+
             return ImportJobError.InvalidStatusTransition;
         }
 
@@ -112,6 +121,20 @@ public sealed class ProcessImportJobCommandHandler(
                 importJob, metaResult.Value!, archiveResult.Value.FinalPath,
                 archiveResult.Value.FileSize, imageLink, cancellationToken);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+#pragma warning disable CA1031 // Must catch all to persist failure before Hangfire retry
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Unhandled exception in import pipeline for job {JobId} at step {Status}",
+                importJob.Id, importJob.Status);
+            var step = importJob.Status.ToString();
+            var message = ex.Message.Length > 500 ? ex.Message[..500] : ex.Message;
+            return await FailJobAsync(importJob, step, new TError("IMP500", message), cancellationToken);
+        }
+#pragma warning restore CA1031
         finally
         {
             CleanupTempDirectory(tempDir);
@@ -298,8 +321,8 @@ public sealed class ProcessImportJobCommandHandler(
         CancellationToken ct)
     {
         var normalizedIsbn = string.IsNullOrWhiteSpace(meta.Isbn)
-            ? $"IMP-{importJob.Id:N}"[..BookConstants.MaxIsbnLength]
-            : IsbnHelper.NormalizeIsbn(meta.Isbn);
+            ? null
+            : IsbnHelper.NormalizeIsbn(meta.Isbn!);
 
         var bookResult = DigitalBook.Create(
             meta.Serie, meta.Title, normalizedIsbn, importJob.LibraryId,

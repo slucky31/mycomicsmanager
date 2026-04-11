@@ -52,6 +52,7 @@ public static class ProjectDependencyInjection
         services.AddScoped<IImageProcessor, ImageProcessorService>();
         services.AddScoped<IComicArchiveBuilder, ComicArchiveBuilderService>();
         services.AddScoped<IComicInfoXmlService, ComicInfoXmlService>();
+        services.AddScoped<IBookFileService, BookFileService>();
 
         // Config Cloudinary service for cover image storage
         var cloudinarySection = configuration.GetSection("Cloudinary");
