@@ -49,7 +49,9 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         // Polling timer as fallback (FileSystemWatcher is unreliable on some OS/filesystems)
         var intervalMs = _settings.PollingIntervalSeconds * 1000;
         _pollingTimer = new Timer(
-            async _ => await ScanDirectoryAsync(_settings.ImportDirectory, CancellationToken.None),
+            _ => ScanDirectoryAsync(_settings.ImportDirectory, CancellationToken.None)
+                     .ContinueWith(t => Log.Error(t.Exception, "Polling scan failed"),
+                         CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default),
             null,
             intervalMs,
             intervalMs);
@@ -71,13 +73,15 @@ public sealed class FileWatcherService : IHostedService, IDisposable
 
     private void OnFileSystemEvent(object sender, FileSystemEventArgs e)
     {
-        if (e.ChangeType != WatcherChangeTypes.Created) { return; }
+        if (e.ChangeType != WatcherChangeTypes.Created)
+        { return; }
         _ = ProcessFileAsync(e.FullPath, CancellationToken.None);
     }
 
     private async Task ScanDirectoryAsync(string rootDir, CancellationToken ct)
     {
-        if (!Directory.Exists(rootDir)) { return; }
+        if (!Directory.Exists(rootDir))
+        { return; }
 
         foreach (var subDir in Directory.GetDirectories(rootDir))
         {
@@ -169,7 +173,8 @@ public sealed class FileWatcherService : IHostedService, IDisposable
 
         for (var attempt = 0; attempt < maxAttempts; attempt++)
         {
-            if (ct.IsCancellationRequested) { return false; }
+            if (ct.IsCancellationRequested)
+            { return false; }
             try
             {
                 using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None);

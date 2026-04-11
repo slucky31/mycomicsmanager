@@ -9,4 +9,5 @@ public static class ImportJobError
     public static readonly TError InvalidStatusTransition = new("IMP405", "Invalid status transition.");
     public static readonly TError AlreadyCompleted = new("IMP409", "Import job is already completed.");
     public static readonly TError AlreadyFailed = new("IMP410", "Import job has already failed.");
+    public static readonly TError InsufficientDiskSpace = new("IMP507", "Insufficient disk space to process the import.");
 }

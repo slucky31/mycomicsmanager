@@ -11,6 +11,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using MudBlazor;
 using MudBlazor.Services;
 using Persistence;
@@ -40,6 +41,7 @@ var importSection = builder.Configuration.GetSection("Import");
 builder.Services.AddOptions<ImportSettings>()
     .Bind(importSection)
     .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.ImportDirectory), "Import:ImportDirectory is required")
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.TempDirectory), "Import:TempDirectory is required")
     .ValidateOnStart();
 
 // Config Hangfire with PostgreSQL
@@ -148,7 +150,8 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services
     .AddHealthChecks()
     .AddApplicationStatus()
-    .AddNpgSql(connectionString);
+    .AddNpgSql(connectionString)
+    .AddCheck<ImportDirectoryHealthCheck>("import-directory");
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
@@ -166,6 +169,7 @@ builder.Services.AddMudServices(config =>
 // Config Services
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
+builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();
 builder.Services.AddSingleton<IImportJobEnqueuer, HangfireImportJobEnqueuer>();
@@ -174,6 +178,10 @@ builder.Services.AddHostedService<IconPickerWarmupService>();
 
 var app = builder.Build();
 
+// Ensure import and temp directories exist at startup
+var importSettings = app.Services.GetRequiredService<IOptions<ImportSettings>>().Value;
+Directory.CreateDirectory(importSettings.ImportDirectory);
+Directory.CreateDirectory(importSettings.TempDirectory);
 app.UseSerilogRequestLogging();
 
 app.UseExceptionHandler();
@@ -202,6 +210,9 @@ app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 // Register Accounts Endpoints for Auth0 login/logout
 app.RegisterAccountEndpoints();
+
+// Register Books download endpoint
+app.RegisterBooksEndpoints();
 
 app.MapHealthChecks("/health", new HealthCheckOptions
 {

@@ -35,23 +35,28 @@ public static partial class FileNameIsbnExtractor
 
         // 1. Explicit ISBN prefix: ISBN-xxx, ISBN_xxx, ISBN xxx
         var candidate = TryMatch(IsbnPrefixPattern(), name);
-        if (candidate is not null) { return candidate; }
+        if (candidate is not null)
+        { return candidate; }
 
         // 2. ISBN between parentheses: (xxx)
         candidate = TryMatch(IsbnInParenthesesPattern(), name);
-        if (candidate is not null) { return candidate; }
+        if (candidate is not null)
+        { return candidate; }
 
         // 3. ISBN between brackets: [xxx]
         candidate = TryMatch(IsbnInBracketsPattern(), name);
-        if (candidate is not null) { return candidate; }
+        if (candidate is not null)
+        { return candidate; }
 
         // 4. Raw 13-digit sequence starting with 978/979
         candidate = TryMatch(Isbn13SequencePattern(), name);
-        if (candidate is not null) { return candidate; }
+        if (candidate is not null)
+        { return candidate; }
 
         // 5. Raw 10-digit sequence
         candidate = TryMatch(Isbn10SequencePattern(), name);
-        if (candidate is not null) { return candidate; }
+        if (candidate is not null)
+        { return candidate; }
 
         return null;
     }
@@ -59,7 +64,8 @@ public static partial class FileNameIsbnExtractor
     private static string? TryMatch(Regex pattern, string input)
     {
         var match = pattern.Match(input);
-        if (!match.Success) { return null; }
+        if (!match.Success)
+        { return null; }
 
         // Normalize: remove dashes and spaces, uppercase
         var raw = match.Groups[1].Value;

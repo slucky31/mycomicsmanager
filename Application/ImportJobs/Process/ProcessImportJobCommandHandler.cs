@@ -6,6 +6,7 @@ using Domain.Books;
 using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Primitives;
+using Microsoft.Extensions.Options;
 
 namespace Application.ImportJobs.Process;
 
@@ -21,10 +22,12 @@ public sealed class ProcessImportJobCommandHandler(
     ICloudinaryService cloudinaryService,
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
-    ILibraryLocalStorage libraryLocalStorage)
+    ILibraryLocalStorage libraryLocalStorage,
+    IOptions<ImportSettings> importSettings)
     : ICommandHandler<ProcessImportJobCommand, DigitalBook>
 {
     private static Serilog.ILogger Log => Serilog.Log.ForContext<ProcessImportJobCommandHandler>();
+    private readonly ImportSettings _settings = importSettings.Value;
 
     private record BookMetadata(
         string Serie,
@@ -60,28 +63,50 @@ public sealed class ProcessImportJobCommandHandler(
             return LibrariesError.NotFound;
         }
 
-        var tempDir = Path.Combine(Path.GetTempPath(), "mycomicsmanager", importJob.Id.ToString());
+        var tempDir = Path.Combine(_settings.TempDirectory, importJob.Id.ToString());
         var rawDir = Path.Combine(tempDir, "raw");
         var convertedDir = Path.Combine(tempDir, "converted");
+
+        // Check available disk space: require at least 3× the original file size
+        var requiredBytes = importJob.OriginalFileSize * 3;
+        try
+        {
+            var driveRoot = Path.GetPathRoot(_settings.TempDirectory) ?? "/";
+            var drive = new DriveInfo(driveRoot);
+            if (drive.AvailableFreeSpace < requiredBytes)
+            {
+                return await FailJobAsync(importJob, "Init", ImportJobError.InsufficientDiskSpace, cancellationToken);
+            }
+        }
+#pragma warning disable CA1031 // DriveInfo may not work on all mount types; proceed anyway
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _settings.TempDirectory);
+        }
+#pragma warning restore CA1031
 
         try
         {
             var extractResult = await ExtractStepAsync(importJob, rawDir, cancellationToken);
-            if (extractResult.IsFailure) { return extractResult.Error!; }
+            if (extractResult.IsFailure)
+            { return extractResult.Error!; }
 
             var convertResult = await ConvertStepAsync(importJob, rawDir, convertedDir, cancellationToken);
-            if (convertResult.IsFailure) { return convertResult.Error!; }
+            if (convertResult.IsFailure)
+            { return convertResult.Error!; }
 
             var metaResult = await SearchMetadataStepAsync(
                 importJob, extractResult.Value, convertResult.Value!, convertedDir, cancellationToken);
-            if (metaResult.IsFailure) { return metaResult.Error!; }
+            if (metaResult.IsFailure)
+            { return metaResult.Error!; }
 
             var imageLink = await UploadCoverStepAsync(
                 importJob, metaResult.Value!.Isbn, convertedDir, cancellationToken);
 
             var archiveResult = await BuildArchiveStepAsync(
                 importJob, library, metaResult.Value!.Isbn, convertedDir, tempDir, cancellationToken);
-            if (archiveResult.IsFailure) { return archiveResult.Error!; }
+            if (archiveResult.IsFailure)
+            { return archiveResult.Error!; }
 
             return await CompleteStepAsync(
                 importJob, metaResult.Value!, archiveResult.Value.FinalPath,
@@ -273,7 +298,7 @@ public sealed class ProcessImportJobCommandHandler(
         CancellationToken ct)
     {
         var normalizedIsbn = string.IsNullOrWhiteSpace(meta.Isbn)
-            ? $"IMPORT-{importJob.Id}"
+            ? $"IMP-{importJob.Id:N}"[..BookConstants.MaxIsbnLength]
             : IsbnHelper.NormalizeIsbn(meta.Isbn);
 
         var bookResult = DigitalBook.Create(
@@ -325,7 +350,8 @@ public sealed class ProcessImportJobCommandHandler(
 
     private static void CleanupTempDirectory(string tempDir)
     {
-        if (!Directory.Exists(tempDir)) { return; }
+        if (!Directory.Exists(tempDir))
+        { return; }
         try
         {
             Directory.Delete(tempDir, true);

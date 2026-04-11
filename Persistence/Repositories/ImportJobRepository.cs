@@ -13,6 +13,7 @@ public class ImportJobRepository(ApplicationDbContext context) : IImportJobRepos
 
     public async Task<IReadOnlyList<ImportJob>> GetByLibraryIdAsync(Guid libraryId, CancellationToken ct = default)
         => await context.ImportJobs
+            .AsNoTracking()
             .Where(j => j.LibraryId == libraryId)
             .OrderByDescending(j => j.CreatedAt)
             .ThenBy(j => j.Id)

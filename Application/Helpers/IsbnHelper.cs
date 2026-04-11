@@ -172,8 +172,10 @@ public static class IsbnHelper
     {
         foreach (var (length, min, max) in ranges)
         {
-            if (!TryParseSlice(body, length, out var value)) { return 0; }
-            if (value >= min && value <= max)                { return length; }
+            if (!TryParseSlice(body, length, out var value))
+            { return 0; }
+            if (value >= min && value <= max)
+            { return length; }
         }
         return 0;
     }

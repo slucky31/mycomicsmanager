@@ -1,3 +1,4 @@
+using Application.ImportJobs;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
 using Application.Libraries;
@@ -5,6 +6,7 @@ using Domain.Books;
 using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Primitives;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace Application.UnitTests.ImportJobs;
@@ -49,7 +51,8 @@ public class ProcessImportJobCommandHandlerTests
             _imageProcessor, _archiveBuilder,
             _comicInfoXmlService, _comicSearchService,
             _cloudinaryService, _bookRepository,
-            _unitOfWork, _libraryLocalStorage);
+            _unitOfWork, _libraryLocalStorage,
+            Options.Create(new ImportSettings { TempDirectory = Path.GetTempPath() }));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

@@ -1,0 +1,70 @@
+@using Web.Models
+
+<MudPaper Class="import-job-card pa-3 mb-2" Elevation="1">
+    <div class="d-flex align-center gap-3">
+        <div class="flex-grow-1" style="min-width: 0;">
+            <div class="d-flex align-center justify-space-between mb-1">
+                <div class="d-flex align-center gap-2" style="min-width: 0;">
+                    <MudText Typo="Typo.body2" Class="font-weight-medium import-job-filename">@Job.OriginalFileName</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@Job.FileSizeDisplay</MudText>
+                </div>
+                <MudChip T="string"
+                         Size="Size.Small"
+                         Color="@Job.StatusColor"
+                         Variant="Variant.Filled"
+                         Class="ml-2">
+                    @Job.StatusDisplay
+                </MudChip>
+            </div>
+
+            @if (Job.Status != "Failed")
+            {
+                <MudProgressLinear Value="@Job.ProgressPercent"
+                                   Color="@Job.StatusColor"
+                                   Rounded="true"
+                                   Size="Size.Small"
+                                   Class="mb-1" />
+            }
+            else
+            {
+                <MudProgressLinear Value="100"
+                                   Color="Color.Error"
+                                   Rounded="true"
+                                   Size="Size.Small"
+                                   Class="mb-1" />
+            }
+
+            <div class="d-flex align-center justify-space-between">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @Job.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </MudText>
+                @if (Job.Status == "Completed" && Job.CompletedAt.HasValue)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Success">
+                        Terminé @Job.CompletedAt.Value.ToLocalTime().ToString("HH:mm")
+                    </MudText>
+                }
+            </div>
+
+            @if (Job.Status == "Failed" && (!string.IsNullOrEmpty(Job.ErrorStep) || !string.IsNullOrEmpty(Job.ErrorMessage)))
+            {
+                <MudExpansionPanels Class="mt-2" Dense="true" Elevation="0">
+                    <MudExpansionPanel Text="Détail de l'erreur" Dense="true">
+                        @if (!string.IsNullOrEmpty(Job.ErrorStep))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Error" Class="font-weight-bold">
+                                Étape : @Job.ErrorStep
+                            </MudText>
+                        }
+                        @if (!string.IsNullOrEmpty(Job.ErrorMessage))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Error" Class="mt-1" Style="word-break: break-word;">
+                                @Job.ErrorMessage
+                            </MudText>
+                        }
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+        </div>
+    </div>
+</MudPaper>

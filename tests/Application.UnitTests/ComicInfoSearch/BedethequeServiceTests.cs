@@ -158,12 +158,12 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSerpApiKeyIsEmpty()
     {
-        var settings = new BedethequeSettings 
-        { 
+        var settings = new BedethequeSettings
+        {
             SerpApiKey = "",
             BaseUrl = new Uri("https://www.bedetheque.com"),
             SerpApiBaseUrl = new Uri("https://serpapi.com")
-        };      
+        };
         var service = CreateService(Substitute.For<IHttpClientFactory>(), settings: settings);
 
         var result = await service.SearchByIsbnAsync(ValidIsbn);
@@ -174,8 +174,8 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSerpApiKeyIsWhitespace()
     {
-        var settings = new BedethequeSettings 
-        { 
+        var settings = new BedethequeSettings
+        {
             SerpApiKey = "   ",
             BaseUrl = new Uri("https://www.bedetheque.com"),
             SerpApiBaseUrl = new Uri("https://serpapi.com")

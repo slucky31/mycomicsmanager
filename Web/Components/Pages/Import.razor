@@ -1,5 +1,95 @@
+@rendermode InteractiveServer
+
 @page "/import"
+
+@using Domain.Libraries
+@using Web.Components.SharedComponents
+@using Web.Models
+@using Web.Validators
+
+<PageTitle>Import — MyComicsManager</PageTitle>
 
 <PageLayout Title="Import" Icon="@Icons.Material.Filled.Upload">
 
+    @if (_loadError is not null)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">@_loadError</MudAlert>
+    }
+
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="8" md="6">
+            <MudSelect T="Guid"
+                       Label="Sélectionner une librairie Digital"
+                       Value="_selectedLibraryId"
+                       ValueChanged="OnLibraryChangedAsync"
+                       Variant="Variant.Outlined"
+                       Disabled="@(_digitalLibraries.Count == 0)"
+                       HelperText="@(_digitalLibraries.Count == 0 ? "Aucune librairie Digital disponible" : null)">
+                @foreach (var lib in _digitalLibraries)
+                {
+                    <MudSelectItem T="Guid" Value="@lib.Id">@lib.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="4" md="6" Class="d-flex align-end gap-2">
+            <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                           @ref="_fileUpload"
+                           Accept=".cbz,.cbr,.zip,.rar,.pdf"
+                           FilesChanged="OnFilesSelectedAsync"
+                           Disabled="@(_selectedLibraryId == Guid.Empty || _isUploading)"
+                           MaximumFileCount="10"
+                           Class="d-none" />
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Upload"
+                       Disabled="@(_selectedLibraryId == Guid.Empty || _isUploading)"
+                       OnClick="OpenFilePickerAsync"
+                       aria-label="Uploader des fichiers comics">
+                @if (_isUploading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Envoi en cours...</span>
+                }
+                else
+                {
+                    <span>Uploader</span>
+                }
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (_uploadErrors.Count > 0)
+    {
+        <div class="mb-4">
+            @foreach (var error in _uploadErrors)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" Class="mb-1">@error</MudAlert>
+            }
+        </div>
+    }
+
+    @if (_isLoadingJobs)
+    {
+        <div class="d-flex justify-center pa-8">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else if (_jobs.Count > 0)
+    {
+        <MudText Typo="Typo.h6" Class="mb-2">Jobs d'import</MudText>
+        @foreach (var job in _jobs)
+        {
+            <ImportJobCard Job="@job" />
+        }
+    }
+    else if (_selectedLibraryId != Guid.Empty)
+    {
+        <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Elevation="0">
+            <MudIcon Icon="@Icons.Material.Filled.Inbox" Style="font-size: 64px; opacity: 0.3;" />
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2">Aucun import pour cette librairie</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Uploadez des fichiers CBZ/CBR pour commencer</MudText>
+        </MudPaper>
+    }
+
 </PageLayout>
+

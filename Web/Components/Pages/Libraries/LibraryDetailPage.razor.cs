@@ -1,13 +1,13 @@
 using System.Globalization;
 using Domain.Libraries;
 using Microsoft.AspNetCore.Components;
-using Web.Models;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Serilog;
 using Web.Components.Pages.Dialogs;
 using Web.Components.Pages.Libraries.Views;
 using Web.Enums;
+using Web.Models;
 using Web.Services;
 using Web.Validators;
 
@@ -352,6 +352,13 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private void GoBack() => NavigationManager.NavigateTo("/libraries/list");
 
     private void AddBook() => NavigationManager.NavigateTo($"/books/add?libraryId={LibraryId}");
+
+    private void NavigateToImport() => NavigationManager.NavigateTo($"/import?libraryId={LibraryId}");
+
+    private async Task DownloadBookAsync(Guid bookId)
+    {
+        await JS.InvokeVoidAsync("open", $"/api/books/{bookId}/download", "_blank");
+    }
 
     private async Task DeleteAsync(Guid bookId)
     {
