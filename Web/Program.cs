@@ -1,8 +1,11 @@
 using Application;
 using Application.ComicInfoSearch;
+using Application.ImportJobs;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
+using Hangfire;
+using Hangfire.PostgreSql;
 using HealthChecks.ApplicationStatus.DependencyInjection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -16,6 +19,7 @@ using Web;
 using Web.Components;
 using Web.Configuration;
 using Web.EndPoints;
+using Web.Infrastructure;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +34,26 @@ builder.Services.AddProblemDetails();
 // Get connection string from configuration
 var connectionString = configuration.GetConnectionString("NeonConnection");
 Guard.Against.NullOrWhiteSpace(connectionString);
+
+// Config Import settings
+var importSection = builder.Configuration.GetSection("Import");
+builder.Services.AddOptions<ImportSettings>()
+    .Bind(importSection)
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.ImportDirectory), "Import:ImportDirectory is required")
+    .ValidateOnStart();
+
+// Config Hangfire with PostgreSQL
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(connectionString)));
+
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = 1; // Sequential for RPi4
+    options.Queues = ["import", "default"];
+});
 
 // Config LocalStorage
 var localStorageSection = builder.Configuration.GetSection("LocalStorage");
@@ -144,6 +168,8 @@ builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();
+builder.Services.AddSingleton<IImportJobEnqueuer, HangfireImportJobEnqueuer>();
+builder.Services.AddHostedService<FileWatcherService>();
 builder.Services.AddHostedService<IconPickerWarmupService>();
 
 var app = builder.Build();
@@ -166,6 +192,11 @@ app.UseAuthorization();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireAuthorizationFilter()]
+});
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
