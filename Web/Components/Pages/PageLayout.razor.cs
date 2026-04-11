@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Web.Components.Pages;
 
-public partial class Page
+public partial class PageLayout
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
