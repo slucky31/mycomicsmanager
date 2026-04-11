@@ -620,7 +620,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = FactoryWith(
             Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
             Track(new FakeHttpMessageHandler(req =>
-                req.RequestUri!.ToString().Contains("serie-")
+                req.RequestUri!.ToString().Contains("serie-", StringComparison.OrdinalIgnoreCase)
                     ? HtmlResponse(serieHtml)
                     : HtmlResponse(FullAlbumHtml))));
         var service = CreateService(factory);
