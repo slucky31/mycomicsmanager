@@ -190,7 +190,23 @@ public sealed class ProcessImportJobCommandHandler(
     {
         await AdvanceAndSaveAsync(importJob, ImportJobStatus.Converting, ct);
 
-        var convertResult = await imageProcessor.ProcessImagesAsync(rawDir, convertedDir, ct: ct);
+        var lastSavedPercent = -1;
+
+        async Task OnProgressAsync(ImageConversionProgress report)
+        {
+            var percent = report.TotalCount == 0 ? 0 : report.ConvertedCount * 100 / report.TotalCount;
+            if (percent - lastSavedPercent >= 10 || report.ConvertedCount == report.TotalCount)
+            {
+                lastSavedPercent = percent;
+                importJob.UpdateConversionProgress(report.ConvertedCount, report.TotalCount);
+                importJobRepository.Update(importJob);
+                await unitOfWork.SaveChangesAsync(ct);
+            }
+        }
+
+        var convertResult = await imageProcessor.ProcessImagesAsync(
+            rawDir, convertedDir, onProgressAsync: OnProgressAsync, ct: ct);
+
         if (convertResult.IsFailure)
         {
             return await FailJobAsync(importJob, "Converting", convertResult.Error!, ct);

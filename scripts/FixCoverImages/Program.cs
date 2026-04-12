@@ -123,7 +123,7 @@ using (var scope = provider.CreateScope())
                     !b.ImageLink.Contains(cloudinaryHost))
         .Select(b => new { b.Id, b.ISBN, b.ImageLink })
         .ToListAsync();
-    books = rawBooks.Select(b => (b.Id, b.ISBN, b.ImageLink)).ToList();
+    books = rawBooks.Select(b => (b.Id, b.ISBN!, b.ImageLink!)).ToList();
 }
 
 Console.WriteLine($"{books.Count} book(s) with non-Cloudinary covers to process.");

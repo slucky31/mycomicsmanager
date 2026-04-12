@@ -14,7 +14,9 @@ public record ImportJobViewModel(
     DateTime CreatedAt,
     DateTime? CompletedAt,
     string? ErrorMessage,
-    string? ErrorStep)
+    string? ErrorStep,
+    int ConvertedImagesCount,
+    int TotalImagesToConvert)
 {
     public static ImportJobViewModel From(ImportJob job) => new(
         Id: job.Id,
@@ -23,15 +25,22 @@ public record ImportJobViewModel(
         Status: job.Status.ToString(),
         StatusDisplay: GetStatusDisplay(job.Status),
         StatusColor: GetStatusColor(job.Status),
-        ProgressPercent: GetProgressPercent(job.Status),
+        ProgressPercent: GetProgressPercent(job.Status, job.ConvertedImagesCount, job.TotalImagesToConvert),
         CreatedAt: job.CreatedAt,
         CompletedAt: job.CompletedAt,
         ErrorMessage: job.ErrorMessage,
-        ErrorStep: job.ErrorStep);
+        ErrorStep: job.ErrorStep,
+        ConvertedImagesCount: job.ConvertedImagesCount,
+        TotalImagesToConvert: job.TotalImagesToConvert);
 
     public bool IsTerminal => Status is "Completed" or "Failed";
 
-    public string FileSizeDisplay => OriginalFileSize switch
+    public string? ConversionDetail =>
+        Status == "Converting" && TotalImagesToConvert > 0
+            ? $"{ConvertedImagesCount}/{TotalImagesToConvert} images converties"
+            : null;
+
+    public string FileSizeDisplay=> OriginalFileSize switch
     {
         >= 1_073_741_824 => $"{OriginalFileSize / 1_073_741_824.0:F1} Go",
         >= 1_048_576 => $"{OriginalFileSize / 1_048_576.0:F1} Mo",
@@ -65,11 +74,13 @@ public record ImportJobViewModel(
         _ => Color.Default
     };
 
-    private static int GetProgressPercent(ImportJobStatus status) => status switch
+    private static int GetProgressPercent(ImportJobStatus status, int converted, int total) => status switch
     {
         ImportJobStatus.Pending => 0,
         ImportJobStatus.Extracting => 15,
-        ImportJobStatus.Converting => 35,
+        ImportJobStatus.Converting => total > 0
+            ? 35 + converted * 20 / total
+            : 35,
         ImportJobStatus.SearchingMetadata => 55,
         ImportJobStatus.UploadingCover => 70,
         ImportJobStatus.BuildingArchive => 85,

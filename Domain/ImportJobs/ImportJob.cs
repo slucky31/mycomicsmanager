@@ -35,6 +35,10 @@ public class ImportJob : Entity<Guid>
 
     public string? ErrorStep { get; private set; }
 
+    public int ConvertedImagesCount { get; private set; }
+
+    public int TotalImagesToConvert { get; private set; }
+
     protected ImportJob() { }
 
     public static Result<ImportJob> Create(
@@ -63,6 +67,12 @@ public class ImportJob : Entity<Guid>
         };
 
         return job;
+    }
+
+    public void UpdateConversionProgress(int converted, int total)
+    {
+        ConvertedImagesCount = converted;
+        TotalImagesToConvert = total;
     }
 
     public Result Advance(ImportJobStatus newStatus)

@@ -11,4 +11,7 @@ public static class FileProcessingError
     public static readonly TError ProcessingFailed = new("FP500", "File processing failed.");
     public static readonly TError XmlReadError = new("FP501", "Failed to read the ComicInfo.xml file.");
     public static readonly TError XmlWriteError = new("FP502", "Failed to write the ComicInfo.xml file.");
+
+    public static TError InvalidImageContent(string fileName) =>
+        new("FP503", $"Image '{fileName}' could not be converted: file is corrupt or has an unrecognized format.");
 }

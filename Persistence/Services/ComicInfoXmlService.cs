@@ -21,7 +21,15 @@ public class ComicInfoXmlService : IComicInfoXmlService
 
         try
         {
-            using var reader = XmlReader.Create(xmlPath);
+            var settings = new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null,
+                MaxCharactersFromEntities = 0,
+                MaxCharactersInDocument = 1_000_000,
+            };
+
+            using var reader = XmlReader.Create(xmlPath, settings);
             var doc = (ComicInfoDocument?)s_serializer.Deserialize(reader);
             if (doc is null)
             {

@@ -39,6 +39,12 @@
                     @Job.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                 </MudText>
                 <div class="d-flex align-center gap-1">
+                    @if (Job.ConversionDetail is not null)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @Job.ConversionDetail
+                        </MudText>
+                    }
                     @if (Job.Status == "Completed" && Job.CompletedAt.HasValue)
                     {
                         <MudText Typo="Typo.caption" Color="Color.Success">

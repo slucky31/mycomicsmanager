@@ -1,3 +1,4 @@
+using Application.Interfaces;
 using Domain.Errors;
 using Persistence.Services;
 using SixLabors.ImageSharp;
@@ -44,10 +45,10 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await image.SaveAsPngAsync(path);
     }
 
-    private static void CreateWebpFile(string path)
+    private static async Task CreateWebpAsync(string path, int width = 1400, int height = 2100)
     {
-        // Minimal fake .webp file (just needs the extension for the "all webp" check)
-        File.WriteAllBytes(path, [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50]);
+        using var image = new Image<Rgba32>(width, height);
+        await image.SaveAsWebpAsync(path);
     }
 
     [Fact]
@@ -83,22 +84,23 @@ public sealed class ImageProcessorServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ProcessImagesAsync_Should_SkipWhenAllAlreadyWebp()
+    public async Task ProcessImagesAsync_Should_SkipConversion_WhenWebpAlreadyAtTargetWidth()
     {
-        // Arrange
+        // Arrange — portrait WebP at exactly targetWidth=1400
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
-        CreateWebpFile(Path.Combine(sourceDir, "page-001.webp"));
-        CreateWebpFile(Path.Combine(sourceDir, "page-002.webp"));
+        await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 1400, height: 2100);
+        await CreateWebpAsync(Path.Combine(sourceDir, "page-002.webp"), width: 1400, height: 2100);
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.AllAlreadyWebp.Should().BeTrue();
         result.Value.ProcessedCount.Should().Be(0);
         result.Value.SkippedCount.Should().Be(2);
+        Directory.GetFiles(destDir, "*.webp").Should().HaveCount(2);
     }
 
     [Fact]
@@ -217,5 +219,172 @@ public sealed class ImageProcessorServiceTests : IDisposable
 
         // Assert
         File.Exists(Path.Combine(destDir, "ComicInfo.xml")).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_InvokeProgressCallback_ForEachImage()
+    {
+        // Arrange
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"));
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-002.jpg"));
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-003.jpg"));
+
+        var progressReports = new List<ImageConversionProgress>();
+        Task OnProgress(ImageConversionProgress p) { progressReports.Add(p); return Task.CompletedTask; }
+
+        // Act
+        await _service.ProcessImagesAsync(sourceDir, destDir, onProgressAsync: OnProgress);
+
+        // Assert
+        progressReports.Should().HaveCount(3);
+        progressReports[0].Should().Be(new ImageConversionProgress(1, 3));
+        progressReports[1].Should().Be(new ImageConversionProgress(2, 3));
+        progressReports[2].Should().Be(new ImageConversionProgress(3, 3));
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_InvokeProgressCallback_EvenForSkippedWebp()
+    {
+        // Arrange — WebP already at correct width: skipped (copied), but callback still fires
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 1400, height: 2100);
+
+        var progressInvoked = false;
+        Task OnProgress(ImageConversionProgress _) { progressInvoked = true; return Task.CompletedTask; }
+
+        // Act
+        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: OnProgress);
+
+        // Assert
+        progressInvoked.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_WorkWithoutProgressCallback()
+    {
+        // Arrange
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"));
+
+        // Act — passing null explicitly should not throw
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, onProgressAsync: null);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_ReconvertWebp_WhenWidthDoesNotMatchTarget()
+    {
+        // Arrange — WebP at 800px, but target is 1400px → must be re-converted
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 800, height: 1200);
+
+        // Act
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ProcessedCount.Should().Be(1);
+        result.Value.SkippedCount.Should().Be(0);
+        var outputFile = Directory.GetFiles(destDir, "*.webp").Single();
+        using var resultImage = await Image.LoadAsync(outputFile);
+        resultImage.Width.Should().Be(1400);
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_PartiallySkip_WhenMixedArchive()
+    {
+        // Arrange — 1 JPEG (needs conversion) + 1 WebP at correct width (skip)
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"), width: 100, height: 150);
+        await CreateWebpAsync(Path.Combine(sourceDir, "page-002.webp"), width: 1400, height: 2100);
+
+        // Act
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ProcessedCount.Should().Be(1);
+        result.Value.SkippedCount.Should().Be(1);
+        result.Value.AllAlreadyWebp.Should().BeFalse();
+        Directory.GetFiles(destDir, "*.webp").Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_SkipDoublePage_WhenWidthMatchesDoubleTarget()
+    {
+        // Arrange — landscape WebP at 2800px (double page at targetWidth=1400) → skip
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 2800, height: 2100);
+
+        // Act
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.SkippedCount.Should().Be(1);
+        result.Value.ProcessedCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_ReturnFailure_WhenImageIsCorrupt()
+    {
+        // Arrange — a .jpg file with invalid/non-image content
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        var corruptFile = Path.Combine(sourceDir, "corrupt.jpg");
+        await File.WriteAllBytesAsync(corruptFile, [0x00, 0x01, 0x02, 0x03, 0x04]);
+
+        // Act
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("FP503");
+        result.Error.Description.Should().Contain("corrupt.jpg");
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_ReturnFailure_WithFirstFailingFilename_WhenMultipleCorruptImages()
+    {
+        // Arrange — two corrupt images; error should name the first one (alphabetical order)
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "page-001.jpg"), [0x00, 0x01]);
+        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "page-002.jpg"), [0x00, 0x01]);
+
+        // Act
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Description.Should().Contain("page-001.jpg");
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_IgnoreDotPrefixedFiles()
+    {
+        // Arrange — macOS resource fork files like ._IMG0000.png must be skipped
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"));
+        await CreatePngAsync(Path.Combine(sourceDir, "._page-001.png"));   // must be ignored
+        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "._IMG0000.jpg"), [0x00, 0x01]); // corrupt but ignored
+
+        // Act
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ProcessedCount.Should().Be(1);
+        Directory.GetFiles(destDir, "*.webp").Should().HaveCount(1);
     }
 }

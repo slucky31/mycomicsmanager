@@ -17,7 +17,7 @@ internal sealed class ImportDirectoryHealthCheck(IOptions<ImportSettings> settin
             File.Delete(testFile);
             return HealthCheckResult.Healthy($"Import directory '{dir}' is writable.");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return HealthCheckResult.Unhealthy($"Import directory '{dir}' is not writable.", ex);
         }

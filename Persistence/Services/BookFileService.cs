@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Persistence.Services;
 
-public sealed class BookFileService(ILogger<BookFileService> logger) : IBookFileService
+public sealed partial class BookFileService(ILogger<BookFileService> logger) : IBookFileService
 {
     public Task DeleteFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
@@ -14,20 +14,29 @@ public sealed class BookFileService(ILogger<BookFileService> logger) : IBookFile
 
         if (!File.Exists(filePath))
         {
-            logger.LogWarning("Digital book file not found, skipping deletion: {FilePath}", filePath);
+            LogFileNotFound(filePath);
             return Task.CompletedTask;
         }
 
         try
         {
             File.Delete(filePath);
-            logger.LogInformation("Deleted digital book file: {FilePath}", filePath);
+            LogFileDeleted(filePath);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError(ex, "Failed to delete digital book file: {FilePath}", filePath);
+            LogFileDeletionFailed(ex, filePath);
         }
 
         return Task.CompletedTask;
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Digital book file not found, skipping deletion: {FilePath}")]
+    private partial void LogFileNotFound(string filePath);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Deleted digital book file: {FilePath}")]
+    private partial void LogFileDeleted(string filePath);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete digital book file: {FilePath}")]
+    private partial void LogFileDeletionFailed(Exception ex, string filePath);
 }

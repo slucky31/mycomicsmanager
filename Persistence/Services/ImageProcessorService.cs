@@ -18,6 +18,7 @@ public class ImageProcessorService : IImageProcessor
         string sourceDirectory,
         string destinationDirectory,
         int targetWidth = 1400,
+        Func<ImageConversionProgress, Task>? onProgressAsync = null,
         CancellationToken ct = default)
     {
         if (!Directory.Exists(sourceDirectory))
@@ -32,40 +33,96 @@ public class ImageProcessorService : IImageProcessor
             return new ImageProcessingResult(0, 0, false);
         }
 
-        if (AllFilesAreWebp(imageFiles))
+        Directory.CreateDirectory(destinationDirectory);
+        var processResult = await ProcessAllImagesAsync(
+            imageFiles, destinationDirectory, targetWidth, onProgressAsync, ct);
+
+        if (processResult.IsFailure)
         {
-            Log.Information("All {Count} files are already WebP, skipping conversion", imageFiles.Count);
-            return new ImageProcessingResult(0, imageFiles.Count, true);
+            return processResult.Error!;
         }
 
-        Directory.CreateDirectory(destinationDirectory);
-        await ProcessAllImagesAsync(imageFiles, destinationDirectory, targetWidth, ct);
+        var (processedCount, skippedCount) = processResult.Value!;
         CopyComicInfoXml(sourceDirectory, destinationDirectory);
 
-        Log.Information("Processed {Count} images to WebP", imageFiles.Count);
-        return new ImageProcessingResult(imageFiles.Count, 0, false);
+        Log.Information(
+            "Processed {Converted} images to WebP, skipped {Skipped} already-optimal WebP files",
+            processedCount, skippedCount);
+
+        return new ImageProcessingResult(processedCount, skippedCount, processedCount == 0);
     }
 
     private static List<string> GetSortedImageFiles(string sourceDirectory) =>
         Directory.GetFiles(sourceDirectory)
-            .Where(f => s_inputExtensions.Contains(Path.GetExtension(f)))
+            .Where(f => !Path.GetFileName(f).StartsWith('.') &&
+                        s_inputExtensions.Contains(Path.GetExtension(f)))
             .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-    private static bool AllFilesAreWebp(List<string> files) =>
-        files.All(f => string.Equals(Path.GetExtension(f), ".webp", StringComparison.OrdinalIgnoreCase));
-
-    private static async Task ProcessAllImagesAsync(
+    private static async Task<Result<(int ProcessedCount, int SkippedCount)>> ProcessAllImagesAsync(
         List<string> imageFiles,
         string destinationDirectory,
         int targetWidth,
+        Func<ImageConversionProgress, Task>? onProgressAsync,
         CancellationToken ct)
     {
+        var processedCount = 0;
+        var skippedCount = 0;
+
         for (var i = 0; i < imageFiles.Count; i++)
         {
             ct.ThrowIfCancellationRequested();
             var outputPath = Path.Combine(destinationDirectory, $"page-{i + 1:D3}.webp");
-            await ConvertToWebpAsync(imageFiles[i], outputPath, targetWidth, ct);
+
+            if (await ShouldSkipConversionAsync(imageFiles[i], targetWidth, ct))
+            {
+                File.Copy(imageFiles[i], outputPath, overwrite: true);
+                skippedCount++;
+            }
+            else
+            {
+                try
+                {
+                    await ConvertToWebpAsync(imageFiles[i], outputPath, targetWidth, ct);
+                    processedCount++;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    return FileProcessingError.InvalidImageContent(Path.GetFileName(imageFiles[i]));
+                }
+            }
+
+            if (onProgressAsync != null)
+            {
+                await onProgressAsync(new ImageConversionProgress(i + 1, imageFiles.Count));
+            }
+        }
+
+        return (processedCount, skippedCount);
+    }
+
+    private static async Task<bool> ShouldSkipConversionAsync(string filePath, int targetWidth, CancellationToken ct)
+    {
+        if (!string.Equals(Path.GetExtension(filePath), ".webp", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        try
+        {
+            var info = await Image.IdentifyAsync(filePath, ct);
+            if (info is null)
+            {
+                return false;
+            }
+
+            var isDoublePage = info.Width > info.Height;
+            var expectedWidth = isDoublePage ? targetWidth * 2 : targetWidth;
+            return info.Width == expectedWidth;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return false;
         }
     }
 
@@ -76,6 +133,14 @@ public class ImageProcessorService : IImageProcessor
         CancellationToken ct)
     {
         using var image = await Image.LoadAsync(sourcePath, ct);
+
+        const int maxDimension = 8_000;
+        if (image.Width > maxDimension || image.Height > maxDimension)
+        {
+            throw new InvalidOperationException(
+                $"Image dimensions ({image.Width}×{image.Height}) exceed maximum allowed ({maxDimension}px).");
+        }
+
         var effectiveWidth = IsDoublePage(image) ? targetWidth * 2 : targetWidth;
         var targetHeight = (int)Math.Round((double)image.Height * effectiveWidth / image.Width);
 

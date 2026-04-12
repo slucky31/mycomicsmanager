@@ -17,6 +17,9 @@ public class ArchiveExtractorService : IArchiveExtractor
     private static readonly HashSet<string> s_allowedFileExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".jpeg", ".jpg", ".png", ".gif", ".webp", ".xml" };
 
+    private const int MaxArchiveEntries = 5_000;
+    private const long MaxUncompressedBytes = 5L * 1024 * 1024 * 1024; // 5 GB
+
     public bool CanHandle(string filePath) =>
         s_supportedArchives.Contains(Path.GetExtension(filePath));
 
@@ -52,17 +55,28 @@ public class ArchiveExtractorService : IArchiveExtractor
     {
         var extractedFiles = new List<string>();
         string? comicInfoXmlPath = null;
+        var canonicalDest = Path.GetFullPath(destinationPath);
 
         using var fileStream = File.OpenRead(archivePath);
         using var archive = ArchiveFactory.OpenArchive(fileStream, new ReaderOptions { LookForHeader = true });
 
-        foreach (var entry in archive.Entries)
-        {
-            if (entry.IsDirectory)
-            {
-                continue;
-            }
+        var relevantEntries = archive.Entries
+            .Where(e => !e.IsDirectory)
+            .ToList();
 
+        if (relevantEntries.Count > MaxArchiveEntries)
+        {
+            return FileProcessingError.CorruptArchive;
+        }
+
+        var totalUncompressedSize = relevantEntries.Sum(e => e.Size);
+        if (totalUncompressedSize > MaxUncompressedBytes)
+        {
+            return FileProcessingError.CorruptArchive;
+        }
+
+        foreach (var entry in relevantEntries)
+        {
             var entryName = Path.GetFileName(entry.Key ?? string.Empty);
             if (string.IsNullOrEmpty(entryName))
             {
@@ -75,7 +89,14 @@ public class ArchiveExtractorService : IArchiveExtractor
                 continue;
             }
 
-            var destFilePath = Path.Combine(destinationPath, entryName);
+            var destFilePath = Path.GetFullPath(Path.Combine(destinationPath, entryName));
+            if (!destFilePath.StartsWith(canonicalDest + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                && destFilePath != canonicalDest)
+            {
+                Log.Warning("Path traversal attempt blocked: {Entry}", entry.Key);
+                continue;
+            }
+
             entry.WriteToFile(destFilePath, new ExtractionOptions { Overwrite = true });
             extractedFiles.Add(destFilePath);
 

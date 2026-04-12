@@ -91,7 +91,8 @@ public class ProcessImportJobCommandHandlerTests
     private void SetupImageProcessor(int processedCount = 3, int skippedCount = 0, bool allAlreadyWebp = false)
     {
         _imageProcessor.ProcessImagesAsync(
-            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
+            Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>())
             .Returns(info =>
             {
                 // Create the converted directory and a dummy cover so downstream steps can proceed
@@ -221,7 +222,8 @@ public class ProcessImportJobCommandHandlerTests
         await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
 
         await _imageProcessor.Received(1)
-            .ProcessImagesAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+            .ProcessImagesAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
+            Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -241,10 +243,11 @@ public class ProcessImportJobCommandHandlerTests
 
         // Still calls ProcessImagesAsync (service decides internally); handler should still succeed
         await _imageProcessor.Received(1)
-            .ProcessImagesAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+            .ProcessImagesAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
+            Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Metadata search ───────────────────────────────────────────────────────
+    // ── Metadata search───────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_Should_SearchMetadata_WhenIsbnFound()
@@ -398,7 +401,8 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveExtractor(job, []);
 
         _imageProcessor.ProcessImagesAsync(
-            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
+            Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>())
             .Returns(Result<ImageProcessingResult>.Failure(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
