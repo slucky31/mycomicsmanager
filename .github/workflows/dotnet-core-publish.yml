@@ -75,7 +75,7 @@ jobs:
       
       - name: "Create release"
         if: steps.versionize.outcome == 'success'
-        uses: "actions/github-script@v8.0.0"
+        uses: "actions/github-script@v9"
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
