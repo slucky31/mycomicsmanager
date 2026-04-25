@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.10"></a>
+## [10.9.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.10) (2026-04-25)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency coverlet.collector to v10 ([#970](https://www.github.com/slucky31/mycomicsmanager/issues/970)) ([e89a971](https://www.github.com/slucky31/mycomicsmanager/commit/e89a9718c8969ff3fa74750698f01a118985ab12))
+
 <a name="10.9.9"></a>
 ## [10.9.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.9) (2026-04-24)
 
