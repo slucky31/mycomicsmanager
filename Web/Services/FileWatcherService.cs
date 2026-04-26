@@ -35,6 +35,9 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     {
         Directory.CreateDirectory(_settings.ImportDirectory);
 
+        // Ensure each digital library has its import subdirectory
+        await EnsureImportDirectoriesExistAsync(cancellationToken);
+
         // Scan existing files on startup
         await ScanDirectoryAsync(_settings.ImportDirectory, cancellationToken);
 
@@ -71,6 +74,24 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         _watcher?.Dispose();
     }
 
+    private async Task EnsureImportDirectoriesExistAsync(CancellationToken ct)
+    {
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var libraryRepository = scope.ServiceProvider.GetRequiredService<IRepository<Library, Guid>>();
+        var importDirectoryStorage = scope.ServiceProvider.GetRequiredService<IImportDirectoryStorage>();
+
+        var libraries = await libraryRepository.ListAsync();
+        foreach (var library in libraries.Where(l => l.BookType == LibraryBookType.Digital))
+        {
+            var result = importDirectoryStorage.EnsureExists(library.ImportDirectoryName);
+            if (result.IsFailure)
+            {
+                Log.Warning("Failed to ensure import directory for library {LibraryId} ({Name}): {Error}",
+                    library.Id, library.Name, result.Error?.Description);
+            }
+        }
+    }
+
     private void OnFileSystemEvent(object sender, FileSystemEventArgs e)
     {
         if (e.ChangeType != WatcherChangeTypes.Created)
@@ -101,12 +122,14 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             return;
         }
 
-        // Library ID is the name of the immediate parent directory
+        // Library ID is extracted from the immediate parent directory name.
+        // Expected format: {RelativePath}_{LibraryId}, e.g. MYCOMICS_01967e23-...
+        // Legacy format (GUID only) is also accepted for backward compatibility.
         var parentDir = Path.GetDirectoryName(filePath) ?? string.Empty;
         var parentName = Path.GetFileName(parentDir);
-        if (!Guid.TryParse(parentName, out var libraryId))
+        if (!TryExtractLibraryId(parentName, out var libraryId))
         {
-            Log.Debug("Ignoring file at root or non-GUID subdirectory: {FilePath}", filePath);
+            Log.Debug("Ignoring file at root or non-library subdirectory: {FilePath}", filePath);
             return;
         }
 
@@ -163,6 +186,20 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         var jobId = _enqueuer.Enqueue(result.Value!.Id);
         Log.Information("Enqueued import job {ImportJobId} (Hangfire: {HangfireJobId}) for {FilePath}",
             result.Value.Id, jobId, filePath);
+    }
+
+    // Extracts the LibraryId GUID from a directory name.
+    // Supports {RelativePath}_{Guid} format (e.g. MYCOMICS_01967e23-...)
+    // and legacy plain GUID format for backward compatibility.
+    private static bool TryExtractLibraryId(string directoryName, out Guid libraryId)
+    {
+        var lastUnderscore = directoryName.LastIndexOf('_');
+        if (lastUnderscore >= 0 && Guid.TryParse(directoryName[(lastUnderscore + 1)..], out libraryId))
+        {
+            return true;
+        }
+
+        return Guid.TryParse(directoryName, out libraryId);
     }
 
     private static async Task<bool> WaitForFileReadyAsync(string filePath, CancellationToken ct)

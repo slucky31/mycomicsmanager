@@ -1,4 +1,5 @@
 using Application.ComicInfoSearch;
+using Application.ImportJobs;
 using Application.Interfaces;
 using Application.Libraries;
 using Application.Users;
@@ -44,6 +45,7 @@ public static class ProjectDependencyInjection
         services.AddScoped<IBookReadService, BookReadService>();
 
         services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
+        services.AddScoped<IImportDirectoryStorage, ImportDirectoryStorage>();
 
         services.AddScoped<IIsbnBedethequeCacheRepository, IsbnBedethequeCacheRepository>();
 

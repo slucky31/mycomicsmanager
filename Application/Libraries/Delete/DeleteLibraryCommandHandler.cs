@@ -1,11 +1,12 @@
 using Application.Abstractions.Messaging;
+using Application.ImportJobs;
 using Application.Interfaces;
 using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Application.Libraries.Delete;
 
-public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> librayRepository, IUnitOfWork unitOfWork, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<DeleteLibraryCommand>
+public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> librayRepository, IUnitOfWork unitOfWork, ILibraryLocalStorage libraryLocalStorage, IImportDirectoryStorage importDirectoryStorage) : ICommandHandler<DeleteLibraryCommand>
 {
     public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {
@@ -21,14 +22,16 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
             return LibrariesError.NotFound;
         }
 
-        // Delete folder only for digital libraries
+        // Delete folders only for digital libraries
         if (library.BookType == LibraryBookType.Digital)
         {
-            var result = libraryLocalStorage.Delete(library.RelativePath);
-            if (result.IsFailure)
+            var storageResult = libraryLocalStorage.Delete(library.RelativePath);
+            if (storageResult.IsFailure)
             {
                 return LibrariesError.FolderNotDeleted;
             }
+
+            importDirectoryStorage.Delete(library.ImportDirectoryName);
         }
 
         librayRepository.Remove(library);

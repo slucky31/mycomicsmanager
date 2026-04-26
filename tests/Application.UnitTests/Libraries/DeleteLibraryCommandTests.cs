@@ -1,3 +1,4 @@
+using Application.ImportJobs;
 using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Delete;
@@ -18,14 +19,17 @@ public class DeleteLibraryCommandTests
     private readonly IRepository<Library, Guid> _librayRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryLocalStorage _libraryLocalStorageMock;
+    private readonly IImportDirectoryStorage _importDirectoryStorageMock;
 
     public DeleteLibraryCommandTests()
     {
         _librayRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
+        _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();
+        _importDirectoryStorageMock.Delete(Arg.Any<string>()).Returns(Result.Success());
 
-        _handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryLocalStorageMock);
+        _handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryLocalStorageMock, _importDirectoryStorageMock);
     }
 
     [Fact]
@@ -87,6 +91,7 @@ public class DeleteLibraryCommandTests
         _librayRepositoryMock.Received(1).Remove(Arg.Any<Library>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
         _libraryLocalStorageMock.DidNotReceive().Delete(Arg.Any<string>());
+        _importDirectoryStorageMock.DidNotReceive().Delete(Arg.Any<string>());
     }
 
     [Fact]
@@ -103,6 +108,7 @@ public class DeleteLibraryCommandTests
         result.IsSuccess.Should().BeTrue();
         _librayRepositoryMock.Received(1).Remove(Arg.Any<Library>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        _importDirectoryStorageMock.Received(1).Delete(s_digitalLibrary.ImportDirectoryName);
     }
 
     [Fact]

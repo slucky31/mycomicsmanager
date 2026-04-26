@@ -1,9 +1,11 @@
+using Application.ImportJobs;
 using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Create;
 using Ardalis.GuardClauses;
 using Domain.Errors;
 using Domain.Libraries;
+using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Libraries;
@@ -19,6 +21,7 @@ public class CreateLibraryCommandTests
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryReadService _libraryReadServiceMock;
     private readonly ILibraryLocalStorage _libraryLocalStorageMock;
+    private readonly IImportDirectoryStorage _importDirectoryStorageMock;
 
     public CreateLibraryCommandTests()
     {
@@ -26,8 +29,10 @@ public class CreateLibraryCommandTests
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryReadServiceMock = Substitute.For<ILibraryReadService>();
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
+        _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();
+        _importDirectoryStorageMock.EnsureExists(Arg.Any<string>()).Returns(Result.Success());
 
-        _handler = new CreateLibraryCommandHandler(_libraryRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorageMock);
+        _handler = new CreateLibraryCommandHandler(_libraryRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorageMock, _importDirectoryStorageMock);
     }
 
     [Fact]
@@ -90,6 +95,22 @@ public class CreateLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_ShouldReturnFolderNotCreated_WhenImportDirectoryNotCreated()
+    {
+        // Arrange
+        _libraryRepositoryMock.Add(Arg.Any<Library>());
+        _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(Result.Success());
+        _importDirectoryStorageMock.EnsureExists(Arg.Any<string>()).Returns(ImportDirectoryStorageError.InvalidPath);
+
+        // Act
+        var result = await _handler.Handle(s_digitalCommand, default);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.FolderNotCreated);
+    }
+
+    [Fact]
     public async Task Handle_ShouldNotCreateFolder_WhenBookTypeIsPhysical()
     {
         // Arrange
@@ -100,6 +121,22 @@ public class CreateLibraryCommandTests
 
         // Assert
         _libraryLocalStorageMock.DidNotReceive().Create(Arg.Any<string>());
+        _importDirectoryStorageMock.DidNotReceive().EnsureExists(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateImportDirectory_WhenBookTypeIsDigital()
+    {
+        // Arrange
+        _libraryRepositoryMock.Add(Arg.Any<Library>());
+        _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(Result.Success());
+
+        // Act
+        var result = await _handler.Handle(s_digitalCommand, default);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _importDirectoryStorageMock.Received(1).EnsureExists(Arg.Any<string>());
     }
 
     [Fact]

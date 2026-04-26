@@ -1,3 +1,4 @@
+using Application.ImportJobs;
 using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Update;
@@ -19,6 +20,7 @@ public class UpdateLibraryCommandTests
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryReadService _libraryReadServiceMock;
     private readonly ILibraryLocalStorage _libraryLocalStorage;
+    private readonly IImportDirectoryStorage _importDirectoryStorageMock;
 
     public UpdateLibraryCommandTests()
     {
@@ -26,8 +28,10 @@ public class UpdateLibraryCommandTests
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryReadServiceMock = Substitute.For<ILibraryReadService>();
         _libraryLocalStorage = Substitute.For<ILibraryLocalStorage>();
+        _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();
+        _importDirectoryStorageMock.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
 
-        _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorage);
+        _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorage, _importDirectoryStorageMock);
     }
 
     [Fact]
@@ -91,6 +95,7 @@ public class UpdateLibraryCommandTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.Name.Should().Be("new-digital-name");
         _libraryLocalStorage.Received(1).Move(Arg.Any<string>(), Arg.Any<string>());
+        _importDirectoryStorageMock.Received(1).Move(Arg.Any<string>(), Arg.Any<string>());
         _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
     }
