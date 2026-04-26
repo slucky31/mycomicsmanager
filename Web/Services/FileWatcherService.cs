@@ -36,7 +36,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         Directory.CreateDirectory(_settings.ImportDirectory);
 
         // Ensure each digital library has its import subdirectory
-        await EnsureImportDirectoriesExistAsync(cancellationToken);
+        await EnsureImportDirectoriesExistAsync();
 
         // Scan existing files on startup
         await ScanDirectoryAsync(_settings.ImportDirectory, cancellationToken);
@@ -74,7 +74,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         _watcher?.Dispose();
     }
 
-    private async Task EnsureImportDirectoriesExistAsync(CancellationToken ct)
+    private async Task EnsureImportDirectoriesExistAsync()
     {
         await using var scope = _scopeFactory.CreateAsyncScope();
         var libraryRepository = scope.ServiceProvider.GetRequiredService<IRepository<Library, Guid>>();
