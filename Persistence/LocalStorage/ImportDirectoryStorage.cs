@@ -34,6 +34,25 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
         }
     }
 
+    private Result ValidateAbsolutePath(string absolutePath)
+    {
+        try
+        {
+            var normalizedRoot = Path.GetFullPath(_rootPath);
+            var fullPath = Path.GetFullPath(absolutePath);
+            if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                return ImportDirectoryStorageError.InvalidPath;
+            }
+
+            return Result.Success();
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return ImportDirectoryStorageError.InvalidPath;
+        }
+    }
+
     public Result EnsureExists(string directoryName)
     {
         if (string.IsNullOrEmpty(directoryName))
@@ -105,6 +124,63 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
             Directory.Delete(path, true);
         }
 
+        return Result.Success();
+    }
+
+    public Result DeleteOriginalFile(string absoluteFilePath)
+    {
+        if (string.IsNullOrEmpty(absoluteFilePath))
+        {
+            return ImportDirectoryStorageError.ArgumentNullOrEmpty;
+        }
+
+        var validation = ValidateAbsolutePath(absoluteFilePath);
+        if (validation.IsFailure)
+        {
+            return validation.Error!;
+        }
+
+        if (File.Exists(absoluteFilePath))
+        {
+            File.Delete(absoluteFilePath);
+        }
+
+        return Result.Success();
+    }
+
+    public Result MoveOriginalFileToError(string absoluteFilePath)
+    {
+        if (string.IsNullOrEmpty(absoluteFilePath))
+        {
+            return ImportDirectoryStorageError.ArgumentNullOrEmpty;
+        }
+
+        var validation = ValidateAbsolutePath(absoluteFilePath);
+        if (validation.IsFailure)
+        {
+            return validation.Error!;
+        }
+
+        if (!File.Exists(absoluteFilePath))
+        {
+            return Result.Success();
+        }
+
+        var errorsDir = Path.Combine(_rootPath, "errors");
+        Directory.CreateDirectory(errorsDir);
+
+        var fileName = Path.GetFileName(absoluteFilePath);
+        var destPath = Path.Combine(errorsDir, fileName);
+
+        if (File.Exists(destPath))
+        {
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", System.Globalization.CultureInfo.InvariantCulture);
+            var ext = Path.GetExtension(fileName);
+            var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+            destPath = Path.Combine(errorsDir, $"{nameWithoutExt}_{timestamp}{ext}");
+        }
+
+        File.Move(absoluteFilePath, destPath);
         return Result.Success();
     }
 }

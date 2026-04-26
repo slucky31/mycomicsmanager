@@ -26,6 +26,7 @@ public class ProcessImportJobCommandHandlerTests
     private readonly IBookRepository _bookRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILibraryLocalStorage _libraryLocalStorage;
+    private readonly IImportDirectoryStorage _importDirectoryStorage;
 
     private static readonly Guid s_userId = Guid.CreateVersion7();
     private static readonly TError s_processingError = new("FP500", "Processing failed");
@@ -44,6 +45,10 @@ public class ProcessImportJobCommandHandlerTests
         _bookRepository = Substitute.For<IBookRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _libraryLocalStorage = Substitute.For<ILibraryLocalStorage>();
+        _importDirectoryStorage = Substitute.For<IImportDirectoryStorage>();
+
+        _importDirectoryStorage.DeleteOriginalFile(Arg.Any<string>()).Returns(Result.Success());
+        _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>()).Returns(Result.Success());
 
         _handler = new ProcessImportJobCommandHandler(
             _importJobRepository, _libraryRepository,
@@ -52,6 +57,7 @@ public class ProcessImportJobCommandHandlerTests
             _comicInfoXmlService, _comicSearchService,
             _cloudinaryService, _bookRepository,
             _unitOfWork, _libraryLocalStorage,
+            _importDirectoryStorage,
             Options.Create(new ImportSettings { TempDirectory = Path.GetTempPath() }));
     }
 
@@ -430,5 +436,67 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+    }
+
+    // ── Original file management ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_DeleteOriginalFile_WhenImportSucceeds()
+    {
+        var tempFile = Path.GetTempFileName();
+        try
+        {
+            var job = CreatePendingJob("comic.cbz", tempFile);
+            _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+            CreateDigitalLibrary(job.LibraryId);
+            SetupArchiveExtractor(job, []);
+            SetupImageProcessor();
+            SetupComicInfoXml();
+            SetupCloudinary();
+            SetupArchiveBuilder();
+            SetupNoMetadataSearch();
+
+            var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+
+            result.IsSuccess.Should().BeTrue();
+            _importDirectoryStorage.Received(1).DeleteOriginalFile(tempFile);
+            _importDirectoryStorage.DidNotReceive().MoveOriginalFileToError(Arg.Any<string>());
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Handle_Should_MoveOriginalFileToError_WhenImportFails()
+    {
+        var tempFile = Path.GetTempFileName();
+        try
+        {
+            var job = CreatePendingJob("comic.cbz", tempFile);
+            _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+            CreateDigitalLibrary(job.LibraryId);
+
+            _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
+            _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+
+            var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+
+            result.IsFailure.Should().BeTrue();
+            _importDirectoryStorage.Received(1).MoveOriginalFileToError(tempFile);
+            _importDirectoryStorage.DidNotReceive().DeleteOriginalFile(Arg.Any<string>());
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);
+            }
+        }
     }
 }

@@ -23,6 +23,7 @@ public sealed class ProcessImportJobCommandHandler(
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
     ILibraryLocalStorage libraryLocalStorage,
+    IImportDirectoryStorage importDirectoryStorage,
     IOptions<ImportSettings> importSettings)
     : ICommandHandler<ProcessImportJobCommand, DigitalBook>
 {
@@ -59,8 +60,10 @@ public sealed class ProcessImportJobCommandHandler(
             {
                 Log.Warning("Import job {JobId} stuck in {Status} — marking as failed on retry",
                     importJob.Id, importJob.Status);
-                return await FailJobAsync(importJob, importJob.Status.ToString(),
+                var stuckResult = await FailJobAsync(importJob, importJob.Status.ToString(),
                     ImportJobError.InvalidStatusTransition, cancellationToken);
+                HandleOriginalFile(importJob.OriginalFilePath, success: false);
+                return stuckResult;
             }
 
             return ImportJobError.InvalidStatusTransition;
@@ -76,6 +79,26 @@ public sealed class ProcessImportJobCommandHandler(
         var rawDir = Path.Combine(tempDir, "raw");
         var convertedDir = Path.Combine(tempDir, "converted");
 
+        Result<DigitalBook>? pipelineResult = null;
+        try
+        {
+            pipelineResult = await ExecutePipelineAsync(importJob, library, tempDir, rawDir, convertedDir, cancellationToken);
+            return pipelineResult;
+        }
+        finally
+        {
+            CleanupTempDirectory(tempDir);
+            HandleOriginalFile(importJob.OriginalFilePath, pipelineResult?.IsSuccess == true);
+        }
+    }
+
+    // ── Pipeline execution ────────────────────────────────────────────────────
+
+    private async Task<Result<DigitalBook>> ExecutePipelineAsync(
+        ImportJob importJob, Library library,
+        string tempDir, string rawDir, string convertedDir,
+        CancellationToken ct)
+    {
         // Check available disk space: require at least 3× the original file size
         var requiredBytes = importJob.OriginalFileSize * 3;
         try
@@ -84,7 +107,7 @@ public sealed class ProcessImportJobCommandHandler(
             var drive = new DriveInfo(driveRoot);
             if (drive.AvailableFreeSpace < requiredBytes)
             {
-                return await FailJobAsync(importJob, "Init", ImportJobError.InsufficientDiskSpace, cancellationToken);
+                return await FailJobAsync(importJob, "Init", ImportJobError.InsufficientDiskSpace, ct);
             }
         }
 #pragma warning disable CA1031 // DriveInfo may not work on all mount types; proceed anyway
@@ -96,30 +119,30 @@ public sealed class ProcessImportJobCommandHandler(
 
         try
         {
-            var extractResult = await ExtractStepAsync(importJob, rawDir, cancellationToken);
+            var extractResult = await ExtractStepAsync(importJob, rawDir, ct);
             if (extractResult.IsFailure)
             { return extractResult.Error!; }
 
-            var convertResult = await ConvertStepAsync(importJob, rawDir, convertedDir, cancellationToken);
+            var convertResult = await ConvertStepAsync(importJob, rawDir, convertedDir, ct);
             if (convertResult.IsFailure)
             { return convertResult.Error!; }
 
             var metaResult = await SearchMetadataStepAsync(
-                importJob, extractResult.Value, convertResult.Value!, convertedDir, cancellationToken);
+                importJob, extractResult.Value, convertResult.Value!, convertedDir, ct);
             if (metaResult.IsFailure)
             { return metaResult.Error!; }
 
             var imageLink = await UploadCoverStepAsync(
-                importJob, metaResult.Value!.Isbn, convertedDir, cancellationToken);
+                importJob, metaResult.Value!.Isbn, convertedDir, ct);
 
             var archiveResult = await BuildArchiveStepAsync(
-                importJob, library, metaResult.Value!.Isbn, convertedDir, tempDir, cancellationToken);
+                importJob, library, metaResult.Value!.Isbn, convertedDir, tempDir, ct);
             if (archiveResult.IsFailure)
             { return archiveResult.Error!; }
 
             return await CompleteStepAsync(
                 importJob, metaResult.Value!, archiveResult.Value.FinalPath,
-                archiveResult.Value.FileSize, imageLink, cancellationToken);
+                archiveResult.Value.FileSize, imageLink, ct);
         }
         catch (OperationCanceledException)
         {
@@ -132,12 +155,32 @@ public sealed class ProcessImportJobCommandHandler(
                 importJob.Id, importJob.Status);
             var step = importJob.Status.ToString();
             var message = ex.Message.Length > 500 ? ex.Message[..500] : ex.Message;
-            return await FailJobAsync(importJob, step, new TError("IMP500", message), cancellationToken);
+            return await FailJobAsync(importJob, step, new TError("IMP500", message), ct);
         }
 #pragma warning restore CA1031
-        finally
+    }
+
+    // ── Original file management ──────────────────────────────────────────────
+
+    private void HandleOriginalFile(string filePath, bool success)
+    {
+        if (success)
         {
-            CleanupTempDirectory(tempDir);
+            var result = importDirectoryStorage.DeleteOriginalFile(filePath);
+            if (result.IsFailure)
+            {
+                Log.Warning("Could not delete original file {FilePath} after successful import: {Error}",
+                    filePath, result.Error?.Description);
+            }
+        }
+        else
+        {
+            var result = importDirectoryStorage.MoveOriginalFileToError(filePath);
+            if (result.IsFailure)
+            {
+                Log.Warning("Could not move original file {FilePath} to error directory: {Error}",
+                    filePath, result.Error?.Description);
+            }
         }
     }
 
