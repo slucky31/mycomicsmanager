@@ -51,6 +51,12 @@ public sealed class CreateImportJobCommandHandler(
             return LibrariesError.BookTypeMismatch;
         }
 
+        // Deduplicate: reject if an active job already exists for this file path
+        if (await importJobRepository.ExistsActiveForFilePathAsync(request.OriginalFilePath, cancellationToken))
+        {
+            return ImportJobError.AlreadyQueued;
+        }
+
         // Create the ImportJob
         var createResult = ImportJob.Create(
             request.OriginalFileName,

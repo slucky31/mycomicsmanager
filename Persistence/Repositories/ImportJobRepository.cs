@@ -28,5 +28,11 @@ public class ImportJobRepository(ApplicationDbContext context) : IImportJobRepos
             .ThenBy(j => j.Id)
             .ToListAsync(ct);
 
+    public async Task<bool> ExistsActiveForFilePathAsync(string filePath, CancellationToken ct = default)
+        => await context.ImportJobs
+            .AnyAsync(j => j.OriginalFilePath == filePath
+                        && j.Status != ImportJobStatus.Completed
+                        && j.Status != ImportJobStatus.Failed, ct);
+
     public void Update(ImportJob importJob) => context.ImportJobs.Update(importJob);
 }

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Application.Abstractions.Messaging;
 using Application.ImportJobs;
 using Application.ImportJobs.Create;
@@ -15,8 +16,8 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     private readonly IImportJobEnqueuer _enqueuer;
     private readonly ImportSettings _settings;
     private readonly HashSet<string> _supportedExtensions;
-    private FileSystemWatcher? _watcher;
     private Timer? _pollingTimer;
+    private readonly ConcurrentDictionary<string, byte> _inFlight = new(StringComparer.OrdinalIgnoreCase);
 
     private static Serilog.ILogger Log => Serilog.Log.ForContext<FileWatcherService>();
 
@@ -41,15 +42,6 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         // Scan existing files on startup
         await ScanDirectoryAsync(_settings.ImportDirectory, cancellationToken);
 
-        // File system watcher for real-time detection
-        _watcher = new FileSystemWatcher(_settings.ImportDirectory)
-        {
-            IncludeSubdirectories = true,
-            EnableRaisingEvents = true
-        };
-        _watcher.Created += OnFileSystemEvent;
-
-        // Polling timer as fallback (FileSystemWatcher is unreliable on some OS/filesystems)
         var intervalMs = _settings.PollingIntervalSeconds * 1000;
         _pollingTimer = new Timer(
             _ => ScanDirectoryAsync(_settings.ImportDirectory, CancellationToken.None)
@@ -63,15 +55,12 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _pollingTimer?.Change(Timeout.Infinite, 0);
-        _watcher?.Dispose();
-        _watcher = null;
         return Task.CompletedTask;
     }
 
     public void Dispose()
     {
         _pollingTimer?.Dispose();
-        _watcher?.Dispose();
     }
 
     private async Task EnsureImportDirectoriesExistAsync()
@@ -92,13 +81,6 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         }
     }
 
-    private void OnFileSystemEvent(object sender, FileSystemEventArgs e)
-    {
-        if (e.ChangeType != WatcherChangeTypes.Created)
-        { return; }
-        _ = ProcessFileAsync(e.FullPath, CancellationToken.None);
-    }
-
     private async Task ScanDirectoryAsync(string rootDir, CancellationToken ct)
     {
         if (!Directory.Exists(rootDir))
@@ -114,6 +96,24 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     }
 
     internal async Task ProcessFileAsync(string filePath, CancellationToken ct)
+    {
+        if (!_inFlight.TryAdd(filePath, 0))
+        {
+            Log.Debug("Skipping already in-flight file: {FilePath}", filePath);
+            return;
+        }
+
+        try
+        {
+            await ProcessFileInternalAsync(filePath, ct);
+        }
+        finally
+        {
+            _inFlight.TryRemove(filePath, out _);
+        }
+    }
+
+    private async Task ProcessFileInternalAsync(string filePath, CancellationToken ct)
     {
         var extension = Path.GetExtension(filePath);
         if (!_supportedExtensions.Contains(extension))

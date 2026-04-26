@@ -12,4 +12,5 @@ public static class ImportJobError
     public static readonly TError NotTerminal = new("IMP412", "Only completed or failed import jobs can be deleted.");
     public static readonly TError UnhandledException = new("IMP500", "An unexpected error occurred during import.");
     public static readonly TError InsufficientDiskSpace = new("IMP507", "Insufficient disk space to process the import.");
+    public static readonly TError AlreadyQueued = new("IMP409B", "An active import job already exists for this file.");
 }
