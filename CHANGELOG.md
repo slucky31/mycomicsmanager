@@ -2,6 +2,90 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.11"></a>
+## [10.9.11](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.11) (2026-04-26)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency mudblazor to 9.4.0 ([#971](https://www.github.com/slucky31/mycomicsmanager/issues/971)) ([a70bb67](https://www.github.com/slucky31/mycomicsmanager/commit/a70bb67cfc4bc80544654efce9f328559030539c))
+
+<a name="10.9.10"></a>
+## [10.9.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.10) (2026-04-25)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency coverlet.collector to v10 ([#970](https://www.github.com/slucky31/mycomicsmanager/issues/970)) ([e89a971](https://www.github.com/slucky31/mycomicsmanager/commit/e89a9718c8969ff3fa74750698f01a118985ab12))
+
+<a name="10.9.9"></a>
+## [10.9.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.9) (2026-04-24)
+
+### 🐛 Bug Fixes
+
+* **deps:** update actions/github-script action to v9 ([#968](https://www.github.com/slucky31/mycomicsmanager/issues/968)) ([d85f2ce](https://www.github.com/slucky31/mycomicsmanager/commit/d85f2cec8911551bcb31d984aa523cfbafc10a14))
+
+<a name="10.9.8"></a>
+## [10.9.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.8) (2026-04-24)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency auth0.aspnetcore.authentication to 1.7.0 ([#967](https://www.github.com/slucky31/mycomicsmanager/issues/967)) ([09bdbcc](https://www.github.com/slucky31/mycomicsmanager/commit/09bdbcc73546edde13c6068b22624bd0b85fd1e3))
+
+<a name="10.9.7"></a>
+## [10.9.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.7) (2026-04-24)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency microsoft.net.test.sdk to 18.4.0 ([#965](https://www.github.com/slucky31/mycomicsmanager/issues/965)) ([d6f1ed9](https://www.github.com/slucky31/mycomicsmanager/commit/d6f1ed9833246419eda2c32172799eb0d48ba68a))
+
+<a name="10.9.6"></a>
+## [10.9.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.6) (2026-04-24)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency bunit to 2.7.2 ([#964](https://www.github.com/slucky31/mycomicsmanager/issues/964)) ([9b90345](https://www.github.com/slucky31/mycomicsmanager/commit/9b90345985569a54a532f2a7a0f5726d07aafc38))
+
+<a name="10.9.5"></a>
+## [10.9.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.5) (2026-04-24)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency sonaranalyzer.csharp to 10.24.0.138807 ([#955](https://www.github.com/slucky31/mycomicsmanager/issues/955)) ([59bd15a](https://www.github.com/slucky31/mycomicsmanager/commit/59bd15a0668e91b88fdaaf4c1ac6b52ab2aac769))
+
+<a name="10.9.4"></a>
+## [10.9.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.4) (2026-04-24)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency npgsql.entityframeworkcore.postgresql to 10.0.1 ([#954](https://www.github.com/slucky31/mycomicsmanager/issues/954)) ([d3503c3](https://www.github.com/slucky31/mycomicsmanager/commit/d3503c3db2cc69f5b55c8b993fe616c8c85afcf7))
+
+<a name="10.9.3"></a>
+## [10.9.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.3) (2026-04-08)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency mudblazor to 9.3.0 ([#966](https://www.github.com/slucky31/mycomicsmanager/issues/966)) ([0d19e87](https://www.github.com/slucky31/mycomicsmanager/commit/0d19e872519653c6303c6c6de01b628843aa808a))
+
+<a name="10.9.2"></a>
+## [10.9.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.2) (2026-04-04)
+
+### 🐛 Bug Fixes
+
+* **deps:** update pascalgn/size-label-action action to v0.5.7 ([#959](https://www.github.com/slucky31/mycomicsmanager/issues/959)) ([af0bbd0](https://www.github.com/slucky31/mycomicsmanager/commit/af0bbd01e779fc84b1d83085d2e610eb7ad495ec))
+
+<a name="10.9.1"></a>
+## [10.9.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.1) (2026-04-01)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dotnet monorepo ([#953](https://www.github.com/slucky31/mycomicsmanager/issues/953)) ([08d88a0](https://www.github.com/slucky31/mycomicsmanager/commit/08d88a0b9fa58fac239261de64271ba60e73257d))
+
+<a name="10.9.0"></a>
+## [10.9.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.0) (2026-03-29)
+
+### ✨ Features
+
+* Get Bedetheque Url and fix covers upload ([#963](https://www.github.com/slucky31/mycomicsmanager/issues/963)) ([0bdde4e](https://www.github.com/slucky31/mycomicsmanager/commit/0bdde4ed3972a448630bea28bd328c05ed75ff7e))
+
 <a name="10.8.0"></a>
 ## [10.8.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.8.0) (2026-03-23)
 
