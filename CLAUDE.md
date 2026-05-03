@@ -7,15 +7,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # Build
 dotnet restore
-dotnet build MyComicsManager.sln
+dotnet build MyComicsManager.slnx
 
 # Run locally (port 8080)
 dotnet run --project Web/Web.csproj
 dotnet watch run --project Web/Web.csproj    # Hot reload
 
 # Test
-dotnet test MyComicsManager.sln
-dotnet test MyComicsManager.sln --collect:"XPlat Code Coverage"
+dotnet test MyComicsManager.slnx
+dotnet test MyComicsManager.slnx --collect:"XPlat Code Coverage"
 
 # Code style
 dotnet format --verify-no-changes            # Check compliance
