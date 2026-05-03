@@ -216,6 +216,44 @@ public partial class Import : IAsyncDisposable
         timer?.Dispose();
     }
 
+    private bool _isDeletingTerminal;
+
+    private async Task DeleteTerminalJobsAsync()
+    {
+        _isDeletingTerminal = true;
+        StateHasChanged();
+
+        var terminalJobs = _jobs.Where(j => j.IsTerminal).ToList();
+        var errors = 0;
+
+        foreach (var job in terminalJobs)
+        {
+            var result = await ImportService.DeleteImportJobAsync(job.Id);
+            if (result.IsSuccess)
+            {
+                _jobs.RemoveAll(j => j.Id == job.Id);
+            }
+            else
+            {
+                errors++;
+                Log.Error("Import: failed to delete terminal job {JobId}: {Error}", job.Id, result.Error?.Description);
+            }
+        }
+
+        _isDeletingTerminal = false;
+
+        if (errors > 0)
+        {
+            Snackbar.Add($"Impossible de supprimer {errors} job(s)", Severity.Error);
+        }
+        else if (terminalJobs.Count > 0)
+        {
+            Snackbar.Add($"{terminalJobs.Count} job(s) supprimé(s)", Severity.Success);
+        }
+
+        StateHasChanged();
+    }
+
     private async Task DeleteJobAsync(Guid jobId)
     {
         var result = await ImportService.DeleteImportJobAsync(jobId);

@@ -32,13 +32,6 @@
             </MudSelect>
         </MudItem>
         <MudItem xs="12" sm="4" md="6" Class="d-flex align-end gap-2">
-            <MudFileUpload T="IReadOnlyList<IBrowserFile>"
-                           @ref="_fileUpload"
-                           Accept=".cbz,.cbr,.zip,.rar,.pdf"
-                           FilesChanged="OnFilesSelectedAsync"
-                           Disabled="@(_selectedLibraryId == Guid.Empty || _isUploading)"
-                           MaximumFileCount="10"
-                           Class="d-none" />
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Upload"
@@ -58,6 +51,18 @@
         </MudItem>
     </MudGrid>
 
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                   @ref="_fileUpload"
+                   Accept=".cbz,.cbr,.zip,.rar,.pdf"
+                   FilesChanged="OnFilesSelectedAsync"
+                   Disabled="@(_selectedLibraryId == Guid.Empty || _isUploading)"
+                   MaximumFileCount="10"
+                   DragAndDrop="true"
+                   Class="mb-4">
+        <SelectedTemplate Context="_">
+        </SelectedTemplate>
+    </MudFileUpload>
+
     @if (_uploadErrors.Count > 0)
     {
         <div class="mb-4">
@@ -76,7 +81,17 @@
     }
     else if (_jobs.Count > 0)
     {
-        <MudText Typo="Typo.h6" Class="mb-2">Jobs d'import</MudText>
+        <div class="d-flex align-center justify-space-between mb-2">
+            <MudText Typo="Typo.h6">Jobs d'import</MudText>
+            <MudTooltip Text="Supprimer les jobs terminés et échoués">
+                <MudIconButton Icon="@Icons.Material.Filled.DeleteSweep"
+                               Color="Color.Error"
+                               Size="Size.Small"
+                               Disabled="@(_isDeletingTerminal || !_jobs.Any(j => j.IsTerminal))"
+                               OnClick="DeleteTerminalJobsAsync"
+                               aria-label="Supprimer les jobs terminés et échoués" />
+            </MudTooltip>
+        </div>
         @foreach (var job in _jobs)
         {
         <ImportJobCard Job="@job" OnDelete="DeleteJobAsync" OnForceFail="ForceFailJobAsync" />
