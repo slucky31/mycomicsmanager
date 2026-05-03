@@ -55,8 +55,12 @@ public sealed class ImportOrchestratorTests
         _commandHandler.Handle(Arg.Any<ProcessImportJobCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result<DigitalBook>.Failure(new TError("FAIL", "Job failed")));
 
-        // Should not throw
-        await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
+        var act = async () => await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
+
+        await act.Should().NotThrowAsync();
+        await _commandHandler.Received(1).Handle(
+            Arg.Is<ProcessImportJobCommand>(c => c.ImportJobId == importJobId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
