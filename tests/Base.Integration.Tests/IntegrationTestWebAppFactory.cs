@@ -35,19 +35,22 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             // Add environment variables to override the parameters 
             conf.AddEnvironmentVariables();
 
-            // Override Import directories to writable temp paths so Program.cs
-            // can create them without permission errors in CI environments.
+            // Read the test connection string before adding further overrides.
+            var tempConfig = conf.Build();
+            _connectionString = tempConfig.GetConnectionString("NeonConnectionUnitTests") ?? string.Empty;
+            Guard.Against.NullOrEmpty(_connectionString);
+
+            // Override settings that cause failures in CI / test environments:
+            // - NeonConnection: Hangfire reads this; the default placeholder fails the parser.
+            // - Import directories: Program.cs calls Directory.CreateDirectory at startup;
+            //   /data/* is not writable on GitHub Actions runners.
             var tempRoot = Path.GetTempPath();
             conf.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["ConnectionStrings:NeonConnection"] = _connectionString,
                 ["Import:ImportDirectory"] = Path.Combine(tempRoot, "mcm-test-import"),
                 ["Import:TempDirectory"] = Path.Combine(tempRoot, "mcm-test-temp"),
             });
-
-            var configuration = conf.Build();
-
-            _connectionString = configuration.GetConnectionString("NeonConnectionUnitTests") ?? string.Empty;
-            Guard.Against.NullOrEmpty(_connectionString);
         });
 
         // Reconfigure the services to use the database with a new connection string       
