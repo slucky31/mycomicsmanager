@@ -20,6 +20,7 @@ public sealed class FileWatcherServiceTests : IDisposable
     private readonly IImportJobEnqueuer _enqueuer;
     private readonly IRepository<Library, Guid> _libraryRepository;
     private readonly ICommandHandler<CreateImportJobCommand, ImportJob> _createHandler;
+    private readonly IImportDirectoryStorage _importDirectoryStorage;
     private readonly FileWatcherService _service;
     private readonly string _importDir;
     private readonly Guid _libraryId = Guid.CreateVersion7();
@@ -33,10 +34,12 @@ public sealed class FileWatcherServiceTests : IDisposable
         _libraryRepository = Substitute.For<IRepository<Library, Guid>>();
         _createHandler = Substitute.For<ICommandHandler<CreateImportJobCommand, ImportJob>>();
         _enqueuer = Substitute.For<IImportJobEnqueuer>();
+        _importDirectoryStorage = Substitute.For<IImportDirectoryStorage>();
 
         // Wire up library repository to return a digital library
         var library = Library.Create("Comics", "#5C6BC0", "Bookmark", LibraryBookType.Digital, _userId).Value!;
         _libraryRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(library);
+        _libraryRepository.ListAsync().Returns([library]);
 
         // Wire up create handler to return a successful import job
         var importJob = ImportJob.Create("comic.cbz", "/tmp/comic.cbz", 1024, _libraryId).Value!;
@@ -44,6 +47,7 @@ public sealed class FileWatcherServiceTests : IDisposable
             .Returns(importJob);
 
         _enqueuer.Enqueue(Arg.Any<Guid>()).Returns("hangfire-job-id");
+        _importDirectoryStorage.EnsureExists(Arg.Any<string>()).Returns(Result.Success());
 
         // Build scope chain.
         // CreateAsyncScope() is an extension method that calls CreateScope() internally —
@@ -51,6 +55,7 @@ public sealed class FileWatcherServiceTests : IDisposable
         var serviceProvider = Substitute.For<IServiceProvider>();
         serviceProvider.GetService(typeof(IRepository<Library, Guid>)).Returns(_libraryRepository);
         serviceProvider.GetService(typeof(ICommandHandler<CreateImportJobCommand, ImportJob>)).Returns(_createHandler);
+        serviceProvider.GetService(typeof(IImportDirectoryStorage)).Returns(_importDirectoryStorage);
 
         var scope = Substitute.For<IServiceScope>();
         scope.ServiceProvider.Returns(serviceProvider);
