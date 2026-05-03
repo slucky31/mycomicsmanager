@@ -76,7 +76,7 @@
 
         var paged = new FakePagedList<Library>(list, 1, nbItems);
         _librariesServiceMock
-            .FilterBy(Arg.Any<string?>(), Arg.Any<LibrariesColumn?>(), Arg.Any<SortOrder?>(), Arg.Any<int>(), Arg.Any<int>())
+            .FilterBy(Arg.Any<string?>(), Arg.Any<LibrariesColumn?>(), Arg.Any<SortOrder?>(), Arg.Any<int>(), Arg.Any<int>(), Xunit.TestContext.Current.CancellationToken)
             .Returns(Task.FromResult(Result<IPagedList<Library>>.Success(paged)));
 
         // Act

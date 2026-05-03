@@ -53,7 +53,13 @@ public class ImportService(
     public async Task<Result<ImportJobViewModel>> GetImportJobAsync(
         Guid importJobId, CancellationToken ct = default)
     {
-        var query = new GetImportJobQuery(importJobId);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var query = new GetImportJobQuery(importJobId, userIdResult.Value);
         var result = await getImportJobHandler.Handle(query, ct);
 
         if (result.IsFailure)

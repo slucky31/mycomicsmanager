@@ -15,11 +15,17 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
         _rootPath = settings.Value.ImportDirectory;
     }
 
+    // Trailing separator ensures sibling paths like /data/import-other/ cannot
+    // pass a bare StartsWith check against /data/import.
+    private string NormalizedRootWithSeparator =>
+        Path.GetFullPath(_rootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        + Path.DirectorySeparatorChar;
+
     private Result ValidatePath(string directoryName)
     {
         try
         {
-            var normalizedRoot = Path.GetFullPath(_rootPath);
+            var normalizedRoot = NormalizedRootWithSeparator;
             var fullPath = Path.GetFullPath(Path.Combine(_rootPath, directoryName));
             if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
             {
@@ -38,7 +44,7 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
     {
         try
         {
-            var normalizedRoot = Path.GetFullPath(_rootPath);
+            var normalizedRoot = NormalizedRootWithSeparator;
             var fullPath = Path.GetFullPath(absolutePath);
             if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
             {
