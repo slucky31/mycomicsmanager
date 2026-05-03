@@ -56,7 +56,7 @@ public sealed class CurrentUserServiceTests
         _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(user);
 
         // Act
-        var result = await _service.GetCurrentUserIdAsync();
+        var result = await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -70,7 +70,7 @@ public sealed class CurrentUserServiceTests
         _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(null));
 
         // Act
-        var result = await _service.GetCurrentUserIdAsync();
+        var result = await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -88,7 +88,7 @@ public sealed class CurrentUserServiceTests
         _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(Result<User>.Failure(UsersError.NotFound));
 
         // Act
-        var result = await _service.GetCurrentUserIdAsync();
+        var result = await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -107,7 +107,7 @@ public sealed class CurrentUserServiceTests
         _userReadService.GetUserByEmail(email, TestContext.Current.CancellationToken).Returns(user);
 
         // Act
-        var result = await _service.GetCurrentUserIdAsync();
+        var result = await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -125,7 +125,7 @@ public sealed class CurrentUserServiceTests
         _userReadService.GetUserByEmail(email, TestContext.Current.CancellationToken).Returns(Result<User>.Failure(UsersError.NotFound));
 
         // Act
-        var result = await _service.GetCurrentUserIdAsync();
+        var result = await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -144,7 +144,7 @@ public sealed class CurrentUserServiceTests
         _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(user);
 
         // Act
-        await _service.GetCurrentUserIdAsync();
+        await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);
 
         // Assert
         await _userReadService.Received(1).GetUserByAuthId(sub, TestContext.Current.CancellationToken);

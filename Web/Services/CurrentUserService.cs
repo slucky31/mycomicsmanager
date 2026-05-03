@@ -11,7 +11,7 @@ public class CurrentUserService(
     AuthenticationStateProvider authStateProvider,
     IUserReadService userReadService) : ICurrentUserService
 {
-    public async Task<Result<Guid>> GetCurrentUserIdAsync()
+    public async Task<Result<Guid>> GetCurrentUserIdAsync(CancellationToken cancellationToken = default)
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
         var principal = authState.User;
@@ -22,7 +22,7 @@ public class CurrentUserService(
 
         if (!string.IsNullOrEmpty(sub))
         {
-            var byAuthId = await userReadService.GetUserByAuthId(sub);
+            var byAuthId = await userReadService.GetUserByAuthId(sub, cancellationToken);
             if (byAuthId.IsSuccess)
             {
                 return byAuthId.Value!.Id;
@@ -36,7 +36,7 @@ public class CurrentUserService(
             return UsersError.NotFound;
         }
 
-        var byEmail = await userReadService.GetUserByEmail(email);
+        var byEmail = await userReadService.GetUserByEmail(email, cancellationToken);
         if (byEmail.IsFailure)
         {
             return byEmail.Error!;

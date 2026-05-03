@@ -29,7 +29,7 @@ public class ImportService(
     public async Task<Result<IReadOnlyList<ImportJobViewModel>>> GetImportJobsAsync(
         Guid libraryId, CancellationToken ct = default)
     {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -53,7 +53,7 @@ public class ImportService(
     public async Task<Result<ImportJobViewModel>> GetImportJobAsync(
         Guid importJobId, CancellationToken ct = default)
     {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -73,7 +73,7 @@ public class ImportService(
     public async Task<Result<ImportJobViewModel>> UploadAndCreateJobAsync(
         IBrowserFile file, Guid libraryId, CancellationToken ct = default)
     {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -120,7 +120,7 @@ public class ImportService(
 
     public async Task<Result> DeleteImportJobAsync(Guid importJobId, CancellationToken ct = default)
     {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -132,7 +132,7 @@ public class ImportService(
 
     public async Task<Result> ForceFailImportJobAsync(Guid importJobId, CancellationToken ct = default)
     {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;

@@ -22,6 +22,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
 #pragma warning restore CA1063 // Implement IDisposable Correctly
 {
     private string _connectionString = string.Empty;
+    private readonly string _tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -46,12 +47,12 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             // /data/* is not writable on GitHub Actions runners.
             // Override NeonConnection so the Hangfire PostgreSQL lambda receives a valid-format
             // connection string (Hangfire.InMemory will override the actual storage afterwards).
-            var tempRoot = Path.GetTempPath();
+            Directory.CreateDirectory(_tempDir);
             conf.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:NeonConnection"] = _connectionString,
-                ["Import:ImportDirectory"] = Path.Combine(tempRoot, "mcm-test-import"),
-                ["Import:TempDirectory"] = Path.Combine(tempRoot, "mcm-test-temp"),
+                ["Import:ImportDirectory"] = Path.Combine(_tempDir, "mcm-test-import"),
+                ["Import:TempDirectory"] = Path.Combine(_tempDir, "mcm-test-temp"),
             });
         });
 
@@ -93,8 +94,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
                 services.Remove(descriptor);
             }
 
-            var rootPath = Path.GetTempPath();
-            services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
+            services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(_tempDir));
         });
 
         // Replace Hangfire PostgreSQL storage with in-memory so no real DB connection is needed
@@ -145,6 +145,10 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
 
     public new void Dispose()
     {
+        if (Directory.Exists(_tempDir))
+        {
+            Directory.Delete(_tempDir, recursive: true);
+        }
         base.Dispose();
     }
 

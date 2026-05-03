@@ -4,5 +4,5 @@ namespace Application.Interfaces;
 
 public interface ICurrentUserService
 {
-    Task<Result<Guid>> GetCurrentUserIdAsync();
+    Task<Result<Guid>> GetCurrentUserIdAsync(CancellationToken cancellationToken = default);
 }

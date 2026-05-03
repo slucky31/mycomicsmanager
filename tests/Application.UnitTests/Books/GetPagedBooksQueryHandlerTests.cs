@@ -110,7 +110,7 @@ public class GetPagedBooksQueryHandlerTests
         var pagedList = CreatePagedList([]);
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(CreateLibrary(userId));
         _bookReadServiceMock
-            .GetPagedByLibraryAsync(libraryId, userId, 1, 24, BookSortOrder.IdDesc, null, CancellationToken.None)
+            .GetPagedByLibraryAsync(libraryId, userId, 1, 24, BookSortOrder.IdDesc, null, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IPagedList<BookSummaryDto>>(pagedList));
 
         // Act
@@ -153,7 +153,7 @@ public class GetPagedBooksQueryHandlerTests
         var pagedList = CreatePagedList([], hasNextPage: true);
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(CreateLibrary(userId));
         _bookReadServiceMock
-            .GetPagedByLibraryAsync(libraryId, userId, 1, 24, BookSortOrder.IdDesc, null, CancellationToken.None)
+            .GetPagedByLibraryAsync(libraryId, userId, 1, 24, BookSortOrder.IdDesc, null, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IPagedList<BookSummaryDto>>(pagedList));
 
         // Act

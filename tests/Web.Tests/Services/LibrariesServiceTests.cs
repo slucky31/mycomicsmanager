@@ -36,7 +36,7 @@ public sealed class LibrariesServiceTests
         _updateLibraryHandler = Substitute.For<ICommandHandler<UpdateLibraryCommand, Library>>();
         _deleteLibraryHandler = Substitute.For<ICommandHandler<DeleteLibraryCommand>>();
         _currentUserService = Substitute.For<ICurrentUserService>();
-        _currentUserService.GetCurrentUserIdAsync().Returns(DefaultUserId);
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(DefaultUserId);
 
         _service = new LibrariesService(
             _getLibraryHandler,
@@ -101,7 +101,7 @@ public sealed class LibrariesServiceTests
     public async Task GetById_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
         var libraryId = Guid.CreateVersion7();
 
         // Act
@@ -202,7 +202,7 @@ public sealed class LibrariesServiceTests
     public async Task LibrariesService_Create_Should_ReturnValidationError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
         var request = new CreateLibraryRequest("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical);
 
         // Act
@@ -317,7 +317,7 @@ public sealed class LibrariesServiceTests
     public async Task Update_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
         var libraryId = Guid.CreateVersion7();
         var request = new UpdateLibraryRequest(libraryId.ToString(), "Name", "#5C6BC0", "Bookmark");
 
@@ -503,7 +503,7 @@ public sealed class LibrariesServiceTests
     public async Task FilterBy_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
 
         // Act
         var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, 10, TestContext.Current.CancellationToken);
@@ -617,7 +617,7 @@ public sealed class LibrariesServiceTests
     public async Task Delete_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
         var libraryId = Guid.CreateVersion7();
 
         // Act

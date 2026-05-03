@@ -38,7 +38,7 @@ public class LibrariesService(
 
     public async Task<Result<Library>> Create(CreateLibraryRequest request, CancellationToken cancellationToken = default)
     {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -61,7 +61,7 @@ public class LibrariesService(
             return LibrariesError.ValidationError;
         }
 
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -80,7 +80,7 @@ public class LibrariesService(
 
     public async Task<Result<IPagedList<Library>>> FilterBy(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -98,7 +98,7 @@ public class LibrariesService(
             return LibrariesError.ValidationError;
         }
 
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
