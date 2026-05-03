@@ -103,7 +103,7 @@ public sealed class ComicSearchServiceTests
             .Returns(googleBooksResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -146,7 +146,7 @@ public sealed class ComicSearchServiceTests
             .Returns(cloudinaryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -182,7 +182,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Title.Should().Be(subtitle);
@@ -220,7 +220,7 @@ public sealed class ComicSearchServiceTests
             .Returns(cloudinaryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.ImageUrl.Should().Be("https://res.cloudinary.com/test/uploaded.jpg");
@@ -263,7 +263,7 @@ public sealed class ComicSearchServiceTests
             .Returns(cloudinaryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.ImageUrl.Should().Be(coverUrl.ToString());
@@ -288,7 +288,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.ImageUrl.Should().BeEmpty();
@@ -308,7 +308,7 @@ public sealed class ComicSearchServiceTests
             .ThrowsAsync(new HttpRequestException("Network error"));
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -324,7 +324,7 @@ public sealed class ComicSearchServiceTests
             .ThrowsAsync(new InvalidOperationException("Invalid operation"));
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -340,7 +340,7 @@ public sealed class ComicSearchServiceTests
             .ThrowsAsync(new TaskCanceledException("Request timeout"));
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -385,7 +385,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Serie.Should().Be(expectedSerie);
@@ -412,7 +412,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Serie.Should().Be(title);
@@ -450,7 +450,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Serie.Should().Be(expectedSerie);
@@ -482,7 +482,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Serie.Should().Be(expectedSerie);
@@ -509,7 +509,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.VolumeNumber.Should().Be(1);
@@ -555,7 +555,7 @@ public sealed class ComicSearchServiceTests
             .Returns(cloudinaryResult);
 
         // Act
-        await _sut.SearchByIsbnAsync(isbnWithFormatting);
+        await _sut.SearchByIsbnAsync(isbnWithFormatting, TestContext.Current.CancellationToken);
 
         // Assert
         await _cloudinaryService.Received(1).UploadImageFromUrlAsync(
@@ -594,7 +594,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Serie.Should().Be(expectedSerie);
@@ -643,7 +643,7 @@ public sealed class ComicSearchServiceTests
             .Returns(cloudinaryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -677,7 +677,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.NumberOfPages.Should().BeNull();
@@ -698,7 +698,7 @@ public sealed class ComicSearchServiceTests
             .ThrowsAsync(exception);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -751,7 +751,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Authors.Should().Be("Stan Lee, Jack Kirby, Steve Ditko");
@@ -776,7 +776,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Publishers.Should().Be("Marvel Comics, DC Comics, Image Comics");
@@ -801,7 +801,7 @@ public sealed class ComicSearchServiceTests
             .Returns(openLibraryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Authors.Should().BeEmpty();
@@ -935,7 +935,7 @@ public sealed class ComicSearchServiceTests
             .Returns(cloudinaryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -969,7 +969,7 @@ public sealed class ComicSearchServiceTests
             .Returns(bedethequeResult);
 
         // Act
-        await _sut.SearchByIsbnAsync(isbn);
+        await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         await _googleBooksService.DidNotReceive().SearchByIsbnAsync(
@@ -1022,7 +1022,7 @@ public sealed class ComicSearchServiceTests
             .Returns(cloudinaryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.ImageUrl.Should().Be("https://res.cloudinary.com/test/uploaded.jpg");
@@ -1105,7 +1105,7 @@ public sealed class ComicSearchServiceTests
             .Returns(cloudinaryResult);
 
         // Act
-        var result = await _sut.SearchByIsbnAsync(isbn);
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -1121,4 +1121,265 @@ public sealed class ComicSearchServiceTests
     }
 
     #endregion
+}
+
+// Keep this class in the same file as it was originally (record tests)
+public sealed class ComicSearchServiceWithLocalCoverTests
+{
+    private readonly IOpenLibraryService _openLibraryService;
+    private readonly IGoogleBooksService _googleBooksService;
+    private readonly IBedethequeService _bedethequeService;
+    private readonly ICloudinaryService _cloudinaryService;
+    private readonly IOptions<CloudinarySettings> _cloudinarySettings;
+    private readonly ComicSearchService _sut;
+
+    private static BedethequeBookResult BedethequeNotFound => new(
+        Title: string.Empty,
+        Serie: string.Empty,
+        VolumeNumber: 1,
+        Authors: [],
+        Publishers: [],
+        PublishDate: null,
+        NumberOfPages: null,
+        CoverUrl: null,
+        Found: false);
+
+    private static GoogleBooksBookResult GoogleBooksNotFound => new(
+        Title: string.Empty,
+        Subtitle: null,
+        Authors: [],
+        Publishers: [],
+        PublishDate: null,
+        NumberOfPages: null,
+        CoverUrl: null,
+        Description: null,
+        Categories: [],
+        Language: null,
+        Found: false);
+
+    private static OpenLibraryBookResult OpenLibraryNotFound => new(
+        Title: string.Empty,
+        Subtitle: null,
+        Authors: [],
+        Publishers: [],
+        PublishDate: null,
+        NumberOfPages: null,
+        CoverUrl: null,
+        Found: false);
+
+    private static BedethequeBookResult MakeBedethequeFound(
+        string serie = "Soda",
+        string title = "L'Ankou",
+        int volume = 1) =>
+        new(
+            Title: title,
+            Serie: serie,
+            VolumeNumber: volume,
+            Authors: ["Philippe Tome", "Luc Warnant"],
+            Publishers: ["Dupuis"],
+            PublishDate: new DateOnly(1987, 10, 1),
+            NumberOfPages: 48,
+            CoverUrl: null,
+            Found: true);
+
+    public ComicSearchServiceWithLocalCoverTests()
+    {
+        _openLibraryService = Substitute.For<IOpenLibraryService>();
+        _googleBooksService = Substitute.For<IGoogleBooksService>();
+        _bedethequeService = Substitute.For<IBedethequeService>();
+        _cloudinaryService = Substitute.For<ICloudinaryService>();
+        _cloudinarySettings = Options.Create(new CloudinarySettings
+        {
+            CloudName = "test-cloud",
+            ApiKey = "test-key",
+            ApiSecret = "test-secret",
+            Folder = "test-covers"
+        });
+
+        _bedethequeService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(BedethequeNotFound);
+        _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(GoogleBooksNotFound);
+
+        // Default no-op for stream uploads so tests without explicit setup don't throw
+        _cloudinaryService.UploadImageFromStreamAsync(
+                Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(null, null, false, "not configured"));
+
+        _sut = new ComicSearchService(
+            _openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings);
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_UploadCoverFromStream()
+    {
+        // Arrange
+        const string isbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+        const string coverFileName = "cover.webp";
+
+        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(MakeBedethequeFound());
+
+        var cloudinaryResult = new CloudinaryUploadResult(
+            Url: new Uri("https://res.cloudinary.com/test/soda.jpg"),
+            PublicId: "test-covers/9782075162869",
+            Success: true,
+            Error: null);
+
+        _cloudinaryService.UploadImageFromStreamAsync(
+                Arg.Any<Stream>(), coverFileName, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(cloudinaryResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, coverFileName, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.ImageUrl.Should().Be("https://res.cloudinary.com/test/soda.jpg");
+        await _cloudinaryService.Received(1).UploadImageFromStreamAsync(
+            stream, coverFileName, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _cloudinaryService.DidNotReceive().UploadImageFromUrlAsync(
+            Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_ReturnMetadata_WhenBedethequeFindsResult()
+    {
+        // Arrange
+        const string isbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        var bedethequeResult = new BedethequeBookResult(
+            Title: "Prières et balistique",
+            Serie: "Soda",
+            VolumeNumber: 1,
+            Authors: ["Philippe Tome", "Luc Warnant"],
+            Publishers: ["Dupuis"],
+            PublishDate: new DateOnly(1987, 10, 1),
+            NumberOfPages: 48,
+            CoverUrl: null,
+            Found: true);
+
+        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(bedethequeResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, "cover.webp", TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Isbn.Should().Be(isbn);
+        result.Title.Should().Be("Prières et balistique");
+        result.Serie.Should().Be("Soda");
+        result.VolumeNumber.Should().Be(1);
+        result.Authors.Should().Be("Philippe Tome, Luc Warnant");
+        result.Publishers.Should().Be("Dupuis");
+        result.PublishDate.Should().Be(new DateOnly(1987, 10, 1));
+        result.NumberOfPages.Should().Be(48);
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_FallbackToGoogleBooks()
+    {
+        // Arrange
+        const string isbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        var googleBooksResult = new GoogleBooksBookResult(
+            Title: "Soda, tome 1",
+            Subtitle: "Prières et balistique",
+            Authors: ["Philippe Tome", "Luc Warnant"],
+            Publishers: ["Dupuis"],
+            PublishDate: new DateOnly(1987, 1, 1),
+            NumberOfPages: 48,
+            CoverUrl: null,
+            Description: null,
+            Categories: [],
+            Language: "fr",
+            Found: true);
+
+        _googleBooksService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(googleBooksResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, "cover.webp", TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Serie.Should().Be("Soda");
+        result.Title.Should().Be("Prières et balistique");
+        result.VolumeNumber.Should().Be(1);
+        await _openLibraryService.DidNotReceive().SearchByIsbnAsync(
+            Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_ReturnNotFound_WhenNoProviderFindsResult()
+    {
+        // Arrange
+        const string isbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(OpenLibraryNotFound);
+
+        // Act
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, "cover.webp", TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeFalse();
+        result.Isbn.Should().Be(isbn);
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_UseIsbnAsPublicId()
+    {
+        // Arrange
+        const string formattedIsbn = "978-2-07-516286-9";
+        const string cleanIsbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+        const string coverFileName = "cover.webp";
+
+        _bedethequeService.SearchByIsbnAsync(cleanIsbn, Arg.Any<CancellationToken>())
+            .Returns(MakeBedethequeFound());
+
+        // Act
+        await _sut.SearchByIsbnWithLocalCoverAsync(formattedIsbn, stream, coverFileName, TestContext.Current.CancellationToken);
+
+        // Assert: publicId must be the normalized ISBN
+        await _cloudinaryService.Received(1).UploadImageFromStreamAsync(
+            stream, coverFileName, "test-covers", cleanIsbn, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_UseGuidPrefix_WhenNoIsbn()
+    {
+        // Arrange
+        using var stream = new MemoryStream([1, 2, 3]);
+        const string coverFileName = "cover.webp";
+
+        _cloudinaryService.UploadImageFromStreamAsync(
+                Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(),
+                Arg.Is<string>(id => id.StartsWith("digital-", StringComparison.Ordinal)),
+                Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(
+                Url: new Uri("https://res.cloudinary.com/test/digital-abc.jpg"),
+                PublicId: "test-covers/digital-abc",
+                Success: true,
+                Error: null));
+
+        // Act
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(string.Empty, stream, coverFileName, TestContext.Current.CancellationToken);
+
+        // Assert: providers not called, cover uploaded with guid-based publicId
+        result.Found.Should().BeFalse();
+        result.ImageUrl.Should().Be("https://res.cloudinary.com/test/digital-abc.jpg");
+        await _bedethequeService.DidNotReceive().SearchByIsbnAsync(
+            Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _cloudinaryService.Received(1).UploadImageFromStreamAsync(
+            stream, coverFileName, "test-covers",
+            Arg.Is<string>(id => id.StartsWith("digital-", StringComparison.Ordinal)),
+            Arg.Any<CancellationToken>());
+    }
 }

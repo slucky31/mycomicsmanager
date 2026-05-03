@@ -1,11 +1,12 @@
 using Application.Abstractions.Messaging;
+using Application.ImportJobs;
 using Application.Interfaces;
 using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Application.Libraries.Update;
 
-public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<UpdateLibraryCommand, Library>
+public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage, IImportDirectoryStorage importDirectoryStorage) : ICommandHandler<UpdateLibraryCommand, Library>
 {
     public async Task<Result<Library>> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
     {
@@ -62,6 +63,7 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         }
 
         var originPath = library.RelativePath;
+        var originImportDirName = library.ImportDirectoryName;
 
         var updateNameResult = library.UpdateName(name);
         if (updateNameResult.IsFailure)
@@ -69,11 +71,17 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             return updateNameResult.Error!;
         }
 
-        // Move folder only for digital libraries
+        // Move folders only for digital libraries
         if (library.BookType == LibraryBookType.Digital)
         {
             var moveResult = libraryLocalStorage.Move(originPath, library.RelativePath);
             if (moveResult.IsFailure)
+            {
+                return LibrariesError.FolderNotMoved;
+            }
+
+            var importMoveResult = importDirectoryStorage.Move(originImportDirName, library.ImportDirectoryName);
+            if (importMoveResult.IsFailure)
             {
                 return LibrariesError.FolderNotMoved;
             }

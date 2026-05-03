@@ -42,7 +42,7 @@ public class AddReadingDateCommandHandlerTests
         var command = new AddReadingDateCommand(bookId, 3, userId);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -60,7 +60,7 @@ public class AddReadingDateCommandHandlerTests
         var command = new AddReadingDateCommand(Guid.NewGuid(), invalidRating, s_userId);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -77,7 +77,7 @@ public class AddReadingDateCommandHandlerTests
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns((Book?)null);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -97,7 +97,7 @@ public class AddReadingDateCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -106,7 +106,7 @@ public class AddReadingDateCommandHandlerTests
         book.ReadingDates.Should().HaveCount(1);
         _bookRepositoryMock.Received(1).AddReadingDate(Arg.Any<ReadingDate>());
         _bookRepositoryMock.Received(1).Update(book);
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class AddReadingDateCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -158,7 +158,7 @@ public class AddReadingDateCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -177,7 +177,7 @@ public class AddReadingDateCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

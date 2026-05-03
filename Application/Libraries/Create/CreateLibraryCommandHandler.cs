@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.ImportJobs;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
@@ -6,7 +7,7 @@ using Domain.Primitives;
 
 namespace Application.Libraries.Create;
 
-public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage) : ICommandHandler<CreateLibraryCommand, Library>
+public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage, IImportDirectoryStorage importDirectoryStorage) : ICommandHandler<CreateLibraryCommand, Library>
 {
     public async Task<Result<Library>> Handle(CreateLibraryCommand request, CancellationToken cancellationToken)
     {
@@ -27,11 +28,17 @@ public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libra
 
         var library = createResult.Value!;
 
-        // Create the directory only for digital libraries
+        // Create the directories only for digital libraries
         if (request.BookType == LibraryBookType.Digital)
         {
-            var result = libraryLocalStorage.Create(library.RelativePath);
-            if (result.IsFailure)
+            var storageResult = libraryLocalStorage.Create(library.RelativePath);
+            if (storageResult.IsFailure)
+            {
+                return LibrariesError.FolderNotCreated;
+            }
+
+            var importResult = importDirectoryStorage.EnsureExists(library.ImportDirectoryName);
+            if (importResult.IsFailure)
             {
                 return LibrariesError.FolderNotCreated;
             }

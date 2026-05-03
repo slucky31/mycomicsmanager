@@ -7,7 +7,7 @@ public record UpdateBookCommand(
     Guid Id,
     string Serie,
     string Title,
-    string ISBN,
+    string? ISBN,
     int VolumeNumber,
     string ImageLink,
     Guid UserId,

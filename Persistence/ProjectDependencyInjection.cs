@@ -1,4 +1,5 @@
 using Application.ComicInfoSearch;
+using Application.ImportJobs;
 using Application.Interfaces;
 using Application.Libraries;
 using Application.Users;
@@ -36,14 +37,24 @@ public static class ProjectDependencyInjection
         services.AddScoped<IRepository<User, Guid>, UserRepository>();
         services.AddScoped<IRepository<Book, Guid>, BookRepository>();
         services.AddScoped<IBookRepository, BookRepository>();
+        services.AddScoped<IImportJobRepository, ImportJobRepository>();
+        services.AddScoped<IImportOrchestrator, ImportOrchestrator>();
 
         services.AddScoped<ILibraryReadService, LibraryReadService>();
         services.AddScoped<IUserReadService, UserReadService>();
         services.AddScoped<IBookReadService, BookReadService>();
 
         services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
+        services.AddScoped<IImportDirectoryStorage, ImportDirectoryStorage>();
 
         services.AddScoped<IIsbnBedethequeCacheRepository, IsbnBedethequeCacheRepository>();
+
+        services.AddScoped<IArchiveExtractor, ArchiveExtractorService>();
+        services.AddScoped<IPdfImageExtractor, PdfImageExtractorService>();
+        services.AddScoped<IImageProcessor, ImageProcessorService>();
+        services.AddScoped<IComicArchiveBuilder, ComicArchiveBuilderService>();
+        services.AddScoped<IComicInfoXmlService, ComicInfoXmlService>();
+        services.AddScoped<IBookFileService, BookFileService>();
 
         // Config Cloudinary service for cover image storage
         var cloudinarySection = configuration.GetSection("Cloudinary");

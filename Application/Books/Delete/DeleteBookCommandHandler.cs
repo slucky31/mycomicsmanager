@@ -10,7 +10,8 @@ namespace Application.Books.Delete;
 public sealed class DeleteBookCommandHandler(
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
-    IRepository<Library, Guid> libraryRepository) : ICommandHandler<DeleteBookCommand>
+    IRepository<Library, Guid> libraryRepository,
+    IBookFileService bookFileService) : ICommandHandler<DeleteBookCommand>
 {
     public async Task<Result> Handle(DeleteBookCommand request, CancellationToken cancellationToken)
     {
@@ -30,6 +31,11 @@ public sealed class DeleteBookCommandHandler(
 
         bookRepository.Remove(book);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (book is DigitalBook digitalBook)
+        {
+            await bookFileService.DeleteFileAsync(digitalBook.FilePath, cancellationToken);
+        }
 
         return Result.Success();
     }

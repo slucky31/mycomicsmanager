@@ -13,7 +13,7 @@ public class BookUiDto : Entity<Guid>
     public string Title { get; set; } = string.Empty;
 
     [Label("ISBN")]
-    public string ISBN { get; set; } = string.Empty;
+    public string? ISBN { get; set; }
 
     [Label("Volume Number")]
     public int VolumeNumber { get; set; } = 1;

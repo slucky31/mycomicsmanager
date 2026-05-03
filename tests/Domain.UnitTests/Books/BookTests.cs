@@ -6,11 +6,13 @@ public class BookTests
 {
     private static readonly Guid DefaultLibraryId = Guid.CreateVersion7();
 
+    private const string ValidLibraryId = "11111111-1111-7111-8111-111111111111";
+
     public static TheoryData<string, string, string, string> InvalidCreateParameters => new()
     {
-        { "", "Title", "9781401245252", DefaultLibraryId.ToString() },
-        { "Series", "", "9781401245252", DefaultLibraryId.ToString() },
-        { "Series", "Title", "", DefaultLibraryId.ToString() },
+        { "", "Title", "9781401245252", ValidLibraryId },
+        { "Series", "", "9781401245252", ValidLibraryId },
+        { "Series", "Title", "", ValidLibraryId },
         { "Series", "Title", "9781401245252", Guid.Empty.ToString() },
     };
 

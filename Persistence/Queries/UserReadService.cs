@@ -80,6 +80,7 @@ public class UserReadService(ApplicationDbContext context) : IUserReadService
 
         var users = await context.Users.AsNoTracking()
             .Where(u => u.AuthId == authId)
+            .OrderBy(u => u.Id)
             .Take(2)
             .ToListAsync(cancellationToken);
 

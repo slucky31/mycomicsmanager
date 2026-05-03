@@ -30,7 +30,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, "plete");
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, "plete", TestContext.Current.CancellationToken);
 
         // Assert
         result.Items.Should().ContainSingle(b => b.Id == book.Id);
@@ -47,7 +47,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, "naruto");
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, "naruto", TestContext.Current.CancellationToken);
 
         // Assert
         result.Items.Should().ContainSingle(b => b.Id == book.Id);
@@ -62,7 +62,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, "one piece");
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, "one piece", TestContext.Current.CancellationToken);
 
         // Assert
         result.Items.Should().ContainSingle(b => b.Id == book.Id);
@@ -78,7 +78,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, "NARUTO");
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, "NARUTO", TestContext.Current.CancellationToken);
 
         // Assert
         result.Items.Should().ContainSingle(b => b.Id == matching.Id);
@@ -97,7 +97,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, null);
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, null, TestContext.Current.CancellationToken);
 
         // Assert
         var ids = result.Items!.Select(b => b.Id).ToList();
@@ -116,7 +116,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdAsc, null);
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdAsc, null, TestContext.Current.CancellationToken);
 
         // Assert
         var ids = result.Items!.Select(b => b.Id).ToList();
@@ -135,7 +135,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.SerieAndVolumeAsc, null);
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.SerieAndVolumeAsc, null, TestContext.Current.CancellationToken);
 
         // Assert — Akira before Naruto, then Vol 1 before Vol 2
         var items = result.Items!.ToList();
@@ -157,11 +157,11 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var page1 = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 2, BookSortOrder.IdAsc, null);
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 2, BookSortOrder.IdAsc, null, TestContext.Current.CancellationToken);
         var page2 = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 2, 2, BookSortOrder.IdAsc, null);
+            DefaultLibrary.Id, DefaultLibrary.UserId, 2, 2, BookSortOrder.IdAsc, null, TestContext.Current.CancellationToken);
         var page3 = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 3, 2, BookSortOrder.IdAsc, null);
+            DefaultLibrary.Id, DefaultLibrary.UserId, 3, 2, BookSortOrder.IdAsc, null, TestContext.Current.CancellationToken);
 
         // Assert
         page1.Items.Should().HaveCount(2);
@@ -187,7 +187,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 2, BookSortOrder.IdAsc, null);
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 2, BookSortOrder.IdAsc, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.TotalCount.Should().Be(4);
@@ -205,7 +205,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, otherUserId, 1, 24, BookSortOrder.IdDesc, null);
+            DefaultLibrary.Id, otherUserId, 1, 24, BookSortOrder.IdDesc, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.Items.Should().BeEmpty();
@@ -229,7 +229,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Act
         var result = await BookReadService.GetPagedByLibraryAsync(
-            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, null);
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdDesc, null, TestContext.Current.CancellationToken);
 
         // Assert
         var item = result.Items.Should().ContainSingle(b => b.Id == book.Id).Subject;

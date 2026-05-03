@@ -13,7 +13,7 @@ public abstract class Book : Entity<Guid>
 
     public string Title { get; protected set; } = string.Empty;
 
-    public string ISBN { get; protected set; } = string.Empty;
+    public string? ISBN { get; protected set; }
 
     public int VolumeNumber { get; protected set; } = 1;
 
@@ -35,7 +35,7 @@ public abstract class Book : Entity<Guid>
     public void Update(
         string series,
         string title,
-        string isbn,
+        string? isbn,
         int volumeNumber,
         string imageLink,
         string authors = "",

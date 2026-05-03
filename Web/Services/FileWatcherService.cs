@@ -1,0 +1,233 @@
+using System.Collections.Concurrent;
+using Application.Abstractions.Messaging;
+using Application.ImportJobs;
+using Application.ImportJobs.Create;
+using Application.Interfaces;
+using Domain.ImportJobs;
+using Domain.Libraries;
+using Domain.Primitives;
+using Microsoft.Extensions.Options;
+
+namespace Web.Services;
+
+public sealed class FileWatcherService : IHostedService, IDisposable
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IImportJobEnqueuer _enqueuer;
+    private readonly ImportSettings _settings;
+    private readonly HashSet<string> _supportedExtensions;
+    private Timer? _pollingTimer;
+    private readonly ConcurrentDictionary<string, byte> _inFlight = new(StringComparer.OrdinalIgnoreCase);
+
+    private static Serilog.ILogger Log => Serilog.Log.ForContext<FileWatcherService>();
+
+    public FileWatcherService(
+        IServiceScopeFactory scopeFactory,
+        IImportJobEnqueuer enqueuer,
+        IOptions<ImportSettings> settings)
+    {
+        _scopeFactory = scopeFactory;
+        _enqueuer = enqueuer;
+        _settings = settings.Value;
+        _supportedExtensions = new HashSet<string>(_settings.SupportedExtensions, StringComparer.OrdinalIgnoreCase);
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(_settings.ImportDirectory);
+
+        // Ensure each digital library has its import subdirectory
+        await EnsureImportDirectoriesExistAsync();
+
+        // Scan existing files on startup
+        await ScanDirectoryAsync(_settings.ImportDirectory, cancellationToken);
+
+        var intervalMs = _settings.PollingIntervalSeconds * 1000;
+        _pollingTimer = new Timer(
+            _ => ScanDirectoryAsync(_settings.ImportDirectory, CancellationToken.None)
+                     .ContinueWith(t => Log.Error(t.Exception, "Polling scan failed"),
+                         CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default),
+            null,
+            intervalMs,
+            intervalMs);
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _pollingTimer?.Change(Timeout.Infinite, 0);
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _pollingTimer?.Dispose();
+    }
+
+    private async Task EnsureImportDirectoriesExistAsync()
+    {
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var libraryRepository = scope.ServiceProvider.GetRequiredService<IRepository<Library, Guid>>();
+        var importDirectoryStorage = scope.ServiceProvider.GetRequiredService<IImportDirectoryStorage>();
+
+        var libraries = await libraryRepository.ListAsync();
+        foreach (var library in libraries.Where(l => l.BookType == LibraryBookType.Digital))
+        {
+            var result = importDirectoryStorage.EnsureExists(library.ImportDirectoryName);
+            if (result.IsFailure)
+            {
+                Log.Warning("Failed to ensure import directory for library {LibraryId} ({Name}): {Error}",
+                    library.Id, library.Name, result.Error?.Description);
+            }
+        }
+    }
+
+    private async Task ScanDirectoryAsync(string rootDir, CancellationToken ct)
+    {
+        if (!Directory.Exists(rootDir))
+        { return; }
+
+        foreach (var subDir in Directory.GetDirectories(rootDir))
+        {
+            foreach (var file in Directory.GetFiles(subDir))
+            {
+                await ProcessFileAsync(file, ct);
+            }
+        }
+    }
+
+    internal async Task ProcessFileAsync(string filePath, CancellationToken ct)
+    {
+        if (!_inFlight.TryAdd(filePath, 0))
+        {
+            Log.Debug("Skipping already in-flight file: {FilePath}", filePath);
+            return;
+        }
+
+        try
+        {
+            await ProcessFileInternalAsync(filePath, ct);
+        }
+        finally
+        {
+            _inFlight.TryRemove(filePath, out _);
+        }
+    }
+
+    private async Task ProcessFileInternalAsync(string filePath, CancellationToken ct)
+    {
+        var extension = Path.GetExtension(filePath);
+        if (!_supportedExtensions.Contains(extension))
+        {
+            Log.Debug("Ignoring unsupported file: {FilePath}", filePath);
+            return;
+        }
+
+        // Library ID is extracted from the immediate parent directory name.
+        // Expected format: {RelativePath}_{LibraryId}, e.g. MYCOMICS_01967e23-...
+        // Legacy format (GUID only) is also accepted for backward compatibility.
+        var parentDir = Path.GetDirectoryName(filePath) ?? string.Empty;
+        var parentName = Path.GetFileName(parentDir);
+        if (!TryExtractLibraryId(parentName, out var libraryId))
+        {
+            Log.Debug("Ignoring file at root or non-library subdirectory: {FilePath}", filePath);
+            return;
+        }
+
+        if (!await WaitForFileReadyAsync(filePath, ct))
+        {
+            Log.Warning("File never became ready (still locked): {FilePath}", filePath);
+            return;
+        }
+
+        if (!File.Exists(filePath))
+        {
+            Log.Debug("File disappeared before processing: {FilePath}", filePath);
+            return;
+        }
+
+        // Load the library to obtain its owning UserId
+        Guid userId;
+        await using (var scope = _scopeFactory.CreateAsyncScope())
+        {
+            var libraryRepository = scope.ServiceProvider.GetRequiredService<IRepository<Library, Guid>>();
+            var library = await libraryRepository.GetByIdAsync(libraryId);
+            if (library is null)
+            {
+                Log.Warning("Library {LibraryId} not found for file {FilePath}", libraryId, filePath);
+                return;
+            }
+
+            userId = library.UserId;
+        }
+
+        var fileInfo = new FileInfo(filePath);
+        var command = new CreateImportJobCommand(
+            Path.GetFileName(filePath),
+            filePath,
+            fileInfo.Length,
+            libraryId,
+            userId);
+
+        Result<ImportJob> result;
+        await using (var scope = _scopeFactory.CreateAsyncScope())
+        {
+            var handler = scope.ServiceProvider
+                .GetRequiredService<ICommandHandler<CreateImportJobCommand, ImportJob>>();
+            result = await handler.Handle(command, ct);
+        }
+
+        if (result.IsFailure)
+        {
+            Log.Error("Failed to create import job for {FilePath}: [{Code}] {Description}",
+                filePath, result.Error!.Code, result.Error.Description);
+            return;
+        }
+
+        var jobId = _enqueuer.Enqueue(result.Value!.Id);
+        Log.Information("Enqueued import job {ImportJobId} (Hangfire: {HangfireJobId}) for {FilePath}",
+            result.Value.Id, jobId, filePath);
+    }
+
+    // Extracts the LibraryId GUID from a directory name.
+    // Supports {RelativePath}_{Guid} format (e.g. MYCOMICS_01967e23-...)
+    // and legacy plain GUID format for backward compatibility.
+    private static bool TryExtractLibraryId(string directoryName, out Guid libraryId)
+    {
+        var lastUnderscore = directoryName.LastIndexOf('_');
+        if (lastUnderscore >= 0 && Guid.TryParse(directoryName[(lastUnderscore + 1)..], out libraryId))
+        {
+            return true;
+        }
+
+        return Guid.TryParse(directoryName, out libraryId);
+    }
+
+    private static async Task<bool> WaitForFileReadyAsync(string filePath, CancellationToken ct)
+    {
+        const int maxAttempts = 10;
+        const int delayMs = 500;
+        long lastSize = -1;
+
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            if (ct.IsCancellationRequested)
+            { return false; }
+            try
+            {
+                using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                var size = stream.Length;
+                if (size > 0 && size == lastSize)
+                {
+                    return true;
+                }
+                lastSize = size;
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+
+            await Task.Delay(delayMs, ct).ConfigureAwait(false);
+        }
+
+        return false;
+    }
+}

@@ -1,4 +1,4 @@
-﻿using Application.Books.GetById;
+using Application.Books.GetById;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
@@ -33,7 +33,7 @@ public sealed class GetBookQueryHandlerTests
         GetBookByIdQuery? query = null;
 
         // Act
-        var result = await _handler.Handle(query!, CancellationToken.None);
+        var result = await _handler.Handle(query!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -48,7 +48,7 @@ public sealed class GetBookQueryHandlerTests
         var query = new GetBookByIdQuery(Guid.Empty, s_userId);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -65,7 +65,7 @@ public sealed class GetBookQueryHandlerTests
         _bookRepository.GetByIdAsync(bookId).ReturnsNull();
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -85,7 +85,7 @@ public sealed class GetBookQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(expectedBook.LibraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -111,7 +111,7 @@ public sealed class GetBookQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(book.LibraryId).Returns(library);
 
         // Act
-        await _handler.Handle(query, CancellationToken.None);
+        await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         await _bookRepository.Received(1).GetByIdAsync(specificId);
@@ -134,7 +134,7 @@ public sealed class GetBookQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -156,7 +156,7 @@ public sealed class GetBookQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

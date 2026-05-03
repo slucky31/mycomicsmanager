@@ -14,4 +14,17 @@ public interface ICloudinaryService
         string folder,
         string publicId,
         CancellationToken cancellationToken = default);
+
+    Task<CloudinaryUploadResult> UploadImageFromFileAsync(
+        string filePath,
+        string folder,
+        string publicId,
+        CancellationToken cancellationToken = default);
+
+    Task<CloudinaryUploadResult> UploadImageFromStreamAsync(
+        Stream imageStream,
+        string fileName,
+        string folder,
+        string publicId,
+        CancellationToken cancellationToken = default);
 }

@@ -13,5 +13,11 @@ public partial class BooksCardsView
     [Parameter, EditorRequired]
     public EventCallback<Guid> OnDelete { get; set; }
 
+    [Parameter]
+    public bool ShowDownload { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnDownload { get; set; }
+
     private void NavigateToBook(Guid id) => NavigationManager.NavigateTo($"/books/{id}");
 }

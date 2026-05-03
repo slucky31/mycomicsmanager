@@ -1,0 +1,114 @@
+@using Web.Models
+
+<MudPaper Class="@($"import-job-card {Job.StatusCssClass} pa-3")" Elevation="1" Style="height: 100%;">
+    <div class="d-flex align-center gap-3">
+        <div class="flex-grow-1" style="min-width: 0;">
+
+            <div class="d-flex align-center justify-space-between mb-1">
+                <div class="d-flex align-center gap-2" style="min-width: 0; overflow: hidden;">
+                    <MudIcon Icon="@Icons.Material.Filled.FolderZip"
+                             Size="Size.Small"
+                             Color="Color.Default"
+                             Style="flex-shrink: 0; opacity: 0.6;" />
+                    <MudText Typo="Typo.body2" Class="font-weight-medium import-job-filename">@Job.OriginalFileName</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="flex-shrink: 0;">@Job.FileSizeDisplay</MudText>
+                </div>
+                <MudChip T="string"
+                         Size="Size.Small"
+                         Color="@Job.StatusColor"
+                         Variant="Variant.Filled"
+                         Class="ml-2"
+                         Style="flex-shrink: 0;">
+                    @Job.StatusDisplay
+                </MudChip>
+            </div>
+
+            @if (Job.Status != "Failed")
+            {
+                <MudProgressLinear Value="@Job.ProgressPercent"
+                                   Color="@Job.StatusColor"
+                                   Rounded="true"
+                                   Size="Size.Small"
+                                   Class="mb-1" />
+            }
+            else
+            {
+                <MudProgressLinear Value="100"
+                                   Color="Color.Error"
+                                   Rounded="true"
+                                   Size="Size.Small"
+                                   Class="mb-1" />
+            }
+
+            <div class="d-flex align-center justify-space-between">
+                <div class="d-flex align-center gap-3">
+                    <div class="d-flex align-center gap-1">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday"
+                                 Size="Size.Small"
+                                 Style="font-size: 14px; opacity: 0.5;" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @Job.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                        </MudText>
+                    </div>
+                    @if (Job.DurationDisplay is not null)
+                    {
+                        <div class="d-flex align-center gap-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Timer"
+                                     Size="Size.Small"
+                                     Style="font-size: 14px; opacity: 0.5;" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @Job.DurationDisplay
+                            </MudText>
+                        </div>
+                    }
+                </div>
+                <div class="d-flex align-center gap-1">
+                    @if (Job.ConversionDetail is not null)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @Job.ConversionDetail
+                        </MudText>
+                    }
+                    @if (Job.IsTerminal && OnDelete.HasDelegate)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Size="Size.Small"
+                                       Color="Color.Default"
+                                       OnClick="@(() => OnDelete.InvokeAsync(Job.Id))"
+                                       aria-label="Supprimer cet import" />
+                    }
+                    @if (IsStuck && OnForceFail.HasDelegate)
+                    {
+                        <MudTooltip Text="Forcer l'état en Échoué (job bloqué)">
+                            <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                           Size="Size.Small"
+                                           Color="Color.Warning"
+                                           OnClick="@(() => OnForceFail.InvokeAsync(Job.Id))"
+                                           aria-label="Forcer l'état en Échoué" />
+                        </MudTooltip>
+                    }
+                </div>
+            </div>
+
+            @if (Job.Status == "Failed" && (!string.IsNullOrEmpty(Job.ErrorStep) || !string.IsNullOrEmpty(Job.ErrorMessage)))
+            {
+                <MudExpansionPanels Class="mt-2" Dense="true" Elevation="0">
+                    <MudExpansionPanel Text="Détail de l'erreur" Dense="true">
+                        @if (!string.IsNullOrEmpty(Job.ErrorStep))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Error" Class="font-weight-bold">
+                                Étape : @Job.ErrorStep
+                            </MudText>
+                        }
+                        @if (!string.IsNullOrEmpty(Job.ErrorMessage))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Error" Class="mt-1" Style="word-break: break-word;">
+                                @Job.ErrorMessage
+                            </MudText>
+                        }
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+        </div>
+    </div>
+</MudPaper>

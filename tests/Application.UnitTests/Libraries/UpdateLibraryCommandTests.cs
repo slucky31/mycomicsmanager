@@ -1,3 +1,4 @@
+using Application.ImportJobs;
 using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Update;
@@ -19,6 +20,7 @@ public class UpdateLibraryCommandTests
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryReadService _libraryReadServiceMock;
     private readonly ILibraryLocalStorage _libraryLocalStorage;
+    private readonly IImportDirectoryStorage _importDirectoryStorageMock;
 
     public UpdateLibraryCommandTests()
     {
@@ -26,21 +28,23 @@ public class UpdateLibraryCommandTests
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryReadServiceMock = Substitute.For<ILibraryReadService>();
         _libraryLocalStorage = Substitute.For<ILibraryLocalStorage>();
+        _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();
+        _importDirectoryStorageMock.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
 
-        _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorage);
+        _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorage, _importDirectoryStorageMock);
     }
 
     [Fact]
     public async Task Handle_ShouldReturnValidationError_WhenRequestIsNull()
     {
         // Act
-        var result = await _handler.Handle(null!, default);
+        var result = await _handler.Handle(null!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.ValidationError);
         _librayRepositoryMock.DidNotReceive().Update(Arg.Any<Library>());
-        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -51,7 +55,7 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(commandWithBadColor.Id).Returns(s_library);
 
         // Act
-        var result = await _handler.Handle(commandWithBadColor, default);
+        var result = await _handler.Handle(commandWithBadColor, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -67,7 +71,7 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(commandWithEmptyName.Id).Returns(s_library);
 
         // Act
-        var result = await _handler.Handle(commandWithEmptyName, default);
+        var result = await _handler.Handle(commandWithEmptyName, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -85,14 +89,15 @@ public class UpdateLibraryCommandTests
         _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
 
         // Act
-        var result = await _handler.Handle(digitalCommand, default);
+        var result = await _handler.Handle(digitalCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.Name.Should().Be("new-digital-name");
         _libraryLocalStorage.Received(1).Move(Arg.Any<string>(), Arg.Any<string>());
+        _importDirectoryStorageMock.Received(1).Move(Arg.Any<string>(), Arg.Any<string>());
         _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -102,13 +107,13 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns((Library?)null);
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.NotFound);
         _librayRepositoryMock.Received(0).Update(Arg.Any<Library>());
-        await _unitOfWorkMock.Received(0).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -120,7 +125,7 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
 
         // Act
-        var result = await _handler.Handle(commandFromOtherUser, default);
+        var result = await _handler.Handle(commandFromOtherUser, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -135,7 +140,7 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -152,7 +157,7 @@ public class UpdateLibraryCommandTests
         _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Failure(TError.Any));
 
         // Act
-        var result = await _handler.Handle(digitalCommand, default);
+        var result = await _handler.Handle(digitalCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -166,14 +171,14 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         Guard.Against.Null(result.Value);
         result.Value.Name.Should().Be(s_command.Name);
         _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
         _libraryLocalStorage.DidNotReceive().Move(Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -185,7 +190,7 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(commandWithoutName.Id).Returns(s_library);
 
         // Act
-        var result = await _handler.Handle(commandWithoutName, default);
+        var result = await _handler.Handle(commandWithoutName, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -193,7 +198,7 @@ public class UpdateLibraryCommandTests
         result.Value.Color.Should().Be("#FF0000");
         result.Value.Icon.Should().Be("Star");
         _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -205,13 +210,13 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(commandWithInvalidSortOrder.Id).Returns(freshLibrary);
 
         // Act
-        var result = await _handler.Handle(commandWithInvalidSortOrder, default);
+        var result = await _handler.Handle(commandWithInvalidSortOrder, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.BadRequest);
         _librayRepositoryMock.DidNotReceive().Update(Arg.Any<Library>());
-        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -223,12 +228,12 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(commandWithSortOrder.Id).Returns(freshLibrary);
 
         // Act
-        var result = await _handler.Handle(commandWithSortOrder, default);
+        var result = await _handler.Handle(commandWithSortOrder, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.DefaultBookSortOrder.Should().Be(BookSortOrder.SerieAndVolumeAsc);
         _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

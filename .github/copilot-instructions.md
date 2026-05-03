@@ -19,10 +19,10 @@
 ## Testing Expectations
 - Unit tests use xUnit with AwesomeAssertions and NSubstitute; mirror existing fixture/builder patterns to keep arrange blocks concise.
 - Persistence and base integration tests rely on PostgreSQLâ€”ensure new EF work is covered there.
-- Keep naming and structure consistent so `dotnet test MyComicsManager.sln` and optional coverage collection continue to succeed.
+- Keep naming and structure consistent so `dotnet test MyComicsManager.slnx` and optional coverage collection continue to succeed.
 
 ## Tooling & Commands
-- Standard workflow: `dotnet restore`, `dotnet build MyComicsManager.sln`, `dotnet test MyComicsManager.sln`.
+- Standard workflow: `dotnet restore`, `dotnet build MyComicsManager.slnx`, `dotnet test MyComicsManager.sln`.
 - Local runs use `dotnet run --project Web/Web.csproj`; prefer `dotnet watch run` while iterating on UI endpoints.
 
 ## Security & Configuration

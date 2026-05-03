@@ -3,7 +3,7 @@ ARG TARGETARCH
 WORKDIR /source
 
 # copy csproj and restore as distinct layers
-COPY MyComicsManager.sln .
+COPY MyComicsManager.slnx .
 COPY Domain/Domain.csproj ./Domain/
 COPY Application/Application.csproj ./Application/
 COPY Persistence/Persistence.csproj ./Persistence/

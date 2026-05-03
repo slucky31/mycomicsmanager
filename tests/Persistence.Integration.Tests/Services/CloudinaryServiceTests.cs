@@ -48,7 +48,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test");
+            new Uri("https://example.com/image.jpg"), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeTrue();
@@ -72,7 +72,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test");
+            new Uri("https://example.com/image.jpg"), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -90,7 +90,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test");
+            new Uri("https://example.com/image.jpg"), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -108,6 +108,87 @@ public class CloudinaryServiceTests
         // Act
         var result = await service.UploadImageFromUrlAsync(
             new Uri("https://example.com/image.jpg"), "covers", "test", CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("Upload timeout");
+    }
+
+    [Fact]
+    public async Task UploadImageFromStreamAsync_Should_ReturnSuccess_WhenUploadSucceeds()
+    {
+        // Arrange
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                """{"public_id":"covers/test","secure_url":"https://res.cloudinary.com/testcloud/image/upload/covers/test.jpg"}""",
+                Encoding.UTF8, "application/json")
+        };
+        using var handler = new StaticResponseHandler(response);
+        var service = CreateServiceWithMockHandler(handler);
+        using var stream = new MemoryStream([0xFF, 0xD8, 0xFF]); // minimal JPEG header
+
+        // Act
+        var result = await service.UploadImageFromStreamAsync(stream, "cover.jpg", "covers", "test", TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.Url.Should().NotBeNull();
+        result.PublicId.Should().Be("covers/test");
+        result.Error.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task UploadImageFromStreamAsync_Should_ReturnFailure_WhenUploadFails()
+    {
+        // Arrange
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                """{"error":{"message":"Upload failed"}}""",
+                Encoding.UTF8, "application/json")
+        };
+        using var handler = new StaticResponseHandler(response);
+        var service = CreateServiceWithMockHandler(handler);
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        // Act
+        var result = await service.UploadImageFromStreamAsync(stream, "cover.webp", "covers", "test", TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("Upload failed");
+        result.Url.Should().BeNull();
+        result.PublicId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task UploadImageFromStreamAsync_Should_ReturnFailure_WhenHttpError()
+    {
+        // Arrange
+        using var handler = new ThrowingHandler(new HttpRequestException("Network error"));
+        var service = CreateServiceWithMockHandler(handler);
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        // Act
+        var result = await service.UploadImageFromStreamAsync(stream, "cover.webp", "covers", "test", TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("Network error");
+    }
+
+    [Fact]
+    public async Task UploadImageFromStreamAsync_Should_ReturnFailure_WhenTimeout()
+    {
+        // Arrange – TaskCanceledException with CancellationToken.None triggers the timeout branch
+        using var handler = new ThrowingHandler(new TaskCanceledException());
+        var service = CreateServiceWithMockHandler(handler);
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        // Act
+        var result = await service.UploadImageFromStreamAsync(
+            stream, "cover.webp", "covers", "test", CancellationToken.None);
 
         // Assert
         result.Success.Should().BeFalse();

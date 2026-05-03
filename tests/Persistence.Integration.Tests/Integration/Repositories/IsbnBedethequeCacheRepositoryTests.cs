@@ -13,7 +13,7 @@ public sealed class IsbnBedethequeCacheRepositoryTests(IntegrationTestWebAppFact
     public async Task GetUrlByIsbnAsync_ShouldReturnNull_WhenIsbnNotCached()
     {
         // Act
-        var result = await CacheRepository.GetUrlByIsbnAsync("9780000000000");
+        var result = await CacheRepository.GetUrlByIsbnAsync("9780000000000", TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();
@@ -27,8 +27,8 @@ public sealed class IsbnBedethequeCacheRepositoryTests(IntegrationTestWebAppFact
         var url = "https://www.bedetheque.com/BD-Test-224335.html";
 
         // Act
-        await CacheRepository.SaveAsync(isbn, url);
-        var result = await CacheRepository.GetUrlByIsbnAsync(isbn);
+        await CacheRepository.SaveAsync(isbn, url, TestContext.Current.CancellationToken);
+        var result = await CacheRepository.GetUrlByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Be(url);
@@ -39,10 +39,10 @@ public sealed class IsbnBedethequeCacheRepositoryTests(IntegrationTestWebAppFact
     {
         // Arrange
         var isbn = UniqueIsbn();
-        await CacheRepository.SaveAsync(isbn, TestUrl);
+        await CacheRepository.SaveAsync(isbn, TestUrl, TestContext.Current.CancellationToken);
 
         // Act
-        var result = await CacheRepository.GetUrlByIsbnAsync("9780000000001");
+        var result = await CacheRepository.GetUrlByIsbnAsync("9780000000001", TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();
@@ -55,7 +55,7 @@ public sealed class IsbnBedethequeCacheRepositoryTests(IntegrationTestWebAppFact
         var isbn = UniqueIsbn();
 
         // Act
-        await CacheRepository.SaveAsync(isbn, TestUrl);
+        await CacheRepository.SaveAsync(isbn, TestUrl, TestContext.Current.CancellationToken);
         var action = async () => await CacheRepository.SaveAsync(isbn, TestUrl);
 
         // Assert — duplicate key must be silently ignored
@@ -71,10 +71,10 @@ public sealed class IsbnBedethequeCacheRepositoryTests(IntegrationTestWebAppFact
         var secondUrl = "https://www.bedetheque.com/BD-Second-222222.html";
 
         // Act
-        await CacheRepository.SaveAsync(isbn, firstUrl);
-        await CacheRepository.SaveAsync(isbn, secondUrl); // duplicate — should be silently ignored
+        await CacheRepository.SaveAsync(isbn, firstUrl, TestContext.Current.CancellationToken);
+        await CacheRepository.SaveAsync(isbn, secondUrl, TestContext.Current.CancellationToken); // duplicate — should be silently ignored
 
-        var result = await CacheRepository.GetUrlByIsbnAsync(isbn);
+        var result = await CacheRepository.GetUrlByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert — first saved URL is preserved
         result.Should().Be(firstUrl);
@@ -90,12 +90,12 @@ public sealed class IsbnBedethequeCacheRepositoryTests(IntegrationTestWebAppFact
         var url2 = "https://www.bedetheque.com/BD-SerieB-100002.html";
 
         // Act
-        await CacheRepository.SaveAsync(isbn1, url1);
-        await CacheRepository.SaveAsync(isbn2, url2);
+        await CacheRepository.SaveAsync(isbn1, url1, TestContext.Current.CancellationToken);
+        await CacheRepository.SaveAsync(isbn2, url2, TestContext.Current.CancellationToken);
 
         // Assert
-        (await CacheRepository.GetUrlByIsbnAsync(isbn1)).Should().Be(url1);
-        (await CacheRepository.GetUrlByIsbnAsync(isbn2)).Should().Be(url2);
+        (await CacheRepository.GetUrlByIsbnAsync(isbn1, TestContext.Current.CancellationToken)).Should().Be(url1);
+        (await CacheRepository.GetUrlByIsbnAsync(isbn2, TestContext.Current.CancellationToken)).Should().Be(url2);
     }
 
     [Fact]

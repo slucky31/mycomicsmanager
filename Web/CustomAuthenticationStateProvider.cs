@@ -15,7 +15,7 @@ internal class CustomAuthenticationStateProvider(
 {
     private readonly IUserReadService _userReadService = userReadService;
     private readonly IRepository<User, Guid> _userRepository = userRepository;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;    
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
