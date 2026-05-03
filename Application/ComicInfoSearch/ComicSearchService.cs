@@ -105,29 +105,11 @@ public partial class ComicSearchService : IComicSearchService
         string isbn,
         CancellationToken cancellationToken)
     {
-        var imageUrl = string.Empty;
-        if (bedethequeResult.CoverUrl != null)
-        {
-            imageUrl = await UploadCoverToCloudinaryAsync(bedethequeResult.CoverUrl, isbn, cancellationToken);
-        }
+        var imageUrl = bedethequeResult.CoverUrl != null
+            ? await UploadCoverToCloudinaryAsync(bedethequeResult.CoverUrl, isbn, cancellationToken)
+            : string.Empty;
 
-        var authors = string.Join(", ", bedethequeResult.Authors);
-        var publishers = string.Join(", ", bedethequeResult.Publishers);
-
-        Log.Information("Mapped Bedetheque result: {Serie} T{Volume} - {Title}", bedethequeResult.Serie, bedethequeResult.VolumeNumber, bedethequeResult.Title);
-
-        return new ComicSearchResult(
-            Title: bedethequeResult.Title,
-            Serie: bedethequeResult.Serie,
-            Isbn: isbn,
-            VolumeNumber: bedethequeResult.VolumeNumber,
-            ImageUrl: imageUrl,
-            Authors: authors,
-            Publishers: publishers,
-            PublishDate: bedethequeResult.PublishDate,
-            NumberOfPages: bedethequeResult.NumberOfPages,
-            Found: true
-        );
+        return MapBedethequeResultSync(bedethequeResult, isbn, imageUrl);
     }
 
     private async Task<ComicSearchResult> MapBookResultToComicSearchResultAsync(
@@ -135,33 +117,11 @@ public partial class ComicSearchService : IComicSearchService
         string isbn,
         CancellationToken cancellationToken)
     {
-        var (title, serie, volumeNumber) = ParseTitleInfo(bookResult.Title, bookResult.Subtitle);
+        var imageUrl = bookResult.CoverUrl != null
+            ? await UploadCoverToCloudinaryAsync(bookResult.CoverUrl, isbn, cancellationToken)
+            : string.Empty;
 
-        // Upload cover to Cloudinary if available
-        var imageUrl = string.Empty;
-        if (bookResult.CoverUrl != null)
-        {
-            imageUrl = await UploadCoverToCloudinaryAsync(bookResult.CoverUrl, isbn, cancellationToken);
-        }
-
-        var authors = string.Join(", ", bookResult.Authors);
-        var publishers = string.Join(", ", bookResult.Publishers);
-        var publishDate = bookResult.PublishDate;
-
-        Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
-
-        return new ComicSearchResult(
-            Title: title,
-            Serie: serie,
-            Isbn: isbn,
-            VolumeNumber: volumeNumber,
-            ImageUrl: imageUrl,
-            Authors: authors,
-            Publishers: publishers,
-            PublishDate: publishDate,
-            NumberOfPages: bookResult.NumberOfPages,
-            Found: true
-        );
+        return MapBookResultSync(bookResult, isbn, imageUrl);
     }
 
     public Task<string> UploadCoverAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken = default)
@@ -246,8 +206,12 @@ public partial class ComicSearchService : IComicSearchService
     }
 
     private static ComicSearchResult MapBedethequeResultSync(
-        BedethequeBookResult bedethequeResult, string isbn, string imageUrl) =>
-        new(
+        BedethequeBookResult bedethequeResult, string isbn, string imageUrl)
+    {
+        Log.Information("Mapped Bedetheque result: {Serie} T{Volume} - {Title}",
+            bedethequeResult.Serie, bedethequeResult.VolumeNumber, bedethequeResult.Title);
+
+        return new ComicSearchResult(
             Title: bedethequeResult.Title,
             Serie: bedethequeResult.Serie,
             Isbn: isbn,
@@ -259,10 +223,12 @@ public partial class ComicSearchService : IComicSearchService
             NumberOfPages: bedethequeResult.NumberOfPages,
             Found: true
         );
+    }
 
     private ComicSearchResult MapBookResultSync(IBookSearchResult bookResult, string isbn, string imageUrl)
     {
         var (title, serie, volumeNumber) = ParseTitleInfo(bookResult.Title, bookResult.Subtitle);
+        Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
         return new ComicSearchResult(
             Title: title,
             Serie: serie,
