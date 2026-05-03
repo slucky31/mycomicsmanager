@@ -35,6 +35,15 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             // Add environment variables to override the parameters 
             conf.AddEnvironmentVariables();
 
+            // Override Import directories to writable temp paths so Program.cs
+            // can create them without permission errors in CI environments.
+            var tempRoot = Path.GetTempPath();
+            conf.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Import:ImportDirectory"] = Path.Combine(tempRoot, "mcm-test-import"),
+                ["Import:TempDirectory"] = Path.Combine(tempRoot, "mcm-test-temp"),
+            });
+
             var configuration = conf.Build();
 
             _connectionString = configuration.GetConnectionString("NeonConnectionUnitTests") ?? string.Empty;
