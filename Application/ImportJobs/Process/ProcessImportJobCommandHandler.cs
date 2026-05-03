@@ -30,7 +30,7 @@ public sealed class ProcessImportJobCommandHandler(
     private static Serilog.ILogger Log => Serilog.Log.ForContext<ProcessImportJobCommandHandler>();
     private readonly ImportSettings _settings = importSettings.Value;
 
-    private record BookMetadata(
+    private sealed record BookMetadata(
         string Serie,
         string Title,
         string? Isbn,
@@ -146,10 +146,7 @@ public sealed class ProcessImportJobCommandHandler(
                 importJob, metaResult.Value!, archiveResult.Value.FinalPath,
                 archiveResult.Value.FileSize, imageLink, ct);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+        catch (OperationCanceledException ex) { return await HandleUnexpectedExceptionAsync(ex); }        
         catch (IOException ex)              { return await HandleUnexpectedExceptionAsync(ex); }
         catch (InvalidOperationException ex){ return await HandleUnexpectedExceptionAsync(ex); }
         catch (UnauthorizedAccessException ex){ return await HandleUnexpectedExceptionAsync(ex); }
