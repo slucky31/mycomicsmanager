@@ -88,7 +88,7 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
         var destDir = CreateDestDir();
 
         // Act
-        var result = await _service.ExtractAsync(archivePath, destDir);
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -108,7 +108,7 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
         var destDir = CreateDestDir();
 
         // Act
-        var result = await _service.ExtractAsync(archivePath, destDir);
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -126,7 +126,7 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
         var destDir = CreateDestDir();
 
         // Act
-        var result = await _service.ExtractAsync(archivePath, destDir);
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -142,7 +142,7 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
         var destDir = CreateDestDir();
 
         // Act
-        var result = await _service.ExtractAsync(archivePath, destDir);
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -155,7 +155,8 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
         // Act
         var result = await _service.ExtractAsync(
             Path.Combine(_tempDir, "nonexistent.cbz"),
-            CreateDestDir());
+            CreateDestDir(),
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -167,12 +168,11 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
     {
         // Arrange
         var corruptPath = Path.Combine(_tempDir, "corrupt.cbz");
-        await File.WriteAllBytesAsync(corruptPath, [0x00, 0x01, 0x02, 0x03, 0x04]);
+        await File.WriteAllBytesAsync(corruptPath, [0x00, 0x01, 0x02, 0x03, 0x04], TestContext.Current.CancellationToken);
         var destDir = CreateDestDir();
 
         // Act
-        var result = await _service.ExtractAsync(corruptPath, destDir);
-
+        var result = await _service.ExtractAsync(corruptPath, destDir, TestContext.Current.CancellationToken);
         // Assert
         result.IsFailure.Should().BeTrue();
     }
@@ -189,7 +189,7 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
         var destDir = CreateDestDir();
 
         // Act
-        var result = await _service.ExtractAsync(archivePath, destDir);
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

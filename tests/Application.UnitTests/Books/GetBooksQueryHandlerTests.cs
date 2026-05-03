@@ -41,7 +41,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -61,7 +61,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(emptyBooks);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -78,7 +78,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        await _handler.Handle(s_query, CancellationToken.None);
+        await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         await _bookRepositoryMock.Received(1).ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>());
@@ -95,7 +95,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -127,7 +127,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -149,7 +149,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -169,7 +169,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -191,7 +191,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -215,7 +215,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -235,7 +235,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -253,7 +253,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(s_query, CancellationToken.None);
+        var result = await _handler.Handle(s_query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -272,7 +272,7 @@ public class GetBooksQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns((Library?)null);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -293,7 +293,7 @@ public class GetBooksQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -315,7 +315,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByLibraryIdAsync(libraryId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -337,7 +337,7 @@ public class GetBooksQueryHandlerTests
         _bookRepositoryMock.ListByLibraryIdAsync(libraryId, Arg.Any<CancellationToken>()).Returns(books);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

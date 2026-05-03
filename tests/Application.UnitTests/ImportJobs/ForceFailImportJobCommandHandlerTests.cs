@@ -51,7 +51,7 @@ public class ForceFailImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(s_libraryId).Returns(CreateLibrary());
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -76,7 +76,7 @@ public class ForceFailImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(s_libraryId).Returns(CreateLibrary());
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -95,7 +95,7 @@ public class ForceFailImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(s_libraryId).Returns(CreateLibrary());
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -110,7 +110,7 @@ public class ForceFailImportJobCommandHandlerTests
         _importJobRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((ImportJob?)null);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -127,7 +127,7 @@ public class ForceFailImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

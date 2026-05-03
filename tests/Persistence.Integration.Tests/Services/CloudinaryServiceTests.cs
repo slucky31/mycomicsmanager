@@ -48,7 +48,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test");
+            new Uri("https://example.com/image.jpg"), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeTrue();
@@ -72,7 +72,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test");
+            new Uri("https://example.com/image.jpg"), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -90,7 +90,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test");
+            new Uri("https://example.com/image.jpg"), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -129,7 +129,7 @@ public class CloudinaryServiceTests
         using var stream = new MemoryStream([0xFF, 0xD8, 0xFF]); // minimal JPEG header
 
         // Act
-        var result = await service.UploadImageFromStreamAsync(stream, "cover.jpg", "covers", "test");
+        var result = await service.UploadImageFromStreamAsync(stream, "cover.jpg", "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeTrue();
@@ -153,7 +153,7 @@ public class CloudinaryServiceTests
         using var stream = new MemoryStream([1, 2, 3]);
 
         // Act
-        var result = await service.UploadImageFromStreamAsync(stream, "cover.webp", "covers", "test");
+        var result = await service.UploadImageFromStreamAsync(stream, "cover.webp", "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -171,7 +171,7 @@ public class CloudinaryServiceTests
         using var stream = new MemoryStream([1, 2, 3]);
 
         // Act
-        var result = await service.UploadImageFromStreamAsync(stream, "cover.webp", "covers", "test");
+        var result = await service.UploadImageFromStreamAsync(stream, "cover.webp", "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeFalse();

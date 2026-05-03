@@ -39,7 +39,7 @@ public class ListImportJobsQueryHandlerTests
             .Returns((IReadOnlyList<ImportJob>)jobs);
 
         // Act
-        var result = await _handler.Handle(new ListImportJobsQuery(library.Id, s_userId), default);
+        var result = await _handler.Handle(new ListImportJobsQuery(library.Id, s_userId), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -56,7 +56,7 @@ public class ListImportJobsQueryHandlerTests
             .Returns((IReadOnlyList<ImportJob>)[]);
 
         // Act
-        var result = await _handler.Handle(new ListImportJobsQuery(library.Id, s_userId), default);
+        var result = await _handler.Handle(new ListImportJobsQuery(library.Id, s_userId), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -70,7 +70,7 @@ public class ListImportJobsQueryHandlerTests
         _libraryRepository.GetByIdAsync(Arg.Any<Guid>()).Returns((Library?)null);
 
         // Act
-        var result = await _handler.Handle(new ListImportJobsQuery(Guid.CreateVersion7(), s_userId), default);
+        var result = await _handler.Handle(new ListImportJobsQuery(Guid.CreateVersion7(), s_userId), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

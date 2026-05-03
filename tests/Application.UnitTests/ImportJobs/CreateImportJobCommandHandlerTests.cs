@@ -47,7 +47,7 @@ public class CreateImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(library);
 
         // Act
-        var result = await _handler.Handle(ValidCommand(library.Id), default);
+        var result = await _handler.Handle(ValidCommand(library.Id), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -62,7 +62,7 @@ public class CreateImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(library);
 
         // Act
-        var result = await _handler.Handle(ValidCommand(library.Id), default);
+        var result = await _handler.Handle(ValidCommand(library.Id), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -77,7 +77,7 @@ public class CreateImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(library);
 
         // Act
-        await _handler.Handle(ValidCommand(library.Id), default);
+        await _handler.Handle(ValidCommand(library.Id), TestContext.Current.CancellationToken);
 
         // Assert
         _importJobRepository.Received(1).Add(Arg.Any<ImportJob>());
@@ -90,7 +90,7 @@ public class CreateImportJobCommandHandlerTests
     public async Task Handle_Should_ReturnBadRequest_WhenFileNameIsEmpty()
     {
         var cmd = new CreateImportJobCommand(string.Empty, "/path/file.cbz", 1024, s_libraryId, s_userId);
-        var result = await _handler.Handle(cmd, default);
+        var result = await _handler.Handle(cmd, TestContext.Current.CancellationToken);
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.BadRequest);
     }
@@ -99,7 +99,7 @@ public class CreateImportJobCommandHandlerTests
     public async Task Handle_Should_ReturnBadRequest_WhenFilePathIsEmpty()
     {
         var cmd = new CreateImportJobCommand("comic.cbz", string.Empty, 1024, s_libraryId, s_userId);
-        var result = await _handler.Handle(cmd, default);
+        var result = await _handler.Handle(cmd, TestContext.Current.CancellationToken);
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.BadRequest);
     }
@@ -108,7 +108,7 @@ public class CreateImportJobCommandHandlerTests
     public async Task Handle_Should_ReturnBadRequest_WhenFileSizeIsZero()
     {
         var cmd = new CreateImportJobCommand("comic.cbz", "/path/file.cbz", 0, s_libraryId, s_userId);
-        var result = await _handler.Handle(cmd, default);
+        var result = await _handler.Handle(cmd, TestContext.Current.CancellationToken);
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.BadRequest);
     }
@@ -117,7 +117,7 @@ public class CreateImportJobCommandHandlerTests
     public async Task Handle_Should_ReturnBadRequest_WhenLibraryIdIsEmpty()
     {
         var cmd = new CreateImportJobCommand("comic.cbz", "/path/file.cbz", 1024, Guid.Empty, s_userId);
-        var result = await _handler.Handle(cmd, default);
+        var result = await _handler.Handle(cmd, TestContext.Current.CancellationToken);
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.BadRequest);
     }
@@ -126,7 +126,7 @@ public class CreateImportJobCommandHandlerTests
     public async Task Handle_Should_ReturnBadRequest_WhenFileExtensionIsInvalid()
     {
         var cmd = new CreateImportJobCommand("comic.epub", "/path/file.epub", 1024, s_libraryId, s_userId);
-        var result = await _handler.Handle(cmd, default);
+        var result = await _handler.Handle(cmd, TestContext.Current.CancellationToken);
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.BadRequest);
     }
@@ -140,7 +140,7 @@ public class CreateImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(Arg.Any<Guid>()).Returns((Library?)null);
 
         // Act
-        var result = await _handler.Handle(ValidCommand(), default);
+        var result = await _handler.Handle(ValidCommand(), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -156,7 +156,7 @@ public class CreateImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(library.Id).Returns(library);
 
         // Act
-        var result = await _handler.Handle(ValidCommand(library.Id, s_userId), default);
+        var result = await _handler.Handle(ValidCommand(library.Id, s_userId), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -171,7 +171,7 @@ public class CreateImportJobCommandHandlerTests
         _libraryRepository.GetByIdAsync(library.Id).Returns(library);
 
         // Act
-        var result = await _handler.Handle(ValidCommand(library.Id), default);
+        var result = await _handler.Handle(ValidCommand(library.Id), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

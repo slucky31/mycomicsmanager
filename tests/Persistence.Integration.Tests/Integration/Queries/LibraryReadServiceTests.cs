@@ -48,7 +48,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Ascending, 1, 2, s_userId);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Ascending, 1, 2, s_userId, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -64,7 +64,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync("comics", null, null, 1, 3, s_userId);
+        var pagedList = await LibraryReadService.GetLibrariesAsync("comics", null, null, 1, 3, s_userId, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -81,7 +81,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, s_userId);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -102,7 +102,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync("", null, null, 1, 10, s_userId);
+        var pagedList = await LibraryReadService.GetLibrariesAsync("", null, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -123,7 +123,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, s_userId);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -139,7 +139,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Id, null, 1, 10, s_userId);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Id, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -155,7 +155,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, null, 1, 10, s_userId);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -171,7 +171,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Descending, 1, 10, s_userId);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Descending, 1, 10, s_userId, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -187,7 +187,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var exists = await LibraryReadService.ExistsByNameAsync(_lib1.Name, s_userId);
+        var exists = await LibraryReadService.ExistsByNameAsync(_lib1.Name, s_userId, null, TestContext.Current.CancellationToken);
 
         // Assert
         exists.Should().BeTrue();
@@ -200,7 +200,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var exists = await LibraryReadService.ExistsByNameAsync("nonexistent-library", s_userId);
+        var exists = await LibraryReadService.ExistsByNameAsync("nonexistent-library", s_userId, null, TestContext.Current.CancellationToken);
 
         // Assert
         exists.Should().BeFalse();
@@ -213,7 +213,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var exists = await LibraryReadService.ExistsByNameAsync(_lib1.Name, s_userId, excludeId: _lib1.Id);
+        var exists = await LibraryReadService.ExistsByNameAsync(_lib1.Name, s_userId, excludeId: _lib1.Id, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         exists.Should().BeFalse();
@@ -229,7 +229,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act – exclude duplicateLib but lib1 still has the same name → should find it
-        var exists = await LibraryReadService.ExistsByNameAsync(_lib1.Name, s_userId, excludeId: duplicateLib.Id);
+        var exists = await LibraryReadService.ExistsByNameAsync(_lib1.Name, s_userId, excludeId: duplicateLib.Id, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         exists.Should().BeTrue();

@@ -151,7 +151,7 @@ public class ProcessImportJobCommandHandlerTests
         _importJobRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((ImportJob?)null);
 
-        var result = await _handler.Handle(new ProcessImportJobCommand(Guid.CreateVersion7()), default);
+        var result = await _handler.Handle(new ProcessImportJobCommand(Guid.CreateVersion7()), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.NotFound);
@@ -164,7 +164,7 @@ public class ProcessImportJobCommandHandlerTests
         job.Advance(ImportJobStatus.Extracting); // already advanced
         _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
 
-        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.InvalidStatusTransition);
@@ -185,7 +185,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder();
         SetupNoMetadataSearch();
 
-        await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _archiveExtractor.Received(1)
             .ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -204,7 +204,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder();
         SetupNoMetadataSearch();
 
-        await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _pdfImageExtractor.Received(1)
             .ExtractImagesAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -225,7 +225,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder();
         SetupNoMetadataSearch();
 
-        await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _imageProcessor.Received(1)
             .ProcessImagesAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
@@ -245,7 +245,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder();
         SetupNoMetadataSearch();
 
-        _ = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        _ = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         // Still calls ProcessImagesAsync (service decides internally); handler should still succeed
         await _imageProcessor.Received(1)
@@ -270,7 +270,7 @@ public class ProcessImportJobCommandHandlerTests
         _comicSearchService.SearchByIsbnAsync("9782075162869", Arg.Any<CancellationToken>())
             .Returns(new ComicSearchResult("Title", "Serie", "9782075162869", 1, "", "Author", "Publisher", null, null, true));
 
-        await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _comicSearchService.Received(1)
             .SearchByIsbnAsync("9782075162869", Arg.Any<CancellationToken>());
@@ -288,7 +288,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupCloudinary();
         SetupArchiveBuilder();
 
-        await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _comicSearchService.DidNotReceive()
             .SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -309,7 +309,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder();
         SetupNoMetadataSearch();
 
-        await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _cloudinaryService.Received(1)
             .UploadImageFromFileAsync(Arg.Any<string>(), "digital-covers", Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -330,7 +330,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder();
         SetupNoMetadataSearch();
 
-        await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _archiveBuilder.Received(1)
             .BuildAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -351,7 +351,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder(fileSize: 4096);
         SetupNoMetadataSearch();
 
-        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeOfType<DigitalBook>();
@@ -373,7 +373,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder(fileSize: 8192);
         SetupNoMetadataSearch();
 
-        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -392,7 +392,7 @@ public class ProcessImportJobCommandHandlerTests
         _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
 
-        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
@@ -411,7 +411,7 @@ public class ProcessImportJobCommandHandlerTests
             Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>())
             .Returns(Result<ImageProcessingResult>.Failure(s_processingError));
 
-        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
@@ -432,7 +432,7 @@ public class ProcessImportJobCommandHandlerTests
         _archiveBuilder.BuildAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<ComicArchiveResult>.Failure(s_processingError));
 
-        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
@@ -456,7 +456,7 @@ public class ProcessImportJobCommandHandlerTests
             SetupArchiveBuilder();
             SetupNoMetadataSearch();
 
-            var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+            var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
             result.IsSuccess.Should().BeTrue();
             _importDirectoryStorage.Received(1).DeleteOriginalFile(tempFile);
@@ -485,7 +485,7 @@ public class ProcessImportJobCommandHandlerTests
             _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
                 .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
 
-            var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), default);
+            var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
             result.IsFailure.Should().BeTrue();
             _importDirectoryStorage.Received(1).MoveOriginalFileToError(tempFile);

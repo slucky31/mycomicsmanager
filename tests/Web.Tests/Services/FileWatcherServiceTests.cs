@@ -87,7 +87,7 @@ public sealed class FileWatcherServiceTests : IDisposable
     {
         var libDir = Path.Combine(_importDir, _libraryId.ToString());
         Directory.CreateDirectory(libDir);
-        await File.WriteAllBytesAsync(Path.Combine(libDir, "existing.cbz"), new byte[100]);
+        await File.WriteAllBytesAsync(Path.Combine(libDir, "existing.cbz"), new byte[100], TestContext.Current.CancellationToken);
 
         await _service.StartAsync(CancellationToken.None);
 
@@ -144,7 +144,7 @@ public sealed class FileWatcherServiceTests : IDisposable
         var libDir = Path.Combine(_importDir, _libraryId.ToString());
         Directory.CreateDirectory(libDir);
         var filePath = Path.Combine(libDir, "comic.cbz");
-        await File.WriteAllBytesAsync(filePath, new byte[512]);
+        await File.WriteAllBytesAsync(filePath, new byte[512], TestContext.Current.CancellationToken);
 
         await _service.ProcessFileAsync(filePath, CancellationToken.None);
 
@@ -161,7 +161,7 @@ public sealed class FileWatcherServiceTests : IDisposable
         var libDir = Path.Combine(_importDir, _libraryId.ToString());
         Directory.CreateDirectory(libDir);
         var filePath = Path.Combine(libDir, "comic.cbz");
-        await File.WriteAllBytesAsync(filePath, new byte[512]);
+        await File.WriteAllBytesAsync(filePath, new byte[512], TestContext.Current.CancellationToken);
 
         await _service.ProcessFileAsync(filePath, CancellationToken.None);
 
@@ -177,7 +177,7 @@ public sealed class FileWatcherServiceTests : IDisposable
         var libDir = Path.Combine(_importDir, _libraryId.ToString());
         Directory.CreateDirectory(libDir);
         var filePath = Path.Combine(libDir, "comic.cbz");
-        await File.WriteAllBytesAsync(filePath, new byte[512]);
+        await File.WriteAllBytesAsync(filePath, new byte[512], TestContext.Current.CancellationToken);
 
         await _service.ProcessFileAsync(filePath, CancellationToken.None);
 
@@ -192,7 +192,7 @@ public sealed class FileWatcherServiceTests : IDisposable
         var libDir = Path.Combine(_importDir, _libraryId.ToString());
         Directory.CreateDirectory(libDir);
         var filePath = Path.Combine(libDir, "comic.cbz");
-        await File.WriteAllBytesAsync(filePath, new byte[512]);
+        await File.WriteAllBytesAsync(filePath, new byte[512], TestContext.Current.CancellationToken);
 
         await _service.ProcessFileAsync(filePath, CancellationToken.None);
 

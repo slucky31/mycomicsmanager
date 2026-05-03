@@ -50,7 +50,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        var result = await _service.BuildAsync(sourceDir, outputPath);
+        var result = await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -65,7 +65,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        await _service.BuildAsync(sourceDir, outputPath);
+        await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
 #pragma warning disable CA1849 // ZipFile has no OpenReadAsync overload
@@ -82,7 +82,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        await _service.BuildAsync(sourceDir, outputPath);
+        await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
 #pragma warning disable CA1849 // ZipFile has no OpenReadAsync overload
@@ -99,7 +99,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        await _service.BuildAsync(sourceDir, outputPath);
+        await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
 #pragma warning disable CA1849 // ZipFile has no OpenReadAsync overload
@@ -116,7 +116,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        var result = await _service.BuildAsync(sourceDir, outputPath);
+        var result = await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -131,7 +131,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        var result = await _service.BuildAsync(sourceDir, outputPath);
+        var result = await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -148,7 +148,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        var result = await _service.BuildAsync(emptyDir, outputPath);
+        var result = await _service.BuildAsync(emptyDir, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -162,7 +162,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        var result = await _service.BuildAsync(Path.Combine(_tempDir, "nonexistent"), outputPath);
+        var result = await _service.BuildAsync(Path.Combine(_tempDir, "nonexistent"), outputPath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

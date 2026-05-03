@@ -61,7 +61,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        var result = await _handler.Handle(s_validCommand, default);
+        var result = await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -72,7 +72,7 @@ public class UpdateBookCommandHandlerTests
         result.Value.VolumeNumber.Should().Be(s_validCommand.VolumeNumber);
         result.Value.ImageLink.Should().Be(s_validCommand.ImageLink);
         _bookRepositoryMock.Received(1).Update(Arg.Any<Book>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        await _handler.Handle(s_validCommand, default);
+        await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
 
         // Assert
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -98,7 +98,7 @@ public class UpdateBookCommandHandlerTests
         var emptyTitleCommand = new UpdateBookCommand(s_bookId, "Serie", string.Empty, "978-3-16-148410-0", 1, "", s_userId);
 
         // Act
-        var result = await _handler.Handle(emptyTitleCommand, default);
+        var result = await _handler.Handle(emptyTitleCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -114,7 +114,7 @@ public class UpdateBookCommandHandlerTests
         var nullTitleCommand = new UpdateBookCommand(s_bookId, "Serie", null!, "978-3-16-148410-0", 1, "", s_userId);
 
         // Act
-        var result = await _handler.Handle(nullTitleCommand, default);
+        var result = await _handler.Handle(nullTitleCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -134,7 +134,7 @@ public class UpdateBookCommandHandlerTests
         var emptyIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", string.Empty, 1, "", s_userId);
 
         // Act
-        var result = await _handler.Handle(emptyIsbnCommand, default);
+        var result = await _handler.Handle(emptyIsbnCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -154,7 +154,7 @@ public class UpdateBookCommandHandlerTests
         var nullIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", null, 1, "", s_userId);
 
         // Act
-        var result = await _handler.Handle(nullIsbnCommand, default);
+        var result = await _handler.Handle(nullIsbnCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -170,7 +170,7 @@ public class UpdateBookCommandHandlerTests
         var invalidIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", "invalid-isbn", 1, "", s_userId);
 
         // Act
-        var result = await _handler.Handle(invalidIsbnCommand, default);
+        var result = await _handler.Handle(invalidIsbnCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -186,7 +186,7 @@ public class UpdateBookCommandHandlerTests
         var invalidLengthCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", "12345", 1, "", s_userId);
 
         // Act
-        var result = await _handler.Handle(invalidLengthCommand, default);
+        var result = await _handler.Handle(invalidLengthCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -202,7 +202,7 @@ public class UpdateBookCommandHandlerTests
         _bookRepositoryMock.GetByIdAsync(s_validCommand.Id).Returns((Book?)null);
 
         // Act
-        var result = await _handler.Handle(s_validCommand, default);
+        var result = await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -224,7 +224,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        var result = await _handler.Handle(s_validCommand, default);
+        var result = await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -254,7 +254,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        var result = await _handler.Handle(commandWithSameISBN, default);
+        var result = await _handler.Handle(commandWithSameISBN, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -273,7 +273,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        var result = await _handler.Handle(s_validCommand, default);
+        var result = await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -295,7 +295,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        await _handler.Handle(s_validCommand, default);
+        await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
 
         // Assert
         _bookRepositoryMock.Received(1).Update(existingBook);
@@ -330,7 +330,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        var result = await _handler.Handle(isbn10Command, default);
+        var result = await _handler.Handle(isbn10Command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -351,7 +351,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        var result = await _handler.Handle(isbn13Command, default);
+        var result = await _handler.Handle(isbn13Command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -372,7 +372,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        var result = await _handler.Handle(updateVolumeCommand, default);
+        var result = await _handler.Handle(updateVolumeCommand, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -391,7 +391,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        var result = await _handler.Handle(updateImageCommand, default);
+        var result = await _handler.Handle(updateImageCommand, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -410,7 +410,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
 
         // Act
-        var result = await _handler.Handle(emptyImageCommand, default);
+        var result = await _handler.Handle(emptyImageCommand, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -425,7 +425,7 @@ public class UpdateBookCommandHandlerTests
         _bookRepositoryMock.GetByIdAsync(s_validCommand.Id).Returns((Book?)null);
 
         // Act
-        await _handler.Handle(s_validCommand, default);
+        await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
 
         // Assert
         _bookRepositoryMock.DidNotReceive().Update(Arg.Any<Book>());
@@ -438,7 +438,7 @@ public class UpdateBookCommandHandlerTests
         var invalidCommand = new UpdateBookCommand(s_bookId, "Serie", "", "978-3-16-148410-0", 1, "", s_userId);
 
         // Act
-        await _handler.Handle(invalidCommand, default);
+        await _handler.Handle(invalidCommand, TestContext.Current.CancellationToken);
 
         // Assert
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -467,7 +467,7 @@ public class UpdateBookCommandHandlerTests
         var duplicateCommand = new UpdateBookCommand(bookId1, "Serie", "Title", book2.ISBN, 1, "", s_userId);
 
         // Act
-        var result = await _handler.Handle(duplicateCommand, default);
+        var result = await _handler.Handle(duplicateCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -488,7 +488,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -509,7 +509,7 @@ public class UpdateBookCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

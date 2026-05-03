@@ -35,12 +35,12 @@ public class ListLibraryCommandeTests
         _libraryReadServiceMock.GetLibrariesAsync(s_request.searchTerm, s_request.sortColumn, s_request.sortOrder, s_request.page, s_request.pageSize, s_request.UserId, Arg.Any<CancellationToken>()).Returns(mockPagedList);
 
         // Act
-        var result = await _handler.Handle(s_request, CancellationToken.None);
+        var result = await _handler.Handle(s_request, TestContext.Current.CancellationToken);
         Assert.NotNull(result);
         result.IsSuccess.Should().BeTrue();
         var pagedList = result.Value;
         Assert.NotNull(pagedList);
-        await pagedList.ExecuteQueryAsync(s_request.page, s_request.pageSize);
+        await pagedList.ExecuteQueryAsync(s_request.page, s_request.pageSize, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(pagedList);

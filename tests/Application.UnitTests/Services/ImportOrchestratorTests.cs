@@ -41,7 +41,7 @@ public sealed class ImportOrchestratorTests
         _commandHandler.Handle(Arg.Any<ProcessImportJobCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result<DigitalBook>.Failure(new TError("TEST", "test")));
 
-        await _orchestrator.ProcessAsync(importJobId);
+        await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
 
         await _commandHandler.Received(1).Handle(
             Arg.Is<ProcessImportJobCommand>(c => c.ImportJobId == importJobId),
@@ -56,7 +56,7 @@ public sealed class ImportOrchestratorTests
             .Returns(Result<DigitalBook>.Failure(new TError("FAIL", "Job failed")));
 
         // Should not throw
-        await _orchestrator.ProcessAsync(importJobId);
+        await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class ImportOrchestratorTests
             .ThrowsAsync(new InvalidOperationException("Unexpected failure"));
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _orchestrator.ProcessAsync(importJobId));
+            () => _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -77,8 +77,8 @@ public sealed class ImportOrchestratorTests
         _commandHandler.Handle(Arg.Any<ProcessImportJobCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result<DigitalBook>.Failure(new TError("FAIL", "fail")));
 
-        await _orchestrator.ProcessAsync(importJobId);
-        await _orchestrator.ProcessAsync(importJobId);
+        await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
+        await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
 
         // CreateAsyncScope() delegates to CreateScope() — verify the underlying call
         _scopeFactory.Received(2).CreateScope();

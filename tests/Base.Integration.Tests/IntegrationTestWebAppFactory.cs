@@ -100,10 +100,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // Replace Hangfire PostgreSQL storage with in-memory so no real DB connection is needed
         // for job persistence during tests. This runs after Program.cs registers the PostgreSQL
         // storage, so the last UseStorage call wins.
-        builder.ConfigureTestServices(services =>
-        {
-            services.AddHangfire(config => config.UseInMemoryStorage());
-        });
+        builder.ConfigureTestServices(services => services.AddHangfire(config => config.UseInMemoryStorage()));
     }
 
     protected override IHost CreateHost(IHostBuilder builder)

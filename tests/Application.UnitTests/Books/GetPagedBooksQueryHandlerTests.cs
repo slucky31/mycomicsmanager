@@ -50,14 +50,14 @@ public class GetPagedBooksQueryHandlerTests
         var query = new GetPagedBooksQuery(userId, libraryId, page, pageSize, BookSortOrder.IdDesc);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(BooksError.BadRequest);
-        await _libraryRepositoryMock.DidNotReceiveWithAnyArgs().GetByIdAsync(default);
-        await _bookReadServiceMock.DidNotReceiveWithAnyArgs()
-            .GetPagedByLibraryAsync(default, default, default, default, default, default);
+        await _libraryRepositoryMock.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+        await _bookReadServiceMock.DidNotReceive()
+            .GetPagedByLibraryAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<BookSortOrder>(), Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -71,13 +71,13 @@ public class GetPagedBooksQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns((Library?)null);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.NotFound);
-        await _bookReadServiceMock.DidNotReceiveWithAnyArgs()
-            .GetPagedByLibraryAsync(default, default, default, default, default, default);
+        await _bookReadServiceMock.DidNotReceive()
+            .GetPagedByLibraryAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<BookSortOrder>(), Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class GetPagedBooksQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(CreateLibrary(ownerId));
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -114,7 +114,7 @@ public class GetPagedBooksQueryHandlerTests
             .Returns(Task.FromResult<IPagedList<BookSummaryDto>>(pagedList));
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -135,7 +135,7 @@ public class GetPagedBooksQueryHandlerTests
             .Returns(Task.FromResult<IPagedList<BookSummaryDto>>(CreatePagedList([])));
 
         // Act
-        await _handler.Handle(query, CancellationToken.None);
+        await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         await _bookReadServiceMock.Received(1).GetPagedByLibraryAsync(
@@ -157,7 +157,7 @@ public class GetPagedBooksQueryHandlerTests
             .Returns(Task.FromResult<IPagedList<BookSummaryDto>>(pagedList));
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

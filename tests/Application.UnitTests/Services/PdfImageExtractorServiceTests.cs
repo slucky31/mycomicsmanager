@@ -89,7 +89,8 @@ public sealed class PdfImageExtractorServiceTests : IDisposable
         // Act
         var result = await _service.ExtractImagesAsync(
             Path.Combine(_tempDir, "nonexistent.pdf"),
-            Path.Combine(_tempDir, "dest"));
+            Path.Combine(_tempDir, "dest"),
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -101,12 +102,11 @@ public sealed class PdfImageExtractorServiceTests : IDisposable
     {
         // Arrange
         var corruptPath = Path.Combine(_tempDir, "corrupt.pdf");
-        await File.WriteAllBytesAsync(corruptPath, [0x00, 0x01, 0x02, 0x03, 0x04]);
+        await File.WriteAllBytesAsync(corruptPath, [0x00, 0x01, 0x02, 0x03, 0x04], TestContext.Current.CancellationToken);
         var destDir = Path.Combine(_tempDir, "dest");
 
         // Act
-        var result = await _service.ExtractImagesAsync(corruptPath, destDir);
-
+        var result = await _service.ExtractImagesAsync(corruptPath, destDir, TestContext.Current.CancellationToken);
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(FileProcessingError.CorruptArchive);
@@ -117,11 +117,11 @@ public sealed class PdfImageExtractorServiceTests : IDisposable
     {
         // Arrange
         var pdfPath = Path.Combine(_tempDir, "empty.pdf");
-        await File.WriteAllBytesAsync(pdfPath, CreateMinimalValidPdfBytes());
+        await File.WriteAllBytesAsync(pdfPath, CreateMinimalValidPdfBytes(), TestContext.Current.CancellationToken);
         var destDir = Path.Combine(_tempDir, "dest");
 
         // Act
-        var result = await _service.ExtractImagesAsync(pdfPath, destDir);
+        var result = await _service.ExtractImagesAsync(pdfPath, destDir, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

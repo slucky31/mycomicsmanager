@@ -60,7 +60,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"));
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, 1400, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -76,7 +76,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreatePngAsync(Path.Combine(sourceDir, "page-001.png"));
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, 1400, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -93,7 +93,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateWebpAsync(Path.Combine(sourceDir, "page-002.webp"), width: 1400, height: 2100);
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -112,11 +112,11 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"), width: 2000, height: 3000);
 
         // Act
-        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, null, TestContext.Current.CancellationToken);
 
         // Assert
         var outputFile = Directory.GetFiles(destDir, "*.webp").Single();
-        using var resultImage = await Image.LoadAsync(outputFile);
+        using var resultImage = await Image.LoadAsync(outputFile, TestContext.Current.CancellationToken);
         resultImage.Width.Should().Be(1400);
     }
 
@@ -129,11 +129,11 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"), width: 3000, height: 2000);
 
         // Act
-        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, null, TestContext.Current.CancellationToken);
 
         // Assert
         var outputFile = Directory.GetFiles(destDir, "*.webp").Single();
-        using var resultImage = await Image.LoadAsync(outputFile);
+        using var resultImage = await Image.LoadAsync(outputFile, TestContext.Current.CancellationToken);
         resultImage.Width.Should().Be(2800);
     }
 
@@ -146,11 +146,11 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"), width: 1000, height: 1500);
 
         // Act
-        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, null, TestContext.Current.CancellationToken);
 
         // Assert
         var outputFile = Directory.GetFiles(destDir, "*.webp").Single();
-        using var resultImage = await Image.LoadAsync(outputFile);
+        using var resultImage = await Image.LoadAsync(outputFile, TestContext.Current.CancellationToken);
         resultImage.Width.Should().Be(1400);
         resultImage.Height.Should().Be(2100);
     }
@@ -166,7 +166,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateJpegAsync(Path.Combine(sourceDir, "page-003.jpg"));
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -180,7 +180,10 @@ public sealed class ImageProcessorServiceTests : IDisposable
         // Act
         var result = await _service.ProcessImagesAsync(
             Path.Combine(_tempDir, "nonexistent"),
-            Path.Combine(_tempDir, "dest"));
+            Path.Combine(_tempDir, "dest"),
+            targetWidth: 1400,
+            onProgressAsync: null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -198,7 +201,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateJpegAsync(Path.Combine(sourceDir, "img_c.jpg"));
 
         // Act
-        await _service.ProcessImagesAsync(sourceDir, destDir);
+        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
         var files = Directory.GetFiles(destDir, "*.webp").Select(Path.GetFileName).OrderBy(f => f).ToList();
@@ -212,10 +215,10 @@ public sealed class ImageProcessorServiceTests : IDisposable
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
         await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"));
-        await File.WriteAllTextAsync(Path.Combine(sourceDir, "ComicInfo.xml"), "<ComicInfo/>");
+        await File.WriteAllTextAsync(Path.Combine(sourceDir, "ComicInfo.xml"), "<ComicInfo/>", TestContext.Current.CancellationToken);
 
         // Act
-        await _service.ProcessImagesAsync(sourceDir, destDir);
+        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, null, TestContext.Current.CancellationToken);
 
         // Assert
         File.Exists(Path.Combine(destDir, "ComicInfo.xml")).Should().BeTrue();
@@ -235,7 +238,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         Task OnProgress(ImageConversionProgress p) { progressReports.Add(p); return Task.CompletedTask; }
 
         // Act
-        await _service.ProcessImagesAsync(sourceDir, destDir, onProgressAsync: OnProgress);
+        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: OnProgress, TestContext.Current.CancellationToken);
 
         // Assert
         progressReports.Should().HaveCount(3);
@@ -256,7 +259,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         Task OnProgress(ImageConversionProgress _) { progressInvoked = true; return Task.CompletedTask; }
 
         // Act
-        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: OnProgress);
+        await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: OnProgress, TestContext.Current.CancellationToken);
 
         // Assert
         progressInvoked.Should().BeTrue();
@@ -271,7 +274,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"));
 
         // Act — passing null explicitly should not throw
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir, onProgressAsync: null);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -286,14 +289,14 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 800, height: 1200);
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.ProcessedCount.Should().Be(1);
         result.Value.SkippedCount.Should().Be(0);
         var outputFile = Directory.GetFiles(destDir, "*.webp").Single();
-        using var resultImage = await Image.LoadAsync(outputFile);
+        using var resultImage = await Image.LoadAsync(outputFile, TestContext.Current.CancellationToken);
         resultImage.Width.Should().Be(1400);
     }
 
@@ -307,7 +310,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateWebpAsync(Path.Combine(sourceDir, "page-002.webp"), width: 1400, height: 2100);
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -326,7 +329,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 2800, height: 2100);
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -341,10 +344,10 @@ public sealed class ImageProcessorServiceTests : IDisposable
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
         var corruptFile = Path.Combine(sourceDir, "corrupt.jpg");
-        await File.WriteAllBytesAsync(corruptFile, [0x00, 0x01, 0x02, 0x03, 0x04]);
+        await File.WriteAllBytesAsync(corruptFile, [0x00, 0x01, 0x02, 0x03, 0x04], TestContext.Current.CancellationToken);
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -358,11 +361,11 @@ public sealed class ImageProcessorServiceTests : IDisposable
         // Arrange — two corrupt images; error should name the first one (alphabetical order)
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
-        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "page-001.jpg"), [0x00, 0x01]);
-        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "page-002.jpg"), [0x00, 0x01]);
+        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "page-001.jpg"), [0x00, 0x01], TestContext.Current.CancellationToken);
+        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "page-002.jpg"), [0x00, 0x01], TestContext.Current.CancellationToken);
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -377,10 +380,10 @@ public sealed class ImageProcessorServiceTests : IDisposable
         var destDir = CreateSourceDir("dest");
         await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"));
         await CreatePngAsync(Path.Combine(sourceDir, "._page-001.png"));   // must be ignored
-        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "._IMG0000.jpg"), [0x00, 0x01]); // corrupt but ignored
+        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "._IMG0000.jpg"), [0x00, 0x01], TestContext.Current.CancellationToken); // corrupt but ignored
 
         // Act
-        var result = await _service.ProcessImagesAsync(sourceDir, destDir);
+        var result = await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

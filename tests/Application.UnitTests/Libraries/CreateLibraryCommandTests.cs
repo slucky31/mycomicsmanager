@@ -42,14 +42,14 @@ public class CreateLibraryCommandTests
         _libraryRepositoryMock.Add(Arg.Any<Library>());
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
         Guard.Against.Null(result.Value);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Name.Should().Be(s_command.Name);
         _libraryRepositoryMock.Received(1).Add(Arg.Any<Library>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class CreateLibraryCommandTests
         _libraryRepositoryMock.Add(Arg.Any<Library>());
 
         // Act
-        await _handler.Handle(s_command, default);
+        await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -72,7 +72,7 @@ public class CreateLibraryCommandTests
         var emptyCommand = new CreateLibraryCommand(string.Empty, "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId);
 
         // Act
-        var result = await _handler.Handle(emptyCommand, default);
+        var result = await _handler.Handle(emptyCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -87,7 +87,7 @@ public class CreateLibraryCommandTests
         _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(LibraryLocalStorageError.ArgumentNullOrEmpty);
 
         // Act
-        var result = await _handler.Handle(s_digitalCommand, default);
+        var result = await _handler.Handle(s_digitalCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -103,7 +103,7 @@ public class CreateLibraryCommandTests
         _importDirectoryStorageMock.EnsureExists(Arg.Any<string>()).Returns(ImportDirectoryStorageError.InvalidPath);
 
         // Act
-        var result = await _handler.Handle(s_digitalCommand, default);
+        var result = await _handler.Handle(s_digitalCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -117,7 +117,7 @@ public class CreateLibraryCommandTests
         _libraryRepositoryMock.Add(Arg.Any<Library>());
 
         // Act
-        await _handler.Handle(s_command, default);
+        await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         _libraryLocalStorageMock.DidNotReceive().Create(Arg.Any<string>());
@@ -132,7 +132,7 @@ public class CreateLibraryCommandTests
         _libraryLocalStorageMock.Create(Arg.Any<string>()).Returns(Result.Success());
 
         // Act
-        var result = await _handler.Handle(s_digitalCommand, default);
+        var result = await _handler.Handle(s_digitalCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -146,7 +146,7 @@ public class CreateLibraryCommandTests
         _libraryReadServiceMock.ExistsByNameAsync(s_command.Name, s_command.UserId, cancellationToken: Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

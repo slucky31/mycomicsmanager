@@ -30,7 +30,7 @@ public class GetImportJobQueryHandlerTests
         _repository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
 
         // Act
-        var result = await _handler.Handle(new GetImportJobQuery(job.Id), default);
+        var result = await _handler.Handle(new GetImportJobQuery(job.Id), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -44,7 +44,7 @@ public class GetImportJobQueryHandlerTests
         _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((ImportJob?)null);
 
         // Act
-        var result = await _handler.Handle(new GetImportJobQuery(Guid.CreateVersion7()), default);
+        var result = await _handler.Handle(new GetImportJobQuery(Guid.CreateVersion7()), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -55,7 +55,7 @@ public class GetImportJobQueryHandlerTests
     public async Task Handle_Should_ReturnBadRequest_WhenIdIsEmpty()
     {
         // Act
-        var result = await _handler.Handle(new GetImportJobQuery(Guid.Empty), default);
+        var result = await _handler.Handle(new GetImportJobQuery(Guid.Empty), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
