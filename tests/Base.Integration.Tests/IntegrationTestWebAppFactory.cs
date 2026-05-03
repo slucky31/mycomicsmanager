@@ -1,5 +1,6 @@
 using Application.Libraries;
 using Ardalis.GuardClauses;
+using Hangfire;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -25,14 +26,15 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         Guard.Against.Null(builder);
+
         builder.ConfigureAppConfiguration((_, conf) =>
         {
-            // Expand default config      
+            // Expand default config
             conf.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile("appsettings.Development.json", optional: true);
 
-            // Add environment variables to override the parameters 
+            // Add environment variables to override the parameters
             conf.AddEnvironmentVariables();
 
             // Read the test connection string before adding further overrides.
@@ -40,10 +42,10 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             _connectionString = tempConfig.GetConnectionString("NeonConnectionUnitTests") ?? string.Empty;
             Guard.Against.NullOrEmpty(_connectionString);
 
-            // Override settings that cause failures in CI / test environments:
-            // - NeonConnection: Hangfire reads this; the default placeholder fails the parser.
-            // - Import directories: Program.cs calls Directory.CreateDirectory at startup;
-            //   /data/* is not writable on GitHub Actions runners.
+            // Override Import directories: Program.cs calls Directory.CreateDirectory at startup;
+            // /data/* is not writable on GitHub Actions runners.
+            // Override NeonConnection so the Hangfire PostgreSQL lambda receives a valid-format
+            // connection string (Hangfire.InMemory will override the actual storage afterwards).
             var tempRoot = Path.GetTempPath();
             conf.AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -93,6 +95,14 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
 
             var rootPath = Path.GetTempPath();
             services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
+        });
+
+        // Replace Hangfire PostgreSQL storage with in-memory so no real DB connection is needed
+        // for job persistence during tests. This runs after Program.cs registers the PostgreSQL
+        // storage, so the last UseStorage call wins.
+        builder.ConfigureTestServices(services =>
+        {
+            services.AddHangfire(config => config.UseInMemoryStorage());
         });
     }
 
