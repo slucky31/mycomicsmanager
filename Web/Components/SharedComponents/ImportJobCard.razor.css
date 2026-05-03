@@ -1,0 +1,27 @@
+.import-job-card {
+    border-left: 4px solid var(--mud-palette-divider);
+    transition: border-color 0.2s ease;
+}
+
+.import-job-card.status-pending {
+    border-left-color: var(--mud-palette-text-disabled);
+}
+
+.import-job-card.status-processing {
+    border-left-color: var(--mud-palette-info);
+}
+
+.import-job-card.status-completed {
+    border-left-color: var(--mud-palette-success);
+}
+
+.import-job-card.status-failed {
+    border-left-color: var(--mud-palette-error);
+}
+
+.import-job-filename {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}

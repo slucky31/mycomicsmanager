@@ -1,18 +1,24 @@
 @using Web.Models
 
-<MudPaper Class="import-job-card pa-3 mb-2" Elevation="1">
+<MudPaper Class="@($"import-job-card {Job.StatusCssClass} pa-3")" Elevation="1" Style="height: 100%;">
     <div class="d-flex align-center gap-3">
         <div class="flex-grow-1" style="min-width: 0;">
+
             <div class="d-flex align-center justify-space-between mb-1">
-                <div class="d-flex align-center gap-2" style="min-width: 0;">
+                <div class="d-flex align-center gap-2" style="min-width: 0; overflow: hidden;">
+                    <MudIcon Icon="@Icons.Material.Filled.FolderZip"
+                             Size="Size.Small"
+                             Color="Color.Default"
+                             Style="flex-shrink: 0; opacity: 0.6;" />
                     <MudText Typo="Typo.body2" Class="font-weight-medium import-job-filename">@Job.OriginalFileName</MudText>
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">@Job.FileSizeDisplay</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="flex-shrink: 0;">@Job.FileSizeDisplay</MudText>
                 </div>
                 <MudChip T="string"
                          Size="Size.Small"
                          Color="@Job.StatusColor"
                          Variant="Variant.Filled"
-                         Class="ml-2">
+                         Class="ml-2"
+                         Style="flex-shrink: 0;">
                     @Job.StatusDisplay
                 </MudChip>
             </div>
@@ -35,20 +41,32 @@
             }
 
             <div class="d-flex align-center justify-space-between">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    @Job.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                </MudText>
+                <div class="d-flex align-center gap-3">
+                    <div class="d-flex align-center gap-1">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday"
+                                 Size="Size.Small"
+                                 Style="font-size: 14px; opacity: 0.5;" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @Job.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                        </MudText>
+                    </div>
+                    @if (Job.DurationDisplay is not null)
+                    {
+                        <div class="d-flex align-center gap-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Timer"
+                                     Size="Size.Small"
+                                     Style="font-size: 14px; opacity: 0.5;" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @Job.DurationDisplay
+                            </MudText>
+                        </div>
+                    }
+                </div>
                 <div class="d-flex align-center gap-1">
                     @if (Job.ConversionDetail is not null)
                     {
                         <MudText Typo="Typo.caption" Color="Color.Secondary">
                             @Job.ConversionDetail
-                        </MudText>
-                    }
-                    @if (Job.Status == "Completed" && Job.CompletedAt.HasValue)
-                    {
-                        <MudText Typo="Typo.caption" Color="Color.Success">
-                            Terminé @Job.CompletedAt.Value.ToLocalTime().ToString("HH:mm")
                         </MudText>
                     }
                     @if (Job.IsTerminal && OnDelete.HasDelegate)

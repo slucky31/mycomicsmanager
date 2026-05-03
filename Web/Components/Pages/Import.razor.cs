@@ -18,8 +18,6 @@ public partial class Import : IAsyncDisposable
     [SupplyParameterFromQuery]
     public string? LibraryId { get; set; }
 
-    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
-
     private List<LibraryUiDto> _digitalLibraries = [];
     private Guid _selectedLibraryId = Guid.Empty;
     private Guid _lastLoadedLibraryId = Guid.Empty;
@@ -108,8 +106,6 @@ public partial class Import : IAsyncDisposable
         StartPollingIfNeeded();
         StateHasChanged();
     }
-
-    private Task OpenFilePickerAsync() => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
 
     private async Task OnLibraryChangedAsync(Guid newLibraryId)
     {

@@ -35,6 +35,11 @@ public record ImportJobViewModel(
 
     public bool IsTerminal => Status is "Completed" or "Failed";
 
+    public string? DurationDisplay =>
+        CompletedAt.HasValue
+            ? FormatDuration(CompletedAt.Value - CreatedAt)
+            : null;
+
     public string? ConversionDetail =>
         Status == "Converting" && TotalImagesToConvert > 0
             ? $"{ConvertedImagesCount}/{TotalImagesToConvert} images converties"
@@ -48,8 +53,28 @@ public record ImportJobViewModel(
         _ => $"{OriginalFileSize} o"
     };
 
-    private static string GetStatusDisplay(ImportJobStatus status) => status switch
+    public string StatusCssClass => Status switch
     {
+        "Pending" => "status-pending",
+        "Completed" => "status-completed",
+        "Failed" => "status-failed",
+        _ => "status-processing"
+    };
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        if (duration.TotalSeconds < 60)
+        {
+            return $"{(int)duration.TotalSeconds}s";
+        }
+        if (duration.TotalMinutes < 60)
+        {
+            return $"{(int)duration.TotalMinutes}m {duration.Seconds}s";
+        }
+        return $"{(int)duration.TotalHours}h {duration.Minutes}m";
+    }
+
+    private static string GetStatusDisplay(ImportJobStatus status) => status switch    {
         ImportJobStatus.Pending => "En attente",
         ImportJobStatus.Extracting => "Extraction...",
         ImportJobStatus.Converting => "Conversion images...",

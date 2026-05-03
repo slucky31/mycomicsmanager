@@ -1,0 +1,5 @@
+/* Make the default drag zone taller and match app styling */
+::deep .mud-file-upload-dragarea {
+    min-height: 160px;
+    border-color: var(--mud-palette-divider);
+}
