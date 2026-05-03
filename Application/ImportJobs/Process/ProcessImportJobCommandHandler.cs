@@ -110,12 +110,14 @@ public sealed class ProcessImportJobCommandHandler(
                 return await FailJobAsync(importJob, "Init", ImportJobError.InsufficientDiskSpace, ct);
             }
         }
-#pragma warning disable CA1031 // DriveInfo may not work on all mount types; proceed anyway
-        catch (Exception ex)
+        catch (IOException ex)
         {
             Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _settings.TempDirectory);
         }
-#pragma warning restore CA1031
+        catch (UnauthorizedAccessException ex)
+        {
+            Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _settings.TempDirectory);
+        }
 
         try
         {
@@ -148,8 +150,13 @@ public sealed class ProcessImportJobCommandHandler(
         {
             throw;
         }
-#pragma warning disable CA1031 // Must catch all to persist failure before Hangfire retry
-        catch (Exception ex)
+        catch (IOException ex)              { return await HandleUnexpectedExceptionAsync(ex); }
+        catch (InvalidOperationException ex){ return await HandleUnexpectedExceptionAsync(ex); }
+        catch (UnauthorizedAccessException ex){ return await HandleUnexpectedExceptionAsync(ex); }
+        catch (HttpRequestException ex)     { return await HandleUnexpectedExceptionAsync(ex); }
+        catch (InvalidDataException ex)     { return await HandleUnexpectedExceptionAsync(ex); }
+
+        async Task<Result<DigitalBook>> HandleUnexpectedExceptionAsync(Exception ex)
         {
             Log.Error(ex, "Unhandled exception in import pipeline for job {JobId} at step {Status}",
                 importJob.Id, importJob.Status);
@@ -157,7 +164,6 @@ public sealed class ProcessImportJobCommandHandler(
             var message = ex.Message.Length > 500 ? ex.Message[..500] : ex.Message;
             return await FailJobAsync(importJob, step, new TError("IMP500", message), ct);
         }
-#pragma warning restore CA1031
     }
 
     // ── Original file management ──────────────────────────────────────────────
@@ -417,16 +423,12 @@ public sealed class ProcessImportJobCommandHandler(
     {
         importJob.Fail(step, error.Description ?? error.Code);
         importJobRepository.Update(importJob);
-        try
+        var saveResult = await unitOfWork.SaveChangesAsync(ct);
+        if (saveResult.IsFailure)
         {
-            await unitOfWork.SaveChangesAsync(ct);
+            Log.Error("Failed to persist job failure for job {JobId}: {Error}",
+                importJob.Id, saveResult.Error?.Description);
         }
-#pragma warning disable CA1031 // Best-effort persist: don't hide the original step error
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to persist job failure for job {JobId}", importJob.Id);
-        }
-#pragma warning restore CA1031
         return error;
     }
 
@@ -438,11 +440,13 @@ public sealed class ProcessImportJobCommandHandler(
         {
             Directory.Delete(tempDir, true);
         }
-#pragma warning disable CA1031 // Best-effort cleanup: catch all to avoid masking the original pipeline error
-        catch (Exception ex)
+        catch (IOException ex)
         {
             Serilog.Log.Warning(ex, "Could not delete temp directory {Dir}", tempDir);
         }
-#pragma warning restore CA1031
+        catch (UnauthorizedAccessException ex)
+        {
+            Serilog.Log.Warning(ex, "Could not delete temp directory {Dir}", tempDir);
+        }
     }
 }

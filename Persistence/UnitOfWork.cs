@@ -10,8 +10,15 @@ public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
     public async Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken)
     {
         UpdateAuditableEntities();
-        var changesNb = await dbContext.SaveChangesAsync(cancellationToken);
-        return changesNb;
+        try
+        {
+            var changesNb = await dbContext.SaveChangesAsync(cancellationToken);
+            return changesNb;
+        }
+        catch (DbUpdateException ex)
+        {
+            return new TError("DB_UPDATE_ERROR", ex.Message);
+        }
     }
 
     private void UpdateAuditableEntities()

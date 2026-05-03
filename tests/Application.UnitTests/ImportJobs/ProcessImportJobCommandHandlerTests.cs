@@ -49,6 +49,7 @@ public class ProcessImportJobCommandHandlerTests
 
         _importDirectoryStorage.DeleteOriginalFile(Arg.Any<string>()).Returns(Result.Success());
         _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>()).Returns(Result.Success());
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(0));
 
         _handler = new ProcessImportJobCommandHandler(
             _importJobRepository, _libraryRepository,
