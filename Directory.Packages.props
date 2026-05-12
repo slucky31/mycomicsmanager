@@ -14,7 +14,7 @@
     <PackageVersion Include="CloudinaryDotNet" Version="1.28.0" />
     <PackageVersion Include="coverlet.collector" Version="10.0.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
-    <PackageVersion Include="Google.Apis.CustomSearchAPI.v1" Version="1.68.0.3520" />
+    <PackageVersion Include="Google.Apis.CustomSearchAPI.v1" Version="1.74.0.3520" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.7" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
