@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.15"></a>
+## [10.9.15](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.15) (2026-05-15)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency cloudinarydotnet to 1.29.1 ([#974](https://www.github.com/slucky31/mycomicsmanager/issues/974)) ([9e71e78](https://www.github.com/slucky31/mycomicsmanager/commit/9e71e78bd4b00e5076e1a961e0cff2f88268edbd))
+
 <a name="10.9.14"></a>
 ## [10.9.14](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.14) (2026-05-13)
 
