@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.16"></a>
+## [10.9.16](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.16) (2026-05-16)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dotnet monorepo ([#977](https://www.github.com/slucky31/mycomicsmanager/issues/977)) ([0fe0f42](https://www.github.com/slucky31/mycomicsmanager/commit/0fe0f429211da3c6ff0071f9324b4fc4e5036792))
+
+<a name="10.9.15"></a>
+## [10.9.15](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.15) (2026-05-15)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency cloudinarydotnet to 1.29.1 ([#974](https://www.github.com/slucky31/mycomicsmanager/issues/974)) ([9e71e78](https://www.github.com/slucky31/mycomicsmanager/commit/9e71e78bd4b00e5076e1a961e0cff2f88268edbd))
+
+<a name="10.9.14"></a>
+## [10.9.14](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.14) (2026-05-13)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency microsoft.net.test.sdk to 18.5.1 ([#973](https://www.github.com/slucky31/mycomicsmanager/issues/973)) ([00245ce](https://www.github.com/slucky31/mycomicsmanager/commit/00245cee9ddd67019c0be2991ce6ae0d66f01486))
+
+<a name="10.9.13"></a>
+## [10.9.13](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.13) (2026-05-11)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency sonaranalyzer.csharp to 10.25.0.139117 ([#972](https://www.github.com/slucky31/mycomicsmanager/issues/972)) ([2154d51](https://www.github.com/slucky31/mycomicsmanager/commit/2154d5152cc668bcf9eab26cfd0bfe8e4242d21a))
+
 <a name="10.9.12"></a>
 ## [10.9.12](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.12) (2026-05-02)
 
