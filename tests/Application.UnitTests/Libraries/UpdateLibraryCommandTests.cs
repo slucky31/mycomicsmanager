@@ -236,4 +236,22 @@ public class UpdateLibraryCommandTests
         _librayRepositoryMock.Received(1).Update(Arg.Any<Library>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_ShouldReturnFolderNotMoved_WhenImportDirectoryWasNotMoved()
+    {
+        // Arrange
+        var digitalCommand = new UpdateLibraryCommand(s_command.Id, "new-digital-name", "#5C6BC0", "Bookmark", s_userId);
+        var freshDigitalLibrary = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(digitalCommand.Id).Returns(freshDigitalLibrary);
+        _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
+        _importDirectoryStorageMock.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Failure(TError.Any));
+
+        // Act
+        var result = await _handler.Handle(digitalCommand, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.FolderNotMoved);
+    }
 }

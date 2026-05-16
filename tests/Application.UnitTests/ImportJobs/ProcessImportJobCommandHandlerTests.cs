@@ -8,6 +8,7 @@ using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace Application.UnitTests.ImportJobs;
 
@@ -498,5 +499,246 @@ public class ProcessImportJobCommandHandlerTests
                 File.Delete(tempFile);
             }
         }
+    }
+
+    // ── Input validation ──────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenImportJobIdIsEmpty()
+    {
+        var result = await _handler.Handle(new ProcessImportJobCommand(Guid.Empty), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(ImportJobError.BadRequest);
+    }
+
+    // ── Status validation ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_ReturnInvalidStatusTransition_WhenJobIsAlreadyFailed()
+    {
+        var job = CreatePendingJob();
+        job.Fail("previous-step", "previous error");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(ImportJobError.InvalidStatusTransition);
+        _importJobRepository.DidNotReceive().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+    }
+
+    // ── Library not found ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenLibraryDoesNotExist()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        _libraryRepository.GetByIdAsync(job.LibraryId).Returns((Library?)null);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.NotFound);
+    }
+
+    // ── Metadata write failure ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_FailJob_WhenMetadataWriteFails()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+        SetupImageProcessor();
+
+        _comicInfoXmlService.Write(Arg.Any<string>(), Arg.Any<ComicInfoData>())
+            .Returns(Result.Failure(s_processingError));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+    }
+
+    // ── Cover upload failure (best-effort) ────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_ContinuePipeline_WhenCoverUploadFails()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+        SetupImageProcessor();
+        SetupComicInfoXml();
+        SetupArchiveBuilder();
+        SetupNoMetadataSearch();
+
+        _cloudinaryService.UploadImageFromFileAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(null, null, false, "upload error"));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ImageLink.Should().BeEmpty();
+    }
+
+    // ── Cover upload skipped when no webp files ───────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_ContinuePipeline_WhenNoWebpFilesInConvertedDir()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+
+        _imageProcessor.ProcessImagesAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
+            Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>())
+            .Returns(info =>
+            {
+                Directory.CreateDirectory(info.ArgAt<string>(1));
+                return Task.FromResult(Result<ImageProcessingResult>.Success(new ImageProcessingResult(0, 0, true)));
+            });
+
+        SetupComicInfoXml();
+        SetupArchiveBuilder();
+        SetupNoMetadataSearch();
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        await _cloudinaryService.DidNotReceive()
+            .UploadImageFromFileAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    // ── Unexpected exception handling ─────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_FailJob_WhenUnexpectedExceptionOccurs()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+
+        _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
+        _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new IOException("Disk read error"));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+    }
+
+    // ── PDF extraction failure ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_FailJob_WhenPdfExtractionFails()
+    {
+        var job = CreatePendingJob("comic.pdf", "/srv/comic.pdf");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+
+        _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(true);
+        _pdfImageExtractor.ExtractImagesAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<PdfExtractionResult>.Failure(s_processingError));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+    }
+
+    // ── ComicInfo.xml read failure → pipeline continues ───────────────────────
+
+    [Fact]
+    public async Task Handle_Should_ContinuePipeline_WhenComicInfoReadFails()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+
+        SetupArchiveExtractor(job, [], comicInfoPath: "/tmp/ComicInfo.xml");
+        _comicInfoXmlService.Read(Arg.Any<string>()).Returns(Result<ComicInfoData>.Failure(s_processingError));
+        SetupImageProcessor();
+        SetupComicInfoXml();
+        SetupCloudinary();
+        SetupArchiveBuilder();
+        SetupNoMetadataSearch();
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    // ── HandleOriginalFile failure branches (log-only) ────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_ReturnSuccess_WhenDeleteOriginalFileFails()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+        SetupImageProcessor();
+        SetupComicInfoXml();
+        SetupCloudinary();
+        SetupArchiveBuilder();
+        SetupNoMetadataSearch();
+
+        _importDirectoryStorage.DeleteOriginalFile(Arg.Any<string>())
+            .Returns(Result.Failure(s_processingError));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnFailure_WhenMoveOriginalFileToErrorFails()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+
+        _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
+        _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+
+        _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>())
+            .Returns(Result.Failure(s_processingError));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+    }
+
+    // ── FailJobAsync SaveChangesAsync failure (log-only) ─────────────────────
+
+    [Fact]
+    public async Task Handle_Should_ReturnError_WhenSaveFailsDuringJobFailure()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+
+        _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
+        _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+
+        // First call = AdvanceAndSaveAsync (Extracting), second call = FailJobAsync
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<int>.Success(0), Result<int>.Failure(new TError("DB500", "save failed")));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(s_processingError);
     }
 }

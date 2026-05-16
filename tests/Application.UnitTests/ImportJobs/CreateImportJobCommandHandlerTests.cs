@@ -55,21 +55,6 @@ public class CreateImportJobCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnImportJobWithPendingStatus()
-    {
-        // Arrange
-        var library = CreateDigitalLibrary();
-        _libraryRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(library);
-
-        // Act
-        var result = await _handler.Handle(ValidCommand(library.Id), TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value!.Status.Should().Be(ImportJobStatus.Pending);
-    }
-
-    [Fact]
     public async Task Handle_Should_SaveImportJob()
     {
         // Arrange
@@ -129,6 +114,22 @@ public class CreateImportJobCommandHandlerTests
         var result = await _handler.Handle(cmd, TestContext.Current.CancellationToken);
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.BadRequest);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnAlreadyQueued_WhenActiveJobExistsForFilePath()
+    {
+        // Arrange
+        var library = CreateDigitalLibrary();
+        _libraryRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(library);
+        _importJobRepository.ExistsActiveForFilePathAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _handler.Handle(ValidCommand(library.Id), TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(ImportJobError.AlreadyQueued);
     }
 
     // ── Library checks ────────────────────────────────────────────────────────

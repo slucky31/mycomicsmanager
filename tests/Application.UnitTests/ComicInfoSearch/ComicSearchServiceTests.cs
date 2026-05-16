@@ -1121,6 +1121,63 @@ public sealed class ComicSearchServiceTests
     }
 
     #endregion
+
+    #region UploadCoverAsync Tests
+
+    [Fact]
+    public async Task UploadCoverAsync_Should_ReturnCloudinaryUrl_WhenUploadSucceeds()
+    {
+        // Arrange
+        var coverUrl = new Uri("https://covers.openlibrary.org/b/id/12345-L.jpg");
+        const string isbn = "9781234567890";
+
+        _cloudinaryService.UploadImageFromUrlAsync(
+                coverUrl, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(
+                Url: new Uri("https://res.cloudinary.com/test/uploaded.jpg"),
+                PublicId: "test-id",
+                Success: true,
+                Error: null));
+
+        // Act
+        var result = await _sut.UploadCoverAsync(coverUrl, isbn, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().Be("https://res.cloudinary.com/test/uploaded.jpg");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnOriginalCoverUrl_WhenCloudinaryUploadThrowsException()
+    {
+        // Arrange
+        const string isbn = "9781234567890";
+        var coverUrl = new Uri("https://covers.openlibrary.org/b/id/12345-L.jpg");
+
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: "Test Comic",
+            Subtitle: null,
+            Authors: SingleAuthorArray,
+            Publishers: SinglePublisherArray,
+            PublishDate: null,
+            NumberOfPages: 100,
+            CoverUrl: coverUrl,
+            Found: true);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+        _cloudinaryService.UploadImageFromUrlAsync(
+                Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new HttpRequestException("Connection refused"));
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.ImageUrl.Should().Be(coverUrl.ToString());
+    }
+
+    #endregion
 }
 
 // Keep this class in the same file as it was originally (record tests)
@@ -1381,5 +1438,139 @@ public sealed class ComicSearchServiceWithLocalCoverTests
             stream, coverFileName, "test-covers",
             Arg.Is<string>(id => id.StartsWith("digital-", StringComparison.Ordinal)),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_UseRemoteCoverUrl_WhenNoCoverStreamAndMetadataFound()
+    {
+        // Arrange
+        const string isbn = "9782075162869";
+        var remoteCoverUrl = new Uri("https://bedetheque.com/cover.jpg");
+
+        var bedethequeResult = new BedethequeBookResult(
+            Title: "L'Ankou",
+            Serie: "Soda",
+            VolumeNumber: 1,
+            Authors: ["Philippe Tome"],
+            Publishers: ["Dupuis"],
+            PublishDate: null,
+            NumberOfPages: 48,
+            CoverUrl: remoteCoverUrl,
+            Found: true);
+
+        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(bedethequeResult);
+
+        var cloudinaryResult = new CloudinaryUploadResult(
+            Url: new Uri("https://res.cloudinary.com/test/soda.jpg"),
+            PublicId: "test-covers/9782075162869",
+            Success: true,
+            Error: null);
+
+        _cloudinaryService.UploadImageFromUrlAsync(
+                remoteCoverUrl, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(cloudinaryResult);
+
+        // Act: no stream, no fileName → falls back to remote URL upload
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, null, null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.ImageUrl.Should().Be("https://res.cloudinary.com/test/soda.jpg");
+        await _cloudinaryService.Received(1).UploadImageFromUrlAsync(
+            remoteCoverUrl, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _cloudinaryService.DidNotReceive().UploadImageFromStreamAsync(
+            Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_ReturnNotFound_WhenHttpRequestExceptionOccurs()
+    {
+        // Arrange
+        const string isbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new HttpRequestException("Connection refused"));
+
+        // Act
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, "cover.webp", TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeFalse();
+        result.Isbn.Should().Be(isbn);
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_FallbackToOpenLibrary_WhenBedethequeAndGoogleBothFail()
+    {
+        // Arrange
+        const string isbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        var openLibraryResult = new OpenLibraryBookResult(
+            Title: "Soda, tome 1",
+            Subtitle: null,
+            Authors: ["Philippe Tome"],
+            Publishers: ["Dupuis"],
+            PublishDate: new DateOnly(1987, 1, 1),
+            NumberOfPages: 48,
+            CoverUrl: null,
+            Found: true);
+
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(openLibraryResult);
+
+        // Act
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, "cover.webp", TestContext.Current.CancellationToken);
+
+        // Assert: Bedetheque and Google both return not found (default), OpenLibrary finds the result
+        result.Found.Should().BeTrue();
+        result.Serie.Should().Be("Soda");
+        result.VolumeNumber.Should().Be(1);
+        await _openLibraryService.Received(1).SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_ReturnEmptyImageUrl_WhenNoCoverStreamAndNoRemoteUrl()
+    {
+        // Arrange
+        const string isbn = "9782075162869";
+
+        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(MakeBedethequeFound());
+
+        // Act: no stream, no fileName → UploadCoverStreamOrRemoteAsync with remoteCoverUrl=null → empty string
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, null, null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.ImageUrl.Should().BeEmpty();
+        await _cloudinaryService.DidNotReceive().UploadImageFromUrlAsync(
+            Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _cloudinaryService.DidNotReceive().UploadImageFromStreamAsync(
+            Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_ReturnEmptyImageUrl_WhenCloudinaryStreamUploadThrowsException()
+    {
+        // Arrange
+        const string isbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(MakeBedethequeFound());
+
+        _cloudinaryService.UploadImageFromStreamAsync(
+                Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new HttpRequestException("Cloudinary unavailable"));
+
+        // Act
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, "cover.webp", TestContext.Current.CancellationToken);
+
+        // Assert: exception is caught, ImageUrl falls back to empty string
+        result.Found.Should().BeTrue();
+        result.ImageUrl.Should().BeEmpty();
     }
 }

@@ -76,4 +76,38 @@ public class ListImportJobsQueryHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.NotFound);
     }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenLibraryIdIsEmpty()
+    {
+        var result = await _handler.Handle(new ListImportJobsQuery(Guid.Empty, s_userId), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(ImportJobError.BadRequest);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenUserIdIsEmpty()
+    {
+        var result = await _handler.Handle(new ListImportJobsQuery(Guid.CreateVersion7(), Guid.Empty), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(ImportJobError.BadRequest);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenLibraryBelongsToDifferentUser()
+    {
+        // Arrange
+        var otherUserId = Guid.CreateVersion7();
+        var library = CreateDigitalLibrary(userId: otherUserId);
+        _libraryRepository.GetByIdAsync(library.Id).Returns(library);
+
+        // Act
+        var result = await _handler.Handle(new ListImportJobsQuery(library.Id, s_userId), TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(LibrariesError.NotFound);
+    }
 }
