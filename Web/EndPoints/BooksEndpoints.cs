@@ -63,8 +63,8 @@ internal static class BooksEndpoints
             }
 
             var fileName = Path.GetFileName(digitalBook.FilePath);
-            var stream = File.OpenRead(digitalBook.FilePath);
-            return Results.File(stream, "application/x-cbz", fileName, enableRangeProcessing: true);
+            // Ownership is enforced by GetBookByIdQuery filtering on userId.
+            return Results.File(digitalBook.FilePath, "application/x-cbz", fileName, enableRangeProcessing: true);
         }).RequireAuthorization();
     }
 }
