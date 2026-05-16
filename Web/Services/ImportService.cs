@@ -1,4 +1,3 @@
-using Application.Abstractions.Messaging;
 using Application.ImportJobs;
 using Application.ImportJobs.Create;
 using Application.ImportJobs.Delete;
@@ -6,7 +5,6 @@ using Application.ImportJobs.ForceFail;
 using Application.ImportJobs.GetById;
 using Application.ImportJobs.List;
 using Application.Interfaces;
-using Domain.ImportJobs;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Options;
@@ -15,11 +13,7 @@ using Web.Models;
 namespace Web.Services;
 
 public class ImportService(
-    IQueryHandler<ListImportJobsQuery, IReadOnlyList<ImportJob>> listImportJobsHandler,
-    IQueryHandler<GetImportJobQuery, ImportJob> getImportJobHandler,
-    ICommandHandler<CreateImportJobCommand, ImportJob> createImportJobHandler,
-    ICommandHandler<DeleteImportJobCommand> deleteImportJobHandler,
-    ICommandHandler<ForceFailImportJobCommand> forceFailImportJobHandler,
+    ImportJobHandlers handlers,
     IImportJobEnqueuer importJobEnqueuer,
     ICurrentUserService currentUserService,
     IOptions<ImportSettings> importSettings) : IImportService
@@ -36,7 +30,7 @@ public class ImportService(
         }
 
         var query = new ListImportJobsQuery(libraryId, userIdResult.Value);
-        var result = await listImportJobsHandler.Handle(query, ct);
+        var result = await handlers.ListJobs.Handle(query, ct);
 
         if (result.IsFailure)
         {
@@ -60,7 +54,7 @@ public class ImportService(
         }
 
         var query = new GetImportJobQuery(importJobId, userIdResult.Value);
-        var result = await getImportJobHandler.Handle(query, ct);
+        var result = await handlers.GetJob.Handle(query, ct);
 
         if (result.IsFailure)
         {
@@ -103,7 +97,7 @@ public class ImportService(
             LibraryId: libraryId,
             UserId: userIdResult.Value);
 
-        var createResult = await createImportJobHandler.Handle(command, ct);
+        var createResult = await handlers.CreateJob.Handle(command, ct);
         if (createResult.IsFailure)
         {
             // Clean up the uploaded file if job creation failed
@@ -127,7 +121,7 @@ public class ImportService(
         }
 
         var command = new DeleteImportJobCommand(importJobId, userIdResult.Value);
-        return await deleteImportJobHandler.Handle(command, ct);
+        return await handlers.DeleteJob.Handle(command, ct);
     }
 
     public async Task<Result> ForceFailImportJobAsync(Guid importJobId, CancellationToken ct = default)
@@ -139,6 +133,6 @@ public class ImportService(
         }
 
         var command = new ForceFailImportJobCommand(importJobId, userIdResult.Value);
-        return await forceFailImportJobHandler.Handle(command, ct);
+        return await handlers.ForceFailJob.Handle(command, ct);
     }
 }

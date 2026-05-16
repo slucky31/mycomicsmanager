@@ -169,6 +169,7 @@ builder.Services.AddMudServices(config =>
 // Config Services
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
+builder.Services.AddScoped<ImportJobHandlers>();
 builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();
