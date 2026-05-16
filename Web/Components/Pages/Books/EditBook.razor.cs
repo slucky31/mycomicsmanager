@@ -86,33 +86,43 @@ public partial class EditBook
         _isSaving = true;
         StateHasChanged();
 
-        var request = new UpdateBookRequest(
-            _bookModel.Id.ToString(),
-            _bookModel.Serie,
-            _bookModel.Title,
-            _bookModel.ISBN ?? string.Empty,
-            _bookModel.VolumeNumber,
-            _bookModel.ImageLink,
-            _bookModel.Authors,
-            _bookModel.Publishers,
-            _bookModel.PublishDate,
-            _bookModel.NumberOfPages
-        );
-
-        var result = await BooksService.Update(request);
-
-        if (result.IsSuccess)
+        try
         {
-            NavigationManager.NavigateTo($"/books/{BookId}");
+            var request = new UpdateBookRequest(
+                _bookModel.Id.ToString(),
+                _bookModel.Serie,
+                _bookModel.Title,
+                _bookModel.ISBN ?? string.Empty,
+                _bookModel.VolumeNumber,
+                _bookModel.ImageLink,
+                _bookModel.Authors,
+                _bookModel.Publishers,
+                _bookModel.PublishDate,
+                _bookModel.NumberOfPages
+            );
+
+            var result = await BooksService.Update(request);
+
+            if (result.IsSuccess)
+            {
+                NavigationManager.NavigateTo($"/books/{BookId}");
+            }
+            else
+            {
+                Snackbar.Add("Failed to update book", Severity.Error);
+                Log.Error("Failed to update book: {Description}", result.Error?.Description);
+            }
         }
-        else
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Snackbar.Add("Failed to update book", Severity.Error);
+            Log.Error(ex, "Unexpected error updating book {BookId}", BookId);
+        }
+        finally
         {
             _isSaving = false;
-            Snackbar.Add("Failed to update book", Severity.Error);
-            Log.Error("Failed to update book: {Description}", result.Error?.Description);
             StateHasChanged();
         }
-
     }
 
     private async Task DeleteReadingDateAsync(Guid readingDateId)

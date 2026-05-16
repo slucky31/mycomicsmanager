@@ -74,3 +74,11 @@ Method has 10 parameters, which is greater than the 7 authorized.
 
 Web/Services/BooksService.cs
 Constructor has 8 parameters, which is greater than the 7 authorized.
+
+
+The file is at C:\Users\nicol\.claude\plans\partitioned-tumbling-hammock.md. It has the 3 fixes with exact before/after code blocks:
+
+  1. ImageProcessorService.ShouldSkipConversionAsync — add Log.Warning to the silent catch
+  2. BookDetail.DeleteBookAsync — wrap in try/catch to match its sibling methods
+  3. EditBook.SaveBookAsync — wrap in try/catch/finally so _isSaving is always reset
+

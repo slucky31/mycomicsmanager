@@ -122,6 +122,7 @@ public class ImageProcessorService : IImageProcessor
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            Log.Warning(ex, "Could not identify image {FilePath}, proceeding with full conversion", filePath);
             return false;
         }
     }

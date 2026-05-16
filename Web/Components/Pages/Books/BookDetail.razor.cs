@@ -97,24 +97,32 @@ public partial class BookDetail
 
     private async Task DeleteBookAsync()
     {
-        var confirmed = await DialogService.ShowConfirmationAsync(
-            "Confirm Delete",
-            "Do you really want to delete this book? This process cannot be undone.",
-            "Delete");
-
-        if (confirmed)
+        try
         {
-            var res = await BooksService.Delete(BookId);
+            var confirmed = await DialogService.ShowConfirmationAsync(
+                "Confirm Delete",
+                "Do you really want to delete this book? This process cannot be undone.",
+                "Delete");
 
-            if (res.IsSuccess)
+            if (confirmed)
             {
-                NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
+                var res = await BooksService.Delete(BookId);
+
+                if (res.IsSuccess)
+                {
+                    NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete book", Severity.Error);
+                    Log.Error("Failed to delete book: {Description}", res.Error?.Description);
+                }
             }
-            else
-            {
-                Snackbar.Add("Failed to delete book", Severity.Error);
-                Log.Error("Failed to delete book: {Description}", res.Error?.Description);
-            }
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Snackbar.Add("Failed to delete book", Severity.Error);
+            Log.Error(ex, "Unexpected error deleting book {BookId}", BookId);
         }
     }
 
