@@ -299,54 +299,6 @@ public sealed class ComicSearchServiceTests
             Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task SearchByIsbnAsync_ShouldReturnNotFound_WhenHttpRequestExceptionIsThrown()
-    {
-        // Arrange
-        const string isbn = "9781234567890";
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .ThrowsAsync(new HttpRequestException("Network error"));
-
-        // Act
-        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Found.Should().BeFalse();
-        result.Isbn.Should().Be(isbn);
-    }
-
-    [Fact]
-    public async Task SearchByIsbnAsync_ShouldReturnNotFound_WhenInvalidOperationExceptionIsThrown()
-    {
-        // Arrange
-        const string isbn = "9781234567890";
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .ThrowsAsync(new InvalidOperationException("Invalid operation"));
-
-        // Act
-        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Found.Should().BeFalse();
-        result.Isbn.Should().Be(isbn);
-    }
-
-    [Fact]
-    public async Task SearchByIsbnAsync_ShouldReturnNotFound_WhenTimeoutOccurs()
-    {
-        // Arrange
-        const string isbn = "9781234567890";
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .ThrowsAsync(new TaskCanceledException("Request timeout"));
-
-        // Act
-        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Found.Should().BeFalse();
-        result.Isbn.Should().Be(isbn);
-    }
-
     #endregion
 
     #region ParseVolumeAndSerie Tests
@@ -685,50 +637,6 @@ public sealed class ComicSearchServiceTests
 
     #endregion
 
-    #region Error Handling Tests
-
-    [Fact]
-    public async Task SearchByIsbnAsync_ShouldReturnNotFound_WhenOperationCancelledButNotByToken()
-    {
-        // Arrange
-        const string isbn = "9781234567890";
-        var exception = new TaskCanceledException("Operation was canceled");
-
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .ThrowsAsync(exception);
-
-        // Act
-        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Found.Should().BeFalse();
-        result.Isbn.Should().Be(isbn);
-        result.Title.Should().BeEmpty();
-        result.Serie.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task SearchByIsbnAsync_ShouldReturnNotFound_WhenTokenIsCancelledByCallerBeforeCall()
-    {
-        // Arrange
-        const string isbn = "9781234567890";
-        using var cts = new CancellationTokenSource();
-        await cts.CancelAsync(); // Cancel the token before the call
-
-        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .ThrowsAsync(new OperationCanceledException(cts.Token));
-
-        // Act
-        var result = await _sut.SearchByIsbnAsync(isbn, cts.Token);
-
-        // Assert
-        result.Found.Should().BeFalse();
-        result.Isbn.Should().Be(isbn);
-        result.Title.Should().BeEmpty();
-        result.Serie.Should().BeEmpty();
-    }
-
-    #endregion
 
     #region Multiple Authors and Publishers Tests
 
@@ -1481,24 +1389,6 @@ public sealed class ComicSearchServiceWithLocalCoverTests
             remoteCoverUrl, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _cloudinaryService.DidNotReceive().UploadImageFromStreamAsync(
             Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task SearchByIsbnWithLocalCoverAsync_Should_ReturnNotFound_WhenHttpRequestExceptionOccurs()
-    {
-        // Arrange
-        const string isbn = "9782075162869";
-        using var stream = new MemoryStream([1, 2, 3]);
-
-        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
-            .ThrowsAsync(new HttpRequestException("Connection refused"));
-
-        // Act
-        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, "cover.webp", TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Found.Should().BeFalse();
-        result.Isbn.Should().Be(isbn);
     }
 
     [Fact]
