@@ -14,7 +14,6 @@
     <PackageVersion Include="CloudinaryDotNet" Version="1.29.1" />
     <PackageVersion Include="coverlet.collector" Version="10.0.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
-    <PackageVersion Include="Google.Apis.CustomSearchAPI.v1" Version="1.68.0.3520" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
@@ -41,7 +40,7 @@
     <PackageVersion Include="Hangfire.PostgreSql" Version="1.21.1" />
     <PackageVersion Include="Scrutor" Version="7.0.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
-    <PackageVersion Include="SharpCompress" Version="0.47.4" />
+    <PackageVersion Include="SharpCompress" Version="0.48.1" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="PdfPig" Version="0.1.14" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.24.0.138807" />

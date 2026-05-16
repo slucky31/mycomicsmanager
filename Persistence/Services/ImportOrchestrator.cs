@@ -16,18 +16,7 @@ public class ImportOrchestrator(IServiceScopeFactory scopeFactory) : IImportOrch
         await using var scope = scopeFactory.CreateAsyncScope();
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<ProcessImportJobCommand, DigitalBook>>();
 
-        Result<DigitalBook> result;
-        try
-        {
-            result = await handler.Handle(new ProcessImportJobCommand(importJobId), ct);
-        }
-#pragma warning disable CA1031 // Hangfire needs to catch all exceptions to retry
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Unhandled exception processing import job {ImportJobId}", importJobId);
-            throw;
-        }
-#pragma warning restore CA1031
+        var result = await handler.Handle(new ProcessImportJobCommand(importJobId), ct);
 
         if (result.IsFailure)
         {
