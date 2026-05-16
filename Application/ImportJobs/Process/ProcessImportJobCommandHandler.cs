@@ -334,7 +334,10 @@ public sealed class ProcessImportJobCommandHandler(
     {
         await AdvanceAndSaveAsync(importJob, ImportJobStatus.BuildingArchive, ct);
 
-        var outputFileName = string.IsNullOrWhiteSpace(isbn) ? $"{importJob.Id}.cbz" : $"{isbn}.cbz";
+        var safeIsbn = !string.IsNullOrWhiteSpace(isbn) && IsbnHelper.IsValidISBN(isbn)
+            ? IsbnHelper.NormalizeIsbn(isbn)
+            : null;
+        var outputFileName = string.IsNullOrWhiteSpace(safeIsbn) ? $"{importJob.Id}.cbz" : $"{safeIsbn}.cbz";
         var outputPath = Path.Combine(tempDir, outputFileName);
 
         var buildResult = await fileProcessors.ArchiveBuilder.BuildAsync(convertedDir, outputPath, ct);
@@ -345,7 +348,12 @@ public sealed class ProcessImportJobCommandHandler(
 
         var libraryDir = Path.Combine(externalServices.LibraryStorage.rootPath, library.RelativePath);
         Directory.CreateDirectory(libraryDir);
-        var finalPath = Path.Combine(libraryDir, outputFileName);
+        var finalPath = Path.Combine(libraryDir, Path.GetFileName(outputFileName));
+        var normalizedLibraryDir = Path.GetFullPath(libraryDir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        if (!Path.GetFullPath(finalPath).StartsWith(normalizedLibraryDir, StringComparison.OrdinalIgnoreCase))
+        {
+            return await FailJobAsync(importJob, "BuildingArchive", ImportJobError.BadRequest, ct);
+        }
         File.Move(outputPath, finalPath, overwrite: true);
 
         return (finalPath, buildResult.Value!.FileSize);

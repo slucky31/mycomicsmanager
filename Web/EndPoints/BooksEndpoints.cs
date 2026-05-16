@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Application.Abstractions.Messaging;
 using Application.Books.GetById;
+using Application.Libraries;
 using Application.Users;
 using Domain.Books;
 
@@ -15,6 +16,7 @@ internal static class BooksEndpoints
             ClaimsPrincipal user,
             IQueryHandler<GetBookByIdQuery, Book> getBookHandler,
             IUserReadService userReadService,
+            ILibraryLocalStorage libraryStorage,
             CancellationToken ct) =>
         {
             var sub = user.FindFirstValue("sub")
@@ -46,6 +48,13 @@ internal static class BooksEndpoints
             if (result.Value is not DigitalBook digitalBook)
             {
                 return Results.BadRequest("Only digital books can be downloaded.");
+            }
+
+            var normalizedRoot = Path.GetFullPath(libraryStorage.rootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var normalizedFilePath = Path.GetFullPath(digitalBook.FilePath);
+            if (!normalizedFilePath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                return Results.Forbid();
             }
 
             if (!File.Exists(digitalBook.FilePath))
