@@ -1,6 +1,7 @@
 using Application;
 using Application.ComicInfoSearch;
 using Application.ImportJobs;
+using Application.ImportJobs.Process;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
@@ -170,6 +171,9 @@ builder.Services.AddMudServices(config =>
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
 builder.Services.AddScoped<ImportJobHandlers>();
+builder.Services.AddScoped<ProcessImportJobRepositories>();
+builder.Services.AddScoped<ProcessImportJobFileProcessors>();
+builder.Services.AddScoped<ProcessImportJobExternalServices>();
 builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();

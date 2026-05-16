@@ -1,34 +1,21 @@
 using Application.Abstractions.Messaging;
 using Application.Helpers;
 using Application.Interfaces;
-using Application.Libraries;
 using Domain.Books;
 using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Primitives;
-using Microsoft.Extensions.Options;
 
 namespace Application.ImportJobs.Process;
 
 public sealed class ProcessImportJobCommandHandler(
-    IImportJobRepository importJobRepository,
-    IRepository<Library, Guid> libraryRepository,
-    IArchiveExtractor archiveExtractor,
-    IPdfImageExtractor pdfImageExtractor,
-    IImageProcessor imageProcessor,
-    IComicArchiveBuilder archiveBuilder,
-    IComicInfoXmlService comicInfoXmlService,
-    IComicSearchService comicSearchService,
-    ICloudinaryService cloudinaryService,
-    IBookRepository bookRepository,
-    IUnitOfWork unitOfWork,
-    ILibraryLocalStorage libraryLocalStorage,
-    IImportDirectoryStorage importDirectoryStorage,
-    IOptions<ImportSettings> importSettings)
+    ProcessImportJobRepositories repositories,
+    ProcessImportJobFileProcessors fileProcessors,
+    ProcessImportJobExternalServices externalServices)
     : ICommandHandler<ProcessImportJobCommand, DigitalBook>
 {
     private static Serilog.ILogger Log => Serilog.Log.ForContext<ProcessImportJobCommandHandler>();
-    private readonly ImportSettings _settings = importSettings.Value;
+    private readonly ImportSettings _settings = externalServices.Settings.Value;
 
     public async Task<Result<DigitalBook>> Handle(ProcessImportJobCommand request, CancellationToken cancellationToken)
     {
@@ -37,7 +24,7 @@ public sealed class ProcessImportJobCommandHandler(
             return ImportJobError.BadRequest;
         }
 
-        var importJob = await importJobRepository.GetByIdAsync(request.ImportJobId, cancellationToken);
+        var importJob = await repositories.ImportJobs.GetByIdAsync(request.ImportJobId, cancellationToken);
         if (importJob is null)
         {
             return ImportJobError.NotFound;
@@ -59,7 +46,7 @@ public sealed class ProcessImportJobCommandHandler(
             return ImportJobError.InvalidStatusTransition;
         }
 
-        var library = await libraryRepository.GetByIdAsync(importJob.LibraryId);
+        var library = await repositories.Libraries.GetByIdAsync(importJob.LibraryId);
         if (library is null)
         {
             return LibrariesError.NotFound;
@@ -136,12 +123,12 @@ public sealed class ProcessImportJobCommandHandler(
                 importJob, metaResult.Value!, archiveResult.Value.FinalPath,
                 archiveResult.Value.FileSize, imageLink, ct);
         }
-        catch (OperationCanceledException ex) { return await HandleUnexpectedExceptionAsync(ex); }        
-        catch (IOException ex)              { return await HandleUnexpectedExceptionAsync(ex); }
-        catch (InvalidOperationException ex){ return await HandleUnexpectedExceptionAsync(ex); }
+        catch (OperationCanceledException ex) { return await HandleUnexpectedExceptionAsync(ex); }
+        catch (IOException ex)               { return await HandleUnexpectedExceptionAsync(ex); }
+        catch (InvalidOperationException ex) { return await HandleUnexpectedExceptionAsync(ex); }
         catch (UnauthorizedAccessException ex){ return await HandleUnexpectedExceptionAsync(ex); }
-        catch (HttpRequestException ex)     { return await HandleUnexpectedExceptionAsync(ex); }
-        catch (InvalidDataException ex)     { return await HandleUnexpectedExceptionAsync(ex); }
+        catch (HttpRequestException ex)      { return await HandleUnexpectedExceptionAsync(ex); }
+        catch (InvalidDataException ex)      { return await HandleUnexpectedExceptionAsync(ex); }
 
         async Task<Result<DigitalBook>> HandleUnexpectedExceptionAsync(Exception ex)
         {
@@ -159,7 +146,7 @@ public sealed class ProcessImportJobCommandHandler(
     {
         if (success)
         {
-            var result = importDirectoryStorage.DeleteOriginalFile(filePath);
+            var result = externalServices.ImportStorage.DeleteOriginalFile(filePath);
             if (result.IsFailure)
             {
                 Log.Warning("Could not delete original file {FilePath} after successful import: {Error}",
@@ -168,7 +155,7 @@ public sealed class ProcessImportJobCommandHandler(
         }
         else
         {
-            var result = importDirectoryStorage.MoveOriginalFileToError(filePath);
+            var result = externalServices.ImportStorage.MoveOriginalFileToError(filePath);
             if (result.IsFailure)
             {
                 Log.Warning("Could not move original file {FilePath} to error directory: {Error}",
@@ -186,9 +173,9 @@ public sealed class ProcessImportJobCommandHandler(
 
         string? comicInfoXmlPath = null;
 
-        if (pdfImageExtractor.CanHandle(importJob.OriginalFilePath))
+        if (fileProcessors.PdfImageExtractor.CanHandle(importJob.OriginalFilePath))
         {
-            var pdfResult = await pdfImageExtractor.ExtractImagesAsync(
+            var pdfResult = await fileProcessors.PdfImageExtractor.ExtractImagesAsync(
                 importJob.OriginalFilePath, rawDir, ct);
             if (pdfResult.IsFailure)
             {
@@ -197,7 +184,7 @@ public sealed class ProcessImportJobCommandHandler(
         }
         else
         {
-            var archiveResult = await archiveExtractor.ExtractAsync(
+            var archiveResult = await fileProcessors.ArchiveExtractor.ExtractAsync(
                 importJob.OriginalFilePath, rawDir, ct);
             if (archiveResult.IsFailure)
             {
@@ -209,7 +196,7 @@ public sealed class ProcessImportJobCommandHandler(
         ComicInfoData? comicInfo = null;
         if (comicInfoXmlPath is not null)
         {
-            var readResult = comicInfoXmlService.Read(comicInfoXmlPath);
+            var readResult = fileProcessors.ComicInfoXml.Read(comicInfoXmlPath);
             if (readResult.IsSuccess)
             {
                 comicInfo = readResult.Value;
@@ -235,12 +222,12 @@ public sealed class ProcessImportJobCommandHandler(
             {
                 lastSavedPercent = percent;
                 importJob.UpdateConversionProgress(report.ConvertedCount, report.TotalCount);
-                importJobRepository.Update(importJob);
-                await unitOfWork.SaveChangesAsync(ct);
+                repositories.ImportJobs.Update(importJob);
+                await repositories.UnitOfWork.SaveChangesAsync(ct);
             }
         }
 
-        var convertResult = await imageProcessor.ProcessImagesAsync(
+        var convertResult = await fileProcessors.ImageProcessor.ProcessImagesAsync(
             rawDir, convertedDir, onProgressAsync: OnProgressAsync, ct: ct);
 
         if (convertResult.IsFailure)
@@ -274,7 +261,7 @@ public sealed class ProcessImportJobCommandHandler(
 
         if (!string.IsNullOrWhiteSpace(isbn))
         {
-            var searchResult = await comicSearchService.SearchByIsbnAsync(isbn, ct);
+            var searchResult = await externalServices.ComicSearch.SearchByIsbnAsync(isbn, ct);
             if (searchResult.Found)
             {
                 serie = searchResult.Serie;
@@ -293,7 +280,7 @@ public sealed class ProcessImportJobCommandHandler(
             Writer: authors, Penciller: null, Publisher: publishers,
             Isbn: isbn, PageCount: pageCount > 0 ? pageCount : null);
 
-        var writeResult = comicInfoXmlService.Write(Path.Combine(convertedDir, "ComicInfo.xml"), updatedComicInfo);
+        var writeResult = fileProcessors.ComicInfoXml.Write(Path.Combine(convertedDir, "ComicInfo.xml"), updatedComicInfo);
         if (writeResult.IsFailure)
         {
             return await FailJobAsync(importJob, "SearchingMetadata", writeResult.Error!, ct);
@@ -323,7 +310,7 @@ public sealed class ProcessImportJobCommandHandler(
         }
 
         var publicId = string.IsNullOrWhiteSpace(isbn) ? $"digital-{importJob.Id}" : isbn;
-        var uploadResult = await cloudinaryService.UploadImageFromFileAsync(
+        var uploadResult = await externalServices.Cloudinary.UploadImageFromFileAsync(
             coverFiles[0], "digital-covers", publicId, ct);
 
         if (uploadResult.Success && uploadResult.Url is not null)
@@ -350,13 +337,13 @@ public sealed class ProcessImportJobCommandHandler(
         var outputFileName = string.IsNullOrWhiteSpace(isbn) ? $"{importJob.Id}.cbz" : $"{isbn}.cbz";
         var outputPath = Path.Combine(tempDir, outputFileName);
 
-        var buildResult = await archiveBuilder.BuildAsync(convertedDir, outputPath, ct);
+        var buildResult = await fileProcessors.ArchiveBuilder.BuildAsync(convertedDir, outputPath, ct);
         if (buildResult.IsFailure)
         {
             return await FailJobAsync(importJob, "BuildingArchive", buildResult.Error!, ct);
         }
 
-        var libraryDir = Path.Combine(libraryLocalStorage.rootPath, library.RelativePath);
+        var libraryDir = Path.Combine(externalServices.LibraryStorage.rootPath, library.RelativePath);
         Directory.CreateDirectory(libraryDir);
         var finalPath = Path.Combine(libraryDir, outputFileName);
         File.Move(outputPath, finalPath, overwrite: true);
@@ -387,11 +374,11 @@ public sealed class ProcessImportJobCommandHandler(
         }
 
         var digitalBook = bookResult.Value!;
-        bookRepository.Add(digitalBook);
+        repositories.Books.Add(digitalBook);
 
         importJob.Complete(digitalBook.Id);
-        importJobRepository.Update(importJob);
-        await unitOfWork.SaveChangesAsync(ct);
+        repositories.ImportJobs.Update(importJob);
+        await repositories.UnitOfWork.SaveChangesAsync(ct);
 
         return digitalBook;
     }
@@ -401,15 +388,15 @@ public sealed class ProcessImportJobCommandHandler(
     private async Task AdvanceAndSaveAsync(ImportJob importJob, ImportJobStatus status, CancellationToken ct)
     {
         importJob.Advance(status);
-        importJobRepository.Update(importJob);
-        await unitOfWork.SaveChangesAsync(ct);
+        repositories.ImportJobs.Update(importJob);
+        await repositories.UnitOfWork.SaveChangesAsync(ct);
     }
 
     private async Task<TError> FailJobAsync(ImportJob importJob, string step, TError error, CancellationToken ct)
     {
         importJob.Fail(step, error.Description ?? error.Code);
-        importJobRepository.Update(importJob);
-        var saveResult = await unitOfWork.SaveChangesAsync(ct);
+        repositories.ImportJobs.Update(importJob);
+        var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
         if (saveResult.IsFailure)
         {
             Log.Error("Failed to persist job failure for job {JobId}: {Error}",

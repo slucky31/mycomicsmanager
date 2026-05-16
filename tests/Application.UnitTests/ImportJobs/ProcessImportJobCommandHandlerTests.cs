@@ -52,14 +52,13 @@ public class ProcessImportJobCommandHandlerTests
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(0));
 
         _handler = new ProcessImportJobCommandHandler(
-            _importJobRepository, _libraryRepository,
-            _archiveExtractor, _pdfImageExtractor,
-            _imageProcessor, _archiveBuilder,
-            _comicInfoXmlService, _comicSearchService,
-            _cloudinaryService, _bookRepository,
-            _unitOfWork, _libraryLocalStorage,
-            _importDirectoryStorage,
-            Options.Create(new ImportSettings { TempDirectory = Path.GetTempPath() }));
+            new ProcessImportJobRepositories(
+                _importJobRepository, _libraryRepository, _bookRepository, _unitOfWork),
+            new ProcessImportJobFileProcessors(
+                _archiveExtractor, _pdfImageExtractor, _imageProcessor, _archiveBuilder, _comicInfoXmlService),
+            new ProcessImportJobExternalServices(
+                _comicSearchService, _cloudinaryService, _libraryLocalStorage, _importDirectoryStorage,
+                Options.Create(new ImportSettings { TempDirectory = Path.GetTempPath() })));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
