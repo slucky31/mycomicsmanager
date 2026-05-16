@@ -2,9 +2,8 @@ using Application.Abstractions.Messaging;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
 using Domain.Books;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace Persistence.Services;
+namespace Web.Services;
 
 public class ImportOrchestrator(IServiceScopeFactory scopeFactory) : IImportOrchestrator
 {
