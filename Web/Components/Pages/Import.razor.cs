@@ -151,7 +151,7 @@ public partial class Import : IAsyncDisposable
         StartPollingIfNeeded();
         StateHasChanged();
 
-        if (_uploadErrors.Count == 0 && files.Count > 0)
+        if (_uploadErrors.Count == 0)
         {
             Snackbar.Add($"{files.Count} fichier(s) envoyé(s) avec succès", Severity.Success);
         }
@@ -219,20 +219,20 @@ public partial class Import : IAsyncDisposable
         _isDeletingTerminal = true;
         StateHasChanged();
 
-        var terminalJobs = _jobs.Where(j => j.IsTerminal).ToList();
+        var terminalJobIds = _jobs.Where(j => j.IsTerminal).Select(j => j.Id).ToList();
         var errors = 0;
 
-        foreach (var job in terminalJobs)
+        foreach (var jobId in terminalJobIds)
         {
-            var result = await ImportService.DeleteImportJobAsync(job.Id);
+            var result = await ImportService.DeleteImportJobAsync(jobId);
             if (result.IsSuccess)
             {
-                _jobs.RemoveAll(j => j.Id == job.Id);
+                _jobs.RemoveAll(j => j.Id == jobId);
             }
             else
             {
                 errors++;
-                Log.Error("Import: failed to delete terminal job {JobId}: {Error}", job.Id, result.Error?.Description);
+                Log.Error("Import: failed to delete terminal job {JobId}: {Error}", jobId, result.Error?.Description);
             }
         }
 
@@ -242,9 +242,9 @@ public partial class Import : IAsyncDisposable
         {
             Snackbar.Add($"Impossible de supprimer {errors} job(s)", Severity.Error);
         }
-        else if (terminalJobs.Count > 0)
+        else if (terminalJobIds.Count > 0)
         {
-            Snackbar.Add($"{terminalJobs.Count} job(s) supprimé(s)", Severity.Success);
+            Snackbar.Add($"{terminalJobIds.Count} job(s) supprimé(s)", Severity.Success);
         }
 
         StateHasChanged();

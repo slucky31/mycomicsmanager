@@ -43,7 +43,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             _connectionString = tempConfig.GetConnectionString("NeonConnectionUnitTests") ?? string.Empty;
             Guard.Against.NullOrEmpty(_connectionString);
 
-            // Override Import directories: Program.cs calls Directory.CreateDirectory at startup;
+            // Override Import directories: Program calls Directory.CreateDirectory at startup
             // /data/* is not writable on GitHub Actions runners.
             // Override NeonConnection so the Hangfire PostgreSQL lambda receives a valid-format
             // connection string (Hangfire.InMemory will override the actual storage afterwards).

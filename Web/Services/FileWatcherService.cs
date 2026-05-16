@@ -222,8 +222,14 @@ public sealed class FileWatcherService : IHostedService, IDisposable
                 }
                 lastSize = size;
             }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            catch (IOException ex)
+            {
+                Log.Warning(ex, "File not ready yet on attempt {Attempt}: {FilePath}", attempt, filePath);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Log.Warning(ex, "File not accessible yet on attempt {Attempt}: {FilePath}", attempt, filePath);
+            }
 
             await Task.Delay(delayMs, ct).ConfigureAwait(false);
         }
