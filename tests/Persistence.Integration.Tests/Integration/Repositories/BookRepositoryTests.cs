@@ -9,7 +9,9 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
 {
     private PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
         string authors = "", string publishers = "", DateOnly? publishDate = null, int? numberOfPages = null)
-        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages, DefaultLibrary.Id).Value!;
+        => PhysicalBook.Create(
+            new BookMetadata(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages),
+            DefaultLibrary.Id).Value!;
 
     [Fact]
     public async Task GetByIdAsync_ShouldReturnBook_WhenBookExists()
@@ -121,7 +123,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        book.Update("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg");
+        book.Update(new BookMetadata("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg"));
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -479,8 +481,8 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
 
         // Act
         var updatedPublishDate = new DateOnly(2024, 1, 10);
-        book.Update("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg",
-            "Brian K. Vaughan, Fiona Staples", "Image Comics, DC Comics", updatedPublishDate, 240);
+        book.Update(new BookMetadata("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg",
+            "Brian K. Vaughan, Fiona Staples", "Image Comics, DC Comics", updatedPublishDate, 240));
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 

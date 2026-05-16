@@ -30,16 +30,6 @@ public sealed class ProcessImportJobCommandHandler(
     private static Serilog.ILogger Log => Serilog.Log.ForContext<ProcessImportJobCommandHandler>();
     private readonly ImportSettings _settings = importSettings.Value;
 
-    private sealed record BookMetadata(
-        string Serie,
-        string Title,
-        string? Isbn,
-        int VolumeNumber,
-        string Authors,
-        string Publishers,
-        DateOnly? PublishDate,
-        int PageCount);
-
     public async Task<Result<DigitalBook>> Handle(ProcessImportJobCommand request, CancellationToken cancellationToken)
     {
         if (request.ImportJobId == Guid.Empty)
@@ -135,10 +125,10 @@ public sealed class ProcessImportJobCommandHandler(
             { return metaResult.Error!; }
 
             var imageLink = await UploadCoverStepAsync(
-                importJob, metaResult.Value!.Isbn, convertedDir, ct);
+                importJob, metaResult.Value!.ISBN, convertedDir, ct);
 
             var archiveResult = await BuildArchiveStepAsync(
-                importJob, library, metaResult.Value!.Isbn, convertedDir, tempDir, ct);
+                importJob, library, metaResult.Value!.ISBN, convertedDir, tempDir, ct);
             if (archiveResult.IsFailure)
             { return archiveResult.Error!; }
 
@@ -309,7 +299,9 @@ public sealed class ProcessImportJobCommandHandler(
             return await FailJobAsync(importJob, "SearchingMetadata", writeResult.Error!, ct);
         }
 
-        return new BookMetadata(serie, title, isbn, volumeNumber, authors, publishers, publishDate, pageCount);
+        return new BookMetadata(serie, title, isbn, volumeNumber,
+            NumberOfPages: pageCount > 0 ? pageCount : null,
+            Authors: authors, Publishers: publishers, PublishDate: publishDate);
     }
 
     // ── Step 5: UploadingCover (best-effort, never fails the pipeline) ────────
@@ -382,15 +374,12 @@ public sealed class ProcessImportJobCommandHandler(
         string imageLink,
         CancellationToken ct)
     {
-        var normalizedIsbn = string.IsNullOrWhiteSpace(meta.Isbn)
+        var normalizedIsbn = string.IsNullOrWhiteSpace(meta.ISBN)
             ? null
-            : IsbnHelper.NormalizeIsbn(meta.Isbn!);
+            : IsbnHelper.NormalizeIsbn(meta.ISBN!);
 
-        var bookResult = DigitalBook.Create(
-            meta.Serie, meta.Title, normalizedIsbn, importJob.LibraryId,
-            finalPath, fileSize, meta.VolumeNumber, imageLink,
-            meta.Authors, meta.Publishers, meta.PublishDate,
-            meta.PageCount > 0 ? meta.PageCount : null);
+        var finalMeta = meta with { ImageLink = imageLink, ISBN = normalizedIsbn };
+        var bookResult = DigitalBook.Create(finalMeta, importJob.LibraryId, finalPath, fileSize);
 
         if (bookResult.IsFailure)
         {

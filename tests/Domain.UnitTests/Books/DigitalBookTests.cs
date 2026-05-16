@@ -15,7 +15,7 @@ public class DigitalBookTests
     public void Create_Should_ReturnSuccess_WhenAllParametersAreValid()
     {
         // Act
-        var result = DigitalBook.Create(DefaultSerie, DefaultTitle, DefaultIsbn, DefaultLibraryId, DefaultFilePath, DefaultFileSize);
+        var result = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -38,7 +38,7 @@ public class DigitalBookTests
     public void Create_Should_ReturnBadRequest_WhenSerieIsEmpty()
     {
         // Act
-        var result = DigitalBook.Create(string.Empty, DefaultTitle, DefaultIsbn, DefaultLibraryId, DefaultFilePath, DefaultFileSize);
+        var result = DigitalBook.Create(new BookMetadata(string.Empty, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -49,7 +49,7 @@ public class DigitalBookTests
     public void Create_Should_ReturnBadRequest_WhenSerieIsWhitespace()
     {
         // Act
-        var result = DigitalBook.Create("   ", DefaultTitle, DefaultIsbn, DefaultLibraryId, DefaultFilePath, DefaultFileSize);
+        var result = DigitalBook.Create(new BookMetadata("   ", DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -60,7 +60,7 @@ public class DigitalBookTests
     public void Create_Should_ReturnBadRequest_WhenTitleIsEmpty()
     {
         // Act
-        var result = DigitalBook.Create(DefaultSerie, string.Empty, DefaultIsbn, DefaultLibraryId, DefaultFilePath, DefaultFileSize);
+        var result = DigitalBook.Create(new BookMetadata(DefaultSerie, string.Empty, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -72,7 +72,7 @@ public class DigitalBookTests
     {
         // ISBN is optional for digital books (set during import metadata search)
         // Act
-        var result = DigitalBook.Create(DefaultSerie, DefaultTitle, string.Empty, DefaultLibraryId, DefaultFilePath, DefaultFileSize);
+        var result = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, string.Empty), DefaultLibraryId, DefaultFilePath, DefaultFileSize);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -83,7 +83,7 @@ public class DigitalBookTests
     public void Create_Should_ReturnBadRequest_WhenFilePathIsEmpty()
     {
         // Act
-        var result = DigitalBook.Create(DefaultSerie, DefaultTitle, DefaultIsbn, DefaultLibraryId, string.Empty, DefaultFileSize);
+        var result = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, string.Empty, DefaultFileSize);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -94,7 +94,7 @@ public class DigitalBookTests
     public void Create_Should_ReturnBadRequest_WhenFilePathIsWhitespace()
     {
         // Act
-        var result = DigitalBook.Create(DefaultSerie, DefaultTitle, DefaultIsbn, DefaultLibraryId, "   ", DefaultFileSize);
+        var result = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, "   ", DefaultFileSize);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -105,7 +105,7 @@ public class DigitalBookTests
     public void Create_Should_ReturnBadRequest_WhenLibraryIdIsEmpty()
     {
         // Act
-        var result = DigitalBook.Create(DefaultSerie, DefaultTitle, DefaultIsbn, Guid.Empty, DefaultFilePath, DefaultFileSize);
+        var result = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), Guid.Empty, DefaultFilePath, DefaultFileSize);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -116,7 +116,7 @@ public class DigitalBookTests
     public void Create_Should_ReturnBadRequest_WhenFileSizeIsZero()
     {
         // Act
-        var result = DigitalBook.Create(DefaultSerie, DefaultTitle, DefaultIsbn, DefaultLibraryId, DefaultFilePath, 0);
+        var result = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, 0);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -127,7 +127,7 @@ public class DigitalBookTests
     public void Create_Should_ReturnBadRequest_WhenFileSizeIsNegative()
     {
         // Act
-        var result = DigitalBook.Create(DefaultSerie, DefaultTitle, DefaultIsbn, DefaultLibraryId, DefaultFilePath, -1);
+        var result = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, -1);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -138,7 +138,7 @@ public class DigitalBookTests
     public void Create_Should_SetDefaultVolumeNumber_WhenNotProvided()
     {
         // Act
-        var result = DigitalBook.Create(DefaultSerie, DefaultTitle, DefaultIsbn, DefaultLibraryId, DefaultFilePath, DefaultFileSize);
+        var result = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -158,8 +158,8 @@ public class DigitalBookTests
 
         // Act
         var result = DigitalBook.Create(
-            DefaultSerie, DefaultTitle, DefaultIsbn, DefaultLibraryId, DefaultFilePath, DefaultFileSize,
-            volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages);
+            new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages),
+            DefaultLibraryId, DefaultFilePath, DefaultFileSize);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -175,8 +175,8 @@ public class DigitalBookTests
     public void Create_Should_GenerateNewId_EachCall()
     {
         // Act
-        var result1 = DigitalBook.Create(DefaultSerie, DefaultTitle, DefaultIsbn, DefaultLibraryId, DefaultFilePath, DefaultFileSize);
-        var result2 = DigitalBook.Create(DefaultSerie, DefaultTitle, DefaultIsbn, DefaultLibraryId, DefaultFilePath, DefaultFileSize);
+        var result1 = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize);
+        var result2 = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize);
 
         // Assert
         result1.IsSuccess.Should().BeTrue();

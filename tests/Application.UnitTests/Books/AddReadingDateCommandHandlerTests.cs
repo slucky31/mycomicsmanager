@@ -25,7 +25,7 @@ public class AddReadingDateCommandHandlerTests
     }
 
     private static PhysicalBook CreateBook()
-        => PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: s_libraryId).Value!;
+        => PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), s_libraryId).Value!;
 
     private static Library CreateLibrary(Guid userId)
         => Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, userId).Value!;

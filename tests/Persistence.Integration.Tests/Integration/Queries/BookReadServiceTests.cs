@@ -8,7 +8,7 @@ namespace Persistence.Tests.Integration.Queries;
 public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookReadServiceIntegrationTest(factory)
 {
     private PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1)
-        => PhysicalBook.Create(serie, title, isbn, volumeNumber, "", "", "", null, null, DefaultLibrary.Id).Value!;
+        => PhysicalBook.Create(new BookMetadata(serie, title, isbn, volumeNumber), DefaultLibrary.Id).Value!;
 
     private async Task SeedAsync(IEnumerable<PhysicalBook> books)
     {

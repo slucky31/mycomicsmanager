@@ -2,7 +2,6 @@ using Application.Abstractions.Messaging;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
 using Domain.Books;
-using Domain.Primitives;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Persistence.Services;

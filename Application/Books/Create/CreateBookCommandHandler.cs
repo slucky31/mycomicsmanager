@@ -55,8 +55,10 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         }
 
         // Create Book
-        var createResult = PhysicalBook.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink,
-            request.Authors, request.Publishers, request.PublishDate, request.NumberOfPages, request.LibraryId);
+        var metadata = new BookMetadata(request.Serie, request.Title, normalizedIsbn,
+            request.VolumeNumber, request.ImageLink, request.Authors, request.Publishers,
+            request.PublishDate, request.NumberOfPages);
+        var createResult = PhysicalBook.Create(metadata, request.LibraryId);
         if (createResult.IsFailure)
         {
             return createResult.Error!;

@@ -24,7 +24,7 @@ public class GetBooksQueryHandlerTests
     }
 
     private static PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
-        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, libraryId: Guid.CreateVersion7()).Value!;
+        => PhysicalBook.Create(new BookMetadata(serie, title, isbn, volumeNumber, imageLink), Guid.CreateVersion7()).Value!;
 
     private static Library CreateLibrary(Guid userId)
         => Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, userId).Value!;

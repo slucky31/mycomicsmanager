@@ -41,7 +41,7 @@ public class UpdateBookCommandHandlerTests
 
     private static PhysicalBook CreateBookWithId(Guid id, string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "")
     {
-        var book = PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, libraryId: s_testLibraryId).Value!;
+        var book = PhysicalBook.Create(new BookMetadata(serie, title, isbn, volumeNumber, imageLink), s_testLibraryId).Value!;
 
         // Use reflection to set the Id property
         // TODO :  Consider adding a test-specific factory method or constructor in the test project (e.g., via internal visibility or a test helper) to create Book instances with specific IDs for testing purposes.

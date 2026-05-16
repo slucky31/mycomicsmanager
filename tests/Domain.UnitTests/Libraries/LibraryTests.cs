@@ -248,7 +248,7 @@ public class LibraryTests
     {
         // Arrange
         var library = Library.Create("Comics", "#5C6BC0", "Book", LibraryBookType.Physical, DefaultUserId).Value!;
-        var physicalBook = PhysicalBook.Create("Series", "Title", "isbn", libraryId: library.Id).Value!;
+        var physicalBook = PhysicalBook.Create(new BookMetadata("Series", "Title", "isbn"), library.Id).Value!;
 
         // Act
         var result = library.CanContain(physicalBook);
@@ -291,7 +291,7 @@ public class LibraryTests
     {
         // Arrange
         var library = Library.Create("eBooks", "#5C6BC0", "Book", LibraryBookType.Digital, DefaultUserId).Value!;
-        var physicalBook = PhysicalBook.Create("Series", "Title", "isbn", libraryId: library.Id).Value!;
+        var physicalBook = PhysicalBook.Create(new BookMetadata("Series", "Title", "isbn"), library.Id).Value!;
 
         // Act
         var result = library.CanContain(physicalBook);

@@ -12,7 +12,7 @@ public class DeleteBookCommandHandlerTests
     private static readonly Guid s_bookId = Guid.CreateVersion7();
     private static readonly Guid s_libraryId = Guid.CreateVersion7();
     private static readonly DeleteBookCommand s_command = new(s_bookId, s_userId);
-    private static readonly Book s_existingBook = PhysicalBook.Create("Test Serie", "Test Title", "978-3-16-148410-0", libraryId: s_libraryId).Value!;
+    private static readonly Book s_existingBook = PhysicalBook.Create(new BookMetadata("Test Serie", "Test Title", "978-3-16-148410-0"), s_libraryId).Value!;
 
     private readonly DeleteBookCommandHandler _handler;
     private readonly IBookRepository _bookRepositoryMock;
@@ -223,7 +223,7 @@ public class DeleteBookCommandHandlerTests
     {
         // Arrange
         const string filePath = "/data/cbz/comic.cbz";
-        var digitalBook = DigitalBook.Create("Serie", "Title", null, s_libraryId, filePath, 1024).Value!;
+        var digitalBook = DigitalBook.Create(new BookMetadata("Serie", "Title", null), s_libraryId, filePath, 1024).Value!;
         var command = new DeleteBookCommand(digitalBook.Id, s_userId);
         _bookRepositoryMock.GetByIdAsync(digitalBook.Id).Returns(digitalBook);
         _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));

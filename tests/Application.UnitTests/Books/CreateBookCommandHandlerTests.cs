@@ -179,7 +179,7 @@ public class CreateBookCommandHandlerTests
     public async Task Handle_ShouldReturnDuplicate_WhenBookWithSameISBNAlreadyExists()
     {
         // Arrange
-        var existingBook = PhysicalBook.Create(s_validCommand.Serie, s_validCommand.Title, s_validCommand.ISBN, libraryId: s_libraryId).Value!;
+        var existingBook = PhysicalBook.Create(new BookMetadata(s_validCommand.Serie, s_validCommand.Title, s_validCommand.ISBN), s_libraryId).Value!;
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(s_validCommand.ISBN);
         _bookRepositoryMock.GetByIsbnAsync(Arg.Is<string>(s => s == normalizedIsbn), Arg.Any<CancellationToken>()).Returns(existingBook);
 

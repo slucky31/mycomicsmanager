@@ -78,7 +78,7 @@ public sealed class GetBookQueryHandlerTests
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
-        var expectedBook = PhysicalBook.Create("Test Serie", "Test Title", "978-3-16-148410-0", 1, "https://example.com/image.jpg", libraryId: Guid.CreateVersion7()).Value!;
+        var expectedBook = PhysicalBook.Create(new BookMetadata("Test Serie", "Test Title", "978-3-16-148410-0", 1, "https://example.com/image.jpg"), Guid.CreateVersion7()).Value!;
         var query = new GetBookByIdQuery(bookId, s_userId);
         var library = CreateLibrary(s_userId);
         _bookRepository.GetByIdAsync(bookId).Returns(expectedBook);
@@ -104,7 +104,7 @@ public sealed class GetBookQueryHandlerTests
     {
         // Arrange
         var specificId = Guid.CreateVersion7();
-        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
+        var book = PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), Guid.CreateVersion7()).Value!;
         var query = new GetBookByIdQuery(specificId, s_userId);
         var library = CreateLibrary(s_userId);
         _bookRepository.GetByIdAsync(specificId).Returns(book);
@@ -126,7 +126,7 @@ public sealed class GetBookQueryHandlerTests
         var ownerId = Guid.CreateVersion7();
         var requestingUserId = Guid.CreateVersion7();
         var libraryId = Guid.CreateVersion7();
-        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: libraryId).Value!;
+        var book = PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), libraryId).Value!;
         var library = CreateLibrary(ownerId);
         var query = new GetBookByIdQuery(bookId, UserId: requestingUserId);
 
@@ -148,7 +148,7 @@ public sealed class GetBookQueryHandlerTests
         var userId = Guid.CreateVersion7();
         var bookId = Guid.CreateVersion7();
         var libraryId = Guid.CreateVersion7();
-        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: libraryId).Value!;
+        var book = PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), libraryId).Value!;
         var library = CreateLibrary(userId);
         var query = new GetBookByIdQuery(bookId, UserId: userId);
 

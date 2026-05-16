@@ -32,26 +32,17 @@ public abstract class Book : Entity<Guid>
 
     protected Book() { }
 
-    public void Update(
-        string series,
-        string title,
-        string? isbn,
-        int volumeNumber,
-        string imageLink,
-        string authors = "",
-        string publishers = "",
-        DateOnly? publishDate = null,
-        int? numberOfPages = null)
+    public void Update(BookMetadata metadata)
     {
-        Serie = series;
-        Title = title;
-        ISBN = isbn;
-        VolumeNumber = volumeNumber;
-        ImageLink = imageLink;
-        Authors = authors;
-        Publishers = publishers;
-        PublishDate = publishDate;
-        NumberOfPages = numberOfPages;
+        Serie = metadata.Serie;
+        Title = metadata.Title;
+        ISBN = metadata.ISBN;
+        VolumeNumber = metadata.VolumeNumber;
+        ImageLink = metadata.ImageLink;
+        Authors = metadata.Authors;
+        Publishers = metadata.Publishers;
+        PublishDate = metadata.PublishDate;
+        NumberOfPages = metadata.NumberOfPages;
     }
 
     public ReadingDate AddReadingDate(DateTime date, int rating)

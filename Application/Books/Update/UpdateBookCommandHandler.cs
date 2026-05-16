@@ -52,8 +52,9 @@ public sealed class UpdateBookCommandHandler(
             return BooksError.Duplicate;
         }
 
-        book.Update(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink,
-            request.Authors, request.Publishers, request.PublishDate, request.NumberOfPages);
+        book.Update(new BookMetadata(request.Serie, request.Title, normalizedIsbn,
+            request.VolumeNumber, request.ImageLink, request.Authors, request.Publishers,
+            request.PublishDate, request.NumberOfPages));
 
         bookRepository.Update(book);
         await unitOfWork.SaveChangesAsync(cancellationToken);
