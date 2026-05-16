@@ -120,8 +120,8 @@ public sealed class ProcessImportJobCommandHandler(
             { return archiveResult.Error!; }
 
             return await CompleteStepAsync(
-                importJob, metaResult.Value!, archiveResult.Value.FinalPath,
-                archiveResult.Value.FileSize, imageLink, ct);
+                importJob, metaResult.Value!, archiveResult.Value.OutputPath,
+                archiveResult.Value.FinalPath, archiveResult.Value.FileSize, imageLink, ct);
         }
         catch (OperationCanceledException ex) { return await HandleUnexpectedExceptionAsync(ex); }
         catch (IOException ex)               { return await HandleUnexpectedExceptionAsync(ex); }
@@ -324,7 +324,7 @@ public sealed class ProcessImportJobCommandHandler(
 
     // ── Step 6: BuildingArchive ───────────────────────────────────────────────
 
-    private async Task<Result<(string FinalPath, long FileSize)>> BuildArchiveStepAsync(
+    private async Task<Result<(string OutputPath, string FinalPath, long FileSize)>> BuildArchiveStepAsync(
         ImportJob importJob,
         Library library,
         string? isbn,
@@ -354,9 +354,9 @@ public sealed class ProcessImportJobCommandHandler(
         {
             return await FailJobAsync(importJob, "BuildingArchive", ImportJobError.BadRequest, ct);
         }
-        File.Move(outputPath, finalPath, overwrite: true);
 
-        return (finalPath, buildResult.Value!.FileSize);
+        // File.Move is deferred to CompleteStepAsync so domain validation runs first.
+        return (outputPath, finalPath, buildResult.Value!.FileSize);
     }
 
     // ── Step 7: Completed ─────────────────────────────────────────────────────
@@ -364,6 +364,7 @@ public sealed class ProcessImportJobCommandHandler(
     private async Task<Result<DigitalBook>> CompleteStepAsync(
         ImportJob importJob,
         BookMetadata meta,
+        string outputPath,
         string finalPath,
         long fileSize,
         string imageLink,
@@ -374,19 +375,31 @@ public sealed class ProcessImportJobCommandHandler(
             : IsbnHelper.NormalizeIsbn(meta.ISBN!);
 
         var finalMeta = meta with { ImageLink = imageLink, ISBN = normalizedIsbn };
-        var bookResult = DigitalBook.Create(finalMeta, importJob.LibraryId, finalPath, fileSize);
 
+        // Domain validation before any file-system side effect.
+        var bookResult = DigitalBook.Create(finalMeta, importJob.LibraryId, finalPath, fileSize);
         if (bookResult.IsFailure)
         {
             return await FailJobAsync(importJob, "Completed", bookResult.Error!, ct);
         }
 
         var digitalBook = bookResult.Value!;
-        repositories.Books.Add(digitalBook);
 
+        File.Move(outputPath, finalPath, overwrite: true);
+
+        repositories.Books.Add(digitalBook);
         importJob.Complete(digitalBook.Id);
         repositories.ImportJobs.Update(importJob);
-        await repositories.UnitOfWork.SaveChangesAsync(ct);
+
+        var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
+        if (saveResult.IsFailure)
+        {
+            // Compensate: remove the file that was already moved so the library stays consistent.
+            try { File.Delete(finalPath); }
+            catch (IOException ex) { Log.Error(ex, "Compensation failed: could not delete {FinalPath} after DB save failure for job {JobId}", finalPath, importJob.Id); }
+
+            return await FailJobAsync(importJob, "Completed", saveResult.Error!, ct);
+        }
 
         return digitalBook;
     }
