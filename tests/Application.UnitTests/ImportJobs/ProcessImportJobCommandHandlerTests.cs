@@ -628,6 +628,23 @@ public class ProcessImportJobCommandHandlerTests
         _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
     }
 
+    [Fact]
+    public async Task Handle_Should_PropagateException_WhenOperationIsCancelled()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+
+        _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
+        _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new OperationCanceledException());
+
+        var action = async () => await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        await action.Should().ThrowAsync<OperationCanceledException>();
+        _importJobRepository.DidNotReceive().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+    }
+
     // ── PDF extraction failure ────────────────────────────────────────────────
 
     [Fact]

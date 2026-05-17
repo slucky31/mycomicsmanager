@@ -105,7 +105,7 @@ public sealed class ProcessImportJobCommandHandler(
             return await CompleteStepAsync(
                 importJob, library, metaResult.Value!, archiveResult.Value, imageLink, ct);
         }
-        catch (Exception ex) when (ex is OperationCanceledException or IOException or InvalidOperationException or UnauthorizedAccessException or HttpRequestException or InvalidDataException)
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException or HttpRequestException or InvalidDataException)
         { return await HandleUnexpectedExceptionAsync(importJob, ex, ct); }
     }
 
