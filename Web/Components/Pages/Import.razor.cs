@@ -30,6 +30,7 @@ public partial class Import : IAsyncDisposable
     private string? _loadError;
 
     private System.Threading.Timer? _pollTimer;
+    private readonly CancellationTokenSource _pollingCts = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,7 +86,7 @@ public partial class Import : IAsyncDisposable
         var capturedLibraryId = libraryId;
         try
         {
-            var result = await ImportService.GetImportJobsAsync(capturedLibraryId);
+            var result = await ImportService.GetImportJobsAsync(capturedLibraryId, _pollingCts.Token);
 
             if (_selectedLibraryId != capturedLibraryId)
             {
@@ -190,8 +191,12 @@ public partial class Import : IAsyncDisposable
 
     private async Task PollJobsAsync()
     {
+        if (_pollingCts.IsCancellationRequested)
+        {
+            return;
+        }
         var capturedLibraryId = _selectedLibraryId;
-        var result = await ImportService.GetImportJobsAsync(capturedLibraryId);
+        var result = await ImportService.GetImportJobsAsync(capturedLibraryId, _pollingCts.Token);
 
         if (_selectedLibraryId != capturedLibraryId)
         {
@@ -300,7 +305,8 @@ public partial class Import : IAsyncDisposable
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
     public async ValueTask DisposeAsync()
     {
+        await _pollingCts.CancelAsync();
+        _pollingCts.Dispose();
         StopPolling();
-        await Task.CompletedTask;
     }
 }
