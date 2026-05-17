@@ -235,7 +235,8 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateJpegAsync(Path.Combine(sourceDir, "page-003.jpg"));
 
         var progressReports = new List<ImageConversionProgress>();
-        Task OnProgress(ImageConversionProgress p) { progressReports.Add(p); return Task.CompletedTask; }
+        Task OnProgress(ImageConversionProgress p)
+        { progressReports.Add(p); return Task.CompletedTask; }
 
         // Act
         await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: OnProgress, TestContext.Current.CancellationToken);
@@ -256,7 +257,8 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 1400, height: 2100);
 
         var progressInvoked = false;
-        Task OnProgress(ImageConversionProgress _) { progressInvoked = true; return Task.CompletedTask; }
+        Task OnProgress(ImageConversionProgress _)
+        { progressInvoked = true; return Task.CompletedTask; }
 
         // Act
         await _service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: OnProgress, TestContext.Current.CancellationToken);

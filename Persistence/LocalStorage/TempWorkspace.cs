@@ -65,7 +65,8 @@ internal sealed class TempWorkspace : ITempWorkspace
 
     public void TryDeleteFile(string path)
     {
-        try { File.Delete(path); }
+        try
+        { File.Delete(path); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Serilog.Log.Error(ex, "Compensation failed: could not delete {Path}", path);
@@ -78,7 +79,8 @@ internal sealed class TempWorkspace : ITempWorkspace
         {
             return;
         }
-        try { Directory.Delete(dir, true); }
+        try
+        { Directory.Delete(dir, true); }
         catch (IOException ex) { Serilog.Log.Warning(ex, "Could not delete temp directory {Dir}", dir); }
         catch (UnauthorizedAccessException ex) { Serilog.Log.Warning(ex, "Could not delete temp directory {Dir}", dir); }
     }

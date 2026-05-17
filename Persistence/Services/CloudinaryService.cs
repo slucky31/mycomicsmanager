@@ -10,6 +10,10 @@ public class CloudinaryService : ICloudinaryService
 {
     private static Serilog.ILogger Log => Serilog.Log.ForContext<CloudinaryService>();
 
+    private static readonly HashSet<string> s_allowedCoverHosts =
+        new(["www.bedetheque.com", "books.google.com", "books.googleusercontent.com", "covers.openlibrary.org"],
+            StringComparer.OrdinalIgnoreCase);
+
     private readonly Cloudinary _cloudinary;
 
     public CloudinaryService(IOptions<CloudinarySettings> settings)
@@ -26,6 +30,13 @@ public class CloudinaryService : ICloudinaryService
         string publicId,
         CancellationToken cancellationToken = default)
     {
+        if (sourceUrl.Scheme != Uri.UriSchemeHttps || !s_allowedCoverHosts.Contains(sourceUrl.Host))
+        {
+            Log.Warning("SSRF guard blocked Cloudinary upload from {SourceUrl}", sourceUrl);
+            return new CloudinaryUploadResult(null, null, false,
+                $"URL host '{sourceUrl.Host}' is not in the allowed list.");
+        }
+
         Log.Information("Uploading image to Cloudinary from {SourceUrl} to folder {Folder}", sourceUrl, folder);
 
         var uploadParams = CreateUploadParams(

@@ -1184,7 +1184,7 @@ public sealed class BooksServiceTests
     public async Task GetPagedByLibrary_ShouldReturnValidationError_WhenLibraryIdIsEmpty()
     {
         // Act
-        var result = await _service.GetPagedByLibrary(Guid.Empty, 1, 24, BookSortOrder.IdDesc, null,TestContext.Current.CancellationToken);
+        var result = await _service.GetPagedByLibrary(Guid.Empty, 1, 24, BookSortOrder.IdDesc, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

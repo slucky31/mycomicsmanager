@@ -45,7 +45,7 @@ public record ImportJobViewModel(
             ? $"{ConvertedImagesCount}/{TotalImagesToConvert} images converties"
             : null;
 
-    public string FileSizeDisplay=> OriginalFileSize switch
+    public string FileSizeDisplay => OriginalFileSize switch
     {
         >= 1_073_741_824 => $"{OriginalFileSize / 1_073_741_824.0:F1} Go",
         >= 1_048_576 => $"{OriginalFileSize / 1_048_576.0:F1} Mo",
@@ -74,7 +74,8 @@ public record ImportJobViewModel(
         return $"{(int)duration.TotalHours}h {duration.Minutes}m";
     }
 
-    private static string GetStatusDisplay(ImportJobStatus status) => status switch    {
+    private static string GetStatusDisplay(ImportJobStatus status) => status switch
+    {
         ImportJobStatus.Pending => "En attente",
         ImportJobStatus.Extracting => "Extraction...",
         ImportJobStatus.Converting => "Conversion images...",

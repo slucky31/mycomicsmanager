@@ -48,7 +48,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test", TestContext.Current.CancellationToken);
+            new Uri("https://covers.openlibrary.org/b/id/123-L.jpg"), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeTrue();
@@ -72,7 +72,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test", TestContext.Current.CancellationToken);
+            new Uri("https://covers.openlibrary.org/b/id/123-L.jpg"), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -90,7 +90,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test", TestContext.Current.CancellationToken);
+            new Uri("https://covers.openlibrary.org/b/id/123-L.jpg"), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -107,7 +107,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://example.com/image.jpg"), "covers", "test", CancellationToken.None);
+            new Uri("https://covers.openlibrary.org/b/id/123-L.jpg"), "covers", "test", CancellationToken.None);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -193,6 +193,44 @@ public class CloudinaryServiceTests
         // Assert
         result.Success.Should().BeFalse();
         result.Error.Should().Be("Upload timeout");
+    }
+
+    [Fact]
+    public async Task UploadImageFromUrlAsync_Should_ReturnFailure_WhenSchemeIsHttp()
+    {
+        var settings = Options.Create(new CloudinarySettings
+        {
+            CloudName = "testcloud",
+            ApiKey = "test-api-key",
+            ApiSecret = "test-api-secret"
+        });
+        var service = new CloudinaryService(settings);
+
+        var result = await service.UploadImageFromUrlAsync(
+            new Uri("http://covers.openlibrary.org/b/id/1-L.jpg"), "covers", "test",
+            TestContext.Current.CancellationToken);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Contain("not in the allowed list");
+    }
+
+    [Fact]
+    public async Task UploadImageFromUrlAsync_Should_ReturnFailure_WhenHostNotAllowed()
+    {
+        var settings = Options.Create(new CloudinarySettings
+        {
+            CloudName = "testcloud",
+            ApiKey = "test-api-key",
+            ApiSecret = "test-api-secret"
+        });
+        var service = new CloudinaryService(settings);
+
+        var result = await service.UploadImageFromUrlAsync(
+            new Uri("https://example.com/image.jpg"), "covers", "test",
+            TestContext.Current.CancellationToken);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Contain("not in the allowed list");
     }
 
     private sealed class StaticResponseHandler(HttpResponseMessage response) : HttpMessageHandler

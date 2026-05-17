@@ -40,7 +40,7 @@ public sealed class ImportComponentTests
                 capturedToken = callInfo.Arg<CancellationToken>();
                 return Task.FromResult(
                     Result<IReadOnlyList<ImportJobViewModel>>.Success(
-                        (IReadOnlyList<ImportJobViewModel>)Array.Empty<ImportJobViewModel>()));
+                        (IReadOnlyList<ImportJobViewModel>)[]));
             });
 
         await using var ctx = new BunitContext();
