@@ -15,7 +15,6 @@ public sealed class ProcessImportJobCommandHandler(
     : ICommandHandler<ProcessImportJobCommand, DigitalBook>
 {
     private static Serilog.ILogger Log => Serilog.Log.ForContext<ProcessImportJobCommandHandler>();
-    private readonly ImportSettings _settings = externalServices.Settings.Value;
 
     public async Task<Result<DigitalBook>> Handle(ProcessImportJobCommand request, CancellationToken cancellationToken)
     {
@@ -52,9 +51,7 @@ public sealed class ProcessImportJobCommandHandler(
             return LibrariesError.NotFound;
         }
 
-        var tempDir = Path.Combine(_settings.TempDirectory, importJob.Id.ToString());
-        var rawDir = Path.Combine(tempDir, "raw");
-        var convertedDir = Path.Combine(tempDir, "converted");
+        var (tempDir, rawDir, convertedDir) = externalServices.TempWorkspace.CreateScratch(importJob.Id);
 
         Result<DigitalBook>? pipelineResult = null;
         try
@@ -64,7 +61,7 @@ public sealed class ProcessImportJobCommandHandler(
         }
         finally
         {
-            CleanupTempDirectory(tempDir);
+            externalServices.TempWorkspace.CleanupDirectory(tempDir);
             HandleOriginalFile(importJob.OriginalFilePath, pipelineResult?.IsSuccess == true);
         }
     }
@@ -99,13 +96,13 @@ public sealed class ProcessImportJobCommandHandler(
                 importJob, metaResult.Value!.ISBN, convertedDir, ct);
 
             var archiveResult = await BuildArchiveStepAsync(
-                importJob, library, metaResult.Value!.ISBN, convertedDir, tempDir, ct);
+                importJob, metaResult.Value!.ISBN, convertedDir, tempDir, ct);
             if (archiveResult.IsFailure)
             { return archiveResult.Error!; }
 
             return await CompleteStepAsync(
-                importJob, metaResult.Value!, archiveResult.Value.OutputPath,
-                archiveResult.Value.FinalPath, archiveResult.Value.FileSize, imageLink, ct);
+                importJob, library, metaResult.Value!, archiveResult.Value.OutputPath,
+                archiveResult.Value.OutputFileName, archiveResult.Value.FileSize, imageLink, ct);
         }
         catch (Exception ex) when (ex is OperationCanceledException or IOException or InvalidOperationException or UnauthorizedAccessException or HttpRequestException or InvalidDataException)
         { return await HandleUnexpectedExceptionAsync(importJob, ex, ct); }
@@ -116,22 +113,9 @@ public sealed class ProcessImportJobCommandHandler(
     private async Task<TError?> EnsureDiskSpaceAsync(ImportJob importJob, CancellationToken ct)
     {
         var requiredBytes = importJob.OriginalFileSize * 3;
-        try
+        if (!externalServices.TempWorkspace.HasFreeSpace(requiredBytes))
         {
-            var driveRoot = Path.GetPathRoot(_settings.TempDirectory) ?? "/";
-            var drive = new DriveInfo(driveRoot);
-            if (drive.AvailableFreeSpace < requiredBytes)
-            {
-                return await FailJobAsync(importJob, "Init", ImportJobError.InsufficientDiskSpace, ct);
-            }
-        }
-        catch (IOException ex)
-        {
-            Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _settings.TempDirectory);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _settings.TempDirectory);
+            return await FailJobAsync(importJob, "Init", ImportJobError.InsufficientDiskSpace, ct);
         }
         return null;
     }
@@ -294,12 +278,7 @@ public sealed class ProcessImportJobCommandHandler(
     {
         await AdvanceAndSaveAsync(importJob, ImportJobStatus.UploadingCover, ct);
 
-        var coverFiles = Directory.Exists(convertedDir)
-            ? Directory.GetFiles(convertedDir, "*.webp")
-                .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
-                .ToList()
-            : [];
-
+        var coverFiles = externalServices.TempWorkspace.GetWebpFiles(convertedDir);
         if (coverFiles.Count == 0)
         {
             return string.Empty;
@@ -320,9 +299,8 @@ public sealed class ProcessImportJobCommandHandler(
 
     // ── Step 6: BuildingArchive ───────────────────────────────────────────────
 
-    private async Task<Result<(string OutputPath, string FinalPath, long FileSize)>> BuildArchiveStepAsync(
+    private async Task<Result<(string OutputPath, string OutputFileName, long FileSize)>> BuildArchiveStepAsync(
         ImportJob importJob,
-        Library library,
         string? isbn,
         string convertedDir,
         string tempDir,
@@ -342,26 +320,17 @@ public sealed class ProcessImportJobCommandHandler(
             return await FailJobAsync(importJob, "BuildingArchive", buildResult.Error!, ct);
         }
 
-        var libraryDir = Path.Combine(externalServices.LibraryStorage.rootPath, library.RelativePath);
-        Directory.CreateDirectory(libraryDir);
-        var finalPath = Path.Combine(libraryDir, Path.GetFileName(outputFileName));
-        var normalizedLibraryDir = Path.GetFullPath(libraryDir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        if (!Path.GetFullPath(finalPath).StartsWith(normalizedLibraryDir, StringComparison.OrdinalIgnoreCase))
-        {
-            return await FailJobAsync(importJob, "BuildingArchive", ImportJobError.BadRequest, ct);
-        }
-
-        // File.Move is deferred to CompleteStepAsync so domain validation runs first.
-        return (outputPath, finalPath, buildResult.Value!.FileSize);
+        return (outputPath, outputFileName, buildResult.Value!.FileSize);
     }
 
     // ── Step 7: Completed ─────────────────────────────────────────────────────
 
     private async Task<Result<DigitalBook>> CompleteStepAsync(
         ImportJob importJob,
+        Library library,
         BookMetadata meta,
         string outputPath,
-        string finalPath,
+        string outputFileName,
         long fileSize,
         string imageLink,
         CancellationToken ct)
@@ -373,15 +342,27 @@ public sealed class ProcessImportJobCommandHandler(
         var finalMeta = meta with { ImageLink = imageLink, ISBN = normalizedIsbn };
 
         // Domain validation before any file-system side effect.
+        if (string.IsNullOrWhiteSpace(finalMeta.Serie) || string.IsNullOrWhiteSpace(finalMeta.Title) || fileSize <= 0)
+        {
+            return await FailJobAsync(importJob, "Completed", BooksError.BadRequest, ct);
+        }
+
+        var moveResult = externalServices.TempWorkspace.MoveToLibrary(outputPath, library.RelativePath, outputFileName);
+        if (moveResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, "Completed", moveResult.Error!, ct);
+        }
+        var finalPath = moveResult.Value!;
+
         var bookResult = DigitalBook.Create(finalMeta, importJob.LibraryId, finalPath, fileSize);
         if (bookResult.IsFailure)
         {
+            // Pre-validation above guarantees this path is unreachable in practice; compensate defensively.
+            externalServices.TempWorkspace.TryDeleteFile(finalPath);
             return await FailJobAsync(importJob, "Completed", bookResult.Error!, ct);
         }
 
         var digitalBook = bookResult.Value!;
-
-        File.Move(outputPath, finalPath, overwrite: true);
 
         repositories.Books.Add(digitalBook);
         importJob.Complete(digitalBook.Id);
@@ -391,9 +372,7 @@ public sealed class ProcessImportJobCommandHandler(
         if (saveResult.IsFailure)
         {
             // Compensate: remove the file that was already moved so the library stays consistent.
-            try { File.Delete(finalPath); }
-            catch (IOException ex) { Log.Error(ex, "Compensation failed: could not delete {FinalPath} after DB save failure for job {JobId}", finalPath, importJob.Id); }
-
+            externalServices.TempWorkspace.TryDeleteFile(finalPath);
             return await FailJobAsync(importJob, "Completed", saveResult.Error!, ct);
         }
 
@@ -430,23 +409,5 @@ public sealed class ProcessImportJobCommandHandler(
                 importJob.Id, saveResult.Error?.Description);
         }
         return error;
-    }
-
-    private static void CleanupTempDirectory(string tempDir)
-    {
-        if (!Directory.Exists(tempDir))
-        { return; }
-        try
-        {
-            Directory.Delete(tempDir, true);
-        }
-        catch (IOException ex)
-        {
-            Serilog.Log.Warning(ex, "Could not delete temp directory {Dir}", tempDir);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            Serilog.Log.Warning(ex, "Could not delete temp directory {Dir}", tempDir);
-        }
     }
 }

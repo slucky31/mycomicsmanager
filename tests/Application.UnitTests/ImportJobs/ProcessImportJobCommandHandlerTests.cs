@@ -1,12 +1,10 @@
 using Application.ImportJobs;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
-using Application.Libraries;
 using Domain.Books;
 using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Primitives;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
@@ -26,7 +24,7 @@ public class ProcessImportJobCommandHandlerTests
     private readonly ICloudinaryService _cloudinaryService;
     private readonly IBookRepository _bookRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ILibraryLocalStorage _libraryLocalStorage;
+    private readonly ITempWorkspace _tempWorkspace;
     private readonly IImportDirectoryStorage _importDirectoryStorage;
 
     private static readonly Guid s_userId = Guid.CreateVersion7();
@@ -45,12 +43,25 @@ public class ProcessImportJobCommandHandlerTests
         _cloudinaryService = Substitute.For<ICloudinaryService>();
         _bookRepository = Substitute.For<IBookRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _libraryLocalStorage = Substitute.For<ILibraryLocalStorage>();
+        _tempWorkspace = Substitute.For<ITempWorkspace>();
         _importDirectoryStorage = Substitute.For<IImportDirectoryStorage>();
 
         _importDirectoryStorage.DeleteOriginalFile(Arg.Any<string>()).Returns(Result.Success());
         _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>()).Returns(Result.Success());
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(0));
+
+        _tempWorkspace.HasFreeSpace(Arg.Any<long>()).Returns(true);
+        _tempWorkspace.CreateScratch(Arg.Any<Guid>()).Returns(callInfo =>
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), callInfo.Arg<Guid>().ToString());
+            return (TempDir: tempDir,
+                    RawDir: Path.Combine(tempDir, "raw"),
+                    ConvertedDir: Path.Combine(tempDir, "converted"));
+        });
+        _tempWorkspace.GetWebpFiles(Arg.Any<string>()).Returns(["cover.webp"]);
+        _tempWorkspace.MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+            .Returns(callInfo => Result<string>.Success(
+                Path.Combine(Path.GetTempPath(), "library", callInfo.ArgAt<string>(2))));
 
         _handler = new ProcessImportJobCommandHandler(
             new ProcessImportJobRepositories(
@@ -58,8 +69,7 @@ public class ProcessImportJobCommandHandlerTests
             new ProcessImportJobFileProcessors(
                 _archiveExtractor, _pdfImageExtractor, _imageProcessor, _archiveBuilder, _comicInfoXmlService),
             new ProcessImportJobExternalServices(
-                _comicSearchService, _cloudinaryService, _libraryLocalStorage, _importDirectoryStorage,
-                Options.Create(new ImportSettings { TempDirectory = Path.GetTempPath() })));
+                _comicSearchService, _cloudinaryService, _tempWorkspace, _importDirectoryStorage));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -74,7 +84,6 @@ public class ProcessImportJobCommandHandlerTests
     {
         var lib = Library.Create("Digital", "#000", "Icon", LibraryBookType.Digital, s_userId).Value!;
         _libraryRepository.GetByIdAsync(libraryId).Returns(lib);
-        _libraryLocalStorage.rootPath.Returns(Path.GetTempPath());
         return lib;
     }
 
@@ -100,15 +109,8 @@ public class ProcessImportJobCommandHandlerTests
         _imageProcessor.ProcessImagesAsync(
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
             Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>())
-            .Returns(info =>
-            {
-                // Create the converted directory and a dummy cover so downstream steps can proceed
-                var destDir = info.ArgAt<string>(1);
-                Directory.CreateDirectory(destDir);
-                File.WriteAllBytes(Path.Combine(destDir, "page-001.webp"), []);
-                return Task.FromResult(Result<ImageProcessingResult>.Success(
-                    new ImageProcessingResult(processedCount, skippedCount, allAlreadyWebp)));
-            });
+            .Returns(Task.FromResult(Result<ImageProcessingResult>.Success(
+                new ImageProcessingResult(processedCount, skippedCount, allAlreadyWebp))));
     }
 
     private void SetupArchiveBuilder(long fileSize = 5120, int pageCount = 3)
@@ -116,10 +118,7 @@ public class ProcessImportJobCommandHandlerTests
         _archiveBuilder.BuildAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(info =>
             {
-                // Create the output file so File.Move in the handler succeeds
                 var destPath = info.ArgAt<string>(1);
-                Directory.CreateDirectory(Path.GetDirectoryName(destPath)!);
-                File.WriteAllBytes(destPath, []);
                 return Task.FromResult(Result<ComicArchiveResult>.Success(
                     new ComicArchiveResult(destPath, fileSize, pageCount)));
             });
@@ -596,19 +595,12 @@ public class ProcessImportJobCommandHandlerTests
         _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
         CreateDigitalLibrary(job.LibraryId);
         SetupArchiveExtractor(job, []);
-
-        _imageProcessor.ProcessImagesAsync(
-            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
-            Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>())
-            .Returns(info =>
-            {
-                Directory.CreateDirectory(info.ArgAt<string>(1));
-                return Task.FromResult(Result<ImageProcessingResult>.Success(new ImageProcessingResult(0, 0, true)));
-            });
-
+        SetupImageProcessor(0, 0, allAlreadyWebp: true);
         SetupComicInfoXml();
         SetupArchiveBuilder();
         SetupNoMetadataSearch();
+
+        _tempWorkspace.GetWebpFiles(Arg.Any<string>()).Returns([]);
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
