@@ -8,7 +8,7 @@ public sealed class DigitalBook : Book
 
     public long FileSize { get; private set; }
 
-    public DigitalBook() { }
+    private DigitalBook() { }
 
     public static Result<DigitalBook> Create(
         BookMetadata metadata,
