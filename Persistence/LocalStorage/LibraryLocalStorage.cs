@@ -24,7 +24,8 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         {
             var normalizedRoot = Path.GetFullPath(rootPath);
             var fullPath = Path.GetFullPath(Path.Combine(rootPath, folderName));
-            if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+            if (!fullPath.StartsWith(normalizedRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                && !fullPath.Equals(normalizedRoot, StringComparison.OrdinalIgnoreCase))
             {
                 return LibraryLocalStorageError.InvalidPath;
             }

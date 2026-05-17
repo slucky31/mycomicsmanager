@@ -5,6 +5,7 @@ using Application.ImportJobs.ForceFail;
 using Application.ImportJobs.GetById;
 using Application.ImportJobs.List;
 using Application.Interfaces;
+using Domain.ImportJobs;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Options;
@@ -77,6 +78,12 @@ public class ImportService(
         Directory.CreateDirectory(importDir);
 
         var safeFileName = Path.GetFileName(file.Name);
+        var extension = Path.GetExtension(safeFileName);
+        if (!_settings.SupportedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+        {
+            return ImportJobError.BadRequest;
+        }
+
         var destPath = Path.Combine(importDir, $"{Guid.CreateVersion7()}_{safeFileName}");
 
         const long bytesPerMb = 1024L * 1024;
