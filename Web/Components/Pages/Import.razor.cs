@@ -83,28 +83,33 @@ public partial class Import : IAsyncDisposable
         StateHasChanged();
 
         var capturedLibraryId = libraryId;
-        var result = await ImportService.GetImportJobsAsync(capturedLibraryId);
+        try
+        {
+            var result = await ImportService.GetImportJobsAsync(capturedLibraryId);
 
-        if (_selectedLibraryId != capturedLibraryId)
+            if (_selectedLibraryId != capturedLibraryId)
+            {
+                return;
+            }
+
+            if (result.IsSuccess)
+            {
+                _jobs = result.Value!.OrderByDescending(j => j.CreatedAt).ToList();
+                _lastLoadedLibraryId = capturedLibraryId;
+            }
+            else if (result.IsFailure)
+            {
+                _jobs = [];
+                Log.Error("Import: failed to load jobs for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
+            }
+
+            StartPollingIfNeeded();
+        }
+        finally
         {
             _isLoadingJobs = false;
-            return;
+            StateHasChanged();
         }
-
-        if (result.IsSuccess)
-        {
-            _jobs = result.Value!.OrderByDescending(j => j.CreatedAt).ToList();
-            _lastLoadedLibraryId = capturedLibraryId;
-        }
-        else if (result.IsFailure)
-        {
-            _jobs = [];
-            Log.Error("Import: failed to load jobs for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
-        }
-
-        _isLoadingJobs = false;
-        StartPollingIfNeeded();
-        StateHasChanged();
     }
 
     private async Task OnLibraryChangedAsync(Guid newLibraryId)
@@ -126,34 +131,39 @@ public partial class Import : IAsyncDisposable
         StateHasChanged();
 
         var capturedLibraryId = _selectedLibraryId;
-
-        foreach (var file in files)
+        try
         {
-            var result = await ImportService.UploadAndCreateJobAsync(file, capturedLibraryId);
-
-            if (_selectedLibraryId != capturedLibraryId)
+            foreach (var file in files)
             {
-                break;
+                var result = await ImportService.UploadAndCreateJobAsync(file, capturedLibraryId);
+
+                if (_selectedLibraryId != capturedLibraryId)
+                {
+                    break;
+                }
+
+                if (result.IsSuccess)
+                {
+                    _jobs.Insert(0, result.Value!);
+                }
+                else if (result.IsFailure)
+                {
+                    _uploadErrors.Add($"{file.Name}: {result.Error?.Description ?? "Erreur inconnue"}");
+                    Log.Error("Import: upload failed for {FileName}: {Error}", file.Name, result.Error?.Description);
+                }
             }
 
-            if (result.IsSuccess)
+            StartPollingIfNeeded();
+
+            if (_uploadErrors.Count == 0)
             {
-                _jobs.Insert(0, result.Value!);
-            }
-            else if (result.IsFailure)
-            {
-                _uploadErrors.Add($"{file.Name}: {result.Error?.Description ?? "Erreur inconnue"}");
-                Log.Error("Import: upload failed for {FileName}: {Error}", file.Name, result.Error?.Description);
+                Snackbar.Add($"{files.Count} fichier(s) envoyé(s) avec succès", Severity.Success);
             }
         }
-
-        _isUploading = false;
-        StartPollingIfNeeded();
-        StateHasChanged();
-
-        if (_uploadErrors.Count == 0)
+        finally
         {
-            Snackbar.Add($"{files.Count} fichier(s) envoyé(s) avec succès", Severity.Success);
+            _isUploading = false;
+            StateHasChanged();
         }
     }
 
@@ -221,33 +231,36 @@ public partial class Import : IAsyncDisposable
 
         var terminalJobIds = _jobs.Where(j => j.IsTerminal).Select(j => j.Id).ToList();
         var errors = 0;
-
-        foreach (var jobId in terminalJobIds)
+        try
         {
-            var result = await ImportService.DeleteImportJobAsync(jobId);
-            if (result.IsSuccess)
+            foreach (var jobId in terminalJobIds)
             {
-                _jobs.RemoveAll(j => j.Id == jobId);
+                var result = await ImportService.DeleteImportJobAsync(jobId);
+                if (result.IsSuccess)
+                {
+                    _jobs.RemoveAll(j => j.Id == jobId);
+                }
+                else
+                {
+                    errors++;
+                    Log.Error("Import: failed to delete terminal job {JobId}: {Error}", jobId, result.Error?.Description);
+                }
             }
-            else
+
+            if (errors > 0)
             {
-                errors++;
-                Log.Error("Import: failed to delete terminal job {JobId}: {Error}", jobId, result.Error?.Description);
+                Snackbar.Add($"Impossible de supprimer {errors} job(s)", Severity.Error);
+            }
+            else if (terminalJobIds.Count > 0)
+            {
+                Snackbar.Add($"{terminalJobIds.Count} job(s) supprimé(s)", Severity.Success);
             }
         }
-
-        _isDeletingTerminal = false;
-
-        if (errors > 0)
+        finally
         {
-            Snackbar.Add($"Impossible de supprimer {errors} job(s)", Severity.Error);
+            _isDeletingTerminal = false;
+            StateHasChanged();
         }
-        else if (terminalJobIds.Count > 0)
-        {
-            Snackbar.Add($"{terminalJobIds.Count} job(s) supprimé(s)", Severity.Success);
-        }
-
-        StateHasChanged();
     }
 
     private async Task DeleteJobAsync(Guid jobId)
