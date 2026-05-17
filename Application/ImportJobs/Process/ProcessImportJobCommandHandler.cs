@@ -76,25 +76,9 @@ public sealed class ProcessImportJobCommandHandler(
         string tempDir, string rawDir, string convertedDir,
         CancellationToken ct)
     {
-        // Check available disk space: require at least 3× the original file size
-        var requiredBytes = importJob.OriginalFileSize * 3;
-        try
-        {
-            var driveRoot = Path.GetPathRoot(_settings.TempDirectory) ?? "/";
-            var drive = new DriveInfo(driveRoot);
-            if (drive.AvailableFreeSpace < requiredBytes)
-            {
-                return await FailJobAsync(importJob, "Init", ImportJobError.InsufficientDiskSpace, ct);
-            }
-        }
-        catch (IOException ex)
-        {
-            Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _settings.TempDirectory);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _settings.TempDirectory);
-        }
+        var diskError = await EnsureDiskSpaceAsync(importJob, ct);
+        if (diskError is not null)
+        { return diskError; }
 
         try
         {
@@ -123,21 +107,33 @@ public sealed class ProcessImportJobCommandHandler(
                 importJob, metaResult.Value!, archiveResult.Value.OutputPath,
                 archiveResult.Value.FinalPath, archiveResult.Value.FileSize, imageLink, ct);
         }
-        catch (OperationCanceledException ex) { return await HandleUnexpectedExceptionAsync(ex); }
-        catch (IOException ex)               { return await HandleUnexpectedExceptionAsync(ex); }
-        catch (InvalidOperationException ex) { return await HandleUnexpectedExceptionAsync(ex); }
-        catch (UnauthorizedAccessException ex){ return await HandleUnexpectedExceptionAsync(ex); }
-        catch (HttpRequestException ex)      { return await HandleUnexpectedExceptionAsync(ex); }
-        catch (InvalidDataException ex)      { return await HandleUnexpectedExceptionAsync(ex); }
+        catch (Exception ex) when (ex is OperationCanceledException or IOException or InvalidOperationException or UnauthorizedAccessException or HttpRequestException or InvalidDataException)
+        { return await HandleUnexpectedExceptionAsync(importJob, ex, ct); }
+    }
 
-        async Task<Result<DigitalBook>> HandleUnexpectedExceptionAsync(Exception ex)
+    // ── Step 1: Disk space check ──────────────────────────────────────────────
+
+    private async Task<TError?> EnsureDiskSpaceAsync(ImportJob importJob, CancellationToken ct)
+    {
+        var requiredBytes = importJob.OriginalFileSize * 3;
+        try
         {
-            Log.Error(ex, "Unhandled exception in import pipeline for job {JobId} at step {Status}",
-                importJob.Id, importJob.Status);
-            var step = importJob.Status.ToString();
-            var message = ex.Message.Length > 500 ? ex.Message[..500] : ex.Message;
-            return await FailJobAsync(importJob, step, new TError("IMP500", message), ct);
+            var driveRoot = Path.GetPathRoot(_settings.TempDirectory) ?? "/";
+            var drive = new DriveInfo(driveRoot);
+            if (drive.AvailableFreeSpace < requiredBytes)
+            {
+                return await FailJobAsync(importJob, "Init", ImportJobError.InsufficientDiskSpace, ct);
+            }
         }
+        catch (IOException ex)
+        {
+            Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _settings.TempDirectory);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _settings.TempDirectory);
+        }
+        return null;
     }
 
     // ── Original file management ──────────────────────────────────────────────
@@ -405,6 +401,16 @@ public sealed class ProcessImportJobCommandHandler(
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private async Task<Result<DigitalBook>> HandleUnexpectedExceptionAsync(
+        ImportJob importJob, Exception ex, CancellationToken ct)
+    {
+        Log.Error(ex, "Unhandled exception in import pipeline for job {JobId} at step {Status}",
+            importJob.Id, importJob.Status);
+        var step = importJob.Status.ToString();
+        var message = ex.Message.Length > 500 ? ex.Message[..500] : ex.Message;
+        return await FailJobAsync(importJob, step, new TError("IMP500", message), ct);
+    }
 
     private async Task AdvanceAndSaveAsync(ImportJob importJob, ImportJobStatus status, CancellationToken ct)
     {
