@@ -17,7 +17,8 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     private readonly ImportSettings _settings;
     private readonly IHostApplicationLifetime _lifetime;
     private readonly HashSet<string> _supportedExtensions;
-    private Timer? _pollingTimer;
+    private PeriodicTimer? _periodicTimer;
+    private Task? _pollingTask;
     private readonly ConcurrentDictionary<string, byte> _inFlight = new(StringComparer.OrdinalIgnoreCase);
 
     private static Serilog.ILogger Log => Serilog.Log.ForContext<FileWatcherService>();
@@ -51,14 +52,8 @@ public sealed class FileWatcherService : IHostedService, IDisposable
                 CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
         });
 
-        var intervalMs = _settings.PollingIntervalSeconds * 1000;
-        _pollingTimer = new Timer(
-            _ => ScanDirectoryAsync(_settings.ImportDirectory, CancellationToken.None)
-                     .ContinueWith(t => Log.Error(t.Exception, "Polling scan failed"),
-                         CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default),
-            null,
-            intervalMs,
-            intervalMs);
+        _periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
+        _pollingTask = PollAsync(_lifetime.ApplicationStopping);
 
         return Task.CompletedTask;
     }
@@ -69,15 +64,37 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         await ScanDirectoryAsync(_settings.ImportDirectory, ct);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    private async Task PollAsync(CancellationToken ct)
     {
-        _pollingTimer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
+        try
+        {
+            while (await _periodicTimer!.WaitForNextTickAsync(ct))
+            {
+                try
+                {
+                    await ScanDirectoryAsync(_settings.ImportDirectory, ct);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    Log.Error(ex, "Polling scan failed");
+                }
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _periodicTimer?.Dispose();
+        if (_pollingTask is not null)
+        {
+            await _pollingTask;
+        }
     }
 
     public void Dispose()
     {
-        _pollingTimer?.Dispose();
+        _periodicTimer?.Dispose();
     }
 
     private async Task EnsureImportDirectoriesExistAsync()
