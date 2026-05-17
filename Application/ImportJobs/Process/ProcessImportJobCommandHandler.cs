@@ -14,6 +14,8 @@ public sealed class ProcessImportJobCommandHandler(
     ProcessImportJobExternalServices externalServices)
     : ICommandHandler<ProcessImportJobCommand, DigitalBook>
 {
+    private const string CompletedStatus = "Completed";
+
     private static Serilog.ILogger Log => Serilog.Log.ForContext<ProcessImportJobCommandHandler>();
 
     public async Task<Result<DigitalBook>> Handle(ProcessImportJobCommand request, CancellationToken cancellationToken)
@@ -101,8 +103,7 @@ public sealed class ProcessImportJobCommandHandler(
             { return archiveResult.Error!; }
 
             return await CompleteStepAsync(
-                importJob, library, metaResult.Value!, archiveResult.Value.OutputPath,
-                archiveResult.Value.OutputFileName, archiveResult.Value.FileSize, imageLink, ct);
+                importJob, library, metaResult.Value!, archiveResult.Value, imageLink, ct);
         }
         catch (Exception ex) when (ex is OperationCanceledException or IOException or InvalidOperationException or UnauthorizedAccessException or HttpRequestException or InvalidDataException)
         { return await HandleUnexpectedExceptionAsync(importJob, ex, ct); }
@@ -329,9 +330,7 @@ public sealed class ProcessImportJobCommandHandler(
         ImportJob importJob,
         Library library,
         BookMetadata meta,
-        string outputPath,
-        string outputFileName,
-        long fileSize,
+        (string OutputPath, string OutputFileName, long FileSize) archive,
         string imageLink,
         CancellationToken ct)
     {
@@ -342,24 +341,24 @@ public sealed class ProcessImportJobCommandHandler(
         var finalMeta = meta with { ImageLink = imageLink, ISBN = normalizedIsbn };
 
         // Domain validation before any file-system side effect.
-        if (string.IsNullOrWhiteSpace(finalMeta.Serie) || string.IsNullOrWhiteSpace(finalMeta.Title) || fileSize <= 0)
+        if (string.IsNullOrWhiteSpace(finalMeta.Serie) || string.IsNullOrWhiteSpace(finalMeta.Title) || archive.FileSize <= 0)
         {
-            return await FailJobAsync(importJob, "Completed", BooksError.BadRequest, ct);
+            return await FailJobAsync(importJob, CompletedStatus, BooksError.BadRequest, ct);
         }
 
-        var moveResult = externalServices.TempWorkspace.MoveToLibrary(outputPath, library.RelativePath, outputFileName);
+        var moveResult = externalServices.TempWorkspace.MoveToLibrary(archive.OutputPath, library.RelativePath, archive.OutputFileName);
         if (moveResult.IsFailure)
         {
-            return await FailJobAsync(importJob, "Completed", moveResult.Error!, ct);
+            return await FailJobAsync(importJob, CompletedStatus, moveResult.Error!, ct);
         }
         var finalPath = moveResult.Value!;
 
-        var bookResult = DigitalBook.Create(finalMeta, importJob.LibraryId, finalPath, fileSize);
+        var bookResult = DigitalBook.Create(finalMeta, importJob.LibraryId, finalPath, archive.FileSize);
         if (bookResult.IsFailure)
         {
             // Pre-validation above guarantees this path is unreachable in practice; compensate defensively.
             externalServices.TempWorkspace.TryDeleteFile(finalPath);
-            return await FailJobAsync(importJob, "Completed", bookResult.Error!, ct);
+            return await FailJobAsync(importJob, CompletedStatus, bookResult.Error!, ct);
         }
 
         var digitalBook = bookResult.Value!;
@@ -373,7 +372,7 @@ public sealed class ProcessImportJobCommandHandler(
         {
             // Compensate: remove the file that was already moved so the library stays consistent.
             externalServices.TempWorkspace.TryDeleteFile(finalPath);
-            return await FailJobAsync(importJob, "Completed", saveResult.Error!, ct);
+            return await FailJobAsync(importJob, CompletedStatus, saveResult.Error!, ct);
         }
 
         return digitalBook;

@@ -11,60 +11,62 @@ internal static class BooksEndpoints
 {
     internal static void RegisterBooksEndpoints(this WebApplication app)
     {
-        app.MapGet("/api/books/{bookId}/download", async (
-            Guid bookId,
-            ClaimsPrincipal user,
-            IQueryHandler<GetBookByIdQuery, Book> getBookHandler,
-            IUserReadService userReadService,
-            ILibraryLocalStorage libraryStorage,
-            CancellationToken ct) =>
+        app.MapGet("/api/books/{bookId}/download", DownloadBookAsync).RequireAuthorization();
+    }
+
+    private static async Task<IResult> DownloadBookAsync(
+        Guid bookId,
+        ClaimsPrincipal user,
+        IQueryHandler<GetBookByIdQuery, Book> getBookHandler,
+        IUserReadService userReadService,
+        ILibraryLocalStorage libraryStorage,
+        CancellationToken ct)
+    {
+        var sub = user.FindFirstValue("sub")
+               ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var userId = Guid.Empty;
+        if (!string.IsNullOrEmpty(sub))
         {
-            var sub = user.FindFirstValue("sub")
-                   ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            var userId = Guid.Empty;
-            if (!string.IsNullOrEmpty(sub))
+            var byAuthId = await userReadService.GetUserByAuthId(sub, ct);
+            if (byAuthId.IsSuccess)
             {
-                var byAuthId = await userReadService.GetUserByAuthId(sub, ct);
-                if (byAuthId.IsSuccess)
-                {
-                    userId = byAuthId.Value!.Id;
-                }
+                userId = byAuthId.Value!.Id;
             }
+        }
 
-            if (userId == Guid.Empty)
-            {
-                return Results.Unauthorized();
-            }
+        if (userId == Guid.Empty)
+        {
+            return Results.Unauthorized();
+        }
 
-            var query = new GetBookByIdQuery(bookId, userId);
-            var result = await getBookHandler.Handle(query, ct);
+        var query = new GetBookByIdQuery(bookId, userId);
+        var result = await getBookHandler.Handle(query, ct);
 
-            if (result.IsFailure || result.Value is null)
-            {
-                return Results.NotFound();
-            }
+        if (result.IsFailure || result.Value is null)
+        {
+            return Results.NotFound();
+        }
 
-            if (result.Value is not DigitalBook digitalBook)
-            {
-                return Results.BadRequest("Only digital books can be downloaded.");
-            }
+        if (result.Value is not DigitalBook digitalBook)
+        {
+            return Results.BadRequest("Only digital books can be downloaded.");
+        }
 
-            var normalizedRoot = Path.GetFullPath(libraryStorage.rootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            var normalizedFilePath = Path.GetFullPath(digitalBook.FilePath);
-            if (!normalizedFilePath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
-            {
-                return Results.Forbid();
-            }
+        var normalizedRoot = Path.GetFullPath(libraryStorage.rootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var normalizedFilePath = Path.GetFullPath(digitalBook.FilePath);
+        if (!normalizedFilePath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.Forbid();
+        }
 
-            if (!File.Exists(digitalBook.FilePath))
-            {
-                return Results.NotFound("File not found on server.");
-            }
+        if (!File.Exists(digitalBook.FilePath))
+        {
+            return Results.NotFound("File not found on server.");
+        }
 
-            var fileName = Path.GetFileName(digitalBook.FilePath);
-            // Ownership is enforced by GetBookByIdQuery filtering on userId.
-            return Results.File(digitalBook.FilePath, "application/x-cbz", fileName, enableRangeProcessing: true);
-        }).RequireAuthorization();
+        var fileName = Path.GetFileName(digitalBook.FilePath);
+        // Ownership is enforced by GetBookByIdQuery filtering on userId.
+        return Results.File(digitalBook.FilePath, "application/x-cbz", fileName, enableRangeProcessing: true);
     }
 }
