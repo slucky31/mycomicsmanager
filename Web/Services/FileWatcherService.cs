@@ -15,6 +15,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IImportJobEnqueuer _enqueuer;
     private readonly ImportSettings _settings;
+    private readonly IHostApplicationLifetime _lifetime;
     private readonly HashSet<string> _supportedExtensions;
     private Timer? _pollingTimer;
     private readonly ConcurrentDictionary<string, byte> _inFlight = new(StringComparer.OrdinalIgnoreCase);
@@ -24,23 +25,26 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     public FileWatcherService(
         IServiceScopeFactory scopeFactory,
         IImportJobEnqueuer enqueuer,
-        IOptions<ImportSettings> settings)
+        IOptions<ImportSettings> settings,
+        IHostApplicationLifetime lifetime)
     {
         _scopeFactory = scopeFactory;
         _enqueuer = enqueuer;
         _settings = settings.Value;
+        _lifetime = lifetime;
         _supportedExtensions = new HashSet<string>(_settings.SupportedExtensions, StringComparer.OrdinalIgnoreCase);
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(_settings.ImportDirectory);
 
-        // Ensure each digital library has its import subdirectory
-        await EnsureImportDirectoriesExistAsync();
-
-        // Scan existing files on startup
-        await ScanDirectoryAsync(_settings.ImportDirectory, cancellationToken);
+        // Defer the initial scan until after the host is fully started so that
+        // StartAsync returns immediately and does not block HTTP server startup.
+        _lifetime.ApplicationStarted.Register(() =>
+            Task.Run(() => RunStartupScanAsync(_lifetime.ApplicationStopping))
+                .ContinueWith(t => Log.Error(t.Exception, "Startup scan failed"),
+                    CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default));
 
         var intervalMs = _settings.PollingIntervalSeconds * 1000;
         _pollingTimer = new Timer(
@@ -50,6 +54,14 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             null,
             intervalMs,
             intervalMs);
+
+        return Task.CompletedTask;
+    }
+
+    private async Task RunStartupScanAsync(CancellationToken ct)
+    {
+        await EnsureImportDirectoriesExistAsync();
+        await ScanDirectoryAsync(_settings.ImportDirectory, ct);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

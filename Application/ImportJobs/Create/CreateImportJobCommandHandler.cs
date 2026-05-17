@@ -58,12 +58,18 @@ public sealed class CreateImportJobCommandHandler(
         }
 
         // Create the ImportJob
-        var importJob = ImportJob.Create(
+        var jobResult = ImportJob.Create(
             request.OriginalFileName,
             request.OriginalFilePath,
             request.OriginalFileSize,
-            request.LibraryId).Value!;
+            request.LibraryId);
 
+        if (jobResult.IsFailure)
+        {
+            return jobResult.Error!;
+        }
+
+        var importJob = jobResult.Value!;
         importJobRepository.Add(importJob);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

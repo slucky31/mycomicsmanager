@@ -236,6 +236,7 @@ public sealed class ProcessImportJobCommandHandler(
         var authors = comicInfo?.Writer ?? string.Empty;
         var publishers = comicInfo?.Publisher ?? string.Empty;
         var volumeNumber = comicInfo?.Number ?? 1;
+        // Convention: year-only dates (Month/Day absent in XML) are stored as Jan 1 of that year.
         DateOnly? publishDate = comicInfo?.Year is not null
             ? new DateOnly(comicInfo.Year.Value, comicInfo.Month ?? 1, comicInfo.Day ?? 1)
             : null;
