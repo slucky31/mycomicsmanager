@@ -5,6 +5,7 @@ using Application.ImportJobs.ForceFail;
 using Application.ImportJobs.GetById;
 using Application.ImportJobs.List;
 using Application.Interfaces;
+using Application.Libraries.GetById;
 using Domain.ImportJobs;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components.Forms;
@@ -74,9 +75,6 @@ public class ImportService(
             return userIdResult.Error!;
         }
 
-        var importDir = _settings.ImportDirectory;
-        Directory.CreateDirectory(importDir);
-
         var safeFileName = Path.GetFileName(file.Name);
         var extension = Path.GetExtension(safeFileName);
         if (!_settings.SupportedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
@@ -84,7 +82,17 @@ public class ImportService(
             return ImportJobError.BadRequest;
         }
 
-        var destPath = Path.Combine(importDir, $"{Guid.CreateVersion7()}_{safeFileName}");
+        var libraryResult = await handlers.GetLibrary.Handle(
+            new GetLibraryQuery(libraryId, userIdResult.Value), ct);
+        if (libraryResult.IsFailure)
+        {
+            return libraryResult.Error!;
+        }
+
+        var libraryDir = Path.Combine(_settings.ImportDirectory, libraryResult.Value!.ImportDirectoryName);
+        Directory.CreateDirectory(libraryDir);
+
+        var destPath = Path.Combine(libraryDir, $"{Guid.CreateVersion7()}_{safeFileName}");
 
         const long bytesPerMb = 1024L * 1024;
         var maxFileSizeBytes = _settings.MaxFileSizeMb * bytesPerMb;
