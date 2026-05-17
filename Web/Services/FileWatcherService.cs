@@ -35,6 +35,8 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         _supportedExtensions = new HashSet<string>(_settings.SupportedExtensions, StringComparer.OrdinalIgnoreCase);
     }
 
+    internal Task? StartupScanTask { get; private set; }
+
     public Task StartAsync(CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(_settings.ImportDirectory);
@@ -42,9 +44,12 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         // Defer the initial scan until after the host is fully started so that
         // StartAsync returns immediately and does not block HTTP server startup.
         _lifetime.ApplicationStarted.Register(() =>
-            Task.Run(() => RunStartupScanAsync(_lifetime.ApplicationStopping))
-                .ContinueWith(t => Log.Error(t.Exception, "Startup scan failed"),
-                    CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default));
+        {
+            var task = Task.Run(() => RunStartupScanAsync(_lifetime.ApplicationStopping));
+            StartupScanTask = task;
+            task.ContinueWith(t => Log.Error(t.Exception, "Startup scan failed"),
+                CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
+        });
 
         var intervalMs = _settings.PollingIntervalSeconds * 1000;
         _pollingTimer = new Timer(

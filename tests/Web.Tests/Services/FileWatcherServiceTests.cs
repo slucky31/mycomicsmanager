@@ -7,6 +7,7 @@ using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using Web.Services;
@@ -25,6 +26,7 @@ public sealed class FileWatcherServiceTests : IDisposable
     private readonly string _importDir;
     private readonly Guid _libraryId = Guid.CreateVersion7();
     private readonly Guid _userId = Guid.CreateVersion7();
+    private readonly CancellationTokenSource _applicationStartedCts = new();
 
     public FileWatcherServiceTests()
     {
@@ -63,6 +65,10 @@ public sealed class FileWatcherServiceTests : IDisposable
         _scopeFactory = Substitute.For<IServiceScopeFactory>();
         _scopeFactory.CreateScope().Returns(scope);
 
+        var lifetime = Substitute.For<IHostApplicationLifetime>();
+        lifetime.ApplicationStarted.Returns(_applicationStartedCts.Token);
+        lifetime.ApplicationStopping.Returns(CancellationToken.None);
+
         var settings = Options.Create(new ImportSettings
         {
             ImportDirectory = _importDir,
@@ -70,16 +76,23 @@ public sealed class FileWatcherServiceTests : IDisposable
             SupportedExtensions = [".cbz", ".cbr", ".zip", ".rar", ".pdf"]
         });
 
-        _service = new FileWatcherService(_scopeFactory, _enqueuer, settings);
+        _service = new FileWatcherService(_scopeFactory, _enqueuer, settings, lifetime);
     }
 
     public void Dispose()
     {
+        _applicationStartedCts.Dispose();
         _service.Dispose();
         if (Directory.Exists(_importDir))
         {
             Directory.Delete(_importDir, true);
         }
+    }
+
+    private async Task FireApplicationStartedAsync()
+    {
+        await _applicationStartedCts.CancelAsync();
+        await _service.StartupScanTask!;
     }
 
     [Fact]
@@ -90,6 +103,7 @@ public sealed class FileWatcherServiceTests : IDisposable
         await File.WriteAllBytesAsync(Path.Combine(libDir, "existing.cbz"), new byte[100], TestContext.Current.CancellationToken);
 
         await _service.StartAsync(CancellationToken.None);
+        await FireApplicationStartedAsync();
 
         await _createHandler.Received(1).Handle(
             Arg.Is<CreateImportJobCommand>(c => c.OriginalFileName == "existing.cbz"),
