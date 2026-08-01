@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.25"></a>
+## [10.9.25](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.25) (2026-08-01)
+
+### 🐛 Bug Fixes
+
+* **web:** forward cancellation tokens in LibraryDetailPage ([#1000](https://www.github.com/slucky31/mycomicsmanager/issues/1000)) ([c847f99](https://www.github.com/slucky31/mycomicsmanager/commit/c847f99730acfa8bc33380406bb84bd9a03f7742))
+
 <a name="10.9.24"></a>
 ## [10.9.24](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.24) (2026-08-01)
 
