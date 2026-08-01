@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.23"></a>
+## [10.9.23](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.23) (2026-08-01)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency npgsql.entityframeworkcore.postgresql to 10.0.3 ([#988](https://www.github.com/slucky31/mycomicsmanager/issues/988)) ([e235271](https://www.github.com/slucky31/mycomicsmanager/commit/e23527177dd81fadd3d3036539c776c7e57f9399))
+
 <a name="10.9.22"></a>
 ## [10.9.22](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.22) (2026-06-22)
 
