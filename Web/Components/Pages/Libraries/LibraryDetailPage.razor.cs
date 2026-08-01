@@ -1,13 +1,13 @@
 using System.Globalization;
 using Domain.Libraries;
 using Microsoft.AspNetCore.Components;
-using Web.Models;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Serilog;
 using Web.Components.Pages.Dialogs;
 using Web.Components.Pages.Libraries.Views;
 using Web.Enums;
+using Web.Models;
 using Web.Services;
 using Web.Validators;
 
@@ -43,6 +43,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private bool _observerInitialized;
     private DotNetObjectReference<LibraryDetailPage>? _dotNetRef;
     private CancellationTokenSource? _searchCts;
+    private CancellationTokenSource? _sortCts;
     private readonly CancellationTokenSource _disposalCts = new();
 
     private string _searchTermValue = string.Empty;
@@ -71,18 +72,25 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        try
         {
-            await JS.InvokeVoidAsync("bodyScroll.disable", _disposalCts.Token);
-            _dotNetRef = DotNetObjectReference.Create(this);
-        }
+            if (firstRender)
+            {
+                await JS.InvokeVoidAsync("bodyScroll.disable", _disposalCts.Token);
+                _dotNetRef = DotNetObjectReference.Create(this);
+            }
 
-        if (!_observerInitialized && !_isLoading
-            && _currentViewMode != ViewMode.List
-            && _displayedBooks.Count > 0)
+            if (!_observerInitialized && !_isLoading
+                && _currentViewMode != ViewMode.List
+                && _displayedBooks.Count > 0)
+            {
+                await JS.InvokeVoidAsync("infiniteScroll.observe", _disposalCts.Token, _dotNetRef, "scroll-sentinel", ".library-detail-content");
+                _observerInitialized = true;
+            }
+        }
+        catch (OperationCanceledException)
         {
-            await JS.InvokeVoidAsync("infiniteScroll.observe", _disposalCts.Token, _dotNetRef, "scroll-sentinel", ".library-detail-content");
-            _observerInitialized = true;
+            // Component disposed mid-render; nothing to update.
         }
     }
 
@@ -93,6 +101,11 @@ public partial class LibraryDetailPage : IAsyncDisposable
         {
             await _searchCts.CancelAsync();
             _searchCts.Dispose();
+        }
+        if (_sortCts is not null)
+        {
+            await _sortCts.CancelAsync();
+            _sortCts.Dispose();
         }
         await _disposalCts.CancelAsync();
         _disposalCts.Dispose();
@@ -117,37 +130,46 @@ public partial class LibraryDetailPage : IAsyncDisposable
         _isLoading = true;
         _observerInitialized = false;
 
-        if (!Guid.TryParse(LibraryId, out _libraryGuid))
+        try
         {
-            NavigationManager.NavigateTo("/libraries/list");
-            return;
-        }
+            if (!Guid.TryParse(LibraryId, out _libraryGuid))
+            {
+                NavigationManager.NavigateTo("/libraries/list");
+                return;
+            }
 
-        var saved = LibraryStateService.Load(_libraryGuid);
-        if (saved is not null)
+            var saved = LibraryStateService.Load(_libraryGuid);
+            if (saved is not null)
+            {
+                _searchTermValue = saved.Search;
+                _currentViewMode = saved.View;
+            }
+
+            var libResult = await LibrariesService.GetById(LibraryId);
+            if (libResult.IsFailure)
+            {
+                Snackbar.Add("Library not found", Severity.Error);
+                NavigationManager.NavigateTo("/libraries/list");
+                return;
+            }
+
+            _library = LibraryUiDto.Convert(libResult.Value!);
+            _currentSortOrder = _library.DefaultBookSortOrder;
+
+            // Always load first page so we can detect an empty library
+            _currentPage = 1;
+            _displayedBooks.Clear();
+            _hasNextPage = false;
+            await LoadBooksPageAsync(_disposalCts.Token);
+        }
+        catch (OperationCanceledException)
         {
-            _searchTermValue = saved.Search;
-            _currentViewMode = saved.View;
+            // Component disposed while loading; nothing to update.
         }
-
-        var libResult = await LibrariesService.GetById(LibraryId);
-        if (libResult.IsFailure)
+        finally
         {
-            Snackbar.Add("Library not found", Severity.Error);
-            NavigationManager.NavigateTo("/libraries/list");
-            return;
+            _isLoading = false;
         }
-
-        _library = LibraryUiDto.Convert(libResult.Value!);
-        _currentSortOrder = _library.DefaultBookSortOrder;
-
-        // Always load first page so we can detect an empty library
-        _currentPage = 1;
-        _displayedBooks.Clear();
-        _hasNextPage = false;
-        await LoadBooksPageAsync(_disposalCts.Token);
-
-        _isLoading = false;
     }
 
     // ── Cards / Covers ─────────────────────────────────────────────────
@@ -184,6 +206,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         var capturedSort = _currentSortOrder;
         var capturedSearch = _searchTerm;
         var nextPage = _currentPage + 1;
+        var cancelled = false;
 
         try
         {
@@ -207,10 +230,17 @@ public partial class LibraryDetailPage : IAsyncDisposable
                 }
             }
         }
+        catch (OperationCanceledException)
+        {
+            cancelled = true;
+        }
         finally
         {
             _isLoadingMore = false;
-            await InvokeAsync(StateHasChanged);
+            if (!cancelled)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 
@@ -281,37 +311,53 @@ public partial class LibraryDetailPage : IAsyncDisposable
             return;
         }
 
-        var result = await LibrariesService.Update(new UpdateLibraryRequest(
-            _library.Id.ToString(),
-            null,
-            _library.Color,
-            _library.Icon,
-            sortOrder), _disposalCts.Token);
-
-        if (result.IsSuccess)
+        var previous = _sortCts;
+        if (previous is not null)
         {
-            _library.DefaultBookSortOrder = sortOrder;
-            _currentSortOrder = sortOrder;
-
-            if (_currentViewMode == ViewMode.List)
-            {
-                if (_booksListView is not null)
-                {
-                    await _booksListView.ReloadAsync();
-                }
-                return;
-            }
-
-            _currentPage = 1;
-            _displayedBooks.Clear();
-            _hasNextPage = false;
-            _observerInitialized = false;
-            await LoadBooksPageAsync(_disposalCts.Token);
+            await previous.CancelAsync();
+            previous.Dispose();
         }
-        else
+        _sortCts = CancellationTokenSource.CreateLinkedTokenSource(_disposalCts.Token);
+        var token = _sortCts.Token;
+
+        try
         {
-            Snackbar.Add("Failed to save sort order", Severity.Error);
-            Log.Error("Failed to save sort order for library {LibraryId}: {ErrorDescription}", _library.Id, result.Error?.Description);
+            var result = await LibrariesService.Update(new UpdateLibraryRequest(
+                _library.Id.ToString(),
+                null,
+                _library.Color,
+                _library.Icon,
+                sortOrder), token);
+
+            if (result.IsSuccess)
+            {
+                _library.DefaultBookSortOrder = sortOrder;
+                _currentSortOrder = sortOrder;
+
+                if (_currentViewMode == ViewMode.List)
+                {
+                    if (_booksListView is not null)
+                    {
+                        await _booksListView.ReloadAsync();
+                    }
+                    return;
+                }
+
+                _currentPage = 1;
+                _displayedBooks.Clear();
+                _hasNextPage = false;
+                _observerInitialized = false;
+                await LoadBooksPageAsync(token);
+            }
+            else
+            {
+                Snackbar.Add("Failed to save sort order", Severity.Error);
+                Log.Error("Failed to save sort order for library {LibraryId}: {ErrorDescription}", _library.Id, result.Error?.Description);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer sort request, or component disposed; nothing to update.
         }
     }
 
@@ -322,19 +368,26 @@ public partial class LibraryDetailPage : IAsyncDisposable
             return;
         }
 
-        // Switching away from Cards/Covers → disconnect observer
-        if (_currentViewMode != ViewMode.List && mode == ViewMode.List)
+        try
         {
-            _observerInitialized = false;
-            await JS.InvokeVoidAsync("infiniteScroll.dispose", _disposalCts.Token);
-        }
-        // Switching back to Cards/Covers → let OnAfterRenderAsync re-init the observer
-        else if (_currentViewMode == ViewMode.List)
-        {
-            _observerInitialized = false;
-        }
+            // Switching away from Cards/Covers → disconnect observer
+            if (_currentViewMode != ViewMode.List && mode == ViewMode.List)
+            {
+                await JS.InvokeVoidAsync("infiniteScroll.dispose", _disposalCts.Token);
+                _observerInitialized = false;
+            }
+            // Switching back to Cards/Covers → let OnAfterRenderAsync re-init the observer
+            else if (_currentViewMode == ViewMode.List)
+            {
+                _observerInitialized = false;
+            }
 
-        _currentViewMode = mode;
+            _currentViewMode = mode;
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed while switching view mode; nothing to update.
+        }
     }
 
     // ── Utilities ──────────────────────────────────────────────────────
@@ -377,20 +430,27 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
         if (result is not null && result.Data is not null && !result.Canceled)
         {
-            var res = await BooksService.Delete(bookId.ToString(), _disposalCts.Token);
-
-            if (res.IsSuccess)
+            try
             {
-                await LoadDataAsync();
-                if (_currentViewMode == ViewMode.List && _booksListView is not null)
+                var res = await BooksService.Delete(bookId.ToString(), _disposalCts.Token);
+
+                if (res.IsSuccess)
                 {
-                    await _booksListView.ReloadAsync();
+                    await LoadDataAsync();
+                    if (_currentViewMode == ViewMode.List && _booksListView is not null)
+                    {
+                        await _booksListView.ReloadAsync();
+                    }
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete book", Severity.Error);
+                    Log.Error("Failed to delete book with ID {BookId}: {ErrorDescription}", bookId, res.Error?.Description);
                 }
             }
-            else
+            catch (OperationCanceledException)
             {
-                Snackbar.Add("Failed to delete book", Severity.Error);
-                Log.Error("Failed to delete book with ID {BookId}: {ErrorDescription}", bookId, res.Error?.Description);
+                // Component disposed while deleting; nothing to update.
             }
         }
     }
