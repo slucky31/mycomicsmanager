@@ -43,6 +43,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private bool _observerInitialized;
     private DotNetObjectReference<LibraryDetailPage>? _dotNetRef;
     private CancellationTokenSource? _searchCts;
+    private readonly CancellationTokenSource _disposalCts = new();
 
     private string _searchTermValue = string.Empty;
 
@@ -72,7 +73,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     {
         if (firstRender)
         {
-            await JS.InvokeVoidAsync("bodyScroll.disable");
+            await JS.InvokeVoidAsync("bodyScroll.disable", _disposalCts.Token);
             _dotNetRef = DotNetObjectReference.Create(this);
         }
 
@@ -80,7 +81,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
             && _currentViewMode != ViewMode.List
             && _displayedBooks.Count > 0)
         {
-            await JS.InvokeVoidAsync("infiniteScroll.observe", _dotNetRef, "scroll-sentinel", ".library-detail-content");
+            await JS.InvokeVoidAsync("infiniteScroll.observe", _disposalCts.Token, _dotNetRef, "scroll-sentinel", ".library-detail-content");
             _observerInitialized = true;
         }
     }
@@ -93,10 +94,12 @@ public partial class LibraryDetailPage : IAsyncDisposable
             await _searchCts.CancelAsync();
             _searchCts.Dispose();
         }
+        await _disposalCts.CancelAsync();
+        _disposalCts.Dispose();
         try
         {
-            await JS.InvokeVoidAsync("bodyScroll.enable");
-            await JS.InvokeVoidAsync("infiniteScroll.dispose");
+            await JS.InvokeVoidAsync("bodyScroll.enable", CancellationToken.None);
+            await JS.InvokeVoidAsync("infiniteScroll.dispose", CancellationToken.None);
         }
         catch (JSException)
         {
@@ -142,7 +145,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         _currentPage = 1;
         _displayedBooks.Clear();
         _hasNextPage = false;
-        await LoadBooksPageAsync();
+        await LoadBooksPageAsync(_disposalCts.Token);
 
         _isLoading = false;
     }
@@ -185,7 +188,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         try
         {
             var result = await BooksService.GetPagedByLibrary(
-                capturedLibrary, nextPage, PageSize, capturedSort, capturedSearch);
+                capturedLibrary, nextPage, PageSize, capturedSort, capturedSearch, _disposalCts.Token);
 
             if (_libraryGuid == capturedLibrary
                 && _currentSortOrder == capturedSort
@@ -283,7 +286,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
             null,
             _library.Color,
             _library.Icon,
-            sortOrder));
+            sortOrder), _disposalCts.Token);
 
         if (result.IsSuccess)
         {
@@ -303,7 +306,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
             _displayedBooks.Clear();
             _hasNextPage = false;
             _observerInitialized = false;
-            await LoadBooksPageAsync();
+            await LoadBooksPageAsync(_disposalCts.Token);
         }
         else
         {
@@ -323,7 +326,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         if (_currentViewMode != ViewMode.List && mode == ViewMode.List)
         {
             _observerInitialized = false;
-            await JS.InvokeVoidAsync("infiniteScroll.dispose");
+            await JS.InvokeVoidAsync("infiniteScroll.dispose", _disposalCts.Token);
         }
         // Switching back to Cards/Covers → let OnAfterRenderAsync re-init the observer
         else if (_currentViewMode == ViewMode.List)
@@ -374,7 +377,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
         if (result is not null && result.Data is not null && !result.Canceled)
         {
-            var res = await BooksService.Delete(bookId.ToString());
+            var res = await BooksService.Delete(bookId.ToString(), _disposalCts.Token);
 
             if (res.IsSuccess)
             {
