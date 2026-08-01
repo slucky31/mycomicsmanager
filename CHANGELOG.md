@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.27"></a>
+## [10.9.27](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.27) (2026-08-01)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency awesomeassertions to 9.5.0 ([#997](https://www.github.com/slucky31/mycomicsmanager/issues/997)) ([25286fe](https://www.github.com/slucky31/mycomicsmanager/commit/25286fe4313fd6a7d3706cc70d2b716cba56f9f9))
+
 <a name="10.9.26"></a>
 ## [10.9.26](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.26) (2026-08-01)
 
