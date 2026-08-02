@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.28"></a>
+## [10.9.28](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.28) (2026-08-02)
+
+### 🐛 Bug Fixes
+
+* **deps:** update actions/setup-dotnet action to v6 ([#996](https://www.github.com/slucky31/mycomicsmanager/issues/996)) ([25fc44b](https://www.github.com/slucky31/mycomicsmanager/commit/25fc44b0a50acadf480e555e1a7aeca12f7a017e))
+
 <a name="10.9.27"></a>
 ## [10.9.27](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.27) (2026-08-01)
 
