@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.35"></a>
+## [10.9.35](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.35) (2026-08-22)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency nsubstitute to v6 ([#994](https://www.github.com/slucky31/mycomicsmanager/issues/994)) ([9532619](https://www.github.com/slucky31/mycomicsmanager/commit/9532619a0626e828a90f17b14825564f91389fb3))
+
 <a name="10.9.34"></a>
 ## [10.9.34](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.34) (2026-08-22)
 
