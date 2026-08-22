@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.33"></a>
+## [10.9.33](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.33) (2026-08-22)
+
+### 🐛 Bug Fixes
+
+* **deps:** update actions/checkout action to v7 ([#992](https://www.github.com/slucky31/mycomicsmanager/issues/992)) ([5b4242f](https://www.github.com/slucky31/mycomicsmanager/commit/5b4242f5345571fae07dfaadd7bfb0361927d2dd))
+
 <a name="10.9.32"></a>
 ## [10.9.32](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.32) (2026-08-22)
 
