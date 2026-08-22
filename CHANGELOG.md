@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.9.34"></a>
+## [10.9.34](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.34) (2026-08-22)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency auth0.aspnetcore.authentication to 1.11.0 ([#993](https://www.github.com/slucky31/mycomicsmanager/issues/993)) ([cfca416](https://www.github.com/slucky31/mycomicsmanager/commit/cfca416bcbcd53fe98925e60468fa349d3e29838))
+
 <a name="10.9.33"></a>
 ## [10.9.33](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.33) (2026-08-22)
 
