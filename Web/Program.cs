@@ -8,6 +8,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using Persistence;
@@ -28,7 +29,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 // Get connection string from configuration
-var connectionString = configuration.GetConnectionString("NeonConnection");
+var connectionString = configuration.GetConnectionString("DefaultConnection");
 Guard.Against.NullOrWhiteSpace(connectionString);
 
 // Config LocalStorage
@@ -147,6 +148,13 @@ builder.Services.AddScoped<LibraryStateService>();
 builder.Services.AddHostedService<IconPickerWarmupService>();
 
 var app = builder.Build();
+
+// Apply pending EF Core migrations automatically on startup
+// ponytail: no distributed lock, fine for a single instance; add one (e.g. pg_advisory_lock) if this ever runs with multiple replicas
+using (var migrationScope = app.Services.CreateScope())
+{
+    migrationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+}
 
 app.UseSerilogRequestLogging();
 

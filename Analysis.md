@@ -136,7 +136,7 @@ Application/
 ```bash
 # Environment variables
 export Cloudinary__ApiSecret="your-secret-here"
-export ConnectionStrings__NeonConnection="Host=..."
+export ConnectionStrings__DefaultConnection="Host=..."
 ```
 
 ### 2.2 Authentication & Authorization ⚠️
