@@ -153,7 +153,7 @@ var app = builder.Build();
 // ponytail: no distributed lock, fine for a single instance; add one (e.g. pg_advisory_lock) if this ever runs with multiple replicas
 using (var migrationScope = app.Services.CreateScope())
 {
-    migrationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+    await migrationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
 }
 
 app.UseSerilogRequestLogging();
@@ -187,4 +187,4 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 
 StartupInfo.Print();
 
-app.Run();
+await app.RunAsync();
