@@ -6,11 +6,21 @@ Procédure pour créer les environnements staging/prod sur l'instance PostgreSQL
 
 - Accès superuser (`postgres`) à l'instance self-hosted
 - La chaîne de connexion Neon actuelle (source du dump)
-- `pg_dump` / `pg_restore` installés localement, idéalement même version majeure que le serveur self-hosted (`psql --version` pour vérifier)
+- PostgreSQL tournant en Docker : l'image officielle embarque déjà `psql`, `pg_dump` et `pg_restore`, pas besoin de les installer sur l'hôte — toutes les commandes ci-dessous passent par `docker exec`
+
+```bash
+docker ps   # repère le nom/l'ID du conteneur Postgres, ex: mycomicsmanager-postgres-1
+```
 
 ## 1. Créer le rôle applicatif + les 2 bases (self-hosted)
 
-Connecte-toi en superuser (`psql -U postgres -h <host>`) et exécute :
+Connecte-toi en superuser :
+
+```bash
+docker exec -it <container> psql -U postgres
+```
+
+puis exécute :
 
 ```sql
 CREATE ROLE mycomicsmanager WITH LOGIN PASSWORD '<mot-de-passe-fort>';
@@ -22,10 +32,12 @@ CREATE DATABASE mycomicsmanager_prod    OWNER mycomicsmanager;
 
 ## 2. Dump de la prod Neon
 
+Le conteneur a accès à Internet, donc `pg_dump` s'exécute directement dedans — pas besoin de récupérer le dump sur l'hôte, la restauration (étape 3) se fait sur `localhost` dans ce même conteneur :
+
 ```bash
-pg_dump "postgresql://<user>:<pass>@<neon-host>/<db>?sslmode=require" \
+docker exec <container> pg_dump "postgresql://<user>:<pass>@<neon-host>/<db>?sslmode=require" \
   --format=custom --no-owner --no-privileges \
-  --file=mycomicsmanager_prod_$(date +%F).dump
+  --file=/tmp/mycomicsmanager_prod.dump
 ```
 
 - `--format=custom` : permet un restore parallélisable et plus robuste qu'un simple `.sql`.
@@ -33,12 +45,12 @@ pg_dump "postgresql://<user>:<pass>@<neon-host>/<db>?sslmode=require" \
 
 ## 3. Restore dans la base prod self-hosted
 
-Restaure **en tant que rôle `mycomicsmanager`** (pas superuser), pour qu'il devienne propriétaire des objets :
+Restaure **en tant que rôle `mycomicsmanager`** (pas superuser), pour qu'il devienne propriétaire des objets. Comme la cible est le conteneur lui-même, `localhost` suffit :
 
 ```bash
-pg_restore --no-owner --no-privileges \
-  --dbname="postgresql://mycomicsmanager:<mot-de-passe-fort>@<host>:5432/mycomicsmanager_prod" \
-  mycomicsmanager_prod_<date>.dump
+docker exec <container> pg_restore --no-owner --no-privileges \
+  --dbname="postgresql://mycomicsmanager:<mot-de-passe-fort>@localhost:5432/mycomicsmanager_prod" \
+  /tmp/mycomicsmanager_prod.dump
 ```
 
 Le dump contient déjà `CREATE EXTENSION IF NOT EXISTS pg_trgm` et la table `__EFMigrationsHistory` — l'historique de migrations restauré permettra à l'auto-migrate au démarrage de l'app de ne rien rejouer d'inutile.
