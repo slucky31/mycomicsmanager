@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.10.0"></a>
+## [10.10.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.10.0) (2026-09-13)
+
+### ✨ Features
+
+* **db:** migrate from Neon to self-hosted PostgreSQL ([#1015](https://www.github.com/slucky31/mycomicsmanager/issues/1015)) ([f557001](https://www.github.com/slucky31/mycomicsmanager/commit/f5570014dcd2b0aef4e73706b028af55b6647afe))
+
+### Other
+
+* **sonar:** switch to CI-based analysis with test coverage ([#1017](https://www.github.com/slucky31/mycomicsmanager/issues/1017)) ([26d5362](https://www.github.com/slucky31/mycomicsmanager/commit/26d536276be47489249c65bfd3bb23f81adb9c1b))
+
 <a name="10.9.36"></a>
 ## [10.9.36](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.9.36) (2026-09-13)
 
