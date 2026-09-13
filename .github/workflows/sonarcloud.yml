@@ -6,6 +6,9 @@ on:
   pull_request:
     types: [ opened, synchronize, reopened ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build and analyze
@@ -41,11 +44,12 @@ jobs:
         run: dotnet restore
 
       - name: Begin SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: >
           dotnet-sonarscanner begin
           /k:"slucky31_mycomicsmanager"
           /o:"slucky31-1"
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
           /d:sonar.cs.cobertura.reportsPaths="**/coverage.cobertura.xml"
 
       - name: Build
@@ -57,4 +61,6 @@ jobs:
           ConnectionStrings__NeonConnectionUnitTests: ${{ secrets.CONNECTIONSTRINGS_NEONCONNECTIONUNITTESTS }}
 
       - name: End SonarCloud analysis
-        run: dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet-sonarscanner end
