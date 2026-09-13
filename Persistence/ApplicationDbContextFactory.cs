@@ -27,7 +27,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = config.GetConnectionString("NeonConnection");
+        var connectionString = config.GetConnectionString("DefaultConnection");
         Guard.Against.Null(connectionString);
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
