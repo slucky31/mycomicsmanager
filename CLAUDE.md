@@ -99,7 +99,7 @@ Enforced via `.editorconfig`:
 
 ## Key Technologies
 
-- PostgreSQL with EF Core (Neon connection)
+- PostgreSQL with EF Core (self-hosted, one instance shared by staging/prod databases)
 - MudBlazor UI components
 - Auth0 authentication
 - Serilog logging

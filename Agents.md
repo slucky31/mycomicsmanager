@@ -78,7 +78,7 @@ Uses `Result<T>` pattern from `Domain/Primitives/` instead of exceptions for kno
 
 ## Key Technologies
 
-- PostgreSQL with EF Core (Neon connection)
+- PostgreSQL with EF Core (self-hosted)
 - MudBlazor UI components
 - Auth0 authentication
 - Serilog logging
