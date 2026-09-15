@@ -28,7 +28,7 @@ public class CreateUserCommandHandlerTests
     public async Task Handle_Should_ReturnBadRequest_WhenCommandIsNull()
     {
         // Act
-        var result = await _handler.Handle(null!, default);
+        var result = await _handler.Handle(null!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -44,7 +44,7 @@ public class CreateUserCommandHandlerTests
         _userRepositoryMock.Add(Arg.Any<User>());
 
         // Act
-        await _handler.Handle(s_command, default);
+        await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -57,7 +57,7 @@ public class CreateUserCommandHandlerTests
         CreateUserCommand commandWithEmptyEmail = new("", "1234");
 
         // Act
-        var result = await _handler.Handle(commandWithEmptyEmail, default);
+        var result = await _handler.Handle(commandWithEmptyEmail, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -71,7 +71,7 @@ public class CreateUserCommandHandlerTests
         CreateUserCommand commandWithEmptyAuthId = new("test@test.com", "");
 
         // Act
-        var result = await _handler.Handle(commandWithEmptyAuthId, default);
+        var result = await _handler.Handle(commandWithEmptyAuthId, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -83,10 +83,10 @@ public class CreateUserCommandHandlerTests
     {
         // Arrange
         var user = User.Create(s_command.email, s_command.authId);
-        _userReadServiceMock.GetUserByAuthIdAndEmail(s_command.email, s_command.authId).Returns(user);
+        _userReadServiceMock.GetUserByAuthIdAndEmail(s_command.email, s_command.authId, TestContext.Current.CancellationToken).Returns(user);
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

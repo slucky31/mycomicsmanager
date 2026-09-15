@@ -27,18 +27,20 @@ public sealed class UsersRepositoriesTests(IntegrationTestWebAppFactory factory)
     }
 
     [Fact]
-    public async Task Add_ShouldThrowException_WhenAddusrWithSameIdTwice()
+    public async Task Add_ShouldReturnFailure_WhenAddusrWithSameIdTwice()
     {
         // Arrange
         var usr = User.Create("test@test.com", "1");
         UserRepository.Add(usr);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         UserRepository.Add(usr);
-        var action = async () => await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        // Act && Assert
-        Guard.Against.Null(action);
-        await action.Should().ThrowAsync<Exception>();
+        // Act
+        var result = await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().NotBeNull();
     }
 
     [Fact]

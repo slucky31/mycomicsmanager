@@ -99,9 +99,9 @@ if (-not $SkipIntegration) {
 # ─── Build unique ───────────────────────────────────────────────────────
 Write-Step "Build de la solution"
 
-$SolutionFile = Get-ChildItem $RepoRoot -Filter "*.sln" | Select-Object -First 1
+$SolutionFile = Get-ChildItem $RepoRoot -Filter "*.slnx" | Select-Object -First 1
 if (-not $SolutionFile) {
-    Write-Fail "Aucun fichier .sln trouvé dans $RepoRoot. Abandon."
+    Write-Fail "Aucun fichier .slnx trouvé dans $RepoRoot. Abandon."
     exit 1
 }
 

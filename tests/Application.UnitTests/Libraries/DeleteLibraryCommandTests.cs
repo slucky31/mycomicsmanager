@@ -1,3 +1,4 @@
+using Application.ImportJobs;
 using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Delete;
@@ -18,27 +19,30 @@ public class DeleteLibraryCommandTests
     private readonly IRepository<Library, Guid> _librayRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryLocalStorage _libraryLocalStorageMock;
+    private readonly IImportDirectoryStorage _importDirectoryStorageMock;
 
     public DeleteLibraryCommandTests()
     {
         _librayRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
+        _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();
+        _importDirectoryStorageMock.Delete(Arg.Any<string>()).Returns(Result.Success());
 
-        _handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryLocalStorageMock);
+        _handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryLocalStorageMock, _importDirectoryStorageMock);
     }
 
     [Fact]
     public async Task Handle_Should_ReturnValidationError_WhenRequestIsNull()
     {
         // Act
-        var result = await _handler.Handle(null!, default);
+        var result = await _handler.Handle(null!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.ValidationError);
         _librayRepositoryMock.DidNotReceive().Remove(Arg.Any<Library>());
-        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -48,13 +52,13 @@ public class DeleteLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns((Library?)null);
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.NotFound);
         _librayRepositoryMock.Received(0).Remove(Arg.Any<Library>());
-        await _unitOfWorkMock.Received(0).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -66,7 +70,7 @@ public class DeleteLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
 
         // Act
-        var result = await _handler.Handle(commandFromOtherUser, default);
+        var result = await _handler.Handle(commandFromOtherUser, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -80,13 +84,14 @@ public class DeleteLibraryCommandTests
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         _librayRepositoryMock.Received(1).Remove(Arg.Any<Library>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
         _libraryLocalStorageMock.DidNotReceive().Delete(Arg.Any<string>());
+        _importDirectoryStorageMock.DidNotReceive().Delete(Arg.Any<string>());
     }
 
     [Fact]
@@ -97,12 +102,13 @@ public class DeleteLibraryCommandTests
         _libraryLocalStorageMock.Delete(s_digitalLibrary.RelativePath).Returns(Result.Success());
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         _librayRepositoryMock.Received(1).Remove(Arg.Any<Library>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        _importDirectoryStorageMock.Received(1).Delete(s_digitalLibrary.ImportDirectoryName);
     }
 
     [Fact]
@@ -113,7 +119,7 @@ public class DeleteLibraryCommandTests
         _libraryLocalStorageMock.Delete(s_digitalLibrary.RelativePath).Returns(Result.Failure(TError.Any));
 
         // Act
-        var result = await _handler.Handle(s_command, default);
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

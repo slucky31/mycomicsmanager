@@ -1,0 +1,413 @@
+using Application.Abstractions.Messaging;
+using Application.Helpers;
+using Application.Interfaces;
+using Domain.Books;
+using Domain.ImportJobs;
+using Domain.Libraries;
+using Domain.Primitives;
+
+namespace Application.ImportJobs.Process;
+
+public sealed class ProcessImportJobCommandHandler(
+    ProcessImportJobRepositories repositories,
+    ProcessImportJobFileProcessors fileProcessors,
+    ProcessImportJobExternalServices externalServices)
+    : ICommandHandler<ProcessImportJobCommand, DigitalBook>
+{
+    private const string CompletedStatus = "Completed";
+
+    private static Serilog.ILogger Log => Serilog.Log.ForContext<ProcessImportJobCommandHandler>();
+
+    public async Task<Result<DigitalBook>> Handle(ProcessImportJobCommand request, CancellationToken cancellationToken)
+    {
+        if (request.ImportJobId == Guid.Empty)
+        {
+            return ImportJobError.BadRequest;
+        }
+
+        var importJob = await repositories.ImportJobs.GetByIdAsync(request.ImportJobId, cancellationToken);
+        if (importJob is null)
+        {
+            return ImportJobError.NotFound;
+        }
+
+        if (importJob.Status != ImportJobStatus.Pending)
+        {
+            // Job stuck in intermediate state (e.g. Hangfire retry after unhandled exception)
+            if (importJob.Status is not (ImportJobStatus.Completed or ImportJobStatus.Failed))
+            {
+                Log.Warning("Import job {JobId} stuck in {Status} — marking as failed on retry",
+                    importJob.Id, importJob.Status);
+                var stuckResult = await FailJobAsync(importJob, importJob.Status.ToString(),
+                    ImportJobError.InvalidStatusTransition, cancellationToken);
+                HandleOriginalFile(importJob.OriginalFilePath, success: false);
+                return stuckResult;
+            }
+
+            return ImportJobError.InvalidStatusTransition;
+        }
+
+        var library = await repositories.Libraries.GetByIdAsync(importJob.LibraryId);
+        if (library is null)
+        {
+            return LibrariesError.NotFound;
+        }
+
+        var (tempDir, rawDir, convertedDir) = externalServices.TempWorkspace.CreateScratch(importJob.Id);
+
+        Result<DigitalBook>? pipelineResult = null;
+        try
+        {
+            pipelineResult = await ExecutePipelineAsync(importJob, library, tempDir, rawDir, convertedDir, cancellationToken);
+            return pipelineResult;
+        }
+        finally
+        {
+            externalServices.TempWorkspace.CleanupDirectory(tempDir);
+            HandleOriginalFile(importJob.OriginalFilePath, pipelineResult?.IsSuccess == true);
+        }
+    }
+
+    // ── Pipeline execution ────────────────────────────────────────────────────
+
+    private async Task<Result<DigitalBook>> ExecutePipelineAsync(
+        ImportJob importJob, Library library,
+        string tempDir, string rawDir, string convertedDir,
+        CancellationToken ct)
+    {
+        var diskError = await EnsureDiskSpaceAsync(importJob, ct);
+        if (diskError is not null)
+        { return diskError; }
+
+        try
+        {
+            var extractResult = await ExtractStepAsync(importJob, rawDir, ct);
+            if (extractResult.IsFailure)
+            { return extractResult.Error!; }
+
+            var convertResult = await ConvertStepAsync(importJob, rawDir, convertedDir, ct);
+            if (convertResult.IsFailure)
+            { return convertResult.Error!; }
+
+            var metaResult = await SearchMetadataStepAsync(
+                importJob, extractResult.Value, convertResult.Value!, convertedDir, ct);
+            if (metaResult.IsFailure)
+            { return metaResult.Error!; }
+
+            var imageLink = await UploadCoverStepAsync(
+                importJob, metaResult.Value!.ISBN, convertedDir, ct);
+
+            var archiveResult = await BuildArchiveStepAsync(
+                importJob, metaResult.Value!.ISBN, convertedDir, tempDir, ct);
+            if (archiveResult.IsFailure)
+            { return archiveResult.Error!; }
+
+            return await CompleteStepAsync(
+                importJob, library, metaResult.Value!, archiveResult.Value, imageLink, ct);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException or HttpRequestException or InvalidDataException)
+        { return await HandleUnexpectedExceptionAsync(importJob, ex, ct); }
+    }
+
+    // ── Step 1: Disk space check ──────────────────────────────────────────────
+
+    private async Task<TError?> EnsureDiskSpaceAsync(ImportJob importJob, CancellationToken ct)
+    {
+        var requiredBytes = importJob.OriginalFileSize * 3;
+        if (!externalServices.TempWorkspace.HasFreeSpace(requiredBytes))
+        {
+            return await FailJobAsync(importJob, "Init", ImportJobError.InsufficientDiskSpace, ct);
+        }
+        return null;
+    }
+
+    // ── Original file management ──────────────────────────────────────────────
+
+    private void HandleOriginalFile(string filePath, bool success)
+    {
+        if (success)
+        {
+            var result = externalServices.ImportStorage.DeleteOriginalFile(filePath);
+            if (result.IsFailure)
+            {
+                Log.Warning("Could not delete original file {FilePath} after successful import: {Error}",
+                    filePath, result.Error?.Description);
+            }
+        }
+        else
+        {
+            var result = externalServices.ImportStorage.MoveOriginalFileToError(filePath);
+            if (result.IsFailure)
+            {
+                Log.Warning("Could not move original file {FilePath} to error directory: {Error}",
+                    filePath, result.Error?.Description);
+            }
+        }
+    }
+
+    // ── Step 2: Extracting ────────────────────────────────────────────────────
+
+    private async Task<Result<ComicInfoData?>> ExtractStepAsync(
+        ImportJob importJob, string rawDir, CancellationToken ct)
+    {
+        await AdvanceAndSaveAsync(importJob, ImportJobStatus.Extracting, ct);
+
+        string? comicInfoXmlPath = null;
+
+        if (fileProcessors.PdfImageExtractor.CanHandle(importJob.OriginalFilePath))
+        {
+            var pdfResult = await fileProcessors.PdfImageExtractor.ExtractImagesAsync(
+                importJob.OriginalFilePath, rawDir, ct);
+            if (pdfResult.IsFailure)
+            {
+                return await FailJobAsync(importJob, "Extracting", pdfResult.Error!, ct);
+            }
+        }
+        else
+        {
+            var archiveResult = await fileProcessors.ArchiveExtractor.ExtractAsync(
+                importJob.OriginalFilePath, rawDir, ct);
+            if (archiveResult.IsFailure)
+            {
+                return await FailJobAsync(importJob, "Extracting", archiveResult.Error!, ct);
+            }
+            comicInfoXmlPath = archiveResult.Value!.ComicInfoXmlPath;
+        }
+
+        ComicInfoData? comicInfo = null;
+        if (comicInfoXmlPath is not null)
+        {
+            var readResult = fileProcessors.ComicInfoXml.Read(comicInfoXmlPath);
+            if (readResult.IsSuccess)
+            {
+                comicInfo = readResult.Value;
+            }
+        }
+
+        return Result<ComicInfoData?>.Success(comicInfo);
+    }
+
+    // ── Step 3: Converting ────────────────────────────────────────────────────
+
+    private async Task<Result<ImageProcessingResult>> ConvertStepAsync(
+        ImportJob importJob, string rawDir, string convertedDir, CancellationToken ct)
+    {
+        await AdvanceAndSaveAsync(importJob, ImportJobStatus.Converting, ct);
+
+        var lastSavedPercent = -1;
+
+        async Task OnProgressAsync(ImageConversionProgress report)
+        {
+            var percent = report.TotalCount == 0 ? 0 : report.ConvertedCount * 100 / report.TotalCount;
+            if (percent - lastSavedPercent >= 10 || report.ConvertedCount == report.TotalCount)
+            {
+                lastSavedPercent = percent;
+                importJob.UpdateConversionProgress(report.ConvertedCount, report.TotalCount);
+                repositories.ImportJobs.Update(importJob);
+                await repositories.UnitOfWork.SaveChangesAsync(ct);
+            }
+        }
+
+        var convertResult = await fileProcessors.ImageProcessor.ProcessImagesAsync(
+            rawDir, convertedDir, onProgressAsync: OnProgressAsync, ct: ct);
+
+        if (convertResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, "Converting", convertResult.Error!, ct);
+        }
+
+        return convertResult.Value!;
+    }
+
+    // ── Step 4: SearchingMetadata ─────────────────────────────────────────────
+
+    private async Task<Result<BookMetadata>> SearchMetadataStepAsync(
+        ImportJob importJob,
+        ComicInfoData? comicInfo,
+        ImageProcessingResult conversion,
+        string convertedDir,
+        CancellationToken ct)
+    {
+        await AdvanceAndSaveAsync(importJob, ImportJobStatus.SearchingMetadata, ct);
+
+        var isbn = FileNameIsbnExtractor.ExtractIsbn(importJob.OriginalFileName) ?? comicInfo?.Isbn;
+        var serie = comicInfo?.Series ?? Path.GetFileNameWithoutExtension(importJob.OriginalFileName);
+        var title = comicInfo?.Title ?? serie;
+        var authors = comicInfo?.Writer ?? string.Empty;
+        var publishers = comicInfo?.Publisher ?? string.Empty;
+        var volumeNumber = comicInfo?.Number ?? 1;
+        // Convention: year-only dates (Month/Day absent in XML) are stored as Jan 1 of that year.
+        DateOnly? publishDate = comicInfo?.Year is not null
+            ? new DateOnly(comicInfo.Year.Value, comicInfo.Month ?? 1, comicInfo.Day ?? 1)
+            : null;
+
+        if (!string.IsNullOrWhiteSpace(isbn))
+        {
+            var searchResult = await externalServices.ComicSearch.SearchByIsbnAsync(isbn, ct);
+            if (searchResult.Found)
+            {
+                serie = searchResult.Serie;
+                title = searchResult.Title;
+                authors = searchResult.Authors;
+                publishers = searchResult.Publishers;
+                publishDate = searchResult.PublishDate;
+                volumeNumber = searchResult.VolumeNumber;
+            }
+        }
+
+        var pageCount = conversion.ProcessedCount + conversion.SkippedCount;
+        var updatedComicInfo = new ComicInfoData(
+            Title: title, Series: serie, Number: volumeNumber, Summary: null,
+            Year: publishDate?.Year, Month: publishDate?.Month, Day: publishDate?.Day,
+            Writer: authors, Penciller: null, Publisher: publishers,
+            Isbn: isbn, PageCount: pageCount > 0 ? pageCount : null);
+
+        var writeResult = fileProcessors.ComicInfoXml.Write(Path.Combine(convertedDir, "ComicInfo.xml"), updatedComicInfo);
+        if (writeResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, "SearchingMetadata", writeResult.Error!, ct);
+        }
+
+        return new BookMetadata(serie, title, isbn, volumeNumber,
+            NumberOfPages: pageCount > 0 ? pageCount : null,
+            Authors: authors, Publishers: publishers, PublishDate: publishDate);
+    }
+
+    // ── Step 5: UploadingCover (best-effort, never fails the pipeline) ────────
+
+    private async Task<string> UploadCoverStepAsync(
+        ImportJob importJob, string? isbn, string convertedDir, CancellationToken ct)
+    {
+        await AdvanceAndSaveAsync(importJob, ImportJobStatus.UploadingCover, ct);
+
+        var coverFiles = externalServices.TempWorkspace.GetWebpFiles(convertedDir);
+        if (coverFiles.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var publicId = string.IsNullOrWhiteSpace(isbn) ? $"digital-{importJob.Id}" : isbn;
+        var uploadResult = await externalServices.Cloudinary.UploadImageFromFileAsync(
+            coverFiles[0], "digital-covers", publicId, ct);
+
+        if (uploadResult.Success && uploadResult.Url is not null)
+        {
+            return uploadResult.Url.ToString();
+        }
+
+        Log.Warning("Cover upload failed for job {JobId}: {Error}", importJob.Id, uploadResult.Error);
+        return string.Empty;
+    }
+
+    // ── Step 6: BuildingArchive ───────────────────────────────────────────────
+
+    private async Task<Result<(string OutputPath, string OutputFileName, long FileSize)>> BuildArchiveStepAsync(
+        ImportJob importJob,
+        string? isbn,
+        string convertedDir,
+        string tempDir,
+        CancellationToken ct)
+    {
+        await AdvanceAndSaveAsync(importJob, ImportJobStatus.BuildingArchive, ct);
+
+        var safeIsbn = !string.IsNullOrWhiteSpace(isbn) && IsbnHelper.IsValidISBN(isbn)
+            ? IsbnHelper.NormalizeIsbn(isbn)
+            : null;
+        var outputFileName = string.IsNullOrWhiteSpace(safeIsbn) ? $"{importJob.Id}.cbz" : $"{safeIsbn}.cbz";
+        var outputPath = Path.Combine(tempDir, outputFileName);
+
+        var buildResult = await fileProcessors.ArchiveBuilder.BuildAsync(convertedDir, outputPath, ct);
+        if (buildResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, "BuildingArchive", buildResult.Error!, ct);
+        }
+
+        return (outputPath, outputFileName, buildResult.Value!.FileSize);
+    }
+
+    // ── Step 7: Completed ─────────────────────────────────────────────────────
+
+    private async Task<Result<DigitalBook>> CompleteStepAsync(
+        ImportJob importJob,
+        Library library,
+        BookMetadata meta,
+        (string OutputPath, string OutputFileName, long FileSize) archive,
+        string imageLink,
+        CancellationToken ct)
+    {
+        var normalizedIsbn = string.IsNullOrWhiteSpace(meta.ISBN)
+            ? null
+            : IsbnHelper.NormalizeIsbn(meta.ISBN!);
+
+        var finalMeta = meta with { ImageLink = imageLink, ISBN = normalizedIsbn };
+
+        // Domain validation before any file-system side effect.
+        if (string.IsNullOrWhiteSpace(finalMeta.Serie) || string.IsNullOrWhiteSpace(finalMeta.Title) || archive.FileSize <= 0)
+        {
+            return await FailJobAsync(importJob, CompletedStatus, BooksError.BadRequest, ct);
+        }
+
+        var moveResult = externalServices.TempWorkspace.MoveToLibrary(archive.OutputPath, library.RelativePath, archive.OutputFileName);
+        if (moveResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, CompletedStatus, moveResult.Error!, ct);
+        }
+        var finalPath = moveResult.Value!;
+
+        var bookResult = DigitalBook.Create(finalMeta, importJob.LibraryId, finalPath, archive.FileSize);
+        if (bookResult.IsFailure)
+        {
+            // Pre-validation above guarantees this path is unreachable in practice; compensate defensively.
+            externalServices.TempWorkspace.TryDeleteFile(finalPath);
+            return await FailJobAsync(importJob, CompletedStatus, bookResult.Error!, ct);
+        }
+
+        var digitalBook = bookResult.Value!;
+
+        repositories.Books.Add(digitalBook);
+        importJob.Complete(digitalBook.Id);
+        repositories.ImportJobs.Update(importJob);
+
+        var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
+        if (saveResult.IsFailure)
+        {
+            // Compensate: remove the file that was already moved so the library stays consistent.
+            externalServices.TempWorkspace.TryDeleteFile(finalPath);
+            return await FailJobAsync(importJob, CompletedStatus, saveResult.Error!, ct);
+        }
+
+        return digitalBook;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private async Task<Result<DigitalBook>> HandleUnexpectedExceptionAsync(
+        ImportJob importJob, Exception ex, CancellationToken ct)
+    {
+        Log.Error(ex, "Unhandled exception in import pipeline for job {JobId} at step {Status}",
+            importJob.Id, importJob.Status);
+        var step = importJob.Status.ToString();
+        var message = ex.Message.Length > 500 ? ex.Message[..500] : ex.Message;
+        return await FailJobAsync(importJob, step, new TError("IMP500", message), ct);
+    }
+
+    private async Task AdvanceAndSaveAsync(ImportJob importJob, ImportJobStatus status, CancellationToken ct)
+    {
+        importJob.Advance(status);
+        repositories.ImportJobs.Update(importJob);
+        await repositories.UnitOfWork.SaveChangesAsync(ct);
+    }
+
+    private async Task<TError> FailJobAsync(ImportJob importJob, string step, TError error, CancellationToken ct)
+    {
+        importJob.Fail(step, error.Description ?? error.Code);
+        repositories.ImportJobs.Update(importJob);
+        var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
+        if (saveResult.IsFailure)
+        {
+            Log.Error("Failed to persist job failure for job {JobId}: {Error}",
+                importJob.Id, saveResult.Error?.Description);
+        }
+        return error;
+    }
+}

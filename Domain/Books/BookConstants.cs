@@ -8,4 +8,5 @@ public static class BookConstants
     public const int MaxImageLinkLength = 500;
     public const int MaxAuthorsLength = 200;
     public const int MaxPublishersLength = 200;
+    public const int MaxFilePathLength = 500;
 }

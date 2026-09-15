@@ -10,4 +10,10 @@ public partial class BooksCoversView
 
     [Parameter, EditorRequired]
     public EventCallback<Guid> OnDelete { get; set; }
+
+    [Parameter]
+    public bool ShowDownload { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnDownload { get; set; }
 }

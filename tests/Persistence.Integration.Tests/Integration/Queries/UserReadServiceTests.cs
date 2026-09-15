@@ -42,7 +42,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, SortOrder.Ascending, 1, 2);
+        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, SortOrder.Ascending, 1, 2, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -58,7 +58,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync("comics", null, null, 1, 3);
+        var pagedList = await UserReadService.GetUsersAsync("comics", null, null, 1, 3, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -74,7 +74,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync(null, null, null, 1, 10);
+        var pagedList = await UserReadService.GetUsersAsync(null, null, null, 1, 10, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -93,7 +93,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync("", null, null, 1, 10);
+        var pagedList = await UserReadService.GetUsersAsync("", null, null, 1, 10, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -112,7 +112,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync(null, null, null, 1, 10);
+        var pagedList = await UserReadService.GetUsersAsync(null, null, null, 1, 10, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -129,7 +129,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Id, null, 1, 10);
+        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Id, null, 1, 10, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -146,7 +146,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, null, 1, 10);
+        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, null, 1, 10, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -163,7 +163,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, SortOrder.Descending, 1, 10);
+        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.Email, SortOrder.Descending, 1, 10, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -180,7 +180,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.AuthId, null, 1, 10);
+        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.AuthId, null, 1, 10, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -197,7 +197,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await CreateUsers();
 
         // Act
-        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.AuthId, SortOrder.Descending, 1, 10);
+        var pagedList = await UserReadService.GetUsersAsync(null, UsersColumn.AuthId, SortOrder.Descending, 1, 10, TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -216,7 +216,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await UserReadService.GetUserByAuthIdAndEmail(user.Email, user.AuthId);
+        var result = await UserReadService.GetUserByAuthIdAndEmail(user.Email, user.AuthId, TestContext.Current.CancellationToken);
 
         // Assert        
         Guard.Against.Null(result.Value);
@@ -233,7 +233,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         const string authId = "123456";
 
         // Act
-        var result = await UserReadService.GetUserByAuthIdAndEmail(email, authId);
+        var result = await UserReadService.GetUserByAuthIdAndEmail(email, authId, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -247,7 +247,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         var user = User.Create("test@test.com", "123456");
 
         // Act
-        var result = await UserReadService.GetUserByAuthIdAndEmail(user.Email, user.AuthId);
+        var result = await UserReadService.GetUserByAuthIdAndEmail(user.Email, user.AuthId, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -261,7 +261,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         var email = string.Empty;
 
         // Act
-        var result = await UserReadService.GetUserByEmail(email);
+        var result = await UserReadService.GetUserByEmail(email, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -275,7 +275,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         const string email = "test@example.com";
 
         // Act
-        var result = await UserReadService.GetUserByEmail(email);
+        var result = await UserReadService.GetUserByEmail(email, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -292,7 +292,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await UserReadService.GetUserByEmail(email);
+        var result = await UserReadService.GetUserByEmail(email, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -309,7 +309,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         const string authId = "";
 
         // Act
-        var result = await UserReadService.GetUserByAuthIdAndEmail(email, authId);
+        var result = await UserReadService.GetUserByAuthIdAndEmail(email, authId, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -320,7 +320,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     public async Task GetUserByAuthId_ShouldReturnBadRequest_WhenAuthIdIsEmpty()
     {
         // Act
-        var result = await UserReadService.GetUserByAuthId(string.Empty);
+        var result = await UserReadService.GetUserByAuthId(string.Empty, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -331,7 +331,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
     public async Task GetUserByAuthId_ShouldReturnNotFound_WhenUserNotFound()
     {
         // Act
-        var result = await UserReadService.GetUserByAuthId("nonexistent-auth-id");
+        var result = await UserReadService.GetUserByAuthId("nonexistent-auth-id", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -347,7 +347,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await UserReadService.GetUserByAuthId("unique-auth-id");
+        var result = await UserReadService.GetUserByAuthId("unique-auth-id", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -365,7 +365,7 @@ public class UserReadServiceTests(IntegrationTestWebAppFactory factory) : UserIn
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await UserReadService.GetUserByAuthId("shared-auth-id");
+        var result = await UserReadService.GetUserByAuthId("shared-auth-id", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

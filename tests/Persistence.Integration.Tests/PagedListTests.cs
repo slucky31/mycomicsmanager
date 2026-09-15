@@ -24,7 +24,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
 
         // Act
         var pagedList = new PagedList<Library>(Context.Libraries);
-        await pagedList.ExecuteQueryAsync(1, 5);
+        await pagedList.ExecuteQueryAsync(1, 5, TestContext.Current.CancellationToken);
 
         // Assert
         pagedList.Page.Should().Be(1);
@@ -48,7 +48,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
 
         // Act
         var pagedList = new PagedList<string>(query);
-        await pagedList.ExecuteQueryAsync(1, 2);
+        await pagedList.ExecuteQueryAsync(1, 2, TestContext.Current.CancellationToken);
 
         // Assert
         pagedList.TotalCount.Should().Be(10);
@@ -62,7 +62,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
 
         // Act
         var pagedList = new PagedList<string>(query);
-        await pagedList.ExecuteQueryAsync(1, 2);
+        await pagedList.ExecuteQueryAsync(1, 2, TestContext.Current.CancellationToken);
 
         // Assert
         pagedList.HasNextPage.Should().BeTrue();
@@ -78,7 +78,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
 
         // Act
         var pagedList = new PagedList<string>(query);
-        await pagedList.ExecuteQueryAsync(2, 2);
+        await pagedList.ExecuteQueryAsync(2, 2, TestContext.Current.CancellationToken);
 
         // Assert
         pagedList.HasNextPage.Should().BeTrue();
@@ -96,7 +96,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
 
         // Act
         var pagedList = new PagedList<string>(query);
-        await pagedList.ExecuteQueryAsync(5, 2);
+        await pagedList.ExecuteQueryAsync(5, 2, TestContext.Current.CancellationToken);
 
         // Assert
         pagedList.HasNextPage.Should().BeFalse();
@@ -113,7 +113,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
 
         // Act
         var pagedList = new PagedList<string>(query);
-        await pagedList.ExecuteQueryAsync(6, 2);
+        await pagedList.ExecuteQueryAsync(6, 2, TestContext.Current.CancellationToken);
 
         // Assert
         pagedList.HasNextPage.Should().BeFalse();

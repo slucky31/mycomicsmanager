@@ -44,7 +44,7 @@ public class BooksService(
 
     public async Task<Result<Book>> Create(CreateBookRequest request, CancellationToken cancellationToken = default)
     {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -74,7 +74,7 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -103,7 +103,7 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -120,7 +120,7 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -150,7 +150,7 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -168,7 +168,7 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;
@@ -186,7 +186,7 @@ public class BooksService(
             return BooksError.ValidationError;
         }
 
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync();
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
         {
             return userIdResult.Error!;

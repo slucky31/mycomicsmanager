@@ -1,14 +1,19 @@
 using Application;
 using Application.ComicInfoSearch;
+using Application.ImportJobs;
+using Application.ImportJobs.Process;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
+using Hangfire;
+using Hangfire.PostgreSql;
 using HealthChecks.ApplicationStatus.DependencyInjection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MudBlazor;
 using MudBlazor.Services;
 using Persistence;
@@ -17,6 +22,7 @@ using Web;
 using Web.Components;
 using Web.Configuration;
 using Web.EndPoints;
+using Web.Infrastructure;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +37,27 @@ builder.Services.AddProblemDetails();
 // Get connection string from configuration
 var connectionString = configuration.GetConnectionString("DefaultConnection");
 Guard.Against.NullOrWhiteSpace(connectionString);
+
+// Config Import settings
+var importSection = builder.Configuration.GetSection("Import");
+builder.Services.AddOptions<ImportSettings>()
+    .Bind(importSection)
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.ImportDirectory), "Import:ImportDirectory is required")
+    .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.TempDirectory), "Import:TempDirectory is required")
+    .ValidateOnStart();
+
+// Config Hangfire with PostgreSQL
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(connectionString)));
+
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = 1; // Sequential for RPi4
+    options.Queues = ["import", "default"];
+});
 
 // Config LocalStorage
 var localStorageSection = builder.Configuration.GetSection("LocalStorage");
@@ -51,7 +78,9 @@ builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =
 {
     client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
     client.Timeout = TimeSpan.FromSeconds(30);
-});
+})
+    .AddHttpMessageHandler(() => new SsrfGuardHandler(
+        new HashSet<string>(["openlibrary.org", "covers.openlibrary.org"], StringComparer.OrdinalIgnoreCase)));
 
 // Config Google Books settings
 var googleBooksSection = configuration.GetSection("GoogleBooks");
@@ -65,7 +94,9 @@ builder.Services.AddHttpClient<IGoogleBooksService, GoogleBooksService>(client =
 {
     client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
     client.Timeout = TimeSpan.FromSeconds(30);
-});
+})
+    .AddHttpMessageHandler(() => new SsrfGuardHandler(
+        new HashSet<string>(["www.googleapis.com", "books.googleapis.com"], StringComparer.OrdinalIgnoreCase)));
 
 // Config Bedetheque settings
 var bedethequeSection = configuration.GetSection("Bedetheque");
@@ -78,8 +109,12 @@ builder.Services.AddHttpClient("Bedetheque", client =>
 {
     client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
     client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.FromSeconds(15));
+})
+    .AddHttpMessageHandler(() => new SsrfGuardHandler(
+        new HashSet<string>(["www.bedetheque.com"], StringComparer.OrdinalIgnoreCase)));
+builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.FromSeconds(15))
+    .AddHttpMessageHandler(() => new SsrfGuardHandler(
+        new HashSet<string>(["serpapi.com"], StringComparer.OrdinalIgnoreCase)));
 
 // Config Bedetheque service
 builder.Services.AddScoped<IBedethequeService, BedethequeService>();
@@ -125,7 +160,8 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services
     .AddHealthChecks()
     .AddApplicationStatus()
-    .AddNpgSql(connectionString);
+    .AddNpgSql(connectionString)
+    .AddCheck<ImportDirectoryHealthCheck>("import-directory");
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
@@ -143,8 +179,16 @@ builder.Services.AddMudServices(config =>
 // Config Services
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
+builder.Services.AddScoped<ImportJobHandlers>();
+builder.Services.AddScoped<ProcessImportJobRepositories>();
+builder.Services.AddScoped<ProcessImportJobFileProcessors>();
+builder.Services.AddScoped<ProcessImportJobExternalServices>();
+builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();
+builder.Services.AddScoped<IImportOrchestrator, ImportOrchestrator>();
+builder.Services.AddSingleton<IImportJobEnqueuer, HangfireImportJobEnqueuer>();
+builder.Services.AddHostedService<FileWatcherService>();
 builder.Services.AddHostedService<IconPickerWarmupService>();
 
 var app = builder.Build();
@@ -155,6 +199,11 @@ using (var migrationScope = app.Services.CreateScope())
 {
     await migrationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
 }
+
+// Ensure import and temp directories exist at startup
+var importSettings = app.Services.GetRequiredService<IOptions<ImportSettings>>().Value;
+Directory.CreateDirectory(importSettings.ImportDirectory);
+Directory.CreateDirectory(importSettings.TempDirectory);
 
 app.UseSerilogRequestLogging();
 
@@ -167,6 +216,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    await next();
+});
+
 app.UseRouting();
 
 app.UseAuthentication();
@@ -175,10 +230,18 @@ app.UseAuthorization();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireAuthorizationFilter()]
+});
+
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 // Register Accounts Endpoints for Auth0 login/logout
 app.RegisterAccountEndpoints();
+
+// Register Books download endpoint
+app.RegisterBooksEndpoints();
 
 app.MapHealthChecks("/health", new HealthCheckOptions
 {

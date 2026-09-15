@@ -83,7 +83,7 @@ Les règles d'architecture sont vérifiées automatiquement via `tests/Architect
 dotnet restore
 
 # Compiler la solution
-dotnet build MyComicsManager.sln
+dotnet build MyComicsManager.slnx
 
 # Lancer l'application (port 8080)
 dotnet run --project Web/Web.csproj

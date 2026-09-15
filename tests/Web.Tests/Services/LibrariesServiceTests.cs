@@ -36,7 +36,7 @@ public sealed class LibrariesServiceTests
         _updateLibraryHandler = Substitute.For<ICommandHandler<UpdateLibraryCommand, Library>>();
         _deleteLibraryHandler = Substitute.For<ICommandHandler<DeleteLibraryCommand>>();
         _currentUserService = Substitute.For<ICurrentUserService>();
-        _currentUserService.GetCurrentUserIdAsync().Returns(DefaultUserId);
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(DefaultUserId);
 
         _service = new LibrariesService(
             _getLibraryHandler,
@@ -101,7 +101,7 @@ public sealed class LibrariesServiceTests
     public async Task GetById_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
         var libraryId = Guid.CreateVersion7();
 
         // Act
@@ -165,7 +165,7 @@ public sealed class LibrariesServiceTests
             .Returns(library);
 
         // Act
-        var result = await _service.Create(request);
+        var result = await _service.Create(request, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -189,7 +189,7 @@ public sealed class LibrariesServiceTests
             .Returns(expectedLibrary);
 
         // Act
-        var result = await _service.Create(request);
+        var result = await _service.Create(request, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -202,11 +202,11 @@ public sealed class LibrariesServiceTests
     public async Task LibrariesService_Create_Should_ReturnValidationError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
         var request = new CreateLibraryRequest("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical);
 
         // Act
-        var result = await _service.Create(request);
+        var result = await _service.Create(request, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -225,7 +225,7 @@ public sealed class LibrariesServiceTests
         var request = new UpdateLibraryRequest(null, "New Name", "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(request);
+        var result = await _service.Update(request, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -240,7 +240,7 @@ public sealed class LibrariesServiceTests
         var request = new UpdateLibraryRequest("not-a-guid", "New Name", "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(request);
+        var result = await _service.Update(request, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -260,7 +260,7 @@ public sealed class LibrariesServiceTests
         var request = new UpdateLibraryRequest(libraryId.ToString(), name, "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(request);
+        var result = await _service.Update(request, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -284,7 +284,7 @@ public sealed class LibrariesServiceTests
         var request = new UpdateLibraryRequest(libraryId.ToString(), name, "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(request);
+        var result = await _service.Update(request, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -304,7 +304,7 @@ public sealed class LibrariesServiceTests
         var request = new UpdateLibraryRequest(libraryId.ToString(), null, "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(request);
+        var result = await _service.Update(request, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -317,12 +317,12 @@ public sealed class LibrariesServiceTests
     public async Task Update_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
         var libraryId = Guid.CreateVersion7();
         var request = new UpdateLibraryRequest(libraryId.ToString(), "Name", "#5C6BC0", "Bookmark");
 
         // Act
-        var result = await _service.Update(request);
+        var result = await _service.Update(request, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -348,7 +348,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result<IPagedList<Library>>.Success(pagedList));
 
         // Act
-        var result = await _service.FilterBy(searchTerm, sortColumn, sortOrder, page, pageSize);
+        var result = await _service.FilterBy(searchTerm, sortColumn, sortOrder, page, pageSize, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -377,7 +377,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result<IPagedList<Library>>.Success(pagedList));
 
         // Act
-        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, 10);
+        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, 10, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -396,7 +396,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result<IPagedList<Library>>.Success(pagedList));
 
         // Act
-        var result = await _service.FilterBy(searchTerm, LibrariesColumn.Name, SortOrder.Ascending, 1, 10);
+        var result = await _service.FilterBy(searchTerm, LibrariesColumn.Name, SortOrder.Ascending, 1, 10, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -415,7 +415,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result<IPagedList<Library>>.Success(pagedList));
 
         // Act
-        var result = await _service.FilterBy("test", sortColumn, SortOrder.Ascending, 1, 10);
+        var result = await _service.FilterBy("test", sortColumn, SortOrder.Ascending, 1, 10, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -434,7 +434,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result<IPagedList<Library>>.Success(pagedList));
 
         // Act
-        var result = await _service.FilterBy("test", LibrariesColumn.Name, sortOrder, 1, 10);
+        var result = await _service.FilterBy("test", LibrariesColumn.Name, sortOrder, 1, 10, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -452,7 +452,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result<IPagedList<Library>>.Success(pagedList));
 
         // Act
-        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Descending, 1, 10);
+        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Descending, 1, 10, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -471,7 +471,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result<IPagedList<Library>>.Success(pagedList));
 
         // Act
-        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, pageSize);
+        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, pageSize, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -490,7 +490,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result<IPagedList<Library>>.Success(pagedList));
 
         // Act
-        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, page, 10);
+        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, page, 10, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -503,10 +503,10 @@ public sealed class LibrariesServiceTests
     public async Task FilterBy_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
 
         // Act
-        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, 10);
+        var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, 10, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -525,7 +525,7 @@ public sealed class LibrariesServiceTests
         string? id = null;
 
         // Act
-        var result = await _service.Delete(id);
+        var result = await _service.Delete(id, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -540,7 +540,7 @@ public sealed class LibrariesServiceTests
         var id = string.Empty;
 
         // Act
-        var result = await _service.Delete(id);
+        var result = await _service.Delete(id, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -555,7 +555,7 @@ public sealed class LibrariesServiceTests
         const string id = "invalid-guid-format";
 
         // Act
-        var result = await _service.Delete(id);
+        var result = await _service.Delete(id, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -572,7 +572,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result.Success());
 
         // Act
-        var result = await _service.Delete(libraryId.ToString());
+        var result = await _service.Delete(libraryId.ToString(), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -590,7 +590,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result.Success());
 
         // Act
-        var result = await _service.Delete(libraryId.ToString());
+        var result = await _service.Delete(libraryId.ToString(), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -606,7 +606,7 @@ public sealed class LibrariesServiceTests
             .Returns(Result.Failure(expectedError));
 
         // Act
-        var result = await _service.Delete(libraryId.ToString());
+        var result = await _service.Delete(libraryId.ToString(), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -617,11 +617,11 @@ public sealed class LibrariesServiceTests
     public async Task Delete_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync().Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
         var libraryId = Guid.CreateVersion7();
 
         // Act
-        var result = await _service.Delete(libraryId.ToString());
+        var result = await _service.Delete(libraryId.ToString(), TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();

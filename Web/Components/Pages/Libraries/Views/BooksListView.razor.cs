@@ -12,6 +12,12 @@ public partial class BooksListView
     [Parameter, EditorRequired]
     public EventCallback<Guid> OnDelete { get; set; }
 
+    [Parameter]
+    public bool ShowDownload { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnDownload { get; set; }
+
     private MudTable<BookListItemViewModel>? _table;
 
     public Task ReloadAsync() => _table?.ReloadServerData() ?? Task.CompletedTask;

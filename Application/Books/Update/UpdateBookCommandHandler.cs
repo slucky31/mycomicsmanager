@@ -17,16 +17,20 @@ public sealed class UpdateBookCommandHandler(
     {
         Guard.Against.Null(request);
 
-        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.ISBN) || string.IsNullOrEmpty(request.Serie))
+        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Serie))
         {
             return BooksError.BadRequest;
         }
 
-        if (!IsbnHelper.IsValidISBN(request.ISBN))
+        string? normalizedIsbn = null;
+        if (!string.IsNullOrWhiteSpace(request.ISBN))
         {
-            return BooksError.InvalidISBN;
+            if (!IsbnHelper.IsValidISBN(request.ISBN))
+            {
+                return BooksError.InvalidISBN;
+            }
+            normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);
         }
-        var normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);
 
         var book = await bookRepository.GetByIdAsync(request.Id);
         if (book == null)
@@ -40,14 +44,17 @@ public sealed class UpdateBookCommandHandler(
             return BooksError.NotFound;
         }
 
-        var existingBook = await bookRepository.GetByIsbnAsync(normalizedIsbn, cancellationToken);
+        var existingBook = normalizedIsbn is not null
+            ? await bookRepository.GetByIsbnAsync(normalizedIsbn, cancellationToken)
+            : null;
         if (existingBook is not null && existingBook.Id != request.Id)
         {
             return BooksError.Duplicate;
         }
 
-        book.Update(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink,
-            request.Authors, request.Publishers, request.PublishDate, request.NumberOfPages);
+        book.Update(new BookMetadata(request.Serie, request.Title, normalizedIsbn,
+            request.VolumeNumber, request.ImageLink, request.Authors, request.Publishers,
+            request.PublishDate, request.NumberOfPages));
 
         bookRepository.Update(book);
         await unitOfWork.SaveChangesAsync(cancellationToken);

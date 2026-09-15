@@ -49,7 +49,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -93,7 +93,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbnWithDashes);
+        var result = await service.SearchByIsbnAsync(ValidIsbnWithDashes, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -115,7 +115,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -136,7 +136,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -153,7 +153,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -172,7 +172,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -203,7 +203,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -235,7 +235,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -267,7 +267,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -327,7 +327,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -363,7 +363,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.CoverUrl.Should().NotBeNull();
@@ -400,7 +400,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.CoverUrl.Should().NotBeNull();
@@ -436,7 +436,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.CoverUrl.Should().NotBeNull();
@@ -470,7 +470,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -501,7 +501,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -528,7 +528,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -559,7 +559,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -611,7 +611,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -632,7 +632,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn, CancellationToken.None);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -665,7 +665,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -703,7 +703,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn, CancellationToken.None);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -739,7 +739,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -771,7 +771,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -809,7 +809,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -847,7 +847,7 @@ public sealed class GoogleBooksServiceTests
         var service = CreateService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();

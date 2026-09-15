@@ -18,6 +18,11 @@ public record ComicSearchResult(
 public interface IComicSearchService
 {
     Task<ComicSearchResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default);
+    Task<ComicSearchResult> SearchByIsbnWithLocalCoverAsync(
+        string isbn,
+        Stream? coverStream,
+        string? coverFileName,
+        CancellationToken cancellationToken = default);
     (string Title, string Serie, int VolumeNumber) ParseTitleInfo(string rawTitle, string? subtitle);
     Task<string> UploadCoverAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken = default);
 }

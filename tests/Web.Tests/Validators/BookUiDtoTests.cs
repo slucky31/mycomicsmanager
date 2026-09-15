@@ -9,7 +9,9 @@ public sealed class BookUiDtoTests
 {
     private static PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
         string authors = "", string publishers = "", DateOnly? publishDate = null, int? numberOfPages = null)
-        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages, Guid.CreateVersion7()).Value!;
+        => PhysicalBook.Create(
+            new BookMetadata(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages),
+            Guid.CreateVersion7()).Value!;
 
     #region Constructor Tests
 
@@ -22,7 +24,7 @@ public sealed class BookUiDtoTests
         // Assert
         dto.Serie.Should().Be(string.Empty);
         dto.Title.Should().Be(string.Empty);
-        dto.ISBN.Should().Be(string.Empty);
+        dto.ISBN.Should().BeNull();
         dto.VolumeNumber.Should().Be(1);
         dto.ImageLink.Should().Be(string.Empty);
         dto.Rating.Should().Be(0);
