@@ -72,8 +72,7 @@ public class ComicInfoXmlService : IComicInfoXmlService
     {
         public string? Title { get; set; }
         public string? Series { get; set; }
-        public int Number { get; set; }
-        public bool ShouldSerializeNumber() => Number != 0;
+        public int? Number { get; set; }
         public string? Summary { get; set; }
         public int Year { get; set; }
         public bool ShouldSerializeYear() => Year != 0;
@@ -94,7 +93,7 @@ public class ComicInfoXmlService : IComicInfoXmlService
         public ComicInfoData ToComicInfoData() => new(
             Title: Title,
             Series: Series,
-            Number: Number == 0 ? null : Number,
+            Number: Number,
             Summary: Summary,
             Year: Year == 0 ? null : Year,
             Month: Month == 0 ? null : Month,
@@ -110,7 +109,7 @@ public class ComicInfoXmlService : IComicInfoXmlService
         {
             Title = data.Title,
             Series = data.Series,
-            Number = data.Number ?? 0,
+            Number = data.Number,
             Summary = data.Summary,
             Year = data.Year ?? 0,
             Month = data.Month ?? 0,

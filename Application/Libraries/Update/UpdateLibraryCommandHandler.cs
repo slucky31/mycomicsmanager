@@ -83,6 +83,7 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             var importMoveResult = importDirectoryStorage.Move(originImportDirName, library.ImportDirectoryName);
             if (importMoveResult.IsFailure)
             {
+                libraryLocalStorage.Move(library.RelativePath, originPath);
                 return LibrariesError.FolderNotMoved;
             }
         }

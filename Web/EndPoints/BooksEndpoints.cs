@@ -37,7 +37,20 @@ internal static class BooksEndpoints
 
         if (userId == Guid.Empty)
         {
-            return Results.Unauthorized();
+            // Fallback: email lookup for users not yet migrated to sub-based AuthId
+            var email = user.Identity?.Name;
+            if (string.IsNullOrEmpty(email))
+            {
+                return Results.Unauthorized();
+            }
+
+            var byEmail = await userReadService.GetUserByEmail(email, ct);
+            if (byEmail.IsFailure)
+            {
+                return Results.Unauthorized();
+            }
+
+            userId = byEmail.Value!.Id;
         }
 
         var query = new GetBookByIdQuery(bookId, userId);

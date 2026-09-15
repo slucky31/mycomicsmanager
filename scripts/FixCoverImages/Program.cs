@@ -186,6 +186,11 @@ for (var i = 0; i < books.Count; i++)
                 Console.WriteLine($"{prefix} → {newUrl}");
                 updated++;
             }
+            else if (result.Error?.Contains("is not in the allowed list", StringComparison.Ordinal) == true)
+            {
+                Console.WriteLine($"{prefix} → SKIP (host not allowed by SSRF guard): {imageLink}");
+                skipped++;
+            }
             else
             {
                 await Console.Error.WriteLineAsync($"{prefix} → UPLOAD FAILED: {result.Error} (kept original URL)");

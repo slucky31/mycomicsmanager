@@ -30,7 +30,11 @@ public sealed class DeleteBookCommandHandler(
         }
 
         bookRepository.Remove(book);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         if (book is DigitalBook digitalBook)
         {

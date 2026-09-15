@@ -69,6 +69,15 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<ImportJob>().Property(j => j.ErrorStep).HasMaxLength(ImportJobConstants.MaxErrorStepLength);
             modelBuilder.Entity<ImportJob>().HasIndex(j => j.LibraryId);
             modelBuilder.Entity<ImportJob>().HasIndex(j => j.Status);
+            // ponytail: filter references the numeric ordinals of Completed (6) and Failed (7); update if the enum is reordered
+            modelBuilder.Entity<ImportJob>().HasIndex(j => j.OriginalFilePath)
+                .IsUnique()
+                .HasFilter("\"Status\" NOT IN (6, 7)");
+            modelBuilder.Entity<ImportJob>().Property<uint>("xmin")
+                .HasColumnName("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
 
             modelBuilder.Entity<ReadingDate>().ToTable("ReadingDates");
 

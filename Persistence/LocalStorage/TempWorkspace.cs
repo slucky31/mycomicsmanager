@@ -59,7 +59,11 @@ internal sealed class TempWorkspace : ITempWorkspace
         {
             return ImportJobError.BadRequest;
         }
-        File.Move(sourcePath, finalPath, overwrite: true);
+        if (File.Exists(finalPath))
+        {
+            return ImportJobError.DestinationFileExists;
+        }
+        File.Move(sourcePath, finalPath, overwrite: false);
         return finalPath;
     }
 

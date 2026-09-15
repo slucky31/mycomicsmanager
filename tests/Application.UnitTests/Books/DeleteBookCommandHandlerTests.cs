@@ -2,6 +2,7 @@ using Application.Books.Delete;
 using Application.Interfaces;
 using Domain.Books;
 using Domain.Libraries;
+using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
@@ -26,6 +27,7 @@ public class DeleteBookCommandHandlerTests
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _bookFileServiceMock = Substitute.For<IBookFileService>();
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
 
         _handler = new DeleteBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock, _bookFileServiceMock);
     }
@@ -234,6 +236,27 @@ public class DeleteBookCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         await _bookFileServiceMock.Received(1).DeleteFileAsync(filePath, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotDeleteFile_WhenSaveChangesFails()
+    {
+        // Arrange
+        const string filePath = "/data/cbz/comic.cbz";
+        var digitalBook = DigitalBook.Create(new BookMetadata("Serie", "Title", null), s_libraryId, filePath, 1024).Value!;
+        var command = new DeleteBookCommand(digitalBook.Id, s_userId);
+        _bookRepositoryMock.GetByIdAsync(digitalBook.Id).Returns(digitalBook);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
+        var dbError = new TError("DB_UPDATE_ERROR", "conflict");
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(dbError);
+
+        // Act
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(dbError);
+        await _bookFileServiceMock.DidNotReceive().DeleteFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

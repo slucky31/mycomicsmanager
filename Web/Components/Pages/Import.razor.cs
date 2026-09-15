@@ -101,6 +101,7 @@ public partial class Import : IAsyncDisposable
             else if (result.IsFailure)
             {
                 _jobs = [];
+                Snackbar.Add(result.Error?.Description ?? "Impossible de charger les imports.", Severity.Error);
                 Log.Error("Import: failed to load jobs for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
             }
 

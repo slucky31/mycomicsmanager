@@ -35,38 +35,46 @@ public partial class ComicSearchService : IComicSearchService
                                .Replace(" ", "", StringComparison.Ordinal)
                                .Trim();
 
-        // Try Bedetheque first
-        var bedethequeResult = await _bedethequeService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
-
-        if (bedethequeResult.Found)
+        try
         {
-            Log.Information("Book found via Bedetheque for ISBN {Isbn}", cleanIsbn);
-            return await MapBedethequeResultAsync(bedethequeResult, cleanIsbn, cancellationToken);
+            // Try Bedetheque first
+            var bedethequeResult = await _bedethequeService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
+
+            if (bedethequeResult.Found)
+            {
+                Log.Information("Book found via Bedetheque for ISBN {Isbn}", cleanIsbn);
+                return await MapBedethequeResultAsync(bedethequeResult, cleanIsbn, cancellationToken);
+            }
+
+            // Fallback to Google Books
+            Log.Information("Bedetheque returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
+            var googleResult = await _googleBooksService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
+
+            if (googleResult.Found)
+            {
+                Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
+                return await MapBookResultToComicSearchResultAsync(
+                    googleResult, cleanIsbn, cancellationToken);
+            }
+
+            // Fallback to OpenLibrary
+            Log.Information("Google Books returned no result for ISBN {Isbn}, trying OpenLibrary", cleanIsbn);
+            var olResult = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
+
+            if (olResult.Found)
+            {
+                Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
+                return await MapBookResultToComicSearchResultAsync(olResult, cleanIsbn, cancellationToken);
+            }
+
+            Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
-
-        // Fallback to Google Books
-        Log.Information("Bedetheque returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
-        var googleResult = await _googleBooksService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
-
-        if (googleResult.Found)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
-            return await MapBookResultToComicSearchResultAsync(
-                googleResult, cleanIsbn, cancellationToken);
+            Log.Warning(ex, "Unexpected error searching for ISBN {Isbn}", cleanIsbn);
+            return CreateNotFoundResult(cleanIsbn);
         }
-
-        // Fallback to OpenLibrary
-        Log.Information("Google Books returned no result for ISBN {Isbn}, trying OpenLibrary", cleanIsbn);
-        var olResult = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
-
-        if (olResult.Found)
-        {
-            Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
-            return await MapBookResultToComicSearchResultAsync(olResult, cleanIsbn, cancellationToken);
-        }
-
-        Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
-        return CreateNotFoundResult(cleanIsbn);
     }
 
     public (string Title, string Serie, int VolumeNumber) ParseTitleInfo(string rawTitle, string? subtitle)
