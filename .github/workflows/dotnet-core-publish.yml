@@ -32,13 +32,15 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      released: ${{ steps.versionize.outputs.released }}
     steps:
       -
         name : Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      
+
       - name: Setup git
         run: |
           git config --global user.email "nicolas.dufaut@gmail.com"
@@ -49,23 +51,32 @@ jobs:
 
       - name: Versioning
         id: versionize
-        run: versionize --exit-insignificant-commits
-      
-      - name: No release required
-        if: steps.versionize.outcome != 'success'
-        run: echo "Skipping Release. No release required."
-                
+        run: |
+          set +e
+          versionize --exit-insignificant-commits
+          exit_code=$?
+          set -e
+          if [ $exit_code -eq 0 ]; then
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No significant commit since the last release, skipping."
+            echo "released=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The default GITHUB_TOKEN can't push to main: required status checks only run on
+      # PRs, never on a direct push, so branch protection rejects it. RELEASE_TOKEN is a
+      # PAT from an admin account, exempted via enforce_admins=false.
       - name: Push changes to GitHub
-        if: steps.versionize.outcome == 'success'
+        if: steps.versionize.outputs.released == 'true'
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.RELEASE_TOKEN }}
           branch: ${{ github.ref }}
           tags: true
           force: true
-      
+
       - name: "Create release"
-        if: steps.versionize.outcome == 'success'
+        if: steps.versionize.outputs.released == 'true'
         uses: "actions/github-script@v9"
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -88,7 +99,8 @@ jobs:
             }
 
   docker-web:
-    needs: publish    
+    needs: publish
+    if: needs.publish.outputs.released == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
