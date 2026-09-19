@@ -65,7 +65,7 @@ public class PdfImageExtractorService : IPdfImageExtractor
         return new PdfExtractionResult(extractedPaths, extractedPaths.Count);
     }
 
-    private static string DetermineExtension(byte[] rawBytes)
+    internal static string DetermineExtension(byte[] rawBytes)
     {
         if (rawBytes.Length >= 2 && rawBytes[0] == 0xFF && rawBytes[1] == 0xD8)
         {

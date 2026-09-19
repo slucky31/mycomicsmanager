@@ -77,6 +77,21 @@ public sealed class ImportOrchestratorTests
     }
 
     [Fact]
+    public async Task ProcessAsync_Should_CompleteWithoutException_WhenHandlerSucceeds()
+    {
+        var importJobId = Guid.CreateVersion7();
+        var digitalBook = DigitalBook.Create(
+            new BookMetadata("Serie", "Title", "9782075162869"),
+            Guid.CreateVersion7(), "/library/comic.cbz", 1024).Value!;
+        _commandHandler.Handle(Arg.Any<ProcessImportJobCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DigitalBook>.Success(digitalBook));
+
+        var act = async () => await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
     public async Task ProcessAsync_Should_CreateNewScope_ForEachCall()
     {
         var importJobId = Guid.CreateVersion7();

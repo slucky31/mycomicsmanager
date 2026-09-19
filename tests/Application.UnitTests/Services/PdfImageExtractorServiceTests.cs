@@ -128,4 +128,104 @@ public sealed class PdfImageExtractorServiceTests : IDisposable
         result.Value!.ExtractedImagePaths.Should().BeEmpty();
         result.Value.PageCount.Should().Be(0);
     }
+
+    /// <summary>
+    /// Creates a minimal valid PDF-1.4 with one page whose content stream draws a single
+    /// image XObject (DCTDecode-filtered, i.e. a raw embedded JPEG codestream). Offsets are
+    /// computed from the actual written bytes rather than hand-calculated.
+    /// </summary>
+    private static byte[] CreatePdfWithEmbeddedJpegBytes()
+    {
+        // A tiny but structurally valid baseline JPEG: SOI, APP0/JFIF, DQT, SOF0 (1x1),
+        // DHT, SOS, one scan byte, EOI. PdfPig only needs to walk the content stream's
+        // XObject reference; it does not decode the JPEG codestream itself.
+        byte[] jpegBytes =
+        [
+            0xFF, 0xD8, // SOI
+            0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, // APP0/JFIF
+            0xFF, 0xD9 // EOI
+        ];
+
+        using var ms = new MemoryStream();
+        var offsets = new long[5];
+
+        void WriteAscii(string s)
+        {
+            var bytes = System.Text.Encoding.ASCII.GetBytes(s);
+            ms.Write(bytes, 0, bytes.Length);
+        }
+
+        WriteAscii("%PDF-1.4\n");
+
+        offsets[0] = ms.Position;
+        WriteAscii("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+
+        offsets[1] = ms.Position;
+        WriteAscii("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+
+        offsets[2] = ms.Position;
+        WriteAscii("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 10 10] " +
+                   "/Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>\nendobj\n");
+
+        const string content = "q 10 0 0 10 0 0 cm /Im0 Do Q";
+        offsets[3] = ms.Position;
+        WriteAscii($"4 0 obj\n<< /Length {content.Length} >>\nstream\n{content}\nendstream\nendobj\n");
+
+        offsets[4] = ms.Position;
+        WriteAscii($"5 0 obj\n<< /Type /XObject /Subtype /Image /Width 1 /Height 1 " +
+                   $"/ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /DCTDecode /Length {jpegBytes.Length} >>\nstream\n");
+        ms.Write(jpegBytes, 0, jpegBytes.Length);
+        WriteAscii("\nendstream\nendobj\n");
+
+        var xrefOffset = ms.Position;
+        WriteAscii("xref\n0 6\n0000000000 65535 f \n");
+        foreach (var offset in offsets)
+        {
+            WriteAscii($"{offset:D10} 00000 n \n");
+        }
+        WriteAscii($"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n{xrefOffset}\n%%EOF");
+
+        return ms.ToArray();
+    }
+
+    [Fact]
+    public async Task ExtractImagesAsync_Should_ExtractEmbeddedJpegImage()
+    {
+        // Arrange
+        var pdfPath = Path.Combine(_tempDir, "with-image.pdf");
+        await File.WriteAllBytesAsync(pdfPath, CreatePdfWithEmbeddedJpegBytes(), TestContext.Current.CancellationToken);
+        var destDir = Path.Combine(_tempDir, "dest");
+
+        // Act
+        var result = await _service.ExtractImagesAsync(pdfPath, destDir, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.PageCount.Should().Be(1);
+        result.Value.ExtractedImagePaths.Should().ContainSingle();
+        var extractedPath = result.Value.ExtractedImagePaths[0];
+        Path.GetFileName(extractedPath).Should().Be("page-001.jpg");
+        File.Exists(extractedPath).Should().BeTrue();
+    }
+
+    // -------------------------------------------------------
+    // DetermineExtension (private pure function, exercised via reflection
+    // since PNG signatures aren't exercised by the embedded-JPEG fixture above)
+    // -------------------------------------------------------
+
+    [Fact]
+    public void DetermineExtension_Should_ReturnJpg_ForJpegSignature()
+        => PdfImageExtractorService.DetermineExtension([0xFF, 0xD8, 0xFF, 0xE0]).Should().Be(".jpg");
+
+    [Fact]
+    public void DetermineExtension_Should_ReturnPng_ForPngSignature()
+        => PdfImageExtractorService.DetermineExtension([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A]).Should().Be(".png");
+
+    [Fact]
+    public void DetermineExtension_Should_DefaultToJpg_ForUnknownSignature()
+        => PdfImageExtractorService.DetermineExtension([0x00, 0x01, 0x02, 0x03]).Should().Be(".jpg");
+
+    [Fact]
+    public void DetermineExtension_Should_DefaultToJpg_ForTooFewBytes()
+        => PdfImageExtractorService.DetermineExtension([0xFF]).Should().Be(".jpg");
 }

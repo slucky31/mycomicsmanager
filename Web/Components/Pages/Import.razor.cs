@@ -121,7 +121,7 @@ public partial class Import : IAsyncDisposable
         await LoadJobsAsync(newLibraryId);
     }
 
-    private async Task OnFilesSelectedAsync(IReadOnlyList<IBrowserFile> files)
+    internal async Task OnFilesSelectedAsync(IReadOnlyList<IBrowserFile> files)
     {
         if (files is null || files.Count == 0)
         {
@@ -192,7 +192,7 @@ public partial class Import : IAsyncDisposable
 
     private int _pollRequestId;
 
-    private async Task PollJobsAsync()
+    internal async Task PollJobsAsync()
     {
         if (_pollingCts.IsCancellationRequested)
         {
@@ -234,7 +234,7 @@ public partial class Import : IAsyncDisposable
 
     private bool _isDeletingTerminal;
 
-    private async Task DeleteTerminalJobsAsync()
+    internal async Task DeleteTerminalJobsAsync()
     {
         _isDeletingTerminal = true;
         StateHasChanged();

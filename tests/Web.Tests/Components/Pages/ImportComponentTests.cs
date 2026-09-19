@@ -1,4 +1,3 @@
-using System.Reflection;
 using Application.Interfaces;
 using AwesomeAssertions;
 using Bunit;
@@ -157,13 +156,6 @@ public sealed class ImportComponentTests
         return new TestSetup(ctx, cut, library, librariesService, importService, snackbar);
     }
 
-    private static Task InvokePrivateAsync(IRenderedComponent<Import> cut, string methodName, params object?[]? args) =>
-        cut.InvokeAsync(() =>
-        {
-            var method = typeof(Import).GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance)!;
-            return (Task)method.Invoke(cut.Instance, args)!;
-        });
-
     // ── LoadLibrariesAsync ────────────────────────────────────────────────────
 
     [Fact]
@@ -206,7 +198,7 @@ public sealed class ImportComponentTests
     {
         await using var setup = await SetupAsync();
 
-        await InvokePrivateAsync(setup.Cut, "OnFilesSelectedAsync", [Array.Empty<IBrowserFile>()]);
+        await setup.Cut.InvokeAsync(() => setup.Cut.Instance.OnFilesSelectedAsync(Array.Empty<IBrowserFile>()));
 
         await setup.ImportService.DidNotReceive()
             .UploadAndCreateJobAsync(Arg.Any<IBrowserFile>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
@@ -313,7 +305,7 @@ public sealed class ImportComponentTests
         await using var setup = await SetupAsync(initialJobs: [terminalJob, activeJob]);
         setup.ImportService.DeleteImportJobAsync(terminalJob.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
 
-        await InvokePrivateAsync(setup.Cut, "DeleteTerminalJobsAsync");
+        await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteTerminalJobsAsync);
 
         setup.Cut.Markup.Should().NotContain("done.cbz");
         setup.Cut.Markup.Should().Contain("active.cbz");
@@ -327,7 +319,7 @@ public sealed class ImportComponentTests
         setup.ImportService.DeleteImportJobAsync(terminalJob.Id, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(new TError("del:err", "boom")));
 
-        await InvokePrivateAsync(setup.Cut, "DeleteTerminalJobsAsync");
+        await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteTerminalJobsAsync);
 
         setup.Snackbar.Received().Add(Arg.Is<string>(s => s.Contains("Impossible de supprimer")), Severity.Error,
             Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
@@ -345,7 +337,7 @@ public sealed class ImportComponentTests
         setup.ImportService.GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>())
             .Returns(Result<IReadOnlyList<ImportJobViewModel>>.Success([updatedJob]));
 
-        await InvokePrivateAsync(setup.Cut, "PollJobsAsync");
+        await setup.Cut.InvokeAsync(setup.Cut.Instance.PollJobsAsync);
 
         setup.Cut.Markup.Should().Contain("polling.cbz");
     }
@@ -358,7 +350,7 @@ public sealed class ImportComponentTests
         setup.ImportService.GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>())
             .Returns(Result<IReadOnlyList<ImportJobViewModel>>.Failure(new TError("poll:err", "boom")));
 
-        var act = () => InvokePrivateAsync(setup.Cut, "PollJobsAsync");
+        var act = () => setup.Cut.InvokeAsync(setup.Cut.Instance.PollJobsAsync);
 
         await act.Should().NotThrowAsync();
     }

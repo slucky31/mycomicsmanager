@@ -56,6 +56,19 @@ public sealed class TempWorkspaceTests : IDisposable
     }
 
     [Fact]
+    public void MoveToLibrary_Should_ReturnBadRequest_WhenRelativePathEscapesLibraryRoot()
+    {
+        var sourcePath = Path.Combine(_root, "source.cbz");
+        File.WriteAllText(sourcePath, "content");
+
+        var result = _sut.MoveToLibrary(sourcePath, "../outside", "book.cbz");
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(ImportJobError.BadRequest);
+        File.Exists(sourcePath).Should().BeTrue();
+    }
+
+    [Fact]
     public void HasFreeSpace_Should_ReturnTrue_WhenRequiredBytesIsSmall()
     {
         var result = _sut.HasFreeSpace(1);
@@ -124,6 +137,20 @@ public sealed class TempWorkspaceTests : IDisposable
         var act = () => _sut.TryDeleteFile(Path.Combine(_root, "missing.cbz"));
 
         act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void TryDeleteFile_Should_LogAndSwallow_WhenPathIsADirectory()
+    {
+        // File.Delete on a directory path throws UnauthorizedAccessException on every platform,
+        // giving a portable way to exercise the catch block without relying on file locks.
+        var dirPath = Path.Combine(_root, "not-a-file");
+        Directory.CreateDirectory(dirPath);
+
+        var act = () => _sut.TryDeleteFile(dirPath);
+
+        act.Should().NotThrow();
+        Directory.Exists(dirPath).Should().BeTrue();
     }
 
     [Fact]
