@@ -198,7 +198,7 @@ public sealed class ImportComponentTests
     {
         await using var setup = await SetupAsync();
 
-        await setup.Cut.InvokeAsync(() => setup.Cut.Instance.OnFilesSelectedAsync(Array.Empty<IBrowserFile>()));
+        await setup.Cut.InvokeAsync(() => setup.Cut.Instance.OnFilesSelectedAsync([]));
 
         await setup.ImportService.DidNotReceive()
             .UploadAndCreateJobAsync(Arg.Any<IBrowserFile>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
