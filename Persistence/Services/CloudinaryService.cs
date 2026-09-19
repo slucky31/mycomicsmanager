@@ -54,23 +54,27 @@ public class CloudinaryService : ICloudinaryService
     {
         Log.Information("Uploading image to Cloudinary from file {FilePath} to folder {Folder}", filePath, folder);
 
-        FileStream stream;
+        FileStream? stream = null;
         try
         {
             stream = File.OpenRead(filePath);
+
+            var uploadParams = CreateUploadParams(
+                new FileDescription(Path.GetFileName(filePath), stream), folder, publicId);
+
+            return await ExecuteUploadAsync(uploadParams, filePath, cancellationToken);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Log.Error(ex, "Could not read file for Cloudinary upload: {FilePath}", filePath);
             return new CloudinaryUploadResult(null, null, false, ex.Message);
         }
-
-        await using (stream)
+        finally
         {
-            var uploadParams = CreateUploadParams(
-                new FileDescription(Path.GetFileName(filePath), stream), folder, publicId);
-
-            return await ExecuteUploadAsync(uploadParams, filePath, cancellationToken);
+            if (stream != null)
+            {
+                await stream.DisposeAsync();
+            }
         }
     }
 
