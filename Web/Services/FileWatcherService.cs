@@ -46,7 +46,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         // StartAsync returns immediately and does not block HTTP server startup.
         _lifetime.ApplicationStarted.Register(() =>
         {
-            var task = Task.Run(() => RunStartupScanAsync(_lifetime.ApplicationStopping));
+            var task = Task.Run(() => RunStartupScanAsync(_lifetime.ApplicationStopping), cancellationToken);
             StartupScanTask = task;
             task.ContinueWith(t => Log.Error(t.Exception, "Startup scan failed"),
                 CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);

@@ -13,7 +13,7 @@ internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts) : Dele
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var currentRequest = request;
-        HttpRequestMessage? ownedClone = null;
+        var ownedClones = new List<HttpRequestMessage>();
         try
         {
             for (var redirectCount = 0; redirectCount <= MaxRedirects; redirectCount++)
@@ -38,16 +38,18 @@ internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts) : Dele
                 var statusCode = response.StatusCode;
                 response.Dispose();
 
-                ownedClone?.Dispose();
                 currentRequest = CloneAsRedirect(currentRequest, location, statusCode);
-                ownedClone = currentRequest;
+                ownedClones.Add(currentRequest);
             }
 
             throw new HttpRequestException("SSRF guard: too many redirects.");
         }
         finally
         {
-            ownedClone?.Dispose();
+            foreach (var clone in ownedClones)
+            {
+                clone.Dispose();
+            }
         }
     }
 
