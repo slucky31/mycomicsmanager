@@ -35,11 +35,17 @@ jobs:
     outputs:
       released: ${{ steps.versionize.outputs.released }}
     steps:
+      # actions/checkout persists the given token's credentials (as an http.extraheader) for
+      # every git command in this job. If left at the default GITHUB_TOKEN, that persisted
+      # header takes precedence over the different token ad-m/github-push-action embeds in
+      # its remote URL later, so the push still authenticates as GITHUB_TOKEN/github-actions[bot]
+      # - which branch protection does not exempt - regardless of what RELEASE_TOKEN is set to.
       -
         name : Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Setup git
         run: |
