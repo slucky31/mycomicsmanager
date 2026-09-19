@@ -115,6 +115,8 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         }
     }
 
+    private const string ErrorsDirectoryName = "errors";
+
     private async Task ScanDirectoryAsync(string rootDir, CancellationToken ct)
     {
         if (!Directory.Exists(rootDir))
@@ -122,6 +124,11 @@ public sealed class FileWatcherService : IHostedService, IDisposable
 
         foreach (var subDir in Directory.GetDirectories(rootDir))
         {
+            if (string.Equals(Path.GetFileName(subDir), ErrorsDirectoryName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             foreach (var file in Directory.GetFiles(subDir))
             {
                 await ProcessFileAsync(file, ct);

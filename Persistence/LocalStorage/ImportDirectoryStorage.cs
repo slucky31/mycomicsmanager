@@ -164,7 +164,8 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
             return Result.Success();
         }
 
-        var errorsDir = Path.Combine(_rootPath, "errors");
+        var libraryDir = Path.GetDirectoryName(absoluteFilePath) ?? _rootPath;
+        var errorsDir = Path.Combine(libraryDir, "errors");
         Directory.CreateDirectory(errorsDir);
 
         var fileName = Path.GetFileName(absoluteFilePath);

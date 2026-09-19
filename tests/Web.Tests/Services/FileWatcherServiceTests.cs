@@ -111,6 +111,21 @@ public sealed class FileWatcherServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task StartAsync_Should_SkipErrorsDirectory()
+    {
+        var errorsDir = Path.Combine(_importDir, "errors");
+        Directory.CreateDirectory(errorsDir);
+        await File.WriteAllBytesAsync(Path.Combine(errorsDir, "failed.cbz"), new byte[100], TestContext.Current.CancellationToken);
+
+        await _service.StartAsync(CancellationToken.None);
+        await FireApplicationStartedAsync();
+
+        await _createHandler.DidNotReceive().Handle(
+            Arg.Any<CreateImportJobCommand>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task StartAsync_Should_InitializeWatcher()
     {
         // StartAsync should complete without error and the service should be running
