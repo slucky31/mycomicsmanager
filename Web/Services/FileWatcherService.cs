@@ -212,8 +212,19 @@ public sealed class FileWatcherService : IHostedService, IDisposable
 
         if (result.IsFailure)
         {
-            Log.Error("Failed to create import job for {FilePath}: [{Code}] {Description}",
-                filePath, result.Error!.Code, result.Error.Description);
+            if (result.Error!.Code == ImportJobError.AlreadyQueued.Code)
+            {
+                // Expected while a previously enqueued job for this file is still being
+                // processed (extraction/conversion can take minutes); the watcher will
+                // stop rescanning it once the file is moved out of the import directory.
+                Log.Debug("Import job already active for {FilePath}, skipping rescan", filePath);
+            }
+            else
+            {
+                Log.Error("Failed to create import job for {FilePath}: [{Code}] {Description}",
+                    filePath, result.Error.Code, result.Error.Description);
+            }
+
             return;
         }
 
