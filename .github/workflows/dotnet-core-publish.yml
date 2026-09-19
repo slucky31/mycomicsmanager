@@ -106,8 +106,13 @@ jobs:
       contents: read
       packages: write
     steps:
+      # Without an explicit ref, checkout resolves the SHA that triggered this workflow run,
+      # i.e. the commit *before* the publish job's Versionize push. Pinning to main picks up
+      # that bump commit, so the image is built with the version it's tagged with.
       - name : Checkout
         uses: actions/checkout@v7
+        with:
+          ref: main
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
