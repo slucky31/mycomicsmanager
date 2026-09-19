@@ -63,11 +63,14 @@ jobs:
             echo "released=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # The default GITHUB_TOKEN can't push to main: required status checks only run on
+      # PRs, never on a direct push, so branch protection rejects it. RELEASE_TOKEN is a
+      # PAT from an admin account, exempted via enforce_admins=false.
       - name: Push changes to GitHub
         if: steps.versionize.outputs.released == 'true'
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.RELEASE_TOKEN }}
           branch: ${{ github.ref }}
           tags: true
           force: true
