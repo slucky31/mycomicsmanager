@@ -58,6 +58,7 @@ plusieurs fichiers, couches, ou le choix d'une techno/convention.
 | [0015](0015-garde-fou-ssrf-appels-sortants.md) | Garde-fou SSRF (allow-list) sur tous les appels HTTP sortants | Acceptée | 2026-09-19 |
 | [0016](0016-hangfire-jobs-arriere-plan.md) | Hangfire + stockage PostgreSQL pour les jobs en arrière-plan | Acceptée | 2026-09-19 |
 | [0017](0017-stack-de-tests.md) | Stack de tests — xUnit v3, NSubstitute, AwesomeAssertions, bUnit (bUnit en pause) | Acceptée | 2026-09-19 |
+| [0018](0018-conventional-commits-versionize.md) | Conventional Commits + Versionize pour le versioning automatique | Acceptée | 2026-09-19 |
 
 ## Backlog de candidates
 
@@ -79,7 +80,7 @@ Cocher/déplacer vers l'index au fur et à mesure qu'une ADR est rédigée.
 - [x] Validation à plusieurs niveaux : FluentValidation (UI/DTO) + handler CQRS + `Result` (invariants domaine) — [ADR-0014](0014-validation-a-plusieurs-niveaux.md)
 - [x] Serilog (Console + File, JSON compact) — [ADR-0009](0009-serilog-pour-le-logging.md)
 - [x] Outils qualité/sécurité : SonarCloud + CodeQL + Renovate (DeepSource retiré) — [ADR-0013](0013-outils-qualite-et-securite.md)
-- [ ] Conventional Commits + Versionize pour versioning/changelog automatiques
+- [x] Conventional Commits + Versionize pour versioning/changelog automatiques — [ADR-0018](0018-conventional-commits-versionize.md)
 - [x] Garde-fou SSRF (allow-list) sur tous les appels HTTP sortants — [ADR-0015](0015-garde-fou-ssrf-appels-sortants.md)
 - [x] Hangfire + stockage PostgreSQL pour les jobs en arrière-plan — [ADR-0016](0016-hangfire-jobs-arriere-plan.md)
 - [x] Cible de déploiement : Raspberry Pi 4 self-hosted (arm64), Docker + ghcr.io — [ADR-0001](0001-deploiement-raspberry-pi-4-self-hosted.md)
