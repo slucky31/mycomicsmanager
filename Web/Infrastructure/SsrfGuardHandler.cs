@@ -13,29 +13,39 @@ internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts) : Dele
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var currentRequest = request;
-        for (var redirectCount = 0; ; redirectCount++)
+        HttpRequestMessage? ownedClone = null;
+        try
         {
-            EnsureAllowed(currentRequest.RequestUri);
-
-            var response = await base.SendAsync(currentRequest, cancellationToken);
-            if (!IsRedirect(response.StatusCode) || response.Headers.Location is null)
+            for (var redirectCount = 0; ; redirectCount++)
             {
-                return response;
-            }
+                EnsureAllowed(currentRequest.RequestUri);
 
-            if (redirectCount >= MaxRedirects)
-            {
+                var response = await base.SendAsync(currentRequest, cancellationToken);
+                if (!IsRedirect(response.StatusCode) || response.Headers.Location is null)
+                {
+                    return response;
+                }
+
+                if (redirectCount >= MaxRedirects)
+                {
+                    response.Dispose();
+                    throw new HttpRequestException("SSRF guard: too many redirects.");
+                }
+
+                var location = response.Headers.Location.IsAbsoluteUri
+                    ? response.Headers.Location
+                    : new Uri(currentRequest.RequestUri!, response.Headers.Location);
+                var statusCode = response.StatusCode;
                 response.Dispose();
-                throw new HttpRequestException("SSRF guard: too many redirects.");
+
+                ownedClone?.Dispose();
+                currentRequest = CloneAsRedirect(currentRequest, location, statusCode);
+                ownedClone = currentRequest;
             }
-
-            var location = response.Headers.Location.IsAbsoluteUri
-                ? response.Headers.Location
-                : new Uri(currentRequest.RequestUri!, response.Headers.Location);
-            var statusCode = response.StatusCode;
-            response.Dispose();
-
-            currentRequest = CloneAsRedirect(currentRequest, location, statusCode);
+        }
+        finally
+        {
+            ownedClone?.Dispose();
         }
     }
 
