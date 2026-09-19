@@ -25,6 +25,10 @@ public sealed class ImportServiceTests : IDisposable
     private readonly ICurrentUserService _currentUserService;
     private readonly IQueryHandler<GetLibraryQuery, Library> _getLibraryHandler;
     private readonly ICommandHandler<CreateImportJobCommand, ImportJob> _createJobHandler;
+    private readonly IQueryHandler<ListImportJobsQuery, IReadOnlyList<ImportJob>> _listJobsHandler;
+    private readonly IQueryHandler<GetImportJobQuery, ImportJob> _getJobHandler;
+    private readonly ICommandHandler<DeleteImportJobCommand> _deleteJobHandler;
+    private readonly ICommandHandler<ForceFailImportJobCommand> _forceFailJobHandler;
     private readonly IImportJobEnqueuer _enqueuer;
     private readonly ImportService _service;
     private readonly string _importDir;
@@ -56,12 +60,17 @@ public sealed class ImportServiceTests : IDisposable
 
         _enqueuer.Enqueue(Arg.Any<Guid>()).Returns("hangfire-job-id");
 
+        _listJobsHandler = Substitute.For<IQueryHandler<ListImportJobsQuery, IReadOnlyList<ImportJob>>>();
+        _getJobHandler = Substitute.For<IQueryHandler<GetImportJobQuery, ImportJob>>();
+        _deleteJobHandler = Substitute.For<ICommandHandler<DeleteImportJobCommand>>();
+        _forceFailJobHandler = Substitute.For<ICommandHandler<ForceFailImportJobCommand>>();
+
         var handlers = new ImportJobHandlers(
-            Substitute.For<IQueryHandler<ListImportJobsQuery, IReadOnlyList<ImportJob>>>(),
-            Substitute.For<IQueryHandler<GetImportJobQuery, ImportJob>>(),
+            _listJobsHandler,
+            _getJobHandler,
             _createJobHandler,
-            Substitute.For<ICommandHandler<DeleteImportJobCommand>>(),
-            Substitute.For<ICommandHandler<ForceFailImportJobCommand>>(),
+            _deleteJobHandler,
+            _forceFailJobHandler,
             _getLibraryHandler);
 
         var settings = Options.Create(new ImportSettings
@@ -147,5 +156,130 @@ public sealed class ImportServiceTests : IDisposable
 
         var expectedSubDir = Path.Combine(_importDir, _library.ImportDirectoryName);
         Directory.GetFiles(expectedSubDir).Should().BeEmpty();
+    }
+
+    // ── GetImportJobsAsync ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetImportJobsAsync_Should_ReturnMappedViewModels_WhenSuccessful()
+    {
+        var job = ImportJob.Create("comic.cbz", "/tmp/comic.cbz", 1024, _libraryId).Value!;
+        _listJobsHandler.Handle(Arg.Any<ListImportJobsQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<ImportJob>>.Success([job]));
+
+        var result = await _service.GetImportJobsAsync(_libraryId, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Should().ContainSingle(vm => vm.Id == job.Id);
+    }
+
+    [Fact]
+    public async Task GetImportJobsAsync_Should_ReturnError_WhenCurrentUserResolutionFails()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<Guid>.Failure(new TError("auth:not-found", "No current user")));
+
+        var result = await _service.GetImportJobsAsync(_libraryId, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        await _listJobsHandler.DidNotReceive().Handle(Arg.Any<ListImportJobsQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetImportJobsAsync_Should_ReturnError_WhenHandlerFails()
+    {
+        _listJobsHandler.Handle(Arg.Any<ListImportJobsQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<ImportJob>>.Failure(ImportJobError.NotFound));
+
+        var result = await _service.GetImportJobsAsync(_libraryId, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+    }
+
+    // ── GetImportJobAsync ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetImportJobAsync_Should_ReturnMappedViewModel_WhenSuccessful()
+    {
+        var job = ImportJob.Create("comic.cbz", "/tmp/comic.cbz", 1024, _libraryId).Value!;
+        _getJobHandler.Handle(Arg.Any<GetImportJobQuery>(), Arg.Any<CancellationToken>())
+            .Returns(job);
+
+        var result = await _service.GetImportJobAsync(job.Id, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Id.Should().Be(job.Id);
+    }
+
+    [Fact]
+    public async Task GetImportJobAsync_Should_ReturnError_WhenCurrentUserResolutionFails()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<Guid>.Failure(new TError("auth:not-found", "No current user")));
+
+        var result = await _service.GetImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetImportJobAsync_Should_ReturnError_WhenJobNotFound()
+    {
+        _getJobHandler.Handle(Arg.Any<GetImportJobQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ImportJob>.Failure(ImportJobError.NotFound));
+
+        var result = await _service.GetImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+    }
+
+    // ── DeleteImportJobAsync ──────────────────────────────────────────────────
+
+    [Fact]
+    public async Task DeleteImportJobAsync_Should_ReturnSuccess_WhenHandlerSucceeds()
+    {
+        _deleteJobHandler.Handle(Arg.Any<DeleteImportJobCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var result = await _service.DeleteImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteImportJobAsync_Should_ReturnError_WhenCurrentUserResolutionFails()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<Guid>.Failure(new TError("auth:not-found", "No current user")));
+
+        var result = await _service.DeleteImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        await _deleteJobHandler.DidNotReceive().Handle(Arg.Any<DeleteImportJobCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    // ── ForceFailImportJobAsync ───────────────────────────────────────────────
+
+    [Fact]
+    public async Task ForceFailImportJobAsync_Should_ReturnSuccess_WhenHandlerSucceeds()
+    {
+        _forceFailJobHandler.Handle(Arg.Any<ForceFailImportJobCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var result = await _service.ForceFailImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ForceFailImportJobAsync_Should_ReturnError_WhenCurrentUserResolutionFails()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<Guid>.Failure(new TError("auth:not-found", "No current user")));
+
+        var result = await _service.ForceFailImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        await _forceFailJobHandler.DidNotReceive().Handle(Arg.Any<ForceFailImportJobCommand>(), Arg.Any<CancellationToken>());
     }
 }
