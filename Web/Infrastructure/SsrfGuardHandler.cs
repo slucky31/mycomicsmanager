@@ -16,7 +16,7 @@ internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts) : Dele
         HttpRequestMessage? ownedClone = null;
         try
         {
-            for (var redirectCount = 0; ; redirectCount++)
+            for (var redirectCount = 0; redirectCount <= MaxRedirects; redirectCount++)
             {
                 EnsureAllowed(currentRequest.RequestUri);
 
@@ -26,7 +26,7 @@ internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts) : Dele
                     return response;
                 }
 
-                if (redirectCount >= MaxRedirects)
+                if (redirectCount == MaxRedirects)
                 {
                     response.Dispose();
                     throw new HttpRequestException("SSRF guard: too many redirects.");
@@ -42,6 +42,8 @@ internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts) : Dele
                 currentRequest = CloneAsRedirect(currentRequest, location, statusCode);
                 ownedClone = currentRequest;
             }
+
+            throw new HttpRequestException("SSRF guard: too many redirects.");
         }
         finally
         {

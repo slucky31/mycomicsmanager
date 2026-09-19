@@ -33,4 +33,7 @@ public sealed class PhysicalBook : Book
 
         return book;
     }
+
+    protected override Result ValidateMetadataForUpdate(BookMetadata metadata) =>
+        string.IsNullOrWhiteSpace(metadata.ISBN) ? BooksError.BadRequest : Result.Success();
 }

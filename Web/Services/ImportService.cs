@@ -96,7 +96,7 @@ public class ImportService(
             return ensureResult.Error!;
         }
 
-        var libraryDir = Path.Combine(_settings.ImportDirectory, libraryResult.Value!.ImportDirectoryName);
+        var libraryDir = Path.Combine(_settings.ImportDirectory, libraryResult.Value.ImportDirectoryName);
         var destPath = Path.Combine(libraryDir, $"{Guid.CreateVersion7()}_{safeFileName}");
 
         const long bytesPerMb = 1024L * 1024;
@@ -129,7 +129,7 @@ public class ImportService(
 
         importJobEnqueuer.Enqueue(createResult.Value!.Id);
 
-        return ImportJobViewModel.From(createResult.Value!);
+        return ImportJobViewModel.From(createResult.Value);
     }
 
     public async Task<Result> DeleteImportJobAsync(Guid importJobId, CancellationToken ct = default)

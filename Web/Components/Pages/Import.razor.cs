@@ -62,7 +62,7 @@ public partial class Import : IAsyncDisposable
 
     private async Task LoadLibrariesAsync()
     {
-        var result = await LibrariesService.FilterBy(null, null, null, 1, 200);
+        var result = await LibrariesService.FilterBy(null, null, null, 1, 200, _pollingCts.Token);
         if (result.IsSuccess && result.Value?.Items is not null)
         {
             _digitalLibraries = result.Value.Items
@@ -137,7 +137,7 @@ public partial class Import : IAsyncDisposable
         {
             foreach (var file in files)
             {
-                var result = await ImportService.UploadAndCreateJobAsync(file, capturedLibraryId);
+                var result = await ImportService.UploadAndCreateJobAsync(file, capturedLibraryId, _pollingCts.Token);
 
                 if (_selectedLibraryId != capturedLibraryId)
                 {
@@ -245,7 +245,7 @@ public partial class Import : IAsyncDisposable
         {
             foreach (var jobId in terminalJobIds)
             {
-                var result = await ImportService.DeleteImportJobAsync(jobId);
+                var result = await ImportService.DeleteImportJobAsync(jobId, _pollingCts.Token);
                 if (result.IsSuccess)
                 {
                     _jobs.RemoveAll(j => j.Id == jobId);
@@ -275,7 +275,7 @@ public partial class Import : IAsyncDisposable
 
     private async Task DeleteJobAsync(Guid jobId)
     {
-        var result = await ImportService.DeleteImportJobAsync(jobId);
+        var result = await ImportService.DeleteImportJobAsync(jobId, _pollingCts.Token);
         if (result.IsSuccess)
         {
             _jobs.RemoveAll(j => j.Id == jobId);
@@ -289,11 +289,11 @@ public partial class Import : IAsyncDisposable
 
     private async Task ForceFailJobAsync(Guid jobId)
     {
-        var result = await ImportService.ForceFailImportJobAsync(jobId);
+        var result = await ImportService.ForceFailImportJobAsync(jobId, _pollingCts.Token);
         if (result.IsSuccess)
         {
             var capturedLibraryId = _selectedLibraryId;
-            var refreshResult = await ImportService.GetImportJobsAsync(capturedLibraryId);
+            var refreshResult = await ImportService.GetImportJobsAsync(capturedLibraryId, _pollingCts.Token);
             if (refreshResult.IsSuccess && _selectedLibraryId == capturedLibraryId)
             {
                 _jobs = refreshResult.Value!.OrderByDescending(j => j.CreatedAt).ToList();

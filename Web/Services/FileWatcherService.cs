@@ -80,7 +80,10 @@ public sealed class FileWatcherService : IHostedService, IDisposable
                 }
             }
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+            // Expected on host shutdown when _lifetime.ApplicationStopping fires.
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

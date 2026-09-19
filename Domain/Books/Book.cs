@@ -34,9 +34,10 @@ public abstract class Book : Entity<Guid>
 
     public Result Update(BookMetadata metadata)
     {
-        if (this is PhysicalBook && string.IsNullOrWhiteSpace(metadata.ISBN))
+        var validationResult = ValidateMetadataForUpdate(metadata);
+        if (validationResult.IsFailure)
         {
-            return BooksError.BadRequest;
+            return validationResult;
         }
 
         Serie = metadata.Serie;
@@ -50,6 +51,8 @@ public abstract class Book : Entity<Guid>
         NumberOfPages = metadata.NumberOfPages;
         return Result.Success();
     }
+
+    protected virtual Result ValidateMetadataForUpdate(BookMetadata metadata) => Result.Success();
 
     public ReadingDate AddReadingDate(DateTime date, int rating)
     {

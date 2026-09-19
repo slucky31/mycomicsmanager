@@ -42,7 +42,7 @@ public class ImageProcessorService : IImageProcessor
             return processResult.Error!;
         }
 
-        var (processedCount, skippedCount) = processResult.Value!;
+        var (processedCount, skippedCount) = processResult.Value;
         CopyComicInfoXml(sourceDirectory, destinationDirectory);
 
         Log.Information(

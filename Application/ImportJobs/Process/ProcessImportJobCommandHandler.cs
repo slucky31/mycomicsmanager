@@ -104,12 +104,12 @@ public sealed class ProcessImportJobCommandHandler(
             var imageLink = coverResult.Value!;
 
             var archiveResult = await BuildArchiveStepAsync(
-                importJob, metaResult.Value!.ISBN, webpFiles, convertedDir, tempDir, ct);
+                importJob, metaResult.Value.ISBN, webpFiles, convertedDir, tempDir, ct);
             if (archiveResult.IsFailure)
             { return archiveResult.Error!; }
 
             return await CompleteStepAsync(
-                importJob, library, metaResult.Value!, archiveResult.Value, imageLink, ct);
+                importJob, library, metaResult.Value, archiveResult.Value, imageLink, ct);
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException or HttpRequestException or InvalidDataException)
         { return await HandleUnexpectedExceptionAsync(importJob, ex, ct); }
@@ -370,7 +370,7 @@ public sealed class ProcessImportJobCommandHandler(
     {
         var normalizedIsbn = string.IsNullOrWhiteSpace(meta.ISBN)
             ? null
-            : IsbnHelper.NormalizeIsbn(meta.ISBN!);
+            : IsbnHelper.NormalizeIsbn(meta.ISBN);
 
         var finalMeta = meta with { ImageLink = imageLink, ISBN = normalizedIsbn };
 
