@@ -1,4 +1,5 @@
 using Domain.Books;
+using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
 
     public DbSet<IsbnBedethequeUrl> IsbnBedethequeUrls => Set<IsbnBedethequeUrl>();
 
+    public DbSet<ImportJob> ImportJobs => Set<ImportJob>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -38,7 +41,7 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<Book>().ToTable("Books");
             modelBuilder.Entity<Book>().Property(b => b.Serie).HasMaxLength(BookConstants.MaxSerieLength);
             modelBuilder.Entity<Book>().Property(b => b.Title).HasMaxLength(BookConstants.MaxTitleLength);
-            modelBuilder.Entity<Book>().Property(b => b.ISBN).HasMaxLength(BookConstants.MaxIsbnLength);
+            modelBuilder.Entity<Book>().Property(b => b.ISBN).HasMaxLength(BookConstants.MaxIsbnLength).IsRequired(false);
             modelBuilder.Entity<Book>().Property(b => b.ImageLink).HasMaxLength(BookConstants.MaxImageLinkLength);
             modelBuilder.Entity<Book>().Property(b => b.Authors).HasMaxLength(BookConstants.MaxAuthorsLength);
             modelBuilder.Entity<Book>().Property(b => b.Publishers).HasMaxLength(BookConstants.MaxPublishersLength);
@@ -57,6 +60,24 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             // TPT (Table Per Type) for Book hierarchy
             modelBuilder.Entity<PhysicalBook>().ToTable("PhysicalBooks");
             modelBuilder.Entity<DigitalBook>().ToTable("DigitalBooks");
+            modelBuilder.Entity<DigitalBook>().Property(b => b.FilePath).HasMaxLength(BookConstants.MaxFilePathLength);
+
+            modelBuilder.Entity<ImportJob>().ToTable("ImportJobs");
+            modelBuilder.Entity<ImportJob>().Property(j => j.OriginalFileName).HasMaxLength(ImportJobConstants.MaxFileNameLength);
+            modelBuilder.Entity<ImportJob>().Property(j => j.OriginalFilePath).HasMaxLength(ImportJobConstants.MaxFilePathLength);
+            modelBuilder.Entity<ImportJob>().Property(j => j.ErrorMessage).HasMaxLength(ImportJobConstants.MaxErrorMessageLength);
+            modelBuilder.Entity<ImportJob>().Property(j => j.ErrorStep).HasMaxLength(ImportJobConstants.MaxErrorStepLength);
+            modelBuilder.Entity<ImportJob>().HasIndex(j => j.LibraryId);
+            modelBuilder.Entity<ImportJob>().HasIndex(j => j.Status);
+            // ponytail: filter references the numeric ordinals of Completed (6) and Failed (7); update if the enum is reordered
+            modelBuilder.Entity<ImportJob>().HasIndex(j => j.OriginalFilePath)
+                .IsUnique()
+                .HasFilter("\"Status\" NOT IN (6, 7)");
+            modelBuilder.Entity<ImportJob>().Property<uint>("xmin")
+                .HasColumnName("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
 
             modelBuilder.Entity<ReadingDate>().ToTable("ReadingDates");
 

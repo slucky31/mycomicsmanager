@@ -1,0 +1,317 @@
+using Domain.Libraries;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+using MudBlazor;
+using Serilog;
+using Web.Models;
+using Web.Services;
+using Web.Validators;
+
+namespace Web.Components.Pages;
+
+public partial class Import : IAsyncDisposable
+{
+    [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
+    [Inject] private IImportService ImportService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    public string? LibraryId { get; set; }
+
+    private List<LibraryUiDto> _digitalLibraries = [];
+    private Guid _selectedLibraryId = Guid.Empty;
+    private Guid _lastLoadedLibraryId = Guid.Empty;
+
+    private List<ImportJobViewModel> _jobs = [];
+    private readonly List<string> _uploadErrors = [];
+
+    private bool _isLoadingJobs;
+    private bool _isUploading;
+    private string? _loadError;
+
+    private System.Threading.Timer? _pollTimer;
+    private readonly CancellationTokenSource _pollingCts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLibrariesAsync();
+
+        if (Guid.TryParse(LibraryId, out var preselectedId)
+            && _digitalLibraries.Any(l => l.Id == preselectedId))
+        {
+            _selectedLibraryId = preselectedId;
+        }
+        else if (_digitalLibraries.Count > 0)
+        {
+            _selectedLibraryId = _digitalLibraries[0].Id;
+        }
+
+        if (_selectedLibraryId != Guid.Empty)
+        {
+            await LoadJobsAsync(_selectedLibraryId);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_selectedLibraryId != _lastLoadedLibraryId && _selectedLibraryId != Guid.Empty)
+        {
+            await LoadJobsAsync(_selectedLibraryId);
+        }
+    }
+
+    private async Task LoadLibrariesAsync()
+    {
+        var result = await LibrariesService.FilterBy(null, null, null, 1, 200, _pollingCts.Token);
+        if (result.IsSuccess && result.Value?.Items is not null)
+        {
+            _digitalLibraries = result.Value.Items
+                .Where(l => l.BookType == LibraryBookType.Digital)
+                .Select(LibraryUiDto.Convert)
+                .ToList();
+        }
+        else if (result.IsFailure)
+        {
+            _loadError = "Impossible de charger les librairies.";
+            Log.Error("Import: failed to load libraries: {Error}", result.Error?.Description);
+        }
+    }
+
+    private async Task LoadJobsAsync(Guid libraryId)
+    {
+        _isLoadingJobs = true;
+        _uploadErrors.Clear();
+        StateHasChanged();
+
+        var capturedLibraryId = libraryId;
+        try
+        {
+            var result = await ImportService.GetImportJobsAsync(capturedLibraryId, _pollingCts.Token);
+
+            if (_selectedLibraryId != capturedLibraryId)
+            {
+                return;
+            }
+
+            if (result.IsSuccess)
+            {
+                _jobs = result.Value!.OrderByDescending(j => j.CreatedAt).ToList();
+                _lastLoadedLibraryId = capturedLibraryId;
+            }
+            else if (result.IsFailure)
+            {
+                _jobs = [];
+                Snackbar.Add(result.Error?.Description ?? "Impossible de charger les imports.", Severity.Error);
+                Log.Error("Import: failed to load jobs for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
+            }
+
+            StartPollingIfNeeded();
+        }
+        finally
+        {
+            _isLoadingJobs = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnLibraryChangedAsync(Guid newLibraryId)
+    {
+        _selectedLibraryId = newLibraryId;
+        StopPolling();
+        await LoadJobsAsync(newLibraryId);
+    }
+
+    internal async Task OnFilesSelectedAsync(IReadOnlyList<IBrowserFile> files)
+    {
+        if (files is null || files.Count == 0)
+        {
+            return;
+        }
+
+        _isUploading = true;
+        _uploadErrors.Clear();
+        StateHasChanged();
+
+        var capturedLibraryId = _selectedLibraryId;
+        try
+        {
+            foreach (var file in files)
+            {
+                var result = await ImportService.UploadAndCreateJobAsync(file, capturedLibraryId, _pollingCts.Token);
+
+                if (_selectedLibraryId != capturedLibraryId)
+                {
+                    break;
+                }
+
+                if (result.IsSuccess)
+                {
+                    _jobs.Insert(0, result.Value!);
+                }
+                else if (result.IsFailure)
+                {
+                    _uploadErrors.Add($"{file.Name}: {result.Error?.Description ?? "Erreur inconnue"}");
+                    Log.Error("Import: upload failed for {FileName}: {Error}", file.Name, result.Error?.Description);
+                }
+            }
+
+            StartPollingIfNeeded();
+
+            if (_uploadErrors.Count == 0)
+            {
+                Snackbar.Add($"{files.Count} fichier(s) envoyé(s) avec succès", Severity.Success);
+            }
+        }
+        finally
+        {
+            _isUploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void StartPollingIfNeeded()
+    {
+        var hasActiveJobs = _jobs.Any(j => !j.IsTerminal);
+        if (!hasActiveJobs)
+        {
+            StopPolling();
+            return;
+        }
+
+        if (_pollTimer is not null)
+        {
+            return;
+        }
+
+        _pollTimer = new System.Threading.Timer(
+            _ => InvokeAsync(PollJobsAsync),
+            null,
+            TimeSpan.FromSeconds(3),
+            TimeSpan.FromSeconds(3));
+    }
+
+    private int _pollRequestId;
+
+    internal async Task PollJobsAsync()
+    {
+        if (_pollingCts.IsCancellationRequested)
+        {
+            return;
+        }
+        var capturedLibraryId = _selectedLibraryId;
+        var requestId = ++_pollRequestId;
+        var result = await ImportService.GetImportJobsAsync(capturedLibraryId, _pollingCts.Token);
+
+        // Discard this response if the library changed or a newer poll was issued while awaiting.
+        if (_selectedLibraryId != capturedLibraryId || requestId != _pollRequestId)
+        {
+            return;
+        }
+
+        if (result.IsSuccess)
+        {
+            _jobs = result.Value!.OrderByDescending(j => j.CreatedAt).ToList();
+
+            if (!_jobs.Any(j => !j.IsTerminal))
+            {
+                StopPolling();
+            }
+        }
+        else if (result.IsFailure)
+        {
+            Log.Error("Import: polling failed for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
+        }
+
+        StateHasChanged();
+    }
+
+    private void StopPolling()
+    {
+        var timer = _pollTimer;
+        _pollTimer = null;
+        timer?.Dispose();
+    }
+
+    private bool _isDeletingTerminal;
+
+    internal async Task DeleteTerminalJobsAsync()
+    {
+        _isDeletingTerminal = true;
+        StateHasChanged();
+
+        var terminalJobIds = _jobs.Where(j => j.IsTerminal).Select(j => j.Id).ToList();
+        var errors = 0;
+        try
+        {
+            foreach (var jobId in terminalJobIds)
+            {
+                var result = await ImportService.DeleteImportJobAsync(jobId, _pollingCts.Token);
+                if (result.IsSuccess)
+                {
+                    _jobs.RemoveAll(j => j.Id == jobId);
+                }
+                else
+                {
+                    errors++;
+                    Log.Error("Import: failed to delete terminal job {JobId}: {Error}", jobId, result.Error?.Description);
+                }
+            }
+
+            if (errors > 0)
+            {
+                Snackbar.Add($"Impossible de supprimer {errors} job(s)", Severity.Error);
+            }
+            else if (terminalJobIds.Count > 0)
+            {
+                Snackbar.Add($"{terminalJobIds.Count} job(s) supprimé(s)", Severity.Success);
+            }
+        }
+        finally
+        {
+            _isDeletingTerminal = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteJobAsync(Guid jobId)
+    {
+        var result = await ImportService.DeleteImportJobAsync(jobId, _pollingCts.Token);
+        if (result.IsSuccess)
+        {
+            _jobs.RemoveAll(j => j.Id == jobId);
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add(result.Error?.Description ?? "Impossible de supprimer le job", Severity.Error);
+        }
+    }
+
+    private async Task ForceFailJobAsync(Guid jobId)
+    {
+        var result = await ImportService.ForceFailImportJobAsync(jobId, _pollingCts.Token);
+        if (result.IsSuccess)
+        {
+            var capturedLibraryId = _selectedLibraryId;
+            var refreshResult = await ImportService.GetImportJobsAsync(capturedLibraryId, _pollingCts.Token);
+            if (refreshResult.IsSuccess && _selectedLibraryId == capturedLibraryId)
+            {
+                _jobs = refreshResult.Value!.OrderByDescending(j => j.CreatedAt).ToList();
+            }
+            Snackbar.Add("Import marqué comme échoué.", Severity.Warning);
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add(result.Error?.Description ?? "Impossible de forcer l'échec du job", Severity.Error);
+        }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
+    public async ValueTask DisposeAsync()
+    {
+        await _pollingCts.CancelAsync();
+        _pollingCts.Dispose();
+        StopPolling();
+    }
+}

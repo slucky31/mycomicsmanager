@@ -55,8 +55,10 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         }
 
         // Create Book
-        var createResult = PhysicalBook.Create(request.Serie, request.Title, normalizedIsbn, request.VolumeNumber, request.ImageLink,
-            request.Authors, request.Publishers, request.PublishDate, request.NumberOfPages, request.LibraryId);
+        var metadata = new BookMetadata(request.Serie, request.Title, normalizedIsbn,
+            request.VolumeNumber, request.ImageLink, request.Authors, request.Publishers,
+            request.PublishDate, request.NumberOfPages);
+        var createResult = PhysicalBook.Create(metadata, request.LibraryId);
         if (createResult.IsFailure)
         {
             return createResult.Error!;
@@ -75,7 +77,11 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         book.AddReadingDate(DateTime.UtcNow, request.Rating);
 
         bookRepository.Add(book);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return book;
     }

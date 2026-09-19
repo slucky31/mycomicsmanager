@@ -1,0 +1,47 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/docs/">
+    <File Path="Analysis.md" />
+    <File Path="todo.txt" />
+  </Folder>
+  <Folder Name="/scripts/">
+    <Project Path="scripts/FixCoverImages/FixCoverImages.csproj" />
+  </Folder>
+  <Folder Name="/Solution items/">
+    <File Path=".editorconfig" />
+    <File Path=".github/copilot-instructions.md" />
+    <File Path=".github/labeler.yml" />
+    <File Path=".github/renovate.json" />
+    <File Path=".github/semantic.yml" />
+    <File Path=".github/workflows/codeql-analysis.yml" />
+    <File Path=".github/workflows/copilot-setup-steps.yml" />
+    <File Path=".github/workflows/dotnet-core-build.yml" />
+    <File Path=".github/workflows/dotnet-core-publish.yml" />
+    <File Path=".github/workflows/pr-labeler.yml" />
+    <File Path="Agents.md" />
+    <File Path="CHANGELOG.md" />
+    <File Path="CLAUDE.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+    <File Path="TODO.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="Application/Application.csproj" />
+    <Project Path="Domain/Domain.csproj" />
+    <Project Path="Persistence/Persistence.csproj" />
+    <Project Path="Web/Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Application.UnitTests/Application.UnitTests.csproj" />
+    <Project Path="tests/Architecture.Tests/Architecture.Tests.csproj" />
+    <Project Path="tests/Base.Integration.Tests/Base.Integration.Tests.csproj" />
+    <Project Path="tests/Domain.UnitTests/Domain.UnitTests.csproj" />
+    <Project Path="tests/Persistence.Integration.Tests/Persistence.Tests.csproj" />
+    <Project Path="tests/Web.Tests/Web.Tests.csproj" />
+  </Folder>
+</Solution>

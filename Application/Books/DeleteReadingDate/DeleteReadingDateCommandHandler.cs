@@ -31,7 +31,11 @@ public sealed class DeleteReadingDateCommandHandler(
         book.RemoveReadingDate(request.ReadingDateId);
 
         bookRepository.Update(book);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return Result.Success();
     }

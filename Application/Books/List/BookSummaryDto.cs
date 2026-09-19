@@ -5,7 +5,7 @@ public sealed class BookSummaryDto
     public Guid Id { get; init; }
     public string Serie { get; init; } = string.Empty;
     public string Title { get; init; } = string.Empty;
-    public string ISBN { get; init; } = string.Empty;
+    public string? ISBN { get; init; }
     public int VolumeNumber { get; init; }
     public string ImageLink { get; init; } = string.Empty;
     public string Authors { get; init; } = string.Empty;

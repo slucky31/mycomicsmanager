@@ -13,7 +13,7 @@ public abstract class Book : Entity<Guid>
 
     public string Title { get; protected set; } = string.Empty;
 
-    public string ISBN { get; protected set; } = string.Empty;
+    public string? ISBN { get; protected set; }
 
     public int VolumeNumber { get; protected set; } = 1;
 
@@ -32,27 +32,27 @@ public abstract class Book : Entity<Guid>
 
     protected Book() { }
 
-    public void Update(
-        string series,
-        string title,
-        string isbn,
-        int volumeNumber,
-        string imageLink,
-        string authors = "",
-        string publishers = "",
-        DateOnly? publishDate = null,
-        int? numberOfPages = null)
+    public Result Update(BookMetadata metadata)
     {
-        Serie = series;
-        Title = title;
-        ISBN = isbn;
-        VolumeNumber = volumeNumber;
-        ImageLink = imageLink;
-        Authors = authors;
-        Publishers = publishers;
-        PublishDate = publishDate;
-        NumberOfPages = numberOfPages;
+        var validationResult = ValidateMetadataForUpdate(metadata);
+        if (validationResult.IsFailure)
+        {
+            return validationResult;
+        }
+
+        Serie = metadata.Serie;
+        Title = metadata.Title;
+        ISBN = metadata.ISBN;
+        VolumeNumber = metadata.VolumeNumber;
+        ImageLink = metadata.ImageLink;
+        Authors = metadata.Authors;
+        Publishers = metadata.Publishers;
+        PublishDate = metadata.PublishDate;
+        NumberOfPages = metadata.NumberOfPages;
+        return Result.Success();
     }
+
+    protected virtual Result ValidateMetadataForUpdate(BookMetadata metadata) => Result.Success();
 
     public ReadingDate AddReadingDate(DateTime date, int rating)
     {

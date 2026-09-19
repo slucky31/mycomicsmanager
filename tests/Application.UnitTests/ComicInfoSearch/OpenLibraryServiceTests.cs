@@ -35,7 +35,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -63,7 +63,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbnWithDashes);
+        var result = await service.SearchByIsbnAsync(ValidIsbnWithDashes, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -83,7 +83,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -102,7 +102,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -121,7 +121,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -142,7 +142,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -165,7 +165,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -195,7 +195,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -227,7 +227,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -255,7 +255,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -293,7 +293,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeFalse();
@@ -314,7 +314,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -343,7 +343,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -373,7 +373,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();
@@ -407,7 +407,7 @@ public class OpenLibraryServiceTests
         var service = new OpenLibraryService(httpClient);
 
         // Act
-        var result = await service.SearchByIsbnAsync(ValidIsbn, CancellationToken.None);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         // Assert
         result.Found.Should().BeTrue();

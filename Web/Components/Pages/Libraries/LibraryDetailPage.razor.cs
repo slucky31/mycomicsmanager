@@ -114,9 +114,9 @@ public partial class LibraryDetailPage : IAsyncDisposable
             await JS.InvokeVoidAsync("bodyScroll.enable", CancellationToken.None);
             await JS.InvokeVoidAsync("infiniteScroll.dispose", CancellationToken.None);
         }
-        catch (JSException)
+        catch (Exception ex) when (ex is JSException or InvalidOperationException)
         {
-            // JS interop can fail when the Blazor circuit is already disconnected during disposal; intentionally ignored.
+            // JS interop can fail when the Blazor circuit is disconnected or during static prerendering; intentionally ignored.
         }
         finally
         {
@@ -408,6 +408,13 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private void GoBack() => NavigationManager.NavigateTo("/libraries/list");
 
     private void AddBook() => NavigationManager.NavigateTo($"/books/add?libraryId={LibraryId}");
+
+    private void NavigateToImport() => NavigationManager.NavigateTo($"/import?libraryId={LibraryId}");
+
+    private async Task DownloadBookAsync(Guid bookId)
+    {
+        await JS.InvokeVoidAsync("open", $"/api/books/{bookId}/download", "_blank");
+    }
 
     private async Task DeleteAsync(Guid bookId)
     {

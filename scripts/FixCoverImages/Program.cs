@@ -36,25 +36,39 @@ using Persistence;
 
 // ─── Arg parsing ──────────────────────────────────────────────────────────────
 
-string? connectionString   = null;
-string? cloudinaryCloud    = null;
-string? cloudinaryKey      = null;
-string? cloudinarySecret   = null;
-string? cloudinaryFolder   = null;
-var     delayMs            = 500;
-var    dryRun             = false;
+string? connectionString = null;
+string? cloudinaryCloud = null;
+string? cloudinaryKey = null;
+string? cloudinarySecret = null;
+string? cloudinaryFolder = null;
+var delayMs = 500;
+var dryRun = false;
 
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
     {
-        case "--connection":        connectionString = args[++i]; break;
-        case "--cloudinary-cloud":  cloudinaryCloud  = args[++i]; break;
-        case "--cloudinary-key":    cloudinaryKey    = args[++i]; break;
-        case "--cloudinary-secret": cloudinarySecret = args[++i]; break;
-        case "--cloudinary-folder": cloudinaryFolder = args[++i]; break;
-        case "--delay":             delayMs          = int.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
-        case "--dry-run":           dryRun           = true; break;
+        case "--connection":
+            connectionString = args[++i];
+            break;
+        case "--cloudinary-cloud":
+            cloudinaryCloud = args[++i];
+            break;
+        case "--cloudinary-key":
+            cloudinaryKey = args[++i];
+            break;
+        case "--cloudinary-secret":
+            cloudinarySecret = args[++i];
+            break;
+        case "--cloudinary-folder":
+            cloudinaryFolder = args[++i];
+            break;
+        case "--delay":
+            delayMs = int.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture);
+            break;
+        case "--dry-run":
+            dryRun = true;
+            break;
     }
 }
 
@@ -73,9 +87,9 @@ if (string.IsNullOrEmpty(connectionString))
     return 1;
 }
 
-var cloudName   = cloudinaryCloud   ?? config["Cloudinary:CloudName"];
-var apiKey      = cloudinaryKey     ?? config["Cloudinary:ApiKey"];
-var apiSecret   = cloudinarySecret  ?? config["Cloudinary:ApiSecret"];
+var cloudName = cloudinaryCloud ?? config["Cloudinary:CloudName"];
+var apiKey = cloudinaryKey ?? config["Cloudinary:ApiKey"];
+var apiSecret = cloudinarySecret ?? config["Cloudinary:ApiSecret"];
 
 if (string.IsNullOrEmpty(cloudName) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiSecret))
 {
@@ -109,7 +123,7 @@ using (var scope = provider.CreateScope())
                     !b.ImageLink.Contains(cloudinaryHost))
         .Select(b => new { b.Id, b.ISBN, b.ImageLink })
         .ToListAsync();
-    books = rawBooks.Select(b => (b.Id, b.ISBN, b.ImageLink)).ToList();
+    books = rawBooks.Select(b => (b.Id, b.ISBN!, b.ImageLink!)).ToList();
 }
 
 Console.WriteLine($"{books.Count} book(s) with non-Cloudinary covers to process.");
@@ -172,6 +186,11 @@ for (var i = 0; i < books.Count; i++)
                 Console.WriteLine($"{prefix} → {newUrl}");
                 updated++;
             }
+            else if (result.Error?.Contains("is not in the allowed list", StringComparison.Ordinal) == true)
+            {
+                Console.WriteLine($"{prefix} → SKIP (host not allowed by SSRF guard): {imageLink}");
+                skipped++;
+            }
             else
             {
                 await Console.Error.WriteLineAsync($"{prefix} → UPLOAD FAILED: {result.Error} (kept original URL)");
@@ -208,9 +227,9 @@ static IEnumerable<KeyValuePair<string, string?>> BuildCloudinaryOverrides(
         yield return new("Cloudinary:CloudName", cloudName);
     }
 
-    if (apiKey    != null)
+    if (apiKey != null)
     {
-        yield return new("Cloudinary:ApiKey",    apiKey);
+        yield return new("Cloudinary:ApiKey", apiKey);
     }
 
     if (apiSecret != null)
@@ -218,8 +237,8 @@ static IEnumerable<KeyValuePair<string, string?>> BuildCloudinaryOverrides(
         yield return new("Cloudinary:ApiSecret", apiSecret);
     }
 
-    if (folder    != null)
+    if (folder != null)
     {
-        yield return new("Cloudinary:Folder",    folder);
+        yield return new("Cloudinary:Folder", folder);
     }
 }

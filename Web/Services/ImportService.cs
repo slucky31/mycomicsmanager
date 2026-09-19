@@ -1,0 +1,158 @@
+using Application.ImportJobs;
+using Application.ImportJobs.Create;
+using Application.ImportJobs.Delete;
+using Application.ImportJobs.ForceFail;
+using Application.ImportJobs.GetById;
+using Application.ImportJobs.List;
+using Application.Interfaces;
+using Application.Libraries.GetById;
+using Domain.ImportJobs;
+using Domain.Primitives;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Options;
+using Web.Models;
+
+namespace Web.Services;
+
+public class ImportService(
+    ImportJobHandlers handlers,
+    IImportJobEnqueuer importJobEnqueuer,
+    ICurrentUserService currentUserService,
+    IImportDirectoryStorage importDirectoryStorage,
+    IOptions<ImportSettings> importSettings) : IImportService
+{
+    private readonly ImportSettings _settings = importSettings.Value;
+
+    public async Task<Result<IReadOnlyList<ImportJobViewModel>>> GetImportJobsAsync(
+        Guid libraryId, CancellationToken ct = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var query = new ListImportJobsQuery(libraryId, userIdResult.Value);
+        var result = await handlers.ListJobs.Handle(query, ct);
+
+        if (result.IsFailure)
+        {
+            return result.Error!;
+        }
+
+        IReadOnlyList<ImportJobViewModel> viewModels = result.Value!
+            .Select(ImportJobViewModel.From)
+            .ToList();
+
+        return Result<IReadOnlyList<ImportJobViewModel>>.Success(viewModels);
+    }
+
+    public async Task<Result<ImportJobViewModel>> GetImportJobAsync(
+        Guid importJobId, CancellationToken ct = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var query = new GetImportJobQuery(importJobId, userIdResult.Value);
+        var result = await handlers.GetJob.Handle(query, ct);
+
+        if (result.IsFailure)
+        {
+            return result.Error!;
+        }
+
+        return ImportJobViewModel.From(result.Value!);
+    }
+
+    public async Task<Result<ImportJobViewModel>> UploadAndCreateJobAsync(
+        IBrowserFile file, Guid libraryId, CancellationToken ct = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var safeFileName = Path.GetFileName(file.Name);
+        var extension = Path.GetExtension(safeFileName);
+        if (!_settings.SupportedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+        {
+            return ImportJobError.BadRequest;
+        }
+
+        var libraryResult = await handlers.GetLibrary.Handle(
+            new GetLibraryQuery(libraryId, userIdResult.Value), ct);
+        if (libraryResult.IsFailure)
+        {
+            return libraryResult.Error!;
+        }
+
+        var ensureResult = importDirectoryStorage.EnsureExists(libraryResult.Value!.ImportDirectoryName);
+        if (ensureResult.IsFailure)
+        {
+            return ensureResult.Error!;
+        }
+
+        var libraryDir = Path.Combine(_settings.ImportDirectory, libraryResult.Value.ImportDirectoryName);
+        var destPath = Path.Combine(libraryDir, $"{Guid.CreateVersion7()}_{safeFileName}");
+
+        const long bytesPerMb = 1024L * 1024;
+        var maxFileSizeBytes = _settings.MaxFileSizeMb * bytesPerMb;
+
+        await using (var dest = File.OpenWrite(destPath))
+        {
+            await using var src = file.OpenReadStream(maxAllowedSize: maxFileSizeBytes, cancellationToken: ct);
+            await src.CopyToAsync(dest, ct);
+        }
+
+        var fileInfo = new FileInfo(destPath);
+
+        var command = new CreateImportJobCommand(
+            OriginalFileName: safeFileName,
+            OriginalFilePath: destPath,
+            OriginalFileSize: fileInfo.Length,
+            LibraryId: libraryId,
+            UserId: userIdResult.Value);
+
+        var createResult = await handlers.CreateJob.Handle(command, ct);
+        if (createResult.IsFailure)
+        {
+            // Clean up the uploaded file if job creation failed
+            try
+            { File.Delete(destPath); }
+            catch (IOException) { /* best-effort cleanup */ }
+            return createResult.Error!;
+        }
+
+        importJobEnqueuer.Enqueue(createResult.Value!.Id);
+
+        return ImportJobViewModel.From(createResult.Value);
+    }
+
+    public async Task<Result> DeleteImportJobAsync(Guid importJobId, CancellationToken ct = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var command = new DeleteImportJobCommand(importJobId, userIdResult.Value);
+        return await handlers.DeleteJob.Handle(command, ct);
+    }
+
+    public async Task<Result> ForceFailImportJobAsync(Guid importJobId, CancellationToken ct = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var command = new ForceFailImportJobCommand(importJobId, userIdResult.Value);
+        return await handlers.ForceFailJob.Handle(command, ct);
+    }
+}

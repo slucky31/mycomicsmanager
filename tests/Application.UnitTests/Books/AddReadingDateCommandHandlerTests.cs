@@ -2,6 +2,7 @@ using Application.Books.AddReadingDate;
 using Application.Interfaces;
 using Domain.Books;
 using Domain.Libraries;
+using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
@@ -20,12 +21,13 @@ public class AddReadingDateCommandHandlerTests
     {
         _bookRepositoryMock = Substitute.For<IBookRepository>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _handler = new AddReadingDateCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock);
     }
 
     private static PhysicalBook CreateBook()
-        => PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: s_libraryId).Value!;
+        => PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), s_libraryId).Value!;
 
     private static Library CreateLibrary(Guid userId)
         => Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, userId).Value!;
@@ -42,7 +44,7 @@ public class AddReadingDateCommandHandlerTests
         var command = new AddReadingDateCommand(bookId, 3, userId);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -60,7 +62,7 @@ public class AddReadingDateCommandHandlerTests
         var command = new AddReadingDateCommand(Guid.NewGuid(), invalidRating, s_userId);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -77,7 +79,7 @@ public class AddReadingDateCommandHandlerTests
         _bookRepositoryMock.GetByIdAsync(command.BookId).Returns((Book?)null);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -97,7 +99,7 @@ public class AddReadingDateCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -106,7 +108,7 @@ public class AddReadingDateCommandHandlerTests
         book.ReadingDates.Should().HaveCount(1);
         _bookRepositoryMock.Received(1).AddReadingDate(Arg.Any<ReadingDate>());
         _bookRepositoryMock.Received(1).Update(book);
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(CancellationToken.None);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -120,7 +122,7 @@ public class AddReadingDateCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -158,7 +160,7 @@ public class AddReadingDateCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -177,7 +179,7 @@ public class AddReadingDateCommandHandlerTests
         _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(command, default);
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

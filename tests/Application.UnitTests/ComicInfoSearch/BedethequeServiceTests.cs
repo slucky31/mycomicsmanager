@@ -135,7 +135,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var service = CreateService(PageFactory(), cache);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeTrue();
         result.Title.Should().Be("L'Ankou");
@@ -149,7 +149,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = PageFactory();
         var service = CreateService(factory, cache);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         factory.DidNotReceive().CreateClient("SerpApi");
@@ -158,15 +158,15 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSerpApiKeyIsEmpty()
     {
-        var settings = new BedethequeSettings 
-        { 
+        var settings = new BedethequeSettings
+        {
             SerpApiKey = "",
             BaseUrl = new Uri("https://www.bedetheque.com"),
             SerpApiBaseUrl = new Uri("https://serpapi.com")
-        };      
+        };
         var service = CreateService(Substitute.For<IHttpClientFactory>(), settings: settings);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -174,15 +174,15 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSerpApiKeyIsWhitespace()
     {
-        var settings = new BedethequeSettings 
-        { 
+        var settings = new BedethequeSettings
+        {
             SerpApiKey = "   ",
             BaseUrl = new Uri("https://www.bedetheque.com"),
             SerpApiBaseUrl = new Uri("https://serpapi.com")
         };
         var service = CreateService(Substitute.For<IHttpClientFactory>(), settings: settings);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -193,7 +193,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = FactoryWith(Track(new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.Unauthorized))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -204,7 +204,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var serpJson = SerpApiJson("https://www.amazon.com/book", "https://www.fnac.com/book");
         var service = CreateService(FactoryWith(Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson)))));
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -217,7 +217,7 @@ public sealed class BedethequeServiceTests : IDisposable
             "https://www.bedetheque.com/BD-Series-Tome-2-Title-222.html");
         var service = CreateService(FactoryWith(Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson)))));
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -228,7 +228,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = FactoryWith(Track(new FakeHttpMessageHandler(_ => JsonResponse("""{"organic_results":null}"""))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -239,7 +239,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var cache = EmptyCache();
         var service = CreateService(SerpAndPageFactory(SerpApiJson(PageUrl)), cache);
 
-        await service.SearchByIsbnAsync(ValidIsbn);
+        await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         await cache.Received(1).SaveAsync(ValidIsbn, PageUrl, Arg.Any<CancellationToken>());
     }
@@ -252,7 +252,7 @@ public sealed class BedethequeServiceTests : IDisposable
             Track(new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -264,7 +264,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var service = CreateService(PageFactory(), cache);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbnWithDashes);
+        var result = await service.SearchByIsbnAsync(ValidIsbnWithDashes, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeTrue();
     }
@@ -275,7 +275,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = FactoryWith(Track(new FakeHttpMessageHandler(new HttpRequestException("Network error"))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -289,7 +289,7 @@ public sealed class BedethequeServiceTests : IDisposable
         })));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -301,7 +301,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = FactoryWith(Track(new FakeHttpMessageHandler(new TaskCanceledException("Timeout"))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn, CancellationToken.None);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -325,7 +325,7 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParseTitle_WhenTitreFieldPresent()
     {
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Title.Should().Be("L'Ankou");
     }
@@ -335,7 +335,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         var html = """<html><body><ul class="infos-albums"><li><label>Série : </label>OnlySerie</li></ul></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Title.Should().BeEmpty();
     }
@@ -344,7 +344,7 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParseSerie_WhenSerieFieldPresent()
     {
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Serie.Should().Be("Biguden");
     }
@@ -353,7 +353,7 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParseVolumeNumber_WhenTomeFieldPresent()
     {
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.VolumeNumber.Should().Be(1);
     }
@@ -363,7 +363,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.VolumeNumber.Should().Be(1);
     }
@@ -372,7 +372,7 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParseBothAuthors_WhenScenarioAndDessinAreDifferent()
     {
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Authors.Should().HaveCount(2);
         result.Authors.Should().Contain("Silas, Stan");
@@ -390,7 +390,7 @@ public sealed class BedethequeServiceTests : IDisposable
             </ul></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Authors.Should().ContainSingle().Which.Should().Be("Silas, Stan");
     }
@@ -405,7 +405,7 @@ public sealed class BedethequeServiceTests : IDisposable
             </ul></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Authors.Should().HaveCount(2);
         result.Authors.Should().Contain("Alpha, Jean");
@@ -422,7 +422,7 @@ public sealed class BedethequeServiceTests : IDisposable
             </ul></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Authors.Should().HaveCount(2);
         result.Authors.Should().Contain("Alpha, Jean");
@@ -434,7 +434,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Authors.Should().BeEmpty();
     }
@@ -443,7 +443,7 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParsePublisher_WhenEditeurFieldPresent()
     {
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Publishers.Should().ContainSingle().Which.Should().Be("EP Media");
     }
@@ -453,7 +453,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Publishers.Should().BeEmpty();
     }
@@ -462,7 +462,7 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParsePublishDate_FromParutionLeDate()
     {
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.PublishDate.Should().Be(new DateOnly(2014, 8, 27));
     }
@@ -477,7 +477,7 @@ public sealed class BedethequeServiceTests : IDisposable
             </ul></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.PublishDate.Should().Be(new DateOnly(2025, 11, 1));
     }
@@ -487,7 +487,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.PublishDate.Should().BeNull();
     }
@@ -496,7 +496,7 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParseNumberOfPages_WhenPlanchesFieldPresent()
     {
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.NumberOfPages.Should().Be(62);
     }
@@ -506,7 +506,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.NumberOfPages.Should().BeNull();
     }
@@ -515,7 +515,7 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_BuildCoverUrl_WhenPageUrlContainsNumericId()
     {
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.CoverUrl.Should().Be(new Uri(ExpectedCoverUrl));
     }
@@ -525,7 +525,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         var noIdUrl = "https://www.bedetheque.com/BD-Biguden-LAnkou.html";
         var cache = CacheWithUrl(ValidIsbn, noIdUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.CoverUrl.Should().BeNull();
     }
@@ -534,7 +534,7 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ReturnFoundTrue_WhenTitlePresent()
     {
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeTrue();
     }
@@ -544,7 +544,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         var html = """<html><body><ul class="infos-albums"><li><label>Série : </label>OnlySerie</li></ul></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeTrue();
         result.Serie.Should().Be("OnlySerie");
@@ -556,7 +556,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         var html = """<html><body><ul class="infos-albums"></ul></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -569,7 +569,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var service = CreateService(PageFactory(), cache);
 
-        await service.SearchByIsbnAsync(ValidIsbn);
+        await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         await cache.DidNotReceive().SaveAsync(
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -583,7 +583,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var serpJson = SerpApiJson(PageUrl, PageUrl);
         var service = CreateService(SerpAndPageFactory(serpJson));
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeTrue();
     }
@@ -597,7 +597,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = FactoryWith(Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -620,12 +620,12 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = FactoryWith(
             Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
             Track(new FakeHttpMessageHandler(req =>
-                req.RequestUri!.ToString().Contains("serie-")
+                req.RequestUri!.ToString().Contains("serie-", StringComparison.OrdinalIgnoreCase)
                     ? HtmlResponse(serieHtml)
                     : HtmlResponse(FullAlbumHtml))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeTrue();
         result.Title.Should().Be("L'Ankou");
@@ -649,7 +649,7 @@ public sealed class BedethequeServiceTests : IDisposable
             Track(new FakeHttpMessageHandler(_ => HtmlResponse(serieHtml))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -664,7 +664,7 @@ public sealed class BedethequeServiceTests : IDisposable
             Track(new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -680,7 +680,7 @@ public sealed class BedethequeServiceTests : IDisposable
             Track(new FakeHttpMessageHandler(_ => HtmlResponse(serieHtml))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -702,7 +702,7 @@ public sealed class BedethequeServiceTests : IDisposable
             Track(new FakeHttpMessageHandler(_ => HtmlResponse(serieHtml))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
     }
@@ -719,7 +719,7 @@ public sealed class BedethequeServiceTests : IDisposable
             </ul></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Publishers.Should().ContainSingle().Which.Should().Be("Publisher Without Span");
     }
@@ -736,7 +736,7 @@ public sealed class BedethequeServiceTests : IDisposable
             </ul></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.PublishDate.Should().Be(new DateOnly(2020, 6, 1));
     }
@@ -753,7 +753,7 @@ public sealed class BedethequeServiceTests : IDisposable
             </ul></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn);
+        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.NumberOfPages.Should().Be(48);
     }
@@ -776,7 +776,7 @@ public sealed class BedethequeServiceTests : IDisposable
             Track(new FakeHttpMessageHandler(_ => HtmlResponse(FullAlbumHtml))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeTrue();
     }
@@ -797,7 +797,7 @@ public sealed class BedethequeServiceTests : IDisposable
             Track(new FakeHttpMessageHandler(_ => HtmlResponse(FullAlbumHtml))));
         var service = CreateService(factory);
 
-        var result = await service.SearchByIsbnAsync(ValidIsbn);
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeTrue();
     }

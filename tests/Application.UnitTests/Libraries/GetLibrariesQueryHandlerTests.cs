@@ -24,7 +24,7 @@ public class GetLibrariesQueryHandlerTests
     public async Task Handle_Should_ReturnValidationError_WhenRequestIsNull()
     {
         // Act
-        var result = await _handler.Handle(null!, CancellationToken.None);
+        var result = await _handler.Handle(null!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -41,16 +41,16 @@ public class GetLibrariesQueryHandlerTests
         var query = new GetLibrariesQuery(null, null, null, 1, 10, s_userId);
         var pagedList = Substitute.For<IPagedList<Library>>();
         _libraryReadServiceMock
-            .GetLibrariesAsync(null, null, null, 1, 10, s_userId, CancellationToken.None)
+            .GetLibrariesAsync(null, null, null, 1, 10, s_userId, Arg.Any<CancellationToken>())
             .Returns(pagedList);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().Be(pagedList);
         await _libraryReadServiceMock.Received(1).GetLibrariesAsync(
-            null, null, null, 1, 10, s_userId, CancellationToken.None);
+            null, null, null, 1, 10, s_userId, Arg.Any<CancellationToken>());
     }
 }

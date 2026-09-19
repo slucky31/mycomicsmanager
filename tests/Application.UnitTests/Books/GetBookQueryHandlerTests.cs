@@ -1,4 +1,4 @@
-﻿using Application.Books.GetById;
+using Application.Books.GetById;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
@@ -33,7 +33,7 @@ public sealed class GetBookQueryHandlerTests
         GetBookByIdQuery? query = null;
 
         // Act
-        var result = await _handler.Handle(query!, CancellationToken.None);
+        var result = await _handler.Handle(query!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -48,7 +48,7 @@ public sealed class GetBookQueryHandlerTests
         var query = new GetBookByIdQuery(Guid.Empty, s_userId);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -65,7 +65,7 @@ public sealed class GetBookQueryHandlerTests
         _bookRepository.GetByIdAsync(bookId).ReturnsNull();
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -78,14 +78,14 @@ public sealed class GetBookQueryHandlerTests
     {
         // Arrange
         var bookId = Guid.CreateVersion7();
-        var expectedBook = PhysicalBook.Create("Test Serie", "Test Title", "978-3-16-148410-0", 1, "https://example.com/image.jpg", libraryId: Guid.CreateVersion7()).Value!;
+        var expectedBook = PhysicalBook.Create(new BookMetadata("Test Serie", "Test Title", "978-3-16-148410-0", 1, "https://example.com/image.jpg"), Guid.CreateVersion7()).Value!;
         var query = new GetBookByIdQuery(bookId, s_userId);
         var library = CreateLibrary(s_userId);
         _bookRepository.GetByIdAsync(bookId).Returns(expectedBook);
         _libraryRepositoryMock.GetByIdAsync(expectedBook.LibraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         Guard.Against.Null(result.Value);
@@ -104,14 +104,14 @@ public sealed class GetBookQueryHandlerTests
     {
         // Arrange
         var specificId = Guid.CreateVersion7();
-        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: Guid.CreateVersion7()).Value!;
+        var book = PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), Guid.CreateVersion7()).Value!;
         var query = new GetBookByIdQuery(specificId, s_userId);
         var library = CreateLibrary(s_userId);
         _bookRepository.GetByIdAsync(specificId).Returns(book);
         _libraryRepositoryMock.GetByIdAsync(book.LibraryId).Returns(library);
 
         // Act
-        await _handler.Handle(query, CancellationToken.None);
+        await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         await _bookRepository.Received(1).GetByIdAsync(specificId);
@@ -126,7 +126,7 @@ public sealed class GetBookQueryHandlerTests
         var ownerId = Guid.CreateVersion7();
         var requestingUserId = Guid.CreateVersion7();
         var libraryId = Guid.CreateVersion7();
-        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: libraryId).Value!;
+        var book = PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), libraryId).Value!;
         var library = CreateLibrary(ownerId);
         var query = new GetBookByIdQuery(bookId, UserId: requestingUserId);
 
@@ -134,7 +134,7 @@ public sealed class GetBookQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -148,7 +148,7 @@ public sealed class GetBookQueryHandlerTests
         var userId = Guid.CreateVersion7();
         var bookId = Guid.CreateVersion7();
         var libraryId = Guid.CreateVersion7();
-        var book = PhysicalBook.Create("Serie", "Title", "978-3-16-148410-0", libraryId: libraryId).Value!;
+        var book = PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), libraryId).Value!;
         var library = CreateLibrary(userId);
         var query = new GetBookByIdQuery(bookId, UserId: userId);
 
@@ -156,7 +156,7 @@ public sealed class GetBookQueryHandlerTests
         _libraryRepositoryMock.GetByIdAsync(libraryId).Returns(library);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

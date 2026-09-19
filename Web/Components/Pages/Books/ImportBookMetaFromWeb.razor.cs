@@ -259,7 +259,7 @@ public partial class ImportBookMetaFromWeb
         {
             try
             {
-                cover = await ComicSearchService.UploadCoverAsync(coverUri, _currentBook.ISBN);
+                cover = await ComicSearchService.UploadCoverAsync(coverUri, _currentBook.ISBN ?? string.Empty);
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
             {
@@ -291,7 +291,7 @@ public partial class ImportBookMetaFromWeb
             _currentBook.Id.ToString(),
             serie,
             title,
-            _currentBook.ISBN,
+            _currentBook.ISBN ?? string.Empty,
             volumeNumber,
             cover,
             authors,

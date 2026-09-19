@@ -51,6 +51,10 @@
                 <div class="action-buttons">
                     <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Default" Href="@($"/books/{context.Id}")" aria-label="View book" />
                     <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/edit")" aria-label="Edit book" />
+                    @if (ShowDownload)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Download" Size="Size.Small" Color="Color.Secondary" OnClick="@(() => OnDownload.InvokeAsync(context.Id))" aria-label="Download CBZ" />
+                    }
                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(context.Id))" aria-label="Delete book" />
                 </div>
             </MudTd>

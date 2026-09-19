@@ -87,6 +87,17 @@
                     New Book
                 </MudButton>
 
+                @if (_library?.BookType == LibraryBookType.Digital)
+                {
+                    <MudButton StartIcon="@Icons.Material.Filled.Upload"
+                               Variant="Variant.Outlined"
+                               Color="Color.Secondary"
+                               OnClick="NavigateToImport"
+                               Class="d-none d-sm-flex ml-1">
+                        Import
+                    </MudButton>
+                }
+
                 @* Mobile: 3-dots menu with view + sort options *@
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert"
                          AriaLabel="More actions"
@@ -114,6 +125,11 @@
                     <MudMenuItem Icon="@Icons.Material.Filled.SortByAlpha"
                                  IconColor="@(_currentSortOrder == BookSortOrder.SerieAndVolumeAsc ? Color.Primary : Color.Default)"
                                  OnClick="@(() => SetSortOrderAsync(BookSortOrder.SerieAndVolumeAsc))">Series &amp; volume</MudMenuItem>
+                    @if (_library?.BookType == LibraryBookType.Digital)
+                    {
+                        <MudDivider Class="my-1" />
+                        <MudMenuItem Icon="@Icons.Material.Filled.Upload" OnClick="NavigateToImport">Import</MudMenuItem>
+                    }
                 </MudMenu>
             </Actions>
         </PageHeader>
@@ -133,7 +149,11 @@
             @* List view: MudTable manages its own empty/no-results states *@
             @if (_currentViewMode == ViewMode.List)
             {
-                <BooksListView @ref="_booksListView" ServerData="LoadListDataAsync" OnDelete="@DeleteAsync" />
+                <BooksListView @ref="_booksListView"
+                               ServerData="LoadListDataAsync"
+                               OnDelete="@DeleteAsync"
+                               ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
+                               OnDownload="@DownloadBookAsync" />
             }
             @* Cards / Covers: check empty states before rendering *@
             else if (_displayedBooks.Count == 0 && string.IsNullOrWhiteSpace(_searchTerm))
@@ -163,10 +183,16 @@
                 @switch (_currentViewMode)
                 {
                     case ViewMode.Cards:
-                        <BooksCardsView Books="@_displayedBooks" OnDelete="@DeleteAsync" />
+                        <BooksCardsView Books="@_displayedBooks"
+                                        OnDelete="@DeleteAsync"
+                                        ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
+                                        OnDownload="@DownloadBookAsync" />
                         break;
                     case ViewMode.Covers:
-                        <BooksCoversView Books="@_displayedBooks" OnDelete="@DeleteAsync" />
+                        <BooksCoversView Books="@_displayedBooks"
+                                         OnDelete="@DeleteAsync"
+                                         ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
+                                         OnDownload="@DownloadBookAsync" />
                         break;
                 }
                 @if (_isLoadingMore)

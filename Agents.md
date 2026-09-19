@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The solution `MyComicsManager.sln` follows a layered layout so features stay isolated and testable.
+The solution `MyComicsManager.slnx` follows a layered layout so features stay isolated and testable.
 - `Domain/` contains core entities, value objects, and error definitions (no external dependencies).
 - `Application/` hosts CQRS handlers, interfaces, and orchestrators that depend on the domain abstractions only.
 - `Persistence/` provides EF Core infrastructure and PostgreSQL data access; migrations live under `Persistence/Migrations`.
@@ -16,10 +16,10 @@ The solution `MyComicsManager.sln` follows a layered layout so features stay iso
 
 ## Build, Test, and Development Commands
 - `dotnet restore` installs shared packages declared in `Directory.Packages.props`.
-- `dotnet build MyComicsManager.sln` compiles every project with analyzers enabled by `Directory.Build.props`.
+- `dotnet build MyComicsManager.slnx` compiles every project with analyzers enabled by `Directory.Build.props`.
 - `dotnet run --project Web/Web.csproj` starts the local site on port 8080 using `appsettings.Development.json`.
 - `dotnet watch run --project Web/Web.csproj` enables hot reload while tweaking components or endpoints.
-- `dotnet test MyComicsManager.sln` executes all xUnit suites; append `--collect:"XPlat Code Coverage"` when you need coverage artifacts.
+- `dotnet test MyComicsManager.slnx` executes all xUnit suites; append `--collect:"XPlat Code Coverage"` when you need coverage artifacts.
 - `dotnet ef migrations add MigrationName --project Persistence` adds a new EF Core migration.
 - `dotnet ef database update --project Persistence` applies pending migrations.
 

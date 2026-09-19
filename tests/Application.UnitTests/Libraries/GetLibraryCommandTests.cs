@@ -25,7 +25,7 @@ public class GetLibraryCommandTests
     public async Task Handle_Should_ReturnValidationError_WhenRequestIsNull()
     {
         // Act
-        var result = await _handler.Handle(null!, CancellationToken.None);
+        var result = await _handler.Handle(null!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -44,7 +44,7 @@ public class GetLibraryCommandTests
         var query = new GetLibraryQuery(libraryId, userId);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
         Guard.Against.Null(result.Value);
 
         // Assert
@@ -64,7 +64,7 @@ public class GetLibraryCommandTests
         var query = new GetLibraryQuery(libraryId, userId);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -82,7 +82,7 @@ public class GetLibraryCommandTests
         var query = new GetLibraryQuery(library.Id, UserId: requestingUserId);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -99,7 +99,7 @@ public class GetLibraryCommandTests
         var query = new GetLibraryQuery(library.Id, UserId: userId);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

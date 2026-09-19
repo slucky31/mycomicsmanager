@@ -7,7 +7,7 @@ public class EntityTests
     private static readonly Guid DefaultLibraryId = Guid.CreateVersion7();
 
     private static PhysicalBook CreateBook() =>
-        PhysicalBook.Create("Series", "Title", "9781401245252", libraryId: DefaultLibraryId).Value!;
+        PhysicalBook.Create(new BookMetadata("Series", "Title", "9781401245252"), DefaultLibraryId).Value!;
 
     [Fact]
     public void CloneAuditable_Should_CopyCreatedOnUtcAndModifiedOnUtc_WhenSourceIsValid()

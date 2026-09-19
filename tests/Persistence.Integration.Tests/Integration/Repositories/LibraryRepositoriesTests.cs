@@ -33,18 +33,20 @@ public sealed class LibraryRepositoriesTests(IntegrationTestWebAppFactory factor
     }
 
     [Fact]
-    public async Task Add_ShouldThrowException_WhenAddLibWithSameIdTwice()
+    public async Task Add_ShouldReturnFailure_WhenAddLibWithSameIdTwice()
     {
         // Arrange
         var lib = CreateLib("name");
         LibraryRepository.Add(lib);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         LibraryRepository.Add(lib);
-        var action = async () => await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        // Act && Assert
-        Guard.Against.Null(action);
-        await action.Should().ThrowAsync<Exception>();
+        // Act
+        var result = await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().NotBeNull();
     }
 
     [Fact]

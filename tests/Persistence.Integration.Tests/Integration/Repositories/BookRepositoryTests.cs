@@ -9,7 +9,9 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
 {
     private PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1, string imageLink = "",
         string authors = "", string publishers = "", DateOnly? publishDate = null, int? numberOfPages = null)
-        => PhysicalBook.Create(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages, DefaultLibrary.Id).Value!;
+        => PhysicalBook.Create(
+            new BookMetadata(serie, title, isbn, volumeNumber, imageLink, authors, publishers, publishDate, numberOfPages),
+            DefaultLibrary.Id).Value!;
 
     [Fact]
     public async Task GetByIdAsync_ShouldReturnBook_WhenBookExists()
@@ -96,18 +98,20 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     }
 
     [Fact]
-    public async Task Add_ShouldThrowException_WhenAddBookWithSameIdTwice()
+    public async Task Add_ShouldReturnFailure_WhenAddBookWithSameIdTwice()
     {
         // Arrange
         var book = CreateBook("Superman", "Man of Steel", "9780785156789");
         BookRepository.Add(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
         BookRepository.Add(book);
-        var action = async () => await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        // Act && Assert
-        Guard.Against.Null(action);
-        await action.Should().ThrowAsync<Exception>();
+        // Act
+        var result = await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().NotBeNull();
     }
 
     [Fact]
@@ -119,7 +123,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        book.Update("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg");
+        book.Update(new BookMetadata("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg")).IsSuccess.Should().BeTrue();
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -261,7 +265,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("978-0-7851-9901-2");
+        var result = await BookRepository.GetByIsbnAsync("978-0-7851-9901-2", TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -279,7 +283,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("978-0-7852-0012-3");
+        var result = await BookRepository.GetByIsbnAsync("978-0-7852-0012-3", TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -296,7 +300,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("9780000000000");
+        var result = await BookRepository.GetByIsbnAsync("9780000000000", TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();
@@ -344,7 +348,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("0-439-65548-X");
+        var result = await BookRepository.GetByIsbnAsync("0-439-65548-X", TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -361,7 +365,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("978 0 7852 0234 5");
+        var result = await BookRepository.GetByIsbnAsync("978 0 7852 0234 5", TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -378,7 +382,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("043965548x");
+        var result = await BookRepository.GetByIsbnAsync("043965548x", TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -477,8 +481,8 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
 
         // Act
         var updatedPublishDate = new DateOnly(2024, 1, 10);
-        book.Update("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg",
-            "Brian K. Vaughan, Fiona Staples", "Image Comics, DC Comics", updatedPublishDate, 240);
+        book.Update(new BookMetadata("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg",
+            "Brian K. Vaughan, Fiona Staples", "Image Comics, DC Comics", updatedPublishDate, 240)).IsSuccess.Should().BeTrue();
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
