@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Application.Users;
 using Application.Users.Create;
+using Domain.Primitives;
 using Domain.Users;
 using NSubstitute;
 
@@ -19,6 +20,7 @@ public class CreateUserCommandHandlerTests
     {
         _userRepositoryMock = Substitute.For<IRepository<User, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _userReadServiceMock = Substitute.For<IUserReadService>();
 
         _handler = new CreateUserCommandHandler(_userRepositoryMock, _unitOfWorkMock, _userReadServiceMock);

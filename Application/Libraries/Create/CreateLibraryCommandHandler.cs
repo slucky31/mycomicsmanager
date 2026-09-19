@@ -45,7 +45,11 @@ public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libra
         }
 
         libraryRepository.Add(library);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return library;
     }

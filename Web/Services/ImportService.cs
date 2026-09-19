@@ -18,6 +18,7 @@ public class ImportService(
     ImportJobHandlers handlers,
     IImportJobEnqueuer importJobEnqueuer,
     ICurrentUserService currentUserService,
+    IImportDirectoryStorage importDirectoryStorage,
     IOptions<ImportSettings> importSettings) : IImportService
 {
     private readonly ImportSettings _settings = importSettings.Value;
@@ -89,9 +90,13 @@ public class ImportService(
             return libraryResult.Error!;
         }
 
-        var libraryDir = Path.Combine(_settings.ImportDirectory, libraryResult.Value!.ImportDirectoryName);
-        Directory.CreateDirectory(libraryDir);
+        var ensureResult = importDirectoryStorage.EnsureExists(libraryResult.Value!.ImportDirectoryName);
+        if (ensureResult.IsFailure)
+        {
+            return ensureResult.Error!;
+        }
 
+        var libraryDir = Path.Combine(_settings.ImportDirectory, libraryResult.Value!.ImportDirectoryName);
         var destPath = Path.Combine(libraryDir, $"{Guid.CreateVersion7()}_{safeFileName}");
 
         const long bytesPerMb = 1024L * 1024;

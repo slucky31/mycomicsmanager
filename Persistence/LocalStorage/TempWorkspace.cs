@@ -50,12 +50,12 @@ internal sealed class TempWorkspace : ITempWorkspace
     public Result<string> MoveToLibrary(string sourcePath, string libraryRelativePath, string fileName)
     {
         var libraryDir = Path.Combine(_libraryRootPath, libraryRelativePath);
-        Directory.CreateDirectory(libraryDir);
         var finalPath = Path.Combine(libraryDir, fileName);
-        if (!PathContainment.IsWithin(libraryDir, finalPath))
+        if (!PathContainment.IsWithin(_libraryRootPath, finalPath))
         {
             return ImportJobError.BadRequest;
         }
+        Directory.CreateDirectory(libraryDir);
         if (File.Exists(finalPath))
         {
             return ImportJobError.DestinationFileExists;

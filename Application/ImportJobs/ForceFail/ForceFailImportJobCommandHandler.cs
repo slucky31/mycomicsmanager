@@ -28,12 +28,12 @@ public sealed class ForceFailImportJobCommandHandler(
             return ImportJobError.NotFound;
         }
 
-        if (job.Status is ImportJobStatus.Completed or ImportJobStatus.Failed)
+        var failResult = job.Fail(job.Status.ToString(), "Marqué en échec manuellement.");
+        if (failResult.IsFailure)
         {
-            return ImportJobError.AlreadyFailed;
+            return failResult.Error!;
         }
 
-        job.Fail(job.Status.ToString(), "Marqué en échec manuellement.");
         importJobRepository.Update(job);
         var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
         if (saveResult.IsFailure)

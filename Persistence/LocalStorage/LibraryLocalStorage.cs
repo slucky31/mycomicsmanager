@@ -72,20 +72,22 @@ public class LibraryLocalStorage : ILibraryLocalStorage
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
         }
 
-        var originValidation = ValidatePath(originFolderName);
+        var sanitizedOrigin = originFolderName.RemoveDiacritics();
+        var originValidation = ValidatePath(sanitizedOrigin);
         if (originValidation.IsFailure)
         {
             return originValidation.Error!;
         }
 
-        var destinationValidation = ValidatePath(destinationFolderName);
+        var sanitizedDestination = destinationFolderName.RemoveDiacritics();
+        var destinationValidation = ValidatePath(sanitizedDestination);
         if (destinationValidation.IsFailure)
         {
             return destinationValidation.Error!;
         }
 
         var originPath = new StringBuilder();
-        originPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(originFolderName.RemoveDiacritics());
+        originPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(sanitizedOrigin);
 
         if (!Directory.Exists(originPath.ToString()))
         {
@@ -93,7 +95,7 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         }
 
         var destinationPath = new StringBuilder();
-        destinationPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(destinationFolderName.RemoveDiacritics());
+        destinationPath.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(sanitizedDestination);
 
         if (Directory.Exists(destinationPath.ToString()))
         {
@@ -114,14 +116,15 @@ public class LibraryLocalStorage : ILibraryLocalStorage
             return LibraryLocalStorageError.ArgumentNullOrEmpty;
         }
 
-        var pathValidation = ValidatePath(folderName);
+        var sanitizedFolderName = folderName.RemoveDiacritics();
+        var pathValidation = ValidatePath(sanitizedFolderName);
         if (pathValidation.IsFailure)
         {
             return pathValidation.Error!;
         }
 
         var path = new StringBuilder();
-        path.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(folderName.RemoveDiacritics());
+        path.Append(rootPath.TrimEnd(_charsToTrim)).Append(Path.DirectorySeparatorChar).Append(sanitizedFolderName);
 
         if (!Directory.Exists(path.ToString()))
         {

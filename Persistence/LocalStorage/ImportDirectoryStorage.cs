@@ -94,11 +94,12 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
         }
 
         var destinationPath = Path.Combine(_rootPath.TrimEnd(s_charsToTrim), destinationDirectoryName);
-        if (!Directory.Exists(destinationPath))
+        if (Directory.Exists(destinationPath))
         {
-            Directory.Move(originPath, destinationPath);
+            return ImportDirectoryStorageError.DestinationAlreadyExists;
         }
 
+        Directory.Move(originPath, destinationPath);
         return Result.Success();
     }
 

@@ -63,7 +63,7 @@ public class ForceFailImportJobCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnAlreadyFailed_WhenJobIsAlreadyCompleted()
+    public async Task Handle_Should_ReturnAlreadyCompleted_WhenJobIsAlreadyCompleted()
     {
         // Arrange
         var job = ImportJob.Create("comic.cbz", "/data/comic.cbz", 1024, s_libraryId).Value!;
@@ -82,7 +82,7 @@ public class ForceFailImportJobCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(ImportJobError.AlreadyFailed);
+        result.Error.Should().Be(ImportJobError.AlreadyCompleted);
         _importJobRepository.DidNotReceive().Update(Arg.Any<ImportJob>());
     }
 

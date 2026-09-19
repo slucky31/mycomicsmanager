@@ -25,6 +25,7 @@ public class DeleteLibraryCommandTests
     {
         _librayRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
         _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();
         _importDirectoryStorageMock.Delete(Arg.Any<string>()).Returns(Result.Success());

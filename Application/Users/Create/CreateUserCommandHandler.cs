@@ -30,7 +30,11 @@ public sealed class CreateUserCommandHandler(IRepository<User, Guid> userReposit
         // Create the user
         var newUser = User.Create(command.email, command.authId);
         userRepository.Add(newUser);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return newUser;
     }

@@ -32,9 +32,10 @@ internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts) : Dele
             var location = response.Headers.Location.IsAbsoluteUri
                 ? response.Headers.Location
                 : new Uri(currentRequest.RequestUri!, response.Headers.Location);
+            var statusCode = response.StatusCode;
             response.Dispose();
 
-            currentRequest = CloneAsRedirect(currentRequest, location, response.StatusCode);
+            currentRequest = CloneAsRedirect(currentRequest, location, statusCode);
         }
     }
 

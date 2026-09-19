@@ -39,6 +39,10 @@ public class BookUiDto : Entity<Guid>
     [Label("Library")]
     public Guid LibraryId { get; set; } = Guid.Empty;
 
+    // Physical books require an ISBN (Domain/Books/PhysicalBook.cs); digital books imported
+    // without a metadata match may not have one. Defaults to true for the manual "add book" flow.
+    public bool IsPhysical { get; set; } = true;
+
     public static BookUiDto Convert(Book book)
     {
         return new BookUiDto
@@ -47,6 +51,7 @@ public class BookUiDto : Entity<Guid>
             Serie = book.Serie,
             Title = book.Title,
             ISBN = book.ISBN,
+            IsPhysical = book is PhysicalBook,
             VolumeNumber = book.VolumeNumber,
             ImageLink = book.ImageLink,
             Rating = 0,

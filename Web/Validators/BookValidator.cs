@@ -13,9 +13,11 @@ public class BookValidator : AbstractValidator<BookUiDto>
             .MaximumLength(BookConstants.MaxTitleLength).WithMessage($"Title must not exceed {BookConstants.MaxTitleLength} characters.");
 
         RuleFor(x => x.ISBN)
-            .NotEmpty().WithMessage("ISBN is required.")
+            .NotEmpty().WithMessage("ISBN is required.").When(x => x.IsPhysical, ApplyConditionTo.CurrentValidator)
             .MaximumLength(BookConstants.MaxIsbnLength).WithMessage($"ISBN must not exceed {BookConstants.MaxIsbnLength} characters.")
-            .Must(BeValidISBN).WithMessage("ISBN must be a valid 10 or 13 digit number.");
+            // A blank ISBN is only exempt from format validation on a digital book (see BookUiDto.IsPhysical).
+            .Must(BeValidISBN).WithMessage("ISBN must be a valid 10 or 13 digit number.")
+                .When(x => x.IsPhysical || !string.IsNullOrWhiteSpace(x.ISBN), ApplyConditionTo.CurrentValidator);
 
         RuleFor(x => x.Serie)
             .NotEmpty().WithMessage("Serie is required.")

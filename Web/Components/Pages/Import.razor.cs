@@ -190,6 +190,8 @@ public partial class Import : IAsyncDisposable
             TimeSpan.FromSeconds(3));
     }
 
+    private int _pollRequestId;
+
     private async Task PollJobsAsync()
     {
         if (_pollingCts.IsCancellationRequested)
@@ -197,9 +199,11 @@ public partial class Import : IAsyncDisposable
             return;
         }
         var capturedLibraryId = _selectedLibraryId;
+        var requestId = ++_pollRequestId;
         var result = await ImportService.GetImportJobsAsync(capturedLibraryId, _pollingCts.Token);
 
-        if (_selectedLibraryId != capturedLibraryId)
+        // Discard this response if the library changed or a newer poll was issued while awaiting.
+        if (_selectedLibraryId != capturedLibraryId || requestId != _pollRequestId)
         {
             return;
         }

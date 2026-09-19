@@ -27,6 +27,7 @@ public class CreateLibraryCommandTests
     {
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _libraryReadServiceMock = Substitute.For<ILibraryReadService>();
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
         _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();

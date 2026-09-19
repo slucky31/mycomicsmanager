@@ -2,6 +2,7 @@ using Application.Books.AddReadingDate;
 using Application.Interfaces;
 using Domain.Books;
 using Domain.Libraries;
+using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
@@ -20,6 +21,7 @@ public class AddReadingDateCommandHandlerTests
     {
         _bookRepositoryMock = Substitute.For<IBookRepository>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _handler = new AddReadingDateCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock);
     }

@@ -71,7 +71,14 @@ public sealed class ImportServiceTests : IDisposable
             MaxFileSizeMb = 500
         });
 
-        _service = new ImportService(handlers, _enqueuer, _currentUserService, settings);
+        var importDirectoryStorage = Substitute.For<IImportDirectoryStorage>();
+        importDirectoryStorage.EnsureExists(Arg.Any<string>()).Returns(callInfo =>
+        {
+            Directory.CreateDirectory(Path.Combine(_importDir, callInfo.Arg<string>()));
+            return Result.Success();
+        });
+
+        _service = new ImportService(handlers, _enqueuer, _currentUserService, importDirectoryStorage, settings);
     }
 
     public void Dispose()

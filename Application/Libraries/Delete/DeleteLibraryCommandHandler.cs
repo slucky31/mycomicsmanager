@@ -35,7 +35,11 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
         }
 
         librayRepository.Remove(library);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return Result.Success();
     }

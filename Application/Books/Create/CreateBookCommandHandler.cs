@@ -77,7 +77,11 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         book.AddReadingDate(DateTime.UtcNow, request.Rating);
 
         bookRepository.Add(book);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return book;
     }

@@ -406,7 +406,14 @@ public sealed class ProcessImportJobCommandHandler(
         {
             // Compensate: remove the file that was already moved so the library stays consistent.
             externalServices.TempWorkspace.TryDeleteFile(finalPath);
-            return await FailJobAsync(importJob, CompletedStatus, saveResult.Error!, ct);
+
+            // Don't retry the save here: importJob is already tracked as Completed in memory, and
+            // ImportJob.Fail() is a no-op once Status is Completed, so a second SaveChangesAsync
+            // could persist a Completed job pointing at the file we just deleted. Leave the job
+            // stuck; the "stuck job" recovery at the top of Handle() marks it Failed on next retry.
+            Log.Error("Failed to persist completed import job {JobId}: {Error}",
+                importJob.Id, saveResult.Error?.Description);
+            return saveResult.Error!;
         }
 
         return digitalBook;

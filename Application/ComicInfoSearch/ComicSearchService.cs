@@ -72,7 +72,7 @@ public partial class ComicSearchService : IComicSearchService
         }
         catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
         {
-            Log.Warning(ex, "Unexpected error searching for ISBN {Isbn}", cleanIsbn);
+            Log.Error(ex, "Unexpected error searching for ISBN {Isbn}", cleanIsbn);
             return CreateNotFoundResult(cleanIsbn);
         }
     }
