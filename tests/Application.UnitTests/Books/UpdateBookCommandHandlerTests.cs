@@ -4,6 +4,7 @@ using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.Books;
 using Domain.Libraries;
+using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
@@ -33,6 +34,7 @@ public class UpdateBookCommandHandlerTests
         _bookRepositoryMock = Substitute.For<IBookRepository>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
 
         _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock);
     }
@@ -123,35 +125,38 @@ public class UpdateBookCommandHandlerTests
         await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task Handle_ShouldSucceed_WhenISBNIsEmpty()
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task Handle_Should_ReturnBadRequest_WhenISBNIsBlankOnPhysicalBook(string? blankIsbn)
     {
-        // Arrange
+        // Arrange: a PhysicalBook requires a non-blank ISBN as a permanent invariant.
         var existingBook = CreateBookWithId(s_bookId, "Serie", "Title", "978-3-16-148410-0");
         _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(existingBook);
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId)
             .Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
-        var emptyIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", string.Empty, 1, "", s_userId);
+        var blankIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", blankIsbn, 1, "", s_userId);
 
         // Act
-        var result = await _handler.Handle(emptyIsbnCommand, TestContext.Current.CancellationToken);
+        var result = await _handler.Handle(blankIsbnCommand, TestContext.Current.CancellationToken);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value!.ISBN.Should().BeNull();
-        _bookRepositoryMock.Received(1).Update(Arg.Any<Book>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
+        _bookRepositoryMock.Received(0).Update(Arg.Any<Book>());
+        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_ShouldSucceed_WhenISBNIsNull()
+    public async Task Handle_Should_ReturnSuccess_WhenISBNIsNullOnDigitalBook()
     {
-        // Arrange
-        var existingBook = CreateBookWithId(s_bookId, "Serie", "Title", "978-3-16-148410-0");
-        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(existingBook);
+        // Arrange: unlike PhysicalBook, DigitalBook has no ISBN invariant.
+        var digitalBook = DigitalBook.Create(
+            new BookMetadata("Serie", "Title", "978-3-16-148410-0"), s_testLibraryId, "/data/comic.cbz", 1024).Value!;
+        _bookRepositoryMock.GetByIdAsync(digitalBook.Id).Returns(digitalBook);
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId)
-            .Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
-        var nullIsbnCommand = new UpdateBookCommand(s_bookId, "Serie", "Title", null, 1, "", s_userId);
+            .Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Digital, s_userId).Value!);
+        var nullIsbnCommand = new UpdateBookCommand(digitalBook.Id, "Serie", "Title", null, 1, "", s_userId);
 
         // Act
         var result = await _handler.Handle(nullIsbnCommand, TestContext.Current.CancellationToken);

@@ -123,7 +123,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        book.Update(new BookMetadata("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg"));
+        book.Update(new BookMetadata("Avengers", "New Avengers", "9780785167890", 2, "http://example.com/image.jpg")).IsSuccess.Should().BeTrue();
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -482,7 +482,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         // Act
         var updatedPublishDate = new DateOnly(2024, 1, 10);
         book.Update(new BookMetadata("Saga", "Saga Vol 2", "9781607066927", 2, "http://example.com/saga2.jpg",
-            "Brian K. Vaughan, Fiona Staples", "Image Comics, DC Comics", updatedPublishDate, 240));
+            "Brian K. Vaughan, Fiona Staples", "Image Comics, DC Comics", updatedPublishDate, 240)).IsSuccess.Should().BeTrue();
         BookRepository.Update(book);
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 

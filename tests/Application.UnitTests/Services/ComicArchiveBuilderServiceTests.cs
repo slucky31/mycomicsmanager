@@ -24,33 +24,34 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private string CreateSourceDir(int webpCount = 3, bool includeComicInfo = false)
+    private List<string> CreateWebpFiles(int webpCount = 3)
     {
-        var sourceDir = Path.Combine(_tempDir, "source");
-        Directory.CreateDirectory(sourceDir);
-
+        var webpFiles = new List<string>();
         for (var i = 1; i <= webpCount; i++)
         {
-            File.WriteAllBytes(Path.Combine(sourceDir, $"page-{i:D3}.webp"), [0x52, 0x49, 0x46, 0x46]);
+            var path = Path.Combine(_tempDir, $"page-{i:D3}.webp");
+            File.WriteAllBytes(path, [0x52, 0x49, 0x46, 0x46]);
+            webpFiles.Add(path);
         }
+        return webpFiles;
+    }
 
-        if (includeComicInfo)
-        {
-            File.WriteAllText(Path.Combine(sourceDir, "ComicInfo.xml"), "<ComicInfo><Title>Test</Title></ComicInfo>");
-        }
-
-        return sourceDir;
+    private string CreateComicInfoXml()
+    {
+        var path = Path.Combine(_tempDir, "ComicInfo.xml");
+        File.WriteAllText(path, "<ComicInfo><Title>Test</Title></ComicInfo>");
+        return path;
     }
 
     [Fact]
     public async Task BuildAsync_Should_CreateValidCbzFile()
     {
         // Arrange
-        var sourceDir = CreateSourceDir(2);
+        var webpFiles = CreateWebpFiles(2);
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        var result = await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
+        var result = await _service.BuildAsync(webpFiles, null, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -61,11 +62,11 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
     public async Task BuildAsync_Should_IncludeAllWebpImages()
     {
         // Arrange
-        var sourceDir = CreateSourceDir(3);
+        var webpFiles = CreateWebpFiles(3);
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
+        await _service.BuildAsync(webpFiles, null, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
 #pragma warning disable CA1849 // ZipFile has no OpenReadAsync overload
@@ -78,11 +79,12 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
     public async Task BuildAsync_Should_IncludeComicInfoXml_WhenPresent()
     {
         // Arrange
-        var sourceDir = CreateSourceDir(2, includeComicInfo: true);
+        var webpFiles = CreateWebpFiles(2);
+        var comicInfoXmlPath = CreateComicInfoXml();
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
+        await _service.BuildAsync(webpFiles, comicInfoXmlPath, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
 #pragma warning disable CA1849 // ZipFile has no OpenReadAsync overload
@@ -95,11 +97,11 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
     public async Task BuildAsync_Should_ExcludeComicInfoXml_WhenAbsent()
     {
         // Arrange
-        var sourceDir = CreateSourceDir(2, includeComicInfo: false);
+        var webpFiles = CreateWebpFiles(2);
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
+        await _service.BuildAsync(webpFiles, null, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
 #pragma warning disable CA1849 // ZipFile has no OpenReadAsync overload
@@ -112,11 +114,11 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
     public async Task BuildAsync_Should_ReturnCorrectPageCount()
     {
         // Arrange
-        var sourceDir = CreateSourceDir(5);
+        var webpFiles = CreateWebpFiles(5);
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        var result = await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
+        var result = await _service.BuildAsync(webpFiles, null, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -127,11 +129,11 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
     public async Task BuildAsync_Should_ReturnCorrectFileSize()
     {
         // Arrange
-        var sourceDir = CreateSourceDir(2);
+        var webpFiles = CreateWebpFiles(2);
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        var result = await _service.BuildAsync(sourceDir, outputPath, TestContext.Current.CancellationToken);
+        var result = await _service.BuildAsync(webpFiles, null, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -140,32 +142,16 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task BuildAsync_Should_ReturnError_WhenSourceDirectoryIsEmpty()
+    public async Task BuildAsync_Should_ReturnError_WhenWebpFilesIsEmpty()
     {
         // Arrange
-        var emptyDir = Path.Combine(_tempDir, "empty");
-        Directory.CreateDirectory(emptyDir);
         var outputPath = Path.Combine(_tempDir, "output.cbz");
 
         // Act
-        var result = await _service.BuildAsync(emptyDir, outputPath, TestContext.Current.CancellationToken);
+        var result = await _service.BuildAsync([], null, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(FileProcessingError.EmptyDirectory);
-    }
-
-    [Fact]
-    public async Task BuildAsync_Should_ReturnError_WhenSourceDirectoryDoesNotExist()
-    {
-        // Arrange
-        var outputPath = Path.Combine(_tempDir, "output.cbz");
-
-        // Act
-        var result = await _service.BuildAsync(Path.Combine(_tempDir, "nonexistent"), outputPath, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(FileProcessingError.InvalidPath);
     }
 }

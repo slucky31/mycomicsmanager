@@ -32,8 +32,13 @@ public abstract class Book : Entity<Guid>
 
     protected Book() { }
 
-    public void Update(BookMetadata metadata)
+    public Result Update(BookMetadata metadata)
     {
+        if (this is PhysicalBook && string.IsNullOrWhiteSpace(metadata.ISBN))
+        {
+            return BooksError.BadRequest;
+        }
+
         Serie = metadata.Serie;
         Title = metadata.Title;
         ISBN = metadata.ISBN;
@@ -43,6 +48,7 @@ public abstract class Book : Entity<Guid>
         Publishers = metadata.Publishers;
         PublishDate = metadata.PublishDate;
         NumberOfPages = metadata.NumberOfPages;
+        return Result.Success();
     }
 
     public ReadingDate AddReadingDate(DateTime date, int rating)

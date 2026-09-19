@@ -35,7 +35,11 @@ public sealed class ForceFailImportJobCommandHandler(
 
         job.Fail(job.Status.ToString(), "Marqué en échec manuellement.");
         importJobRepository.Update(job);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return Result.Success();
     }

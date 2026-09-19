@@ -34,7 +34,11 @@ public sealed class DeleteImportJobCommandHandler(
         }
 
         importJobRepository.Remove(job);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return Result.Success();
     }

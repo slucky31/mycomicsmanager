@@ -115,10 +115,10 @@ public class ProcessImportJobCommandHandlerTests
 
     private void SetupArchiveBuilder(long fileSize = 5120, int pageCount = 3)
     {
-        _archiveBuilder.BuildAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _archiveBuilder.BuildAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<string?>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(info =>
             {
-                var destPath = info.ArgAt<string>(1);
+                var destPath = info.ArgAt<string>(2);
                 return Task.FromResult(Result<ComicArchiveResult>.Success(
                     new ComicArchiveResult(destPath, fileSize, pageCount)));
             });
@@ -333,7 +333,7 @@ public class ProcessImportJobCommandHandlerTests
         await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _archiveBuilder.Received(1)
-            .BuildAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .BuildAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<string?>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     // ── DigitalBook creation ──────────────────────────────────────────────────
@@ -429,7 +429,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupCloudinary();
         SetupNoMetadataSearch();
 
-        _archiveBuilder.BuildAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _archiveBuilder.BuildAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<string?>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<ComicArchiveResult>.Failure(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);

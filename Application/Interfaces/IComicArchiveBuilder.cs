@@ -10,11 +10,12 @@ public record ComicArchiveResult(
 public interface IComicArchiveBuilder
 {
     /// <summary>
-    /// Builds a CBZ (ZIP) archive from a directory containing WebP images
+    /// Builds a CBZ (ZIP) archive from an already-enumerated list of WebP images
     /// and an optional ComicInfo.xml file.
     /// </summary>
     Task<Result<ComicArchiveResult>> BuildAsync(
-        string sourceDirectory,
+        IReadOnlyList<string> webpFiles,
+        string? comicInfoXmlPath,
         string outputPath,
         CancellationToken ct = default);
 }

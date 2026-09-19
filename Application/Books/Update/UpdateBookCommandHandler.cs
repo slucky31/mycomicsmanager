@@ -52,12 +52,20 @@ public sealed class UpdateBookCommandHandler(
             return BooksError.Duplicate;
         }
 
-        book.Update(new BookMetadata(request.Serie, request.Title, normalizedIsbn,
+        var updateResult = book.Update(new BookMetadata(request.Serie, request.Title, normalizedIsbn,
             request.VolumeNumber, request.ImageLink, request.Authors, request.Publishers,
             request.PublishDate, request.NumberOfPages));
+        if (updateResult.IsFailure)
+        {
+            return updateResult.Error!;
+        }
 
         bookRepository.Update(book);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return book;
     }

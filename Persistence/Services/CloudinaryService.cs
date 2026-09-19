@@ -2,6 +2,7 @@ using Application.ComicInfoSearch;
 using Application.Interfaces;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Domain.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Persistence.Services;
@@ -30,7 +31,7 @@ public class CloudinaryService : ICloudinaryService
         string publicId,
         CancellationToken cancellationToken = default)
     {
-        if (sourceUrl.Scheme != Uri.UriSchemeHttps || !s_allowedCoverHosts.Contains(sourceUrl.Host))
+        if (!sourceUrl.IsAllowedHttpsHost(s_allowedCoverHosts))
         {
             Log.Warning("SSRF guard blocked Cloudinary upload from {SourceUrl}", sourceUrl);
             return new CloudinaryUploadResult(null, null, false,
@@ -53,11 +54,24 @@ public class CloudinaryService : ICloudinaryService
     {
         Log.Information("Uploading image to Cloudinary from file {FilePath} to folder {Folder}", filePath, folder);
 
-        await using var stream = File.OpenRead(filePath);
-        var uploadParams = CreateUploadParams(
-            new FileDescription(Path.GetFileName(filePath), stream), folder, publicId);
+        FileStream stream;
+        try
+        {
+            stream = File.OpenRead(filePath);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Error(ex, "Could not read file for Cloudinary upload: {FilePath}", filePath);
+            return new CloudinaryUploadResult(null, null, false, ex.Message);
+        }
 
-        return await ExecuteUploadAsync(uploadParams, filePath, cancellationToken);
+        await using (stream)
+        {
+            var uploadParams = CreateUploadParams(
+                new FileDescription(Path.GetFileName(filePath), stream), folder, publicId);
+
+            return await ExecuteUploadAsync(uploadParams, filePath, cancellationToken);
+        }
     }
 
     public async Task<CloudinaryUploadResult> UploadImageFromStreamAsync(

@@ -80,7 +80,8 @@ builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(() => new SsrfGuardHandler(
-        new HashSet<string>(["openlibrary.org", "covers.openlibrary.org"], StringComparer.OrdinalIgnoreCase)));
+        new HashSet<string>(["openlibrary.org", "covers.openlibrary.org"], StringComparer.OrdinalIgnoreCase)))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
 // Config Google Books settings
 var googleBooksSection = configuration.GetSection("GoogleBooks");
@@ -96,7 +97,8 @@ builder.Services.AddHttpClient<IGoogleBooksService, GoogleBooksService>(client =
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(() => new SsrfGuardHandler(
-        new HashSet<string>(["www.googleapis.com", "books.googleapis.com"], StringComparer.OrdinalIgnoreCase)));
+        new HashSet<string>(["www.googleapis.com", "books.googleapis.com"], StringComparer.OrdinalIgnoreCase)))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
 // Config Bedetheque settings
 var bedethequeSection = configuration.GetSection("Bedetheque");
@@ -111,10 +113,12 @@ builder.Services.AddHttpClient("Bedetheque", client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(() => new SsrfGuardHandler(
-        new HashSet<string>(["www.bedetheque.com"], StringComparer.OrdinalIgnoreCase)));
+        new HashSet<string>(["www.bedetheque.com"], StringComparer.OrdinalIgnoreCase)))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.FromSeconds(15))
     .AddHttpMessageHandler(() => new SsrfGuardHandler(
-        new HashSet<string>(["serpapi.com"], StringComparer.OrdinalIgnoreCase)));
+        new HashSet<string>(["serpapi.com"], StringComparer.OrdinalIgnoreCase)))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
 // Config Bedetheque service
 builder.Services.AddScoped<IBedethequeService, BedethequeService>();

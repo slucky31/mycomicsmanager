@@ -125,7 +125,7 @@ public class BookTests
         const string newImageLink = "https://example.com/new-image.jpg";
 
         // Act
-        book.Update(new BookMetadata(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink));
+        book.Update(new BookMetadata(newSeries, newTitle, newIsbn, newVolumeNumber, newImageLink)).IsSuccess.Should().BeTrue();
 
         // Assert
         book.Serie.Should().Be(newSeries);
@@ -149,7 +149,7 @@ public class BookTests
         book.Update(new BookMetadata("Updated Series", "Updated Title", "9876543210", 3,
             "https://example.com/updated.jpg",
             "New Author, Second Author", "New Publisher",
-            new DateOnly(2024, 6, 15), 250));
+            new DateOnly(2024, 6, 15), 250)).IsSuccess.Should().BeTrue();
 
         // Assert
         book.Serie.Should().Be("Updated Series");
@@ -173,7 +173,7 @@ public class BookTests
             DefaultLibraryId).Value!;
 
         // Act
-        book.Update(new BookMetadata(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink));
+        book.Update(new BookMetadata(book.Serie, book.Title, book.ISBN, book.VolumeNumber, book.ImageLink)).IsSuccess.Should().BeTrue();
 
         // Assert
         book.Authors.Should().BeEmpty();

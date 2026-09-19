@@ -89,16 +89,22 @@ public sealed class ProcessImportJobCommandHandler(
             if (convertResult.IsFailure)
             { return convertResult.Error!; }
 
+            // Listed once here and reused below, instead of re-scanning convertedDir for every step.
+            var webpFiles = externalServices.TempWorkspace.GetWebpFiles(convertedDir);
+
             var metaResult = await SearchMetadataStepAsync(
                 importJob, extractResult.Value, convertResult.Value!, convertedDir, ct);
             if (metaResult.IsFailure)
             { return metaResult.Error!; }
 
-            var imageLink = await UploadCoverStepAsync(
-                importJob, metaResult.Value!.ISBN, convertedDir, ct);
+            var coverResult = await UploadCoverStepAsync(
+                importJob, metaResult.Value!.ISBN, webpFiles, ct);
+            if (coverResult.IsFailure)
+            { return coverResult.Error!; }
+            var imageLink = coverResult.Value!;
 
             var archiveResult = await BuildArchiveStepAsync(
-                importJob, metaResult.Value!.ISBN, convertedDir, tempDir, ct);
+                importJob, metaResult.Value!.ISBN, webpFiles, convertedDir, tempDir, ct);
             if (archiveResult.IsFailure)
             { return archiveResult.Error!; }
 
@@ -150,7 +156,11 @@ public sealed class ProcessImportJobCommandHandler(
     private async Task<Result<ComicInfoData?>> ExtractStepAsync(
         ImportJob importJob, string rawDir, CancellationToken ct)
     {
-        await AdvanceAndSaveAsync(importJob, ImportJobStatus.Extracting, ct);
+        var advanceResult = await AdvanceAndSaveAsync(importJob, ImportJobStatus.Extracting, ct);
+        if (advanceResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, "Extracting", advanceResult.Error!, ct);
+        }
 
         string? comicInfoXmlPath = null;
 
@@ -192,7 +202,11 @@ public sealed class ProcessImportJobCommandHandler(
     private async Task<Result<ImageProcessingResult>> ConvertStepAsync(
         ImportJob importJob, string rawDir, string convertedDir, CancellationToken ct)
     {
-        await AdvanceAndSaveAsync(importJob, ImportJobStatus.Converting, ct);
+        var advanceResult = await AdvanceAndSaveAsync(importJob, ImportJobStatus.Converting, ct);
+        if (advanceResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, "Converting", advanceResult.Error!, ct);
+        }
 
         var lastSavedPercent = -1;
 
@@ -204,7 +218,12 @@ public sealed class ProcessImportJobCommandHandler(
                 lastSavedPercent = percent;
                 importJob.UpdateConversionProgress(report.ConvertedCount, report.TotalCount);
                 repositories.ImportJobs.Update(importJob);
-                await repositories.UnitOfWork.SaveChangesAsync(ct);
+                var progressSaveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
+                if (progressSaveResult.IsFailure)
+                {
+                    Log.Warning("Failed to persist conversion progress for job {JobId}: {Error}",
+                        importJob.Id, progressSaveResult.Error?.Description);
+                }
             }
         }
 
@@ -228,7 +247,11 @@ public sealed class ProcessImportJobCommandHandler(
         string convertedDir,
         CancellationToken ct)
     {
-        await AdvanceAndSaveAsync(importJob, ImportJobStatus.SearchingMetadata, ct);
+        var advanceResult = await AdvanceAndSaveAsync(importJob, ImportJobStatus.SearchingMetadata, ct);
+        if (advanceResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, "SearchingMetadata", advanceResult.Error!, ct);
+        }
 
         var isbn = FileNameIsbnExtractor.ExtractIsbn(importJob.OriginalFileName) ?? comicInfo?.Isbn;
         var serie = comicInfo?.Series ?? Path.GetFileNameWithoutExtension(importJob.OriginalFileName);
@@ -275,12 +298,15 @@ public sealed class ProcessImportJobCommandHandler(
 
     // ── Step 5: UploadingCover (best-effort, never fails the pipeline) ────────
 
-    private async Task<string> UploadCoverStepAsync(
-        ImportJob importJob, string? isbn, string convertedDir, CancellationToken ct)
+    private async Task<Result<string>> UploadCoverStepAsync(
+        ImportJob importJob, string? isbn, IReadOnlyList<string> coverFiles, CancellationToken ct)
     {
-        await AdvanceAndSaveAsync(importJob, ImportJobStatus.UploadingCover, ct);
+        var advanceResult = await AdvanceAndSaveAsync(importJob, ImportJobStatus.UploadingCover, ct);
+        if (advanceResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, "UploadingCover", advanceResult.Error!, ct);
+        }
 
-        var coverFiles = externalServices.TempWorkspace.GetWebpFiles(convertedDir);
         if (coverFiles.Count == 0)
         {
             return string.Empty;
@@ -295,6 +321,7 @@ public sealed class ProcessImportJobCommandHandler(
             return uploadResult.Url.ToString();
         }
 
+        // Best-effort: a cover upload failure (including an unreadable file) never fails the pipeline.
         Log.Warning("Cover upload failed for job {JobId}: {Error}", importJob.Id, uploadResult.Error);
         return string.Empty;
     }
@@ -304,19 +331,25 @@ public sealed class ProcessImportJobCommandHandler(
     private async Task<Result<(string OutputPath, string OutputFileName, long FileSize)>> BuildArchiveStepAsync(
         ImportJob importJob,
         string? isbn,
+        IReadOnlyList<string> webpFiles,
         string convertedDir,
         string tempDir,
         CancellationToken ct)
     {
-        await AdvanceAndSaveAsync(importJob, ImportJobStatus.BuildingArchive, ct);
+        var advanceResult = await AdvanceAndSaveAsync(importJob, ImportJobStatus.BuildingArchive, ct);
+        if (advanceResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, "BuildingArchive", advanceResult.Error!, ct);
+        }
 
         var safeIsbn = !string.IsNullOrWhiteSpace(isbn) && IsbnHelper.IsValidISBN(isbn)
             ? IsbnHelper.NormalizeIsbn(isbn)
             : null;
         var outputFileName = string.IsNullOrWhiteSpace(safeIsbn) ? $"{importJob.Id}.cbz" : $"{safeIsbn}.cbz";
         var outputPath = Path.Combine(tempDir, outputFileName);
+        var comicInfoXmlPath = Path.Combine(convertedDir, "ComicInfo.xml");
 
-        var buildResult = await fileProcessors.ArchiveBuilder.BuildAsync(convertedDir, outputPath, ct);
+        var buildResult = await fileProcessors.ArchiveBuilder.BuildAsync(webpFiles, comicInfoXmlPath, outputPath, ct);
         if (buildResult.IsFailure)
         {
             return await FailJobAsync(importJob, "BuildingArchive", buildResult.Error!, ct);
@@ -391,11 +424,18 @@ public sealed class ProcessImportJobCommandHandler(
         return await FailJobAsync(importJob, step, new TError("IMP500", message), ct);
     }
 
-    private async Task AdvanceAndSaveAsync(ImportJob importJob, ImportJobStatus status, CancellationToken ct)
+    private async Task<Result> AdvanceAndSaveAsync(ImportJob importJob, ImportJobStatus status, CancellationToken ct)
     {
         importJob.Advance(status);
         repositories.ImportJobs.Update(importJob);
-        await repositories.UnitOfWork.SaveChangesAsync(ct);
+        var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
+        if (saveResult.IsFailure)
+        {
+            Log.Error("Failed to persist status advance to {Status} for job {JobId}: {Error}",
+                status, importJob.Id, saveResult.Error?.Description);
+            return saveResult.Error!;
+        }
+        return Result.Success();
     }
 
     private async Task<TError> FailJobAsync(ImportJob importJob, string step, TError error, CancellationToken ct)

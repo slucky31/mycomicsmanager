@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;
+using Persistence.LocalStorage;
 using SharpCompress.Archives;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -55,7 +56,7 @@ public class ArchiveExtractorService : IArchiveExtractor
     {
         var extractedFiles = new List<string>();
         string? comicInfoXmlPath = null;
-        var canonicalDest = Path.GetFullPath(destinationPath);
+        var normalizedDest = PathContainment.NormalizeRoot(destinationPath);
 
         using var fileStream = File.OpenRead(archivePath);
         using var archive = ArchiveFactory.OpenArchive(fileStream, new ReaderOptions { LookForHeader = true });
@@ -90,8 +91,7 @@ public class ArchiveExtractorService : IArchiveExtractor
             }
 
             var destFilePath = Path.GetFullPath(Path.Combine(destinationPath, entryName));
-            if (!destFilePath.StartsWith(canonicalDest + Path.DirectorySeparatorChar, StringComparison.Ordinal)
-                && destFilePath != canonicalDest)
+            if (!PathContainment.IsWithinNormalizedRoot(normalizedDest, destFilePath, StringComparison.Ordinal))
             {
                 Log.Warning("Path traversal attempt blocked: {Entry}", entry.Key);
                 continue;

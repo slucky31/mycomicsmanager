@@ -52,10 +52,7 @@ internal sealed class TempWorkspace : ITempWorkspace
         var libraryDir = Path.Combine(_libraryRootPath, libraryRelativePath);
         Directory.CreateDirectory(libraryDir);
         var finalPath = Path.Combine(libraryDir, fileName);
-        var normalizedLibraryDir = Path.GetFullPath(libraryDir)
-            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-            + Path.DirectorySeparatorChar;
-        if (!Path.GetFullPath(finalPath).StartsWith(normalizedLibraryDir, StringComparison.OrdinalIgnoreCase))
+        if (!PathContainment.IsWithin(libraryDir, finalPath))
         {
             return ImportJobError.BadRequest;
         }

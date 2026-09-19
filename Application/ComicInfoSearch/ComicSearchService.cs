@@ -70,7 +70,7 @@ public partial class ComicSearchService : IComicSearchService
             Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
             return CreateNotFoundResult(cleanIsbn);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
         {
             Log.Warning(ex, "Unexpected error searching for ISBN {Isbn}", cleanIsbn);
             return CreateNotFoundResult(cleanIsbn);
@@ -251,7 +251,7 @@ public partial class ComicSearchService : IComicSearchService
 
             Log.Warning("Failed to upload local cover to Cloudinary: {Error}", uploadResult.Error);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
         {
             Log.Warning(ex, "Unexpected error uploading local cover for ISBN {Isbn}", isbn);
         }
@@ -279,7 +279,7 @@ public partial class ComicSearchService : IComicSearchService
 
             Log.Warning("Failed to upload cover to Cloudinary: {Error}. Using original URL.", uploadResult.Error);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
         {
             Log.Warning(ex, "Unexpected error uploading cover to Cloudinary for {CoverUrl}. Using original URL.", coverUrl);
         }
@@ -360,6 +360,11 @@ public partial class ComicSearchService : IComicSearchService
 
         return (serie, volumeNumber);
     }
+
+    // Distinguishes a genuine caller-requested cancellation (must propagate) from an internal
+    // timeout or other failure surfaced as an exception (must degrade to a not-found result).
+    private static bool IsUnexpectedException(Exception ex, CancellationToken cancellationToken) =>
+        ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested;
 
     private static ComicSearchResult CreateNotFoundResult(string isbn) =>
         new(

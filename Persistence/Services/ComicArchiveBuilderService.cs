@@ -10,30 +10,21 @@ public class ComicArchiveBuilderService : IComicArchiveBuilder
     private static Serilog.ILogger Log => Serilog.Log.ForContext<ComicArchiveBuilderService>();
 
     public async Task<Result<ComicArchiveResult>> BuildAsync(
-        string sourceDirectory,
+        IReadOnlyList<string> webpFiles,
+        string? comicInfoXmlPath,
         string outputPath,
         CancellationToken ct = default)
     {
-        if (!Directory.Exists(sourceDirectory))
-        {
-            return FileProcessingError.InvalidPath;
-        }
-
-        var webpFiles = Directory.GetFiles(sourceDirectory, "*.webp")
-            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
         if (webpFiles.Count == 0)
         {
             return FileProcessingError.EmptyDirectory;
         }
 
-        var comicInfoPath = Path.Combine(sourceDirectory, "ComicInfo.xml");
-        var hasComicInfo = File.Exists(comicInfoPath);
+        var hasComicInfo = comicInfoXmlPath is not null && File.Exists(comicInfoXmlPath);
 
         try
         {
-            await Task.Run(() => CreateArchive(outputPath, webpFiles, hasComicInfo ? comicInfoPath : null), ct);
+            await Task.Run(() => CreateArchive(outputPath, webpFiles, hasComicInfo ? comicInfoXmlPath : null), ct);
 
             var fileInfo = new FileInfo(outputPath);
             Log.Information("Built CBZ archive: {Path} ({Pages} pages, {Size} bytes)",
@@ -48,7 +39,7 @@ public class ComicArchiveBuilderService : IComicArchiveBuilder
         }
     }
 
-    private static void CreateArchive(string outputPath, List<string> webpFiles, string? comicInfoPath)
+    private static void CreateArchive(string outputPath, IReadOnlyList<string> webpFiles, string? comicInfoPath)
     {
         var outputDir = Path.GetDirectoryName(outputPath);
         if (!string.IsNullOrEmpty(outputDir))

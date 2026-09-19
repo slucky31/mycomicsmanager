@@ -71,7 +71,11 @@ public sealed class CreateImportJobCommandHandler(
 
         var importJob = jobResult.Value!;
         importJobRepository.Add(importJob);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
 
         return importJob;
     }
