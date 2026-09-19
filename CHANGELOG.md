@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.1"></a>
+## [10.11.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.1) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **ci:** centralize project version and clean up Versionize release signal ([#1025](https://www.github.com/slucky31/mycomicsmanager/issues/1025)) ([a94e354](https://www.github.com/slucky31/mycomicsmanager/commit/a94e354f70225aa8d82ed022ce3b781238693e6c))
+* **ci:** use RELEASE_TOKEN on checkout so it actually authenticates the push ([#1026](https://www.github.com/slucky31/mycomicsmanager/issues/1026)) ([557d8dc](https://www.github.com/slucky31/mycomicsmanager/commit/557d8dc58d7d4e0d7d390ca7ee6b1dc31969aa04))
+
 <a name="10.11.0"></a>
 ## [10.11.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.0) (2026-09-19)
 
