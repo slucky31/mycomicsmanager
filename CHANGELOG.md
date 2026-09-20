@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.9"></a>
+## [10.11.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.9) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **ci:** remove unused Copilot setup steps and legacy CodeQL workflows ([#1040](https://www.github.com/slucky31/mycomicsmanager/issues/1040)) ([580931e](https://www.github.com/slucky31/mycomicsmanager/commit/580931ec7bfa431251b441e2ffa374573d94cfc3))
+
 <a name="10.11.8"></a>
 ## [10.11.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.8) (2026-09-20)
 
