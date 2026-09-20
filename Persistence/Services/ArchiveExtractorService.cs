@@ -97,7 +97,9 @@ public class ArchiveExtractorService : IArchiveExtractor
                 continue;
             }
 
-            entry.WriteToFile(destFilePath, new ExtractionOptions { Overwrite = true });
+            // PreserveFileTime disabled: NTFS mounted via ntfs-3g only lets the fstab-configured
+            // uid change file timestamps, so setting mtime throws EPERM for the app's process.
+            entry.WriteToFile(destFilePath, new ExtractionOptions { Overwrite = true, PreserveFileTime = false });
             extractedFiles.Add(destFilePath);
 
             if (entryName.Equals("ComicInfo.xml", StringComparison.OrdinalIgnoreCase))
