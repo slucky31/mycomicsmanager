@@ -1,3 +1,4 @@
+using System.Net;
 using Application.ComicInfoSearch;
 using Application.Interfaces;
 using CloudinaryDotNet;
@@ -91,6 +92,20 @@ public class CloudinaryService : ICloudinaryService
             new FileDescription(fileName, imageStream), folder, publicId);
 
         return await ExecuteUploadAsync(uploadParams, fileName, cancellationToken);
+    }
+
+    public async Task<bool> PingAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await _cloudinary.GetUsageAsync(cancellationToken);
+            return result.StatusCode == HttpStatusCode.OK;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !cancellationToken.IsCancellationRequested)
+        {
+            Log.Warning(ex, "Cloudinary connectivity check failed");
+            return false;
+        }
     }
 
     private static ImageUploadParams CreateUploadParams(FileDescription file, string folder, string publicId) =>

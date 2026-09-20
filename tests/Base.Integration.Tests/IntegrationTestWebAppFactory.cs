@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -21,6 +22,8 @@ namespace Base.Integration.Tests;
 public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IDisposable
 #pragma warning restore CA1063 // Implement IDisposable Correctly
 {
+    private static readonly string[] s_healthChecksToSkip = ["cloudinary", "npgsql"];
+
     private string _connectionString = string.Empty;
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
@@ -45,12 +48,14 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
 
             // Override Import directories: Program calls Directory.CreateDirectory at startup
             // /data/* is not writable on GitHub Actions runners.
-            // Override NeonConnection so the Hangfire PostgreSQL lambda receives a valid-format
-            // connection string (Hangfire.InMemory will override the actual storage afterwards).
+            // Override DefaultConnection (the key Program.cs actually reads) so the Hangfire
+            // PostgreSQL lambda and the NpgSql health check receive a valid-format connection
+            // string (Hangfire.InMemory and the DbContext override below replace the actual
+            // storage afterwards; only the health check depends on this value being connectable).
             Directory.CreateDirectory(_tempDir);
             conf.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:NeonConnection"] = _connectionString,
+                ["ConnectionStrings:DefaultConnection"] = _connectionString,
                 ["Import:ImportDirectory"] = Path.Combine(_tempDir, "mcm-test-import"),
                 ["Import:TempDirectory"] = Path.Combine(_tempDir, "mcm-test-temp"),
             });
@@ -101,6 +106,26 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // for job persistence during tests. This runs after Program.cs registers the PostgreSQL
         // storage, so the last UseStorage call wins.
         builder.ConfigureTestServices(services => services.AddHangfire(config => config.UseInMemoryStorage()));
+
+        // Drop health checks Program.cs aborts startup on any unhealthy check for. "cloudinary"
+        // would hit the real API with appsettings.json's placeholder credentials. "npgsql" (the
+        // AddNpgSql default check name) captures the connectionString value Program.cs reads
+        // *before* WebApplicationFactory's ConfigureAppConfiguration overrides are applied -
+        // that override only takes effect right before Build(), so this check is stuck with
+        // appsettings.json's placeholder connection string no matter what config key it targets.
+        // The real DbContext used by the tests is already correctly repointed above.
+        builder.ConfigureTestServices(services =>
+            services.PostConfigure<HealthCheckServiceOptions>(options =>
+            {
+                foreach (var name in s_healthChecksToSkip)
+                {
+                    var registration = options.Registrations.FirstOrDefault(r => r.Name == name);
+                    if (registration is not null)
+                    {
+                        options.Registrations.Remove(registration);
+                    }
+                }
+            }));
     }
 
     protected override IHost CreateHost(IHostBuilder builder)

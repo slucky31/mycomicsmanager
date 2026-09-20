@@ -196,6 +196,38 @@ public class CloudinaryServiceTests
     }
 
     [Fact]
+    public async Task PingAsync_ShouldReturnTrue_WhenCloudinaryRespondsOk()
+    {
+        // Arrange
+        using var response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("""{"plan":"Free"}""", Encoding.UTF8, "application/json")
+        };
+        using var handler = new StaticResponseHandler(response);
+        var service = CreateServiceWithMockHandler(handler);
+
+        // Act
+        var result = await service.PingAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task PingAsync_ShouldReturnFalse_WhenCloudinaryUnreachable()
+    {
+        // Arrange
+        using var handler = new ThrowingHandler(new HttpRequestException("Network error"));
+        var service = CreateServiceWithMockHandler(handler);
+
+        // Act
+        var result = await service.PingAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task UploadImageFromUrlAsync_Should_ReturnFailure_WhenSchemeIsHttp()
     {
         var settings = Options.Create(new CloudinarySettings

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using MudBlazor;
 using MudBlazor.Services;
@@ -65,12 +66,7 @@ builder.Services.AddOptions<LocalStorageConfiguration>()
     .Bind(localStorageSection)
     .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.RootPath), "LocalStorage:RootPath is required")
     .Validate(cfg => Path.IsPathFullyQualified(cfg.RootPath), "LocalStorage:RootPath must be an absolute path")
-    .ValidateOnStart();
-
-// Config Cloudinary settings
-var cloudinarySection = configuration.GetSection("Cloudinary");
-builder.Services.AddOptions<CloudinarySettings>()
-    .Bind(cloudinarySection)
+    .Validate(cfg => Directory.Exists(cfg.RootPath), "LocalStorage:RootPath does not exist; check the volume is mounted")
     .ValidateOnStart();
 
 // Config OpenLibrary service for ISBN lookup
@@ -161,11 +157,16 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStat
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 // Config HealthChecks
+// The cache is a singleton, shared across calls, so it's not re-pinging Cloudinary on every
+// hit; CloudinaryHealthCheck itself stays at AddCheck<T>'s default lifetime since it depends
+// on the scoped ICloudinaryService.
+builder.Services.AddSingleton<CloudinaryHealthCheckCache>();
 builder.Services
     .AddHealthChecks()
     .AddApplicationStatus()
     .AddNpgSql(connectionString)
-    .AddCheck<ImportDirectoryHealthCheck>("import-directory");
+    .AddCheck<ImportDirectoryHealthCheck>("import-directory")
+    .AddCheck<CloudinaryHealthCheck>("cloudinary");
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
@@ -208,6 +209,24 @@ using (var migrationScope = app.Services.CreateScope())
 var importSettings = app.Services.GetRequiredService<IOptions<ImportSettings>>().Value;
 Directory.CreateDirectory(importSettings.ImportDirectory);
 Directory.CreateDirectory(importSettings.TempDirectory);
+
+// Refuse to start if a dependency (database, Cloudinary, import directory, ...) is unreachable,
+// rather than accepting traffic and failing later on the first request that needs it.
+using (var healthScope = app.Services.CreateScope())
+{
+    var healthCheckService = healthScope.ServiceProvider.GetRequiredService<HealthCheckService>();
+    var startupHealthReport = await healthCheckService.CheckHealthAsync();
+    if (startupHealthReport.Status != HealthStatus.Healthy)
+    {
+        var unhealthyEntries = startupHealthReport.Entries.Where(e => e.Value.Status != HealthStatus.Healthy).ToList();
+        foreach (var entry in unhealthyEntries)
+        {
+            Log.Fatal("Startup health check failed: {Check} - {Description}", entry.Key, entry.Value.Description);
+        }
+        var summary = string.Join("; ", unhealthyEntries.Select(e => $"{e.Key}: {e.Value.Description}"));
+        throw new InvalidOperationException($"One or more startup health checks failed: {summary}");
+    }
+}
 
 app.UseSerilogRequestLogging();
 
