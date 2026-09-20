@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.4"></a>
+## [10.11.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.4) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **ci:** cache NuGet restore and Docker layers across pipelines ([#1035](https://www.github.com/slucky31/mycomicsmanager/issues/1035)) ([748a2bd](https://www.github.com/slucky31/mycomicsmanager/commit/748a2bd7714691811f6f8355f8b815a7f5ac5028))
+
 <a name="10.11.3"></a>
 ## [10.11.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.3) (2026-09-20)
 
