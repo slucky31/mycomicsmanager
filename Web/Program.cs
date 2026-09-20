@@ -218,11 +218,13 @@ using (var healthScope = app.Services.CreateScope())
     var startupHealthReport = await healthCheckService.CheckHealthAsync();
     if (startupHealthReport.Status != HealthStatus.Healthy)
     {
-        foreach (var entry in startupHealthReport.Entries.Where(e => e.Value.Status != HealthStatus.Healthy))
+        var unhealthyEntries = startupHealthReport.Entries.Where(e => e.Value.Status != HealthStatus.Healthy).ToList();
+        foreach (var entry in unhealthyEntries)
         {
             Log.Fatal("Startup health check failed: {Check} - {Description}", entry.Key, entry.Value.Description);
         }
-        throw new InvalidOperationException("One or more startup health checks failed; see logs for details.");
+        var summary = string.Join("; ", unhealthyEntries.Select(e => $"{e.Key}: {e.Value.Description}"));
+        throw new InvalidOperationException($"One or more startup health checks failed: {summary}");
     }
 }
 

@@ -115,7 +115,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // appsettings.json's placeholder connection string no matter what config key it targets.
         // The real DbContext used by the tests is already correctly repointed above.
         builder.ConfigureTestServices(services =>
-            services.Configure<HealthCheckServiceOptions>(options =>
+            services.PostConfigure<HealthCheckServiceOptions>(options =>
             {
                 foreach (var name in s_healthChecksToSkip)
                 {
