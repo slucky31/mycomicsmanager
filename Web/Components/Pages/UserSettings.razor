@@ -35,8 +35,30 @@
         </MudItem>
         <MudItem Class="mud-width-full" xs="12" sm="12" md="8">
             <MudPaper Class="pa-4">
-                <MudText Typo="Typo.h6"><strong>General Settings</strong></MudText>
-                <MudText Typo="Typo.body1">Configure basic application settings</MudText>
+                <MudText Typo="Typo.h6"><strong>System Health</strong></MudText>
+                <MudText Typo="Typo.body1" Class="mb-4">Status of the services the application depends on</MudText>
+                @if (_isLoadingHealth)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                }
+                else if (_healthReport is not null)
+                {
+                    <MudList T="string" Dense="true">
+                        @foreach (var entry in _healthReport.Entries.OrderBy(e => e.Key, StringComparer.Ordinal))
+                        {
+                            <MudListItem T="string" Icon="@HealthIcon(entry.Value.Status)" IconColor="@HealthColor(entry.Value.Status)">
+                                <div class="d-flex align-center justify-space-between">
+                                    <MudText>@entry.Key</MudText>
+                                    <MudChip T="string" Color="@HealthColor(entry.Value.Status)" Size="Size.Small">@entry.Value.Status</MudChip>
+                                </div>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+                else
+                {
+                    <MudText Color="Color.Secondary">Health status unavailable</MudText>
+                }
             </MudPaper>
         </MudItem>
         <MudItem Class="mud-width-full" xs="12" sm="12" md="4">

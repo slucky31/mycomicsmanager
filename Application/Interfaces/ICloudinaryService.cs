@@ -27,4 +27,6 @@ public interface ICloudinaryService
         string folder,
         string publicId,
         CancellationToken cancellationToken = default);
+
+    Task<bool> PingAsync(CancellationToken cancellationToken = default);
 }

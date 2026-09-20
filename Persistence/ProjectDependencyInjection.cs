@@ -60,6 +60,9 @@ public static class ProjectDependencyInjection
         var cloudinarySection = configuration.GetSection("Cloudinary");
         services.AddOptions<CloudinarySettings>()
             .Bind(cloudinarySection)
+            .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.CloudName), "Cloudinary:CloudName is required")
+            .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.ApiKey), "Cloudinary:ApiKey is required")
+            .Validate(cfg => !string.IsNullOrWhiteSpace(cfg.ApiSecret), "Cloudinary:ApiSecret is required")
             .ValidateOnStart();
         services.AddScoped<ICloudinaryService, CloudinaryService>();
 

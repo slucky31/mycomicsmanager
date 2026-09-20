@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -101,6 +102,19 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // for job persistence during tests. This runs after Program.cs registers the PostgreSQL
         // storage, so the last UseStorage call wins.
         builder.ConfigureTestServices(services => services.AddHangfire(config => config.UseInMemoryStorage()));
+
+        // Drop the Cloudinary health check: Program.cs aborts startup on any unhealthy check,
+        // and appsettings.json only has placeholder credentials, so a real network call here
+        // would fail startup for every test in CI.
+        builder.ConfigureTestServices(services =>
+            services.Configure<HealthCheckServiceOptions>(options =>
+            {
+                var cloudinaryRegistration = options.Registrations.FirstOrDefault(r => r.Name == "cloudinary");
+                if (cloudinaryRegistration is not null)
+                {
+                    options.Registrations.Remove(cloudinaryRegistration);
+                }
+            }));
     }
 
     protected override IHost CreateHost(IHostBuilder builder)
