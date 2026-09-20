@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.8"></a>
+## [10.11.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.8) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **ci:** rename and split CI/CD workflows to match LoreAI's structure ([#1039](https://www.github.com/slucky31/mycomicsmanager/issues/1039)) ([77b1be5](https://www.github.com/slucky31/mycomicsmanager/commit/77b1be5952ba4464f7b0903e4eac6f730208d6f5))
+
 <a name="10.11.7"></a>
 ## [10.11.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.7) (2026-09-20)
 
