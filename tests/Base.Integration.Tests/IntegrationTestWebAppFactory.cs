@@ -46,12 +46,14 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
 
             // Override Import directories: Program calls Directory.CreateDirectory at startup
             // /data/* is not writable on GitHub Actions runners.
-            // Override NeonConnection so the Hangfire PostgreSQL lambda receives a valid-format
-            // connection string (Hangfire.InMemory will override the actual storage afterwards).
+            // Override DefaultConnection (the key Program.cs actually reads) so the Hangfire
+            // PostgreSQL lambda and the NpgSql health check receive a valid-format connection
+            // string (Hangfire.InMemory and the DbContext override below replace the actual
+            // storage afterwards; only the health check depends on this value being connectable).
             Directory.CreateDirectory(_tempDir);
             conf.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:NeonConnection"] = _connectionString,
+                ["ConnectionStrings:DefaultConnection"] = _connectionString,
                 ["Import:ImportDirectory"] = Path.Combine(_tempDir, "mcm-test-import"),
                 ["Import:TempDirectory"] = Path.Combine(_tempDir, "mcm-test-temp"),
             });
