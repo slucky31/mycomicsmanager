@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.5"></a>
+## [10.11.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.5) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **books:** hide manual book creation for digital libraries ([#1033](https://www.github.com/slucky31/mycomicsmanager/issues/1033)) ([a48d6a4](https://www.github.com/slucky31/mycomicsmanager/commit/a48d6a4af4246f1c78f95eed313f8243c729b097))
+
 <a name="10.11.4"></a>
 ## [10.11.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.4) (2026-09-20)
 
