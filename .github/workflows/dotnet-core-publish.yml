@@ -38,6 +38,9 @@ jobs:
         run: dotnet tool install --global dotnet-sonarscanner
       - name: Install dependencies
         run: dotnet restore
+      - name: Read project version
+        id: version
+        run: echo "version=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props)" >> "$GITHUB_OUTPUT"
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -45,6 +48,7 @@ jobs:
           dotnet-sonarscanner begin
           /k:"slucky31_mycomicsmanager"
           /o:"slucky31-1"
+          /v:"${{ steps.version.outputs.version }}"
           /d:sonar.cs.cobertura.reportsPaths="**/coverage.cobertura.xml"
       - name: Build
         run: dotnet build --configuration Release --no-restore
