@@ -15,9 +15,16 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x                    
+          dotnet-version: 10.0.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
       - name: Install dependencies
-        run: dotnet restore                            
+        run: dotnet restore
       - name: Build
         run: dotnet build --configuration Release --no-restore                    
       - name: Tests
@@ -51,3 +58,5 @@ jobs:
           context: .
           platforms: linux/arm64
           file: ./Web/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
