@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.6"></a>
+## [10.11.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.6) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **ci:** report the project version to SonarCloud ([#1037](https://www.github.com/slucky31/mycomicsmanager/issues/1037)) ([8b8ffca](https://www.github.com/slucky31/mycomicsmanager/commit/8b8ffcac152a843309c22e86cf3b6343812ed95d))
+
 <a name="10.11.5"></a>
 ## [10.11.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.5) (2026-09-20)
 
