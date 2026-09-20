@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.3"></a>
+## [10.11.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.3) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **build:** strip NuGet satellite locale resources from the Docker image ([#1034](https://www.github.com/slucky31/mycomicsmanager/issues/1034)) ([395a1d6](https://www.github.com/slucky31/mycomicsmanager/commit/395a1d626225d70643b4aec7408b9de50beb4e8e))
+
 <a name="10.11.2"></a>
 ## [10.11.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.2) (2026-09-20)
 
