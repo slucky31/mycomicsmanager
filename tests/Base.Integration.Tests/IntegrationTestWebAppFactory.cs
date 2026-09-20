@@ -22,7 +22,7 @@ namespace Base.Integration.Tests;
 public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IDisposable
 #pragma warning restore CA1063 // Implement IDisposable Correctly
 {
-    private static readonly string[] s_healthChecksToSkip = ["cloudinary", "Npgsql"];
+    private static readonly string[] s_healthChecksToSkip = ["cloudinary", "npgsql"];
 
     private string _connectionString = string.Empty;
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -108,7 +108,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         builder.ConfigureTestServices(services => services.AddHangfire(config => config.UseInMemoryStorage()));
 
         // Drop health checks Program.cs aborts startup on any unhealthy check for. "cloudinary"
-        // would hit the real API with appsettings.json's placeholder credentials. "Npgsql" (the
+        // would hit the real API with appsettings.json's placeholder credentials. "npgsql" (the
         // AddNpgSql default check name) captures the connectionString value Program.cs reads
         // *before* WebApplicationFactory's ConfigureAppConfiguration overrides are applied -
         // that override only takes effect right before Build(), so this check is stuck with
