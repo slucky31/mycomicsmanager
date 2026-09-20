@@ -79,13 +79,16 @@
                     </MudTooltip>
                 </MudButtonGroup>
 
-                <MudButton StartIcon="@Icons.Material.Filled.Add"
-                           Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           OnClick="AddBook"
-                           Class="d-none d-sm-flex">
-                    New Book
-                </MudButton>
+                @if (_library?.BookType != LibraryBookType.Digital)
+                {
+                    <MudButton StartIcon="@Icons.Material.Filled.Add"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="AddBook"
+                               Class="d-none d-sm-flex">
+                        New Book
+                    </MudButton>
+                }
 
                 @if (_library?.BookType == LibraryBookType.Digital)
                 {
@@ -162,10 +165,20 @@
                     <MudIcon Icon="@IconPicker.Resolve(_library?.Icon)"
                              Style="@($"color: {_library?.Color}; font-size: 80px; opacity: 0.4;")" />
                     <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-4">No books in this library yet</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Start by adding your first book</MudText>
-                    <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBook">
-                        Add Your First Book
-                    </MudButton>
+                    @if (_library?.BookType == LibraryBookType.Digital)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Start by importing your first ebook</MudText>
+                        <MudButton StartIcon="@Icons.Material.Filled.Upload" Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToImport">
+                            Import
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Start by adding your first book</MudText>
+                        <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBook">
+                            Add Your First Book
+                        </MudButton>
+                    }
                 </MudPaper>
             }
             else if (_displayedBooks.Count == 0)
@@ -208,7 +221,7 @@
 </div>
 
 @* FAB — outside page div to ensure viewport positioning *@
-@if (!_isLoading)
+@if (!_isLoading && _library?.BookType != LibraryBookType.Digital)
 {
     <div class="fab-add-book d-sm-none">
         <MudFab Color="Color.Primary"
