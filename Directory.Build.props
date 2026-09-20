@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- Single source of truth for the version; updated by Versionize in the release job. -->
-    <Version>10.11.2</Version>
+    <Version>10.11.9</Version>
     <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>All</AnalysisMode>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -9,5 +9,9 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- The app has no localized resources of its own; drop the satellite resource assemblies
+         (ca, de, es, fr, zh, ...) that NuGet dependencies ship for every culture, so they don't
+         get published into the Docker image. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 </Project>

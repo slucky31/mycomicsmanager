@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.9"></a>
+## [10.11.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.9) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **ci:** remove unused Copilot setup steps and legacy CodeQL workflows ([#1040](https://www.github.com/slucky31/mycomicsmanager/issues/1040)) ([580931e](https://www.github.com/slucky31/mycomicsmanager/commit/580931ec7bfa431251b441e2ffa374573d94cfc3))
+
+<a name="10.11.8"></a>
+## [10.11.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.8) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **ci:** rename and split CI/CD workflows to match LoreAI's structure ([#1039](https://www.github.com/slucky31/mycomicsmanager/issues/1039)) ([77b1be5](https://www.github.com/slucky31/mycomicsmanager/commit/77b1be5952ba4464f7b0903e4eac6f730208d6f5))
+
+<a name="10.11.7"></a>
+## [10.11.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.7) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **ci:** compute the release version before build/Sonar, not after ([#1038](https://www.github.com/slucky31/mycomicsmanager/issues/1038)) ([68a4b0e](https://www.github.com/slucky31/mycomicsmanager/commit/68a4b0ec0c1fe984c10047453dbb9252667c8c55))
+
+<a name="10.11.6"></a>
+## [10.11.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.6) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **ci:** report the project version to SonarCloud ([#1037](https://www.github.com/slucky31/mycomicsmanager/issues/1037)) ([8b8ffca](https://www.github.com/slucky31/mycomicsmanager/commit/8b8ffcac152a843309c22e86cf3b6343812ed95d))
+
+<a name="10.11.5"></a>
+## [10.11.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.5) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **books:** hide manual book creation for digital libraries ([#1033](https://www.github.com/slucky31/mycomicsmanager/issues/1033)) ([a48d6a4](https://www.github.com/slucky31/mycomicsmanager/commit/a48d6a4af4246f1c78f95eed313f8243c729b097))
+
+<a name="10.11.4"></a>
+## [10.11.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.4) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **ci:** cache NuGet restore and Docker layers across pipelines ([#1035](https://www.github.com/slucky31/mycomicsmanager/issues/1035)) ([748a2bd](https://www.github.com/slucky31/mycomicsmanager/commit/748a2bd7714691811f6f8355f8b815a7f5ac5028))
+
+<a name="10.11.3"></a>
+## [10.11.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.3) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **build:** strip NuGet satellite locale resources from the Docker image ([#1034](https://www.github.com/slucky31/mycomicsmanager/issues/1034)) ([395a1d6](https://www.github.com/slucky31/mycomicsmanager/commit/395a1d626225d70643b4aec7408b9de50beb4e8e))
+
 <a name="10.11.2"></a>
 ## [10.11.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.2) (2026-09-20)
 

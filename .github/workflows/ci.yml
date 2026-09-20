@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build, Test & Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name : Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of SonarCloud analysis
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Install SonarCloud scanner
+        run: dotnet tool install --global dotnet-sonarscanner
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Read project version
+        id: version
+        run: echo "version=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props)" >> "$GITHUB_OUTPUT"
+      - name: Begin SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: >
+          dotnet-sonarscanner begin
+          /k:"slucky31_mycomicsmanager"
+          /o:"slucky31-1"
+          /v:"${{ steps.version.outputs.version }}"
+          /d:sonar.cs.cobertura.reportsPaths="**/coverage.cobertura.xml"
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+      - name: Tests
+        run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --collect:"XPlat Code Coverage"
+        env:
+          ConnectionStrings__NeonConnectionUnitTests: ${{ secrets.CONNECTIONSTRINGS_NEONCONNECTIONUNITTESTS }}
+      - name: End SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet-sonarscanner end
+
+  docker-web:
+    name: Docker Build
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name : Checkout
+        uses: actions/checkout@v7
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: Log in to the Container registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image MyComicsManagerWeb
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          outputs: type=cacheonly
+          context: .
+          platforms: linux/arm64
+          file: ./Web/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
