@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.10"></a>
+## [10.11.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.10) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **startup:** refuse to start when config or dependencies are broken ([#1036](https://www.github.com/slucky31/mycomicsmanager/issues/1036)) ([aa8b1d8](https://www.github.com/slucky31/mycomicsmanager/commit/aa8b1d85eba79121061d5f0cb82f2cd6a36f82ce))
+
 <a name="10.11.9"></a>
 ## [10.11.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.9) (2026-09-20)
 
