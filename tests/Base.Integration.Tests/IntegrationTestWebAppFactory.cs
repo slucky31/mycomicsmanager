@@ -22,6 +22,8 @@ namespace Base.Integration.Tests;
 public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IDisposable
 #pragma warning restore CA1063 // Implement IDisposable Correctly
 {
+    private static readonly string[] s_healthChecksToSkip = ["cloudinary", "Npgsql"];
+
     private string _connectionString = string.Empty;
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
@@ -105,16 +107,23 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // storage, so the last UseStorage call wins.
         builder.ConfigureTestServices(services => services.AddHangfire(config => config.UseInMemoryStorage()));
 
-        // Drop the Cloudinary health check: Program.cs aborts startup on any unhealthy check,
-        // and appsettings.json only has placeholder credentials, so a real network call here
-        // would fail startup for every test in CI.
+        // Drop health checks Program.cs aborts startup on any unhealthy check for. "cloudinary"
+        // would hit the real API with appsettings.json's placeholder credentials. "Npgsql" (the
+        // AddNpgSql default check name) captures the connectionString value Program.cs reads
+        // *before* WebApplicationFactory's ConfigureAppConfiguration overrides are applied -
+        // that override only takes effect right before Build(), so this check is stuck with
+        // appsettings.json's placeholder connection string no matter what config key it targets.
+        // The real DbContext used by the tests is already correctly repointed above.
         builder.ConfigureTestServices(services =>
             services.Configure<HealthCheckServiceOptions>(options =>
             {
-                var cloudinaryRegistration = options.Registrations.FirstOrDefault(r => r.Name == "cloudinary");
-                if (cloudinaryRegistration is not null)
+                foreach (var name in s_healthChecksToSkip)
                 {
-                    options.Registrations.Remove(cloudinaryRegistration);
+                    var registration = options.Registrations.FirstOrDefault(r => r.Name == name);
+                    if (registration is not null)
+                    {
+                        options.Registrations.Remove(registration);
+                    }
                 }
             }));
     }
