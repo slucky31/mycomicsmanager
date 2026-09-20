@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.2"></a>
+## [10.11.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.2) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **import:** disable timestamp preservation on archive extraction ([#1028](https://www.github.com/slucky31/mycomicsmanager/issues/1028)) ([87d08d2](https://www.github.com/slucky31/mycomicsmanager/commit/87d08d25b5106b8832de2d388e1c59592d672ccf))
+
+### Other
+
+* **adr:** add ADR process and initial catalog of decisions ([#1024](https://www.github.com/slucky31/mycomicsmanager/issues/1024)) ([4db21e9](https://www.github.com/slucky31/mycomicsmanager/commit/4db21e9b9cc7b015ec1b136e69ac562e530d39da))
+* **adr:** add ADR-0018 on Conventional Commits + Versionize ([#1027](https://www.github.com/slucky31/mycomicsmanager/issues/1027)) ([63a03bb](https://www.github.com/slucky31/mycomicsmanager/commit/63a03bb2ce5f24994a25227c7b41c60fc0d6ca4b))
+
 <a name="10.11.1"></a>
 ## [10.11.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.1) (2026-09-19)
 
