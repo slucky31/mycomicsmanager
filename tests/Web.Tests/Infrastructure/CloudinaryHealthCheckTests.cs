@@ -14,7 +14,7 @@ public sealed class CloudinaryHealthCheckTests
     {
         var cloudinaryService = Substitute.For<ICloudinaryService>();
         cloudinaryService.PingAsync(Arg.Any<CancellationToken>()).Returns(true);
-        var sut = new CloudinaryHealthCheck(cloudinaryService);
+        var sut = new CloudinaryHealthCheck(cloudinaryService, new CloudinaryHealthCheckCache());
         var context = new HealthCheckContext();
 
         await sut.CheckHealthAsync(context, TestContext.Current.CancellationToken);
@@ -28,7 +28,7 @@ public sealed class CloudinaryHealthCheckTests
     {
         var cloudinaryService = Substitute.For<ICloudinaryService>();
         cloudinaryService.PingAsync(Arg.Any<CancellationToken>()).Returns(false);
-        var sut = new CloudinaryHealthCheck(cloudinaryService);
+        var sut = new CloudinaryHealthCheck(cloudinaryService, new CloudinaryHealthCheckCache());
         var context = new HealthCheckContext();
 
         var result = await sut.CheckHealthAsync(context, TestContext.Current.CancellationToken);

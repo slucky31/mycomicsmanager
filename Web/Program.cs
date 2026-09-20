@@ -157,9 +157,10 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStat
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 // Config HealthChecks
-// CloudinaryHealthCheck is a singleton so its internal result cache is actually shared
-// between calls (AddCheck<T> would otherwise register it transient).
-builder.Services.AddSingleton<CloudinaryHealthCheck>();
+// The cache is a singleton, shared across calls, so it's not re-pinging Cloudinary on every
+// hit; CloudinaryHealthCheck itself stays at AddCheck<T>'s default lifetime since it depends
+// on the scoped ICloudinaryService.
+builder.Services.AddSingleton<CloudinaryHealthCheckCache>();
 builder.Services
     .AddHealthChecks()
     .AddApplicationStatus()
