@@ -54,11 +54,11 @@ jobs:
           /k:"slucky31_mycomicsmanager"
           /o:"slucky31-1"
           /v:"${{ steps.version.outputs.version }}"
-          /d:sonar.cs.cobertura.reportsPaths="**/coverage.cobertura.xml"
+          /d:sonar.cs.cobertura.reportsPaths="**/*.cobertura.xml"
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Tests
-        run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --collect:"XPlat Code Coverage"
+        run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --coverage --coverage-output-format cobertura
         env:
           ConnectionStrings__NeonConnectionUnitTests: ${{ secrets.CONNECTIONSTRINGS_NEONCONNECTIONUNITTESTS }}
       - name: End SonarCloud analysis
