@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.16"></a>
+## [10.11.16](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.16) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **deps:** update xunit-dotnet monorepo to v4 ([#1048](https://www.github.com/slucky31/mycomicsmanager/issues/1048)) ([6e36049](https://www.github.com/slucky31/mycomicsmanager/commit/6e36049eee410e505276042ffc67fb36c9976a49))
+
+### Other
+
+* normalize line endings and add .gitattributes ([#1044](https://www.github.com/slucky31/mycomicsmanager/issues/1044)) ([f472689](https://www.github.com/slucky31/mycomicsmanager/commit/f4726899663be7cd56d6496df7f9683b001a2559))
+
 <a name="10.11.15"></a>
 ## [10.11.15](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.15) (2026-09-21)
 
