@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.15"></a>
+## [10.11.15](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.15) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **deps:** update docker/setup-qemu-action action to v4.4.0 ([#1046](https://www.github.com/slucky31/mycomicsmanager/issues/1046)) ([815ffd9](https://www.github.com/slucky31/mycomicsmanager/commit/815ffd952a569e9a53dcd99cfed7f46d50ff7c32))
+
+<a name="10.11.14"></a>
+## [10.11.14](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.14) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **deps:** update docker/setup-buildx-action action to v4.4.1 ([#1045](https://www.github.com/slucky31/mycomicsmanager/issues/1045)) ([c92a257](https://www.github.com/slucky31/mycomicsmanager/commit/c92a257d521e6268fda58194a8b38e4661c342a9))
+
+<a name="10.11.13"></a>
+## [10.11.13](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.13) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **deps:** update docker/build-push-action action to v7.4.0 ([#1043](https://www.github.com/slucky31/mycomicsmanager/issues/1043)) ([6f42ac4](https://www.github.com/slucky31/mycomicsmanager/commit/6f42ac4912cdc45b26d2f2b3bc2d64892ee9680b))
+
+<a name="10.11.12"></a>
+## [10.11.12](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.12) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency sharpcompress to 0.50.4 ([#1042](https://www.github.com/slucky31/mycomicsmanager/issues/1042)) ([57833b5](https://www.github.com/slucky31/mycomicsmanager/commit/57833b58c8f474ed9cc11c06e586e4038d08c7a8))
+
 <a name="10.11.11"></a>
 ## [10.11.11](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.11) (2026-09-20)
 
