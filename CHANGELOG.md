@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.14"></a>
+## [10.11.14](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.14) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **deps:** update docker/setup-buildx-action action to v4.4.1 ([#1045](https://www.github.com/slucky31/mycomicsmanager/issues/1045)) ([c92a257](https://www.github.com/slucky31/mycomicsmanager/commit/c92a257d521e6268fda58194a8b38e4661c342a9))
+
 <a name="10.11.13"></a>
 ## [10.11.13](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.13) (2026-09-21)
 
