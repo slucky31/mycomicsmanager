@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.17"></a>
+## [10.11.17](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.17) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **comic-info-search:** externalize OpenLibrary base URLs to configuration ([#1050](https://www.github.com/slucky31/mycomicsmanager/issues/1050)) ([55def89](https://www.github.com/slucky31/mycomicsmanager/commit/55def897e03d6eeaa882888a0525e09255f7e366))
+
 <a name="10.11.16"></a>
 ## [10.11.16](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.16) (2026-09-21)
 
