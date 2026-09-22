@@ -69,6 +69,12 @@ builder.Services.AddOptions<LocalStorageConfiguration>()
     .Validate(cfg => Directory.Exists(cfg.RootPath), "LocalStorage:RootPath does not exist; check the volume is mounted")
     .ValidateOnStart();
 
+// Config OpenLibrary settings
+var openLibrarySection = configuration.GetSection("OpenLibrary");
+builder.Services.AddOptions<OpenLibrarySettings>()
+    .Bind(openLibrarySection)
+    .ValidateOnStart();
+
 // Config OpenLibrary service for ISBN lookup
 builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =>
 {

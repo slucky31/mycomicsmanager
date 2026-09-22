@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application.Helpers;
 using Application.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
 
@@ -11,12 +12,12 @@ public class OpenLibraryService : IOpenLibraryService
     private static Serilog.ILogger Log => Serilog.Log.ForContext<OpenLibraryService>();
 
     private readonly HttpClient _httpClient;
-    private const string BaseUrl = "https://openlibrary.org";
-    private const string CoversBaseUrl = "https://covers.openlibrary.org";
+    private readonly OpenLibrarySettings _settings;
 
-    public OpenLibraryService(HttpClient httpClient)
+    public OpenLibraryService(HttpClient httpClient, IOptions<OpenLibrarySettings> settings)
     {
         _httpClient = httpClient;
+        _settings = settings.Value;
     }
 
     public async Task<OpenLibraryBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
@@ -26,7 +27,7 @@ public class OpenLibraryService : IOpenLibraryService
         try
         {
 
-            var url = new Uri($"{BaseUrl}/isbn/{cleanIsbn}.json");
+            var url = new Uri(_settings.BaseUrl, $"/isbn/{cleanIsbn}.json");
 
             Log.Information("Searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
 
@@ -54,7 +55,7 @@ public class OpenLibraryService : IOpenLibraryService
             Uri? coverUrl = null;
             if (bookData.Covers is { Count: > 0 })
             {
-                coverUrl = new Uri($"{CoversBaseUrl}/b/id/{bookData.Covers[0]}-L.jpg");
+                coverUrl = new Uri(_settings.CoversBaseUrl, $"/b/id/{bookData.Covers[0]}-L.jpg");
             }
 
             Log.Information("Found book: {Title} by {Authors}", bookData.Title, string.Join(", ", authors));
@@ -102,7 +103,7 @@ public class OpenLibraryService : IOpenLibraryService
         {
             try
             {
-                var authorUrl = $"{BaseUrl}{authorRef.Key}.json";
+                var authorUrl = new Uri(_settings.BaseUrl, $"{authorRef.Key}.json");
                 var authorData = await _httpClient.GetFromJsonAsync<OpenLibraryAuthor>(
                     authorUrl, JsonOptions, cancellationToken);
 

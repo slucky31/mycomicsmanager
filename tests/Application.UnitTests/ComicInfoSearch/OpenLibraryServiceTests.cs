@@ -1,5 +1,6 @@
 using System.Net;
 using Application.ComicInfoSearch;
+using Microsoft.Extensions.Options;
 
 namespace Application.UnitTests.ComicInfoSearch;
 
@@ -7,6 +8,13 @@ public class OpenLibraryServiceTests
 {
     private const string ValidIsbn = "9782205089165";
     private const string ValidIsbnWithDashes = "978-2-205-08916-5";
+
+    private static OpenLibraryService CreateService(HttpClient httpClient) =>
+        new(httpClient, Options.Create(new OpenLibrarySettings
+        {
+            BaseUrl = new Uri("https://openlibrary.org"),
+            CoversBaseUrl = new Uri("https://covers.openlibrary.org")
+        }));
 
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnBookResult_WhenBookFound()
@@ -32,7 +40,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -60,7 +68,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbnWithDashes, TestContext.Current.CancellationToken);
@@ -80,7 +88,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -99,7 +107,7 @@ public class OpenLibraryServiceTests
             new HttpRequestException("Network error"));
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -118,7 +126,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -139,7 +147,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -162,7 +170,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -192,7 +200,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -224,7 +232,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -252,7 +260,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -271,7 +279,7 @@ public class OpenLibraryServiceTests
 
         using var handler = new MockHttpMessageHandler(new TaskCanceledException("Request timed out"));
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, cts.Token);
@@ -290,7 +298,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -311,7 +319,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -340,7 +348,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -370,7 +378,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -404,7 +412,7 @@ public class OpenLibraryServiceTests
             });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -427,7 +435,7 @@ public class OpenLibraryServiceTests
         });
 
         using var httpClient = new HttpClient(handler);
-        var service = new OpenLibraryService(httpClient);
+        var service = CreateService(httpClient);
 
         // Act & Assert
         await Assert.ThrowsAsync<TaskCanceledException>(
