@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.18"></a>
+## [10.11.18](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.18) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency mudblazor to 9.11.0 ([#1003](https://www.github.com/slucky31/mycomicsmanager/issues/1003)) ([5f8a7d7](https://www.github.com/slucky31/mycomicsmanager/commit/5f8a7d792c0ab993a2ec065f174f9f344011aad7))
+
 <a name="10.11.17"></a>
 ## [10.11.17](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.17) (2026-09-22)
 
