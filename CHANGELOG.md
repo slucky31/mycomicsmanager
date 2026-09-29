@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.19"></a>
+## [10.11.19](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.19) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency sonaranalyzer.csharp to 10.35.0.4138 ([#1052](https://www.github.com/slucky31/mycomicsmanager/issues/1052)) ([6b3661b](https://www.github.com/slucky31/mycomicsmanager/commit/6b3661b2c2d1e29979c91becb3a88f152404ed2a))
+
 <a name="10.11.18"></a>
 ## [10.11.18](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.18) (2026-09-27)
 
