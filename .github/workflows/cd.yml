@@ -7,6 +7,11 @@ on:
 jobs:
   build:
     name: Build, Test & Analyze
+    # The release job pushes a "chore(release): x.y.z" commit with RELEASE_TOKEN (a PAT), which
+    # re-triggers this workflow. That commit only bumps version files and the changelog, was
+    # already built and analyzed by the run that produced it, and can never release again:
+    # skip it, which also skips the jobs that depend on build.
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -158,6 +163,14 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/slucky31/mcm
+          # Setting tags replaces the action's defaults, so the branch tag is kept explicitly.
+          # On a push to main those defaults only yield "main": there is no tag event to
+          # derive a version from, hence the value taken from the build job's Versionize result.
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}},value=${{ needs.build.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.build.outputs.version }}
+            type=raw,value=latest
       - name: Build and push Docker image MyComicsManagerWeb
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
