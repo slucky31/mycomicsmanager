@@ -29,5 +29,3 @@ public abstract class ResultBase : IResultBase
     public TError? Error { get; init; }
 
 }
-
-public abstract class ResultBase<TResult> : ResultBase where TResult : ResultBase<TResult>;
