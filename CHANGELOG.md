@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.20"></a>
+## [10.11.20](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.20) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **ci:** pin docker-web checkout to main so it builds the bumped commit ([#1053](https://www.github.com/slucky31/mycomicsmanager/issues/1053)) ([b02f5ad](https://www.github.com/slucky31/mycomicsmanager/commit/b02f5ad3f6bb7d447a355e8bf17de2af847c176c))
+
 <a name="10.11.19"></a>
 ## [10.11.19](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.19) (2026-09-29)
 
