@@ -117,7 +117,7 @@ public class DeleteLibraryCommandTests
     {
         // Arrange
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_digitalLibrary);
-        _libraryLocalStorageMock.Delete(s_digitalLibrary.RelativePath).Returns(Result.Failure(TError.Any));
+        _libraryLocalStorageMock.Delete(s_digitalLibrary.RelativePath).Returns(Result.Failure(new TError("Test")));
 
         // Act
         var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
