@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.21"></a>
+## [10.11.21](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.21) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **ci:** skip CD on release commits and publish versioned Docker tags ([#1054](https://www.github.com/slucky31/mycomicsmanager/issues/1054)) ([fc5655f](https://www.github.com/slucky31/mycomicsmanager/commit/fc5655fee214efb0a98d378a275ccc2632717a54))
+
 <a name="10.11.20"></a>
 ## [10.11.20](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.20) (2026-09-29)
 
