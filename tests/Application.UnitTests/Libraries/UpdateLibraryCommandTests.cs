@@ -155,7 +155,7 @@ public class UpdateLibraryCommandTests
         var digitalCommand = new UpdateLibraryCommand(s_command.Id, "new-digital-name", "#5C6BC0", "Bookmark", s_userId);
         var freshDigitalLibrary = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
         _librayRepositoryMock.GetByIdAsync(digitalCommand.Id).Returns(freshDigitalLibrary);
-        _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Failure(TError.Any));
+        _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Failure(new TError("Test")));
 
         // Act
         var result = await _handler.Handle(digitalCommand, TestContext.Current.CancellationToken);
@@ -246,7 +246,7 @@ public class UpdateLibraryCommandTests
         var freshDigitalLibrary = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
         _librayRepositoryMock.GetByIdAsync(digitalCommand.Id).Returns(freshDigitalLibrary);
         _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
-        _importDirectoryStorageMock.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Failure(TError.Any));
+        _importDirectoryStorageMock.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Failure(new TError("Test")));
 
         // Act
         var result = await _handler.Handle(digitalCommand, TestContext.Current.CancellationToken);

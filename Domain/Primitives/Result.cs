@@ -7,7 +7,7 @@
 
 namespace Domain.Primitives;
 
-public class Result : ResultBase<Result>
+public class Result : ResultBase
 {
 
     private Result()
@@ -43,7 +43,7 @@ public class Result : ResultBase<Result>
     }
 }
 
-public class Result<TValue> : ResultBase<Result<TValue>>, IResult<TValue>
+public class Result<TValue> : ResultBase, IResult<TValue>
 {
 
     public TValue? Value { get; init; }
