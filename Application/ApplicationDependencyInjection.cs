@@ -2,6 +2,7 @@ using Application.Abstractions.Messaging;
 using Application.ComicInfoSearch;
 using Application.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Application;
 
@@ -18,6 +19,7 @@ public static class ApplicationDependencyInjection
         );
 
         services.AddScoped<IComicSearchService, ComicSearchService>();
+        services.TryAddSingleton(TimeProvider.System);
 
         return services;
     }

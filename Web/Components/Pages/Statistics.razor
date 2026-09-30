@@ -2,4 +2,65 @@
 
 <PageLayout Title="Statistics" Icon="@Icons.Material.Filled.BarChart">
 
+    <MudSelect T="Guid"
+               Label="Library"
+               Value="_selectedLibraryId"
+               ValueChanged="OnLibraryChangedAsync"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               FullWidth="true"
+               AnchorOrigin="Origin.BottomCenter"
+               Class="stats-library-select mb-4">
+        <MudSelectItem T="Guid" Value="@Guid.Empty">All libraries</MudSelectItem>
+        @foreach (var library in _libraries)
+        {
+            <MudSelectItem T="Guid" Value="@library.Id">@library.Name</MudSelectItem>
+        }
+    </MudSelect>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+    }
+
+    @if (_statistics is not null)
+    {
+        @if (!_statistics.HasBooks)
+        {
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+                No books yet. Add books to a library to see your statistics.
+            </MudAlert>
+        }
+
+        <MudGrid Spacing="2" Class="stats-key-figures">
+            @foreach (var card in _statistics.KeyFigures)
+            {
+                <MudItem xs="6" sm="4" md="3">
+                    <MudPaper Class="stats-card pa-3" Elevation="1">
+                        <MudIcon Icon="@card.Icon" Color="Color.Primary" Size="Size.Small" />
+                        <MudText Typo="Typo.h5" Class="stats-card-value"><strong>@card.Value</strong></MudText>
+                        <MudText Typo="Typo.caption" Class="stats-card-label">@card.Label</MudText>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <MudPaper Class="stats-chart-card pa-3 mt-4" Elevation="1">
+            <div class="d-flex align-center justify-space-between flex-wrap gap-1">
+                <MudText Typo="Typo.subtitle1"><strong>Readings per month</strong></MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Last 12 months · @_statistics.ReadingsInPeriod readings</MudText>
+            </div>
+            <div class="stats-chart">
+                <MudChart T="double"
+                          ChartType="ChartType.Bar"
+                          ChartSeries="@_statistics.ReadingsSeries"
+                          ChartLabels="@_monthLabels"
+                          ChartOptions="@_chartOptions"
+                          MatchBoundsToSize="true"
+                          Width="100%"
+                          Height="100%" />
+            </div>
+        </MudPaper>
+    }
+
 </PageLayout>

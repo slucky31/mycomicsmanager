@@ -190,6 +190,7 @@ builder.Services.AddMudServices(config =>
 // Config Services
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<ImportJobHandlers>();
 builder.Services.AddScoped<ProcessImportJobRepositories>();
 builder.Services.AddScoped<ProcessImportJobFileProcessors>();
