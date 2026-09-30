@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.11.22"></a>
+## [10.11.22](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.22) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* **domain:** remove dead code from Domain primitives and extensions ([#1055](https://www.github.com/slucky31/mycomicsmanager/issues/1055)) ([6971b00](https://www.github.com/slucky31/mycomicsmanager/commit/6971b002d35aba9075b928e0bc2fcbc7a40ee37a))
+
 <a name="10.11.21"></a>
 ## [10.11.21](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.11.21) (2026-09-29)
 
