@@ -133,6 +133,17 @@ public class BookReadServiceIntegrationTest : BookIntegrationTest
 
 }
 
+public class StatisticsReadServiceIntegrationTest : BookIntegrationTest
+{
+    protected IStatisticsReadService StatisticsReadService { get; }
+
+    public StatisticsReadServiceIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        StatisticsReadService = _scope.ServiceProvider.GetRequiredService<IStatisticsReadService>();
+    }
+
+}
+
 public class IsbnBedethequeCacheIntegrationTest : BaseIntegrationTest
 {
     protected IIsbnBedethequeCacheRepository CacheRepository { get; }

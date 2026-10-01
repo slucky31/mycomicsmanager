@@ -42,6 +42,7 @@ public static class ProjectDependencyInjection
         services.AddScoped<ILibraryReadService, LibraryReadService>();
         services.AddScoped<IUserReadService, UserReadService>();
         services.AddScoped<IBookReadService, BookReadService>();
+        services.AddScoped<IStatisticsReadService, StatisticsReadService>();
 
         services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
         services.AddScoped<IImportDirectoryStorage, ImportDirectoryStorage>();
