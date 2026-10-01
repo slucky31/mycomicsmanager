@@ -153,3 +153,16 @@ public class IsbnBedethequeCacheIntegrationTest : BaseIntegrationTest
         CacheRepository = _scope.ServiceProvider.GetRequiredService<IIsbnBedethequeCacheRepository>();
     }
 }
+
+public class FeedImportDecisionIntegrationTest : BaseIntegrationTest
+{
+    protected IFeedImportDecisionRepository FeedImportDecisionRepository { get; }
+
+    protected IFeedImportDecisionReadService FeedImportDecisionReadService { get; }
+
+    public FeedImportDecisionIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        FeedImportDecisionRepository = _scope.ServiceProvider.GetRequiredService<IFeedImportDecisionRepository>();
+        FeedImportDecisionReadService = _scope.ServiceProvider.GetRequiredService<IFeedImportDecisionReadService>();
+    }
+}

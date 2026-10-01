@@ -1,0 +1,133 @@
+@page "/feed-imports"
+
+@using Domain.FeedImports
+
+<PageTitle>Feeds — MyComicsManager</PageTitle>
+
+<PageLayout Title="Feeds" Icon="@Icons.Material.Filled.RssFeed">
+
+    <div class="feed-imports-toolbar mb-4">
+        <MudSelect T="FeedImportDecisionStatus?"
+                   Label="Statut"
+                   Value="_statusFilter"
+                   ValueChanged="OnStatusChangedAsync"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense"
+                   AnchorOrigin="Origin.BottomCenter"
+                   Class="feed-imports-status">
+            <MudSelectItem T="FeedImportDecisionStatus?" Value="@((FeedImportDecisionStatus?)null)">Tous les statuts</MudSelectItem>
+            @foreach (var status in FeedImportDecisionViewModel.FilterableStatuses)
+            {
+                <MudSelectItem T="FeedImportDecisionStatus?" Value="@status">@FeedImportDecisionViewModel.GetStatusDisplay(status)</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudTextField T="string"
+                      Label="Rechercher"
+                      Value="_searchTerm"
+                      ValueChanged="OnSearchChangedAsync"
+                      DebounceInterval="400"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Clearable="true"
+                      Class="feed-imports-search" />
+
+        @if (FeedImportService.IsSyncEnabled)
+        {
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Sync"
+                       Disabled="_isSyncRequested"
+                       OnClick="SyncNowAsync"
+                       Class="feed-imports-sync">
+                Synchroniser maintenant
+            </MudButton>
+        }
+    </div>
+
+    @if (!FeedImportService.IsSyncEnabled)
+    {
+        <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+            La synchronisation Miniflux est désactivée (FeedImport:Enabled).
+        </MudAlert>
+    }
+
+    <MudTable @ref="_table"
+              T="FeedImportDecisionViewModel"
+              ServerData="LoadServerDataAsync"
+              Hover="true"
+              Dense="true"
+              Breakpoint="Breakpoint.Sm"
+              Class="feed-imports-table rounded-lg"
+              Elevation="0">
+        <HeaderContent>
+            <MudTh Class="feed-imports-expand-col"></MudTh>
+            <MudTh>Article</MudTh>
+            <MudTh>Statut</MudTh>
+            <MudTh>Raison</MudTh>
+            <MudTh>Enregistré le</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Class="feed-imports-expand-col">
+                <MudIconButton Icon="@(IsExpanded(context.Id) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                               Size="Size.Small"
+                               OnClick="@(() => ToggleDetail(context.Id))"
+                               aria-label="@(IsExpanded(context.Id) ? "Masquer le détail" : "Afficher le détail")" />
+            </MudTd>
+            <MudTd DataLabel="Article">
+                <MudLink Href="@context.EntryUrl" Target="_blank" rel="noopener noreferrer nofollow" Typo="Typo.body2">@context.EntryTitle</MudLink>
+                @if (context.ParsedDisplay is not null)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">@context.ParsedDisplay</MudText>
+                }
+            </MudTd>
+            <MudTd DataLabel="Statut">
+                <MudChip T="string" Size="Size.Small" Color="@context.StatusColor" Class="feed-imports-status-chip">@context.StatusDisplay</MudChip>
+            </MudTd>
+            <MudTd DataLabel="Raison">
+                <MudText Typo="Typo.body2">@context.Reason</MudText>
+            </MudTd>
+            <MudTd DataLabel="Enregistré le">
+                <MudText Typo="Typo.caption">@context.CreatedAt.ToLocalTime().ToString("g")</MudText>
+            </MudTd>
+        </RowTemplate>
+        <ChildRowContent>
+            @if (IsExpanded(context.Id))
+            {
+                <MudTr>
+                    <td colspan="5" class="feed-imports-detail">
+                        <MudText Typo="Typo.caption" Class="d-block">
+                            Publié le : @(context.PublishedAt?.ToLocalTime().ToString("g") ?? "-") · Décidé par : @context.DecidedByDisplay
+                        </MudText>
+                        @if (context.ErrorDisplay is not null)
+                        {
+                            <MudAlert Severity="Severity.Error" Dense="true" Class="my-2">@context.ErrorDisplay</MudAlert>
+                        }
+                        <MudText Typo="Typo.subtitle2" Class="mt-2">Historique</MudText>
+                        <ul class="feed-imports-history">
+                            @foreach (var evt in context.Events)
+                            {
+                                <li>
+                                    <span class="feed-imports-history-date">@evt.OccurredAt.ToLocalTime().ToString("g")</span>
+                                    <strong>@evt.StatusDisplay</strong> (@evt.DecidedByDisplay) — @evt.Description
+                                </li>
+                            }
+                        </ul>
+                    </td>
+                </MudTr>
+            }
+        </ChildRowContent>
+        <NoRecordsContent>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Aucune décision d'import.</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText Typo="Typo.body2">Chargement...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="@s_pageSizeOptions" RowsPerPageString="Par page :" />
+        </PagerContent>
+    </MudTable>
+
+</PageLayout>

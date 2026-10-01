@@ -125,6 +125,9 @@ builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.Fr
 // Config Bedetheque service
 builder.Services.AddScoped<IBedethequeService, BedethequeService>();
 
+// Config feed import (Miniflux starred entries -> FeedImportDecisions)
+builder.Services.AddFeedImport(configuration);
+
 builder.Services
     .AddApplication()
     .AddInfrastructure(connectionString, configuration["LocalStorage:RootPath"]!, configuration);
@@ -216,6 +219,9 @@ using (var migrationScope = app.Services.CreateScope())
 var importSettings = app.Services.GetRequiredService<IOptions<ImportSettings>>().Value;
 Directory.CreateDirectory(importSettings.ImportDirectory);
 Directory.CreateDirectory(importSettings.TempDirectory);
+
+// Register (or remove) the recurring Miniflux sync according to FeedImport:Enabled
+app.Services.ScheduleFeedImportSync();
 
 // Refuse to start if a dependency (database, Cloudinary, import directory, ...) is unreachable,
 // rather than accepting traffic and failing later on the first request that needs it.

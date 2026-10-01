@@ -1,0 +1,45 @@
+.feed-imports-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+::deep .feed-imports-status {
+  flex: 0 1 220px;
+  min-width: 180px;
+}
+
+::deep .feed-imports-search {
+  flex: 1 1 240px;
+}
+
+::deep .feed-imports-expand-col {
+  width: 48px;
+}
+
+::deep .feed-imports-detail {
+  padding: 8px 16px 12px 56px;
+  background-color: var(--mud-palette-background-gray);
+}
+
+.feed-imports-history {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+}
+
+.feed-imports-history-date {
+  color: var(--mud-palette-text-secondary);
+  margin-right: 6px;
+}
+
+@media (max-width: 600px) {
+  ::deep .feed-imports-detail {
+    padding-left: 16px;
+  }
+
+  ::deep .feed-imports-sync {
+    width: 100%;
+  }
+}

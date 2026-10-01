@@ -1,4 +1,5 @@
 using Domain.Books;
+using Domain.FeedImports;
 using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Users;
@@ -24,6 +25,10 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<IsbnBedethequeUrl> IsbnBedethequeUrls => Set<IsbnBedethequeUrl>();
 
     public DbSet<ImportJob> ImportJobs => Set<ImportJob>();
+
+    public DbSet<FeedImportDecision> FeedImportDecisions => Set<FeedImportDecision>();
+
+    public DbSet<FeedImportDecisionEvent> FeedImportDecisionEvents => Set<FeedImportDecisionEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -79,6 +84,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
                 .ValueGeneratedOnAddOrUpdate()
                 .IsConcurrencyToken();
 
+            ConfigureFeedImports(modelBuilder);
+
             modelBuilder.Entity<ReadingDate>().ToTable("ReadingDates");
 
             modelBuilder.Entity<IsbnBedethequeUrl>().ToTable("IsbnBedethequeUrls");
@@ -86,5 +93,35 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<IsbnBedethequeUrl>().Property(x => x.Url).HasMaxLength(500);
             modelBuilder.Entity<IsbnBedethequeUrl>().HasIndex(x => x.ISBN).IsUnique();
         }
+    }
+
+    private static void ConfigureFeedImports(ModelBuilder modelBuilder)
+    {
+        var decision = modelBuilder.Entity<FeedImportDecision>();
+        decision.ToTable("FeedImportDecisions");
+        decision.Property(d => d.EntryTitle).HasMaxLength(FeedImportConstants.MaxEntryTitleLength);
+        decision.Property(d => d.EntryUrl).HasMaxLength(FeedImportConstants.MaxEntryUrlLength);
+        decision.Property(d => d.ParsedSerie).HasMaxLength(FeedImportConstants.MaxParsedSerieLength);
+        decision.Property(d => d.ParsedTitle).HasMaxLength(FeedImportConstants.MaxParsedTitleLength);
+        decision.Property(d => d.Links).HasColumnType("jsonb");
+        decision.Property(d => d.ChosenMirror).HasMaxLength(FeedImportConstants.MaxChosenMirrorLength);
+        decision.Property(d => d.Reason).HasMaxLength(FeedImportConstants.MaxReasonLength);
+        decision.Property(d => d.ErrorMessage).HasMaxLength(FeedImportConstants.MaxErrorMessageLength);
+        decision.Property(d => d.ErrorStep).HasMaxLength(FeedImportConstants.MaxErrorStepLength);
+        decision.HasIndex(d => new { d.UserId, d.MinifluxEntryId }).IsUnique();
+        decision.HasIndex(d => new { d.UserId, d.Status });
+        decision.HasMany(d => d.Events)
+            .WithOne()
+            .HasForeignKey(e => e.FeedImportDecisionId)
+            .OnDelete(DeleteBehavior.Cascade);
+        decision.Property<uint>("xmin")
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
+
+        var decisionEvent = modelBuilder.Entity<FeedImportDecisionEvent>();
+        decisionEvent.ToTable("FeedImportDecisionEvents");
+        decisionEvent.Property(e => e.Description).HasMaxLength(FeedImportConstants.MaxEventDescriptionLength);
     }
 }

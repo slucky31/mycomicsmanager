@@ -27,6 +27,12 @@
                    StartIcon="@Icons.Material.Filled.Upload">
             Import
         </MudButton>
+        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/feed-imports") ? "active" : "")}")"
+                   Variant="Variant.Text"
+                   Href="/feed-imports"
+                   StartIcon="@Icons.Material.Filled.RssFeed">
+            Feeds
+        </MudButton>
         <MudButton Class="@($"ml-3 navbar-item {(IsActive("/settings") ? "active" : "")}")"
                    Variant="Variant.Text"
                    Href="/settings"
@@ -49,6 +55,10 @@
     <a href="/import" class="bottom-nav-item @(IsActive("/import") ? "active" : "")">
         <MudIcon Icon="@Icons.Material.Filled.Upload" />
         <span class="bottom-nav-label">Import</span>
+    </a>
+    <a href="/feed-imports" class="bottom-nav-item @(IsActive("/feed-imports") ? "active" : "")">
+        <MudIcon Icon="@Icons.Material.Filled.RssFeed" />
+        <span class="bottom-nav-label">Feeds</span>
     </a>
     <a href="/settings" class="bottom-nav-item @(IsActive("/settings") ? "active" : "")">
         <MudIcon Icon="@Icons.Material.Filled.Settings" />
