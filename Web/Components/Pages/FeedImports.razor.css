@@ -34,6 +34,34 @@
   margin-right: 6px;
 }
 
+.feed-imports-arbitration {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.feed-imports-candidate {
+  margin-top: 4px;
+}
+
+.feed-imports-candidate-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.feed-imports-candidate-size {
+  color: var(--mud-palette-text-secondary);
+  font-size: 0.85rem;
+}
+
+.feed-imports-mirrors {
+  margin: 2px 0 4px;
+  padding-left: 18px;
+}
+
 @media (max-width: 600px) {
   ::deep .feed-imports-detail {
     padding-left: 16px;

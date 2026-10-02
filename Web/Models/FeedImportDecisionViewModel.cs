@@ -11,6 +11,10 @@ public sealed record FeedImportDecisionEventViewModel(
     string Description);
 
 #pragma warning disable CA1054, CA1056 // URL displayed as a link, validated by the domain
+public sealed record FeedImportMirrorViewModel(string Url, string Host);
+
+public sealed record FeedImportCandidateViewModel(int Index, string Label, string? FileName, string? SizeDisplay, IReadOnlyList<FeedImportMirrorViewModel> Mirrors);
+
 public sealed record FeedImportDecisionViewModel(
     Guid Id,
     string EntryTitle,
@@ -24,9 +28,19 @@ public sealed record FeedImportDecisionViewModel(
     string DecidedByDisplay,
     string? ParsedDisplay,
     string? ErrorDisplay,
-    IReadOnlyList<FeedImportDecisionEventViewModel> Events)
+    IReadOnlyList<FeedImportDecisionEventViewModel> Events,
+    string? ItemDisplay,
+    FeedImportArbitrationKind ArbitrationKind,
+    Guid? MatchedBookId,
+    IReadOnlyList<FeedImportCandidateViewModel> Candidates)
 #pragma warning restore CA1054, CA1056
 {
+    public bool CanChooseCandidate =>
+        Status == FeedImportDecisionStatus.AwaitingArbitration && ArbitrationKind == FeedImportArbitrationKind.AmbiguousLinks;
+
+    public bool CanResolveDuplicate =>
+        Status == FeedImportDecisionStatus.AwaitingArbitration && ArbitrationKind == FeedImportArbitrationKind.ProbableDuplicate;
+
     public static IReadOnlyList<FeedImportDecisionStatus> FilterableStatuses { get; } = Enum.GetValues<FeedImportDecisionStatus>();
 
     public static FeedImportDecisionViewModel From(FeedImportDecision decision)
@@ -51,8 +65,29 @@ public sealed record FeedImportDecisionViewModel(
                 .ThenBy(e => e.Id)
                 .Select(e => new FeedImportDecisionEventViewModel(
                     e.OccurredAt, GetStatusDisplay(e.Status), GetDecidedByDisplay(e.DecidedBy), e.Description))
+                .ToList(),
+            ItemDisplay: decision.ItemIndex > 0
+                ? string.Create(CultureInfo.InvariantCulture, $"Livre {decision.ItemIndex + 1} de l'article")
+                : null,
+            ArbitrationKind: decision.ArbitrationKind,
+            MatchedBookId: decision.MatchedBookId,
+            Candidates: decision.GetCandidates()
+                .Select((c, i) => new FeedImportCandidateViewModel(
+                    i,
+                    c.Label,
+                    c.FileName,
+                    c.SizeBytes.HasValue ? FormatSize(c.SizeBytes.Value) : null,
+                    c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host)).ToList()))
                 .ToList());
     }
+
+    private static string FormatSize(long bytes) => bytes switch
+    {
+        >= 1_073_741_824 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_073_741_824.0:F1} Go"),
+        >= 1_048_576 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_048_576.0:F1} Mo"),
+        >= 1_024 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_024.0:F0} Ko"),
+        _ => string.Create(CultureInfo.InvariantCulture, $"{bytes} o")
+    };
 
     public static string GetStatusDisplay(FeedImportDecisionStatus status) => status switch
     {

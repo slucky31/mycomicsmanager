@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Domain.Primitives;
 
 namespace Domain.FeedImports;
@@ -11,6 +12,9 @@ public class FeedImportDecision : Entity<Guid>
     public Guid UserId { get; private set; }
 
     public long MinifluxEntryId { get; private set; }
+
+    // 0 for the decision created from the Miniflux entry; 1..n for the other books found in the same article.
+    public int ItemIndex { get; private set; }
 
     public string EntryTitle { get; private set; } = string.Empty;
 
@@ -36,6 +40,8 @@ public class FeedImportDecision : Entity<Guid>
 
     public FeedImportDecisionStatus Status { get; private set; }
 
+    public FeedImportArbitrationKind ArbitrationKind { get; private set; }
+
     public string Reason { get; private set; } = string.Empty;
 
     public FeedImportDecidedBy DecidedBy { get; private set; }
@@ -50,6 +56,14 @@ public class FeedImportDecision : Entity<Guid>
 
     private readonly List<FeedImportDecisionEvent> _events = [];
     public IReadOnlyList<FeedImportDecisionEvent> Events => _events.AsReadOnly();
+
+    private static readonly JsonSerializerOptions s_linksJsonOptions = new(JsonSerializerDefaults.Web);
+
+    private static readonly FeedImportDecisionStatus[] s_analyzableStatuses =
+        [FeedImportDecisionStatus.Pending, FeedImportDecisionStatus.AwaitingArbitration];
+
+    private static readonly FeedImportDecisionStatus[] s_finalStatuses =
+        [FeedImportDecisionStatus.SkippedDuplicate, FeedImportDecisionStatus.Imported, FeedImportDecisionStatus.Ignored, FeedImportDecisionStatus.Failed];
 
     protected FeedImportDecision() { }
 
@@ -98,5 +112,205 @@ public class FeedImportDecision : Entity<Guid>
 
         return decision;
     }
+
+    public IReadOnlyList<DownloadCandidate> GetCandidates()
+    {
+        if (string.IsNullOrWhiteSpace(Links))
+        {
+            return [];
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<DownloadCandidate>>(Links, s_linksJsonOptions) ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    // Another book found in the same article gets its own decision (same entry, next ItemIndex).
+    public Result<FeedImportDecision> CreateSibling(int itemIndex)
+    {
+        if (itemIndex <= 0 || ItemIndex != 0)
+        {
+            return FeedImportError.BadRequest;
+        }
+
+        if (Status != FeedImportDecisionStatus.Pending)
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        var now = DateTime.UtcNow;
+        var reason = $"Livre {itemIndex + 1} trouvé dans l'article.";
+        var sibling = new FeedImportDecision
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = UserId,
+            MinifluxEntryId = MinifluxEntryId,
+            ItemIndex = itemIndex,
+            EntryTitle = EntryTitle,
+            EntryUrl = EntryUrl,
+            PublishedAt = PublishedAt,
+            Status = FeedImportDecisionStatus.Pending,
+            Reason = reason,
+            DecidedBy = FeedImportDecidedBy.Auto,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+        sibling._events.Add(FeedImportDecisionEvent.Create(
+            sibling.Id, now, previousStatus: null, FeedImportDecisionStatus.Pending, FeedImportDecidedBy.Auto, reason));
+
+        return sibling;
+    }
+
+    public Result RecordLinks(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed, string reason, FeedImportDecidedBy decidedBy)
+    {
+        var check = EnsureCanAnalyze(candidates, parsed);
+        if (check.IsFailure)
+        {
+            return check;
+        }
+
+        SetAnalysis(candidates, parsed);
+        MatchedBookId = null;
+        ArbitrationKind = FeedImportArbitrationKind.None;
+        Transition(FeedImportDecisionStatus.LinksExtracted, reason, decidedBy);
+        return Result.Success();
+    }
+
+    public Result RequestArbitration(
+        FeedImportArbitrationKind kind,
+        IReadOnlyList<DownloadCandidate> candidates,
+        ParsedComicTitle parsed,
+        Guid? matchedBookId,
+        string reason,
+        FeedImportDecidedBy decidedBy)
+    {
+        if (kind == FeedImportArbitrationKind.None || !Enum.IsDefined(kind))
+        {
+            return FeedImportError.BadRequest;
+        }
+
+        var check = EnsureCanAnalyze(candidates, parsed);
+        if (check.IsFailure)
+        {
+            return check;
+        }
+
+        SetAnalysis(candidates, parsed);
+        MatchedBookId = matchedBookId;
+        ArbitrationKind = kind;
+        Transition(FeedImportDecisionStatus.AwaitingArbitration, reason, decidedBy);
+        return Result.Success();
+    }
+
+    public Result MarkDuplicate(
+        IReadOnlyList<DownloadCandidate> candidates,
+        ParsedComicTitle parsed,
+        Guid matchedBookId,
+        string reason,
+        FeedImportDecidedBy decidedBy)
+    {
+        if (matchedBookId == Guid.Empty)
+        {
+            return FeedImportError.BadRequest;
+        }
+
+        var check = EnsureCanAnalyze(candidates, parsed);
+        if (check.IsFailure)
+        {
+            return check;
+        }
+
+        SetAnalysis(candidates, parsed);
+        MatchedBookId = matchedBookId;
+        ArbitrationKind = FeedImportArbitrationKind.None;
+        Transition(FeedImportDecisionStatus.SkippedDuplicate, reason, decidedBy);
+        return Result.Success();
+    }
+
+    public Result ConfirmNotDuplicate()
+    {
+        if (Status != FeedImportDecisionStatus.AwaitingArbitration || ArbitrationKind != FeedImportArbitrationKind.ProbableDuplicate)
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        MatchedBookId = null;
+        ArbitrationKind = FeedImportArbitrationKind.None;
+        Transition(FeedImportDecisionStatus.LinksExtracted, "Pas un doublon (confirmé par l'utilisateur).", FeedImportDecidedBy.User);
+        return Result.Success();
+    }
+
+    public Result ConfirmDuplicate()
+    {
+        if (Status != FeedImportDecisionStatus.AwaitingArbitration ||
+            ArbitrationKind != FeedImportArbitrationKind.ProbableDuplicate ||
+            MatchedBookId is null)
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        ArbitrationKind = FeedImportArbitrationKind.None;
+        Transition(FeedImportDecisionStatus.SkippedDuplicate, "Doublon confirmé par l'utilisateur.", FeedImportDecidedBy.User);
+        return Result.Success();
+    }
+
+    public Result Fail(string step, string errorMessage)
+    {
+        if (string.IsNullOrWhiteSpace(step) || string.IsNullOrWhiteSpace(errorMessage))
+        {
+            return FeedImportError.BadRequest;
+        }
+
+        if (s_finalStatuses.Contains(Status))
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        ErrorStep = Truncate(step, FeedImportConstants.MaxErrorStepLength);
+        ErrorMessage = Truncate(errorMessage, FeedImportConstants.MaxErrorMessageLength);
+        ArbitrationKind = FeedImportArbitrationKind.None;
+        Transition(FeedImportDecisionStatus.Failed, errorMessage, FeedImportDecidedBy.Auto);
+        return Result.Success();
+    }
+
+    private Result EnsureCanAnalyze(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed)
+    {
+        if (candidates is null || candidates.Count == 0 || candidates.Any(c => c.Mirrors.Count == 0) || parsed is null)
+        {
+            return FeedImportError.BadRequest;
+        }
+
+        return s_analyzableStatuses.Contains(Status) ? Result.Success() : FeedImportError.InvalidStatusTransition;
+    }
+
+    private void SetAnalysis(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed)
+    {
+        Links = JsonSerializer.Serialize(candidates, s_linksJsonOptions);
+        ParsedSerie = TruncateOrNull(parsed.Serie, FeedImportConstants.MaxParsedSerieLength);
+        ParsedTitle = TruncateOrNull(parsed.Title, FeedImportConstants.MaxParsedTitleLength);
+        ParsedVolume = parsed.Volume;
+    }
+
+    private void Transition(FeedImportDecisionStatus newStatus, string reason, FeedImportDecidedBy decidedBy)
+    {
+        var previousStatus = Status;
+        var now = DateTime.UtcNow;
+        Status = newStatus;
+        Reason = Truncate(reason, FeedImportConstants.MaxReasonLength);
+        DecidedBy = decidedBy;
+        UpdatedAt = now;
+        _events.Add(FeedImportDecisionEvent.Create(Id, now, previousStatus, newStatus, decidedBy, Reason));
+    }
+
+    private static string Truncate(string value, int maxLength) =>
+        value.Length > maxLength ? value[..maxLength] : value;
+
+    private static string? TruncateOrNull(string? value, int maxLength) =>
+        string.IsNullOrWhiteSpace(value) ? null : Truncate(value.Trim(), maxLength);
 }
 #pragma warning restore CA1054, CA1056

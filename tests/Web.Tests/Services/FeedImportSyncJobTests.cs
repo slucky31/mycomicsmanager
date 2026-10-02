@@ -1,6 +1,8 @@
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
+using Application.FeedImports.Analyze;
 using Application.FeedImports.Sync;
+using Application.Interfaces;
 using Application.Users;
 using AwesomeAssertions;
 using Domain.Primitives;
@@ -21,6 +23,8 @@ public sealed class FeedImportSyncJobTests
 
     private readonly ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult> _handler;
     private readonly IUserReadService _userReadService;
+    private readonly IFeedImportDecisionRepository _decisionRepository;
+    private readonly ICommandHandler<AnalyzeFeedImportDecisionCommand> _analyzeHandler;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly FeedImportSettings _settings = new() { Enabled = true, UserEmail = UserEmail };
 
@@ -28,10 +32,15 @@ public sealed class FeedImportSyncJobTests
     {
         _handler = Substitute.For<ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult>>();
         _userReadService = Substitute.For<IUserReadService>();
+        _decisionRepository = Substitute.For<IFeedImportDecisionRepository>();
+        _decisionRepository.GetPendingIdsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
+        _analyzeHandler = Substitute.For<ICommandHandler<AnalyzeFeedImportDecisionCommand>>();
 
         var serviceProvider = Substitute.For<IServiceProvider>();
         serviceProvider.GetService(typeof(ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult>)).Returns(_handler);
         serviceProvider.GetService(typeof(IUserReadService)).Returns(_userReadService);
+        serviceProvider.GetService(typeof(IFeedImportDecisionRepository)).Returns(_decisionRepository);
+        serviceProvider.GetService(typeof(ICommandHandler<AnalyzeFeedImportDecisionCommand>)).Returns(_analyzeHandler);
 
         var scope = Substitute.For<IServiceScope>();
         scope.ServiceProvider.Returns(serviceProvider);
@@ -52,6 +61,26 @@ public sealed class FeedImportSyncJobTests
         await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
 
         await _handler.Received(1).Handle(new SyncFeedImportsCommand(user.Id), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SyncAsync_Should_AnalyzeEachPendingDecision_EvenWhenOneThrows()
+    {
+        var user = User.Create(UserEmail, "auth0|1");
+        _userReadService.GetUserByEmail(UserEmail, Arg.Any<CancellationToken>()).Returns(user);
+        _handler.Handle(Arg.Any<SyncFeedImportsCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result<SyncFeedImportsResult>.Failure(new TError("FEED502", "Miniflux down")));
+        var first = Guid.CreateVersion7();
+        var second = Guid.CreateVersion7();
+        _decisionRepository.GetPendingIdsAsync(user.Id, Arg.Any<CancellationToken>()).Returns([first, second]);
+        _analyzeHandler.Handle(new AnalyzeFeedImportDecisionCommand(first), Arg.Any<CancellationToken>())
+            .Returns<Task<Result>>(_ => throw new InvalidOperationException("boom"));
+        _analyzeHandler.Handle(new AnalyzeFeedImportDecisionCommand(second), Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
+
+        await _analyzeHandler.Received(1).Handle(new AnalyzeFeedImportDecisionCommand(first), Arg.Any<CancellationToken>());
+        await _analyzeHandler.Received(1).Handle(new AnalyzeFeedImportDecisionCommand(second), Arg.Any<CancellationToken>());
     }
 
     [Fact]

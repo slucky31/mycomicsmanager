@@ -1,5 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
+using Application.FeedImports.Arbitrate;
 using Application.FeedImports.List;
 using Application.Interfaces;
 using Domain.FeedImports;
@@ -12,6 +13,7 @@ namespace Web.Services;
 
 public class FeedImportService(
     IQueryHandler<GetPagedFeedImportDecisionsQuery, IPagedList<FeedImportDecision>> getDecisionsHandler,
+    ICommandHandler<ResolveFeedImportArbitrationCommand> resolveArbitrationHandler,
     ICurrentUserService currentUserService,
     IBackgroundJobClient backgroundJobClient,
     IOptions<FeedImportSettings> feedImportSettings) : IFeedImportService
@@ -51,5 +53,21 @@ public class FeedImportService(
 
         backgroundJobClient.Enqueue<FeedImportSyncJob>(job => job.SyncAsync(CancellationToken.None));
         return Result.Success();
+    }
+
+    public async Task<Result> ResolveArbitrationAsync(
+        Guid decisionId,
+        FeedImportArbitrationAction action,
+        int? candidateIndex,
+        CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await resolveArbitrationHandler.Handle(
+            new ResolveFeedImportArbitrationCommand(decisionId, userIdResult.Value, action, candidateIndex), cancellationToken);
     }
 }

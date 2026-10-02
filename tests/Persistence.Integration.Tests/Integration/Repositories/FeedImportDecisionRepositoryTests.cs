@@ -64,4 +64,67 @@ public class FeedImportDecisionRepositoryTests(IntegrationTestWebAppFactory fact
         // Assert
         result.IsSuccess.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task SaveChangesAsync_Should_AllowSiblingDecisionsForTheSameEntry()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var decision = CreateDecision(userId, 4004);
+        FeedImportDecisionRepository.Add(decision);
+        FeedImportDecisionRepository.Add(decision.CreateSibling(1).Value!);
+
+        // Act
+        var result = await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var original = await FeedImportDecisionRepository.GetByMinifluxEntryIdAsync(userId, 4004, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        original.Should().NotBeNull();
+        original.Id.Should().Be(decision.Id);
+    }
+
+    [Fact]
+    public async Task GetPendingIdsAsync_Should_ReturnOnlyPendingDecisionsOfUser_OldestFirst()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var first = CreateDecision(userId, 5005);
+        var second = CreateDecision(userId, 5006);
+        var failed = CreateDecision(userId, 5007);
+        failed.Fail("Source", "Domaine source non autorisé.");
+        FeedImportDecisionRepository.Add(first);
+        FeedImportDecisionRepository.Add(second);
+        FeedImportDecisionRepository.Add(failed);
+        FeedImportDecisionRepository.Add(CreateDecision(Guid.CreateVersion7(), 5008));
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var ids = await FeedImportDecisionRepository.GetPendingIdsAsync(userId, TestContext.Current.CancellationToken);
+
+        // Assert
+        ids.Should().Equal(first.Id, second.Id);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_Should_RoundTripCandidatesAndArbitration()
+    {
+        // Arrange
+        var decision = CreateDecision(Guid.CreateVersion7(), 6006);
+        var candidate = new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", 1234,
+            [new DownloadMirror("https://1fichier.com/?a", "1fichier.com")]);
+        decision.RequestArbitration(FeedImportArbitrationKind.AmbiguousLinks, [candidate], new ParsedComicTitle("Blacksad", null, 3), null, "Ambigu", FeedImportDecidedBy.Auto);
+        FeedImportDecisionRepository.Add(decision);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        Context.ChangeTracker.Clear();
+
+        // Act
+        var found = await FeedImportDecisionRepository.GetByIdAsync(decision.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        found.Should().NotBeNull();
+        found.ArbitrationKind.Should().Be(FeedImportArbitrationKind.AmbiguousLinks);
+        found.ParsedVolume.Should().Be(3);
+        found.GetCandidates().Should().ContainSingle().Which.Should().BeEquivalentTo(candidate);
+    }
 }

@@ -1,3 +1,4 @@
+using Application.FeedImports.Arbitrate;
 using Domain.FeedImports;
 using Domain.Primitives;
 using Web.Models;
@@ -16,4 +17,10 @@ public interface IFeedImportService
         CancellationToken cancellationToken = default);
 
     Result TriggerSync();
+
+    Task<Result> ResolveArbitrationAsync(
+        Guid decisionId,
+        FeedImportArbitrationAction action,
+        int? candidateIndex,
+        CancellationToken cancellationToken = default);
 }

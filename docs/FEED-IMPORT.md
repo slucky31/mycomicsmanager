@@ -4,10 +4,10 @@ Ce guide décrit comment brancher MCM sur le Miniflux du Raspberry Pi pour
 importer automatiquement les BD marquées d'une étoile. La décision
 d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-debrid-link.md).
 
-> État actuel : la synchronisation Miniflux et la page de suivi
-> `/feed-imports` sont en place (lot 2). L'extraction des liens, la détection
-> des doublons et le téléchargement via Debrid-Link arrivent dans les lots
-> suivants : pour l'instant, les articles sont enregistrés en `Pending`.
+> État actuel : synchronisation Miniflux, analyse des articles (extraction et
+> regroupement des liens, détection des doublons) et arbitrage dans
+> `/feed-imports` sont en place (lots 2 et 3). Le téléchargement via
+> Debrid-Link arrive au lot 4 : pour l'instant, rien n'est téléchargé.
 
 ## Fonctionnement
 
@@ -18,7 +18,24 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
 3. Chaque nouvel article est enregistré comme décision `Pending`, **puis**
    son étoile est retirée dans Miniflux. Si le retrait échoue, il est
    réessayé à la synchronisation suivante, sans créer de doublon.
-4. Le suivi se fait ensuite dans la page **Feeds** (`/feed-imports`) de MCM.
+4. Dans la foulée, chaque décision `Pending` est analysée :
+   - la page de l'article est récupérée (domaines de `FeedImport:AllowedSourceHosts` uniquement) ;
+   - les liens vers les hébergeurs de `FeedImport:AllowedDownloadHosts` sont extraits puis regroupés :
+     les liens vers le même fichier (même nom, ou hébergeurs différents) sont des **miroirs** ;
+     des noms de fichiers différents sont des **livres différents**, chacun avec sa propre décision ;
+   - chaque livre est comparé aux bibliothèques de l'utilisateur : doublon certain → `SkippedDuplicate`,
+     doublon probable ou regroupement ambigu → `AwaitingArbitration`, sinon → `LinksExtracted`.
+5. Le suivi et l'arbitrage se font dans la page **Feeds** (`/feed-imports`) de MCM : déplier une
+   décision « À arbitrer » pour choisir le bon lien, fusionner les liens en miroirs, ou confirmer /
+   infirmer le doublon.
+
+### Règles de doublon
+
+| Résultat | Condition |
+| -------- | --------- |
+| Doublon certain | ISBN identique, ou même série (casse, accents, ponctuation et article initial ignorés) et même tome |
+| Doublon probable | Série très proche (similarité ≥ 0,85) et même tome, ou même série mais tome non trouvé dans le titre |
+| Pas de doublon | Sinon |
 
 ## Prérequis
 
@@ -102,8 +119,8 @@ environment:
 | `FeedImport:UserEmail` | — | Email de l'utilisateur MCM propriétaire des décisions (obligatoire si activé) |
 | `FeedImport:SyncIntervalMinutes` | `30` | Intervalle du job `feed-import-sync` |
 | `FeedImport:TargetLibraryName` | `À trier` | Bibliothèque digitale de dépôt (utilisée à partir du lot 4) |
-| `FeedImport:AllowedSourceHosts` | `planete-bd.org`, `zone-ebook.com` | Domaines des pages d'articles autorisés (lot 3) |
-| `FeedImport:AllowedDownloadHosts` | vide | Domaines des hébergeurs autorisés, sous-domaines compris (lots 3 et 4) |
+| `FeedImport:AllowedSourceHosts` | `planete-bd.org`, `zone-ebook.com` | Domaines des pages d'articles autorisés, sous-domaines compris |
+| `FeedImport:AllowedDownloadHosts` | `1fichier.com`, `rapidgator.net`, `turbobit.net`, `nitroflare.com` | Domaines des hébergeurs dont les liens sont retenus, sous-domaines compris ; à ajuster selon les hébergeurs réellement utilisés par les deux sites |
 | `Miniflux:BaseUrl` | `http://miniflux:8080` | URL de Miniflux ; seul cet hôte est autorisé par le garde-fou SSRF |
 | `Miniflux:ApiKey` | — | Clé d'API Miniflux (obligatoire si activé) — `Miniflux__ApiKey` |
 | `Miniflux:CategoryName` | `BD` | Catégorie Miniflux surveillée |
@@ -142,4 +159,6 @@ synchronisation (`Feed import sync done: ...`) ou l'erreur rencontrée
 | `Miniflux category not found` | La catégorie `Miniflux:CategoryName` n'existe pas (la comparaison ignore la casse) |
 | `user configured in FeedImport:UserEmail not found` | L'email ne correspond à aucun utilisateur MCM (se connecter une fois à MCM d'abord) |
 | `SSRF guard blocked outgoing request` | `Miniflux:BaseUrl` pointe vers un autre hôte que celui appelé |
+| Décision « Échoué » à l'étape *Source* | Le domaine de l'article n'est pas dans `FeedImport:AllowedSourceHosts` |
+| Décision « Échoué » à l'étape *Extraction des liens* | Aucun lien vers un hébergeur de `FeedImport:AllowedDownloadHosts` sur la page |
 | L'article reste ★ dans Miniflux | Échec du retrait d'étoile : il est réessayé à chaque synchronisation (voir les logs `failed to unstar`) |
