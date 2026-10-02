@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.FeedImports;
 using Domain.Libraries;
 using NetArchTest.Rules;
 
@@ -159,5 +160,20 @@ public class ArchitectureTests
             .GetResult();
 
         testResult.IsSuccessful.Should().BeTrue();
+    }
+
+    // -------------------------------------------------------
+    // External HTTP clients
+    // -------------------------------------------------------
+
+    [Fact]
+    public void MinifluxClientImplementations_Should_StayOutOfDomainApplicationAndPersistence()
+    {
+        var implementations = Types.InAssemblies([DomainAssembly, ApplicationAssembly, PersistenceAssembly])
+            .That()
+            .ImplementInterface(typeof(IMinifluxClient))
+            .GetTypes();
+
+        implementations.Should().BeEmpty();
     }
 }

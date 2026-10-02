@@ -8,11 +8,11 @@ namespace Web.Tests.Infrastructure;
 
 public sealed class SsrfGuardHandlerTests
 {
-    private static HttpClient BuildClient(IReadOnlySet<string> allowedHosts, HttpMessageHandler inner)
+    private static HttpClient BuildClient(IReadOnlySet<string> allowedHosts, HttpMessageHandler inner, bool allowHttp = false)
     {
         // CA2000 suppressed: HttpClient takes ownership of the handler and disposes it
 #pragma warning disable CA2000
-        var guard = new SsrfGuardHandler(allowedHosts) { InnerHandler = inner };
+        var guard = new SsrfGuardHandler(allowedHosts, allowHttp) { InnerHandler = inner };
 #pragma warning restore CA2000
         return new HttpClient(guard);
     }
@@ -30,6 +30,19 @@ public sealed class SsrfGuardHandlerTests
         await act.Should().ThrowAsync<HttpRequestException>()
             .WithMessage("*SSRF guard*");
         inner.WasCalled.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_ForwardRequest_WhenSchemeIsHttpAndHttpIsAllowed()
+    {
+        var inner = new FakeInnerHandler();
+        using var client = BuildClient(
+            new HashSet<string>(["miniflux"], StringComparer.OrdinalIgnoreCase), inner, allowHttp: true);
+
+        await client.GetAsync(new Uri("http://miniflux:8080/v1/categories"),
+            TestContext.Current.CancellationToken);
+
+        inner.WasCalled.Should().BeTrue();
     }
 
     [Fact]
