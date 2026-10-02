@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.13.0"></a>
+## [10.13.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.13.0) (2026-10-02)
+
+### ✨ Features
+
+* **feeds:** sync Miniflux starred entries into feed import decisions ([#1058](https://www.github.com/slucky31/mycomicsmanager/issues/1058)) ([7de7dfb](https://www.github.com/slucky31/mycomicsmanager/commit/7de7dfb6c46243cb75525e70a61c0294c7b3e840))
+
 <a name="10.12.0"></a>
 ## [10.12.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.12.0) (2026-10-01)
 
