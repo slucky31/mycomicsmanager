@@ -35,7 +35,8 @@ public class GetPagedFeedImportDecisionsQueryHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(FeedImportError.BadRequest);
-        await _readService.DidNotReceiveWithAnyArgs().GetPagedAsync(default, default, default, default, default, TestContext.Current.CancellationToken);
+        await _readService.DidNotReceive().GetPagedAsync(
+            Arg.Any<Guid>(), Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

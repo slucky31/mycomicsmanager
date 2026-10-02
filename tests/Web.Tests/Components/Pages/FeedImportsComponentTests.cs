@@ -57,7 +57,7 @@ public sealed class FeedImportsComponentTests
         var (ctx, cut, _) = await RenderAsync(service);
         await using var _ = ctx;
 
-        cut.WaitForAssertion(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
         cut.Markup.Should().Contain("Largo Winch T20");
         cut.Markup.Should().Contain("En attente");
         cut.Markup.Should().Contain("Synchroniser maintenant");
@@ -74,7 +74,7 @@ public sealed class FeedImportsComponentTests
         var (ctx, cut, snackbar) = await RenderAsync(service);
         await using var _ = ctx;
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(() =>
             snackbar.Received().Add("Impossible de charger les décisions d'import.", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
         cut.Markup.Should().Contain("Aucune décision d'import.");
     }
@@ -86,7 +86,7 @@ public sealed class FeedImportsComponentTests
 
         var (ctx, cut, _) = await RenderAsync(service);
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
         var select = cut.FindComponent<MudSelect<FeedImportDecisionStatus?>>();
         await cut.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(FeedImportDecisionStatus.Failed));
@@ -101,12 +101,12 @@ public sealed class FeedImportsComponentTests
 
         var (ctx, cut, _) = await RenderAsync(service);
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
         cut.Markup.Should().NotContain("Historique");
 
         await cut.FindAll("button[aria-label='Afficher le détail']")[0].ClickAsync(new());
 
-        cut.WaitForAssertion(() => cut.Markup.Should().Contain("Historique"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Historique"));
         cut.Markup.Should().Contain(FeedImportDecision.CreatedReason);
         cut.FindAll("button[aria-label='Masquer le détail']").Should().ContainSingle();
     }
@@ -119,7 +119,7 @@ public sealed class FeedImportsComponentTests
 
         var (ctx, cut, snackbar) = await RenderAsync(service);
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
         await cut.InvokeAsync(() => cut.Instance.SyncNowAsync());
 
@@ -136,7 +136,7 @@ public sealed class FeedImportsComponentTests
         var (ctx, cut, _) = await RenderAsync(service);
         await using var _ = ctx;
 
-        cut.WaitForAssertion(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
         cut.Markup.Should().NotContain("Synchroniser maintenant");
         cut.Markup.Should().Contain("synchronisation Miniflux est désactivée");
     }

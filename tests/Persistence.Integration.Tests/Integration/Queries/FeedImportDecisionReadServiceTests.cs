@@ -35,9 +35,9 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
         page1.TotalCount.Should().Be(5);
         page1.Items.Should().HaveCount(3);
         page2.Items.Should().HaveCount(2);
-        var allIds = page1.Items!.Concat(page2.Items!).Select(d => d.Id).ToList();
+        var allIds = page1.Items.Concat(page2.Items).Select(d => d.Id).ToList();
         allIds.Should().OnlyHaveUniqueItems();
-        page1.Items!.Should().AllSatisfy(d => d.Events.Should().ContainSingle());
+        page1.Items.Should().AllSatisfy(d => d.Events.Should().ContainSingle());
     }
 
     [Fact]

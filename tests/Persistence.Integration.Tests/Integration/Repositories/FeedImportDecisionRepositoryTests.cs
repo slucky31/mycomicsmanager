@@ -26,7 +26,7 @@ public class FeedImportDecisionRepositoryTests(IntegrationTestWebAppFactory fact
 
         // Assert
         found.Should().NotBeNull();
-        found!.Id.Should().Be(decision.Id);
+        found.Id.Should().Be(decision.Id);
         found.Status.Should().Be(FeedImportDecisionStatus.Pending);
         otherUser.Should().BeNull();
         var events = await Context.FeedImportDecisionEvents

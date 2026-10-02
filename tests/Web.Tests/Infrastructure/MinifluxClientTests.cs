@@ -35,7 +35,7 @@ public sealed class MinifluxClientTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
-        result.Value![1].Id.Should().Be(7);
+        result.Value[1].Id.Should().Be(7);
         result.Value[1].Title.Should().Be("BD");
         handler.Requests.Should().ContainSingle().Which.Should().Be("GET /v1/categories");
     }
@@ -78,7 +78,7 @@ public sealed class MinifluxClientTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(101);
-        result.Value![100].Id.Should().Be(101);
+        result.Value[100].Id.Should().Be(101);
         result.Value[100].Url.Should().Be("https://planete-bd.org/101");
         result.Value[100].PublishedAt.Should().Be(new DateTimeOffset(2026, 9, 30, 18, 0, 0, TimeSpan.Zero));
         handler.Requests.Should().HaveCount(2);

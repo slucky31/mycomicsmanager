@@ -69,6 +69,13 @@ public static class FeedImportConfiguration
     private static bool IsHttpUri(Uri? uri) =>
         uri is { IsAbsoluteUri: true } && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 
-    private static Uri WithTrailingSlash(Uri uri) =>
-        uri.AbsoluteUri.EndsWith('/') ? uri : new Uri(uri.AbsoluteUri + "/");
+    private static Uri WithTrailingSlash(Uri uri)
+    {
+        var builder = new UriBuilder(uri);
+        if (!builder.Path.EndsWith('/'))
+        {
+            builder.Path += '/';
+        }
+        return builder.Uri;
+    }
 }
