@@ -59,6 +59,7 @@ plusieurs fichiers, couches, ou le choix d'une techno/convention.
 | [0016](0016-hangfire-jobs-arriere-plan.md) | Hangfire + stockage PostgreSQL pour les jobs en arrière-plan | Acceptée | 2026-09-19 |
 | [0017](0017-stack-de-tests.md) | Stack de tests — xUnit v3, NSubstitute, AwesomeAssertions, bUnit (bUnit en pause) | Acceptée | 2026-09-19 |
 | [0018](0018-conventional-commits-versionize.md) | Conventional Commits + Versionize pour le versioning automatique | Acceptée | 2026-09-19 |
+| [0019](0019-integration-miniflux-debrid-link.md) | Import automatique des BD depuis Miniflux via Debrid-Link | Acceptée | 2026-10-02 |
 
 ## Backlog de candidates
 
