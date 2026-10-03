@@ -12,7 +12,7 @@ public sealed record FeedImportDecisionEventViewModel(
     string Description);
 
 #pragma warning disable CA1054, CA1056 // URL displayed as a link, validated by the domain
-public sealed record FeedImportMirrorViewModel(string Url, string Host);
+public sealed record FeedImportMirrorViewModel(string Url, string Host, bool IsChosen = false);
 
 public sealed record FeedImportCandidateViewModel(int Index, string Label, string? FileName, string? SizeDisplay, IReadOnlyList<FeedImportMirrorViewModel> Mirrors)
 {
@@ -36,7 +36,8 @@ public sealed record FeedImportDecisionViewModel(
     string? ItemDisplay,
     FeedImportArbitrationKind ArbitrationKind,
     Guid? MatchedBookId,
-    IReadOnlyList<FeedImportCandidateViewModel> Candidates)
+    IReadOnlyList<FeedImportCandidateViewModel> Candidates,
+    string? ImportPageUrl = null)
 #pragma warning restore CA1054, CA1056
 {
     private static readonly CultureInfo s_displayCulture = CultureInfo.GetCultureInfo("fr-FR");
@@ -51,10 +52,13 @@ public sealed record FeedImportDecisionViewModel(
     public bool CanResolveDuplicate =>
         Status == FeedImportDecisionStatus.AwaitingArbitration && ArbitrationKind == FeedImportArbitrationKind.ProbableDuplicate;
 
-    public static IReadOnlyList<FeedImportDecisionStatus> FilterableStatuses { get; } = Enum.GetValues<FeedImportDecisionStatus>();
+    // Imported is never set: once downloaded, the import is followed on the Import page.
+    public static IReadOnlyList<FeedImportDecisionStatus> FilterableStatuses { get; } =
+        Enum.GetValues<FeedImportDecisionStatus>().Where(s => s != FeedImportDecisionStatus.Imported).ToList();
 
     // isPartOfMultiBookArticle: the article was split into several books, so the first one is labelled too.
-    public static FeedImportDecisionViewModel From(FeedImportDecision decision, bool isPartOfMultiBookArticle = false)
+    // importLibraryId: library the downloads are deposited in, preselected on the Import page.
+    public static FeedImportDecisionViewModel From(FeedImportDecision decision, bool isPartOfMultiBookArticle = false, Guid? importLibraryId = null)
     {
         ArgumentNullException.ThrowIfNull(decision);
 
@@ -88,8 +92,21 @@ public sealed record FeedImportDecisionViewModel(
                     c.Label,
                     c.FileName,
                     c.SizeBytes.HasValue ? FormatSize(c.SizeBytes.Value) : null,
-                    c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host)).ToList()))
-                .ToList());
+                    c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host, m.Url == decision.ChosenMirror)).ToList()))
+                .ToList(),
+            ImportPageUrl: GetImportPageUrl(decision.Status, importLibraryId));
+    }
+
+    private static string? GetImportPageUrl(FeedImportDecisionStatus status, Guid? importLibraryId)
+    {
+        if (status != FeedImportDecisionStatus.Downloaded)
+        {
+            return null;
+        }
+
+        return importLibraryId is { } libraryId
+            ? string.Create(CultureInfo.InvariantCulture, $"/import?libraryId={libraryId}")
+            : "/import";
     }
 
     // Fixed French format: "03/10/2026 19:23" whatever the server culture.
@@ -121,8 +138,8 @@ public sealed record FeedImportDecisionViewModel(
     private static Color GetStatusColor(FeedImportDecisionStatus status) => status switch
     {
         FeedImportDecisionStatus.AwaitingArbitration => Color.Warning,
-        FeedImportDecisionStatus.LinksExtracted or FeedImportDecisionStatus.Downloading or FeedImportDecisionStatus.Downloaded => Color.Info,
-        FeedImportDecisionStatus.Imported => Color.Success,
+        FeedImportDecisionStatus.LinksExtracted or FeedImportDecisionStatus.Downloading => Color.Info,
+        FeedImportDecisionStatus.Downloaded or FeedImportDecisionStatus.Imported => Color.Success,
         FeedImportDecisionStatus.Failed => Color.Error,
         _ => Color.Default
     };

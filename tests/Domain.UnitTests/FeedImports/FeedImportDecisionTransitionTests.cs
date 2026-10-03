@@ -193,4 +193,87 @@ public class FeedImportDecisionTransitionTests
     {
         CreatePending().GetCandidates().Should().BeEmpty();
     }
+
+    private static FeedImportDecision CreateDownloading()
+    {
+        var decision = CreatePending();
+        decision.RecordLinks([s_candidate], s_parsed, "r", FeedImportDecidedBy.Auto);
+        decision.StartDownload();
+        return decision;
+    }
+
+    [Fact]
+    public void StartDownload_Should_MoveToDownloading_WhenLinksExtracted()
+    {
+        var decision = CreatePending();
+        decision.RecordLinks([s_candidate], s_parsed, "r", FeedImportDecidedBy.Auto);
+
+        var result = decision.StartDownload();
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloading);
+        decision.Events[^1].PreviousStatus.Should().Be(FeedImportDecisionStatus.LinksExtracted);
+    }
+
+    [Fact]
+    public void StartDownload_Should_ReturnInvalidTransition_WhenAwaitingArbitration()
+    {
+        var decision = CreateAwaiting(FeedImportArbitrationKind.AmbiguousLinks);
+
+        decision.StartDownload().Error.Should().Be(FeedImportError.InvalidStatusTransition);
+        decision.Status.Should().Be(FeedImportDecisionStatus.AwaitingArbitration);
+    }
+
+    [Fact]
+    public void NoteMirrorFailure_Should_AddEventWithoutChangingStatus_WhenDownloading()
+    {
+        var decision = CreateDownloading();
+        var eventCount = decision.Events.Count;
+
+        var result = decision.NoteMirrorFailure("1fichier.com", "Fichier indisponible");
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloading);
+        decision.Events.Should().HaveCount(eventCount + 1);
+        decision.Events[^1].Description.Should().Be("Échec du miroir 1fichier.com : Fichier indisponible");
+    }
+
+    [Fact]
+    public void NoteMirrorFailure_Should_Fail_WhenNotDownloadingOrArgumentsMissing()
+    {
+        CreatePending().NoteMirrorFailure("1fichier.com", "err").Error.Should().Be(FeedImportError.InvalidStatusTransition);
+        CreateDownloading().NoteMirrorFailure(" ", "err").Error.Should().Be(FeedImportError.BadRequest);
+    }
+
+    [Fact]
+    public void MarkDownloaded_Should_LinkImportJobAndMirror_WhenDownloading()
+    {
+        var decision = CreateDownloading();
+        var jobId = Guid.CreateVersion7();
+
+        var result = decision.MarkDownloaded("https://1fichier.com/?abc", jobId, "À trier");
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
+        decision.ImportJobId.Should().Be(jobId);
+        decision.ChosenMirror.Should().Be("https://1fichier.com/?abc");
+        decision.Reason.Should().Contain("« À trier »");
+    }
+
+    [Fact]
+    public void MarkDownloaded_Should_Fail_WhenArgumentsMissingOrNotDownloading()
+    {
+        CreateDownloading().MarkDownloaded("https://1fichier.com/?abc", Guid.Empty, "À trier").Error.Should().Be(FeedImportError.BadRequest);
+        CreatePending().MarkDownloaded("https://1fichier.com/?abc", Guid.CreateVersion7(), "À trier").Error.Should().Be(FeedImportError.InvalidStatusTransition);
+    }
+
+    [Fact]
+    public void Fail_Should_ReturnInvalidTransition_WhenDecisionIsDownloaded()
+    {
+        var decision = CreateDownloading();
+        decision.MarkDownloaded("https://1fichier.com/?abc", Guid.CreateVersion7(), "À trier");
+
+        decision.Fail("Import", "err").Error.Should().Be(FeedImportError.InvalidStatusTransition);
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
+    }
 }

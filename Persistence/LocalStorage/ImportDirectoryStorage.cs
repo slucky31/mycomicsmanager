@@ -9,6 +9,7 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
 {
     private readonly string _rootPath;
     private static readonly char[] s_charsToTrim = ['/', '\\'];
+    private const string PartialFileExtension = ".part";
 
     public ImportDirectoryStorage(IOptions<ImportSettings> settings)
     {
@@ -181,5 +182,81 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
 
         File.Move(absoluteFilePath, destPath);
         return Result.Success();
+    }
+
+    public Result<string> GetAvailableFilePath(string directoryName, string fileName)
+    {
+        if (string.IsNullOrEmpty(directoryName))
+        {
+            return ImportDirectoryStorageError.ArgumentNullOrEmpty;
+        }
+
+        var safeName = Path.GetFileName(fileName ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(safeName) || safeName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            return ImportDirectoryStorageError.InvalidFileName;
+        }
+
+        var pathValidation = ValidatePath(directoryName);
+        if (pathValidation.IsFailure)
+        {
+            return pathValidation.Error!;
+        }
+
+        var directory = Path.GetFullPath(Path.Combine(_rootPath, directoryName));
+        var path = Path.Combine(directory, safeName);
+        var suffix = 2;
+        while (File.Exists(path) || File.Exists(path + PartialFileExtension))
+        {
+            var candidate = $"{Path.GetFileNameWithoutExtension(safeName)} ({suffix}){Path.GetExtension(safeName)}";
+            path = Path.Combine(directory, candidate);
+            suffix++;
+        }
+
+        var fileValidation = ValidateAbsolutePath(path);
+        return fileValidation.IsFailure ? fileValidation.Error! : path;
+    }
+
+    public Result DepositFile(string sourceFilePath, string destinationFilePath)
+    {
+        if (string.IsNullOrEmpty(sourceFilePath) || string.IsNullOrEmpty(destinationFilePath))
+        {
+            return ImportDirectoryStorageError.ArgumentNullOrEmpty;
+        }
+
+        var validation = ValidateAbsolutePath(destinationFilePath);
+        if (validation.IsFailure)
+        {
+            return validation.Error!;
+        }
+
+        if (!File.Exists(sourceFilePath))
+        {
+            return ImportDirectoryStorageError.SourceFileNotFound;
+        }
+
+        if (File.Exists(destinationFilePath))
+        {
+            return ImportDirectoryStorageError.FileAlreadyExists;
+        }
+
+        // The temp directory may be on another volume: the (non atomic) copy goes to a ".part" file the watcher
+        // ignores, then the rename inside the import directory is atomic.
+        var partialPath = destinationFilePath + PartialFileExtension;
+        try
+        {
+            File.Move(sourceFilePath, partialPath, overwrite: true);
+            File.Move(partialPath, destinationFilePath);
+            return Result.Success();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            if (File.Exists(partialPath))
+            {
+                File.Delete(partialPath);
+            }
+
+            return ImportDirectoryStorageError.DepositFailed;
+        }
     }
 }

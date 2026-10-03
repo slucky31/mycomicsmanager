@@ -35,8 +35,8 @@ public sealed class FeedImportDecisionViewModelTests
     [Fact]
     public void GetStatusDisplay_Should_ReturnLabel_ForEveryStatus()
     {
-        FeedImportDecisionViewModel.FilterableStatuses.Should().HaveCount(Enum.GetValues<FeedImportDecisionStatus>().Length);
-        foreach (var status in FeedImportDecisionViewModel.FilterableStatuses)
+        FeedImportDecisionViewModel.FilterableStatuses.Should().NotContain(FeedImportDecisionStatus.Imported);
+        foreach (var status in Enum.GetValues<FeedImportDecisionStatus>())
         {
             FeedImportDecisionViewModel.GetStatusDisplay(status).Should().NotBe(status.ToString());
         }
@@ -97,5 +97,24 @@ public sealed class FeedImportDecisionViewModelTests
         viewModel.CreatedAtDisplay.Should().MatchRegex(@"^\d{2}/\d{2}/\d{4} \d{2}:\d{2}$");
         viewModel.Events.Should().ContainSingle().Which.OccurredAtDisplay.Should().Be(viewModel.CreatedAtDisplay);
         FeedImportDecisionViewModel.From(decision).ItemDisplay.Should().BeNull();
+    }
+
+    [Fact]
+    public void From_Should_FlagChosenMirrorAndLinkImportPage_WhenDecisionIsDownloaded()
+    {
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 9, "Blacksad - Tome 3", "https://planete-bd.org/9", null).Value!;
+        decision.RecordLinks(
+            [new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", null,
+                [new DownloadMirror("https://1fichier.com/?a", "1fichier.com"), new DownloadMirror("https://rapidgator.net/file/b", "rapidgator.net")])],
+            ParsedComicTitle.Empty, "2 miroirs", FeedImportDecidedBy.Auto);
+        decision.StartDownload();
+        decision.MarkDownloaded("https://rapidgator.net/file/b", Guid.CreateVersion7(), "À trier");
+        var libraryId = Guid.CreateVersion7();
+
+        var viewModel = FeedImportDecisionViewModel.From(decision, importLibraryId: libraryId);
+
+        viewModel.ImportPageUrl.Should().Be($"/import?libraryId={libraryId}");
+        viewModel.StatusColor.Should().Be(Color.Success);
+        viewModel.Candidates[0].Mirrors.Select(m => m.IsChosen).Should().Equal(false, true);
     }
 }

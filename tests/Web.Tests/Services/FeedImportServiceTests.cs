@@ -3,8 +3,10 @@ using Application.FeedImports;
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.List;
 using Application.Interfaces;
+using Application.Libraries;
 using AwesomeAssertions;
 using Domain.FeedImports;
+using Domain.Libraries;
 using Domain.Primitives;
 using Domain.Users;
 using Hangfire;
@@ -25,6 +27,7 @@ public sealed class FeedImportServiceTests
     private readonly ICommandHandler<ResolveFeedImportArbitrationCommand> _resolveHandler;
     private readonly ICurrentUserService _currentUserService;
     private readonly IBackgroundJobClient _backgroundJobClient;
+    private readonly ILibraryReadService _libraryReadService = Substitute.For<ILibraryReadService>();
     private readonly FeedImportSettings _settings = new() { Enabled = true };
     private readonly FeedImportService _service;
 
@@ -35,7 +38,7 @@ public sealed class FeedImportServiceTests
         _currentUserService = Substitute.For<ICurrentUserService>();
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
         _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
-        _service = new FeedImportService(_handler, _resolveHandler, _currentUserService, _backgroundJobClient, Options.Create(_settings));
+        _service = new FeedImportService(_handler, _resolveHandler, _currentUserService, _libraryReadService, _backgroundJobClient, Options.Create(_settings));
     }
 
     [Fact]
@@ -68,6 +71,28 @@ public sealed class FeedImportServiceTests
         result.Value.Items.Select(i => i.Id).Should().Equal(multiBook.Id, singleBook.Id);
         result.Value.Items[0].ItemDisplay.Should().Be("Livre 1 de l'article");
         result.Value.Items[1].ItemDisplay.Should().BeNull();
+        await _libraryReadService.DidNotReceive().GetByNameAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetDecisionsAsync_Should_LinkDownloadedDecisionsToImportPageOfTargetLibrary()
+    {
+        var decision = FeedImportDecision.Create(s_userId, 3, "Blacksad T3", "https://planete-bd.org/3", null).Value!;
+        decision.RecordLinks(
+            [new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", null, [new DownloadMirror("https://1fichier.com/?a", "1fichier.com")])],
+            ParsedComicTitle.Empty, "1 lien", FeedImportDecidedBy.Auto);
+        decision.StartDownload();
+        decision.MarkDownloaded("https://1fichier.com/?a", Guid.CreateVersion7(), "À trier");
+        var pagedList = Substitute.For<IPagedList<FeedImportDecision>>();
+        pagedList.Items.Returns([decision]);
+        _handler.Handle(Arg.Any<GetPagedFeedImportDecisionsQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPage>.Success(new FeedImportDecisionPage(pagedList, new HashSet<long>())));
+        var library = Library.Create("À trier", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Digital, s_userId).Value!;
+        _libraryReadService.GetByNameAsync(_settings.TargetLibraryName, s_userId, Arg.Any<CancellationToken>()).Returns(library);
+
+        var result = await _service.GetDecisionsAsync(null, null, 1, 20, TestContext.Current.CancellationToken);
+
+        result.Value!.Items.Should().ContainSingle().Which.ImportPageUrl.Should().Be($"/import?libraryId={library.Id}");
     }
 
     [Fact]

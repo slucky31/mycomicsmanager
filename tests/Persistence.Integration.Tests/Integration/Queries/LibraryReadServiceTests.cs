@@ -234,4 +234,20 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         // Assert
         exists.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task GetByNameAsync_Should_ReturnLibraryIgnoringCase_WhenItBelongsToUser()
+    {
+        // Arrange
+        await CreateLibraries();
+
+        // Act
+        var found = await LibraryReadService.GetByNameAsync(" 2-COMICS ", s_userId, TestContext.Current.CancellationToken);
+        var otherUser = await LibraryReadService.GetByNameAsync(_lib2.Name, Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+
+        // Assert
+        found.Should().NotBeNull();
+        found.Id.Should().Be(_lib2.Id);
+        otherUser.Should().BeNull();
+    }
 }

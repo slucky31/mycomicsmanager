@@ -63,7 +63,7 @@ public class FeedImportDecision : Entity<Guid>
         [FeedImportDecisionStatus.Pending, FeedImportDecisionStatus.AwaitingArbitration];
 
     private static readonly FeedImportDecisionStatus[] s_finalStatuses =
-        [FeedImportDecisionStatus.SkippedDuplicate, FeedImportDecisionStatus.Imported, FeedImportDecisionStatus.Ignored, FeedImportDecisionStatus.Failed];
+        [FeedImportDecisionStatus.SkippedDuplicate, FeedImportDecisionStatus.Downloaded, FeedImportDecisionStatus.Imported, FeedImportDecisionStatus.Ignored, FeedImportDecisionStatus.Failed];
 
     protected FeedImportDecision() { }
 
@@ -257,6 +257,52 @@ public class FeedImportDecision : Entity<Guid>
 
         ArbitrationKind = FeedImportArbitrationKind.None;
         Transition(FeedImportDecisionStatus.SkippedDuplicate, "Doublon confirmé par l'utilisateur.", FeedImportDecidedBy.User);
+        return Result.Success();
+    }
+
+    public Result StartDownload()
+    {
+        if (Status != FeedImportDecisionStatus.LinksExtracted)
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        Transition(FeedImportDecisionStatus.Downloading, "Téléchargement en cours via Debrid-Link.", FeedImportDecidedBy.Auto);
+        return Result.Success();
+    }
+
+    // A mirror failed but others may still work: traced in the history, the status does not change.
+    public Result NoteMirrorFailure(string host, string error)
+    {
+        if (Status != FeedImportDecisionStatus.Downloading || string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(error))
+        {
+            return Status == FeedImportDecisionStatus.Downloading ? FeedImportError.BadRequest : FeedImportError.InvalidStatusTransition;
+        }
+
+        var now = DateTime.UtcNow;
+        UpdatedAt = now;
+        _events.Add(FeedImportDecisionEvent.Create(
+            Id, now, Status, Status, FeedImportDecidedBy.Auto,
+            Truncate($"Échec du miroir {host} : {error}", FeedImportConstants.MaxEventDescriptionLength)));
+        return Result.Success();
+    }
+
+    public Result MarkDownloaded(string chosenMirror, Guid importJobId, string targetLibraryName)
+    {
+        if (string.IsNullOrWhiteSpace(chosenMirror) || importJobId == Guid.Empty || string.IsNullOrWhiteSpace(targetLibraryName))
+        {
+            return FeedImportError.BadRequest;
+        }
+
+        if (Status != FeedImportDecisionStatus.Downloading)
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        ChosenMirror = Truncate(chosenMirror, FeedImportConstants.MaxChosenMirrorLength);
+        ImportJobId = importJobId;
+        // Final state for the feed import: the import itself is followed on the Import page.
+        Transition(FeedImportDecisionStatus.Downloaded, $"Fichier déposé dans « {targetLibraryName} » : suivi de l'import dans la page Import.", FeedImportDecidedBy.Auto);
         return Result.Success();
     }
 

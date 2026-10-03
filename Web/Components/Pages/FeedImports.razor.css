@@ -130,6 +130,12 @@
   background-color: var(--mud-palette-primary-hover);
 }
 
+.feed-imports-mirror.is-chosen {
+  border-color: var(--mud-palette-success);
+  color: var(--mud-palette-success);
+  font-weight: 600;
+}
+
 .feed-imports-timeline {
   list-style: none;
   margin: 0;

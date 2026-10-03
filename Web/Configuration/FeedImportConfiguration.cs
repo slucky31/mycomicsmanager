@@ -67,7 +67,42 @@ public static class FeedImportConfiguration
             })
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
+        services.AddOptions<DebridLinkSettings>()
+            .Bind(configuration.GetSection("DebridLink"))
+            .Validate(cfg => cfg.BaseUrl is { IsAbsoluteUri: true } && cfg.BaseUrl.Scheme == Uri.UriSchemeHttps, "DebridLink:BaseUrl must be an absolute https URL")
+            .ValidateOnStart();
+
+        // Debrid-Link API: a single fixed host, HTTPS only. Without DebridLink:ApiKey downloads are simply not started.
+        services.AddHttpClient<IDebridLinkClient, DebridLinkClient>((sp, client) =>
+        {
+            var debridLink = sp.GetRequiredService<IOptions<DebridLinkSettings>>().Value;
+            client.BaseAddress = WithTrailingSlash(debridLink.BaseUrl);
+            if (!string.IsNullOrWhiteSpace(debridLink.ApiKey))
+            {
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", debridLink.ApiKey);
+            }
+            client.Timeout = TimeSpan.FromSeconds(60);
+        })
+            .AddHttpMessageHandler(sp =>
+            {
+                var baseUrl = sp.GetRequiredService<IOptions<DebridLinkSettings>>().Value.BaseUrl;
+                return new SsrfGuardHandler(new HashSet<string>([baseUrl.Host], StringComparer.OrdinalIgnoreCase));
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
+
+        // Unlocked files: hoster domains (FeedImport:AllowedDownloadHosts) and Debrid-Link file servers
+        // (DebridLink:DownloadHosts), subdomains included, HTTPS only. Large files: long timeout.
+        services.AddHttpClient<IFeedImportFileDownloader, FeedImportFileDownloader>(client => client.Timeout = TimeSpan.FromMinutes(30))
+            .AddHttpMessageHandler(sp =>
+            {
+                var hosts = sp.GetRequiredService<IOptions<FeedImportSettings>>().Value.AllowedDownloadHosts
+                    .Concat(sp.GetRequiredService<IOptions<DebridLinkSettings>>().Value.DownloadHosts);
+                return new SsrfGuardHandler(new HashSet<string>(hosts, StringComparer.OrdinalIgnoreCase), allowSubdomains: true);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
+
         services.AddScoped<FeedImportSyncJob>();
+        services.AddScoped<FeedImportDownloadJob>();
         services.AddScoped<IFeedImportService, FeedImportService>();
 
         return services;

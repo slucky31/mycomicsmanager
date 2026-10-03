@@ -148,4 +148,27 @@ public class FeedImportDecisionRepositoryTests(IntegrationTestWebAppFactory fact
             .CountAsync(e => e.FeedImportDecisionId == decision.Id, TestContext.Current.CancellationToken);
         eventCount.Should().Be(2);
     }
+
+    [Fact]
+    public async Task GetIdsByStatusAsync_Should_ReturnDecisionsOfUserWithStatus_IncludingSplitBooks()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var candidate = new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", null, [new DownloadMirror("https://1fichier.com/?a", "1fichier.com")]);
+        var article = CreateDecision(userId, 7007);
+        var sibling = article.CreateSibling(1).Value!;
+        article.RecordLinks([candidate], ParsedComicTitle.Empty, "1 lien", FeedImportDecidedBy.Auto);
+        sibling.RecordLinks([candidate], ParsedComicTitle.Empty, "1 lien", FeedImportDecidedBy.Auto);
+        var pending = CreateDecision(userId, 7008);
+        FeedImportDecisionRepository.Add(article);
+        FeedImportDecisionRepository.Add(sibling);
+        FeedImportDecisionRepository.Add(pending);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var ids = await FeedImportDecisionRepository.GetIdsByStatusAsync(userId, FeedImportDecisionStatus.LinksExtracted, TestContext.Current.CancellationToken);
+
+        // Assert
+        ids.Should().Equal(article.Id, sibling.Id);
+    }
 }

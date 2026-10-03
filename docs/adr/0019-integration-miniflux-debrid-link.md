@@ -66,8 +66,8 @@ On retient l'**option A**, avec les règles suivantes :
    (`Miniflux:CategoryName`, « BD » par défaut) est une demande d'import.
 2. **Traçabilité** : chaque article devient une `FeedImportDecision`
    (statuts `Pending` → `LinksExtracted` / `AwaitingArbitration` /
-   `SkippedDuplicate` → `Downloading` → `Downloaded` → `Imported`, ou
-   `Ignored` / `Failed`), avec raison lisible, auteur de la décision
+   `SkippedDuplicate` → `Downloading` → `Downloaded`, ou `Ignored` /
+   `Failed`), avec raison lisible, auteur de la décision
    (`Auto` / `User`) et historique (`FeedImportDecisionEvents`). Unicité
    `(UserId, MinifluxEntryId)` : une entrée n'est jamais traitée deux fois.
 3. **Ordre « enregistrer puis retirer l'étoile »** : la décision est
@@ -86,10 +86,12 @@ On retient l'**option A**, avec les règles suivantes :
      le **HTTP**, et uniquement vers l'hôte de `Miniflux:BaseUrl` ;
    - les pages d'articles ne sont récupérées que si leur domaine est dans
      `FeedImport:AllowedSourceHosts` ;
-   - les liens extraits et les URL renvoyées par Debrid-Link ne sont
-     utilisés que si leur domaine est dans `FeedImport:AllowedDownloadHosts`,
-     **sous-domaines compris** (les hébergeurs servent souvent depuis
-     `*.1fichier.com`, etc.) ;
+   - les liens extraits ne sont retenus que si leur domaine est dans
+     `FeedImport:AllowedDownloadHosts`, **sous-domaines compris** (les
+     hébergeurs servent souvent depuis `*.1fichier.com`, etc.) ; les liens
+     directs renvoyés par Debrid-Link doivent, eux, être en HTTPS sur un
+     domaine de cette liste ou de `DebridLink:DownloadHosts` (serveurs de
+     fichiers de Debrid-Link), sans redirection automatique ;
    - API Debrid-Link : hôte fixe, HTTPS, `AllowAutoRedirect = false`.
 6. **Doublons** : avant tout téléchargement, recherche dans toutes les
    bibliothèques de l'utilisateur (série + tome normalisés, ISBN si connu).
@@ -101,7 +103,13 @@ On retient l'**option A**, avec les règles suivantes :
    puis déplacement atomique dans le dossier d'import de la bibliothèque
    digitale `FeedImport:TargetLibraryName` (« À trier », créée au besoin).
    Le pipeline d'import existant prend le relais ; la décision est reliée à
-   l'`ImportJob` créé.
+   l'`ImportJob` créé. `Downloaded` est l'état final de la décision : le
+   suivi de l'import se fait dans la page Import, sans dupliquer son état
+   dans les décisions (la valeur `Imported` reste dans l'énumération pour
+   ne pas décaler les valeurs persistées, mais n'est plus utilisée). L'`ImportJob` est créé **avant** le dépôt du fichier :
+   le `FileWatcherService` trouve alors une tâche active pour ce chemin et
+   n'en crée pas une seconde. Le fichier arrive en `.part` (ignoré par le
+   watcher) puis est renommé dans le même dossier.
 8. **Orchestration** : job Hangfire récurrent `feed-import-sync`
    (`FeedImport:SyncIntervalMinutes`), un job par entrée pour le
    téléchargement, bouton « Synchroniser maintenant ».
@@ -147,9 +155,9 @@ lecture seule (#1058) ; 3. extraction des liens + doublons + arbitrage ;
 
 ## Liens
 
-- Issue : #1057 ; lot 2 : #1058
+- Issue : #1057 ; lot 2 : #1058 ; lot 3 : #1060
 - Guide d'installation : [`docs/FEED-IMPORT.md`](../FEED-IMPORT.md)
 - ADR liées : [0001](0001-deploiement-raspberry-pi-4-self-hosted.md), [0003](0003-postgresql-self-hosted-au-lieu-de-neon.md), [0015](0015-garde-fou-ssrf-appels-sortants.md), [0016](0016-hangfire-jobs-arriere-plan.md)
 - API Miniflux : https://miniflux.app/docs/api.html
 - API Debrid-Link v2 : https://debrid-link.fr/api_doc/v2/introduction
-- Code : `Web/Configuration/FeedImportConfiguration.cs`, `Web/Infrastructure/MinifluxClient.cs`, `Web/Services/FeedImportSyncJob.cs`, `Application/FeedImports/`
+- Code : `Web/Configuration/FeedImportConfiguration.cs`, `Web/Infrastructure/MinifluxClient.cs`, `Web/Infrastructure/DebridLinkClient.cs`, `Web/Infrastructure/FeedImportFileDownloader.cs`, `Web/Services/FeedImportSyncJob.cs`, `Web/Services/FeedImportDownloadJob.cs`, `Application/FeedImports/`

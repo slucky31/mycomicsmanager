@@ -36,6 +36,22 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
         return await librariesPagedList.ExecuteQueryAsync(page, pageSize, cancellationToken);
     }
 
+    public async Task<Library?> GetByNameAsync(string name, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var normalizedName = name.Trim().ToUpperInvariant();
+
+#pragma warning disable CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
+#pragma warning disable CA1304 // Specify CultureInfo
+#pragma warning disable CA1311 // Specify a culture or use an invariant version
+        return await context.Libraries.AsNoTracking()
+            .Where(l => l.UserId == userId && l.Name.ToUpper() == normalizedName)
+            .OrderBy(l => l.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+#pragma warning restore CA1311 // Specify a culture or use an invariant version
+#pragma warning restore CA1304 // Specify CultureInfo
+#pragma warning restore CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
+    }
+
     public async Task<bool> ExistsByNameAsync(string name, Guid userId, Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
         var normalizedName = name.Trim().ToUpperInvariant();

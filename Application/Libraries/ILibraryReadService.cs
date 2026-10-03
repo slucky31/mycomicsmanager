@@ -15,6 +15,11 @@ public interface ILibraryReadService
         Guid userId,
         CancellationToken cancellationToken = default);
 
+    Task<Library?> GetByNameAsync(
+        string name,
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
     Task<bool> ExistsByNameAsync(
         string name,
         Guid userId,

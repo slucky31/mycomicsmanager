@@ -246,4 +246,91 @@ public sealed class ImportDirectoryStorageTests : IDisposable
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportDirectoryStorageError.InvalidPath);
     }
+
+    // ── GetAvailableFilePath / DepositFile ───────────────────────────────────
+
+    private string CreateSourceFile(string content = "data")
+    {
+        var path = Path.Combine(Directory.CreateDirectory(Path.Combine(_root, "temp")).FullName, "file.download");
+        File.WriteAllText(path, content);
+        return path;
+    }
+
+    [Fact]
+    public void GetAvailableFilePath_Should_AddSuffix_WhenNameIsTaken()
+    {
+        var directory = Path.Combine(_root, "A TRIER_lib1");
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(Path.Combine(directory, "Blacksad T03.cbz"), "x");
+
+        var result = _sut.GetAvailableFilePath("A TRIER_lib1", "Blacksad T03.cbz");
+
+        result.Value.Should().Be(Path.Combine(directory, "Blacksad T03 (2).cbz"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("..")]
+    public void GetAvailableFilePath_Should_Fail_WhenFileNameIsInvalid(string fileName)
+    {
+        var result = _sut.GetAvailableFilePath("A TRIER_lib1", fileName);
+
+        result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetAvailableFilePath_Should_KeepOnlyFileName_WhenNameContainsDirectories()
+    {
+        var result = _sut.GetAvailableFilePath("A TRIER_lib1", "../../etc/Blacksad.cbz");
+
+        result.Value.Should().Be(Path.Combine(_root, "A TRIER_lib1", "Blacksad.cbz"));
+    }
+
+    [Fact]
+    public void DepositFile_Should_MoveFileWithoutLeavingPartialFile_WhenDestinationIsFree()
+    {
+        var source = CreateSourceFile();
+        Directory.CreateDirectory(Path.Combine(_root, "A TRIER_lib1"));
+        var destination = Path.Combine(_root, "A TRIER_lib1", "Blacksad.cbz");
+
+        var result = _sut.DepositFile(source, destination);
+
+        result.IsSuccess.Should().BeTrue();
+        File.ReadAllText(destination).Should().Be("data");
+        File.Exists(source).Should().BeFalse();
+        File.Exists(destination + ".part").Should().BeFalse();
+    }
+
+    [Fact]
+    public void DepositFile_Should_ReturnFileAlreadyExists_WhenDestinationExists()
+    {
+        var source = CreateSourceFile();
+        Directory.CreateDirectory(Path.Combine(_root, "A TRIER_lib1"));
+        var destination = Path.Combine(_root, "A TRIER_lib1", "Blacksad.cbz");
+        File.WriteAllText(destination, "existing");
+
+        var result = _sut.DepositFile(source, destination);
+
+        result.Error.Should().Be(ImportDirectoryStorageError.FileAlreadyExists);
+        File.ReadAllText(destination).Should().Be("existing");
+    }
+
+    [Fact]
+    public void DepositFile_Should_ReturnInvalidPath_WhenDestinationIsOutsideRoot()
+    {
+        var source = CreateSourceFile();
+
+        var result = _sut.DepositFile(source, Path.Combine(Path.GetTempPath(), "outside.cbz"));
+
+        result.Error.Should().Be(ImportDirectoryStorageError.InvalidPath);
+        File.Exists(source).Should().BeTrue();
+    }
+
+    [Fact]
+    public void DepositFile_Should_ReturnSourceFileNotFound_WhenSourceIsMissing()
+    {
+        var result = _sut.DepositFile(Path.Combine(_root, "missing.download"), Path.Combine(_root, "A TRIER_lib1", "Blacksad.cbz"));
+
+        result.Error.Should().Be(ImportDirectoryStorageError.SourceFileNotFound);
+    }
 }

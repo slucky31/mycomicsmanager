@@ -5,12 +5,17 @@ using Application.FeedImports.Analyze;
 using Application.FeedImports.Sync;
 using Application.Interfaces;
 using Application.Users;
+using Domain.FeedImports;
 using Hangfire;
 using Microsoft.Extensions.Options;
 
 namespace Web.Services;
 
-public class FeedImportSyncJob(IServiceScopeFactory scopeFactory, IOptions<FeedImportSettings> feedImportSettings)
+public class FeedImportSyncJob(
+    IServiceScopeFactory scopeFactory,
+    IBackgroundJobClient backgroundJobClient,
+    IOptions<FeedImportSettings> feedImportSettings,
+    IOptions<DebridLinkSettings> debridLinkSettings)
 {
     public const string RecurringJobId = "feed-import-sync";
 
@@ -39,6 +44,8 @@ public class FeedImportSyncJob(IServiceScopeFactory scopeFactory, IOptions<FeedI
 
         // Also picks up decisions left Pending by an earlier run (Miniflux down, crash...).
         await AnalyzePendingAsync(userId.Value, cancellationToken);
+
+        await EnqueueDownloadsAsync(userId.Value, cancellationToken);
     }
 
     private async Task<Guid?> ResolveUserIdAsync(string userEmail, CancellationToken cancellationToken)
@@ -106,6 +113,28 @@ public class FeedImportSyncJob(IServiceScopeFactory scopeFactory, IOptions<FeedI
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             Log.Error(ex, "Feed import analysis of decision {DecisionId} threw an exception", decisionId);
+        }
+    }
+
+    // Downloads run in their own jobs; a decision enqueued twice is skipped once it has left LinksExtracted.
+    private async Task EnqueueDownloadsAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(debridLinkSettings.Value.ApiKey))
+        {
+            Log.Information("Feed import downloads skipped: DebridLink:ApiKey is not set.");
+            return;
+        }
+
+        IReadOnlyList<Guid> ids;
+        await using (var scope = scopeFactory.CreateAsyncScope())
+        {
+            ids = await scope.ServiceProvider.GetRequiredService<IFeedImportDecisionRepository>()
+                .GetIdsByStatusAsync(userId, FeedImportDecisionStatus.LinksExtracted, cancellationToken);
+        }
+
+        foreach (var decisionId in ids)
+        {
+            backgroundJobClient.Enqueue<FeedImportDownloadJob>(job => job.DownloadAsync(decisionId, CancellationToken.None));
         }
     }
 
