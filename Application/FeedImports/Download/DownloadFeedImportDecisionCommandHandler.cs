@@ -134,7 +134,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
             return FeedImportError.DebridLinkHostNotSupported;
         }
 
-        TError lastError = FeedImportError.DownloadFailed;
+        var lastError = FeedImportError.DownloadFailed;
         foreach (var mirror in mirrors)
         {
             var result = await DownloadMirrorAsync(mirror, candidate, cancellationToken);

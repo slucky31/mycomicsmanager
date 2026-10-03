@@ -92,10 +92,7 @@ public static class FeedImportConfiguration
 
         // Unlocked files: hoster domains (FeedImport:AllowedDownloadHosts) and Debrid-Link file servers
         // (DebridLink:DownloadHosts), subdomains included, HTTPS only. Large files: long timeout.
-        services.AddHttpClient<IFeedImportFileDownloader, FeedImportFileDownloader>(client =>
-        {
-            client.Timeout = TimeSpan.FromMinutes(30);
-        })
+        services.AddHttpClient<IFeedImportFileDownloader, FeedImportFileDownloader>(client => client.Timeout = TimeSpan.FromMinutes(30))
             .AddHttpMessageHandler(sp =>
             {
                 var hosts = sp.GetRequiredService<IOptions<FeedImportSettings>>().Value.AllowedDownloadHosts
