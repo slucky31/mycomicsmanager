@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.15.0"></a>
+## [10.15.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.15.0) (2026-10-03)
+
+### ✨ Features
+
+* **feeds:** download feed imports through Debrid-Link into the "À trier" library ([#1061](https://www.github.com/slucky31/mycomicsmanager/issues/1061)) ([bdc14d5](https://www.github.com/slucky31/mycomicsmanager/commit/bdc14d53ec74225d081334915f11cf16ebc991c2))
+
 <a name="10.14.0"></a>
 ## [10.14.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.14.0) (2026-10-03)
 
