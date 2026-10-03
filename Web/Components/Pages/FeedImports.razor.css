@@ -5,6 +5,7 @@
   gap: 12px;
 }
 
+/* MudBlazor components: their root element carries no scope attribute, hence ::deep. */
 ::deep .feed-imports-status {
   flex: 0 1 220px;
   min-width: 180px;
@@ -18,25 +19,170 @@
   width: 48px;
 }
 
-::deep .feed-imports-detail {
-  padding: 8px 16px 12px 56px;
+/* Keeps title, book number and parsed serie stacked when the table collapses on mobile. */
+.feed-imports-article {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Detail row: rendered by this page, so plain scoped selectors apply. */
+.feed-imports-detail {
+  padding: 16px 16px 20px 64px;
+  background-color: var(--mud-palette-background-gray);
+  border-bottom: 1px solid var(--mud-palette-table-lines);
+}
+
+.feed-imports-arbitration {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.feed-imports-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(260px, 1.4fr) minmax(240px, 1.3fr);
+  gap: 16px;
+}
+
+.feed-imports-detail-section {
+  min-width: 0;
+  padding: 12px 16px;
+  border-radius: var(--mud-default-borderradius);
+  background-color: var(--mud-palette-surface);
+  border: 1px solid var(--mud-palette-lines-default);
+}
+
+::deep .feed-imports-detail-title {
+  margin-bottom: 8px;
+  color: var(--mud-palette-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+}
+
+.feed-imports-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.feed-imports-facts dt {
+  color: var(--mud-palette-text-secondary);
+}
+
+.feed-imports-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.feed-imports-file + .feed-imports-file {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--mud-palette-lines-default);
+}
+
+.feed-imports-file-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+.feed-imports-file-name {
+  font-weight: 500;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.feed-imports-file-size {
+  padding: 0 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  color: var(--mud-palette-text-secondary);
   background-color: var(--mud-palette-background-gray);
 }
 
-.feed-imports-history {
-  margin: 4px 0 0;
-  padding-left: 18px;
-  font-size: 0.85rem;
+.feed-imports-mirrors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
 }
 
-.feed-imports-history-date {
+.feed-imports-mirror {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 1px solid var(--mud-palette-primary);
+  border-radius: 16px;
+  color: var(--mud-palette-primary);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.feed-imports-mirror:hover,
+.feed-imports-mirror:focus-visible {
+  background-color: var(--mud-palette-primary-hover);
+}
+
+.feed-imports-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--mud-palette-lines-default);
+}
+
+.feed-imports-timeline li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 10px;
+}
+
+.feed-imports-timeline li:last-child {
+  padding-bottom: 0;
+}
+
+.feed-imports-timeline li::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--mud-palette-primary);
+}
+
+.feed-imports-timeline-date {
+  font-size: 0.75rem;
   color: var(--mud-palette-text-secondary);
-  margin-right: 6px;
+}
+
+.feed-imports-timeline-status {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.feed-imports-timeline-text {
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 960px) {
+  .feed-imports-detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {
-  ::deep .feed-imports-detail {
-    padding-left: 16px;
+  .feed-imports-detail {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   ::deep .feed-imports-sync {

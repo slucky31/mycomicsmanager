@@ -1,3 +1,4 @@
+using Application.FeedImports.Arbitrate;
 using Domain.FeedImports;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -19,6 +20,7 @@ public partial class FeedImports
     private string? _searchTerm;
     private bool _isSyncRequested;
     private readonly HashSet<Guid> _expandedIds = [];
+    private Guid? _busyDecisionId;
     private TableData<FeedImportDecisionViewModel> _lastData = new() { Items = [], TotalItems = 0 };
 
     internal async Task<TableData<FeedImportDecisionViewModel>> LoadServerDataAsync(TableState state, CancellationToken cancellationToken)
@@ -103,6 +105,37 @@ public partial class FeedImports
         finally
         {
             _isSyncRequested = false;
+        }
+    }
+
+    private bool IsBusy(Guid decisionId) => _busyDecisionId == decisionId;
+
+    internal async Task ResolveAsync(Guid decisionId, FeedImportArbitrationAction action, int? candidateIndex)
+    {
+        if (_busyDecisionId is not null)
+        {
+            return;
+        }
+
+        _busyDecisionId = decisionId;
+        try
+        {
+            var result = await FeedImportService.ResolveArbitrationAsync(decisionId, action, candidateIndex);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Décision mise à jour.", Severity.Success);
+                await ReloadAsync();
+            }
+            else if (result.IsFailure)
+            {
+                Snackbar.Add(result.Error?.Description ?? "Impossible de mettre à jour la décision.", Severity.Error);
+                Log.Error("FeedImports: failed to resolve arbitration {Action} on decision {DecisionId}: {ErrorDescription}",
+                    action, decisionId, result.Error?.Description);
+            }
+        }
+        finally
+        {
+            _busyDecisionId = null;
         }
     }
 }

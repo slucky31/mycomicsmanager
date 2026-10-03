@@ -1,3 +1,4 @@
+using Application.FeedImports.Arbitrate;
 using AwesomeAssertions;
 using Bunit;
 using Domain.FeedImports;
@@ -139,5 +140,55 @@ public sealed class FeedImportsComponentTests
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
         cut.Markup.Should().NotContain("Synchroniser maintenant");
         cut.Markup.Should().Contain("synchronisation Miniflux est désactivée");
+    }
+
+    private static FeedImportDecisionViewModel CreateProbableDuplicate()
+    {
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 99, "Blacksad - Tome 3", "https://planete-bd.org/99", null).Value!;
+        decision.RequestArbitration(FeedImportArbitrationKind.ProbableDuplicate,
+            [new DownloadCandidate("Blacksad T03", null, null, [new DownloadMirror("https://1fichier.com/?a", "1fichier.com")])],
+            new ParsedComicTitle("Blacksad", null, 3), Guid.CreateVersion7(), "Doublon probable", FeedImportDecidedBy.Auto);
+        return FeedImportDecisionViewModel.From(decision);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_SendNotDuplicateAndReload_WhenUserRejectsProbableDuplicate()
+    {
+        var decision = CreateProbableDuplicate();
+        var service = CreateService();
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(new FeedImportDecisionPageViewModel([decision], 1)));
+        service.ResolveArbitrationAsync(decision.Id, FeedImportArbitrationAction.NotDuplicate, null, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var (ctx, cut, snackbar) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad - Tome 3"));
+        await cut.FindAll("button[aria-label='Afficher le détail']")[0].ClickAsync(new());
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Pas un doublon"));
+        cut.Markup.Should().Contain("1fichier.com");
+
+        var button = cut.FindAll("button").First(b => b.TextContent.Contains("Pas un doublon", StringComparison.Ordinal));
+        await button.ClickAsync(new());
+
+        await service.Received(1).ResolveArbitrationAsync(decision.Id, FeedImportArbitrationAction.NotDuplicate, null, Arg.Any<CancellationToken>());
+        snackbar.Received(1).Add("Décision mise à jour.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ShowError_WhenResolutionFails()
+    {
+        var decision = CreateProbableDuplicate();
+        var service = CreateService();
+        service.ResolveArbitrationAsync(decision.Id, FeedImportArbitrationAction.ConfirmDuplicate, null, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(FeedImportError.InvalidStatusTransition));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service);
+        await using var _ = ctx;
+
+        await cut.InvokeAsync(() => cut.Instance.ResolveAsync(decision.Id, FeedImportArbitrationAction.ConfirmDuplicate, null));
+
+        snackbar.Received(1).Add(FeedImportError.InvalidStatusTransition.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 }

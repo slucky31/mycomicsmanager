@@ -1,5 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
+using Application.FeedImports.Arbitrate;
 using Application.FeedImports.List;
 using Application.Interfaces;
 using Domain.FeedImports;
@@ -11,7 +12,8 @@ using Web.Models;
 namespace Web.Services;
 
 public class FeedImportService(
-    IQueryHandler<GetPagedFeedImportDecisionsQuery, IPagedList<FeedImportDecision>> getDecisionsHandler,
+    IQueryHandler<GetPagedFeedImportDecisionsQuery, FeedImportDecisionPage> getDecisionsHandler,
+    ICommandHandler<ResolveFeedImportArbitrationCommand> resolveArbitrationHandler,
     ICurrentUserService currentUserService,
     IBackgroundJobClient backgroundJobClient,
     IOptions<FeedImportSettings> feedImportSettings) : IFeedImportService
@@ -38,8 +40,11 @@ public class FeedImportService(
             return result.Error!;
         }
 
-        var items = (result.Value!.Items ?? []).Select(FeedImportDecisionViewModel.From).ToList();
-        return new FeedImportDecisionPageViewModel(items, result.Value.TotalCount);
+        var decisionPage = result.Value!;
+        var items = (decisionPage.Decisions.Items ?? [])
+            .Select(d => FeedImportDecisionViewModel.From(d, decisionPage.MultiBookEntryIds.Contains(d.MinifluxEntryId)))
+            .ToList();
+        return new FeedImportDecisionPageViewModel(items, decisionPage.Decisions.TotalCount);
     }
 
     public Result TriggerSync()
@@ -51,5 +56,21 @@ public class FeedImportService(
 
         backgroundJobClient.Enqueue<FeedImportSyncJob>(job => job.SyncAsync(CancellationToken.None));
         return Result.Success();
+    }
+
+    public async Task<Result> ResolveArbitrationAsync(
+        Guid decisionId,
+        FeedImportArbitrationAction action,
+        int? candidateIndex,
+        CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await resolveArbitrationHandler.Handle(
+            new ResolveFeedImportArbitrationCommand(decisionId, userIdResult.Value, action, candidateIndex), cancellationToken);
     }
 }

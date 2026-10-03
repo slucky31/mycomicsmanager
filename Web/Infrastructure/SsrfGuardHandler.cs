@@ -3,7 +3,7 @@ using Domain.Extensions;
 
 namespace Web.Infrastructure;
 
-internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts, bool allowHttp = false) : DelegatingHandler
+internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts, bool allowHttp = false, bool allowSubdomains = false) : DelegatingHandler
 {
     private const int MaxRedirects = 5;
 
@@ -55,7 +55,7 @@ internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts, bool a
 
     private void EnsureAllowed(Uri? uri)
     {
-        if (!uri.IsAllowedHost(allowedHosts, allowHttp))
+        if (!uri.IsAllowedHost(allowedHosts, allowHttp, allowSubdomains))
         {
             Log.Warning("SSRF guard blocked outgoing request to {Uri}", uri);
             throw new HttpRequestException($"SSRF guard: request to '{uri}' is not permitted.");

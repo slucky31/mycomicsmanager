@@ -1,3 +1,4 @@
+using Application.Books;
 using Application.Books.List;
 using Application.Interfaces;
 using Domain.Books;
@@ -65,4 +66,12 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
 
         return await new PagedList<BookSummaryDto>(projected).ExecuteQueryAsync(page, pageSize, cancellationToken);
     }
+
+    public async Task<IReadOnlyList<BookIdentityDto>> ListIdentitiesByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+        => await context.Set<Book>()
+            .AsNoTracking()
+            .Where(b => b.Library!.UserId == userId)
+            .OrderBy(b => b.Id)
+            .Select(b => new BookIdentityDto(b.Id, b.Serie, b.Title, b.VolumeNumber, b.ISBN, b.Library!.Name))
+            .ToListAsync(cancellationToken);
 }

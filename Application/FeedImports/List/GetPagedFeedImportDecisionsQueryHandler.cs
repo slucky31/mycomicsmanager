@@ -7,11 +7,11 @@ using Domain.Primitives;
 namespace Application.FeedImports.List;
 
 public sealed class GetPagedFeedImportDecisionsQueryHandler(IFeedImportDecisionReadService readService)
-    : IQueryHandler<GetPagedFeedImportDecisionsQuery, IPagedList<FeedImportDecision>>
+    : IQueryHandler<GetPagedFeedImportDecisionsQuery, FeedImportDecisionPage>
 {
     public const int MaxPageSize = 100;
 
-    public async Task<Result<IPagedList<FeedImportDecision>>> Handle(GetPagedFeedImportDecisionsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<FeedImportDecisionPage>> Handle(GetPagedFeedImportDecisionsQuery query, CancellationToken cancellationToken)
     {
         Guard.Against.Null(query);
 
@@ -27,6 +27,9 @@ public sealed class GetPagedFeedImportDecisionsQueryHandler(IFeedImportDecisionR
         var decisions = await readService.GetPagedAsync(
             query.UserId, query.Status, query.SearchTerm?.Trim(), query.Page, query.PageSize, cancellationToken);
 
-        return Result<IPagedList<FeedImportDecision>>.Success(decisions);
+        var entryIds = (decisions.Items ?? []).Select(d => d.MinifluxEntryId).Distinct().ToList();
+        var multiBookEntryIds = await readService.GetMultiBookEntryIdsAsync(query.UserId, entryIds, cancellationToken);
+
+        return new FeedImportDecisionPage(decisions, multiBookEntryIds);
     }
 }

@@ -22,4 +22,12 @@ public class UriExtensionTests
     {
         ((Uri?)null).IsAllowedHost(s_allowedHosts, allowHttp: true).Should().BeFalse();
     }
+
+    [Theory]
+    [InlineData("https://cdn.miniflux/file", false, false)]
+    [InlineData("https://cdn.miniflux/file", true, true)]
+    public void IsAllowedHost_Should_AcceptSubdomains_OnlyWhenAllowed(string address, bool allowSubdomains, bool expected)
+    {
+        new Uri(address).IsAllowedHost(s_allowedHosts, allowHttp: false, allowSubdomains).Should().Be(expected);
+    }
 }

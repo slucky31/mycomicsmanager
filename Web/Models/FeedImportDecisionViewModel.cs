@@ -6,11 +6,19 @@ namespace Web.Models;
 
 public sealed record FeedImportDecisionEventViewModel(
     DateTime OccurredAt,
+    string OccurredAtDisplay,
     string StatusDisplay,
     string DecidedByDisplay,
     string Description);
 
 #pragma warning disable CA1054, CA1056 // URL displayed as a link, validated by the domain
+public sealed record FeedImportMirrorViewModel(string Url, string Host);
+
+public sealed record FeedImportCandidateViewModel(int Index, string Label, string? FileName, string? SizeDisplay, IReadOnlyList<FeedImportMirrorViewModel> Mirrors)
+{
+    public string DisplayName => FileName ?? Label;
+}
+
 public sealed record FeedImportDecisionViewModel(
     Guid Id,
     string EntryTitle,
@@ -24,12 +32,29 @@ public sealed record FeedImportDecisionViewModel(
     string DecidedByDisplay,
     string? ParsedDisplay,
     string? ErrorDisplay,
-    IReadOnlyList<FeedImportDecisionEventViewModel> Events)
+    IReadOnlyList<FeedImportDecisionEventViewModel> Events,
+    string? ItemDisplay,
+    FeedImportArbitrationKind ArbitrationKind,
+    Guid? MatchedBookId,
+    IReadOnlyList<FeedImportCandidateViewModel> Candidates)
 #pragma warning restore CA1054, CA1056
 {
+    private static readonly CultureInfo s_displayCulture = CultureInfo.GetCultureInfo("fr-FR");
+
+    public string CreatedAtDisplay => FormatDate(CreatedAt);
+
+    public string PublishedAtDisplay => PublishedAt.HasValue ? FormatDate(PublishedAt.Value) : "-";
+
+    public bool CanChooseCandidate =>
+        Status == FeedImportDecisionStatus.AwaitingArbitration && ArbitrationKind == FeedImportArbitrationKind.AmbiguousLinks;
+
+    public bool CanResolveDuplicate =>
+        Status == FeedImportDecisionStatus.AwaitingArbitration && ArbitrationKind == FeedImportArbitrationKind.ProbableDuplicate;
+
     public static IReadOnlyList<FeedImportDecisionStatus> FilterableStatuses { get; } = Enum.GetValues<FeedImportDecisionStatus>();
 
-    public static FeedImportDecisionViewModel From(FeedImportDecision decision)
+    // isPartOfMultiBookArticle: the article was split into several books, so the first one is labelled too.
+    public static FeedImportDecisionViewModel From(FeedImportDecision decision, bool isPartOfMultiBookArticle = false)
     {
         ArgumentNullException.ThrowIfNull(decision);
 
@@ -50,9 +75,34 @@ public sealed record FeedImportDecisionViewModel(
                 .OrderBy(e => e.OccurredAt)
                 .ThenBy(e => e.Id)
                 .Select(e => new FeedImportDecisionEventViewModel(
-                    e.OccurredAt, GetStatusDisplay(e.Status), GetDecidedByDisplay(e.DecidedBy), e.Description))
+                    e.OccurredAt, FormatDate(e.OccurredAt), GetStatusDisplay(e.Status), GetDecidedByDisplay(e.DecidedBy), e.Description))
+                .ToList(),
+            ItemDisplay: isPartOfMultiBookArticle || decision.ItemIndex > 0
+                ? string.Create(CultureInfo.InvariantCulture, $"Livre {decision.ItemIndex + 1} de l'article")
+                : null,
+            ArbitrationKind: decision.ArbitrationKind,
+            MatchedBookId: decision.MatchedBookId,
+            Candidates: decision.GetCandidates()
+                .Select((c, i) => new FeedImportCandidateViewModel(
+                    i,
+                    c.Label,
+                    c.FileName,
+                    c.SizeBytes.HasValue ? FormatSize(c.SizeBytes.Value) : null,
+                    c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host)).ToList()))
                 .ToList());
     }
+
+    // Fixed French format: "03/10/2026 19:23" whatever the server culture.
+    private static string FormatDate(DateTime utc) =>
+        utc.ToLocalTime().ToString("dd/MM/yyyy HH:mm", s_displayCulture);
+
+    private static string FormatSize(long bytes) => bytes switch
+    {
+        >= 1_073_741_824 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_073_741_824.0:F1} Go"),
+        >= 1_048_576 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_048_576.0:F1} Mo"),
+        >= 1_024 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_024.0:F0} Ko"),
+        _ => string.Create(CultureInfo.InvariantCulture, $"{bytes} o")
+    };
 
     public static string GetStatusDisplay(FeedImportDecisionStatus status) => status switch
     {

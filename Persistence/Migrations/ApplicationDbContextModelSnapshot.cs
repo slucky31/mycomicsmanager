@@ -148,6 +148,9 @@ namespace Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("ArbitrationKind")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ChosenMirror")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
@@ -184,6 +187,9 @@ namespace Persistence.Migrations
 
                     b.Property<Guid?>("ImportJobId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("ItemIndex")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Links")
                         .HasColumnType("jsonb");
@@ -233,10 +239,10 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId", "MinifluxEntryId")
-                        .IsUnique();
-
                     b.HasIndex("UserId", "Status");
+
+                    b.HasIndex("UserId", "MinifluxEntryId", "ItemIndex")
+                        .IsUnique();
 
                     b.ToTable("FeedImportDecisions", (string)null);
                 });
@@ -244,7 +250,6 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Domain.FeedImports.FeedImportDecisionEvent", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedOnUtc")

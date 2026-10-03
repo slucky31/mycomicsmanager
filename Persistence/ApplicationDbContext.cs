@@ -108,7 +108,7 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
         decision.Property(d => d.Reason).HasMaxLength(FeedImportConstants.MaxReasonLength);
         decision.Property(d => d.ErrorMessage).HasMaxLength(FeedImportConstants.MaxErrorMessageLength);
         decision.Property(d => d.ErrorStep).HasMaxLength(FeedImportConstants.MaxErrorStepLength);
-        decision.HasIndex(d => new { d.UserId, d.MinifluxEntryId }).IsUnique();
+        decision.HasIndex(d => new { d.UserId, d.MinifluxEntryId, d.ItemIndex }).IsUnique();
         decision.HasIndex(d => new { d.UserId, d.Status });
         decision.HasMany(d => d.Events)
             .WithOne()
@@ -122,6 +122,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
 
         var decisionEvent = modelBuilder.Entity<FeedImportDecisionEvent>();
         decisionEvent.ToTable("FeedImportDecisionEvents");
+        // Client-generated key: without this, an event added to a tracked decision is saved as an UPDATE.
+        decisionEvent.Property(e => e.Id).ValueGeneratedNever();
         decisionEvent.Property(e => e.Description).HasMaxLength(FeedImportConstants.MaxEventDescriptionLength);
     }
 }

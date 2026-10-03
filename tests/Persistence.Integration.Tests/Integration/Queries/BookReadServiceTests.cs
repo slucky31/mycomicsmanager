@@ -1,3 +1,4 @@
+using Application.Books;
 using Base.Integration.Tests;
 using Domain.Books;
 using Domain.Libraries;
@@ -236,5 +237,24 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         item.ReadCount.Should().Be(2);
         item.LastRead.Should().Be(newerDate);
         item.LastRating.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task ListIdentitiesByUserAsync_Should_ReturnBooksOfAllUserLibrariesWithLibraryName()
+    {
+        // Arrange
+        var book = CreateBook("Blacksad", "Âme rouge", "9782205055819", 3);
+        BookRepository.Add(book);
+        var otherUserLibrary = Library.Create("Other", "#000000", "book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
+        Context.Libraries.Add(otherUserLibrary);
+        BookRepository.Add(PhysicalBook.Create(new BookMetadata("Blacksad", "Autre", "9782205055820", 4), otherUserLibrary.Id).Value!);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var identities = await BookReadService.ListIdentitiesByUserAsync(DefaultLibrary.UserId, TestContext.Current.CancellationToken);
+
+        // Assert
+        identities.Should().ContainSingle().Which.Should().Be(
+            new BookIdentityDto(book.Id, "Blacksad", "Âme rouge", 3, "9782205055819", DefaultLibrary.Name));
     }
 }

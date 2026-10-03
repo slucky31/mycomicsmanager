@@ -54,6 +54,19 @@ public static class FeedImportConfiguration
             })
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
+        // Article pages: only the feed sites listed in FeedImport:AllowedSourceHosts (subdomains included), HTTPS only.
+        services.AddHttpClient<IArticlePageFetcher, ArticlePageFetcher>(client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+            .AddHttpMessageHandler(sp =>
+            {
+                var sourceHosts = sp.GetRequiredService<IOptions<FeedImportSettings>>().Value.AllowedSourceHosts;
+                return new SsrfGuardHandler(new HashSet<string>(sourceHosts, StringComparer.OrdinalIgnoreCase), allowSubdomains: true);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
+
         services.AddScoped<FeedImportSyncJob>();
         services.AddScoped<IFeedImportService, FeedImportService>();
 

@@ -1,3 +1,4 @@
+using Application.Books;
 using Application.Books.List;
 using Domain.Libraries;
 
@@ -13,4 +14,6 @@ public interface IBookReadService
         BookSortOrder sortOrder,
         string? searchTerm,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BookIdentityDto>> ListIdentitiesByUserAsync(Guid userId, CancellationToken cancellationToken = default);
 }

@@ -1,5 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
+using Application.FeedImports.Arbitrate;
 using Application.FeedImports.List;
 using Application.Interfaces;
 using AwesomeAssertions;
@@ -20,7 +21,8 @@ public sealed class FeedImportServiceTests
 {
     private static readonly Guid s_userId = Guid.CreateVersion7();
 
-    private readonly IQueryHandler<GetPagedFeedImportDecisionsQuery, IPagedList<FeedImportDecision>> _handler;
+    private readonly IQueryHandler<GetPagedFeedImportDecisionsQuery, FeedImportDecisionPage> _handler;
+    private readonly ICommandHandler<ResolveFeedImportArbitrationCommand> _resolveHandler;
     private readonly ICurrentUserService _currentUserService;
     private readonly IBackgroundJobClient _backgroundJobClient;
     private readonly FeedImportSettings _settings = new() { Enabled = true };
@@ -28,11 +30,12 @@ public sealed class FeedImportServiceTests
 
     public FeedImportServiceTests()
     {
-        _handler = Substitute.For<IQueryHandler<GetPagedFeedImportDecisionsQuery, IPagedList<FeedImportDecision>>>();
+        _handler = Substitute.For<IQueryHandler<GetPagedFeedImportDecisionsQuery, FeedImportDecisionPage>>();
+        _resolveHandler = Substitute.For<ICommandHandler<ResolveFeedImportArbitrationCommand>>();
         _currentUserService = Substitute.For<ICurrentUserService>();
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
         _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
-        _service = new FeedImportService(_handler, _currentUserService, _backgroundJobClient, Options.Create(_settings));
+        _service = new FeedImportService(_handler, _resolveHandler, _currentUserService, _backgroundJobClient, Options.Create(_settings));
     }
 
     [Fact]
@@ -48,20 +51,23 @@ public sealed class FeedImportServiceTests
     }
 
     [Fact]
-    public async Task GetDecisionsAsync_Should_MapDecisionsToViewModels_WhenQuerySucceeds()
+    public async Task GetDecisionsAsync_Should_MapDecisionsAndLabelMultiBookArticles_WhenQuerySucceeds()
     {
-        var decision = FeedImportDecision.Create(s_userId, 1, "Blacksad T3", "https://planete-bd.org/1", null).Value!;
+        var multiBook = FeedImportDecision.Create(s_userId, 1, "Blacksad - Tomes 1 à 2", "https://planete-bd.org/1", null).Value!;
+        var singleBook = FeedImportDecision.Create(s_userId, 2, "Blacksad T3", "https://planete-bd.org/2", null).Value!;
         var pagedList = Substitute.For<IPagedList<FeedImportDecision>>();
-        pagedList.Items.Returns([decision]);
+        pagedList.Items.Returns([multiBook, singleBook]);
         pagedList.TotalCount.Returns(41);
         _handler.Handle(new GetPagedFeedImportDecisionsQuery(s_userId, FeedImportDecisionStatus.Pending, "black", 3, 20), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<FeedImportDecision>>.Success(pagedList));
+            .Returns(Result<FeedImportDecisionPage>.Success(new FeedImportDecisionPage(pagedList, new HashSet<long> { 1 })));
 
         var result = await _service.GetDecisionsAsync(FeedImportDecisionStatus.Pending, "black", 3, 20, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.TotalCount.Should().Be(41);
-        result.Value.Items.Should().ContainSingle().Which.Id.Should().Be(decision.Id);
+        result.Value.Items.Select(i => i.Id).Should().Equal(multiBook.Id, singleBook.Id);
+        result.Value.Items[0].ItemDisplay.Should().Be("Livre 1 de l'article");
+        result.Value.Items[1].ItemDisplay.Should().BeNull();
     }
 
     [Fact]
@@ -85,5 +91,30 @@ public sealed class FeedImportServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(FeedImportError.Disabled);
         _backgroundJobClient.DidNotReceiveWithAnyArgs().Create(default!, default!);
+    }
+
+    [Fact]
+    public async Task ResolveArbitrationAsync_Should_ForwardCurrentUser_WhenUserResolved()
+    {
+        var decisionId = Guid.CreateVersion7();
+        _resolveHandler.Handle(Arg.Any<ResolveFeedImportArbitrationCommand>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        var result = await _service.ResolveArbitrationAsync(decisionId, FeedImportArbitrationAction.KeepCandidate, 2, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        await _resolveHandler.Received(1).Handle(
+            new ResolveFeedImportArbitrationCommand(decisionId, s_userId, FeedImportArbitrationAction.KeepCandidate, 2),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ResolveArbitrationAsync_Should_ReturnError_WhenUserNotResolved()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        var result = await _service.ResolveArbitrationAsync(Guid.CreateVersion7(), FeedImportArbitrationAction.NotDuplicate, null, TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(UsersError.NotFound);
+        await _resolveHandler.DidNotReceive().Handle(Arg.Any<ResolveFeedImportArbitrationCommand>(), Arg.Any<CancellationToken>());
     }
 }
