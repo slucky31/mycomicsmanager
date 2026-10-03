@@ -8,8 +8,8 @@ public enum FeedImportDecisionStatus
     AwaitingArbitration, // Cas ambigu (regroupement, doublon probable) à arbitrer
     SkippedDuplicate,    // BD déjà présente dans une bibliothèque
     Downloading,         // Téléchargement en cours via Debrid-Link
-    Downloaded,          // Fichier déposé dans la bibliothèque « À trier »
-    Imported,            // Import terminé (ImportJob Completed)
+    Downloaded,          // Fichier déposé dans « À trier » (état final : l'import se suit dans la page Import)
+    Imported,            // Non utilisé : conservé pour ne pas décaler les valeurs persistées
     Ignored,             // Ignoré par l'utilisateur
     Failed               // Échec (voir ErrorStep / ErrorMessage)
 }

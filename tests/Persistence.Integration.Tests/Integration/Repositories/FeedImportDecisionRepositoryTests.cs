@@ -167,10 +167,8 @@ public class FeedImportDecisionRepositoryTests(IntegrationTestWebAppFactory fact
 
         // Act
         var ids = await FeedImportDecisionRepository.GetIdsByStatusAsync(userId, FeedImportDecisionStatus.LinksExtracted, TestContext.Current.CancellationToken);
-        var decisions = await FeedImportDecisionRepository.GetByStatusAsync(userId, FeedImportDecisionStatus.Pending, TestContext.Current.CancellationToken);
 
         // Assert
         ids.Should().Equal(article.Id, sibling.Id);
-        decisions.Should().ContainSingle().Which.Id.Should().Be(pending.Id);
     }
 }

@@ -36,11 +36,4 @@ public class FeedImportDecisionRepository(ApplicationDbContext context) : IFeedI
             .ThenBy(d => d.Id)
             .Select(d => d.Id)
             .ToListAsync(ct);
-
-    public async Task<IReadOnlyList<FeedImportDecision>> GetByStatusAsync(Guid userId, FeedImportDecisionStatus status, CancellationToken ct = default)
-        => await context.FeedImportDecisions
-            .Where(d => d.UserId == userId && d.Status == status)
-            .OrderBy(d => d.CreatedAt)
-            .ThenBy(d => d.Id)
-            .ToListAsync(ct);
 }

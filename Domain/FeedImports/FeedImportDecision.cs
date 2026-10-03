@@ -63,7 +63,7 @@ public class FeedImportDecision : Entity<Guid>
         [FeedImportDecisionStatus.Pending, FeedImportDecisionStatus.AwaitingArbitration];
 
     private static readonly FeedImportDecisionStatus[] s_finalStatuses =
-        [FeedImportDecisionStatus.SkippedDuplicate, FeedImportDecisionStatus.Imported, FeedImportDecisionStatus.Ignored, FeedImportDecisionStatus.Failed];
+        [FeedImportDecisionStatus.SkippedDuplicate, FeedImportDecisionStatus.Downloaded, FeedImportDecisionStatus.Imported, FeedImportDecisionStatus.Ignored, FeedImportDecisionStatus.Failed];
 
     protected FeedImportDecision() { }
 
@@ -301,24 +301,8 @@ public class FeedImportDecision : Entity<Guid>
 
         ChosenMirror = Truncate(chosenMirror, FeedImportConstants.MaxChosenMirrorLength);
         ImportJobId = importJobId;
-        Transition(FeedImportDecisionStatus.Downloaded, $"Fichier déposé dans « {targetLibraryName} », import en cours.", FeedImportDecidedBy.Auto);
-        return Result.Success();
-    }
-
-    public Result MarkImported(Guid digitalBookId)
-    {
-        if (digitalBookId == Guid.Empty)
-        {
-            return FeedImportError.BadRequest;
-        }
-
-        if (Status != FeedImportDecisionStatus.Downloaded)
-        {
-            return FeedImportError.InvalidStatusTransition;
-        }
-
-        DigitalBookId = digitalBookId;
-        Transition(FeedImportDecisionStatus.Imported, "Livre importé.", FeedImportDecidedBy.Auto);
+        // Final state for the feed import: the import itself is followed on the Import page.
+        Transition(FeedImportDecisionStatus.Downloaded, $"Fichier déposé dans « {targetLibraryName} » : suivi de l'import dans la page Import.", FeedImportDecidedBy.Auto);
         return Result.Success();
     }
 

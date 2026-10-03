@@ -44,8 +44,8 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
    - le fichier est téléchargé dans `Import:TempDirectory`, l'`ImportJob` est créé, puis le fichier
      est déposé dans le dossier d'import de la bibliothèque (copie en `.part` puis renommage) →
      `Downloaded` ;
-   - à la synchronisation suivante, la décision passe à `Imported` (lien « Voir le livre importé »)
-     quand l'import est terminé, ou à `Failed` si l'import a échoué.
+   - `Downloaded` est l'état final côté Feeds : la suite (extraction, conversion, métadonnées) se
+     suit dans la page **Import**, que le bouton « Suivre l'import » ouvre sur la bibliothèque « À trier ».
 
 ### Règles de doublon
 
@@ -190,5 +190,6 @@ synchronisation (`Feed import sync done: ...`) ou l'erreur rencontrée
 | Décision « Échoué » : *Domaine de téléchargement non autorisé (xxx)* | Debrid-Link sert le fichier depuis un domaine inconnu : l'ajouter à `DebridLink:DownloadHosts` |
 | Décision « Échoué » : *Quota Debrid-Link atteint* | Limite journalière du compte : les autres miroirs ne sont pas essayés pour ne pas consommer le quota |
 | Décision « Échoué » à l'étape *Bibliothèque* | Une bibliothèque **physique** porte déjà le nom `FeedImport:TargetLibraryName` |
-| Décision « Échoué » à l'étape *Import* | L'import du fichier déposé a échoué (archive corrompue...) : voir aussi la page des imports |
+| Décision « Échoué » à l'étape *Import* | Le fichier téléchargé n'a pas pu être remis au pipeline d'import (création de la tâche ou dépôt dans le dossier) |
+| Fichier téléchargé mais livre absent | L'import lui-même a échoué : voir la page **Import** de la bibliothèque « À trier » |
 | Décision bloquée en « Téléchargement... » | Application arrêtée pendant le téléchargement ; la relance manuelle arrive au lot 5 |

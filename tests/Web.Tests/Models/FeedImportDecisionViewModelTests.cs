@@ -35,8 +35,8 @@ public sealed class FeedImportDecisionViewModelTests
     [Fact]
     public void GetStatusDisplay_Should_ReturnLabel_ForEveryStatus()
     {
-        FeedImportDecisionViewModel.FilterableStatuses.Should().HaveCount(Enum.GetValues<FeedImportDecisionStatus>().Length);
-        foreach (var status in FeedImportDecisionViewModel.FilterableStatuses)
+        FeedImportDecisionViewModel.FilterableStatuses.Should().NotContain(FeedImportDecisionStatus.Imported);
+        foreach (var status in Enum.GetValues<FeedImportDecisionStatus>())
         {
             FeedImportDecisionViewModel.GetStatusDisplay(status).Should().NotBe(status.ToString());
         }
@@ -100,7 +100,7 @@ public sealed class FeedImportDecisionViewModelTests
     }
 
     [Fact]
-    public void From_Should_FlagChosenMirrorAndImportedBook_WhenDecisionIsImported()
+    public void From_Should_FlagChosenMirrorAndLinkImportPage_WhenDecisionIsDownloaded()
     {
         var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 9, "Blacksad - Tome 3", "https://planete-bd.org/9", null).Value!;
         decision.RecordLinks(
@@ -109,12 +109,12 @@ public sealed class FeedImportDecisionViewModelTests
             ParsedComicTitle.Empty, "2 miroirs", FeedImportDecidedBy.Auto);
         decision.StartDownload();
         decision.MarkDownloaded("https://rapidgator.net/file/b", Guid.CreateVersion7(), "À trier");
-        var bookId = Guid.CreateVersion7();
-        decision.MarkImported(bookId);
+        var libraryId = Guid.CreateVersion7();
 
-        var viewModel = FeedImportDecisionViewModel.From(decision);
+        var viewModel = FeedImportDecisionViewModel.From(decision, importLibraryId: libraryId);
 
-        viewModel.DigitalBookId.Should().Be(bookId);
+        viewModel.ImportPageUrl.Should().Be($"/import?libraryId={libraryId}");
+        viewModel.StatusColor.Should().Be(Color.Success);
         viewModel.Candidates[0].Mirrors.Select(m => m.IsChosen).Should().Equal(false, true);
     }
 }

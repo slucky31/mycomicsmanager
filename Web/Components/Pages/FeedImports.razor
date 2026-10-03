@@ -164,12 +164,12 @@
                                            StartIcon="@Icons.Material.Filled.OpenInNew" Class="mt-1">
                                     Ouvrir l'article
                                 </MudButton>
-                                @if (context.DigitalBookId is not null)
+                                @if (context.ImportPageUrl is not null)
                                 {
-                                    <MudButton Href="@($"/books/{context.DigitalBookId}")"
+                                    <MudButton Href="@context.ImportPageUrl"
                                                Size="Size.Small" Variant="Variant.Text" Color="Color.Success"
-                                               StartIcon="@Icons.Material.Filled.MenuBook" Class="mt-1">
-                                        Voir le livre importé
+                                               StartIcon="@Icons.Material.Filled.Upload" Class="mt-1">
+                                        Suivre l'import
                                     </MudButton>
                                 }
                             </section>

@@ -2,7 +2,6 @@ using System.Globalization;
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Analyze;
-using Application.FeedImports.Refresh;
 using Application.FeedImports.Sync;
 using Application.Interfaces;
 using Application.Users;
@@ -46,7 +45,6 @@ public class FeedImportSyncJob(
         // Also picks up decisions left Pending by an earlier run (Miniflux down, crash...).
         await AnalyzePendingAsync(userId.Value, cancellationToken);
 
-        await RefreshStatusesAsync(userId.Value, cancellationToken);
         await EnqueueDownloadsAsync(userId.Value, cancellationToken);
     }
 
@@ -115,17 +113,6 @@ public class FeedImportSyncJob(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             Log.Error(ex, "Feed import analysis of decision {DecisionId} threw an exception", decisionId);
-        }
-    }
-
-    private async Task RefreshStatusesAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        await using var scope = scopeFactory.CreateAsyncScope();
-        var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<RefreshFeedImportStatusesCommand>>();
-        var result = await handler.Handle(new RefreshFeedImportStatusesCommand(userId), cancellationToken);
-        if (result.IsFailure)
-        {
-            Log.Error("Feed import status refresh failed: [{Code}] {Description}", result.Error!.Code, result.Error.Description);
         }
     }
 

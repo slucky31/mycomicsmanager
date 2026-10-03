@@ -1,7 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Analyze;
-using Application.FeedImports.Refresh;
 using Application.FeedImports.Sync;
 using Application.Interfaces;
 using Application.Users;
@@ -28,7 +27,6 @@ public sealed class FeedImportSyncJobTests
     private readonly IUserReadService _userReadService;
     private readonly IFeedImportDecisionRepository _decisionRepository;
     private readonly ICommandHandler<AnalyzeFeedImportDecisionCommand> _analyzeHandler;
-    private readonly ICommandHandler<RefreshFeedImportStatusesCommand> _refreshHandler;
     private readonly IBackgroundJobClient _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly FeedImportSettings _settings = new() { Enabled = true, UserEmail = UserEmail };
@@ -42,15 +40,12 @@ public sealed class FeedImportSyncJobTests
         _decisionRepository.GetPendingIdsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
         _decisionRepository.GetIdsByStatusAsync(Arg.Any<Guid>(), Arg.Any<FeedImportDecisionStatus>(), Arg.Any<CancellationToken>()).Returns([]);
         _analyzeHandler = Substitute.For<ICommandHandler<AnalyzeFeedImportDecisionCommand>>();
-        _refreshHandler = Substitute.For<ICommandHandler<RefreshFeedImportStatusesCommand>>();
-        _refreshHandler.Handle(Arg.Any<RefreshFeedImportStatusesCommand>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         var serviceProvider = Substitute.For<IServiceProvider>();
         serviceProvider.GetService(typeof(ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult>)).Returns(_handler);
         serviceProvider.GetService(typeof(IUserReadService)).Returns(_userReadService);
         serviceProvider.GetService(typeof(IFeedImportDecisionRepository)).Returns(_decisionRepository);
         serviceProvider.GetService(typeof(ICommandHandler<AnalyzeFeedImportDecisionCommand>)).Returns(_analyzeHandler);
-        serviceProvider.GetService(typeof(ICommandHandler<RefreshFeedImportStatusesCommand>)).Returns(_refreshHandler);
 
         var scope = Substitute.For<IServiceScope>();
         scope.ServiceProvider.Returns(serviceProvider);
@@ -71,7 +66,7 @@ public sealed class FeedImportSyncJobTests
     }
 
     [Fact]
-    public async Task SyncAsync_Should_RefreshStatusesAndEnqueueOneDownloadPerDecision_WhenApiKeyIsSet()
+    public async Task SyncAsync_Should_EnqueueOneDownloadPerDecision_WhenApiKeyIsSet()
     {
         var user = ArrangeUserWithFailedSync();
         var first = Guid.CreateVersion7();
@@ -81,7 +76,6 @@ public sealed class FeedImportSyncJobTests
 
         await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
 
-        await _refreshHandler.Received(1).Handle(new RefreshFeedImportStatusesCommand(user.Id), Arg.Any<CancellationToken>());
         _backgroundJobClient.Received(1).Create(
             Arg.Is<Job>(j => j.Type == typeof(FeedImportDownloadJob) && (Guid)j.Args[0] == first), Arg.Any<IState>());
         _backgroundJobClient.Received(1).Create(

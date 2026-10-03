@@ -268,22 +268,12 @@ public class FeedImportDecisionTransitionTests
     }
 
     [Fact]
-    public void MarkImported_Should_LinkDigitalBook_WhenDownloaded()
+    public void Fail_Should_ReturnInvalidTransition_WhenDecisionIsDownloaded()
     {
         var decision = CreateDownloading();
         decision.MarkDownloaded("https://1fichier.com/?abc", Guid.CreateVersion7(), "À trier");
 
-        var result = decision.MarkImported(s_bookId);
-
-        result.IsSuccess.Should().BeTrue();
-        decision.Status.Should().Be(FeedImportDecisionStatus.Imported);
-        decision.DigitalBookId.Should().Be(s_bookId);
-    }
-
-    [Fact]
-    public void MarkImported_Should_Fail_WhenBookIdIsEmptyOrNotDownloaded()
-    {
-        CreateDownloading().MarkImported(Guid.Empty).Error.Should().Be(FeedImportError.BadRequest);
-        CreateDownloading().MarkImported(s_bookId).Error.Should().Be(FeedImportError.InvalidStatusTransition);
+        decision.Fail("Import", "err").Error.Should().Be(FeedImportError.InvalidStatusTransition);
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
     }
 }

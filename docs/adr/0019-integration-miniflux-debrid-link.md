@@ -66,8 +66,8 @@ On retient l'**option A**, avec les règles suivantes :
    (`Miniflux:CategoryName`, « BD » par défaut) est une demande d'import.
 2. **Traçabilité** : chaque article devient une `FeedImportDecision`
    (statuts `Pending` → `LinksExtracted` / `AwaitingArbitration` /
-   `SkippedDuplicate` → `Downloading` → `Downloaded` → `Imported`, ou
-   `Ignored` / `Failed`), avec raison lisible, auteur de la décision
+   `SkippedDuplicate` → `Downloading` → `Downloaded`, ou `Ignored` /
+   `Failed`), avec raison lisible, auteur de la décision
    (`Auto` / `User`) et historique (`FeedImportDecisionEvents`). Unicité
    `(UserId, MinifluxEntryId)` : une entrée n'est jamais traitée deux fois.
 3. **Ordre « enregistrer puis retirer l'étoile »** : la décision est
@@ -103,7 +103,10 @@ On retient l'**option A**, avec les règles suivantes :
    puis déplacement atomique dans le dossier d'import de la bibliothèque
    digitale `FeedImport:TargetLibraryName` (« À trier », créée au besoin).
    Le pipeline d'import existant prend le relais ; la décision est reliée à
-   l'`ImportJob` créé. L'`ImportJob` est créé **avant** le dépôt du fichier :
+   l'`ImportJob` créé. `Downloaded` est l'état final de la décision : le
+   suivi de l'import se fait dans la page Import, sans dupliquer son état
+   dans les décisions (la valeur `Imported` reste dans l'énumération pour
+   ne pas décaler les valeurs persistées, mais n'est plus utilisée). L'`ImportJob` est créé **avant** le dépôt du fichier :
    le `FileWatcherService` trouve alors une tâche active pour ce chemin et
    n'en crée pas une seconde. Le fichier arrive en `.part` (ignoré par le
    watcher) puis est renommé dans le même dossier.

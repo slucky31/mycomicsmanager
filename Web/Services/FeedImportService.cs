@@ -3,6 +3,7 @@ using Application.FeedImports;
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.List;
 using Application.Interfaces;
+using Application.Libraries;
 using Domain.FeedImports;
 using Domain.Primitives;
 using Hangfire;
@@ -15,6 +16,7 @@ public class FeedImportService(
     IQueryHandler<GetPagedFeedImportDecisionsQuery, FeedImportDecisionPage> getDecisionsHandler,
     ICommandHandler<ResolveFeedImportArbitrationCommand> resolveArbitrationHandler,
     ICurrentUserService currentUserService,
+    ILibraryReadService libraryReadService,
     IBackgroundJobClient backgroundJobClient,
     IOptions<FeedImportSettings> feedImportSettings) : IFeedImportService
 {
@@ -41,8 +43,18 @@ public class FeedImportService(
         }
 
         var decisionPage = result.Value!;
-        var items = (decisionPage.Decisions.Items ?? [])
-            .Select(d => FeedImportDecisionViewModel.From(d, decisionPage.MultiBookEntryIds.Contains(d.MinifluxEntryId)))
+        var decisions = decisionPage.Decisions.Items ?? [];
+
+        // Downloaded decisions link to the Import page, filtered on the library the files were deposited in.
+        Guid? importLibraryId = null;
+        if (decisions.Any(d => d.Status == FeedImportDecisionStatus.Downloaded))
+        {
+            var library = await libraryReadService.GetByNameAsync(feedImportSettings.Value.TargetLibraryName, userIdResult.Value, cancellationToken);
+            importLibraryId = library?.Id;
+        }
+
+        var items = decisions
+            .Select(d => FeedImportDecisionViewModel.From(d, decisionPage.MultiBookEntryIds.Contains(d.MinifluxEntryId), importLibraryId))
             .ToList();
         return new FeedImportDecisionPageViewModel(items, decisionPage.Decisions.TotalCount);
     }
