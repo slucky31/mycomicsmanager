@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.14.0"></a>
+## [10.14.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.14.0) (2026-10-03)
+
+### ✨ Features
+
+* **feeds:** analyze feed import decisions (links, duplicates, arbitration) ([#1060](https://www.github.com/slucky31/mycomicsmanager/issues/1060)) ([ad8f013](https://www.github.com/slucky31/mycomicsmanager/commit/ad8f013dc87bf0d458b8371f9a66ad59a7f37871))
+
+### Other
+
+* **adr:** add ADR-0019 and setup guide for the Miniflux feed import ([#1059](https://www.github.com/slucky31/mycomicsmanager/issues/1059)) ([c4ed9b5](https://www.github.com/slucky31/mycomicsmanager/commit/c4ed9b56f8daa5d489c2581f37d2fdc127f91fe0))
+
 <a name="10.13.0"></a>
 ## [10.13.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.13.0) (2026-10-02)
 
