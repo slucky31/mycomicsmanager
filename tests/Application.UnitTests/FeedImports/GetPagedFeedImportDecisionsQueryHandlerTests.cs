@@ -42,15 +42,20 @@ public class GetPagedFeedImportDecisionsQueryHandlerTests
     [Fact]
     public async Task Handle_Should_ForwardTrimmedFilters_WhenQueryIsValid()
     {
+        var original = FeedImportDecision.Create(s_userId, 7, "Blacksad - Tomes 1 à 2", "https://planete-bd.org/7", null).Value!;
         var pagedList = Substitute.For<IPagedList<FeedImportDecision>>();
+        pagedList.Items.Returns([original, original.CreateSibling(1).Value!]);
         _readService.GetPagedAsync(s_userId, FeedImportDecisionStatus.Pending, "blacksad", 2, 20, Arg.Any<CancellationToken>())
             .Returns(pagedList);
+        _readService.GetMultiBookEntryIdsAsync(s_userId, Arg.Is<IReadOnlyCollection<long>>(ids => ids.SequenceEqual(new long[] { 7 })), Arg.Any<CancellationToken>())
+            .Returns(new HashSet<long> { 7 });
 
         var result = await _handler.Handle(
             new GetPagedFeedImportDecisionsQuery(s_userId, FeedImportDecisionStatus.Pending, "  blacksad ", 2, 20),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeSameAs(pagedList);
+        result.Value!.Decisions.Should().BeSameAs(pagedList);
+        result.Value.MultiBookEntryIds.Should().BeEquivalentTo([7L]);
     }
 }

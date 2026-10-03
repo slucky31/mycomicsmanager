@@ -11,4 +11,10 @@ public interface IFeedImportDecisionReadService
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
+
+    // Entries split into several books (at least one sibling decision exists).
+    Task<IReadOnlySet<long>> GetMultiBookEntryIdsAsync(
+        Guid userId,
+        IReadOnlyCollection<long> minifluxEntryIds,
+        CancellationToken cancellationToken = default);
 }

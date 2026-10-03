@@ -82,4 +82,20 @@ public sealed class FeedImportDecisionViewModelTests
         viewModel.ItemDisplay.Should().Be("Livre 2 de l'article");
         viewModel.Candidates.Should().ContainSingle().Which.SizeDisplay.Should().BeNull();
     }
+
+    [Fact]
+    public void From_Should_LabelFirstBookAndFormatDatesInFrench_WhenArticleHoldsSeveralBooks()
+    {
+        var publishedAt = new DateTime(2026, 10, 3, 17, 23, 0, DateTimeKind.Utc);
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 12, "Blacksad - Tomes 1 à 2", "https://planete-bd.org/12", publishedAt).Value!;
+
+        var viewModel = FeedImportDecisionViewModel.From(decision, isPartOfMultiBookArticle: true);
+
+        viewModel.ItemDisplay.Should().Be("Livre 1 de l'article");
+        viewModel.PublishedAtDisplay.Should().Be(publishedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture));
+        viewModel.PublishedAtDisplay.Should().MatchRegex(@"^03/10/2026 \d{2}:\d{2}$");
+        viewModel.CreatedAtDisplay.Should().MatchRegex(@"^\d{2}/\d{2}/\d{4} \d{2}:\d{2}$");
+        viewModel.Events.Should().ContainSingle().Which.OccurredAtDisplay.Should().Be(viewModel.CreatedAtDisplay);
+        FeedImportDecisionViewModel.From(decision).ItemDisplay.Should().BeNull();
+    }
 }

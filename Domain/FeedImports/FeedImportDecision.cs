@@ -157,7 +157,8 @@ public class FeedImportDecision : Entity<Guid>
             Status = FeedImportDecisionStatus.Pending,
             Reason = reason,
             DecidedBy = FeedImportDecidedBy.Auto,
-            CreatedAt = now,
+            // Same registration date as the article, so the books of an article stay together in the list.
+            CreatedAt = CreatedAt,
             UpdatedAt = now
         };
         sibling._events.Add(FeedImportDecisionEvent.Create(

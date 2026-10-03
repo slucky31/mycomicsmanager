@@ -172,6 +172,7 @@ public class FeedImportDecisionTransitionTests
         sibling.MinifluxEntryId.Should().Be(decision.MinifluxEntryId);
         sibling.UserId.Should().Be(decision.UserId);
         sibling.EntryUrl.Should().Be(decision.EntryUrl);
+        sibling.CreatedAt.Should().Be(decision.CreatedAt);
         sibling.Status.Should().Be(FeedImportDecisionStatus.Pending);
         sibling.Events.Should().ContainSingle();
     }

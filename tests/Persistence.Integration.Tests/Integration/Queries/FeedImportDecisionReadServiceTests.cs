@@ -59,4 +59,27 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
         byOtherStatus.TotalCount.Should().Be(0);
         byPending.TotalCount.Should().Be(3);
     }
+
+    [Fact]
+    public async Task GetPagedAsync_Should_KeepBooksOfAnArticleTogether_AndReportMultiBookEntries()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var article = FeedImportDecision.Create(userId, 7000, "Blacksad - Tomes 1 à 2", "https://planete-bd.org/7000", null).Value!;
+        FeedImportDecisionRepository.Add(article);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var later = (await SeedAsync(userId, "Plus récent"))[0];
+        FeedImportDecisionRepository.Add(article.CreateSibling(1).Value!);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var page = await FeedImportDecisionReadService.GetPagedAsync(userId, null, null, 1, 10, TestContext.Current.CancellationToken);
+        var multiBook = await FeedImportDecisionReadService.GetMultiBookEntryIdsAsync(
+            userId, page.Items!.Select(d => d.MinifluxEntryId).ToList(), TestContext.Current.CancellationToken);
+
+        // Assert
+        page.Items!.Select(d => (d.MinifluxEntryId, d.ItemIndex)).Should().Equal(
+            (later.MinifluxEntryId, 0), (7000L, 0), (7000L, 1));
+        multiBook.Should().BeEquivalentTo([7000L]);
+    }
 }

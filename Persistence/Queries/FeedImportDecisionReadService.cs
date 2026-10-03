@@ -35,10 +35,32 @@ public class FeedImportDecisionReadService(ApplicationDbContext context) : IFeed
                 (d.ParsedSerie != null && EF.Functions.ILike(d.ParsedSerie, pattern, @"\")));
         }
 
+        // Newest articles first, the books of an article together and in order.
         query = query
             .OrderByDescending(d => d.CreatedAt)
+            .ThenByDescending(d => d.MinifluxEntryId)
+            .ThenBy(d => d.ItemIndex)
             .ThenBy(d => d.Id);
 
         return await new PagedList<FeedImportDecision>(query).ExecuteQueryAsync(page, pageSize, cancellationToken);
+    }
+
+    public async Task<IReadOnlySet<long>> GetMultiBookEntryIdsAsync(
+        Guid userId,
+        IReadOnlyCollection<long> minifluxEntryIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (minifluxEntryIds.Count == 0)
+        {
+            return new HashSet<long>();
+        }
+
+        var ids = await context.FeedImportDecisions
+            .AsNoTracking()
+            .Where(d => d.UserId == userId && d.ItemIndex > 0 && minifluxEntryIds.Contains(d.MinifluxEntryId))
+            .Select(d => d.MinifluxEntryId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        return ids.ToHashSet();
     }
 }

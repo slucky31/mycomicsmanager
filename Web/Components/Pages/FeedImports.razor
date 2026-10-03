@@ -78,15 +78,17 @@
                                aria-label="@(IsExpanded(context.Id) ? "Masquer le détail" : "Afficher le détail")" />
             </MudTd>
             <MudTd DataLabel="Article">
-                <MudLink Href="@context.EntryUrl" Target="_blank" rel="noopener noreferrer nofollow" Typo="Typo.body2">@context.EntryTitle</MudLink>
-                @if (context.ItemDisplay is not null)
-                {
-                    <MudText Typo="Typo.caption" Class="d-block">@context.ItemDisplay</MudText>
-                }
-                @if (context.ParsedDisplay is not null)
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">@context.ParsedDisplay</MudText>
-                }
+                <div class="feed-imports-article">
+                    <MudLink Href="@context.EntryUrl" Target="_blank" rel="noopener noreferrer nofollow" Typo="Typo.body2">@context.EntryTitle</MudLink>
+                    @if (context.ItemDisplay is not null)
+                    {
+                        <MudText Typo="Typo.caption" Class="d-block">@context.ItemDisplay</MudText>
+                    }
+                    @if (context.ParsedDisplay is not null)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">@context.ParsedDisplay</MudText>
+                    }
+                </div>
             </MudTd>
             <MudTd DataLabel="Statut">
                 <MudChip T="string" Size="Size.Small" Color="@context.StatusColor" Class="feed-imports-status-chip">@context.StatusDisplay</MudChip>
@@ -95,7 +97,7 @@
                 <MudText Typo="Typo.body2">@context.Reason</MudText>
             </MudTd>
             <MudTd DataLabel="Enregistré le">
-                <MudText Typo="Typo.caption">@context.CreatedAt.ToLocalTime().ToString("g")</MudText>
+                <MudText Typo="Typo.caption">@context.CreatedAtDisplay</MudText>
             </MudTd>
         </RowTemplate>
         <ChildRowContent>
@@ -103,80 +105,119 @@
             {
                 <MudTr>
                     <td colspan="5" class="feed-imports-detail">
-                        <MudText Typo="Typo.caption" Class="d-block">
-                            Publié le : @(context.PublishedAt?.ToLocalTime().ToString("g") ?? "-") · Décidé par : @context.DecidedByDisplay
-                        </MudText>
                         @if (context.ErrorDisplay is not null)
                         {
-                            <MudAlert Severity="Severity.Error" Dense="true" Class="my-2">@context.ErrorDisplay</MudAlert>
+                            <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3">@context.ErrorDisplay</MudAlert>
                         }
                         @if (context.CanResolveDuplicate)
                         {
-                            <div class="feed-imports-arbitration my-2">
-                                @if (context.MatchedBookId is not null)
-                                {
-                                    <MudLink Href="@($"/books/{context.MatchedBookId}")" Typo="Typo.body2">Voir le livre déjà présent</MudLink>
-                                }
-                                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
-                                           Disabled="@IsBusy(context.Id)"
-                                           OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.NotDuplicate, null))">
-                                    Pas un doublon
-                                </MudButton>
-                                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning"
-                                           Disabled="@IsBusy(context.Id)"
-                                           OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.ConfirmDuplicate, null))">
-                                    Confirmer le doublon
-                                </MudButton>
-                            </div>
-                        }
-                        @if (context.Candidates.Count > 0)
-                        {
-                            <MudText Typo="Typo.subtitle2" Class="mt-2">Liens</MudText>
-                            @foreach (var candidate in context.Candidates)
-                            {
-                                <div class="feed-imports-candidate">
-                                    <div class="feed-imports-candidate-header">
-                                        <strong>@candidate.Label</strong>
-                                        @if (candidate.SizeDisplay is not null)
-                                        {
-                                            <span class="feed-imports-candidate-size">@candidate.SizeDisplay</span>
-                                        }
-                                        @if (context.CanChooseCandidate)
-                                        {
-                                            <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
-                                                       Disabled="@IsBusy(context.Id)"
-                                                       OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.KeepCandidate, candidate.Index))">
-                                                Garder ce lien
-                                            </MudButton>
-                                        }
-                                    </div>
-                                    <ul class="feed-imports-mirrors">
-                                        @foreach (var mirror in candidate.Mirrors)
-                                        {
-                                            <li><MudLink Href="@mirror.Url" Target="_blank" rel="noopener noreferrer nofollow" Typo="Typo.body2">@mirror.Host</MudLink></li>
-                                        }
-                                    </ul>
+                            <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3">
+                                <div class="feed-imports-arbitration">
+                                    <span>Doublon probable : vérifiez le livre déjà présent avant de continuer.</span>
+                                    @if (context.MatchedBookId is not null)
+                                    {
+                                        <MudLink Href="@($"/books/{context.MatchedBookId}")" Typo="Typo.body2">Voir le livre déjà présent</MudLink>
+                                    }
+                                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                                               Disabled="@IsBusy(context.Id)"
+                                               OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.NotDuplicate, null))">
+                                        Pas un doublon
+                                    </MudButton>
+                                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning"
+                                               Disabled="@IsBusy(context.Id)"
+                                               OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.ConfirmDuplicate, null))">
+                                        Confirmer le doublon
+                                    </MudButton>
                                 </div>
-                            }
-                            @if (context.CanChooseCandidate && context.Candidates.Count > 1)
-                            {
-                                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" Class="my-1"
-                                           Disabled="@IsBusy(context.Id)"
-                                           OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.MergeAsMirrors, null))">
-                                    Tous ces liens sont le même fichier
-                                </MudButton>
-                            }
+                            </MudAlert>
                         }
-                        <MudText Typo="Typo.subtitle2" Class="mt-2">Historique</MudText>
-                        <ul class="feed-imports-history">
-                            @foreach (var evt in context.Events)
-                            {
-                                <li>
-                                    <span class="feed-imports-history-date">@evt.OccurredAt.ToLocalTime().ToString("g")</span>
-                                    <strong>@evt.StatusDisplay</strong> (@evt.DecidedByDisplay) — @evt.Description
-                                </li>
-                            }
-                        </ul>
+                        @if (context.CanChooseCandidate)
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                                <div class="feed-imports-arbitration">
+                                    <span>Liens ambigus : gardez le bon fichier ci-dessous, ou indiquez que tous les liens sont le même fichier.</span>
+                                    @if (context.Candidates.Count > 1)
+                                    {
+                                        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
+                                                   Disabled="@IsBusy(context.Id)"
+                                                   OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.MergeAsMirrors, null))">
+                                            Tous ces liens sont le même fichier
+                                        </MudButton>
+                                    }
+                                </div>
+                            </MudAlert>
+                        }
+
+                        <div class="feed-imports-detail-grid">
+                            <section class="feed-imports-detail-section">
+                                <MudText Typo="Typo.subtitle2" Class="feed-imports-detail-title">Article</MudText>
+                                <dl class="feed-imports-facts">
+                                    <dt>Publié le</dt>
+                                    <dd>@context.PublishedAtDisplay</dd>
+                                    <dt>Lu comme</dt>
+                                    <dd>@(context.ParsedDisplay ?? "-")</dd>
+                                    <dt>Décidé par</dt>
+                                    <dd>@context.DecidedByDisplay</dd>
+                                </dl>
+                                <MudButton Href="@context.EntryUrl" Target="_blank" rel="noopener noreferrer nofollow"
+                                           Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.OpenInNew" Class="mt-1">
+                                    Ouvrir l'article
+                                </MudButton>
+                            </section>
+
+                            <section class="feed-imports-detail-section">
+                                <MudText Typo="Typo.subtitle2" Class="feed-imports-detail-title">Fichiers</MudText>
+                                @if (context.Candidates.Count == 0)
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Aucun lien extrait pour l'instant.</MudText>
+                                }
+                                @foreach (var candidate in context.Candidates)
+                                {
+                                    <div class="feed-imports-file">
+                                        <div class="feed-imports-file-header">
+                                            <MudIcon Icon="@Icons.Material.Outlined.InsertDriveFile" Size="Size.Small" />
+                                            <span class="feed-imports-file-name">@candidate.DisplayName</span>
+                                            @if (candidate.SizeDisplay is not null)
+                                            {
+                                                <span class="feed-imports-file-size">@candidate.SizeDisplay</span>
+                                            }
+                                            @if (context.CanChooseCandidate)
+                                            {
+                                                <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
+                                                           Disabled="@IsBusy(context.Id)"
+                                                           OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.KeepCandidate, candidate.Index))">
+                                                    Garder ce lien
+                                                </MudButton>
+                                            }
+                                        </div>
+                                        <div class="feed-imports-mirrors">
+                                            @foreach (var mirror in candidate.Mirrors)
+                                            {
+                                                <a class="feed-imports-mirror" href="@mirror.Url" target="_blank" rel="noopener noreferrer nofollow">
+                                                    <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" />
+                                                    @mirror.Host
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </section>
+
+                            <section class="feed-imports-detail-section">
+                                <MudText Typo="Typo.subtitle2" Class="feed-imports-detail-title">Historique</MudText>
+                                <ol class="feed-imports-timeline">
+                                    @foreach (var evt in context.Events)
+                                    {
+                                        <li>
+                                            <span class="feed-imports-timeline-date">@evt.OccurredAtDisplay · @evt.DecidedByDisplay</span>
+                                            <span class="feed-imports-timeline-status">@evt.StatusDisplay</span>
+                                            <span class="feed-imports-timeline-text">@evt.Description</span>
+                                        </li>
+                                    }
+                                </ol>
+                            </section>
+                        </div>
                     </td>
                 </MudTr>
             }

@@ -1,5 +1,4 @@
 using Application.Abstractions.Messaging;
-using Application.Interfaces;
 using Domain.FeedImports;
 
 namespace Application.FeedImports.List;
@@ -9,4 +8,4 @@ public record GetPagedFeedImportDecisionsQuery(
     FeedImportDecisionStatus? Status,
     string? SearchTerm,
     int Page,
-    int PageSize) : IQuery<IPagedList<FeedImportDecision>>;
+    int PageSize) : IQuery<FeedImportDecisionPage>;

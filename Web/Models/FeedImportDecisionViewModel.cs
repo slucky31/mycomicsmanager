@@ -6,6 +6,7 @@ namespace Web.Models;
 
 public sealed record FeedImportDecisionEventViewModel(
     DateTime OccurredAt,
+    string OccurredAtDisplay,
     string StatusDisplay,
     string DecidedByDisplay,
     string Description);
@@ -13,7 +14,10 @@ public sealed record FeedImportDecisionEventViewModel(
 #pragma warning disable CA1054, CA1056 // URL displayed as a link, validated by the domain
 public sealed record FeedImportMirrorViewModel(string Url, string Host);
 
-public sealed record FeedImportCandidateViewModel(int Index, string Label, string? FileName, string? SizeDisplay, IReadOnlyList<FeedImportMirrorViewModel> Mirrors);
+public sealed record FeedImportCandidateViewModel(int Index, string Label, string? FileName, string? SizeDisplay, IReadOnlyList<FeedImportMirrorViewModel> Mirrors)
+{
+    public string DisplayName => FileName ?? Label;
+}
 
 public sealed record FeedImportDecisionViewModel(
     Guid Id,
@@ -35,6 +39,12 @@ public sealed record FeedImportDecisionViewModel(
     IReadOnlyList<FeedImportCandidateViewModel> Candidates)
 #pragma warning restore CA1054, CA1056
 {
+    private static readonly CultureInfo s_displayCulture = CultureInfo.GetCultureInfo("fr-FR");
+
+    public string CreatedAtDisplay => FormatDate(CreatedAt);
+
+    public string PublishedAtDisplay => PublishedAt.HasValue ? FormatDate(PublishedAt.Value) : "-";
+
     public bool CanChooseCandidate =>
         Status == FeedImportDecisionStatus.AwaitingArbitration && ArbitrationKind == FeedImportArbitrationKind.AmbiguousLinks;
 
@@ -43,7 +53,8 @@ public sealed record FeedImportDecisionViewModel(
 
     public static IReadOnlyList<FeedImportDecisionStatus> FilterableStatuses { get; } = Enum.GetValues<FeedImportDecisionStatus>();
 
-    public static FeedImportDecisionViewModel From(FeedImportDecision decision)
+    // isPartOfMultiBookArticle: the article was split into several books, so the first one is labelled too.
+    public static FeedImportDecisionViewModel From(FeedImportDecision decision, bool isPartOfMultiBookArticle = false)
     {
         ArgumentNullException.ThrowIfNull(decision);
 
@@ -64,9 +75,9 @@ public sealed record FeedImportDecisionViewModel(
                 .OrderBy(e => e.OccurredAt)
                 .ThenBy(e => e.Id)
                 .Select(e => new FeedImportDecisionEventViewModel(
-                    e.OccurredAt, GetStatusDisplay(e.Status), GetDecidedByDisplay(e.DecidedBy), e.Description))
+                    e.OccurredAt, FormatDate(e.OccurredAt), GetStatusDisplay(e.Status), GetDecidedByDisplay(e.DecidedBy), e.Description))
                 .ToList(),
-            ItemDisplay: decision.ItemIndex > 0
+            ItemDisplay: isPartOfMultiBookArticle || decision.ItemIndex > 0
                 ? string.Create(CultureInfo.InvariantCulture, $"Livre {decision.ItemIndex + 1} de l'article")
                 : null,
             ArbitrationKind: decision.ArbitrationKind,
@@ -80,6 +91,10 @@ public sealed record FeedImportDecisionViewModel(
                     c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host)).ToList()))
                 .ToList());
     }
+
+    // Fixed French format: "03/10/2026 19:23" whatever the server culture.
+    private static string FormatDate(DateTime utc) =>
+        utc.ToLocalTime().ToString("dd/MM/yyyy HH:mm", s_displayCulture);
 
     private static string FormatSize(long bytes) => bytes switch
     {

@@ -12,7 +12,7 @@ using Web.Models;
 namespace Web.Services;
 
 public class FeedImportService(
-    IQueryHandler<GetPagedFeedImportDecisionsQuery, IPagedList<FeedImportDecision>> getDecisionsHandler,
+    IQueryHandler<GetPagedFeedImportDecisionsQuery, FeedImportDecisionPage> getDecisionsHandler,
     ICommandHandler<ResolveFeedImportArbitrationCommand> resolveArbitrationHandler,
     ICurrentUserService currentUserService,
     IBackgroundJobClient backgroundJobClient,
@@ -40,8 +40,11 @@ public class FeedImportService(
             return result.Error!;
         }
 
-        var items = (result.Value!.Items ?? []).Select(FeedImportDecisionViewModel.From).ToList();
-        return new FeedImportDecisionPageViewModel(items, result.Value.TotalCount);
+        var decisionPage = result.Value!;
+        var items = (decisionPage.Decisions.Items ?? [])
+            .Select(d => FeedImportDecisionViewModel.From(d, decisionPage.MultiBookEntryIds.Contains(d.MinifluxEntryId)))
+            .ToList();
+        return new FeedImportDecisionPageViewModel(items, decisionPage.Decisions.TotalCount);
     }
 
     public Result TriggerSync()
