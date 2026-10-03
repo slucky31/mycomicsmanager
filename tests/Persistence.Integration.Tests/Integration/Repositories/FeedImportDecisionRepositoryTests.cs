@@ -127,4 +127,25 @@ public class FeedImportDecisionRepositoryTests(IntegrationTestWebAppFactory fact
         found.ParsedVolume.Should().Be(3);
         found.GetCandidates().Should().ContainSingle().Which.Should().BeEquivalentTo(candidate);
     }
+
+    [Fact]
+    public async Task SaveChangesAsync_Should_InsertNewEvent_WhenLoadedDecisionTransitions()
+    {
+        // Arrange
+        var decision = CreateDecision(Guid.CreateVersion7(), 7007);
+        FeedImportDecisionRepository.Add(decision);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        Context.ChangeTracker.Clear();
+        var loaded = await FeedImportDecisionRepository.GetByIdAsync(decision.Id, TestContext.Current.CancellationToken);
+        loaded!.Fail("Step", "Erreur");
+
+        // Act
+        var result = await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        var eventCount = await Context.FeedImportDecisionEvents
+            .CountAsync(e => e.FeedImportDecisionId == decision.Id, TestContext.Current.CancellationToken);
+        eventCount.Should().Be(2);
+    }
 }

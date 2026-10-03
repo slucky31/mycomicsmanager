@@ -122,6 +122,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
 
         var decisionEvent = modelBuilder.Entity<FeedImportDecisionEvent>();
         decisionEvent.ToTable("FeedImportDecisionEvents");
+        // Client-generated key: without this, an event added to a tracked decision is saved as an UPDATE.
+        decisionEvent.Property(e => e.Id).ValueGeneratedNever();
         decisionEvent.Property(e => e.Description).HasMaxLength(FeedImportConstants.MaxEventDescriptionLength);
     }
 }
