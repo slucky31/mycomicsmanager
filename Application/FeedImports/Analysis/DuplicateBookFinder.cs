@@ -24,21 +24,23 @@ public static class DuplicateBookFinder
         ArgumentNullException.ThrowIfNull(parsed);
         ArgumentNullException.ThrowIfNull(books);
 
-        var isbn = NormalizeIsbn(parsed.Isbn);
-        if (isbn is not null)
+        var byIsbn = FindByIsbn(parsed.Isbn, books);
+        if (byIsbn is not null)
         {
-            var byIsbn = books.FirstOrDefault(b => NormalizeIsbn(b.Isbn) == isbn);
-            if (byIsbn is not null)
-            {
-                return new DuplicateMatch(DuplicateMatchKind.Certain, byIsbn);
-            }
+            return new DuplicateMatch(DuplicateMatchKind.Certain, byIsbn);
         }
 
-        if (!parsed.HasSerie)
-        {
-            return DuplicateMatch.None;
-        }
+        return parsed.HasSerie ? FindBySerie(parsed, books) : DuplicateMatch.None;
+    }
 
+    private static BookIdentityDto? FindByIsbn(string? parsedIsbn, IReadOnlyList<BookIdentityDto> books)
+    {
+        var isbn = NormalizeIsbn(parsedIsbn);
+        return isbn is null ? null : books.FirstOrDefault(b => NormalizeIsbn(b.Isbn) == isbn);
+    }
+
+    private static DuplicateMatch FindBySerie(ParsedComicTitle parsed, IReadOnlyList<BookIdentityDto> books)
+    {
         BookIdentityDto? probable = null;
         var bestSimilarity = 0d;
         foreach (var book in books)
@@ -50,9 +52,7 @@ public static class DuplicateBookFinder
                 return new DuplicateMatch(DuplicateMatchKind.Certain, book);
             }
 
-            var isProbable = (similarity >= 1 && !parsed.Volume.HasValue) ||
-                             (similarity >= SerieMatcher.ProbableMatchThreshold && sameVolume);
-            if (isProbable && similarity > bestSimilarity)
+            if (IsProbable(similarity, sameVolume, parsed.Volume.HasValue) && similarity > bestSimilarity)
             {
                 probable = book;
                 bestSimilarity = similarity;
@@ -61,6 +61,9 @@ public static class DuplicateBookFinder
 
         return probable is null ? DuplicateMatch.None : new DuplicateMatch(DuplicateMatchKind.Probable, probable);
     }
+
+    private static bool IsProbable(double similarity, bool sameVolume, bool hasVolume) =>
+        (similarity >= 1 && !hasVolume) || (similarity >= SerieMatcher.ProbableMatchThreshold && sameVolume);
 
     private static string? NormalizeIsbn(string? isbn)
     {
