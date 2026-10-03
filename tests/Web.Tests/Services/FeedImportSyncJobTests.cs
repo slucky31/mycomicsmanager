@@ -1,14 +1,17 @@
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Analyze;
+using Application.FeedImports.Refresh;
 using Application.FeedImports.Sync;
 using Application.Interfaces;
 using Application.Users;
 using AwesomeAssertions;
+using Domain.FeedImports;
 using Domain.Primitives;
 using Domain.Users;
 using Hangfire;
 using Hangfire.Common;
+using Hangfire.States;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -25,8 +28,11 @@ public sealed class FeedImportSyncJobTests
     private readonly IUserReadService _userReadService;
     private readonly IFeedImportDecisionRepository _decisionRepository;
     private readonly ICommandHandler<AnalyzeFeedImportDecisionCommand> _analyzeHandler;
+    private readonly ICommandHandler<RefreshFeedImportStatusesCommand> _refreshHandler;
+    private readonly IBackgroundJobClient _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly FeedImportSettings _settings = new() { Enabled = true, UserEmail = UserEmail };
+    private readonly DebridLinkSettings _debridLinkSettings = new() { ApiKey = "key" };
 
     public FeedImportSyncJobTests()
     {
@@ -34,13 +40,17 @@ public sealed class FeedImportSyncJobTests
         _userReadService = Substitute.For<IUserReadService>();
         _decisionRepository = Substitute.For<IFeedImportDecisionRepository>();
         _decisionRepository.GetPendingIdsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
+        _decisionRepository.GetIdsByStatusAsync(Arg.Any<Guid>(), Arg.Any<FeedImportDecisionStatus>(), Arg.Any<CancellationToken>()).Returns([]);
         _analyzeHandler = Substitute.For<ICommandHandler<AnalyzeFeedImportDecisionCommand>>();
+        _refreshHandler = Substitute.For<ICommandHandler<RefreshFeedImportStatusesCommand>>();
+        _refreshHandler.Handle(Arg.Any<RefreshFeedImportStatusesCommand>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         var serviceProvider = Substitute.For<IServiceProvider>();
         serviceProvider.GetService(typeof(ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult>)).Returns(_handler);
         serviceProvider.GetService(typeof(IUserReadService)).Returns(_userReadService);
         serviceProvider.GetService(typeof(IFeedImportDecisionRepository)).Returns(_decisionRepository);
         serviceProvider.GetService(typeof(ICommandHandler<AnalyzeFeedImportDecisionCommand>)).Returns(_analyzeHandler);
+        serviceProvider.GetService(typeof(ICommandHandler<RefreshFeedImportStatusesCommand>)).Returns(_refreshHandler);
 
         var scope = Substitute.For<IServiceScope>();
         scope.ServiceProvider.Returns(serviceProvider);
@@ -48,7 +58,48 @@ public sealed class FeedImportSyncJobTests
         _scopeFactory.CreateScope().Returns(scope);
     }
 
-    private FeedImportSyncJob CreateJob() => new(_scopeFactory, Options.Create(_settings));
+    private FeedImportSyncJob CreateJob() =>
+        new(_scopeFactory, _backgroundJobClient, Options.Create(_settings), Options.Create(_debridLinkSettings));
+
+    private User ArrangeUserWithFailedSync()
+    {
+        var user = User.Create(UserEmail, "auth0|1");
+        _userReadService.GetUserByEmail(UserEmail, Arg.Any<CancellationToken>()).Returns(user);
+        _handler.Handle(Arg.Any<SyncFeedImportsCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result<SyncFeedImportsResult>.Failure(new TError("FEED502", "Miniflux down")));
+        return user;
+    }
+
+    [Fact]
+    public async Task SyncAsync_Should_RefreshStatusesAndEnqueueOneDownloadPerDecision_WhenApiKeyIsSet()
+    {
+        var user = ArrangeUserWithFailedSync();
+        var first = Guid.CreateVersion7();
+        var second = Guid.CreateVersion7();
+        _decisionRepository.GetIdsByStatusAsync(user.Id, FeedImportDecisionStatus.LinksExtracted, Arg.Any<CancellationToken>())
+            .Returns([first, second]);
+
+        await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
+
+        await _refreshHandler.Received(1).Handle(new RefreshFeedImportStatusesCommand(user.Id), Arg.Any<CancellationToken>());
+        _backgroundJobClient.Received(1).Create(
+            Arg.Is<Job>(j => j.Type == typeof(FeedImportDownloadJob) && (Guid)j.Args[0] == first), Arg.Any<IState>());
+        _backgroundJobClient.Received(1).Create(
+            Arg.Is<Job>(j => j.Type == typeof(FeedImportDownloadJob) && (Guid)j.Args[0] == second), Arg.Any<IState>());
+    }
+
+    [Fact]
+    public async Task SyncAsync_Should_NotEnqueueDownloads_WhenApiKeyIsMissing()
+    {
+        var user = ArrangeUserWithFailedSync();
+        _debridLinkSettings.ApiKey = string.Empty;
+        _decisionRepository.GetIdsByStatusAsync(user.Id, FeedImportDecisionStatus.LinksExtracted, Arg.Any<CancellationToken>())
+            .Returns([Guid.CreateVersion7()]);
+
+        await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
+
+        _backgroundJobClient.DidNotReceiveWithAnyArgs().Create(default!, default!);
+    }
 
     [Fact]
     public async Task SyncAsync_Should_RunSyncForConfiguredUser_WhenEnabled()

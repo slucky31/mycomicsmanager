@@ -12,7 +12,7 @@ public sealed record FeedImportDecisionEventViewModel(
     string Description);
 
 #pragma warning disable CA1054, CA1056 // URL displayed as a link, validated by the domain
-public sealed record FeedImportMirrorViewModel(string Url, string Host);
+public sealed record FeedImportMirrorViewModel(string Url, string Host, bool IsChosen = false);
 
 public sealed record FeedImportCandidateViewModel(int Index, string Label, string? FileName, string? SizeDisplay, IReadOnlyList<FeedImportMirrorViewModel> Mirrors)
 {
@@ -36,7 +36,8 @@ public sealed record FeedImportDecisionViewModel(
     string? ItemDisplay,
     FeedImportArbitrationKind ArbitrationKind,
     Guid? MatchedBookId,
-    IReadOnlyList<FeedImportCandidateViewModel> Candidates)
+    IReadOnlyList<FeedImportCandidateViewModel> Candidates,
+    Guid? DigitalBookId = null)
 #pragma warning restore CA1054, CA1056
 {
     private static readonly CultureInfo s_displayCulture = CultureInfo.GetCultureInfo("fr-FR");
@@ -88,8 +89,9 @@ public sealed record FeedImportDecisionViewModel(
                     c.Label,
                     c.FileName,
                     c.SizeBytes.HasValue ? FormatSize(c.SizeBytes.Value) : null,
-                    c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host)).ToList()))
-                .ToList());
+                    c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host, m.Url == decision.ChosenMirror)).ToList()))
+                .ToList(),
+            DigitalBookId: decision.DigitalBookId);
     }
 
     // Fixed French format: "03/10/2026 19:23" whatever the server culture.

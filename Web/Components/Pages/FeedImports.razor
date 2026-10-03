@@ -164,6 +164,14 @@
                                            StartIcon="@Icons.Material.Filled.OpenInNew" Class="mt-1">
                                     Ouvrir l'article
                                 </MudButton>
+                                @if (context.DigitalBookId is not null)
+                                {
+                                    <MudButton Href="@($"/books/{context.DigitalBookId}")"
+                                               Size="Size.Small" Variant="Variant.Text" Color="Color.Success"
+                                               StartIcon="@Icons.Material.Filled.MenuBook" Class="mt-1">
+                                        Voir le livre importé
+                                    </MudButton>
+                                }
                             </section>
 
                             <section class="feed-imports-detail-section">
@@ -194,8 +202,10 @@
                                         <div class="feed-imports-mirrors">
                                             @foreach (var mirror in candidate.Mirrors)
                                             {
-                                                <a class="feed-imports-mirror" href="@mirror.Url" target="_blank" rel="noopener noreferrer nofollow">
-                                                    <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" />
+                                                <a class="@(mirror.IsChosen ? "feed-imports-mirror is-chosen" : "feed-imports-mirror")" href="@mirror.Url"
+                                                   target="_blank" rel="noopener noreferrer nofollow"
+                                                   title="@(mirror.IsChosen ? "Miroir utilisé pour le téléchargement" : null)">
+                                                    <MudIcon Icon="@(mirror.IsChosen ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.OpenInNew)" Size="Size.Small" />
                                                     @mirror.Host
                                                 </a>
                                             }

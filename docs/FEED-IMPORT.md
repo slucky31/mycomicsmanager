@@ -4,10 +4,10 @@ Ce guide décrit comment brancher MCM sur le Miniflux du Raspberry Pi pour
 importer automatiquement les BD marquées d'une étoile. La décision
 d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-debrid-link.md).
 
-> État actuel : synchronisation Miniflux, analyse des articles (extraction et
-> regroupement des liens, détection des doublons) et arbitrage dans
-> `/feed-imports` sont en place (lots 2 et 3). Le téléchargement via
-> Debrid-Link arrive au lot 4 : pour l'instant, rien n'est téléchargé.
+> État actuel : synchronisation Miniflux, analyse des articles, arbitrage
+> (lots 2 et 3) et téléchargement via Debrid-Link avec dépôt dans la
+> bibliothèque « À trier » (lot 4) sont en place. Les actions manuelles
+> (forcer, ignorer, relancer…) arrivent au lot 5.
 
 ## Fonctionnement
 
@@ -31,6 +31,21 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
 5. Le suivi et l'arbitrage se font dans la page **Feeds** (`/feed-imports`) de MCM : déplier une
    décision « À arbitrer » pour choisir le bon lien, fusionner les liens en miroirs, ou confirmer /
    infirmer le doublon.
+6. À la fin de chaque synchronisation, si `DebridLink:ApiKey` est renseignée, chaque décision
+   `LinksExtracted` (y compris celles débloquées par un arbitrage) part dans un job Hangfire
+   `FeedImportDownloadJob` :
+   - la bibliothèque digitale `FeedImport:TargetLibraryName` (« À trier ») est créée au besoin ;
+   - les miroirs sont essayés dans l'ordre de `DebridLink:HosterPriority`, en sautant les hébergeurs
+     que Debrid-Link ne prend pas en charge ; chaque échec de miroir est tracé dans l'historique ;
+   - le lien direct renvoyé par Debrid-Link n'est suivi que si son domaine est dans
+     `FeedImport:AllowedDownloadHosts` ou `DebridLink:DownloadHosts` ; nom, extension
+     (`Import:SupportedExtensions`) et taille (`Import:MaxFileSizeMb`) sont vérifiés avant et pendant
+     le téléchargement ;
+   - le fichier est téléchargé dans `Import:TempDirectory`, l'`ImportJob` est créé, puis le fichier
+     est déposé dans le dossier d'import de la bibliothèque (copie en `.part` puis renommage) →
+     `Downloaded` ;
+   - à la synchronisation suivante, la décision passe à `Imported` (lien « Voir le livre importé »)
+     quand l'import est terminé, ou à `Failed` si l'import a échoué.
 
 ### Règles de doublon
 
@@ -114,6 +129,7 @@ environment:
   Miniflux__BaseUrl: "http://miniflux:8080"
   Miniflux__ApiKey: "<cle-api>"           # secret : jamais dans appsettings.*.json
   Miniflux__CategoryName: "BD"
+  DebridLink__ApiKey: "<cle-api-debrid-link>"  # secret : jamais dans appsettings.*.json
 ```
 
 | Clé | Défaut | Rôle |
@@ -121,12 +137,16 @@ environment:
 | `FeedImport:Enabled` | `false` | Active la synchronisation ; à `false`, le job récurrent est retiré de Hangfire |
 | `FeedImport:UserEmail` | — | Email de l'utilisateur MCM propriétaire des décisions (obligatoire si activé) |
 | `FeedImport:SyncIntervalMinutes` | `30` | Intervalle du job `feed-import-sync` |
-| `FeedImport:TargetLibraryName` | `À trier` | Bibliothèque digitale de dépôt (utilisée à partir du lot 4) |
+| `FeedImport:TargetLibraryName` | `À trier` | Bibliothèque digitale de dépôt, créée au premier téléchargement |
 | `FeedImport:AllowedSourceHosts` | `planete-bd.org`, `zone-ebook.com` | Domaines des pages d'articles autorisés, sous-domaines compris |
 | `FeedImport:AllowedDownloadHosts` | `fileq.net`, `dailyuploads.net`, `frdl.io`, `katfile.biz`, `trbt.cc`, `turbobit.net`, `rapidgator.net`, `1fichier.com` | Domaines des hébergeurs dont les liens sont retenus, sous-domaines compris (relevés sur les deux sites en octobre 2026) |
 | `Miniflux:BaseUrl` | `http://miniflux:8080` | URL de Miniflux ; seul cet hôte est autorisé par le garde-fou SSRF |
 | `Miniflux:ApiKey` | — | Clé d'API Miniflux (obligatoire si activé) — `Miniflux__ApiKey` |
 | `Miniflux:CategoryName` | `BD` | Catégorie Miniflux surveillée |
+| `DebridLink:ApiKey` | — | Clé d'API privée Debrid-Link (compte → API) — `DebridLink__ApiKey`. Vide : rien n'est téléchargé |
+| `DebridLink:BaseUrl` | `https://debrid-link.com/api/v2/` | API Debrid-Link ; seul cet hôte est autorisé, en HTTPS |
+| `DebridLink:HosterPriority` | `1fichier.com`, `rapidgator.net`, `turbobit.net`, `trbt.cc`, `katfile.biz`, `dailyuploads.net`, `fileq.net`, `frdl.io` | Ordre d'essai des miroirs ; les autres viennent ensuite, dans l'ordre de la page |
+| `DebridLink:DownloadHosts` | `debrid.link`, `debrid-link.com`, `debrid-link.fr` | Domaines des serveurs de fichiers Debrid-Link (liens directs), sous-domaines compris |
 
 Pour une liste, une variable par élément : `FeedImport__AllowedDownloadHosts__0`,
 `FeedImport__AllowedDownloadHosts__1`, etc.
@@ -165,3 +185,10 @@ synchronisation (`Feed import sync done: ...`) ou l'erreur rencontrée
 | Décision « Échoué » à l'étape *Source* | Le domaine de l'article n'est pas dans `FeedImport:AllowedSourceHosts` |
 | Décision « Échoué » à l'étape *Extraction des liens* | Aucun lien vers un hébergeur de `FeedImport:AllowedDownloadHosts` sur la page |
 | L'article reste ★ dans Miniflux | Échec du retrait d'étoile : il est réessayé à chaque synchronisation (voir les logs `failed to unstar`) |
+| Les décisions restent « Liens extraits » | `DebridLink:ApiKey` absente (log `Feed import downloads skipped`) |
+| Décision « Échoué » à l'étape *Téléchargement* : clé absente ou invalide | Clé Debrid-Link expirée ou révoquée : en générer une nouvelle |
+| Décision « Échoué » : *Domaine de téléchargement non autorisé (xxx)* | Debrid-Link sert le fichier depuis un domaine inconnu : l'ajouter à `DebridLink:DownloadHosts` |
+| Décision « Échoué » : *Quota Debrid-Link atteint* | Limite journalière du compte : les autres miroirs ne sont pas essayés pour ne pas consommer le quota |
+| Décision « Échoué » à l'étape *Bibliothèque* | Une bibliothèque **physique** porte déjà le nom `FeedImport:TargetLibraryName` |
+| Décision « Échoué » à l'étape *Import* | L'import du fichier déposé a échoué (archive corrompue...) : voir aussi la page des imports |
+| Décision bloquée en « Téléchargement... » | Application arrêtée pendant le téléchargement ; la relance manuelle arrive au lot 5 |

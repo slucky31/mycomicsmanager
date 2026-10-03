@@ -98,4 +98,23 @@ public sealed class FeedImportDecisionViewModelTests
         viewModel.Events.Should().ContainSingle().Which.OccurredAtDisplay.Should().Be(viewModel.CreatedAtDisplay);
         FeedImportDecisionViewModel.From(decision).ItemDisplay.Should().BeNull();
     }
+
+    [Fact]
+    public void From_Should_FlagChosenMirrorAndImportedBook_WhenDecisionIsImported()
+    {
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 9, "Blacksad - Tome 3", "https://planete-bd.org/9", null).Value!;
+        decision.RecordLinks(
+            [new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", null,
+                [new DownloadMirror("https://1fichier.com/?a", "1fichier.com"), new DownloadMirror("https://rapidgator.net/file/b", "rapidgator.net")])],
+            ParsedComicTitle.Empty, "2 miroirs", FeedImportDecidedBy.Auto);
+        decision.StartDownload();
+        decision.MarkDownloaded("https://rapidgator.net/file/b", Guid.CreateVersion7(), "À trier");
+        var bookId = Guid.CreateVersion7();
+        decision.MarkImported(bookId);
+
+        var viewModel = FeedImportDecisionViewModel.From(decision);
+
+        viewModel.DigitalBookId.Should().Be(bookId);
+        viewModel.Candidates[0].Mirrors.Select(m => m.IsChosen).Should().Equal(false, true);
+    }
 }

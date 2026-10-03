@@ -176,4 +176,17 @@ public class ArchitectureTests
 
         implementations.Should().BeEmpty();
     }
+
+    [Theory]
+    [InlineData(typeof(IDebridLinkClient))]
+    [InlineData(typeof(IFeedImportFileDownloader))]
+    public void DownloadClientImplementations_Should_StayOutOfDomainApplicationAndPersistence(Type clientInterface)
+    {
+        var implementations = Types.InAssemblies([DomainAssembly, ApplicationAssembly, PersistenceAssembly])
+            .That()
+            .ImplementInterface(clientInterface)
+            .GetTypes();
+
+        implementations.Should().BeEmpty();
+    }
 }

@@ -2,6 +2,7 @@ using Application.Abstractions.Messaging;
 using Application.ComicInfoSearch;
 using Application.FeedImports.Analysis;
 using Application.FeedImports.Analysis.Sites;
+using Application.FeedImports.Download;
 using Application.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -21,6 +22,9 @@ public static class ApplicationDependencyInjection
         );
 
         services.AddScoped<IComicSearchService, ComicSearchService>();
+        services.AddScoped<FeedImportDownloadServices>();
+        services.AddScoped<FeedImportDepositServices>();
+        services.AddScoped<FeedImportDownloadOptions>();
 
         // Site-specific extractors are registered before the generic fallback.
         services.AddSingleton<IDownloadLinkExtractor, PlaneteBdLinkExtractor>();
