@@ -1,6 +1,7 @@
 using Application.Books;
 using Application.FeedImports;
 using Application.FeedImports.Analysis;
+using Application.FeedImports.Analysis.Sites;
 using Application.FeedImports.Analyze;
 using Application.Interfaces;
 using Domain.FeedImports;
@@ -20,8 +21,8 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly FeedImportSettings _settings = new()
     {
-        AllowedSourceHosts = ["planete-bd.org"],
-        AllowedDownloadHosts = ["1fichier.com", "rapidgator.net"]
+        AllowedSourceHosts = ["planete-bd.org", "zone-ebook.com"],
+        AllowedDownloadHosts = ["1fichier.com", "rapidgator.net", "fileq.net", "dailyuploads.net", "frdl.io", "katfile.biz", "trbt.cc"]
     };
     private readonly AnalyzeFeedImportDecisionCommandHandler _handler;
 
@@ -30,7 +31,9 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _bookReadService.ListIdentitiesByUserAsync(s_userId, Arg.Any<CancellationToken>()).Returns([]);
         _handler = new AnalyzeFeedImportDecisionCommandHandler(
-            _repository, _pageFetcher, [new GenericDownloadLinkExtractor()], _bookReadService, _unitOfWork, Options.Create(_settings));
+            _repository, _pageFetcher,
+            [new PlaneteBdLinkExtractor(), new ZoneEbookLinkExtractor(), new GenericDownloadLinkExtractor()],
+            _bookReadService, _unitOfWork, Options.Create(_settings));
     }
 
     private FeedImportDecision GivenDecision(string title = "Blacksad - Tome 3 - Âme rouge", string url = "https://www.planete-bd.org/blacksad-3")
@@ -171,5 +174,50 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         await _pageFetcher.DidNotReceive().GetHtmlAsync(Arg.Any<Uri>(), Arg.Any<CancellationToken>());
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    private static string Fixture(string name) =>
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "FeedImports", "Fixtures", name));
+
+    [Fact]
+    public async Task Handle_Should_FetchOverHttpsAndSplitBooks_WhenRealMultiTomeArticle()
+    {
+        var decision = GivenDecision(
+            title: "Metronom' - Les 5 tomes (Re-Up)",
+            url: "http://planete-bd.org/bd/149155-metronom-les-5-tomes-re-up.html");
+        GivenPage(Fixture("planete-bd_149155-metronom-les-5-tomes.html"));
+        var added = new List<FeedImportDecision>();
+        _repository.When(r => r.Add(Arg.Any<FeedImportDecision>())).Do(c => added.Add(c.Arg<FeedImportDecision>()));
+
+        await HandleAsync(decision);
+
+        await _pageFetcher.Received(1).GetHtmlAsync(
+            new Uri("https://planete-bd.org/bd/149155-metronom-les-5-tomes-re-up.html"), Arg.Any<CancellationToken>());
+        added.Should().HaveCount(4);
+        new[] { decision }.Concat(added).Should().AllSatisfy(d =>
+        {
+            d.Status.Should().Be(FeedImportDecisionStatus.LinksExtracted);
+            d.ParsedSerie.Should().Be("Metronom");
+        });
+        new[] { decision }.Concat(added).Select(d => d.ParsedVolume).Should().BeEquivalentTo([1, 3, 4, 5, 2]);
+    }
+
+    [Fact]
+    public async Task Handle_Should_DetectDuplicateByPageIsbn_WhenRealArticleStatesIt()
+    {
+        var decision = GivenDecision(
+            title: "Avaler La Lune - Tome 03 - Le Refuge (2026)",
+            url: "http://zone-ebook.com/bd-comics-mangas/424424-avaler-la-lune-tome-03-le-refuge-2026.html");
+        GivenPage(Fixture("zone-ebook_424424-avaler-la-lune-tome-03.html"));
+        var existing = new BookIdentityDto(Guid.CreateVersion7(), "Une autre série", "Le Refuge", 9, "978-2-203-21158-2", "BD");
+        _bookReadService.ListIdentitiesByUserAsync(s_userId, Arg.Any<CancellationToken>()).Returns([existing]);
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.SkippedDuplicate);
+        decision.MatchedBookId.Should().Be(existing.Id);
+        decision.ParsedSerie.Should().Be("Avaler La Lune");
+        decision.ParsedVolume.Should().Be(3);
+        decision.GetCandidates().Should().ContainSingle().Which.Mirrors.Should().HaveCount(3);
     }
 }

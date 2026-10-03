@@ -64,6 +64,8 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
             return decision.Fail(SourceStep, $"{FeedImportError.SourceHostNotAllowed.Description} ({pageUri.Host})");
         }
 
+        // Feed links are often plain http://: the page is always fetched over HTTPS.
+        pageUri = ToHttps(pageUri);
         var htmlResult = await pageFetcher.GetHtmlAsync(pageUri, cancellationToken);
         if (htmlResult.IsFailure)
         {
@@ -74,7 +76,8 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
 
         var extractor = extractors.FirstOrDefault(e => !e.IsFallback && e.CanHandle(pageUri))
                         ?? extractors.First(e => e.IsFallback);
-        var links = extractor.Extract(htmlResult.Value!, pageUri, settings.AllowedDownloadHosts);
+        var extraction = extractor.Extract(htmlResult.Value!, pageUri, settings.AllowedDownloadHosts);
+        var links = extraction.Links;
         if (links.Count == 0)
         {
             return decision.Fail(ExtractionStep, "Aucun lien vers un hébergeur autorisé (FeedImport:AllowedDownloadHosts).");
@@ -90,11 +93,15 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         }
 
         var books = await bookReadService.ListIdentitiesByUserAsync(decision.UserId, cancellationToken);
-        return ApplyToBooks(decision, grouping.Candidates, books);
+        return ApplyToBooks(decision, grouping.Candidates, books, extraction.Isbn);
     }
 
     // One decision per book: the original keeps the first book, the others become sibling decisions.
-    private Result ApplyToBooks(FeedImportDecision decision, IReadOnlyList<DownloadCandidate> candidates, IReadOnlyList<Books.BookIdentityDto> books)
+    private Result ApplyToBooks(
+        FeedImportDecision decision,
+        IReadOnlyList<DownloadCandidate> candidates,
+        IReadOnlyList<Books.BookIdentityDto> books,
+        string? pageIsbn)
     {
         var isOnlyBook = candidates.Count == 1;
         var decisions = new List<FeedImportDecision> { decision };
@@ -111,7 +118,8 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
 
         for (var i = 0; i < candidates.Count; i++)
         {
-            var parsed = FeedImportAnalysisRules.ParseCandidate(candidates[i], decision.EntryTitle, isOnlyBook);
+            // The ISBN printed on the page only describes the book when the article holds a single one.
+            var parsed = FeedImportAnalysisRules.ParseCandidate(candidates[i], decision.EntryTitle, isOnlyBook, isOnlyBook ? pageIsbn : null);
             var applied = FeedImportAnalysisRules.ApplyDuplicateCheck(decisions[i], candidates[i], parsed, books, FeedImportDecidedBy.Auto);
             if (applied.IsFailure)
             {
@@ -121,4 +129,8 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
 
         return Result.Success();
     }
+
+    private static Uri ToHttps(Uri uri) => uri.Scheme == Uri.UriSchemeHttp
+        ? new UriBuilder(uri) { Scheme = Uri.UriSchemeHttps, Port = -1 }.Uri
+        : uri;
 }

@@ -29,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="FeedImports\Fixtures\*.html" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Application\Application.csproj" />
     <ProjectReference Include="..\..\Persistence\Persistence.csproj" />
   </ItemGroup>

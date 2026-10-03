@@ -58,4 +58,33 @@ public class ComicTitleParserTests
     {
         ComicTitleParser.Parse(input).Should().Be(ParsedComicTitle.Empty);
     }
+
+    // Real titles and file names seen on planete-bd.org / zone-ebook.com.
+    [Theory]
+    [InlineData("Tramp - Tome 15 - Les Naufragés du Lavalette - Kraehn (Jean-Charles) (2026)", "Tramp", 15)]
+    [InlineData("La Guerre des magiciens T02: Londres - DAL'PRA+TRILLO+MANDRAFINA", "La Guerre des magiciens", 2)]
+    [InlineData("Avaler La Lune - Tome 03 - Le Refuge (2026)", "Avaler La Lune", 3)]
+    [InlineData("El Borbah - Tome 1", "El Borbah", 1)]
+    [InlineData("Ladies.with.Guns.T02.pdf", "Ladies with Guns", 2)]
+    [InlineData("Tramp.Tome.15.Les.Naufrag.s.du.Lavalette.rar", "Tramp", 15)]
+    [InlineData("Guerre.Des.Magiciens.La.T02.Londres.cbz.cbz", "Guerre Des Magiciens La", 2)]
+    [InlineData("Les.vents.de.la.colre.T01.cbz", "Les vents de la colre", 1)]
+    public void Parse_Should_ReadRealFeedTitlesAndFileNames(string input, string serie, int volume)
+    {
+        var parsed = ComicTitleParser.Parse(input);
+
+        parsed.Serie.Should().Be(serie);
+        parsed.Volume.Should().Be(volume);
+    }
+
+    [Theory]
+    [InlineData("Fluide (Re-Up)", "Fluide")]
+    [InlineData("Metronom' - Les 5 tomes (Re-Up)", "Metronom'")]
+    public void Parse_Should_DropReUploadMarker_WhenTitleHasNoVolume(string input, string serie)
+    {
+        var parsed = ComicTitleParser.Parse(input);
+
+        parsed.Serie.Should().Be(serie);
+        parsed.Volume.Should().BeNull();
+    }
 }

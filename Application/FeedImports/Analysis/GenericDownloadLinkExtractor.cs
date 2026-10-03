@@ -10,19 +10,25 @@ public sealed class GenericDownloadLinkExtractor : IDownloadLinkExtractor
 
     public bool CanHandle(Uri pageUri) => true;
 
-    public IReadOnlyList<ExtractedLink> Extract(string html, Uri pageUri, IReadOnlyList<string> allowedDownloadHosts)
+    public ArticleExtraction Extract(string html, Uri pageUri, IReadOnlyList<string> allowedDownloadHosts)
     {
         ArgumentNullException.ThrowIfNull(pageUri);
         ArgumentNullException.ThrowIfNull(allowedDownloadHosts);
 
         if (string.IsNullOrWhiteSpace(html) || allowedDownloadHosts.Count == 0)
         {
-            return [];
+            return ArticleExtraction.Empty;
         }
 
         var document = new HtmlDocument();
         document.LoadHtml(html);
-        var anchors = document.DocumentNode.SelectNodes("//a[@href]");
+        return new ArticleExtraction(ExtractLinks(document.DocumentNode, pageUri, allowedDownloadHosts));
+    }
+
+    // Anchors of a node towards allowed hosts, in document order, without duplicates.
+    internal static IReadOnlyList<ExtractedLink> ExtractLinks(HtmlNode root, Uri pageUri, IReadOnlyList<string> allowedDownloadHosts)
+    {
+        var anchors = root.SelectNodes(".//a[@href]");
         if (anchors is null)
         {
             return [];
@@ -54,6 +60,11 @@ public sealed class GenericDownloadLinkExtractor : IDownloadLinkExtractor
         }
 
         var text = HtmlEntity.DeEntitize(anchor.InnerText).Trim();
+        if (IsProfileLink(url))
+        {
+            return null;
+        }
+
         var surroundingText = HtmlEntity.DeEntitize(anchor.ParentNode?.InnerText ?? string.Empty);
         return new ExtractedLink(
             url.AbsoluteUri,
@@ -63,4 +74,13 @@ public sealed class GenericDownloadLinkExtractor : IDownloadLinkExtractor
             LinkMetadataParser.FindSizeBytes(text) ?? LinkMetadataParser.FindSizeBytes(surroundingText),
             groupKey);
     }
+
+    // Hosters' "all my files" pages (e.g. https://fileq.net/users/xyz) are not downloads.
+    private static bool IsProfileLink(Uri url)
+    {
+        var firstSegment = url.Segments.Length > 1 ? url.Segments[1].Trim('/') : string.Empty;
+        return s_profileSegments.Contains(firstSegment);
+    }
+
+    private static readonly HashSet<string> s_profileSegments = new(["users", "user", "folder", "folders", "profile"], StringComparer.OrdinalIgnoreCase);
 }

@@ -10,7 +10,7 @@ public static class SerieMatcher
 
     private static readonly HashSet<string> s_leadingArticles = new(["LE", "LA", "LES", "L", "UN", "UNE", "DES", "THE", "A"], StringComparer.Ordinal);
 
-    // Upper-case, without diacritics, punctuation or leading article: "L'Arabe du futur" -> "ARABE DU FUTUR".
+    // Upper-case, without diacritics, punctuation or leading/trailing article: "L'Arabe du futur" -> "ARABE DU FUTUR".
     public static string Normalize(string? serie)
     {
         if (string.IsNullOrWhiteSpace(serie))
@@ -28,6 +28,12 @@ public static class SerieMatcher
         if (words.Count > 1 && s_leadingArticles.Contains(words[0]))
         {
             words.RemoveAt(0);
+        }
+
+        // File names often move the article to the end: "Guerre.Des.Magiciens.La".
+        if (words.Count > 1 && s_leadingArticles.Contains(words[^1]))
+        {
+            words.RemoveAt(words.Count - 1);
         }
 
         return string.Join(' ', words);

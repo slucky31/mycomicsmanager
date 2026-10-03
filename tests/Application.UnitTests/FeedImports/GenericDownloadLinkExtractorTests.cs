@@ -23,7 +23,7 @@ public class GenericDownloadLinkExtractorTests
             </body></html>
             """;
 
-        var links = _extractor.Extract(html, s_page, s_hosts);
+        var links = _extractor.Extract(html, s_page, s_hosts).Links;
 
         links.Should().HaveCount(2);
         links[0].Url.Should().Be("https://1fichier.com/?abc123");
@@ -37,9 +37,9 @@ public class GenericDownloadLinkExtractorTests
     [Fact]
     public void Extract_Should_ReturnEmpty_WhenNoAllowedHostOrNoAnchor()
     {
-        _extractor.Extract("<p>Pas de lien</p>", s_page, s_hosts).Should().BeEmpty();
-        _extractor.Extract("<a href=\"https://1fichier.com/?a\">x</a>", s_page, []).Should().BeEmpty();
-        _extractor.Extract(string.Empty, s_page, s_hosts).Should().BeEmpty();
+        _extractor.Extract("<p>Pas de lien</p>", s_page, s_hosts).Links.Should().BeEmpty();
+        _extractor.Extract("<a href=\"https://1fichier.com/?a\">x</a>", s_page, []).Links.Should().BeEmpty();
+        _extractor.Extract(string.Empty, s_page, s_hosts).Links.Should().BeEmpty();
     }
 
     [Fact]
@@ -47,8 +47,21 @@ public class GenericDownloadLinkExtractorTests
     {
         const string html = "<a href=\"https://1fichier.com/?a\">Blacksad - T03 - Âme rouge.cbr</a>";
 
-        var link = _extractor.Extract(html, s_page, s_hosts).Should().ContainSingle().Subject;
+        var link = _extractor.Extract(html, s_page, s_hosts).Links.Should().ContainSingle().Subject;
 
         link.FileName.Should().Be("Blacksad - T03 - Âme rouge.cbr");
+    }
+
+    [Fact]
+    public void Extract_Should_IgnoreHosterProfileLinks()
+    {
+        const string html = """
+            <a href="https://1fichier.com/?a">Blacksad.T03.cbz - 50 MB</a>
+            Pour plus de fichiers : <a href="https://1fichier.com/users/someone">Tous mes fichiers</a>
+            """;
+
+        var links = _extractor.Extract(html, s_page, s_hosts).Links;
+
+        links.Should().ContainSingle().Which.Url.Should().Be("https://1fichier.com/?a");
     }
 }

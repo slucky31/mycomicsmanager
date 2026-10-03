@@ -74,10 +74,13 @@ public static partial class ComicTitleParser
     private static string Clean(string input)
     {
         var text = input.Trim();
+
+        // Uploads sometimes carry a doubled extension ("Londres.cbz.cbz").
         var extension = Path.GetExtension(text);
-        if (s_fileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+        while (s_fileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
         {
             text = text[..^extension.Length];
+            extension = Path.GetExtension(text);
         }
 
         // File names often use '_' or '.' instead of spaces.

@@ -9,6 +9,7 @@ public class SerieMatcherTests
     [InlineData("Les Vieux Fourneaux", "VIEUX FOURNEAUX")]
     [InlineData("Astérix", "ASTERIX")]
     [InlineData("Spirou & Fantasio", "SPIROU FANTASIO")]
+    [InlineData("Guerre Des Magiciens La", "GUERRE DES MAGICIENS")]
     [InlineData("Les", "LES")]
     [InlineData(null, "")]
     public void Normalize_Should_IgnoreCaseDiacriticsPunctuationAndLeadingArticle(string? serie, string expected)

@@ -9,13 +9,13 @@ namespace Application.FeedImports.Analysis;
 // Shared by the automatic analysis and the manual arbitration: parse a book, look for a duplicate, apply the transition.
 public static class FeedImportAnalysisRules
 {
-    public static ParsedComicTitle ParseCandidate(DownloadCandidate candidate, string articleTitle, bool isOnlyBookOfArticle)
+    public static ParsedComicTitle ParseCandidate(DownloadCandidate candidate, string articleTitle, bool isOnlyBookOfArticle, string? pageIsbn = null)
     {
         ArgumentNullException.ThrowIfNull(candidate);
 
         var article = ComicTitleParser.Parse(articleTitle);
         var file = ComicTitleParser.Parse(candidate.FileName ?? candidate.Label);
-        var isbn = candidate.FileName is null ? null : FileNameIsbnExtractor.ExtractIsbn(candidate.FileName);
+        var isbn = (candidate.FileName is null ? null : FileNameIsbnExtractor.ExtractIsbn(candidate.FileName)) ?? pageIsbn;
 
         // A single book is best described by the article title; in a multi-book article each file name describes its own book.
         return isOnlyBookOfArticle

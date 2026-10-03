@@ -19,7 +19,10 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
    son étoile est retirée dans Miniflux. Si le retrait échoue, il est
    réessayé à la synchronisation suivante, sans créer de doublon.
 4. Dans la foulée, chaque décision `Pending` est analysée :
-   - la page de l'article est récupérée (domaines de `FeedImport:AllowedSourceHosts` uniquement) ;
+   - la page de l'article est récupérée en HTTPS (domaines de `FeedImport:AllowedSourceHosts` uniquement) ;
+   - un extracteur dédié (planete-bd.org, zone-ebook.com) ne lit que le bloc de l'article — ni barre
+     latérale, ni publicités, ni liens « Tous mes fichiers » — et relève l'ISBN s'il est indiqué ; pour un
+     autre site, ou si la mise en page change, un extracteur générique lit toute la page ;
    - les liens vers les hébergeurs de `FeedImport:AllowedDownloadHosts` sont extraits puis regroupés :
      les liens vers le même fichier (même nom, ou hébergeurs différents) sont des **miroirs** ;
      des noms de fichiers différents sont des **livres différents**, chacun avec sa propre décision ;
@@ -120,7 +123,7 @@ environment:
 | `FeedImport:SyncIntervalMinutes` | `30` | Intervalle du job `feed-import-sync` |
 | `FeedImport:TargetLibraryName` | `À trier` | Bibliothèque digitale de dépôt (utilisée à partir du lot 4) |
 | `FeedImport:AllowedSourceHosts` | `planete-bd.org`, `zone-ebook.com` | Domaines des pages d'articles autorisés, sous-domaines compris |
-| `FeedImport:AllowedDownloadHosts` | `1fichier.com`, `rapidgator.net`, `turbobit.net`, `nitroflare.com` | Domaines des hébergeurs dont les liens sont retenus, sous-domaines compris ; à ajuster selon les hébergeurs réellement utilisés par les deux sites |
+| `FeedImport:AllowedDownloadHosts` | `fileq.net`, `dailyuploads.net`, `frdl.io`, `katfile.biz`, `trbt.cc`, `turbobit.net`, `rapidgator.net`, `1fichier.com` | Domaines des hébergeurs dont les liens sont retenus, sous-domaines compris (relevés sur les deux sites en octobre 2026) |
 | `Miniflux:BaseUrl` | `http://miniflux:8080` | URL de Miniflux ; seul cet hôte est autorisé par le garde-fou SSRF |
 | `Miniflux:ApiKey` | — | Clé d'API Miniflux (obligatoire si activé) — `Miniflux__ApiKey` |
 | `Miniflux:CategoryName` | `BD` | Catégorie Miniflux surveillée |

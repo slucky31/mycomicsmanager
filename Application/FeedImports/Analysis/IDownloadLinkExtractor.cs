@@ -8,5 +8,5 @@ public interface IDownloadLinkExtractor
     bool CanHandle(Uri pageUri);
 
     // Only links towards allowedDownloadHosts (subdomains included) are returned. Parsing never executes page content.
-    IReadOnlyList<ExtractedLink> Extract(string html, Uri pageUri, IReadOnlyList<string> allowedDownloadHosts);
+    ArticleExtraction Extract(string html, Uri pageUri, IReadOnlyList<string> allowedDownloadHosts);
 }
