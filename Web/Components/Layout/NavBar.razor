@@ -42,14 +42,6 @@
                    StartIcon="@Icons.Material.Filled.Settings">
             Settings
         </MudButton>
-        <AuthorizeView Roles="Admin">
-            <MudButton Class="@($"ml-3 navbar-item {(IsActive("/admin/log-levels") ? "active" : "")}")"
-                       Variant="Variant.Text"
-                       Href="/admin/log-levels"
-                       StartIcon="@Icons.Material.Filled.Tune">
-                Logs
-            </MudButton>
-        </AuthorizeView>
     </div>
 </MudAppBar>
 
@@ -78,10 +70,4 @@
         <MudIcon Icon="@Icons.Material.Filled.Settings" />
         <span class="bottom-nav-label">Settings</span>
     </a>
-    <AuthorizeView Roles="Admin">
-        <a href="/admin/log-levels" class="bottom-nav-item @(IsActive("/admin/log-levels") ? "active" : "")">
-            <MudIcon Icon="@Icons.Material.Filled.Tune" />
-            <span class="bottom-nav-label">Logs</span>
-        </a>
-    </AuthorizeView>
 </nav>

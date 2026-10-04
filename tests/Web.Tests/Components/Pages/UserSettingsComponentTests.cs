@@ -20,7 +20,7 @@ public sealed class UserSettingsComponentTests
         TimeSpan.Zero);
 
     private static async Task<(BunitContext Ctx, IRenderedComponent<UserSettings> Cut, ISnackbar Snackbar)> RenderAsync(
-        HealthCheckService healthCheckService)
+        HealthCheckService healthCheckService, bool isAdmin = false)
     {
         var snackbar = Substitute.For<ISnackbar>();
         var ctx = new BunitContext();
@@ -28,6 +28,12 @@ public sealed class UserSettingsComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton(healthCheckService);
         ctx.Services.AddSingleton(snackbar);
+        var authorization = ctx.AddAuthorization();
+        authorization.SetAuthorized("user");
+        if (isAdmin)
+        {
+            authorization.SetRoles("Admin");
+        }
 
         ctx.Render<MudPopoverProvider>();
         var cut = ctx.Render<UserSettings>();
@@ -63,6 +69,24 @@ public sealed class UserSettingsComponentTests
         await using var _ = ctx;
 
         cut.Markup.Should().Contain("Unhealthy");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task UserSettings_Should_ShowTheAdministrationSection_OnlyToAdmins(bool isAdmin)
+    {
+        var healthCheckService = Substitute.For<HealthCheckService>();
+        healthCheckService
+            .CheckHealthAsync(Arg.Any<Func<HealthCheckRegistration, bool>?>(), Arg.Any<CancellationToken>())
+            .Returns(CreateReport(HealthStatus.Healthy));
+
+        var (ctx, cut, _) = await RenderAsync(healthCheckService, isAdmin);
+        await using var _ = ctx;
+
+        cut.FindAll(".administration").Count.Should().Be(isAdmin ? 1 : 0);
+        cut.FindAll("a[href='/admin/log-levels']").Count.Should().Be(isAdmin ? 1 : 0);
+        cut.FindAll("a[href='/hangfire'][target='_blank']").Count.Should().Be(isAdmin ? 1 : 0);
     }
 
     [Fact]

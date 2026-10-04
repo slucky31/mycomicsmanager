@@ -69,5 +69,31 @@
                 <MudText Typo="Typo.body1">V1.0.0</MudText>
             </MudPaper>
         </MudItem>
+        <AuthorizeView Roles="Admin">
+            <MudItem xs="12">
+                <MudPaper Class="pa-4 administration">
+                    <MudText Typo="Typo.h6"><strong>Administration</strong></MudText>
+                    <MudText Class="mb-4" Typo="Typo.body1">Tools reserved to administrators</MudText>
+                    <div class="d-flex flex-wrap gap-4">
+                        <MudButton Href="/admin/log-levels"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Tune">
+                            Log levels
+                        </MudButton>
+                        @* Hangfire is served outside Blazor: open it as a regular page, not through the Blazor router *@
+                        <MudButton Href="/hangfire"
+                                   Target="_blank"
+                                   Rel="noopener"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Schedule"
+                                   EndIcon="@Icons.Material.Filled.OpenInNew">
+                            Hangfire
+                        </MudButton>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </AuthorizeView>
     </MudGrid>
 </PageLayout>
