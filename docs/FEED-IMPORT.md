@@ -155,13 +155,13 @@ environment:
 | `FeedImport:SyncIntervalMinutes` | `30` | Intervalle du job `feed-import-sync` |
 | `FeedImport:TargetLibraryName` | `À trier` | Bibliothèque digitale de dépôt, créée au premier téléchargement |
 | `FeedImport:AllowedSourceHosts` | `planete-bd.org`, `zone-ebook.com` | Domaines des pages d'articles autorisés, sous-domaines compris |
-| `FeedImport:AllowedDownloadHosts` | `fileq.net`, `dailyuploads.net`, `frdl.io`, `katfile.biz`, `trbt.cc`, `turbobit.net`, `rapidgator.net`, `1fichier.com` | Domaines des hébergeurs dont les liens sont retenus, sous-domaines compris (relevés sur les deux sites en octobre 2026) |
+| `FeedImport:AllowedDownloadHosts` | `dailyuploads.net`, `katfile.biz`, `trbt.cc`, `turbobit.net`, `rapidgator.net`, `1fichier.com` | Domaines des hébergeurs dont les liens sont retenus, sous-domaines compris (relevés sur les deux sites en octobre 2026). `fileq.net` et `frdl.io`, aussi présents sur les sites, sont volontairement exclus : Debrid-Link ne les prend pas en charge (`GET /downloader/domains`) |
 | `Miniflux:BaseUrl` | `http://miniflux:8080` | URL de Miniflux ; seul cet hôte est autorisé par le garde-fou SSRF |
 | `Miniflux:ApiKey` | — | Clé d'API Miniflux (obligatoire si activé) — `Miniflux__ApiKey` |
 | `Miniflux:CategoryName` | `BD` | Catégorie Miniflux surveillée |
 | `DebridLink:ApiKey` | — | Clé d'API privée Debrid-Link (compte → API) — `DebridLink__ApiKey`. Vide : rien n'est téléchargé |
 | `DebridLink:BaseUrl` | `https://debrid-link.com/api/v2/` | API Debrid-Link ; seul cet hôte est autorisé, en HTTPS |
-| `DebridLink:HosterPriority` | `1fichier.com`, `rapidgator.net`, `turbobit.net`, `trbt.cc`, `katfile.biz`, `dailyuploads.net`, `fileq.net`, `frdl.io` | Ordre d'essai des miroirs ; les autres viennent ensuite, dans l'ordre de la page |
+| `DebridLink:HosterPriority` | `1fichier.com`, `rapidgator.net`, `turbobit.net`, `trbt.cc`, `katfile.biz`, `dailyuploads.net` | Ordre d'essai des miroirs ; les autres viennent ensuite, dans l'ordre de la page |
 | `DebridLink:DownloadHosts` | `debrid.link`, `debrid-link.com`, `debrid-link.fr` | Domaines des serveurs de fichiers Debrid-Link (liens directs), sous-domaines compris |
 
 Pour une liste, une variable par élément : `FeedImport__AllowedDownloadHosts__0`,
@@ -199,7 +199,7 @@ synchronisation (`Feed import sync done: ...`) ou l'erreur rencontrée
 | `user configured in FeedImport:UserEmail not found` | L'email ne correspond à aucun utilisateur MCM (se connecter une fois à MCM d'abord) |
 | `SSRF guard blocked outgoing request` | `Miniflux:BaseUrl` pointe vers un autre hôte que celui appelé |
 | Décision « Échoué » à l'étape *Source* | Le domaine de l'article n'est pas dans `FeedImport:AllowedSourceHosts` |
-| Décision « Échoué » à l'étape *Extraction des liens* | Aucun lien vers un hébergeur de `FeedImport:AllowedDownloadHosts` sur la page |
+| Décision « Échoué » à l'étape *Extraction des liens* | Aucun lien vers un hébergeur de `FeedImport:AllowedDownloadHosts` sur la page (par exemple un article qui ne propose que fileq.net ou frdl.io) |
 | L'article reste ★ dans Miniflux | Échec du retrait d'étoile : il est réessayé à chaque synchronisation (voir les logs `failed to unstar`) |
 | Les décisions restent « Liens extraits » | `DebridLink:ApiKey` absente (log `Feed import downloads skipped`) |
 | Décision « Échoué » à l'étape *Téléchargement* : clé absente ou invalide | Clé Debrid-Link expirée ou révoquée : en générer une nouvelle |
