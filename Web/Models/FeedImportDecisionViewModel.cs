@@ -53,7 +53,8 @@ public sealed record FeedImportDecisionViewModel(
     Guid? MatchedBookId,
     IReadOnlyList<FeedImportCandidateViewModel> Candidates,
     string? ImportPageUrl = null,
-    FeedImportDecisionActions? Actions = null)
+    FeedImportDecisionActions? Actions = null,
+    bool CanDelete = false)
 #pragma warning restore CA1054, CA1056
 {
     private static readonly CultureInfo s_displayCulture = CultureInfo.GetCultureInfo("fr-FR");
@@ -120,7 +121,8 @@ public sealed record FeedImportDecisionViewModel(
                 decision.CanIgnore,
                 decision.ParsedSerie,
                 decision.ParsedTitle,
-                decision.ParsedVolume));
+                decision.ParsedVolume),
+            CanDelete: decision.CanDelete(DateTime.UtcNow));
     }
 
     private static string? GetImportPageUrl(FeedImportDecisionStatus status, Guid? importLibraryId)

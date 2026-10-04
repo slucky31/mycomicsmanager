@@ -4,6 +4,7 @@ using Domain.FeedImports;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Serilog;
+using Web.Extensions;
 using Web.Models;
 using Web.Services;
 
@@ -16,6 +17,7 @@ public partial class FeedImports
     [Inject] private IFeedImportService FeedImportService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private FeedImportNotifier Notifier { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
 
     private MudTable<FeedImportDecisionViewModel>? _table;
     private FeedImportDecisionStatus? _statusFilter;
@@ -24,6 +26,8 @@ public partial class FeedImports
     private readonly HashSet<Guid> _expandedIds = [];
     private Guid? _busyDecisionId;
     private CorrectionForm? _correction;
+    private HashSet<FeedImportDecisionViewModel> _selectedDecisions = [];
+    private bool _isDeleting;
     private TableData<FeedImportDecisionViewModel> _lastData = new() { Items = [], TotalItems = 0 };
 
     internal async Task<TableData<FeedImportDecisionViewModel>> LoadServerDataAsync(TableState state, CancellationToken cancellationToken)
@@ -42,6 +46,8 @@ public partial class FeedImports
 
         if (result.IsSuccess)
         {
+            // The rows are new instances: a selection kept across loads would point to rows no longer displayed.
+            _selectedDecisions = [];
             _lastData = new TableData<FeedImportDecisionViewModel>
             {
                 Items = result.Value!.Items,
@@ -173,6 +179,73 @@ public partial class FeedImports
         finally
         {
             _busyDecisionId = null;
+        }
+    }
+
+    internal Task DeleteAsync(FeedImportDecisionViewModel decision) =>
+        ConfirmAndDeleteAsync(
+            [decision.Id],
+            $"Supprimer la décision « {decision.EntryTitle} » et son historique ? Le livre déjà importé est conservé.");
+
+    internal Task DeleteSelectedAsync()
+    {
+        var ids = _selectedDecisions.Where(d => d.CanDelete).Select(d => d.Id).ToList();
+        var skipped = _selectedDecisions.Count - ids.Count;
+        if (ids.Count == 0)
+        {
+            Snackbar.Add("Les décisions sélectionnées sont en cours de téléchargement.", Severity.Info);
+            return Task.CompletedTask;
+        }
+
+        var message = $"Supprimer {ids.Count} décision(s) et leur historique ? Les livres déjà importés sont conservés.";
+        if (skipped > 0)
+        {
+            message += $" {skipped} décision(s) en cours de téléchargement seront conservées.";
+        }
+
+        return ConfirmAndDeleteAsync(ids, message);
+    }
+
+    private async Task ConfirmAndDeleteAsync(IReadOnlyCollection<Guid> decisionIds, string message)
+    {
+        if (decisionIds.Count == 0 || _isDeleting || _busyDecisionId is not null)
+        {
+            return;
+        }
+
+        var confirmed = await DialogService.ShowConfirmationAsync("Supprimer des imports", message, "Supprimer");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        _isDeleting = true;
+        try
+        {
+            var result = await FeedImportService.DeleteAsync(decisionIds);
+            if (result.IsFailure)
+            {
+                Snackbar.Add(result.Error?.Description ?? "Impossible de supprimer les décisions.", Severity.Error);
+                Log.Error("FeedImports: failed to delete decisions: {ErrorDescription}", result.Error?.Description);
+                return;
+            }
+
+            var notDeleted = decisionIds.Count - result.Value;
+            if (notDeleted == 0)
+            {
+                Snackbar.Add($"{result.Value} décision(s) supprimée(s).", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add($"{result.Value} décision(s) supprimée(s), {notDeleted} non supprimée(s) (téléchargement ou import en cours).", Severity.Warning);
+            }
+
+            await ReloadAsync();
+            Notifier.NotifyChanged();
+        }
+        finally
+        {
+            _isDeleting = false;
         }
     }
 

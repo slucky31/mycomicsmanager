@@ -171,4 +171,32 @@ public class FeedImportDecisionRepositoryTests(IntegrationTestWebAppFactory fact
         // Assert
         ids.Should().Equal(article.Id, sibling.Id);
     }
+
+    [Fact]
+    public async Task Remove_Should_DeleteDecisionAndItsEvents_AndKeepSiblings()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var decision = CreateDecision(userId, 5005);
+        var sibling = decision.CreateSibling(1).Value!;
+        FeedImportDecisionRepository.Add(decision);
+        FeedImportDecisionRepository.Add(sibling);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        Context.ChangeTracker.Clear();
+        var loaded = await FeedImportDecisionRepository.GetByIdAsync(decision.Id, TestContext.Current.CancellationToken);
+
+        // Act
+        FeedImportDecisionRepository.Remove(loaded!);
+        var result = await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        Context.ChangeTracker.Clear();
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        (await FeedImportDecisionRepository.GetByIdAsync(decision.Id, TestContext.Current.CancellationToken)).Should().BeNull();
+        (await FeedImportDecisionRepository.GetByIdAsync(sibling.Id, TestContext.Current.CancellationToken)).Should().NotBeNull();
+        var events = await Context.FeedImportDecisionEvents
+            .Where(e => e.FeedImportDecisionId == decision.Id)
+            .ToListAsync(TestContext.Current.CancellationToken);
+        events.Should().BeEmpty();
+    }
 }

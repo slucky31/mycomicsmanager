@@ -29,5 +29,9 @@ public interface IFeedImportService
 
     Task<Result> CorrectAsync(Guid decisionId, string serie, string? title, int? volume, CancellationToken cancellationToken = default);
 
+    // Deletes each decision on its own: returns how many were deleted (the others are logged),
+    // or the last error when none could be deleted.
+    Task<Result<int>> DeleteAsync(IReadOnlyCollection<Guid> decisionIds, CancellationToken cancellationToken = default);
+
     Task<int> CountAwaitingArbitrationAsync(CancellationToken cancellationToken = default);
 }

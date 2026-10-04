@@ -1,6 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Arbitrate;
+using Application.FeedImports.Delete;
 using Application.FeedImports.List;
 using Application.FeedImports.Manage;
 using Application.Interfaces;
@@ -34,6 +35,8 @@ public sealed class FeedImportServiceTests
         Substitute.For<ICommandHandler<ManageFeedImportDecisionCommand, FeedImportDecisionStatus>>();
     private readonly ICommandHandler<CorrectFeedImportDecisionCommand, FeedImportDecisionStatus> _correctHandler =
         Substitute.For<ICommandHandler<CorrectFeedImportDecisionCommand, FeedImportDecisionStatus>>();
+    private readonly ICommandHandler<DeleteFeedImportDecisionCommand> _deleteHandler =
+        Substitute.For<ICommandHandler<DeleteFeedImportDecisionCommand>>();
     private readonly FeedImportSettings _settings = new() { Enabled = true };
     private readonly DebridLinkSettings _debridLinkSettings = new() { ApiKey = "key" };
     private readonly FeedImportService _service;
@@ -46,7 +49,7 @@ public sealed class FeedImportServiceTests
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
         _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
         _service = new FeedImportService(
-            new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler),
+            new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler, _deleteHandler),
             _currentUserService, _libraryReadService, _decisionReadService, _backgroundJobClient,
             Options.Create(_settings), Options.Create(_debridLinkSettings));
     }
@@ -205,6 +208,43 @@ public sealed class FeedImportServiceTests
         await _correctHandler.Received(1).Handle(
             new CorrectFeedImportDecisionCommand(decisionId, s_userId, "Blacksad", "Âme rouge", 3), Arg.Any<CancellationToken>());
         _backgroundJobClient.DidNotReceiveWithAnyArgs().Create(default!, default!);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_DeleteEachDecisionForCurrentUser_AndCountDeleted()
+    {
+        var deletable = Guid.CreateVersion7();
+        var inProgress = Guid.CreateVersion7();
+        _deleteHandler.Handle(new DeleteFeedImportDecisionCommand(deletable, s_userId), Arg.Any<CancellationToken>()).Returns(Result.Success());
+        _deleteHandler.Handle(new DeleteFeedImportDecisionCommand(inProgress, s_userId), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(FeedImportError.DeleteInProgress));
+
+        var result = await _service.DeleteAsync([deletable, inProgress], TestContext.Current.CancellationToken);
+
+        result.Value.Should().Be(1);
+        await _deleteHandler.Received(2).Handle(Arg.Any<DeleteFeedImportDecisionCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_ReturnError_WhenNoDecisionCouldBeDeleted()
+    {
+        _deleteHandler.Handle(Arg.Any<DeleteFeedImportDecisionCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(FeedImportError.DeleteInProgress));
+
+        var result = await _service.DeleteAsync([Guid.CreateVersion7()], TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FeedImportError.DeleteInProgress);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_ReturnError_WhenUserNotResolved()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        var result = await _service.DeleteAsync([Guid.CreateVersion7()], TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(UsersError.NotFound);
+        await _deleteHandler.DidNotReceiveWithAnyArgs().Handle(default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]

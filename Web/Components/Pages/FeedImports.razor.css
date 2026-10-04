@@ -15,7 +15,8 @@
   flex: 1 1 240px;
 }
 
-::deep .feed-imports-expand-col {
+::deep .feed-imports-expand-col,
+::deep .feed-imports-delete-col {
   width: 48px;
 }
 

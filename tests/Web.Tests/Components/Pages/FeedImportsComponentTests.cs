@@ -9,6 +9,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages;
+using Web.Components.Pages.Dialogs;
 using Web.Models;
 using Web.Services;
 using Xunit;
@@ -26,7 +27,8 @@ public sealed class FeedImportsComponentTests
         return new FeedImportDecisionPageViewModel(items, items.Count);
     }
 
-    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImports> Cut, ISnackbar Snackbar)> RenderAsync(IFeedImportService service)
+    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImports> Cut, ISnackbar Snackbar)> RenderAsync(
+        IFeedImportService service, IDialogService? dialogService = null)
     {
         var snackbar = Substitute.For<ISnackbar>();
         var ctx = new BunitContext();
@@ -35,6 +37,10 @@ public sealed class FeedImportsComponentTests
         ctx.Services.AddSingleton(service);
         ctx.Services.AddSingleton(snackbar);
         ctx.Services.AddSingleton(new FeedImportNotifier());
+        if (dialogService is not null)
+        {
+            ctx.Services.AddSingleton(dialogService);
+        }
 
         ctx.Render<MudPopoverProvider>();
         var cut = ctx.Render<FeedImports>();
@@ -259,5 +265,81 @@ public sealed class FeedImportsComponentTests
         await cut.InvokeAsync(() => cut.Instance.ApplyActionAsync(Guid.CreateVersion7(), FeedImportDecisionAction.Retry));
 
         snackbar.Received(1).Add(FeedImportError.InvalidStatusTransition.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    private static IDialogService CreateDialogService(bool confirmed)
+    {
+        var dialogReference = Substitute.For<IDialogReference>();
+        dialogReference.Result.Returns(confirmed ? DialogResult.Ok(true) : DialogResult.Cancel());
+        var dialogService = Substitute.For<IDialogService>();
+        dialogService.ShowAsync<ConfirmationDialog>(Arg.Any<string>(), Arg.Any<DialogParameters>(), Arg.Any<DialogOptions>())
+            .Returns(dialogReference);
+        return dialogService;
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_DeleteDecisionAndReload_WhenUserConfirms()
+    {
+        var service = CreateService();
+        service.DeleteAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service, CreateDialogService(confirmed: true));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.FindAll("button[aria-label='Supprimer la décision']")[0].ClickAsync(new());
+
+        await service.Received(1).DeleteAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 1), Arg.Any<CancellationToken>());
+        snackbar.Received(1).Add("1 décision(s) supprimée(s).", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_NotDelete_WhenUserCancels()
+    {
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderAsync(service, CreateDialogService(confirmed: false));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.FindAll("button[aria-label='Supprimer la décision']")[0].ClickAsync(new());
+
+        await service.DidNotReceiveWithAnyArgs().DeleteAsync(default!, Xunit.TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_ShowError_WhenDeletionFails()
+    {
+        var service = CreateService();
+        service.DeleteAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(Result<int>.Failure(FeedImportError.DeleteInProgress));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service, CreateDialogService(confirmed: true));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.FindAll("button[aria-label='Supprimer la décision']")[0].ClickAsync(new());
+
+        snackbar.Received(1).Add(FeedImportError.DeleteInProgress.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task DeleteSelectedAsync_Should_DeleteCheckedDecisions()
+    {
+        var service = CreateService();
+        service.DeleteAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service, CreateDialogService(confirmed: true));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        // First checkbox selects every row: take the one of the first row.
+        await cut.FindAll("tbody input[type='checkbox']")[0].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = true });
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Supprimer la sélection (1)"));
+        await Button(cut, "Supprimer la sélection").ClickAsync(new());
+
+        await service.Received(1).DeleteAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 1), Arg.Any<CancellationToken>());
+        snackbar.Received(1).Add("1 décision(s) supprimée(s).", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 }

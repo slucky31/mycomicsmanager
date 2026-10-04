@@ -1,5 +1,6 @@
 using Application.FeedImports;
 using Application.FeedImports.Arbitrate;
+using Application.FeedImports.Delete;
 using Application.FeedImports.List;
 using Application.FeedImports.Manage;
 using Application.Interfaces;
@@ -119,6 +120,36 @@ public class FeedImportService(
         var result = await handlers.Correct.Handle(
             new CorrectFeedImportDecisionCommand(decisionId, userIdResult.Value, serie, title, volume), cancellationToken);
         return StartNextStep(decisionId, result);
+    }
+
+    public async Task<Result<int>> DeleteAsync(IReadOnlyCollection<Guid> decisionIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(decisionIds);
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var deleted = 0;
+        TError? lastError = null;
+        foreach (var decisionId in decisionIds)
+        {
+            var result = await handlers.Delete.Handle(new DeleteFeedImportDecisionCommand(decisionId, userIdResult.Value), cancellationToken);
+            if (result.IsSuccess)
+            {
+                deleted++;
+            }
+            else
+            {
+                lastError = result.Error;
+                Log.Warning("Feed import decision {DecisionId} not deleted: [{Code}] {Description}",
+                    decisionId, result.Error!.Code, result.Error.Description);
+            }
+        }
+
+        // Nothing deleted: the reason is shown to the user.
+        return deleted == 0 && lastError is not null ? lastError : deleted;
     }
 
     // Badge of the navigation bar: 0 when the user cannot be resolved (not signed in yet).
