@@ -117,4 +117,19 @@ public sealed class FeedImportDecisionViewModelTests
         viewModel.StatusColor.Should().Be(Color.Success);
         viewModel.Candidates[0].Mirrors.Select(m => m.IsChosen).Should().Equal(false, true);
     }
+
+    [Fact]
+    public void From_Should_ExposeAvailableManualActionsAndParsedValues()
+    {
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 10, "Blacksad - Tome 3", "https://planete-bd.org/10", null).Value!;
+        decision.MarkDuplicate(
+            [new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", null, [new DownloadMirror("https://1fichier.com/?a", "1fichier.com")])],
+            new ParsedComicTitle("Blacksad", "Âme rouge", 3), Guid.CreateVersion7(), "Doublon", FeedImportDecidedBy.Auto);
+
+        var actions = FeedImportDecisionViewModel.From(decision).ManualActions;
+
+        actions.Should().Be(new FeedImportDecisionActions(
+            CanForceDownload: true, CanRetry: false, CanCorrect: true, CanIgnore: true, "Blacksad", "Âme rouge", 3));
+        actions.Any.Should().BeTrue();
+    }
 }

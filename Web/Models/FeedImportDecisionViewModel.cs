@@ -19,6 +19,21 @@ public sealed record FeedImportCandidateViewModel(int Index, string Label, strin
     public string DisplayName => FileName ?? Label;
 }
 
+// Manual actions available on a decision (computed by the domain), with the values to prefill the correction form.
+public sealed record FeedImportDecisionActions(
+    bool CanForceDownload,
+    bool CanRetry,
+    bool CanCorrect,
+    bool CanIgnore,
+    string? Serie,
+    string? Title,
+    int? Volume)
+{
+    public static FeedImportDecisionActions None { get; } = new(false, false, false, false, null, null, null);
+
+    public bool Any => CanForceDownload || CanRetry || CanCorrect || CanIgnore;
+}
+
 public sealed record FeedImportDecisionViewModel(
     Guid Id,
     string EntryTitle,
@@ -37,12 +52,15 @@ public sealed record FeedImportDecisionViewModel(
     FeedImportArbitrationKind ArbitrationKind,
     Guid? MatchedBookId,
     IReadOnlyList<FeedImportCandidateViewModel> Candidates,
-    string? ImportPageUrl = null)
+    string? ImportPageUrl = null,
+    FeedImportDecisionActions? Actions = null)
 #pragma warning restore CA1054, CA1056
 {
     private static readonly CultureInfo s_displayCulture = CultureInfo.GetCultureInfo("fr-FR");
 
     public string CreatedAtDisplay => FormatDate(CreatedAt);
+
+    public FeedImportDecisionActions ManualActions => Actions ?? FeedImportDecisionActions.None;
 
     public string PublishedAtDisplay => PublishedAt.HasValue ? FormatDate(PublishedAt.Value) : "-";
 
@@ -94,7 +112,15 @@ public sealed record FeedImportDecisionViewModel(
                     c.SizeBytes.HasValue ? FormatSize(c.SizeBytes.Value) : null,
                     c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host, m.Url == decision.ChosenMirror)).ToList()))
                 .ToList(),
-            ImportPageUrl: GetImportPageUrl(decision.Status, importLibraryId));
+            ImportPageUrl: GetImportPageUrl(decision.Status, importLibraryId),
+            Actions: new FeedImportDecisionActions(
+                decision.CanForceDownload,
+                decision.CanRetry(DateTime.UtcNow),
+                decision.CanCorrect,
+                decision.CanIgnore,
+                decision.ParsedSerie,
+                decision.ParsedTitle,
+                decision.ParsedVolume));
     }
 
     private static string? GetImportPageUrl(FeedImportDecisionStatus status, Guid? importLibraryId)

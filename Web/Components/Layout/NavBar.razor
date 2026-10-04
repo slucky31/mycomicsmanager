@@ -31,7 +31,10 @@
                    Variant="Variant.Text"
                    Href="/feed-imports"
                    StartIcon="@Icons.Material.Filled.RssFeed">
-            Feeds
+            <MudBadge Content="@_arbitrationCount" Visible="@(_arbitrationCount > 0)" Color="Color.Warning"
+                      Overlap="false" Origin="Origin.TopRight" title="@ArbitrationBadgeLabel">
+                Feeds
+            </MudBadge>
         </MudButton>
         <MudButton Class="@($"ml-3 navbar-item {(IsActive("/settings") ? "active" : "")}")"
                    Variant="Variant.Text"
@@ -56,8 +59,11 @@
         <MudIcon Icon="@Icons.Material.Filled.Upload" />
         <span class="bottom-nav-label">Import</span>
     </a>
-    <a href="/feed-imports" class="bottom-nav-item @(IsActive("/feed-imports") ? "active" : "")">
-        <MudIcon Icon="@Icons.Material.Filled.RssFeed" />
+    <a href="/feed-imports" class="bottom-nav-item @(IsActive("/feed-imports") ? "active" : "")"
+       aria-label="@(_arbitrationCount > 0 ? $"Feeds, {ArbitrationBadgeLabel}" : "Feeds")">
+        <MudBadge Content="@_arbitrationCount" Visible="@(_arbitrationCount > 0)" Color="Color.Warning" Overlap="true" Dot="true">
+            <MudIcon Icon="@Icons.Material.Filled.RssFeed" />
+        </MudBadge>
         <span class="bottom-nav-label">Feeds</span>
     </a>
     <a href="/settings" class="bottom-nav-item @(IsActive("/settings") ? "active" : "")">

@@ -1,6 +1,7 @@
 @page "/feed-imports"
 
 @using Application.FeedImports.Arbitrate
+@using Application.FeedImports.Manage
 @using Domain.FeedImports
 
 <PageTitle>Feeds — MyComicsManager</PageTitle>
@@ -146,6 +147,70 @@
                                     }
                                 </div>
                             </MudAlert>
+                        }
+
+                        @if (context.ManualActions.Any)
+                        {
+                            <div class="feed-imports-actions mb-3">
+                                @if (context.ManualActions.CanForceDownload)
+                                {
+                                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.Download"
+                                               Disabled="@IsBusy(context.Id)"
+                                               OnClick="@(() => ApplyActionAsync(context.Id, FeedImportDecisionAction.ForceDownload))">
+                                        Forcer le téléchargement
+                                    </MudButton>
+                                }
+                                @if (context.ManualActions.CanRetry)
+                                {
+                                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.Replay"
+                                               Disabled="@IsBusy(context.Id)"
+                                               OnClick="@(() => ApplyActionAsync(context.Id, FeedImportDecisionAction.Retry))">
+                                        Relancer
+                                    </MudButton>
+                                }
+                                @if (context.ManualActions.CanCorrect)
+                                {
+                                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.Edit"
+                                               Disabled="@(IsBusy(context.Id) || IsEditing(context.Id))"
+                                               OnClick="@(() => StartCorrection(context))">
+                                        Corriger série / tome
+                                    </MudButton>
+                                }
+                                @if (context.ManualActions.CanIgnore)
+                                {
+                                    <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Default"
+                                               StartIcon="@Icons.Material.Filled.Block"
+                                               Disabled="@IsBusy(context.Id)"
+                                               OnClick="@(() => ApplyActionAsync(context.Id, FeedImportDecisionAction.Ignore))">
+                                        Ignorer
+                                    </MudButton>
+                                }
+                            </div>
+                        }
+                        @if (IsEditing(context.Id))
+                        {
+                            <MudPaper Outlined="true" Class="feed-imports-correction pa-3 mb-3">
+                                <MudText Typo="Typo.subtitle2" Class="mb-2">Corriger la lecture du titre (le contrôle des doublons est refait)</MudText>
+                                <div class="feed-imports-correction-fields">
+                                    <MudTextField T="string" Label="Série" @bind-Value="_correction!.Serie" Required="true"
+                                                  Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="200" />
+                                    <MudNumericField T="int?" Label="Tome" @bind-Value="_correction.Volume" Min="0"
+                                                     Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                    <MudTextField T="string" Label="Titre" @bind-Value="_correction.Title"
+                                                  Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="300" />
+                                </div>
+                                <div class="feed-imports-actions mt-2">
+                                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                                               Disabled="@(IsBusy(context.Id) || string.IsNullOrWhiteSpace(_correction.Serie))"
+                                               OnClick="@(() => SaveCorrectionAsync(context.Id))">
+                                        Enregistrer
+                                    </MudButton>
+                                    <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="CancelCorrection">Annuler</MudButton>
+                                </div>
+                            </MudPaper>
                         }
 
                         <div class="feed-imports-detail-grid">

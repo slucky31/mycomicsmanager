@@ -116,6 +116,13 @@ On retient l'**option A**, avec les règles suivantes :
 9. **Désactivable** : `FeedImport:Enabled = false` par défaut ; le job
    récurrent est alors retiré. Les secrets (`Miniflux__ApiKey`,
    `DebridLink__ApiKey`) passent uniquement par variables d'environnement.
+10. **Corrections manuelles** : forcer le téléchargement d'un doublon,
+    ignorer, relancer (échec, décision ignorée, téléchargement interrompu
+    depuis plus d'une heure) et corriger série / titre / tome. Ces
+    actions sont des transitions de l'entité, décidées par `User` et
+    historisées ; relancer ou corriger rejoue les mêmes règles de doublon
+    que l'analyse automatique. Le déplacement d'un livre vers sa
+    bibliothèque finale relève des livres, pas des décisions (PR séparée).
 
 Mise en œuvre découpée en 5 lots (issue #1057) : 1. cette ADR et la
 documentation ; 2. décisions + client Miniflux + synchronisation + page en
@@ -155,7 +162,7 @@ lecture seule (#1058) ; 3. extraction des liens + doublons + arbitrage ;
 
 ## Liens
 
-- Issue : #1057 ; lot 2 : #1058 ; lot 3 : #1060
+- Issue : #1057 ; lot 2 : #1058 ; lot 3 : #1060 ; lot 4 : #1061
 - Guide d'installation : [`docs/FEED-IMPORT.md`](../FEED-IMPORT.md)
 - ADR liées : [0001](0001-deploiement-raspberry-pi-4-self-hosted.md), [0003](0003-postgresql-self-hosted-au-lieu-de-neon.md), [0015](0015-garde-fou-ssrf-appels-sortants.md), [0016](0016-hangfire-jobs-arriere-plan.md)
 - API Miniflux : https://miniflux.app/docs/api.html

@@ -4,10 +4,9 @@ Ce guide décrit comment brancher MCM sur le Miniflux du Raspberry Pi pour
 importer automatiquement les BD marquées d'une étoile. La décision
 d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-debrid-link.md).
 
-> État actuel : synchronisation Miniflux, analyse des articles, arbitrage
-> (lots 2 et 3) et téléchargement via Debrid-Link avec dépôt dans la
-> bibliothèque « À trier » (lot 4) sont en place. Les actions manuelles
-> (forcer, ignorer, relancer…) arrivent au lot 5.
+> État actuel : la chaîne complète est en place — synchronisation Miniflux,
+> analyse des articles, arbitrage, téléchargement via Debrid-Link avec dépôt
+> dans la bibliothèque « À trier », et actions manuelles sur les décisions.
 
 ## Fonctionnement
 
@@ -46,6 +45,23 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
      `Downloaded` ;
    - `Downloaded` est l'état final côté Feeds : la suite (extraction, conversion, métadonnées) se
      suit dans la page **Import**, que le bouton « Suivre l'import » ouvre sur la bibliothèque « À trier ».
+
+### Actions manuelles
+
+Dans le détail d'une décision, `/feed-imports` propose les actions possibles selon son statut (chaque
+action est tracée dans l'historique, décidée par « Utilisateur ») :
+
+| Action | Disponible pour | Effet |
+| ------ | --------------- | ----- |
+| **Forcer le téléchargement** | Doublon, doublon probable | Passe outre le doublon et lance le téléchargement |
+| **Relancer** | Échoué, Ignoré, téléchargement interrompu depuis plus d'une heure | Refait le contrôle des doublons sur les liens enregistrés puis télécharge ; sans lien, l'article est réanalysé |
+| **Corriger série / tome** | Un seul fichier : liens extraits, doublon (probable), échoué, ignoré | Remplace la lecture du titre puis refait le contrôle des doublons |
+| **Ignorer** | En attente, liens extraits, à arbitrer, doublon, échoué | Plus rien n'est fait pour cette décision |
+
+Quand une action ou un arbitrage aboutit à « Liens extraits », le téléchargement démarre aussitôt (si
+`DebridLink:ApiKey` est renseignée), sans attendre la synchronisation suivante.
+
+Le menu **Feeds** affiche un badge avec le nombre de décisions « À arbitrer ».
 
 ### Règles de doublon
 
@@ -192,4 +208,4 @@ synchronisation (`Feed import sync done: ...`) ou l'erreur rencontrée
 | Décision « Échoué » à l'étape *Bibliothèque* | Une bibliothèque **physique** porte déjà le nom `FeedImport:TargetLibraryName` |
 | Décision « Échoué » à l'étape *Import* | Le fichier téléchargé n'a pas pu être remis au pipeline d'import (création de la tâche ou dépôt dans le dossier) |
 | Fichier téléchargé mais livre absent | L'import lui-même a échoué : voir la page **Import** de la bibliothèque « À trier » |
-| Décision bloquée en « Téléchargement... » | Application arrêtée pendant le téléchargement ; la relance manuelle arrive au lot 5 |
+| Décision bloquée en « Téléchargement... » | Application arrêtée pendant le téléchargement : le bouton « Relancer » apparaît une heure après le début du téléchargement |

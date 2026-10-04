@@ -2,6 +2,7 @@ using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.List;
+using Application.FeedImports.Manage;
 using Application.Interfaces;
 using Application.Libraries;
 using AwesomeAssertions;
@@ -28,7 +29,13 @@ public sealed class FeedImportServiceTests
     private readonly ICurrentUserService _currentUserService;
     private readonly IBackgroundJobClient _backgroundJobClient;
     private readonly ILibraryReadService _libraryReadService = Substitute.For<ILibraryReadService>();
+    private readonly IFeedImportDecisionReadService _decisionReadService = Substitute.For<IFeedImportDecisionReadService>();
+    private readonly ICommandHandler<ManageFeedImportDecisionCommand, FeedImportDecisionStatus> _manageHandler =
+        Substitute.For<ICommandHandler<ManageFeedImportDecisionCommand, FeedImportDecisionStatus>>();
+    private readonly ICommandHandler<CorrectFeedImportDecisionCommand, FeedImportDecisionStatus> _correctHandler =
+        Substitute.For<ICommandHandler<CorrectFeedImportDecisionCommand, FeedImportDecisionStatus>>();
     private readonly FeedImportSettings _settings = new() { Enabled = true };
+    private readonly DebridLinkSettings _debridLinkSettings = new() { ApiKey = "key" };
     private readonly FeedImportService _service;
 
     public FeedImportServiceTests()
@@ -38,7 +45,10 @@ public sealed class FeedImportServiceTests
         _currentUserService = Substitute.For<ICurrentUserService>();
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
         _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
-        _service = new FeedImportService(_handler, _resolveHandler, _currentUserService, _libraryReadService, _backgroundJobClient, Options.Create(_settings));
+        _service = new FeedImportService(
+            new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler),
+            _currentUserService, _libraryReadService, _decisionReadService, _backgroundJobClient,
+            Options.Create(_settings), Options.Create(_debridLinkSettings));
     }
 
     [Fact]
@@ -130,6 +140,82 @@ public sealed class FeedImportServiceTests
         await _resolveHandler.Received(1).Handle(
             new ResolveFeedImportArbitrationCommand(decisionId, s_userId, FeedImportArbitrationAction.KeepCandidate, 2),
             Arg.Any<CancellationToken>());
+        AssertDownloadEnqueued(decisionId);
+    }
+
+    private void AssertDownloadEnqueued(Guid decisionId) =>
+        _backgroundJobClient.Received(1).Create(
+            Arg.Is<Job>(j => j.Type == typeof(FeedImportDownloadJob) && (Guid)j.Args[0] == decisionId), Arg.Any<IState>());
+
+    [Fact]
+    public async Task ApplyActionAsync_Should_StartDownload_WhenDecisionEndsLinksExtracted()
+    {
+        var decisionId = Guid.CreateVersion7();
+        _manageHandler.Handle(new ManageFeedImportDecisionCommand(decisionId, s_userId, FeedImportDecisionAction.ForceDownload), Arg.Any<CancellationToken>())
+            .Returns(FeedImportDecisionStatus.LinksExtracted);
+
+        var result = await _service.ApplyActionAsync(decisionId, FeedImportDecisionAction.ForceDownload, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        AssertDownloadEnqueued(decisionId);
+    }
+
+    [Fact]
+    public async Task ApplyActionAsync_Should_NotStartDownload_WhenApiKeyIsMissing()
+    {
+        _debridLinkSettings.ApiKey = string.Empty;
+        _manageHandler.Handle(Arg.Any<ManageFeedImportDecisionCommand>(), Arg.Any<CancellationToken>()).Returns(FeedImportDecisionStatus.LinksExtracted);
+
+        await _service.ApplyActionAsync(Guid.CreateVersion7(), FeedImportDecisionAction.Retry, TestContext.Current.CancellationToken);
+
+        _backgroundJobClient.DidNotReceiveWithAnyArgs().Create(default!, default!);
+    }
+
+    [Fact]
+    public async Task ApplyActionAsync_Should_StartSync_WhenRetriedArticleMustBeAnalyzedAgain()
+    {
+        _manageHandler.Handle(Arg.Any<ManageFeedImportDecisionCommand>(), Arg.Any<CancellationToken>()).Returns(FeedImportDecisionStatus.Pending);
+
+        await _service.ApplyActionAsync(Guid.CreateVersion7(), FeedImportDecisionAction.Retry, TestContext.Current.CancellationToken);
+
+        _backgroundJobClient.Received(1).Create(Arg.Is<Job>(j => j.Type == typeof(FeedImportSyncJob)), Arg.Any<IState>());
+    }
+
+    [Fact]
+    public async Task ApplyActionAsync_Should_ReturnErrorWithoutEnqueuing_WhenActionFails()
+    {
+        _manageHandler.Handle(Arg.Any<ManageFeedImportDecisionCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionStatus>.Failure(FeedImportError.InvalidStatusTransition));
+
+        var result = await _service.ApplyActionAsync(Guid.CreateVersion7(), FeedImportDecisionAction.Ignore, TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FeedImportError.InvalidStatusTransition);
+        _backgroundJobClient.DidNotReceiveWithAnyArgs().Create(default!, default!);
+    }
+
+    [Fact]
+    public async Task CorrectAsync_Should_ForwardValuesForCurrentUser()
+    {
+        var decisionId = Guid.CreateVersion7();
+        _correctHandler.Handle(Arg.Any<CorrectFeedImportDecisionCommand>(), Arg.Any<CancellationToken>()).Returns(FeedImportDecisionStatus.SkippedDuplicate);
+
+        var result = await _service.CorrectAsync(decisionId, "Blacksad", "Âme rouge", 3, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        await _correctHandler.Received(1).Handle(
+            new CorrectFeedImportDecisionCommand(decisionId, s_userId, "Blacksad", "Âme rouge", 3), Arg.Any<CancellationToken>());
+        _backgroundJobClient.DidNotReceiveWithAnyArgs().Create(default!, default!);
+    }
+
+    [Fact]
+    public async Task CountAwaitingArbitrationAsync_Should_CountForCurrentUser_AndReturnZeroWhenUserIsUnknown()
+    {
+        _decisionReadService.CountByStatusAsync(s_userId, FeedImportDecisionStatus.AwaitingArbitration, Arg.Any<CancellationToken>()).Returns(3);
+
+        (await _service.CountAwaitingArbitrationAsync(TestContext.Current.CancellationToken)).Should().Be(3);
+
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        (await _service.CountAwaitingArbitrationAsync(TestContext.Current.CancellationToken)).Should().Be(0);
     }
 
     [Fact]

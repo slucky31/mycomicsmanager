@@ -45,6 +45,40 @@ public static class FeedImportAnalysisRules
         };
     }
 
+    // A decision reopened by the user (retry, correction): same rules as the automatic analysis, on the stored links.
+    // Without any link the decision stays Pending and the next sync analyzes the article again.
+    public static Result Reapply(FeedImportDecision decision, IReadOnlyList<BookIdentityDto> books, FeedImportDecidedBy decidedBy)
+    {
+        ArgumentNullException.ThrowIfNull(decision);
+
+        var candidates = decision.GetCandidates();
+        if (candidates.Count == 0)
+        {
+            return Result.Success();
+        }
+
+        if (candidates.Count > 1)
+        {
+            return decision.RequestArbitration(
+                FeedImportArbitrationKind.AmbiguousLinks, candidates, StoredParsed(decision, candidates[0]), matchedBookId: null,
+                "Plusieurs fichiers : choisissez le bon lien.", decidedBy);
+        }
+
+        return ApplyDuplicateCheck(decision, candidates[0], StoredParsed(decision, candidates[0]), books, decidedBy);
+    }
+
+    // Keeps the user's corrections; parses the file again only when nothing was stored.
+    private static ParsedComicTitle StoredParsed(FeedImportDecision decision, DownloadCandidate candidate)
+    {
+        if (decision.ParsedSerie is null && decision.ParsedTitle is null && decision.ParsedVolume is null)
+        {
+            return ParseCandidate(candidate, decision.EntryTitle, isOnlyBookOfArticle: decision.ItemIndex == 0);
+        }
+
+        var isbn = candidate.FileName is null ? null : FileNameIsbnExtractor.ExtractIsbn(candidate.FileName);
+        return new ParsedComicTitle(decision.ParsedSerie, decision.ParsedTitle, decision.ParsedVolume, isbn);
+    }
+
     private static string Describe(BookIdentityDto book)
     {
         var serie = string.IsNullOrWhiteSpace(book.Serie) ? book.Title : book.Serie;

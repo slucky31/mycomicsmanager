@@ -1,4 +1,5 @@
 using Application.FeedImports.Arbitrate;
+using Application.FeedImports.Manage;
 using Domain.FeedImports;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -14,6 +15,7 @@ public partial class FeedImports
 
     [Inject] private IFeedImportService FeedImportService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private FeedImportNotifier Notifier { get; set; } = default!;
 
     private MudTable<FeedImportDecisionViewModel>? _table;
     private FeedImportDecisionStatus? _statusFilter;
@@ -21,6 +23,7 @@ public partial class FeedImports
     private bool _isSyncRequested;
     private readonly HashSet<Guid> _expandedIds = [];
     private Guid? _busyDecisionId;
+    private CorrectionForm? _correction;
     private TableData<FeedImportDecisionViewModel> _lastData = new() { Items = [], TotalItems = 0 };
 
     internal async Task<TableData<FeedImportDecisionViewModel>> LoadServerDataAsync(TableState state, CancellationToken cancellationToken)
@@ -110,32 +113,74 @@ public partial class FeedImports
 
     private bool IsBusy(Guid decisionId) => _busyDecisionId == decisionId;
 
-    internal async Task ResolveAsync(Guid decisionId, FeedImportArbitrationAction action, int? candidateIndex)
+    internal Task ResolveAsync(Guid decisionId, FeedImportArbitrationAction action, int? candidateIndex) =>
+        RunDecisionActionAsync(decisionId, action.ToString(),
+            () => FeedImportService.ResolveArbitrationAsync(decisionId, action, candidateIndex));
+
+    internal Task ApplyActionAsync(Guid decisionId, FeedImportDecisionAction action) =>
+        RunDecisionActionAsync(decisionId, action.ToString(),
+            () => FeedImportService.ApplyActionAsync(decisionId, action));
+
+    private bool IsEditing(Guid decisionId) => _correction?.DecisionId == decisionId;
+
+    internal void StartCorrection(FeedImportDecisionViewModel decision)
+    {
+        var actions = decision.ManualActions;
+        _correction = new CorrectionForm(decision.Id) { Serie = actions.Serie ?? string.Empty, Title = actions.Title, Volume = actions.Volume };
+    }
+
+    private void CancelCorrection() => _correction = null;
+
+    internal async Task SaveCorrectionAsync(Guid decisionId)
+    {
+        if (_correction is not { } correction || correction.DecisionId != decisionId)
+        {
+            return;
+        }
+
+        var succeeded = await RunDecisionActionAsync(decisionId, "Correct",
+            () => FeedImportService.CorrectAsync(decisionId, correction.Serie, correction.Title, correction.Volume));
+        if (succeeded)
+        {
+            _correction = null;
+        }
+    }
+
+    private async Task<bool> RunDecisionActionAsync(Guid decisionId, string actionName, Func<Task<Domain.Primitives.Result>> action)
     {
         if (_busyDecisionId is not null)
         {
-            return;
+            return false;
         }
 
         _busyDecisionId = decisionId;
         try
         {
-            var result = await FeedImportService.ResolveArbitrationAsync(decisionId, action, candidateIndex);
+            var result = await action();
             if (result.IsSuccess)
             {
                 Snackbar.Add("Décision mise à jour.", Severity.Success);
                 await ReloadAsync();
+                Notifier.NotifyChanged();
+                return true;
             }
-            else if (result.IsFailure)
-            {
-                Snackbar.Add(result.Error?.Description ?? "Impossible de mettre à jour la décision.", Severity.Error);
-                Log.Error("FeedImports: failed to resolve arbitration {Action} on decision {DecisionId}: {ErrorDescription}",
-                    action, decisionId, result.Error?.Description);
-            }
+
+            Snackbar.Add(result.Error?.Description ?? "Impossible de mettre à jour la décision.", Severity.Error);
+            Log.Error("FeedImports: action {Action} on decision {DecisionId} failed: {ErrorDescription}",
+                actionName, decisionId, result.Error?.Description);
+            return false;
         }
         finally
         {
             _busyDecisionId = null;
         }
+    }
+
+    private sealed class CorrectionForm(Guid decisionId)
+    {
+        public Guid DecisionId { get; } = decisionId;
+        public string Serie { get; set; } = string.Empty;
+        public string? Title { get; set; }
+        public int? Volume { get; set; }
     }
 }
