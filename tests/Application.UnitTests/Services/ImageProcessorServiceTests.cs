@@ -8,7 +8,7 @@ namespace Application.UnitTests.Services;
 
 public sealed class ImageProcessorServiceTests : IDisposable
 {
-    private readonly ImageProcessorService _service = new();
+    private readonly ImageProcessorService _service = new(NullLogger<ImageProcessorService>.Instance);
     private readonly string _tempDir;
 
     public ImageProcessorServiceTests()

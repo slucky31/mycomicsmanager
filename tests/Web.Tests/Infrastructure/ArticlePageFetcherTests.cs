@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using AwesomeAssertions;
 using Domain.FeedImports;
+using Microsoft.Extensions.Logging.Abstractions;
 using Web.Infrastructure;
 using Xunit;
 
@@ -15,7 +16,7 @@ public sealed class ArticlePageFetcherTests
     {
         using var handler = new StubHandler(responder);
         using var httpClient = new HttpClient(handler, disposeHandler: false);
-        return await new ArticlePageFetcher(httpClient).GetHtmlAsync(s_page, TestContext.Current.CancellationToken);
+        return await new ArticlePageFetcher(httpClient, NullLogger<ArticlePageFetcher>.Instance).GetHtmlAsync(s_page, TestContext.Current.CancellationToken);
     }
 
     [Fact]

@@ -6,7 +6,7 @@ namespace Application.UnitTests.Services;
 
 public sealed class ComicInfoXmlServiceTests : IDisposable
 {
-    private readonly ComicInfoXmlService _service = new();
+    private readonly ComicInfoXmlService _service = new(NullLogger<ComicInfoXmlService>.Instance);
     private readonly string _tempDir;
 
     public ComicInfoXmlServiceTests()

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Serilog;
 using Web.Models;
 using Web.Services;
 using Web.Validators;
@@ -14,6 +13,7 @@ public partial class Statistics : IAsyncDisposable
     [Inject] private IStatisticsService StatisticsService { get; set; } = default!;
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILogger<Statistics> Logger { get; set; } = default!;
 
     private readonly BarChartOptions _chartOptions = new()
     {
@@ -52,7 +52,7 @@ public partial class Statistics : IAsyncDisposable
         else if (result.IsFailure)
         {
             Snackbar.Add("Failed to load libraries", Severity.Error);
-            Log.Error("Statistics: failed to load libraries: {ErrorDescription}", result.Error?.Description);
+            Logger.LogError("Statistics: failed to load libraries: {ErrorDescription}", result.Error?.Description);
         }
     }
 
@@ -83,7 +83,7 @@ public partial class Statistics : IAsyncDisposable
             else if (result.IsFailure)
             {
                 Snackbar.Add("Failed to load statistics", Severity.Error);
-                Log.Error("Statistics: failed to load statistics for library {LibraryId}: {ErrorDescription}", libraryId, result.Error?.Description);
+                Logger.LogError("Statistics: failed to load statistics for library {LibraryId}: {ErrorDescription}", libraryId, result.Error?.Description);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

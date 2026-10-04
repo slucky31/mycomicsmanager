@@ -15,7 +15,7 @@ public class PublishDateHelperTests
     public void ParsePublishDate_Should_ReturnNull_WhenInputIsNullOrWhitespace(string? dateString)
     {
         // Act
-        var result = PublishDateHelper.ParsePublishDate(dateString);
+        var result = PublishDateHelper.ParsePublishDate(dateString, NullLogger.Instance);
 
         // Assert
         result.Should().BeNull();
@@ -41,7 +41,7 @@ public class PublishDateHelperTests
         string dateString, int year, int month, int day)
     {
         // Act
-        var result = PublishDateHelper.ParsePublishDate(dateString);
+        var result = PublishDateHelper.ParsePublishDate(dateString, NullLogger.Instance);
 
         // Assert
         result.Should().Be(new DateOnly(year, month, day));
@@ -55,7 +55,7 @@ public class PublishDateHelperTests
     public void ParsePublishDate_Should_ReturnDate_WhenFallbackGenericParseSucceeds()
     {
         // ISO 8601 with time component – no explicit format matches, but DateTime.TryParse handles it
-        var result = PublishDateHelper.ParsePublishDate("1987-09-16T00:00:00");
+        var result = PublishDateHelper.ParsePublishDate("1987-09-16T00:00:00", NullLogger.Instance);
 
         result.Should().Be(new DateOnly(1987, 9, 16));
     }
@@ -64,7 +64,7 @@ public class PublishDateHelperTests
     public void ParsePublishDate_Should_ReturnNull_WhenDateStringIsUnparseable()
     {
         // Act
-        var result = PublishDateHelper.ParsePublishDate("not-a-date");
+        var result = PublishDateHelper.ParsePublishDate("not-a-date", NullLogger.Instance);
 
         // Assert
         result.Should().BeNull();

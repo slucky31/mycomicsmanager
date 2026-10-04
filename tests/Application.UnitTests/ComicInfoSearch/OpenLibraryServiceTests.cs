@@ -14,7 +14,7 @@ public class OpenLibraryServiceTests
         {
             BaseUrl = new Uri("https://openlibrary.org"),
             CoversBaseUrl = new Uri("https://covers.openlibrary.org")
-        }));
+        }), NullLogger<OpenLibraryService>.Instance);
 
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnBookResult_WhenBookFound()

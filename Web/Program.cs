@@ -81,7 +81,8 @@ builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =
     client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
-    .AddHttpMessageHandler(() => new SsrfGuardHandler(
+    .AddHttpMessageHandler(sp => new SsrfGuardHandler(
+        sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
         new HashSet<string>(["openlibrary.org", "covers.openlibrary.org"], StringComparer.OrdinalIgnoreCase)))
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
@@ -98,7 +99,8 @@ builder.Services.AddHttpClient<IGoogleBooksService, GoogleBooksService>(client =
     client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
-    .AddHttpMessageHandler(() => new SsrfGuardHandler(
+    .AddHttpMessageHandler(sp => new SsrfGuardHandler(
+        sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
         new HashSet<string>(["www.googleapis.com", "books.googleapis.com"], StringComparer.OrdinalIgnoreCase)))
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
@@ -114,11 +116,13 @@ builder.Services.AddHttpClient("Bedetheque", client =>
     client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
-    .AddHttpMessageHandler(() => new SsrfGuardHandler(
+    .AddHttpMessageHandler(sp => new SsrfGuardHandler(
+        sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
         new HashSet<string>(["www.bedetheque.com"], StringComparer.OrdinalIgnoreCase)))
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.FromSeconds(15))
-    .AddHttpMessageHandler(() => new SsrfGuardHandler(
+    .AddHttpMessageHandler(sp => new SsrfGuardHandler(
+        sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
         new HashSet<string>(["serpapi.com"], StringComparer.OrdinalIgnoreCase)))
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
@@ -291,6 +295,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
-StartupInfo.Print();
+StartupInfo.Print(app.Services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(StartupInfo)));
 
 await app.RunAsync();

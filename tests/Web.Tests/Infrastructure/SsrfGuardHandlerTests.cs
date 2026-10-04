@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using AwesomeAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Web.Infrastructure;
 using Xunit;
 
@@ -12,7 +13,7 @@ public sealed class SsrfGuardHandlerTests
     {
         // CA2000 suppressed: HttpClient takes ownership of the handler and disposes it
 #pragma warning disable CA2000
-        var guard = new SsrfGuardHandler(allowedHosts, allowHttp) { InnerHandler = inner };
+        var guard = new SsrfGuardHandler(NullLogger<SsrfGuardHandler>.Instance, allowedHosts, allowHttp) { InnerHandler = inner };
 #pragma warning restore CA2000
         return new HttpClient(guard);
     }

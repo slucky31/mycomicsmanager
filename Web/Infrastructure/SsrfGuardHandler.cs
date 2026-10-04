@@ -3,11 +3,9 @@ using Domain.Extensions;
 
 namespace Web.Infrastructure;
 
-internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts, bool allowHttp = false, bool allowSubdomains = false) : DelegatingHandler
+internal sealed class SsrfGuardHandler(ILogger<SsrfGuardHandler> logger, IReadOnlySet<string> allowedHosts, bool allowHttp = false, bool allowSubdomains = false) : DelegatingHandler
 {
     private const int MaxRedirects = 5;
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<SsrfGuardHandler>();
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
@@ -57,7 +55,7 @@ internal sealed class SsrfGuardHandler(IReadOnlySet<string> allowedHosts, bool a
     {
         if (!uri.IsAllowedHost(allowedHosts, allowHttp, allowSubdomains))
         {
-            Log.Warning("SSRF guard blocked outgoing request to {Uri}", uri);
+            logger.LogWarning("SSRF guard blocked outgoing request to {Uri}", uri);
             throw new HttpRequestException($"SSRF guard: request to '{uri}' is not permitted.");
         }
     }

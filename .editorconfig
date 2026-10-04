@@ -358,6 +358,9 @@ dotnet_diagnostic.CA1724.severity = suggestion
 # CA1848: Use LoggerMessage delegates
 dotnet_diagnostic.CA1848.severity = none
 
+# CA1873: Avoid potentially expensive logging (same trade-off as CA1848: log calls stay plain ILogger<T> calls)
+dotnet_diagnostic.CA1873.severity = none
+
 # CA2007: Consider calling ConfigureAwait on the awaited task
 dotnet_diagnostic.CA2007.severity = none
 

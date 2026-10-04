@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Components;
-using Serilog;
 
 namespace Web.Components.Pages;
 
@@ -8,6 +7,7 @@ public sealed partial class Login : IDisposable
 {
     [Inject] private IWebHostEnvironment WebHostEnvironment { get; set; } = default!;
     [Inject] private PersistentComponentState ApplicationState { get; set; } = default!;
+    [Inject] private ILogger<Login> Logger { get; set; } = default!;
 
     private string[]? _allBackgroundImages;
     private string? _selectedImage;
@@ -44,7 +44,7 @@ public sealed partial class Login : IDisposable
 
     public void Dispose() => _persistingSubscription.Dispose();
 
-    private static string[] LoadBackgroundImages(string webRootPath)
+    private string[] LoadBackgroundImages(string webRootPath)
     {
         try
         {
@@ -61,11 +61,11 @@ public sealed partial class Login : IDisposable
         }
         catch (IOException ex)
         {
-            Log.Error(ex, "Error loading background images due to I/O issue");
+            Logger.LogError(ex, "Error loading background images due to I/O issue");
         }
         catch (UnauthorizedAccessException ex)
         {
-            Log.Error(ex, "Error loading background images due to access denied");
+            Logger.LogError(ex, "Error loading background images due to access denied");
         }
 
         return [];

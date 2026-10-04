@@ -11,7 +11,7 @@ public sealed class GoogleBooksServiceTests
     private static readonly Uri GoogleBooksBaseUrl = new("https://www.googleapis.com/books/v1");
 
     private static GoogleBooksService CreateService(HttpClient httpClient) =>
-        new(httpClient, Options.Create(new GoogleBooksSettings { BaseUrl = GoogleBooksBaseUrl }));
+        new(httpClient, Options.Create(new GoogleBooksSettings { BaseUrl = GoogleBooksBaseUrl }), NullLogger<GoogleBooksService>.Instance);
 
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnBookResult_WhenBookFound()

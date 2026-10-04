@@ -15,7 +15,7 @@ public sealed class TempWorkspaceTests : IDisposable
     public TempWorkspaceTests()
     {
         var settings = Options.Create(new ImportSettings { TempDirectory = _root });
-        _sut = new TempWorkspace(settings, new FakeLibraryLocalStorage(_root));
+        _sut = new TempWorkspace(settings, new FakeLibraryLocalStorage(_root), NullLogger<TempWorkspace>.Instance);
     }
 
     [Fact]

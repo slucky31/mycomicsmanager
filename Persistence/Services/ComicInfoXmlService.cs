@@ -3,13 +3,12 @@ using System.Xml.Serialization;
 using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.Services;
 
-public class ComicInfoXmlService : IComicInfoXmlService
+public class ComicInfoXmlService(ILogger<ComicInfoXmlService> logger) : IComicInfoXmlService
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<ComicInfoXmlService>();
-
     private static readonly XmlSerializer s_serializer = new(typeof(ComicInfoDocument));
 
     public Result<ComicInfoData> Read(string xmlPath)
@@ -40,7 +39,7 @@ public class ComicInfoXmlService : IComicInfoXmlService
         }
         catch (Exception ex) when (ex is InvalidOperationException or XmlException)
         {
-            Log.Error(ex, "Failed to parse ComicInfo.xml: {Path}", xmlPath);
+            logger.LogError(ex, "Failed to parse ComicInfo.xml: {Path}", xmlPath);
             return FileProcessingError.XmlReadError;
         }
     }
@@ -62,7 +61,7 @@ public class ComicInfoXmlService : IComicInfoXmlService
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Log.Error(ex, "Failed to write ComicInfo.xml: {Path}", xmlPath);
+            logger.LogError(ex, "Failed to write ComicInfo.xml: {Path}", xmlPath);
             return FileProcessingError.XmlWriteError;
         }
     }

@@ -20,15 +20,16 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     private PeriodicTimer? _periodicTimer;
     private Task? _pollingTask;
     private readonly ConcurrentDictionary<string, byte> _inFlight = new(StringComparer.OrdinalIgnoreCase);
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<FileWatcherService>();
+    private readonly ILogger<FileWatcherService> _logger;
 
     public FileWatcherService(
         IServiceScopeFactory scopeFactory,
         IImportJobEnqueuer enqueuer,
         IOptions<ImportSettings> settings,
-        IHostApplicationLifetime lifetime)
+        IHostApplicationLifetime lifetime,
+        ILogger<FileWatcherService> logger)
     {
+        _logger = logger;
         _scopeFactory = scopeFactory;
         _enqueuer = enqueuer;
         _settings = settings.Value;
@@ -48,7 +49,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         {
             var task = Task.Run(() => RunStartupScanAsync(_lifetime.ApplicationStopping), cancellationToken);
             StartupScanTask = task;
-            task.ContinueWith(t => Log.Error(t.Exception, "Startup scan failed"),
+            task.ContinueWith(t => _logger.LogError(t.Exception, "Startup scan failed"),
                 CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
         });
 
@@ -76,7 +77,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    Log.Error(ex, "Polling scan failed");
+                    _logger.LogError(ex, "Polling scan failed");
                 }
             }
         }
@@ -112,7 +113,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             var result = importDirectoryStorage.EnsureExists(library.ImportDirectoryName);
             if (result.IsFailure)
             {
-                Log.Warning("Failed to ensure import directory for library {LibraryId} ({Name}): {Error}",
+                _logger.LogWarning("Failed to ensure import directory for library {LibraryId} ({Name}): {Error}",
                     library.Id, library.Name, result.Error?.Description);
             }
         }
@@ -143,7 +144,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     {
         if (!_inFlight.TryAdd(filePath, 0))
         {
-            Log.Debug("Skipping already in-flight file: {FilePath}", filePath);
+            _logger.LogDebug("Skipping already in-flight file: {FilePath}", filePath);
             return;
         }
 
@@ -162,7 +163,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         var extension = Path.GetExtension(filePath);
         if (!_supportedExtensions.Contains(extension))
         {
-            Log.Debug("Ignoring unsupported file: {FilePath}", filePath);
+            _logger.LogDebug("Ignoring unsupported file: {FilePath}", filePath);
             return;
         }
 
@@ -173,19 +174,19 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         var parentName = Path.GetFileName(parentDir);
         if (!TryExtractLibraryId(parentName, out var libraryId))
         {
-            Log.Debug("Ignoring file at root or non-library subdirectory: {FilePath}", filePath);
+            _logger.LogDebug("Ignoring file at root or non-library subdirectory: {FilePath}", filePath);
             return;
         }
 
         if (!await WaitForFileReadyAsync(filePath, ct))
         {
-            Log.Warning("File never became ready (still locked): {FilePath}", filePath);
+            _logger.LogWarning("File never became ready (still locked): {FilePath}", filePath);
             return;
         }
 
         if (!File.Exists(filePath))
         {
-            Log.Debug("File disappeared before processing: {FilePath}", filePath);
+            _logger.LogDebug("File disappeared before processing: {FilePath}", filePath);
             return;
         }
 
@@ -197,7 +198,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             var library = await libraryRepository.GetByIdAsync(libraryId);
             if (library is null)
             {
-                Log.Warning("Library {LibraryId} not found for file {FilePath}", libraryId, filePath);
+                _logger.LogWarning("Library {LibraryId} not found for file {FilePath}", libraryId, filePath);
                 return;
             }
 
@@ -227,11 +228,11 @@ public sealed class FileWatcherService : IHostedService, IDisposable
                 // Expected while a previously enqueued job for this file is still being
                 // processed (extraction/conversion can take minutes); the watcher will
                 // stop rescanning it once the file is moved out of the import directory.
-                Log.Debug("Import job already active for {FilePath}, skipping rescan", filePath);
+                _logger.LogDebug("Import job already active for {FilePath}, skipping rescan", filePath);
             }
             else
             {
-                Log.Error("Failed to create import job for {FilePath}: [{Code}] {Description}",
+                _logger.LogError("Failed to create import job for {FilePath}: [{Code}] {Description}",
                     filePath, result.Error.Code, result.Error.Description);
             }
 
@@ -239,7 +240,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         }
 
         var jobId = _enqueuer.Enqueue(result.Value!.Id);
-        Log.Information("Enqueued import job {ImportJobId} (Hangfire: {HangfireJobId}) for {FilePath}",
+        _logger.LogInformation("Enqueued import job {ImportJobId} (Hangfire: {HangfireJobId}) for {FilePath}",
             result.Value.Id, jobId, filePath);
     }
 
@@ -257,7 +258,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         return Guid.TryParse(directoryName, out libraryId);
     }
 
-    private static async Task<bool> WaitForFileReadyAsync(string filePath, CancellationToken ct)
+    private async Task<bool> WaitForFileReadyAsync(string filePath, CancellationToken ct)
     {
         const int maxAttempts = 10;
         const int delayMs = 500;
@@ -279,11 +280,11 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             }
             catch (IOException ex)
             {
-                Log.Warning(ex, "File not ready yet on attempt {Attempt}: {FilePath}", attempt, filePath);
+                _logger.LogWarning(ex, "File not ready yet on attempt {Attempt}: {FilePath}", attempt, filePath);
             }
             catch (UnauthorizedAccessException ex)
             {
-                Log.Warning(ex, "File not accessible yet on attempt {Attempt}: {FilePath}", attempt, filePath);
+                _logger.LogWarning(ex, "File not accessible yet on attempt {Attempt}: {FilePath}", attempt, filePath);
             }
 
             await Task.Delay(delayMs, ct).ConfigureAwait(false);

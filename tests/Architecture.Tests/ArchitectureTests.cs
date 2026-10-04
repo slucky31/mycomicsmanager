@@ -17,6 +17,8 @@ public class ArchitectureTests
         typeof(Application.ApplicationDependencyInjection).Assembly;
     private static readonly System.Reflection.Assembly PersistenceAssembly =
         typeof(Persistence.ProjectDependencyInjection).Assembly;
+    private static readonly System.Reflection.Assembly WebAssembly =
+        typeof(Web.Services.FeedImportSyncJob).Assembly;
 
     // -------------------------------------------------------
     // Layer dependency rules
@@ -188,5 +190,26 @@ public class ArchitectureTests
             .GetTypes();
 
         implementations.Should().BeEmpty();
+    }
+
+    // -------------------------------------------------------
+    // Logging conventions
+    // -------------------------------------------------------
+
+    // Every log must carry a SourceContext so its level can be tuned per class:
+    // classes take an ILogger<T>, the static Serilog.Log is reserved to Program.cs (bootstrap).
+    [Fact]
+    public void Types_Should_NotUseStaticSerilogLog_OutsideProgram()
+    {
+        var result = Types.InAssemblies([DomainAssembly, ApplicationAssembly, PersistenceAssembly, WebAssembly])
+            .ShouldNot()
+            .HaveDependencyOn("Serilog.Log")
+            .GetResult();
+
+        var offenders = (result.FailingTypes ?? [])
+            .Select(t => t.FullName ?? t.Name)
+            .Where(name => name != "Program" && !name.StartsWith("Program+", StringComparison.Ordinal));
+
+        offenders.Should().BeEmpty();
     }
 }

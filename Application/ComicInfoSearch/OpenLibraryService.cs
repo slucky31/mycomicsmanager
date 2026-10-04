@@ -3,19 +3,20 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application.Helpers;
 using Application.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
 
 public class OpenLibraryService : IOpenLibraryService
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<OpenLibraryService>();
-
     private readonly HttpClient _httpClient;
     private readonly OpenLibrarySettings _settings;
+    private readonly ILogger<OpenLibraryService> _logger;
 
-    public OpenLibraryService(HttpClient httpClient, IOptions<OpenLibrarySettings> settings)
+    public OpenLibraryService(HttpClient httpClient, IOptions<OpenLibrarySettings> settings, ILogger<OpenLibraryService> logger)
     {
+        _logger = logger;
         _httpClient = httpClient;
         _settings = settings.Value;
     }
@@ -29,13 +30,13 @@ public class OpenLibraryService : IOpenLibraryService
 
             var url = new Uri(_settings.BaseUrl, $"/isbn/{cleanIsbn}.json");
 
-            Log.Information("Searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogInformation("Searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
 
             var response = await _httpClient.GetAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                Log.Warning("OpenLibrary returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
+                _logger.LogWarning("OpenLibrary returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
                 return CreateNotFoundResult();
             }
 
@@ -44,7 +45,7 @@ public class OpenLibraryService : IOpenLibraryService
 
             if (bookData is null)
             {
-                Log.Warning("Failed to parse OpenLibrary response for ISBN: {Isbn}", cleanIsbn);
+                _logger.LogWarning("Failed to parse OpenLibrary response for ISBN: {Isbn}", cleanIsbn);
                 return CreateNotFoundResult();
             }
 
@@ -58,14 +59,14 @@ public class OpenLibraryService : IOpenLibraryService
                 coverUrl = new Uri(_settings.CoversBaseUrl, $"/b/id/{bookData.Covers[0]}-L.jpg");
             }
 
-            Log.Information("Found book: {Title} by {Authors}", bookData.Title, string.Join(", ", authors));
+            _logger.LogInformation("Found book: {Title} by {Authors}", bookData.Title, string.Join(", ", authors));
 
             return new OpenLibraryBookResult(
                 Title: bookData.Title ?? string.Empty,
                 Subtitle: bookData.Subtitle,
                 Authors: authors,
                 Publishers: bookData.Publishers ?? [],
-                PublishDate: PublishDateHelper.ParsePublishDate(bookData.PublishDate),
+                PublishDate: PublishDateHelper.ParsePublishDate(bookData.PublishDate, _logger),
                 NumberOfPages: bookData.NumberOfPages,
                 CoverUrl: coverUrl,
                 Found: true
@@ -73,17 +74,17 @@ public class OpenLibraryService : IOpenLibraryService
         }
         catch (HttpRequestException ex)
         {
-            Log.Error(ex, "HTTP error searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "HTTP error searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (JsonException ex)
         {
-            Log.Error(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (TaskCanceledException ex) when (ex.CancellationToken != cancellationToken)
         {
-            Log.Error(ex, "Timeout searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "Timeout searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
     }
@@ -114,15 +115,15 @@ public class OpenLibraryService : IOpenLibraryService
             }
             catch (HttpRequestException ex)
             {
-                Log.Warning(ex, "HTTP error fetching author data for key: {AuthorKey}", authorRef.Key);
+                _logger.LogWarning(ex, "HTTP error fetching author data for key: {AuthorKey}", authorRef.Key);
             }
             catch (JsonException ex)
             {
-                Log.Warning(ex, "JSON error parsing author data for key: {AuthorKey}", authorRef.Key);
+                _logger.LogWarning(ex, "JSON error parsing author data for key: {AuthorKey}", authorRef.Key);
             }
             catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
             {
-                Log.Warning(ex, "Timeout fetching author data for key: {AuthorKey}", authorRef.Key);
+                _logger.LogWarning(ex, "Timeout fetching author data for key: {AuthorKey}", authorRef.Key);
             }
         }
 

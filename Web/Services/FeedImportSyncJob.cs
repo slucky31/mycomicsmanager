@@ -15,13 +15,12 @@ public class FeedImportSyncJob(
     IServiceScopeFactory scopeFactory,
     IBackgroundJobClient backgroundJobClient,
     IOptions<FeedImportSettings> feedImportSettings,
-    IOptions<DebridLinkSettings> debridLinkSettings)
+    IOptions<DebridLinkSettings> debridLinkSettings,
+    ILogger<FeedImportSyncJob> logger)
 {
     public const string RecurringJobId = "feed-import-sync";
 
     private const int MaxIntervalMinutes = 24 * 60;
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<FeedImportSyncJob>();
 
     [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
     [AutomaticRetry(Attempts = 0)]
@@ -30,7 +29,7 @@ public class FeedImportSyncJob(
         var settings = feedImportSettings.Value;
         if (!settings.Enabled)
         {
-            Log.Information("Feed import sync skipped: FeedImport:Enabled is false.");
+            logger.LogInformation("Feed import sync skipped: FeedImport:Enabled is false.");
             return;
         }
 
@@ -55,7 +54,7 @@ public class FeedImportSyncJob(
         var userResult = await userReadService.GetUserByEmail(userEmail, cancellationToken);
         if (userResult.IsFailure)
         {
-            Log.Error("Feed import sync aborted: user configured in FeedImport:UserEmail not found: [{Code}] {Description}",
+            logger.LogError("Feed import sync aborted: user configured in FeedImport:UserEmail not found: [{Code}] {Description}",
                 userResult.Error!.Code, userResult.Error.Description);
             return null;
         }
@@ -70,12 +69,12 @@ public class FeedImportSyncJob(
         var result = await handler.Handle(new SyncFeedImportsCommand(userId), cancellationToken);
         if (result.IsFailure)
         {
-            Log.Error("Feed import sync failed: [{Code}] {Description}", result.Error!.Code, result.Error.Description);
+            logger.LogError("Feed import sync failed: [{Code}] {Description}", result.Error!.Code, result.Error.Description);
             return;
         }
 
         var summary = result.Value!;
-        Log.Information(
+        logger.LogInformation(
             "Feed import sync done: {Starred} starred entries, {Created} created, {AlreadyKnown} already known, {Rejected} rejected, {UnstarFailures} unstar failures.",
             summary.StarredEntries, summary.Created, summary.AlreadyKnown, summary.Rejected, summary.UnstarFailures);
     }
@@ -106,13 +105,13 @@ public class FeedImportSyncJob(
             var result = await handler.Handle(new AnalyzeFeedImportDecisionCommand(decisionId), cancellationToken);
             if (result.IsFailure)
             {
-                Log.Error("Feed import analysis of decision {DecisionId} failed: [{Code}] {Description}",
+                logger.LogError("Feed import analysis of decision {DecisionId} failed: [{Code}] {Description}",
                     decisionId, result.Error!.Code, result.Error.Description);
             }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Log.Error(ex, "Feed import analysis of decision {DecisionId} threw an exception", decisionId);
+            logger.LogError(ex, "Feed import analysis of decision {DecisionId} threw an exception", decisionId);
         }
     }
 
@@ -121,7 +120,7 @@ public class FeedImportSyncJob(
     {
         if (string.IsNullOrWhiteSpace(debridLinkSettings.Value.ApiKey))
         {
-            Log.Information("Feed import downloads skipped: DebridLink:ApiKey is not set.");
+            logger.LogInformation("Feed import downloads skipped: DebridLink:ApiKey is not set.");
             return;
         }
 

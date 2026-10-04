@@ -5,11 +5,9 @@ using Domain.Primitives;
 
 namespace Web.Infrastructure;
 
-internal sealed class ArticlePageFetcher(HttpClient httpClient) : IArticlePageFetcher
+internal sealed class ArticlePageFetcher(HttpClient httpClient, ILogger<ArticlePageFetcher> logger) : IArticlePageFetcher
 {
     internal const int MaxPageBytes = 5 * 1024 * 1024;
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<ArticlePageFetcher>();
 
     public async Task<Result<string>> GetHtmlAsync(Uri pageUri, CancellationToken cancellationToken = default)
     {
@@ -19,7 +17,7 @@ internal sealed class ArticlePageFetcher(HttpClient httpClient) : IArticlePageFe
             using var response = await httpClient.GetAsync(pageUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                Log.Warning("Article page {Url} returned {StatusCode}", pageUri, (int)response.StatusCode);
+                logger.LogWarning("Article page {Url} returned {StatusCode}", pageUri, (int)response.StatusCode);
                 return new TError(FeedImportError.PageUnavailable.Code, $"{FeedImportError.PageUnavailable.Description} (HTTP {(int)response.StatusCode})");
             }
 
@@ -32,7 +30,7 @@ internal sealed class ArticlePageFetcher(HttpClient httpClient) : IArticlePageFe
         }
         catch (Exception ex) when (ex is HttpRequestException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested))
         {
-            Log.Warning(ex, "Article page {Url} could not be fetched", pageUri);
+            logger.LogWarning(ex, "Article page {Url} could not be fetched", pageUri);
             return FeedImportError.PageUnavailable;
         }
     }

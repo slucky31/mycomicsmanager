@@ -3,7 +3,6 @@ using Domain.Libraries;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
-using Serilog;
 using Web.Components.Pages.Dialogs;
 using Web.Components.Pages.Libraries.Views;
 using Web.Enums;
@@ -22,6 +21,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private LibraryStateService LibraryStateService { get; set; } = default!;
+    [Inject] private ILogger<LibraryDetailPage> Logger { get; set; } = default!;
 
     [Parameter] public string? LibraryId { get; set; }
 
@@ -187,7 +187,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         else if (result.IsFailure)
         {
             Snackbar.Add("Failed to load books", Severity.Error);
-            Log.Error("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error?.Description);
+            Logger.LogError("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error?.Description);
         }
     }
 
@@ -226,7 +226,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
                 else if (result.IsFailure)
                 {
                     Snackbar.Add("Failed to load books", Severity.Error);
-                    Log.Error("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error?.Description);
+                    Logger.LogError("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error?.Description);
                 }
             }
         }
@@ -264,7 +264,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         if (result.IsFailure)
         {
             Snackbar.Add("Failed to load books", Severity.Error);
-            Log.Error("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error?.Description);
+            Logger.LogError("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error?.Description);
         }
 
         return new TableData<BookListItemViewModel> { Items = [], TotalItems = 0 };
@@ -352,7 +352,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
             else
             {
                 Snackbar.Add("Failed to save sort order", Severity.Error);
-                Log.Error("Failed to save sort order for library {LibraryId}: {ErrorDescription}", _library.Id, result.Error?.Description);
+                Logger.LogError("Failed to save sort order for library {LibraryId}: {ErrorDescription}", _library.Id, result.Error?.Description);
             }
         }
         catch (OperationCanceledException)
@@ -452,7 +452,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
                 else
                 {
                     Snackbar.Add("Failed to delete book", Severity.Error);
-                    Log.Error("Failed to delete book with ID {BookId}: {ErrorDescription}", bookId, res.Error?.Description);
+                    Logger.LogError("Failed to delete book with ID {BookId}: {ErrorDescription}", bookId, res.Error?.Description);
                 }
             }
             catch (OperationCanceledException)

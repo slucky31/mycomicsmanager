@@ -5,10 +5,8 @@ using Domain.Books;
 
 namespace Web.Services;
 
-public class ImportOrchestrator(IServiceScopeFactory scopeFactory) : IImportOrchestrator
+public class ImportOrchestrator(IServiceScopeFactory scopeFactory, ILogger<ImportOrchestrator> logger) : IImportOrchestrator
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<ImportOrchestrator>();
-
     public async Task ProcessAsync(Guid importJobId, CancellationToken ct = default)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
@@ -18,12 +16,12 @@ public class ImportOrchestrator(IServiceScopeFactory scopeFactory) : IImportOrch
 
         if (result.IsFailure)
         {
-            Log.Error("Import job {ImportJobId} failed: [{Code}] {Description}",
+            logger.LogError("Import job {ImportJobId} failed: [{Code}] {Description}",
                 importJobId, result.Error!.Code, result.Error.Description);
         }
         else
         {
-            Log.Information("Import job {ImportJobId} completed. DigitalBook {BookId} created.",
+            logger.LogInformation("Import job {ImportJobId} completed. DigitalBook {BookId} created.",
                 importJobId, result.Value!.Id);
         }
     }

@@ -5,7 +5,7 @@ namespace Application.UnitTests.Services;
 
 public sealed class PdfImageExtractorServiceTests : IDisposable
 {
-    private readonly PdfImageExtractorService _service = new();
+    private readonly PdfImageExtractorService _service = new(NullLogger<PdfImageExtractorService>.Instance);
     private readonly string _tempDir;
 
     public PdfImageExtractorServiceTests()

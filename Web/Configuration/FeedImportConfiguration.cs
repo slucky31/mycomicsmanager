@@ -50,7 +50,7 @@ public static class FeedImportConfiguration
                 var allowedHosts = IsHttpUri(baseUrl)
                     ? new HashSet<string>([baseUrl!.Host], StringComparer.OrdinalIgnoreCase)
                     : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                return new SsrfGuardHandler(allowedHosts, allowHttp: baseUrl?.Scheme == Uri.UriSchemeHttp);
+                return new SsrfGuardHandler(sp.GetRequiredService<ILogger<SsrfGuardHandler>>(), allowedHosts, allowHttp: baseUrl?.Scheme == Uri.UriSchemeHttp);
             })
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
@@ -63,7 +63,7 @@ public static class FeedImportConfiguration
             .AddHttpMessageHandler(sp =>
             {
                 var sourceHosts = sp.GetRequiredService<IOptions<FeedImportSettings>>().Value.AllowedSourceHosts;
-                return new SsrfGuardHandler(new HashSet<string>(sourceHosts, StringComparer.OrdinalIgnoreCase), allowSubdomains: true);
+                return new SsrfGuardHandler(sp.GetRequiredService<ILogger<SsrfGuardHandler>>(), new HashSet<string>(sourceHosts, StringComparer.OrdinalIgnoreCase), allowSubdomains: true);
             })
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
@@ -86,7 +86,7 @@ public static class FeedImportConfiguration
             .AddHttpMessageHandler(sp =>
             {
                 var baseUrl = sp.GetRequiredService<IOptions<DebridLinkSettings>>().Value.BaseUrl;
-                return new SsrfGuardHandler(new HashSet<string>([baseUrl.Host], StringComparer.OrdinalIgnoreCase));
+                return new SsrfGuardHandler(sp.GetRequiredService<ILogger<SsrfGuardHandler>>(), new HashSet<string>([baseUrl.Host], StringComparer.OrdinalIgnoreCase));
             })
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
@@ -97,7 +97,7 @@ public static class FeedImportConfiguration
             {
                 var hosts = sp.GetRequiredService<IOptions<FeedImportSettings>>().Value.AllowedDownloadHosts
                     .Concat(sp.GetRequiredService<IOptions<DebridLinkSettings>>().Value.DownloadHosts);
-                return new SsrfGuardHandler(new HashSet<string>(hosts, StringComparer.OrdinalIgnoreCase), allowSubdomains: true);
+                return new SsrfGuardHandler(sp.GetRequiredService<ILogger<SsrfGuardHandler>>(), new HashSet<string>(hosts, StringComparer.OrdinalIgnoreCase), allowSubdomains: true);
             })
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 

@@ -18,7 +18,7 @@ public class CloudinaryServiceTests
             ApiSecret = "test-api-secret"
         });
 
-        var service = new CloudinaryService(settings);
+        var service = new CloudinaryService(settings, NullLogger<CloudinaryService>.Instance);
 
         // Inject mock HttpClient via reflection: service._cloudinary.Api.Client
         var cloudinaryField = typeof(CloudinaryService)
@@ -236,7 +236,7 @@ public class CloudinaryServiceTests
             ApiKey = "test-api-key",
             ApiSecret = "test-api-secret"
         });
-        var service = new CloudinaryService(settings);
+        var service = new CloudinaryService(settings, NullLogger<CloudinaryService>.Instance);
 
         var result = await service.UploadImageFromUrlAsync(
             new Uri("http://covers.openlibrary.org/b/id/1-L.jpg"), "covers", "test",
@@ -255,7 +255,7 @@ public class CloudinaryServiceTests
             ApiKey = "test-api-key",
             ApiSecret = "test-api-secret"
         });
-        var service = new CloudinaryService(settings);
+        var service = new CloudinaryService(settings, NullLogger<CloudinaryService>.Instance);
 
         var result = await service.UploadImageFromUrlAsync(
             new Uri("https://example.com/image.jpg"), "covers", "test",

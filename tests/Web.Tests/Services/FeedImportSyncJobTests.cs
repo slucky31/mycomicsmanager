@@ -12,6 +12,7 @@ using Hangfire;
 using Hangfire.Common;
 using Hangfire.States;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using Web.Services;
@@ -54,7 +55,7 @@ public sealed class FeedImportSyncJobTests
     }
 
     private FeedImportSyncJob CreateJob() =>
-        new(_scopeFactory, _backgroundJobClient, Options.Create(_settings), Options.Create(_debridLinkSettings));
+        new(_scopeFactory, _backgroundJobClient, Options.Create(_settings), Options.Create(_debridLinkSettings), NullLogger<FeedImportSyncJob>.Instance);
 
     private User ArrangeUserWithFailedSync()
     {

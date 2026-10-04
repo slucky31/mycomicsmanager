@@ -5,18 +5,18 @@ using Domain.Books;
 using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 
 namespace Application.ImportJobs.Process;
 
 public sealed class ProcessImportJobCommandHandler(
     ProcessImportJobRepositories repositories,
     ProcessImportJobFileProcessors fileProcessors,
-    ProcessImportJobExternalServices externalServices)
+    ProcessImportJobExternalServices externalServices,
+    ILogger<ProcessImportJobCommandHandler> logger)
     : ICommandHandler<ProcessImportJobCommand, DigitalBook>
 {
     private const string CompletedStatus = "Completed";
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<ProcessImportJobCommandHandler>();
 
     public async Task<Result<DigitalBook>> Handle(ProcessImportJobCommand request, CancellationToken cancellationToken)
     {
@@ -36,7 +36,7 @@ public sealed class ProcessImportJobCommandHandler(
             // Job stuck in intermediate state (e.g. Hangfire retry after unhandled exception)
             if (importJob.Status is not (ImportJobStatus.Completed or ImportJobStatus.Failed))
             {
-                Log.Warning("Import job {JobId} stuck in {Status} — marking as failed on retry",
+                logger.LogWarning("Import job {JobId} stuck in {Status} — marking as failed on retry",
                     importJob.Id, importJob.Status);
                 var stuckResult = await FailJobAsync(importJob, importJob.Status.ToString(),
                     ImportJobError.InvalidStatusTransition, cancellationToken);
@@ -136,7 +136,7 @@ public sealed class ProcessImportJobCommandHandler(
             var result = externalServices.ImportStorage.DeleteOriginalFile(filePath);
             if (result.IsFailure)
             {
-                Log.Warning("Could not delete original file {FilePath} after successful import: {Error}",
+                logger.LogWarning("Could not delete original file {FilePath} after successful import: {Error}",
                     filePath, result.Error?.Description);
             }
         }
@@ -145,7 +145,7 @@ public sealed class ProcessImportJobCommandHandler(
             var result = externalServices.ImportStorage.MoveOriginalFileToError(filePath);
             if (result.IsFailure)
             {
-                Log.Warning("Could not move original file {FilePath} to error directory: {Error}",
+                logger.LogWarning("Could not move original file {FilePath} to error directory: {Error}",
                     filePath, result.Error?.Description);
             }
         }
@@ -221,7 +221,7 @@ public sealed class ProcessImportJobCommandHandler(
                 var progressSaveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
                 if (progressSaveResult.IsFailure)
                 {
-                    Log.Warning("Failed to persist conversion progress for job {JobId}: {Error}",
+                    logger.LogWarning("Failed to persist conversion progress for job {JobId}: {Error}",
                         importJob.Id, progressSaveResult.Error?.Description);
                 }
             }
@@ -322,7 +322,7 @@ public sealed class ProcessImportJobCommandHandler(
         }
 
         // Best-effort: a cover upload failure (including an unreadable file) never fails the pipeline.
-        Log.Warning("Cover upload failed for job {JobId}: {Error}", importJob.Id, uploadResult.Error);
+        logger.LogWarning("Cover upload failed for job {JobId}: {Error}", importJob.Id, uploadResult.Error);
         return string.Empty;
     }
 
@@ -411,7 +411,7 @@ public sealed class ProcessImportJobCommandHandler(
             // ImportJob.Fail() is a no-op once Status is Completed, so a second SaveChangesAsync
             // could persist a Completed job pointing at the file we just deleted. Leave the job
             // stuck; the "stuck job" recovery at the top of Handle() marks it Failed on next retry.
-            Log.Error("Failed to persist completed import job {JobId}: {Error}",
+            logger.LogError("Failed to persist completed import job {JobId}: {Error}",
                 importJob.Id, saveResult.Error?.Description);
             return saveResult.Error!;
         }
@@ -424,7 +424,7 @@ public sealed class ProcessImportJobCommandHandler(
     private async Task<Result<DigitalBook>> HandleUnexpectedExceptionAsync(
         ImportJob importJob, Exception ex, CancellationToken ct)
     {
-        Log.Error(ex, "Unhandled exception in import pipeline for job {JobId} at step {Status}",
+        logger.LogError(ex, "Unhandled exception in import pipeline for job {JobId} at step {Status}",
             importJob.Id, importJob.Status);
         var step = importJob.Status.ToString();
         var message = ex.Message.Length > 500 ? ex.Message[..500] : ex.Message;
@@ -438,7 +438,7 @@ public sealed class ProcessImportJobCommandHandler(
         var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
         if (saveResult.IsFailure)
         {
-            Log.Error("Failed to persist status advance to {Status} for job {JobId}: {Error}",
+            logger.LogError("Failed to persist status advance to {Status} for job {JobId}: {Error}",
                 status, importJob.Id, saveResult.Error?.Description);
             return saveResult.Error!;
         }
@@ -452,7 +452,7 @@ public sealed class ProcessImportJobCommandHandler(
         var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
         if (saveResult.IsFailure)
         {
-            Log.Error("Failed to persist job failure for job {JobId}: {Error}",
+            logger.LogError("Failed to persist job failure for job {JobId}: {Error}",
                 importJob.Id, saveResult.Error?.Description);
         }
         return error;

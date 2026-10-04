@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Libraries;
 using Domain.ImportJobs;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Persistence.LocalStorage;
@@ -11,9 +12,11 @@ internal sealed class TempWorkspace : ITempWorkspace
 {
     private readonly string _tempDirectory;
     private readonly string _libraryRootPath;
+    private readonly ILogger<TempWorkspace> _logger;
 
-    public TempWorkspace(IOptions<ImportSettings> settings, ILibraryLocalStorage libraryStorage)
+    public TempWorkspace(IOptions<ImportSettings> settings, ILibraryLocalStorage libraryStorage, ILogger<TempWorkspace> logger)
     {
+        _logger = logger;
         _tempDirectory = settings.Value.TempDirectory;
         _libraryRootPath = libraryStorage.rootPath;
     }
@@ -27,7 +30,7 @@ internal sealed class TempWorkspace : ITempWorkspace
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Serilog.Log.Warning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _tempDirectory);
+            _logger.LogWarning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _tempDirectory);
             return true;
         }
     }
@@ -70,7 +73,7 @@ internal sealed class TempWorkspace : ITempWorkspace
         { File.Delete(path); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Serilog.Log.Error(ex, "Compensation failed: could not delete {Path}", path);
+            _logger.LogError(ex, "Compensation failed: could not delete {Path}", path);
         }
     }
 
@@ -82,7 +85,7 @@ internal sealed class TempWorkspace : ITempWorkspace
         }
         try
         { Directory.Delete(dir, true); }
-        catch (IOException ex) { Serilog.Log.Warning(ex, "Could not delete temp directory {Dir}", dir); }
-        catch (UnauthorizedAccessException ex) { Serilog.Log.Warning(ex, "Could not delete temp directory {Dir}", dir); }
+        catch (IOException ex) { _logger.LogWarning(ex, "Could not delete temp directory {Dir}", dir); }
+        catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "Could not delete temp directory {Dir}", dir); }
     }
 }

@@ -2,7 +2,6 @@ using Domain.Libraries;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
-using Serilog;
 using Web.Models;
 using Web.Services;
 using Web.Validators;
@@ -14,6 +13,7 @@ public partial class Import : IAsyncDisposable
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IImportService ImportService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILogger<Import> Logger { get; set; } = default!;
 
     [SupplyParameterFromQuery]
     public string? LibraryId { get; set; }
@@ -73,7 +73,7 @@ public partial class Import : IAsyncDisposable
         else if (result.IsFailure)
         {
             _loadError = "Impossible de charger les librairies.";
-            Log.Error("Import: failed to load libraries: {Error}", result.Error?.Description);
+            Logger.LogError("Import: failed to load libraries: {Error}", result.Error?.Description);
         }
     }
 
@@ -102,7 +102,7 @@ public partial class Import : IAsyncDisposable
             {
                 _jobs = [];
                 Snackbar.Add(result.Error?.Description ?? "Impossible de charger les imports.", Severity.Error);
-                Log.Error("Import: failed to load jobs for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
+                Logger.LogError("Import: failed to load jobs for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
             }
 
             StartPollingIfNeeded();
@@ -151,7 +151,7 @@ public partial class Import : IAsyncDisposable
                 else if (result.IsFailure)
                 {
                     _uploadErrors.Add($"{file.Name}: {result.Error?.Description ?? "Erreur inconnue"}");
-                    Log.Error("Import: upload failed for {FileName}: {Error}", file.Name, result.Error?.Description);
+                    Logger.LogError("Import: upload failed for {FileName}: {Error}", file.Name, result.Error?.Description);
                 }
             }
 
@@ -219,7 +219,7 @@ public partial class Import : IAsyncDisposable
         }
         else if (result.IsFailure)
         {
-            Log.Error("Import: polling failed for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
+            Logger.LogError("Import: polling failed for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
         }
 
         StateHasChanged();
@@ -253,7 +253,7 @@ public partial class Import : IAsyncDisposable
                 else
                 {
                     errors++;
-                    Log.Error("Import: failed to delete terminal job {JobId}: {Error}", jobId, result.Error?.Description);
+                    Logger.LogError("Import: failed to delete terminal job {JobId}: {Error}", jobId, result.Error?.Description);
                 }
             }
 

@@ -1,7 +1,6 @@
 using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Serilog;
 using Web.Extensions;
 using Web.Services;
 using Web.Validators;
@@ -14,6 +13,7 @@ public partial class EditBook
     [Inject] private IBooksService BooksService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILogger<EditBook> Logger { get; set; } = default!;
 
     [Parameter]
     public string BookId { get; set; } = string.Empty;
@@ -49,20 +49,20 @@ public partial class EditBook
             {
                 _loadError = true;
                 Snackbar.Add("Book not found.", Severity.Error);
-                Log.Error("Error loading book {BookId}", BookId);
+                Logger.LogError("Error loading book {BookId}", BookId);
             }
         }
         catch (OperationCanceledException ex)
         {
             _loadError = true;
             Snackbar.Add("The operation was cancelled.", Severity.Warning);
-            Log.Warning(ex, "Loading book {BookId} was cancelled", BookId);
+            Logger.LogWarning(ex, "Loading book {BookId} was cancelled", BookId);
         }
         catch (InvalidOperationException ex)
         {
             _loadError = true;
             Snackbar.Add("An unexpected error occurred while loading the book.", Severity.Error);
-            Log.Error(ex, "Unexpected error loading book {BookId}", BookId);
+            Logger.LogError(ex, "Unexpected error loading book {BookId}", BookId);
         }
         finally
         {
@@ -110,13 +110,13 @@ public partial class EditBook
             else
             {
                 Snackbar.Add("Failed to update book", Severity.Error);
-                Log.Error("Failed to update book: {Description}", result.Error?.Description);
+                Logger.LogError("Failed to update book: {Description}", result.Error?.Description);
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
             Snackbar.Add("Failed to update book", Severity.Error);
-            Log.Error(ex, "Unexpected error updating book {BookId}", BookId);
+            Logger.LogError(ex, "Unexpected error updating book {BookId}", BookId);
         }
         finally
         {
@@ -145,19 +145,19 @@ public partial class EditBook
                 else
                 {
                     Snackbar.Add("An unexpected error occurred while deleting the reading.", Severity.Error);
-                    Log.Error("An unexpected error occurred while deleting reading date {ReadingDateId} for book {BookId}: {Description}", readingDateId, BookId, res.Error?.Description);
+                    Logger.LogError("An unexpected error occurred while deleting reading date {ReadingDateId} for book {BookId}: {Description}", readingDateId, BookId, res.Error?.Description);
                 }
             }
         }
         catch (OperationCanceledException ex)
         {
             Snackbar.Add("The operation was cancelled.", Severity.Error);
-            Log.Warning(ex, "Delete reading date {ReadingDateId} for book {BookId} was cancelled", readingDateId, BookId);
+            Logger.LogWarning(ex, "Delete reading date {ReadingDateId} for book {BookId} was cancelled", readingDateId, BookId);
         }
         catch (InvalidOperationException ex)
         {
             Snackbar.Add("An unexpected error occurred while deleting the reading.", Severity.Error);
-            Log.Error(ex, "Unexpected error deleting reading date {ReadingDateId} for book {BookId}", readingDateId, BookId);
+            Logger.LogError(ex, "Unexpected error deleting reading date {ReadingDateId} for book {BookId}", readingDateId, BookId);
         }
     }
 

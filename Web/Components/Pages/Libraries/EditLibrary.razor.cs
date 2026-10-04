@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Serilog;
 using Web.Services;
 using Web.Validators;
 
@@ -11,6 +10,7 @@ public partial class EditLibrary
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILogger<EditLibrary> Logger { get; set; } = default!;
 
     [Parameter] public string? LibraryId { get; set; }
 
@@ -64,12 +64,12 @@ public partial class EditLibrary
             }
 
             Snackbar.Add("Failed to update library", Severity.Error);
-            Log.Error("Failed to update library: {Error}", result.Error);
+            Logger.LogError("Failed to update library: {Error}", result.Error);
         }
         catch (InvalidOperationException ex)
         {
             Snackbar.Add("Failed to update library", Severity.Error);
-            Log.Error(ex, "Failed to update library");
+            Logger.LogError(ex, "Failed to update library");
         }
         finally
         {

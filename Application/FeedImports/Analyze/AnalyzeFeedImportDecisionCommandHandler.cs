@@ -5,6 +5,7 @@ using Ardalis.GuardClauses;
 using Domain.Extensions;
 using Domain.FeedImports;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Application.FeedImports.Analyze;
@@ -17,13 +18,12 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
     IEnumerable<IDownloadLinkExtractor> extractors,
     IBookReadService bookReadService,
     IUnitOfWork unitOfWork,
-    IOptions<FeedImportSettings> feedImportSettings) : ICommandHandler<AnalyzeFeedImportDecisionCommand>
+    IOptions<FeedImportSettings> feedImportSettings,
+    ILogger<AnalyzeFeedImportDecisionCommandHandler> logger) : ICommandHandler<AnalyzeFeedImportDecisionCommand>
 {
     public const string SourceStep = "Source";
     public const string FetchStep = "Récupération de la page";
     public const string ExtractionStep = "Extraction des liens";
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<AnalyzeFeedImportDecisionCommandHandler>();
 
     public async Task<Result> Handle(AnalyzeFeedImportDecisionCommand command, CancellationToken cancellationToken)
     {
@@ -69,7 +69,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         var htmlResult = await pageFetcher.GetHtmlAsync(pageUri, cancellationToken);
         if (htmlResult.IsFailure)
         {
-            Log.Warning("Feed import: page {Url} could not be fetched: [{Code}] {Description}",
+            logger.LogWarning("Feed import: page {Url} could not be fetched: [{Code}] {Description}",
                 pageUri, htmlResult.Error!.Code, htmlResult.Error.Description);
             return decision.Fail(FetchStep, htmlResult.Error.Description ?? FeedImportError.PageUnavailable.Description!);
         }

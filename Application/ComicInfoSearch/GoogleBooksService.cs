@@ -3,20 +3,21 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application.Helpers;
 using Application.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
 
 public class GoogleBooksService : IGoogleBooksService
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<GoogleBooksService>();
-
     private readonly HttpClient _httpClient;
     private const string SearchPath = "/volumes?q=isbn:";
     private readonly GoogleBooksSettings _settings;
+    private readonly ILogger<GoogleBooksService> _logger;
 
-    public GoogleBooksService(HttpClient httpClient, IOptions<GoogleBooksSettings> settings)
+    public GoogleBooksService(HttpClient httpClient, IOptions<GoogleBooksSettings> settings, ILogger<GoogleBooksService> logger)
     {
+        _logger = logger;
         _httpClient = httpClient;
         _settings = settings.Value;
     }
@@ -32,13 +33,13 @@ public class GoogleBooksService : IGoogleBooksService
 
             var url = new Uri(_settings.BaseUrl + SearchPath + cleanIsbn);
 
-            Log.Information("Searching Google Books for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogInformation("Searching Google Books for ISBN: {Isbn}", cleanIsbn);
 
             var response = await _httpClient.GetAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                Log.Warning("Google Books returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
+                _logger.LogWarning("Google Books returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
                 return CreateNotFoundResult();
             }
 
@@ -47,7 +48,7 @@ public class GoogleBooksService : IGoogleBooksService
 
             if (searchResponse?.Items is null || searchResponse.Items.Count == 0)
             {
-                Log.Warning("No items found in Google Books for ISBN: {Isbn}", cleanIsbn);
+                _logger.LogWarning("No items found in Google Books for ISBN: {Isbn}", cleanIsbn);
                 return CreateNotFoundResult();
             }
 
@@ -57,7 +58,7 @@ public class GoogleBooksService : IGoogleBooksService
 
             if (volumeInfo is null)
             {
-                Log.Warning("No volumeInfo in Google Books response for ISBN: {Isbn}", cleanIsbn);
+                _logger.LogWarning("No volumeInfo in Google Books response for ISBN: {Isbn}", cleanIsbn);
                 return CreateNotFoundResult();
             }
 
@@ -69,7 +70,7 @@ public class GoogleBooksService : IGoogleBooksService
                 ? (IReadOnlyList<string>)[]
                 : [volumeInfo.Publisher];
 
-            Log.Information("Found book: {Title} by {Authors}",
+            _logger.LogInformation("Found book: {Title} by {Authors}",
                 volumeInfo.Title,
                 string.Join(", ", volumeInfo.Authors ?? []));
 
@@ -78,7 +79,7 @@ public class GoogleBooksService : IGoogleBooksService
                 Subtitle: volumeInfo.Subtitle,
                 Authors: volumeInfo.Authors ?? [],
                 Publishers: publishers,
-                PublishDate: PublishDateHelper.ParsePublishDate(volumeInfo.PublishedDate),
+                PublishDate: PublishDateHelper.ParsePublishDate(volumeInfo.PublishedDate, _logger),
                 NumberOfPages: volumeInfo.PageCount,
                 CoverUrl: coverUrl,
                 Description: volumeInfo.Description,
@@ -89,17 +90,17 @@ public class GoogleBooksService : IGoogleBooksService
         }
         catch (HttpRequestException ex)
         {
-            Log.Error(ex, "HTTP error searching Google Books for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "HTTP error searching Google Books for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (JsonException ex)
         {
-            Log.Error(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            Log.Error(ex, "Timeout searching Google Books for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "Timeout searching Google Books for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
     }
@@ -112,7 +113,7 @@ public class GoogleBooksService : IGoogleBooksService
         {
             try
             {
-                Log.Information("Fetching detailed volume info from: {SelfLink}", searchVolume.SelfLink);
+                _logger.LogInformation("Fetching detailed volume info from: {SelfLink}", searchVolume.SelfLink);
                 var detailedVolume = await _httpClient.GetFromJsonAsync<GoogleBooksVolume>(
                     searchVolume.SelfLink, JsonOptions, cancellationToken);
 
@@ -123,15 +124,15 @@ public class GoogleBooksService : IGoogleBooksService
             }
             catch (HttpRequestException ex)
             {
-                Log.Warning(ex, "Failed to fetch detailed volume info, using search result data");
+                _logger.LogWarning(ex, "Failed to fetch detailed volume info, using search result data");
             }
             catch (JsonException ex)
             {
-                Log.Warning(ex, "Failed to parse detailed volume info, using search result data");
+                _logger.LogWarning(ex, "Failed to parse detailed volume info, using search result data");
             }
             catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
             {
-                Log.Warning(ex, "Timeout fetching detailed volume info, using search result data");
+                _logger.LogWarning(ex, "Timeout fetching detailed volume info, using search result data");
             }
         }
 

@@ -2,13 +2,12 @@ using System.IO.Compression;
 using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 
 namespace Persistence.Services;
 
-public class ComicArchiveBuilderService : IComicArchiveBuilder
+public class ComicArchiveBuilderService(ILogger<ComicArchiveBuilderService> logger) : IComicArchiveBuilder
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<ComicArchiveBuilderService>();
-
     public async Task<Result<ComicArchiveResult>> BuildAsync(
         IReadOnlyList<string> webpFiles,
         string? comicInfoXmlPath,
@@ -27,14 +26,14 @@ public class ComicArchiveBuilderService : IComicArchiveBuilder
             await Task.Run(() => CreateArchive(outputPath, webpFiles, hasComicInfo ? comicInfoXmlPath : null), ct);
 
             var fileInfo = new FileInfo(outputPath);
-            Log.Information("Built CBZ archive: {Path} ({Pages} pages, {Size} bytes)",
+            logger.LogInformation("Built CBZ archive: {Path} ({Pages} pages, {Size} bytes)",
                 outputPath, webpFiles.Count, fileInfo.Length);
 
             return new ComicArchiveResult(outputPath, fileInfo.Length, webpFiles.Count);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Log.Error(ex, "Failed to build CBZ archive: {Output}", outputPath);
+            logger.LogError(ex, "Failed to build CBZ archive: {Output}", outputPath);
             return FileProcessingError.ProcessingFailed;
         }
     }

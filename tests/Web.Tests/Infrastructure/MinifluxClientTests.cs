@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using AwesomeAssertions;
 using Domain.FeedImports;
+using Microsoft.Extensions.Logging.Abstractions;
 using Web.Infrastructure;
 using Xunit;
 
@@ -16,7 +17,7 @@ public sealed class MinifluxClientTests
     {
         var handler = new RoutingHandler(responder);
         var httpClient = new HttpClient(handler) { BaseAddress = s_baseAddress };
-        return (new MinifluxClient(httpClient), handler, httpClient);
+        return (new MinifluxClient(httpClient, NullLogger<MinifluxClient>.Instance), handler, httpClient);
     }
 
     private static HttpResponseMessage Json(string json, HttpStatusCode status = HttpStatusCode.OK) =>

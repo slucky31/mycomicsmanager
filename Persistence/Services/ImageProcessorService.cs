@@ -1,16 +1,15 @@
 using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
 
 namespace Persistence.Services;
 
-public class ImageProcessorService : IImageProcessor
+public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IImageProcessor
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<ImageProcessorService>();
-
     private static readonly HashSet<string> s_inputExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".jpeg", ".jpg", ".png", ".gif", ".webp" };
 
@@ -45,7 +44,7 @@ public class ImageProcessorService : IImageProcessor
         var (processedCount, skippedCount) = processResult.Value;
         CopyComicInfoXml(sourceDirectory, destinationDirectory);
 
-        Log.Information(
+        logger.LogInformation(
             "Processed {Converted} images to WebP, skipped {Skipped} already-optimal WebP files",
             processedCount, skippedCount);
 
@@ -59,7 +58,7 @@ public class ImageProcessorService : IImageProcessor
             .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-    private static async Task<Result<(int ProcessedCount, int SkippedCount)>> ProcessAllImagesAsync(
+    private async Task<Result<(int ProcessedCount, int SkippedCount)>> ProcessAllImagesAsync(
         List<string> imageFiles,
         string destinationDirectory,
         int targetWidth,
@@ -101,7 +100,7 @@ public class ImageProcessorService : IImageProcessor
         return (processedCount, skippedCount);
     }
 
-    private static async Task<bool> ShouldSkipConversionAsync(string filePath, int targetWidth, CancellationToken ct)
+    private async Task<bool> ShouldSkipConversionAsync(string filePath, int targetWidth, CancellationToken ct)
     {
         if (!string.Equals(Path.GetExtension(filePath), ".webp", StringComparison.OrdinalIgnoreCase))
         {
@@ -122,7 +121,7 @@ public class ImageProcessorService : IImageProcessor
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Log.Warning(ex, "Could not identify image {FilePath}, proceeding with full conversion", filePath);
+            logger.LogWarning(ex, "Could not identify image {FilePath}, proceeding with full conversion", filePath);
             return false;
         }
     }
