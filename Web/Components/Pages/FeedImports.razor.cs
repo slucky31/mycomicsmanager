@@ -206,7 +206,7 @@ public partial class FeedImports
         return ConfirmAndDeleteAsync(ids, message);
     }
 
-    private async Task ConfirmAndDeleteAsync(IReadOnlyCollection<Guid> decisionIds, string message)
+    private async Task ConfirmAndDeleteAsync(List<Guid> decisionIds, string message)
     {
         if (decisionIds.Count == 0 || _isDeleting || _busyDecisionId is not null)
         {

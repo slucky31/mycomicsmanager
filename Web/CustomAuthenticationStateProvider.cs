@@ -17,6 +17,11 @@ internal class CustomAuthenticationStateProvider(
     private readonly IRepository<User, Guid> _userRepository = userRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
+    // Provisioning runs once per circuit: GetAuthenticationStateAsync is called concurrently (AuthorizeRouteView,
+    // CurrentUserService...) and every caller shares the circuit's DbContext, so concurrent callers await the same task.
+    private string? _provisionedSub;
+    private Task? _provisioning;
+
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var authState = await base.GetAuthenticationStateAsync();
@@ -34,17 +39,28 @@ internal class CustomAuthenticationStateProvider(
 
             if (!string.IsNullOrEmpty(sub))
             {
-                var userByAuthId = await _userReadService.GetUserByAuthId(sub);
-                if (userByAuthId.IsFailure && userByAuthId.Error == UsersError.NotFound
-                    && !string.IsNullOrEmpty(email))
+                // A failed provisioning is retried on the next call.
+                if (_provisioning is null || _provisionedSub != sub || _provisioning.IsFaulted || _provisioning.IsCanceled)
                 {
-                    var newUser = User.Create(email, sub);
-                    _userRepository.Add(newUser);
-                    await _unitOfWork.SaveChangesAsync(default);
+                    _provisionedSub = sub;
+                    _provisioning = ProvisionAsync(sub, email);
                 }
+                await _provisioning;
             }
         }
 
-        return await Task.FromResult(new AuthenticationState(user));
+        return authState;
+    }
+
+    private async Task ProvisionAsync(string sub, string? email)
+    {
+        var userByAuthId = await _userReadService.GetUserByAuthId(sub);
+        if (userByAuthId.IsFailure && userByAuthId.Error == UsersError.NotFound
+            && !string.IsNullOrEmpty(email))
+        {
+            var newUser = User.Create(email, sub);
+            _userRepository.Add(newUser);
+            await _unitOfWork.SaveChangesAsync(default);
+        }
     }
 }
