@@ -23,7 +23,7 @@ internal sealed class ArticlePageFetcher(HttpClient httpClient, ILogger<ArticleP
 
             if (response.Content.Headers.ContentLength > MaxPageBytes)
             {
-                return new TError(FeedImportError.PageUnavailable.Code, "La page de l'article est trop volumineuse.");
+                return new TError(FeedImportError.PageUnavailable.Code, "The article page is too large.");
             }
 
             return await ReadLimitedAsync(response.Content, cancellationToken);
@@ -46,7 +46,7 @@ internal sealed class ArticlePageFetcher(HttpClient httpClient, ILogger<ArticleP
         {
             if (buffer.Length + read > MaxPageBytes)
             {
-                return new TError(FeedImportError.PageUnavailable.Code, "La page de l'article est trop volumineuse.");
+                return new TError(FeedImportError.PageUnavailable.Code, "The article page is too large.");
             }
             await buffer.WriteAsync(chunk.AsMemory(0, read), cancellationToken);
         }

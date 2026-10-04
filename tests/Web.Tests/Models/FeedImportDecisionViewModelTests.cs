@@ -21,14 +21,14 @@ public sealed class FeedImportDecisionViewModelTests
         viewModel.EntryUrl.Should().Be("https://planete-bd.org/12");
         viewModel.PublishedAt.Should().Be(publishedAt);
         viewModel.Status.Should().Be(FeedImportDecisionStatus.Pending);
-        viewModel.StatusDisplay.Should().Be("En attente");
+        viewModel.StatusDisplay.Should().Be("Pending");
         viewModel.StatusColor.Should().Be(Color.Default);
         viewModel.Reason.Should().Be(FeedImportDecision.CreatedReason);
-        viewModel.DecidedByDisplay.Should().Be("Automatique");
+        viewModel.DecidedByDisplay.Should().Be("Automatic");
         viewModel.ParsedDisplay.Should().BeNull();
         viewModel.ErrorDisplay.Should().BeNull();
         var evt = viewModel.Events.Should().ContainSingle().Subject;
-        evt.StatusDisplay.Should().Be("En attente");
+        evt.StatusDisplay.Should().Be("Pending");
         evt.Description.Should().Be(FeedImportDecision.CreatedReason);
     }
 
@@ -36,10 +36,9 @@ public sealed class FeedImportDecisionViewModelTests
     public void GetStatusDisplay_Should_ReturnLabel_ForEveryStatus()
     {
         FeedImportDecisionViewModel.FilterableStatuses.Should().NotContain(FeedImportDecisionStatus.Imported);
-        foreach (var status in Enum.GetValues<FeedImportDecisionStatus>())
-        {
-            FeedImportDecisionViewModel.GetStatusDisplay(status).Should().NotBe(status.ToString());
-        }
+        Enum.GetValues<FeedImportDecisionStatus>()
+            .Select(FeedImportDecisionViewModel.GetStatusDisplay)
+            .Should().OnlyHaveUniqueItems().And.NotContain(label => string.IsNullOrWhiteSpace(label));
     }
 
     [Fact]
@@ -59,7 +58,7 @@ public sealed class FeedImportDecisionViewModelTests
         viewModel.ParsedDisplay.Should().Be("Blacksad · T3");
         viewModel.Candidates.Should().HaveCount(2);
         viewModel.Candidates[0].Index.Should().Be(0);
-        viewModel.Candidates[0].SizeDisplay.Should().Be("50.0 Mo");
+        viewModel.Candidates[0].SizeDisplay.Should().Be("50.0 MB");
         viewModel.Candidates[0].Mirrors.Should().ContainSingle().Which.Host.Should().Be("1fichier.com");
         viewModel.Candidates[1].Index.Should().Be(1);
     }
@@ -79,19 +78,19 @@ public sealed class FeedImportDecisionViewModelTests
         viewModel.CanResolveDuplicate.Should().BeTrue();
         viewModel.CanChooseCandidate.Should().BeFalse();
         viewModel.MatchedBookId.Should().Be(bookId);
-        viewModel.ItemDisplay.Should().Be("Livre 2 de l'article");
+        viewModel.ItemDisplay.Should().Be("Book 2 of the article");
         viewModel.Candidates.Should().ContainSingle().Which.SizeDisplay.Should().BeNull();
     }
 
     [Fact]
-    public void From_Should_LabelFirstBookAndFormatDatesInFrench_WhenArticleHoldsSeveralBooks()
+    public void From_Should_LabelFirstBookAndFormatDates_WhenArticleHoldsSeveralBooks()
     {
         var publishedAt = new DateTime(2026, 10, 3, 17, 23, 0, DateTimeKind.Utc);
         var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 12, "Blacksad - Tomes 1 à 2", "https://planete-bd.org/12", publishedAt).Value!;
 
         var viewModel = FeedImportDecisionViewModel.From(decision, isPartOfMultiBookArticle: true);
 
-        viewModel.ItemDisplay.Should().Be("Livre 1 de l'article");
+        viewModel.ItemDisplay.Should().Be("Book 1 of the article");
         viewModel.PublishedAtDisplay.Should().Be(publishedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture));
         viewModel.PublishedAtDisplay.Should().MatchRegex(@"^03/10/2026 \d{2}:\d{2}$");
         viewModel.CreatedAtDisplay.Should().MatchRegex(@"^\d{2}/\d{2}/\d{4} \d{2}:\d{2}$");

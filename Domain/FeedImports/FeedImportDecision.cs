@@ -7,7 +7,7 @@ namespace Domain.FeedImports;
 
 public class FeedImportDecision : Entity<Guid>
 {
-    public const string CreatedReason = "Article enregistré depuis Miniflux.";
+    public const string CreatedReason = "Article saved from Miniflux.";
 
     public Guid UserId { get; private set; }
 
@@ -142,7 +142,7 @@ public class FeedImportDecision : Entity<Guid>
         }
 
         var now = DateTime.UtcNow;
-        var reason = $"Livre {itemIndex + 1} trouvé dans l'article.";
+        var reason = $"Book {itemIndex + 1} found in the article.";
         var sibling = new FeedImportDecision
         {
             Id = Guid.CreateVersion7(),
@@ -240,7 +240,7 @@ public class FeedImportDecision : Entity<Guid>
 
         MatchedBookId = null;
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.LinksExtracted, "Pas un doublon (confirmé par l'utilisateur).", FeedImportDecidedBy.User);
+        Transition(FeedImportDecisionStatus.LinksExtracted, "Not a duplicate (confirmed by the user).", FeedImportDecidedBy.User);
         return Result.Success();
     }
 
@@ -254,7 +254,7 @@ public class FeedImportDecision : Entity<Guid>
         }
 
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.SkippedDuplicate, "Doublon confirmé par l'utilisateur.", FeedImportDecidedBy.User);
+        Transition(FeedImportDecisionStatus.SkippedDuplicate, "Duplicate confirmed by the user.", FeedImportDecidedBy.User);
         return Result.Success();
     }
 
@@ -265,7 +265,7 @@ public class FeedImportDecision : Entity<Guid>
             return FeedImportError.InvalidStatusTransition;
         }
 
-        Transition(FeedImportDecisionStatus.Downloading, "Téléchargement en cours via Debrid-Link.", FeedImportDecidedBy.Auto);
+        Transition(FeedImportDecisionStatus.Downloading, "Downloading through Debrid-Link.", FeedImportDecidedBy.Auto);
         return Result.Success();
     }
 
@@ -281,7 +281,7 @@ public class FeedImportDecision : Entity<Guid>
         UpdatedAt = now;
         _events.Add(FeedImportDecisionEvent.Create(
             Id, now, Status, Status, FeedImportDecidedBy.Auto,
-            Truncate($"Échec du miroir {host} : {error}", FeedImportConstants.MaxEventDescriptionLength)));
+            Truncate($"Mirror {host} failed: {error}", FeedImportConstants.MaxEventDescriptionLength)));
         return Result.Success();
     }
 
@@ -300,7 +300,7 @@ public class FeedImportDecision : Entity<Guid>
         ChosenMirror = Truncate(chosenMirror, FeedImportConstants.MaxChosenMirrorLength);
         ImportJobId = importJobId;
         // Final state for the feed import: the import itself is followed on the Import page.
-        Transition(FeedImportDecisionStatus.Downloaded, $"Fichier déposé dans « {targetLibraryName} » : suivi de l'import dans la page Import.", FeedImportDecidedBy.Auto);
+        Transition(FeedImportDecisionStatus.Downloaded, $"File deposited in \"{targetLibraryName}\": follow the import on the Import page.", FeedImportDecidedBy.Auto);
         return Result.Success();
     }
 
@@ -350,7 +350,7 @@ public class FeedImportDecision : Entity<Guid>
         }
 
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.Ignored, "Ignoré par l'utilisateur.", FeedImportDecidedBy.User);
+        Transition(FeedImportDecisionStatus.Ignored, "Ignored by the user.", FeedImportDecidedBy.User);
         return Result.Success();
     }
 
@@ -363,7 +363,7 @@ public class FeedImportDecision : Entity<Guid>
 
         MatchedBookId = null;
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.LinksExtracted, "Téléchargement forcé par l'utilisateur (doublon ignoré).", FeedImportDecidedBy.User);
+        Transition(FeedImportDecisionStatus.LinksExtracted, "Download forced by the user (duplicate ignored).", FeedImportDecidedBy.User);
         return Result.Success();
     }
 
@@ -375,7 +375,7 @@ public class FeedImportDecision : Entity<Guid>
             return FeedImportError.InvalidStatusTransition;
         }
 
-        Reopen("Relancé par l'utilisateur.");
+        Reopen("Retried by the user.");
         return Result.Success();
     }
 
@@ -395,7 +395,7 @@ public class FeedImportDecision : Entity<Guid>
         ParsedTitle = TruncateOrNull(parsed.Title, FeedImportConstants.MaxParsedTitleLength);
         ParsedVolume = parsed.Volume;
         var volume = parsed.Volume is { } v ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $" T{v}") : string.Empty;
-        Reopen($"Corrigé par l'utilisateur : {ParsedSerie}{volume}{(ParsedTitle is null ? string.Empty : $" · {ParsedTitle}")}.");
+        Reopen($"Corrected by the user: {ParsedSerie}{volume}{(ParsedTitle is null ? string.Empty : $" · {ParsedTitle}")}.");
         return Result.Success();
     }
 

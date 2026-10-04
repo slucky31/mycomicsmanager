@@ -67,7 +67,7 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         decision.Status.Should().Be(FeedImportDecisionStatus.Failed);
         decision.ErrorStep.Should().Be(AnalyzeFeedImportDecisionCommandHandler.SourceStep);
-        decision.ErrorMessage.Should().Contain("Domaine source non autorisé");
+        decision.ErrorMessage.Should().Contain("Source domain not allowed");
         await _pageFetcher.DidNotReceive().GetHtmlAsync(Arg.Any<Uri>(), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -123,7 +123,7 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
 
         decision.Status.Should().Be(FeedImportDecisionStatus.SkippedDuplicate);
         decision.MatchedBookId.Should().Be(existing.Id);
-        decision.Reason.Should().Be("Doublon : « Blacksad T3 » dans « BD numériques ».");
+        decision.Reason.Should().Be("Duplicate: \"Blacksad T3\" in \"BD numériques\".");
     }
 
     [Fact]

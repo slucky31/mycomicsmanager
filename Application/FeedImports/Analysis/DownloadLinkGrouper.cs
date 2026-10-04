@@ -33,7 +33,7 @@ public static class DownloadLinkGrouper
             return HasDistinctHosts(unnamed)
                 ? new LinkGroupingResult([ToCandidate(unnamed, articleTitle)], IsAmbiguous: false, AmbiguityReason: null)
                 : Ambiguous(unnamed.Select(l => ToCandidate([l], articleTitle)).ToList(),
-                    "Regroupement ambigu : plusieurs liens sans nom de fichier sur le même hébergeur.");
+                    "Ambiguous grouping: several links without a file name on the same host.");
         }
 
         if (unnamed.Count == 0)
@@ -50,7 +50,7 @@ public static class DownloadLinkGrouper
         var candidates = named.Select(g => ToCandidate(g, articleTitle))
             .Concat(unnamed.Select(l => ToCandidate([l], articleTitle)))
             .ToList();
-        return Ambiguous(candidates, "Regroupement ambigu : liens nommés et non nommés mélangés.");
+        return Ambiguous(candidates, "Ambiguous grouping: named and unnamed links mixed.");
     }
 
     private static LinkGroupingResult Ambiguous(IReadOnlyList<DownloadCandidate> candidates, string reason) =>

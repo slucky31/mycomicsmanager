@@ -23,8 +23,8 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
     FeedImportDownloadOptions options,
     ILogger<DownloadFeedImportDecisionCommandHandler> logger) : ICommandHandler<DownloadFeedImportDecisionCommand>
 {
-    public const string LibraryStep = "Bibliothèque";
-    public const string DownloadStep = "Téléchargement";
+    public const string LibraryStep = "Library";
+    public const string DownloadStep = "Download";
     public const string ImportStep = "Import";
 
     public const string TargetLibraryColor = "#5C6BC0";
@@ -68,7 +68,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
         var candidate = candidates.Count > 0 ? candidates[0] : null;
         if (candidate is null || candidate.Mirrors.Count == 0)
         {
-            return await FailAsync(decision, DownloadStep, "Aucun lien de téléchargement enregistré.", cancellationToken);
+            return await FailAsync(decision, DownloadStep, "No download link saved.", cancellationToken);
         }
 
         var library = await GetOrCreateTargetLibraryAsync(decision.UserId, cancellationToken);

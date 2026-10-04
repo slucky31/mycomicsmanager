@@ -72,7 +72,7 @@ public partial class Import : IAsyncDisposable
         }
         else if (result.IsFailure)
         {
-            _loadError = "Impossible de charger les librairies.";
+            _loadError = "Unable to load the libraries.";
             Logger.LogError("Import: failed to load libraries: {Error}", result.Error!.Description);
         }
     }
@@ -101,7 +101,7 @@ public partial class Import : IAsyncDisposable
             else if (result.IsFailure)
             {
                 _jobs = [];
-                Snackbar.Add(result.Error?.Description ?? "Impossible de charger les imports.", Severity.Error);
+                Snackbar.Add(result.Error?.Description ?? "Unable to load the imports.", Severity.Error);
                 Logger.LogError("Import: failed to load jobs for library {LibraryId}: {Error}", capturedLibraryId, result.Error!.Description);
             }
 
@@ -150,7 +150,7 @@ public partial class Import : IAsyncDisposable
                 }
                 else if (result.IsFailure)
                 {
-                    _uploadErrors.Add($"{file.Name}: {result.Error?.Description ?? "Erreur inconnue"}");
+                    _uploadErrors.Add($"{file.Name}: {result.Error?.Description ?? "Unknown error"}");
                     Logger.LogError("Import: upload failed for {FileName}: {Error}", file.Name, result.Error!.Description);
                 }
             }
@@ -159,7 +159,7 @@ public partial class Import : IAsyncDisposable
 
             if (_uploadErrors.Count == 0)
             {
-                Snackbar.Add($"{files.Count} fichier(s) envoyé(s) avec succès", Severity.Success);
+                Snackbar.Add($"{files.Count} file(s) uploaded successfully", Severity.Success);
             }
         }
         finally
@@ -259,11 +259,11 @@ public partial class Import : IAsyncDisposable
 
             if (errors > 0)
             {
-                Snackbar.Add($"Impossible de supprimer {errors} job(s)", Severity.Error);
+                Snackbar.Add($"Unable to delete {errors} job(s)", Severity.Error);
             }
             else if (terminalJobIds.Count > 0)
             {
-                Snackbar.Add($"{terminalJobIds.Count} job(s) supprimé(s)", Severity.Success);
+                Snackbar.Add($"{terminalJobIds.Count} job(s) deleted", Severity.Success);
             }
         }
         finally
@@ -283,7 +283,7 @@ public partial class Import : IAsyncDisposable
         }
         else
         {
-            Snackbar.Add(result.Error?.Description ?? "Impossible de supprimer le job", Severity.Error);
+            Snackbar.Add(result.Error?.Description ?? "Unable to delete the job", Severity.Error);
         }
     }
 
@@ -298,12 +298,12 @@ public partial class Import : IAsyncDisposable
             {
                 _jobs = refreshResult.Value!.OrderByDescending(j => j.CreatedAt).ToList();
             }
-            Snackbar.Add("Import marqué comme échoué.", Severity.Warning);
+            Snackbar.Add("Import marked as failed.", Severity.Warning);
             StateHasChanged();
         }
         else
         {
-            Snackbar.Add(result.Error?.Description ?? "Impossible de forcer l'échec du job", Severity.Error);
+            Snackbar.Add(result.Error?.Description ?? "Unable to force the job to fail", Severity.Error);
         }
     }
 

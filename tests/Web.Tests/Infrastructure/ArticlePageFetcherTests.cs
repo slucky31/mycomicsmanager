@@ -61,7 +61,7 @@ public sealed class ArticlePageFetcherTests
         });
 
         result.IsFailure.Should().BeTrue();
-        result.Error!.Description.Should().Contain("trop volumineuse");
+        result.Error!.Description.Should().Contain("too large");
     }
 
     [Fact]

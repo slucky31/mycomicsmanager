@@ -83,7 +83,7 @@ public sealed class FeedImportServiceTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.TotalCount.Should().Be(41);
         result.Value.Items.Select(i => i.Id).Should().Equal(multiBook.Id, singleBook.Id);
-        result.Value.Items[0].ItemDisplay.Should().Be("Livre 1 de l'article");
+        result.Value.Items[0].ItemDisplay.Should().Be("Book 1 of the article");
         result.Value.Items[1].ItemDisplay.Should().BeNull();
         await _libraryReadService.DidNotReceive().GetByNameAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }

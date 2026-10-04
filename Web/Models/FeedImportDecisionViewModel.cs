@@ -57,8 +57,6 @@ public sealed record FeedImportDecisionViewModel(
     bool CanDelete = false)
 #pragma warning restore CA1054, CA1056
 {
-    private static readonly CultureInfo s_displayCulture = CultureInfo.GetCultureInfo("fr-FR");
-
     public string CreatedAtDisplay => FormatDate(CreatedAt);
 
     public FeedImportDecisionActions ManualActions => Actions ?? FeedImportDecisionActions.None;
@@ -101,7 +99,7 @@ public sealed record FeedImportDecisionViewModel(
                     e.OccurredAt, FormatDate(e.OccurredAt), GetStatusDisplay(e.Status), GetDecidedByDisplay(e.DecidedBy), e.Description))
                 .ToList(),
             ItemDisplay: isPartOfMultiBookArticle || decision.ItemIndex > 0
-                ? string.Create(CultureInfo.InvariantCulture, $"Livre {decision.ItemIndex + 1} de l'article")
+                ? string.Create(CultureInfo.InvariantCulture, $"Book {decision.ItemIndex + 1} of the article")
                 : null,
             ArbitrationKind: decision.ArbitrationKind,
             MatchedBookId: decision.MatchedBookId,
@@ -137,29 +135,29 @@ public sealed record FeedImportDecisionViewModel(
             : "/import";
     }
 
-    // Fixed French format: "03/10/2026 19:23" whatever the server culture.
+    // Fixed format: "03/10/2026 19:23" whatever the server culture (works in globalization-invariant mode).
     private static string FormatDate(DateTime utc) =>
-        utc.ToLocalTime().ToString("dd/MM/yyyy HH:mm", s_displayCulture);
+        utc.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
 
     private static string FormatSize(long bytes) => bytes switch
     {
-        >= 1_073_741_824 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_073_741_824.0:F1} Go"),
-        >= 1_048_576 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_048_576.0:F1} Mo"),
-        >= 1_024 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_024.0:F0} Ko"),
-        _ => string.Create(CultureInfo.InvariantCulture, $"{bytes} o")
+        >= 1_073_741_824 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_073_741_824.0:F1} GB"),
+        >= 1_048_576 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_048_576.0:F1} MB"),
+        >= 1_024 => string.Create(CultureInfo.InvariantCulture, $"{bytes / 1_024.0:F0} KB"),
+        _ => string.Create(CultureInfo.InvariantCulture, $"{bytes} B")
     };
 
     public static string GetStatusDisplay(FeedImportDecisionStatus status) => status switch
     {
-        FeedImportDecisionStatus.Pending => "En attente",
-        FeedImportDecisionStatus.LinksExtracted => "Liens extraits",
-        FeedImportDecisionStatus.AwaitingArbitration => "À arbitrer",
-        FeedImportDecisionStatus.SkippedDuplicate => "Doublon",
-        FeedImportDecisionStatus.Downloading => "Téléchargement...",
-        FeedImportDecisionStatus.Downloaded => "Téléchargé",
-        FeedImportDecisionStatus.Imported => "Importé",
-        FeedImportDecisionStatus.Ignored => "Ignoré",
-        FeedImportDecisionStatus.Failed => "Échoué",
+        FeedImportDecisionStatus.Pending => "Pending",
+        FeedImportDecisionStatus.LinksExtracted => "Links extracted",
+        FeedImportDecisionStatus.AwaitingArbitration => "Awaiting arbitration",
+        FeedImportDecisionStatus.SkippedDuplicate => "Duplicate",
+        FeedImportDecisionStatus.Downloading => "Downloading...",
+        FeedImportDecisionStatus.Downloaded => "Downloaded",
+        FeedImportDecisionStatus.Imported => "Imported",
+        FeedImportDecisionStatus.Ignored => "Ignored",
+        FeedImportDecisionStatus.Failed => "Failed",
         _ => status.ToString()
     };
 
@@ -174,8 +172,8 @@ public sealed record FeedImportDecisionViewModel(
 
     private static string GetDecidedByDisplay(FeedImportDecidedBy decidedBy) => decidedBy switch
     {
-        FeedImportDecidedBy.User => "Utilisateur",
-        _ => "Automatique"
+        FeedImportDecidedBy.User => "User",
+        _ => "Automatic"
     };
 
     private static string? GetParsedDisplay(string? serie, string? title, int? volume)
@@ -202,6 +200,6 @@ public sealed record FeedImportDecisionViewModel(
         {
             return null;
         }
-        return string.IsNullOrWhiteSpace(step) ? message : $"{step} : {message}";
+        return string.IsNullOrWhiteSpace(step) ? message : $"{step}: {message}";
     }
 }

@@ -31,7 +31,7 @@ public class DownloadLinkGrouperTests
             ArticleTitle);
 
         result.IsAmbiguous.Should().BeTrue();
-        result.AmbiguityReason.Should().Contain("même hébergeur");
+        result.AmbiguityReason.Should().Contain("same host");
         result.Candidates.Should().HaveCount(2);
     }
 

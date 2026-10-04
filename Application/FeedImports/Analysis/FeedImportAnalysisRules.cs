@@ -37,10 +37,10 @@ public static class FeedImportAnalysisRules
         return match.Kind switch
         {
             DuplicateMatchKind.Certain => decision.MarkDuplicate(
-                [candidate], parsed, match.Book!.Id, $"Doublon : « {Describe(match.Book)} » dans « {match.Book.LibraryName} ».", decidedBy),
+                [candidate], parsed, match.Book!.Id, $"Duplicate: \"{Describe(match.Book)}\" in \"{match.Book.LibraryName}\".", decidedBy),
             DuplicateMatchKind.Probable => decision.RequestArbitration(
                 FeedImportArbitrationKind.ProbableDuplicate, [candidate], parsed, match.Book!.Id,
-                $"Doublon probable : « {Describe(match.Book)} » dans « {match.Book.LibraryName} ».", decidedBy),
+                $"Probable duplicate: \"{Describe(match.Book)}\" in \"{match.Book.LibraryName}\".", decidedBy),
             _ => decision.RecordLinks([candidate], parsed, DescribeLinks(candidate), decidedBy)
         };
     }
@@ -61,7 +61,7 @@ public static class FeedImportAnalysisRules
         {
             return decision.RequestArbitration(
                 FeedImportArbitrationKind.AmbiguousLinks, candidates, StoredParsed(decision, candidates[0]), matchedBookId: null,
-                "Plusieurs fichiers : choisissez le bon lien.", decidedBy);
+                "Several files: choose the right link.", decidedBy);
         }
 
         return ApplyDuplicateCheck(decision, candidates[0], StoredParsed(decision, candidates[0]), books, decidedBy);
@@ -86,6 +86,6 @@ public static class FeedImportAnalysisRules
     }
 
     private static string DescribeLinks(DownloadCandidate candidate) => candidate.Mirrors.Count == 1
-        ? "1 lien trouvé, aucun doublon."
-        : string.Create(CultureInfo.InvariantCulture, $"{candidate.Mirrors.Count} miroirs trouvés, aucun doublon.");
+        ? "1 link found, no duplicate."
+        : string.Create(CultureInfo.InvariantCulture, $"{candidate.Mirrors.Count} mirrors found, no duplicate.");
 }
