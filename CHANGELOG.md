@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.19.1"></a>
+## [10.19.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.19.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **cd:** stop publishing the redundant main Docker tag ([#1079](https://www.github.com/slucky31/mycomicsmanager/issues/1079)) ([a1787fa](https://www.github.com/slucky31/mycomicsmanager/commit/a1787faabed815044b8acb827526ab5957120dc5))
+
 <a name="10.19.0"></a>
 ## [10.19.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.19.0) (2026-10-04)
 
