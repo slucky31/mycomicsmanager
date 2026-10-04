@@ -163,11 +163,9 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/slucky31/mcm
-          # Setting tags replaces the action's defaults, so the branch tag is kept explicitly.
-          # On a push to main those defaults only yield "main": there is no tag event to
-          # derive a version from, hence the value taken from the build job's Versionize result.
+          # No tag event on a push to main to derive a version from, hence the value taken
+          # from the build job's Versionize result. Deployments track "latest".
           tags: |
-            type=ref,event=branch
             type=semver,pattern={{version}},value=${{ needs.build.outputs.version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ needs.build.outputs.version }}
             type=raw,value=latest
