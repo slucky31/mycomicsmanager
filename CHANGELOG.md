@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.19.2"></a>
+## [10.19.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.19.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **logging:** logs fichiers lisibles et moins de bruit (/health, ASP.NET Core) ([#1080](https://www.github.com/slucky31/mycomicsmanager/issues/1080)) ([2fd336a](https://www.github.com/slucky31/mycomicsmanager/commit/2fd336ae3400cf9c6ac5cbdc853facf2f551576f))
+
 <a name="10.19.1"></a>
 ## [10.19.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.19.1) (2026-10-04)
 
