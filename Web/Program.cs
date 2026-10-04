@@ -257,7 +257,7 @@ using (var healthScope = app.Services.CreateScope())
     }
 }
 
-app.UseSerilogRequestLogging();
+app.UseSerilogRequestLogging(options => options.GetLevel = (httpContext, _, exception) => LoggingConfiguration.GetRequestLevel(httpContext, exception));
 
 app.UseExceptionHandler();
 
