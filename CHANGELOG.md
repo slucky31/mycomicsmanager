@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.18.0"></a>
+## [10.18.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.18.0) (2026-10-04)
+
+### ✨ Features
+
+* **feeds:** delete feed import decisions ([#1070](https://www.github.com/slucky31/mycomicsmanager/issues/1070)) ([6707c6b](https://www.github.com/slucky31/mycomicsmanager/commit/6707c6b79e39099c3729c7be8b98359f0ed9414a))
+
+### 🐛 Bug Fixes
+
+* **feeds:** remove the unused DigitalBookId of feed import decisions ([#1071](https://www.github.com/slucky31/mycomicsmanager/issues/1071)) ([0915286](https://www.github.com/slucky31/mycomicsmanager/commit/091528672c0b4104ed8852b37af933b2047fc593))
+
 <a name="10.17.0"></a>
 ## [10.17.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.17.0) (2026-10-04)
 
