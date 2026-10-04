@@ -60,6 +60,7 @@ plusieurs fichiers, couches, ou le choix d'une techno/convention.
 | [0017](0017-stack-de-tests.md) | Stack de tests — xUnit v3, NSubstitute, AwesomeAssertions, bUnit (bUnit en pause) | Acceptée | 2026-09-19 |
 | [0018](0018-conventional-commits-versionize.md) | Conventional Commits + Versionize pour le versioning automatique | Acceptée | 2026-09-19 |
 | [0019](0019-integration-miniflux-debrid-link.md) | Import automatique des BD depuis Miniflux via Debrid-Link | Acceptée | 2026-10-02 |
+| [0020](0020-logging-ilogger-et-niveaux-modifiables-a-chaud.md) | Logging — `ILogger<T>` injecté, niveaux modifiables à chaud, fichiers HTTP séparés | Acceptée | 2026-10-04 |
 
 ## Backlog de candidates
 
@@ -94,7 +95,7 @@ Cocher/déplacer vers l'index au fur et à mesure qu'une ADR est rédigée.
 - [ ] Modèle d'autorisation général (ownership par ressource, policies au-delà du dashboard Hangfire)
 - [ ] Sécurité des migrations EF Core au démarrage si déploiement multi-instance
 - [x] Consolidation des outils d'analyse statique (SonarCloud/CodeQL/DeepSource se recouvrent) — tranché par [ADR-0013](0013-outils-qualite-et-securite.md)
-- [ ] Convention de logging : `ILogger<T>` injecté vs appels statiques `Log.*`
+- [x] Convention de logging : `ILogger<T>` injecté vs appels statiques `Log.*` — [ADR-0020](0020-logging-ilogger-et-niveaux-modifiables-a-chaud.md)
 - [ ] Durcissement du pipeline d'import (pagination, politique de retry Hangfire, limites anti-DoS sur l'extraction PDF)
 - [ ] Refonte graphique de la liste de livres (options en discussion dans TODO.md)
 - [ ] Répartition des responsabilités entre jobs Hangfire et `FileWatcherService`

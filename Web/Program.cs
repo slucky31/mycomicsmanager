@@ -136,9 +136,14 @@ builder.Services
     .AddApplication()
     .AddInfrastructure(connectionString, configuration["LocalStorage:RootPath"]!, configuration);
 
-// Config Serilog
-builder.Host.UseSerilog((context, configuration) =>
-    configuration.ReadFrom.Configuration(context.Configuration));
+// Config Serilog: levels from Serilog:MinimumLevel, tunable at runtime by admins (LogLevelSwitches),
+// HTTP traffic and business logs in two separate files
+var logLevelSwitches = LogLevelSwitches.FromConfiguration(configuration,
+    [typeof(Program).Assembly, typeof(ApplicationDependencyInjection).Assembly, typeof(ProjectDependencyInjection).Assembly]);
+builder.Services.AddSingleton(logLevelSwitches);
+builder.Host.UseSerilog((context, loggerConfiguration) =>
+    logLevelSwitches.ApplyTo(loggerConfiguration.ReadFrom.Configuration(context.Configuration))
+        .WriteToSplitFiles());
 
 // Config Auth0
 var config = configuration.GetSection("Auth0");
