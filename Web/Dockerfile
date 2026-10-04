@@ -25,6 +25,8 @@ RUN apt-get update \
 EXPOSE 8080
 WORKDIR /app
 COPY --from=build /app .
+# Serilog writes its files under /app/log: the non-root user must own it (or a volume mounted there).
+RUN mkdir -p /app/log && chown $APP_UID /app/log
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -fsS http://localhost:8080/health || exit 1
 USER $APP_UID
