@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
 using Web.Services;
 
@@ -9,7 +10,8 @@ public partial class NavBar : IDisposable
     private bool _isDisposed;
     private int _arbitrationCount;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] private IFeedImportService FeedImportService { get; set; } = default!;
+    [Inject] private IServiceScopeFactory ScopeFactory { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     [Inject] private FeedImportNotifier FeedImportNotifier { get; set; } = default!;
     [Inject] private ILogger<NavBar> Logger { get; set; } = default!;
 
@@ -39,11 +41,23 @@ public partial class NavBar : IDisposable
     }
 
     // The badge is informative: a failure is logged and hides it, it never breaks the navigation.
+    // The NavBar lives beside the page in the same circuit: it queries through its own scope (own DbContext)
+    // so its count never runs concurrently with the page's queries on the circuit's DbContext.
     private async Task RefreshArbitrationCountAsync()
     {
+        if (AuthenticationState is null)
+        {
+            return;
+        }
+
         try
         {
-            _arbitrationCount = await FeedImportService.CountAwaitingArbitrationAsync();
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            if (scope.ServiceProvider.GetRequiredService<AuthenticationStateProvider>() is IHostEnvironmentAuthenticationStateProvider authStateProvider)
+            {
+                authStateProvider.SetAuthenticationState(AuthenticationState);
+            }
+            _arbitrationCount = await scope.ServiceProvider.GetRequiredService<IFeedImportService>().CountAwaitingArbitrationAsync();
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
