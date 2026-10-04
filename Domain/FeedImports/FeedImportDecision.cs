@@ -36,8 +36,6 @@ public class FeedImportDecision : Entity<Guid>
 
     public Guid? ImportJobId { get; private set; }
 
-    public Guid? DigitalBookId { get; private set; }
-
     public FeedImportDecisionStatus Status { get; private set; }
 
     public FeedImportArbitrationKind ArbitrationKind { get; private set; }
