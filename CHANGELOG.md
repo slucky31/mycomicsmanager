@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.16.0"></a>
+## [10.16.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.16.0) (2026-10-04)
+
+### ✨ Features
+
+* **feeds:** manual actions on feed import decisions and navigation badge ([#1067](https://www.github.com/slucky31/mycomicsmanager/issues/1067)) ([8af7dfd](https://www.github.com/slucky31/mycomicsmanager/commit/8af7dfdf1aa27e65525ee531bf990dde624efd26))
+
 <a name="10.15.0"></a>
 ## [10.15.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.15.0) (2026-10-03)
 
