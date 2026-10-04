@@ -1,5 +1,7 @@
 using AwesomeAssertions;
+using Microsoft.AspNetCore.Http;
 using Serilog;
+using Serilog.Events;
 using Web.Configuration;
 using Xunit;
 
@@ -19,6 +21,20 @@ public sealed class LoggingConfigurationTests : IDisposable
 
     private string ReadFile(string prefix) =>
         File.ReadAllText(Directory.GetFiles(_directory, $"{prefix}-*.txt").Single());
+
+    [Theory]
+    [InlineData("/health", 200, LogEventLevel.Verbose)]
+    [InlineData("/health", 503, LogEventLevel.Error)]
+    [InlineData("/books", 200, LogEventLevel.Information)]
+    [InlineData("/books", 500, LogEventLevel.Error)]
+    public void GetRequestLevel_Should_HideHealthChecks_WhenTheySucceed(string path, int statusCode, LogEventLevel expected)
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Path = path;
+        httpContext.Response.StatusCode = statusCode;
+
+        LoggingConfiguration.GetRequestLevel(httpContext, null).Should().Be(expected);
+    }
 
     [Fact]
     public void WriteToSplitFiles_Should_WriteHttpLogsAndBusinessLogsToSeparateFiles()
