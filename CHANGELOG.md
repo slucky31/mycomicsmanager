@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.18.1"></a>
+## [10.18.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.18.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **auth:** avoid concurrent DbContext operations in the circuit ([#1072](https://www.github.com/slucky31/mycomicsmanager/issues/1072)) ([5f10fae](https://www.github.com/slucky31/mycomicsmanager/commit/5f10fae6cb99399ee3ae12d9fc72394285eb0e40))
+
 <a name="10.18.0"></a>
 ## [10.18.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.18.0) (2026-10-04)
 
