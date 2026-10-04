@@ -306,6 +306,103 @@ public class FeedImportDecision : Entity<Guid>
         return Result.Success();
     }
 
+    // ── Manual actions ───────────────────────────────────────────────────────
+
+    private static readonly FeedImportDecisionStatus[] s_ignorableStatuses =
+    [
+        FeedImportDecisionStatus.Pending, FeedImportDecisionStatus.LinksExtracted, FeedImportDecisionStatus.AwaitingArbitration,
+        FeedImportDecisionStatus.SkippedDuplicate, FeedImportDecisionStatus.Failed
+    ];
+
+    private static readonly FeedImportDecisionStatus[] s_correctableStatuses =
+    [
+        FeedImportDecisionStatus.LinksExtracted, FeedImportDecisionStatus.AwaitingArbitration,
+        FeedImportDecisionStatus.SkippedDuplicate, FeedImportDecisionStatus.Failed, FeedImportDecisionStatus.Ignored
+    ];
+
+    public bool CanIgnore => s_ignorableStatuses.Contains(Status);
+
+    // Download despite a (probable) duplicate.
+    public bool CanForceDownload =>
+        HasSingleCandidate &&
+        (Status == FeedImportDecisionStatus.SkippedDuplicate ||
+         (Status == FeedImportDecisionStatus.AwaitingArbitration && ArbitrationKind == FeedImportArbitrationKind.ProbableDuplicate));
+
+    // Serie / title / volume describe a single book: not available while the links still have to be grouped.
+    public bool CanCorrect => HasSingleCandidate && s_correctableStatuses.Contains(Status);
+
+    public bool CanRetry(DateTime utcNow) =>
+        Status is FeedImportDecisionStatus.Failed or FeedImportDecisionStatus.Ignored ||
+        (Status == FeedImportDecisionStatus.Downloading && utcNow - UpdatedAt >= FeedImportConstants.StaleDownloadDelay);
+
+    private bool HasSingleCandidate => GetCandidates().Count == 1;
+
+    public Result Ignore()
+    {
+        if (!CanIgnore)
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        ArbitrationKind = FeedImportArbitrationKind.None;
+        Transition(FeedImportDecisionStatus.Ignored, "Ignoré par l'utilisateur.", FeedImportDecidedBy.User);
+        return Result.Success();
+    }
+
+    public Result ForceDownload()
+    {
+        if (!CanForceDownload)
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        MatchedBookId = null;
+        ArbitrationKind = FeedImportArbitrationKind.None;
+        Transition(FeedImportDecisionStatus.LinksExtracted, "Téléchargement forcé par l'utilisateur (doublon ignoré).", FeedImportDecidedBy.User);
+        return Result.Success();
+    }
+
+    // Back to Pending, links kept: the caller re-runs the duplicate check (or the analysis when there is no link yet).
+    public Result Retry(DateTime utcNow)
+    {
+        if (!CanRetry(utcNow))
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        Reopen("Relancé par l'utilisateur.");
+        return Result.Success();
+    }
+
+    public Result Correct(ParsedComicTitle parsed)
+    {
+        if (parsed is null || !parsed.HasSerie)
+        {
+            return FeedImportError.BadRequest;
+        }
+
+        if (!CanCorrect)
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        ParsedSerie = TruncateOrNull(parsed.Serie, FeedImportConstants.MaxParsedSerieLength);
+        ParsedTitle = TruncateOrNull(parsed.Title, FeedImportConstants.MaxParsedTitleLength);
+        ParsedVolume = parsed.Volume;
+        var volume = parsed.Volume is { } v ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $" T{v}") : string.Empty;
+        Reopen($"Corrigé par l'utilisateur : {ParsedSerie}{volume}{(ParsedTitle is null ? string.Empty : $" · {ParsedTitle}")}.");
+        return Result.Success();
+    }
+
+    private void Reopen(string reason)
+    {
+        MatchedBookId = null;
+        ArbitrationKind = FeedImportArbitrationKind.None;
+        ErrorStep = null;
+        ErrorMessage = null;
+        Transition(FeedImportDecisionStatus.Pending, reason, FeedImportDecidedBy.User);
+    }
+
     public Result Fail(string step, string errorMessage)
     {
         if (string.IsNullOrWhiteSpace(step) || string.IsNullOrWhiteSpace(errorMessage))

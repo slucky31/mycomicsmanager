@@ -1,4 +1,5 @@
 using Application.FeedImports.Arbitrate;
+using Application.FeedImports.Manage;
 using AwesomeAssertions;
 using Bunit;
 using Domain.FeedImports;
@@ -33,6 +34,7 @@ public sealed class FeedImportsComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton(service);
         ctx.Services.AddSingleton(snackbar);
+        ctx.Services.AddSingleton(new FeedImportNotifier());
 
         ctx.Render<MudPopoverProvider>();
         var cut = ctx.Render<FeedImports>();
@@ -188,6 +190,73 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
 
         await cut.InvokeAsync(() => cut.Instance.ResolveAsync(decision.Id, FeedImportArbitrationAction.ConfirmDuplicate, null));
+
+        snackbar.Received(1).Add(FeedImportError.InvalidStatusTransition.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImports> Cut, ISnackbar Snackbar)> RenderExpandedAsync(
+        IFeedImportService service, FeedImportDecisionViewModel decision)
+    {
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(new FeedImportDecisionPageViewModel([decision], 1)));
+        var (ctx, cut, snackbar) = await RenderAsync(service);
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain(decision.EntryTitle));
+        await cut.FindAll("button[aria-label='Afficher le détail']")[0].ClickAsync(new());
+        return (ctx, cut, snackbar);
+    }
+
+    private static AngleSharp.Dom.IElement Button(IRenderedComponent<FeedImports> cut, string text) =>
+        cut.FindAll("button").First(b => b.TextContent.Contains(text, StringComparison.Ordinal));
+
+    [Fact]
+    public async Task ApplyActionAsync_Should_ForceDownload_WhenUserOverridesProbableDuplicate()
+    {
+        var decision = CreateProbableDuplicate();
+        var service = CreateService();
+        service.ApplyActionAsync(decision.Id, FeedImportDecisionAction.ForceDownload, Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        var (ctx, cut, snackbar) = await RenderExpandedAsync(service, decision);
+        await using var _ = ctx;
+        cut.Markup.Should().Contain("Ignorer");
+        cut.Markup.Should().NotContain("Relancer");
+
+        await Button(cut, "Forcer le téléchargement").ClickAsync(new());
+
+        await service.Received(1).ApplyActionAsync(decision.Id, FeedImportDecisionAction.ForceDownload, Arg.Any<CancellationToken>());
+        snackbar.Received(1).Add("Décision mise à jour.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task SaveCorrectionAsync_Should_SendPrefilledAndEditedValues()
+    {
+        var decision = CreateProbableDuplicate();
+        var service = CreateService();
+        service.CorrectAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        var (ctx, cut, _) = await RenderExpandedAsync(service, decision);
+        await using var _ = ctx;
+        await Button(cut, "Corriger série / tome").ClickAsync(new());
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Corriger la lecture du titre"));
+        await cut.FindAll("input")
+            .First(i => i.GetAttribute("value") == "3")
+            .ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = "4" });
+        await Button(cut, "Enregistrer").ClickAsync(new());
+
+        await service.Received(1).CorrectAsync(decision.Id, "Blacksad", null, 4, Arg.Any<CancellationToken>());
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().NotContain("Corriger la lecture du titre"));
+    }
+
+    [Fact]
+    public async Task ApplyActionAsync_Should_ShowError_WhenActionFails()
+    {
+        var service = CreateService();
+        service.ApplyActionAsync(Arg.Any<Guid>(), FeedImportDecisionAction.Retry, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(FeedImportError.InvalidStatusTransition));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service);
+        await using var _ = ctx;
+
+        await cut.InvokeAsync(() => cut.Instance.ApplyActionAsync(Guid.CreateVersion7(), FeedImportDecisionAction.Retry));
 
         snackbar.Received(1).Add(FeedImportError.InvalidStatusTransition.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }

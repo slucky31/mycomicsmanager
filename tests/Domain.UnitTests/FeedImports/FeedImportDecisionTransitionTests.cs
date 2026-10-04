@@ -276,4 +276,111 @@ public class FeedImportDecisionTransitionTests
         decision.Fail("Import", "err").Error.Should().Be(FeedImportError.InvalidStatusTransition);
         decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
     }
+
+    // ── Manual actions ───────────────────────────────────────────────────────
+
+    private static FeedImportDecision CreateSkippedDuplicate()
+    {
+        var decision = CreatePending();
+        decision.MarkDuplicate([s_candidate], s_parsed, s_bookId, "Doublon", FeedImportDecidedBy.Auto);
+        return decision;
+    }
+
+    [Fact]
+    public void Ignore_Should_MoveToIgnoredByUser_WhenDecisionIsActive()
+    {
+        var decision = CreateAwaiting(FeedImportArbitrationKind.AmbiguousLinks);
+
+        var result = decision.Ignore();
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.Ignored);
+        decision.DecidedBy.Should().Be(FeedImportDecidedBy.User);
+        decision.ArbitrationKind.Should().Be(FeedImportArbitrationKind.None);
+    }
+
+    [Fact]
+    public void Ignore_Should_ReturnInvalidTransition_WhenDownloading()
+    {
+        CreateDownloading().Ignore().Error.Should().Be(FeedImportError.InvalidStatusTransition);
+    }
+
+    [Fact]
+    public void ForceDownload_Should_ExtractLinksAndClearMatch_WhenSkippedAsDuplicate()
+    {
+        var decision = CreateSkippedDuplicate();
+
+        var result = decision.ForceDownload();
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.LinksExtracted);
+        decision.MatchedBookId.Should().BeNull();
+        decision.DecidedBy.Should().Be(FeedImportDecidedBy.User);
+    }
+
+    [Fact]
+    public void ForceDownload_Should_ReturnInvalidTransition_WhenLinksAreAmbiguous()
+    {
+        CreateAwaiting(FeedImportArbitrationKind.AmbiguousLinks).ForceDownload().Error.Should().Be(FeedImportError.InvalidStatusTransition);
+    }
+
+    [Fact]
+    public void Retry_Should_ReopenAndClearError_WhenFailed()
+    {
+        var decision = CreateDownloading();
+        decision.Fail("Téléchargement", "Quota atteint");
+
+        var result = decision.Retry(DateTime.UtcNow);
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.Pending);
+        decision.ErrorStep.Should().BeNull();
+        decision.ErrorMessage.Should().BeNull();
+        decision.GetCandidates().Should().ContainSingle();
+        decision.Reason.Should().Be("Relancé par l'utilisateur.");
+    }
+
+    [Fact]
+    public void Retry_Should_AcceptInterruptedDownloadOnlyAfterStaleDelay()
+    {
+        var decision = CreateDownloading();
+
+        decision.Retry(DateTime.UtcNow).Error.Should().Be(FeedImportError.InvalidStatusTransition);
+        decision.Retry(DateTime.UtcNow + FeedImportConstants.StaleDownloadDelay).IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Retry_Should_ReturnInvalidTransition_WhenDecisionIsDownloaded()
+    {
+        var decision = CreateDownloading();
+        decision.MarkDownloaded("https://1fichier.com/?abc", Guid.CreateVersion7(), "À trier");
+
+        decision.Retry(DateTime.UtcNow.AddDays(1)).Error.Should().Be(FeedImportError.InvalidStatusTransition);
+    }
+
+    [Fact]
+    public void Correct_Should_StoreParsedTitleAndReopen_WhenSkippedAsDuplicate()
+    {
+        var decision = CreateSkippedDuplicate();
+
+        var result = decision.Correct(new ParsedComicTitle("Blacksad", "L'enfer, le silence", 4));
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.Pending);
+        decision.ParsedVolume.Should().Be(4);
+        decision.ParsedTitle.Should().Be("L'enfer, le silence");
+        decision.MatchedBookId.Should().BeNull();
+        decision.Reason.Should().Be("Corrigé par l'utilisateur : Blacksad T4 · L'enfer, le silence.");
+    }
+
+    [Fact]
+    public void Correct_Should_Fail_WhenSerieIsMissingOrLinksAreAmbiguous()
+    {
+        CreateSkippedDuplicate().Correct(new ParsedComicTitle(" ", null, 4)).Error.Should().Be(FeedImportError.BadRequest);
+        var ambiguous = CreatePending();
+        ambiguous.RequestArbitration(FeedImportArbitrationKind.AmbiguousLinks, [s_candidate, s_candidate with { FileName = "Autre.cbz" }],
+            s_parsed, null, "Ambigu", FeedImportDecidedBy.Auto);
+
+        ambiguous.Correct(s_parsed).Error.Should().Be(FeedImportError.InvalidStatusTransition);
+    }
 }

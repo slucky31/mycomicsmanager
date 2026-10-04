@@ -1,7 +1,7 @@
-using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.List;
+using Application.FeedImports.Manage;
 using Application.Interfaces;
 using Application.Libraries;
 using Domain.FeedImports;
@@ -13,13 +13,16 @@ using Web.Models;
 namespace Web.Services;
 
 public class FeedImportService(
-    IQueryHandler<GetPagedFeedImportDecisionsQuery, FeedImportDecisionPage> getDecisionsHandler,
-    ICommandHandler<ResolveFeedImportArbitrationCommand> resolveArbitrationHandler,
+    FeedImportHandlers handlers,
     ICurrentUserService currentUserService,
     ILibraryReadService libraryReadService,
+    IFeedImportDecisionReadService decisionReadService,
     IBackgroundJobClient backgroundJobClient,
-    IOptions<FeedImportSettings> feedImportSettings) : IFeedImportService
+    IOptions<FeedImportSettings> feedImportSettings,
+    IOptions<DebridLinkSettings> debridLinkSettings) : IFeedImportService
 {
+    private static Serilog.ILogger Log => Serilog.Log.ForContext<FeedImportService>();
+
     public bool IsSyncEnabled => feedImportSettings.Value.Enabled;
 
     public async Task<Result<FeedImportDecisionPageViewModel>> GetDecisionsAsync(
@@ -36,7 +39,7 @@ public class FeedImportService(
         }
 
         var query = new GetPagedFeedImportDecisionsQuery(userIdResult.Value, status, searchTerm, page, pageSize);
-        var result = await getDecisionsHandler.Handle(query, cancellationToken);
+        var result = await handlers.GetDecisions.Handle(query, cancellationToken);
         if (result.IsFailure)
         {
             return result.Error!;
@@ -82,7 +85,79 @@ public class FeedImportService(
             return userIdResult.Error!;
         }
 
-        return await resolveArbitrationHandler.Handle(
+        var result = await handlers.ResolveArbitration.Handle(
             new ResolveFeedImportArbitrationCommand(decisionId, userIdResult.Value, action, candidateIndex), cancellationToken);
+        if (result.IsSuccess)
+        {
+            // Resolved towards a download: start it now (the job does nothing if the decision is not LinksExtracted).
+            EnqueueDownload(decisionId);
+        }
+
+        return result;
+    }
+
+    public async Task<Result> ApplyActionAsync(Guid decisionId, FeedImportDecisionAction action, CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var result = await handlers.Manage.Handle(new ManageFeedImportDecisionCommand(decisionId, userIdResult.Value, action), cancellationToken);
+        return StartNextStep(decisionId, result);
+    }
+
+    public async Task<Result> CorrectAsync(Guid decisionId, string serie, string? title, int? volume, CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var result = await handlers.Correct.Handle(
+            new CorrectFeedImportDecisionCommand(decisionId, userIdResult.Value, serie, title, volume), cancellationToken);
+        return StartNextStep(decisionId, result);
+    }
+
+    // Badge of the navigation bar: 0 when the user cannot be resolved (not signed in yet).
+    public async Task<int> CountAwaitingArbitrationAsync(CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        return userIdResult.IsFailure
+            ? 0
+            : await decisionReadService.CountByStatusAsync(userIdResult.Value, FeedImportDecisionStatus.AwaitingArbitration, cancellationToken);
+    }
+
+    private Result StartNextStep(Guid decisionId, Result<FeedImportDecisionStatus> result)
+    {
+        if (result.IsFailure)
+        {
+            return result.Error!;
+        }
+
+        if (result.Value == FeedImportDecisionStatus.LinksExtracted)
+        {
+            EnqueueDownload(decisionId);
+        }
+        else if (result.Value == FeedImportDecisionStatus.Pending && IsSyncEnabled)
+        {
+            // No link yet: the article is analyzed again by the sync.
+            backgroundJobClient.Enqueue<FeedImportSyncJob>(job => job.SyncAsync(CancellationToken.None));
+        }
+
+        return Result.Success();
+    }
+
+    private void EnqueueDownload(Guid decisionId)
+    {
+        if (string.IsNullOrWhiteSpace(debridLinkSettings.Value.ApiKey))
+        {
+            Log.Information("Feed import download of decision {DecisionId} not started: DebridLink:ApiKey is not set.", decisionId);
+            return;
+        }
+
+        backgroundJobClient.Enqueue<FeedImportDownloadJob>(job => job.DownloadAsync(decisionId, CancellationToken.None));
     }
 }

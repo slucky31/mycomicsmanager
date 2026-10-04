@@ -17,4 +17,6 @@ public interface IFeedImportDecisionReadService
         Guid userId,
         IReadOnlyCollection<long> minifluxEntryIds,
         CancellationToken cancellationToken = default);
+
+    Task<int> CountByStatusAsync(Guid userId, FeedImportDecisionStatus status, CancellationToken cancellationToken = default);
 }

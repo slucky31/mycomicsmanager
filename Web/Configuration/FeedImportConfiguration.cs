@@ -103,6 +103,8 @@ public static class FeedImportConfiguration
 
         services.AddScoped<FeedImportSyncJob>();
         services.AddScoped<FeedImportDownloadJob>();
+        services.AddScoped<FeedImportHandlers>();
+        services.AddScoped<FeedImportNotifier>();
         services.AddScoped<IFeedImportService, FeedImportService>();
 
         return services;

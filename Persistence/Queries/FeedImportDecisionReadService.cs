@@ -63,4 +63,9 @@ public class FeedImportDecisionReadService(ApplicationDbContext context) : IFeed
             .ToListAsync(cancellationToken);
         return ids.ToHashSet();
     }
+
+    public async Task<int> CountByStatusAsync(Guid userId, FeedImportDecisionStatus status, CancellationToken cancellationToken = default)
+        => await context.FeedImportDecisions
+            .AsNoTracking()
+            .CountAsync(d => d.UserId == userId && d.Status == status, cancellationToken);
 }

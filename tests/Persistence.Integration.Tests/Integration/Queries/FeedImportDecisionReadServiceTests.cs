@@ -82,4 +82,24 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
             (later.MinifluxEntryId, 0), (7000L, 0), (7000L, 1));
         multiBook.Should().BeEquivalentTo([7000L]);
     }
+
+    [Fact]
+    public async Task CountByStatusAsync_Should_CountOnlyUserDecisionsWithStatus()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var decisions = await SeedAsync(userId, "A", "B", "C");
+        decisions[0].Fail("Source", "Domaine source non autorisé.");
+        decisions[1].Fail("Source", "Domaine source non autorisé.");
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await SeedAsync(Guid.CreateVersion7(), "Other user");
+
+        // Act
+        var failed = await FeedImportDecisionReadService.CountByStatusAsync(userId, FeedImportDecisionStatus.Failed, TestContext.Current.CancellationToken);
+        var pending = await FeedImportDecisionReadService.CountByStatusAsync(userId, FeedImportDecisionStatus.Pending, TestContext.Current.CancellationToken);
+
+        // Assert
+        failed.Should().Be(2);
+        pending.Should().Be(1);
+    }
 }
