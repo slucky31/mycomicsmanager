@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.17.0"></a>
+## [10.17.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.17.0) (2026-10-04)
+
+### ✨ Features
+
+* **health:** add Debrid-Link and Miniflux health checks ([#1069](https://www.github.com/slucky31/mycomicsmanager/issues/1069)) ([68eceee](https://www.github.com/slucky31/mycomicsmanager/commit/68eceee26216999f8964b0c083fba640a68f03c7))
+
 <a name="10.16.1"></a>
 ## [10.16.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.16.1) (2026-10-04)
 
