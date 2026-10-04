@@ -24,4 +24,5 @@ public static class FeedImportError
     public static readonly TError UnsupportedFileType = new("FEED415", "Type de fichier non pris en charge (Import:SupportedExtensions).");
     public static readonly TError TargetLibraryInvalid = new("FEED409L", "La bibliothèque cible existe mais n'est pas une bibliothèque numérique.");
     public static readonly TError MinifluxUnavailable = new("FEED502", "Miniflux could not be reached or returned an error.");
+    public static readonly TError MinifluxUnauthorized = new("FEED401M", "Miniflux API key is missing or invalid (Miniflux:ApiKey).");
 }

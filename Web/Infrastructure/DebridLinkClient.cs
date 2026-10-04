@@ -10,6 +10,7 @@ internal sealed class DebridLinkClient(HttpClient httpClient) : IDebridLinkClien
 {
     private static readonly Uri s_domainsUri = new("downloader/domains", UriKind.Relative);
     private static readonly Uri s_addUri = new("downloader/add", UriKind.Relative);
+    private static readonly Uri s_accountUri = new("account/infos", UriKind.Relative);
 
     private static Serilog.ILogger Log => Serilog.Log.ForContext<DebridLinkClient>();
 
@@ -32,6 +33,12 @@ internal sealed class DebridLinkClient(HttpClient httpClient) : IDebridLinkClien
             .Where(d => !string.IsNullOrWhiteSpace(d))
             .ToList();
         return Result<IReadOnlyList<string>>.Success(domains);
+    }
+
+    public async Task<Result> CheckAccountAsync(CancellationToken cancellationToken = default)
+    {
+        var value = await SendAsync(() => httpClient.GetAsync(s_accountUri, cancellationToken), cancellationToken);
+        return value.IsSuccess ? Result.Success() : value.Error!;
     }
 
 #pragma warning disable CA1054 // URL comes from the decision links (JSON)

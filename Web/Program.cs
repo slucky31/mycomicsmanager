@@ -166,16 +166,18 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStat
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 // Config HealthChecks
-// The cache is a singleton, shared across calls, so it's not re-pinging Cloudinary on every
-// hit; CloudinaryHealthCheck itself stays at AddCheck<T>'s default lifetime since it depends
-// on the scoped ICloudinaryService.
-builder.Services.AddSingleton<CloudinaryHealthCheckCache>();
+// One singleton cache per check, shared across calls, so third-party APIs (Cloudinary,
+// Debrid-Link, Miniflux) aren't re-pinged on every hit; the checks themselves stay at
+// AddCheck<T>'s default lifetime since they depend on scoped/transient services.
+builder.Services.AddSingleton(typeof(HealthCheckResultCache<>));
 builder.Services
     .AddHealthChecks()
     .AddApplicationStatus()
     .AddNpgSql(connectionString)
     .AddCheck<ImportDirectoryHealthCheck>("import-directory")
-    .AddCheck<CloudinaryHealthCheck>("cloudinary");
+    .AddCheck<CloudinaryHealthCheck>("cloudinary")
+    .AddCheck<DebridLinkHealthCheck>("debrid-link")
+    .AddCheck<MinifluxHealthCheck>("miniflux");
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
@@ -225,13 +227,18 @@ app.Services.ScheduleFeedImportSync();
 
 // Refuse to start if a dependency (database, Cloudinary, import directory, ...) is unreachable,
 // rather than accepting traffic and failing later on the first request that needs it.
+// Degraded checks (optional feed import services: Debrid-Link, Miniflux) only log a warning.
 using (var healthScope = app.Services.CreateScope())
 {
     var healthCheckService = healthScope.ServiceProvider.GetRequiredService<HealthCheckService>();
     var startupHealthReport = await healthCheckService.CheckHealthAsync();
-    if (startupHealthReport.Status != HealthStatus.Healthy)
+    foreach (var entry in startupHealthReport.Entries.Where(e => e.Value.Status == HealthStatus.Degraded))
     {
-        var unhealthyEntries = startupHealthReport.Entries.Where(e => e.Value.Status != HealthStatus.Healthy).ToList();
+        Log.Warning("Startup health check degraded: {Check} - {Description}", entry.Key, entry.Value.Description);
+    }
+    if (startupHealthReport.Status == HealthStatus.Unhealthy)
+    {
+        var unhealthyEntries = startupHealthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy).ToList();
         foreach (var entry in unhealthyEntries)
         {
             Log.Fatal("Startup health check failed: {Check} - {Description}", entry.Key, entry.Value.Description);

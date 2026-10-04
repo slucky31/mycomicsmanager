@@ -43,13 +43,27 @@ public sealed class MinifluxClientTests
     [Fact]
     public async Task GetCategoriesAsync_Should_ReturnMinifluxUnavailable_WhenStatusIsNotSuccess()
     {
-        var (client, _, httpClient) = Build(_ => new HttpResponseMessage(HttpStatusCode.Unauthorized));
+        var (client, _, httpClient) = Build(_ => new HttpResponseMessage(HttpStatusCode.InternalServerError));
         using var _ = httpClient;
 
         var result = await client.GetCategoriesAsync(TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(FeedImportError.MinifluxUnavailable);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task GetCategoriesAsync_Should_ReturnMinifluxUnauthorized_WhenApiKeyIsRejected(HttpStatusCode status)
+    {
+        var (client, _, httpClient) = Build(_ => new HttpResponseMessage(status));
+        using var _ = httpClient;
+
+        var result = await client.GetCategoriesAsync(TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(FeedImportError.MinifluxUnauthorized);
     }
 
     [Fact]
