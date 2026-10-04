@@ -100,7 +100,9 @@ internal sealed class MinifluxClient(HttpClient httpClient) : IMinifluxClient
             if (!response.IsSuccessStatusCode)
             {
                 Log.Warning("Miniflux returned {StatusCode} for {Uri}", (int)response.StatusCode, uri);
-                return FeedImportError.MinifluxUnavailable;
+                return response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
+                    ? FeedImportError.MinifluxUnauthorized
+                    : FeedImportError.MinifluxUnavailable;
             }
 
             var body = await response.Content.ReadFromJsonAsync<T>(cancellationToken);

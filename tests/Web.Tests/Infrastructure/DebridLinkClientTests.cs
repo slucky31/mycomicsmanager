@@ -23,6 +23,30 @@ public sealed class DebridLinkClientTests
         new(status) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 
     [Fact]
+    public async Task CheckAccountAsync_Should_Succeed_WhenDebridLinkReturnsAccountInfos()
+    {
+        var (client, handler, httpClient) = Build(_ => Json("""{"success":true,"value":{"username":"reader","accountType":1}}"""));
+        using var _ = httpClient;
+
+        var result = await client.CheckAccountAsync(TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        handler.Requests.Should().ContainSingle().Which.Should().Be("GET /api/v2/account/infos");
+    }
+
+    [Fact]
+    public async Task CheckAccountAsync_Should_ReturnUnauthorized_WhenTokenIsRejected()
+    {
+        var (client, _, httpClient) = Build(_ => Json("""{"success":false,"error":"badToken"}""", HttpStatusCode.Unauthorized));
+        using var _ = httpClient;
+
+        var result = await client.CheckAccountAsync(TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(FeedImportError.DebridLinkUnauthorized);
+    }
+
+    [Fact]
     public async Task UnlockAsync_Should_PostUrlAndMapDownloadLink_WhenDebridLinkSucceeds()
     {
         var (client, handler, httpClient) = Build(_ => Json(
