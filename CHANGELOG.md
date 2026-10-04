@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.19.0"></a>
+## [10.19.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.19.0) (2026-10-04)
+
+### ✨ Features
+
+* **logging:** tune log levels at runtime and split HTTP logs into their own file ([#1073](https://www.github.com/slucky31/mycomicsmanager/issues/1073)) ([408c9b9](https://www.github.com/slucky31/mycomicsmanager/commit/408c9b95173cfb8d02ea9ee0d78476cec535257c))
+
 <a name="10.18.1"></a>
 ## [10.18.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.18.1) (2026-10-04)
 
