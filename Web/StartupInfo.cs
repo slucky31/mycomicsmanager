@@ -23,20 +23,23 @@ internal static class StartupInfo
             88      88      88  `"Ybbd8"' 88      88      88  
             """ + "\n");
 
-        // OS and .NET information
-        logger.LogInformation("OSArchitecture: {@OSArchitecture}", RuntimeInformation.OSArchitecture);
-        logger.LogInformation("OSDescription: {@OSDescription}", RuntimeInformation.OSArchitecture);
-        logger.LogInformation("FrameworkDescription: {@FrameworkDescription}", RuntimeInformation.FrameworkDescription);
-
-        // Environment information
-        logger.LogInformation("UserName: {@UserName}", Environment.UserName);
-        logger.LogInformation("HostName : {@HostName}", Dns.GetHostName());
-
-        // Hardware information
-        var gcInfo = GC.GetGCMemoryInfo();
-        var totalMemoryBytes = gcInfo.TotalAvailableMemoryBytes;
-        logger.LogInformation("ProcessorCount: {@ProcessorCount}", Environment.ProcessorCount);
-        logger.LogInformation("TotalAvailableMemoryBytes: {@TotalMemoryBytes} ({@TotalMemoryBytesInBestUnit})", totalMemoryBytes, GetInBestUnit(totalMemoryBytes));
+        var totalMemoryBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+        logger.LogInformation(
+            "OSArchitecture: {OSArchitecture}\n" +
+            "OSDescription: {OSDescription}\n" +
+            "FrameworkDescription: {FrameworkDescription}\n" +
+            "UserName: {UserName}\n" +
+            "HostName: {HostName}\n" +
+            "ProcessorCount: {ProcessorCount}\n" +
+            "TotalAvailableMemoryBytes: {TotalMemoryBytes} ({TotalMemoryBytesInBestUnit})",
+            RuntimeInformation.OSArchitecture,
+            RuntimeInformation.OSDescription,
+            RuntimeInformation.FrameworkDescription,
+            Environment.UserName,
+            Dns.GetHostName(),
+            Environment.ProcessorCount,
+            totalMemoryBytes,
+            GetInBestUnit(totalMemoryBytes));
 
         // Version information
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())

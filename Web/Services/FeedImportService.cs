@@ -13,6 +13,7 @@ using Web.Models;
 
 namespace Web.Services;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107", Justification = "Distinct collaborators; the handlers are already grouped in FeedImportHandlers, bundling the rest would only hide them.")]
 public class FeedImportService(
     FeedImportHandlers handlers,
     ICurrentUserService currentUserService,

@@ -14,26 +14,26 @@ namespace Web.Tests.Components.Pages.Books;
 
 public sealed class EditBookComponentTests
 {
-    public static TheoryData<Exception?, string, Severity> LoadFailures => new()
+    public static TheoryData<Type?, string, Severity> LoadFailures => new()
     {
         { null, "Book not found.", Severity.Error },
-        { new OperationCanceledException(), "The operation was cancelled.", Severity.Warning },
-        { new InvalidOperationException(), "An unexpected error occurred while loading the book.", Severity.Error },
+        { typeof(OperationCanceledException), "The operation was cancelled.", Severity.Warning },
+        { typeof(InvalidOperationException), "An unexpected error occurred while loading the book.", Severity.Error },
     };
 
     [Theory]
     [MemberData(nameof(LoadFailures))]
     public async Task LoadBookAsync_Should_ShowBookNotFound_WhenLoadingFails(
-        Exception? exception, string message, Severity severity)
+        Type? exceptionType, string message, Severity severity)
     {
         var service = Substitute.For<IBooksService>();
-        if (exception is null)
+        if (exceptionType is null)
         {
             service.GetById(Arg.Any<string?>()).Returns(BooksError.NotFound);
         }
         else
         {
-            service.GetById(Arg.Any<string?>()).ThrowsAsync(exception);
+            service.GetById(Arg.Any<string?>()).ThrowsAsync((Exception)Activator.CreateInstance(exceptionType)!);
         }
         var snackbar = Substitute.For<ISnackbar>();
         await using var ctx = new BunitContext();

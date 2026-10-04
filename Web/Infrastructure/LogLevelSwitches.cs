@@ -86,6 +86,7 @@ public sealed class LogLevelSwitches
     }
 
     /// <summary>Categories of the <c>ILogger&lt;T&gt;</c> taken by a constructor or an (injected) property.</summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3011", Justification = "Only member signatures are read, never invoked nor accessed; NonPublic is needed for the private [Inject] properties of Razor components.")]
     public static IEnumerable<string> DiscoverLoggerNames(IEnumerable<Assembly> assemblies)
     {
         ArgumentNullException.ThrowIfNull(assemblies);
