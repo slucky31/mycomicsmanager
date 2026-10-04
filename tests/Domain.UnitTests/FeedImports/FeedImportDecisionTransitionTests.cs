@@ -350,6 +350,23 @@ public class FeedImportDecisionTransitionTests
     }
 
     [Fact]
+    public void CanDelete_Should_RejectRunningDownloadUntilStaleDelay()
+    {
+        var decision = CreateDownloading();
+
+        decision.CanDelete(DateTime.UtcNow).Should().BeFalse();
+        decision.CanDelete(DateTime.UtcNow + FeedImportConstants.StaleDownloadDelay).Should().BeTrue();
+    }
+
+    [Fact]
+    public void CanDelete_Should_BeTrue_WhenDecisionIsNotDownloading()
+    {
+        var decision = CreatePending();
+
+        decision.CanDelete(DateTime.UtcNow).Should().BeTrue();
+    }
+
+    [Fact]
     public void Retry_Should_ReturnInvalidTransition_WhenDecisionIsDownloaded()
     {
         var decision = CreateDownloading();

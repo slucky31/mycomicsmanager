@@ -333,7 +333,14 @@ public class FeedImportDecision : Entity<Guid>
 
     public bool CanRetry(DateTime utcNow) =>
         Status is FeedImportDecisionStatus.Failed or FeedImportDecisionStatus.Ignored ||
-        (Status == FeedImportDecisionStatus.Downloading && utcNow - UpdatedAt >= FeedImportConstants.StaleDownloadDelay);
+        (Status == FeedImportDecisionStatus.Downloading && !IsDownloadInProgress(utcNow));
+
+    // Any decision but a running download (an interrupted one can be deleted once stale).
+    // The import job of a downloaded decision is checked by the caller.
+    public bool CanDelete(DateTime utcNow) => !IsDownloadInProgress(utcNow);
+
+    private bool IsDownloadInProgress(DateTime utcNow) =>
+        Status == FeedImportDecisionStatus.Downloading && utcNow - UpdatedAt < FeedImportConstants.StaleDownloadDelay;
 
     private bool HasSingleCandidate => GetCandidates().Count == 1;
 

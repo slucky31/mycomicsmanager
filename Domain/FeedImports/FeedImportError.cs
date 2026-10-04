@@ -11,6 +11,7 @@ public static class FeedImportError
     public static readonly TError InvalidStatusTransition = new("FEED405", "Invalid feed import decision status transition.");
     public static readonly TError SourceHostNotAllowed = new("FEED403S", "Domaine source non autorisé.");
     public static readonly TError PageUnavailable = new("FEED502P", "La page de l'article n'a pas pu être récupérée.");
+    public static readonly TError DeleteInProgress = new("FEED409B", "Téléchargement ou import en cours : la décision ne peut pas être supprimée.");
     public static readonly TError Duplicate = new("FEED409", "A decision already exists for this Miniflux entry.");
     public static readonly TError DebridLinkUnavailable = new("FEED502D", "Debrid-Link n'a pas pu être joint ou a renvoyé une erreur.");
     public static readonly TError DebridLinkUnauthorized = new("FEED401D", "Clé d'API Debrid-Link absente ou invalide (DebridLink:ApiKey).");

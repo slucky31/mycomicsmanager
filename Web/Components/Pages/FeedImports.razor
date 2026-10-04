@@ -47,6 +47,18 @@
                 Synchroniser maintenant
             </MudButton>
         }
+
+        @if (_selectedDecisions.Count > 0)
+        {
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Disabled="_isDeleting"
+                       OnClick="DeleteSelectedAsync"
+                       Class="feed-imports-delete-selection">
+                Supprimer la sélection (@_selectedDecisions.Count)
+            </MudButton>
+        }
     </div>
 
     @if (!FeedImportService.IsSyncEnabled)
@@ -61,6 +73,9 @@
               ServerData="LoadServerDataAsync"
               Hover="true"
               Dense="true"
+              MultiSelection="true"
+              SelectOnRowClick="false"
+              @bind-SelectedItems="_selectedDecisions"
               Breakpoint="Breakpoint.Sm"
               Class="feed-imports-table rounded-lg"
               Elevation="0">
@@ -70,6 +85,7 @@
             <MudTh>Statut</MudTh>
             <MudTh>Raison</MudTh>
             <MudTh>Enregistré le</MudTh>
+            <MudTh Class="feed-imports-delete-col"></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd Class="feed-imports-expand-col">
@@ -100,12 +116,20 @@
             <MudTd DataLabel="Enregistré le">
                 <MudText Typo="Typo.caption">@context.CreatedAtDisplay</MudText>
             </MudTd>
+            <MudTd Class="feed-imports-delete-col">
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Size="Size.Small"
+                               Color="Color.Error"
+                               Disabled="@(!context.CanDelete || _isDeleting || IsBusy(context.Id))"
+                               OnClick="@(() => DeleteAsync(context))"
+                               aria-label="Supprimer la décision" />
+            </MudTd>
         </RowTemplate>
         <ChildRowContent>
             @if (IsExpanded(context.Id))
             {
                 <MudTr>
-                    <td colspan="5" class="feed-imports-detail">
+                    <td colspan="7" class="feed-imports-detail">
                         @if (context.ErrorDisplay is not null)
                         {
                             <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3">@context.ErrorDisplay</MudAlert>
