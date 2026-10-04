@@ -69,7 +69,8 @@ public class ProcessImportJobCommandHandlerTests
             new ProcessImportJobFileProcessors(
                 _archiveExtractor, _pdfImageExtractor, _imageProcessor, _archiveBuilder, _comicInfoXmlService),
             new ProcessImportJobExternalServices(
-                _comicSearchService, _cloudinaryService, _tempWorkspace, _importDirectoryStorage));
+                _comicSearchService, _cloudinaryService, _tempWorkspace, _importDirectoryStorage),
+            NullLogger<ProcessImportJobCommandHandler>.Instance);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

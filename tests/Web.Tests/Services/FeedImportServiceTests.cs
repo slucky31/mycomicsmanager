@@ -14,6 +14,7 @@ using Domain.Users;
 using Hangfire;
 using Hangfire.Common;
 using Hangfire.States;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using Web.Services;
@@ -51,7 +52,7 @@ public sealed class FeedImportServiceTests
         _service = new FeedImportService(
             new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler, _deleteHandler),
             _currentUserService, _libraryReadService, _decisionReadService, _backgroundJobClient,
-            Options.Create(_settings), Options.Create(_debridLinkSettings));
+            Options.Create(_settings), Options.Create(_debridLinkSettings), NullLogger<FeedImportService>.Instance);
     }
 
     [Fact]

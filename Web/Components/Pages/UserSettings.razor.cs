@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MudBlazor;
-using Serilog;
 
 namespace Web.Components.Pages;
 
@@ -11,6 +10,7 @@ public partial class UserSettings
 {
     [Inject] private HealthCheckService HealthCheckService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILogger<UserSettings> Logger { get; set; } = default!;
 
     private string _username = string.Empty;
     private string _email = string.Empty;
@@ -60,7 +60,7 @@ public partial class UserSettings
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             Snackbar.Add("Failed to load system health", Severity.Error);
-            Log.Error(ex, "Failed to load system health");
+            Logger.LogError(ex, "Failed to load system health");
         }
         finally
         {

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Serilog;
 using Web.Services;
 using Web.Validators;
 
@@ -11,6 +10,7 @@ public partial class AddLibrary
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILogger<AddLibrary> Logger { get; set; } = default!;
 
     private readonly LibraryUiDto _model = new();
     private MudForm? _form;
@@ -59,7 +59,7 @@ public partial class AddLibrary
         else
         {
             Snackbar.Add("Failed to create library", Severity.Error);
-            Log.Error("Failed to create library: {Error}", result.Error?.Description);
+            Logger.LogError("Failed to create library: {Error}", result.Error!.Description);
             _isSaving = false;
         }
     }

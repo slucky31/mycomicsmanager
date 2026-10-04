@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using Domain.Books;
 using Domain.Primitives;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Web.Services;
@@ -33,7 +34,7 @@ public sealed class ImportOrchestratorTests
         _scopeFactory = Substitute.For<IServiceScopeFactory>();
         _scopeFactory.CreateScope().Returns(scope);
 
-        _orchestrator = new ImportOrchestrator(_scopeFactory);
+        _orchestrator = new ImportOrchestrator(_scopeFactory, NullLogger<ImportOrchestrator>.Instance);
     }
 
     [Fact]

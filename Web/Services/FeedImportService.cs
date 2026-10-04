@@ -13,6 +13,7 @@ using Web.Models;
 
 namespace Web.Services;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107", Justification = "Distinct collaborators; the handlers are already grouped in FeedImportHandlers, bundling the rest would only hide them.")]
 public class FeedImportService(
     FeedImportHandlers handlers,
     ICurrentUserService currentUserService,
@@ -20,10 +21,9 @@ public class FeedImportService(
     IFeedImportDecisionReadService decisionReadService,
     IBackgroundJobClient backgroundJobClient,
     IOptions<FeedImportSettings> feedImportSettings,
-    IOptions<DebridLinkSettings> debridLinkSettings) : IFeedImportService
+    IOptions<DebridLinkSettings> debridLinkSettings,
+    ILogger<FeedImportService> logger) : IFeedImportService
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<FeedImportService>();
-
     public bool IsSyncEnabled => feedImportSettings.Value.Enabled;
 
     public async Task<Result<FeedImportDecisionPageViewModel>> GetDecisionsAsync(
@@ -143,7 +143,7 @@ public class FeedImportService(
             else
             {
                 lastError = result.Error;
-                Log.Warning("Feed import decision {DecisionId} not deleted: [{Code}] {Description}",
+                logger.LogWarning("Feed import decision {DecisionId} not deleted: [{Code}] {Description}",
                     decisionId, result.Error!.Code, result.Error.Description);
             }
         }
@@ -185,7 +185,7 @@ public class FeedImportService(
     {
         if (string.IsNullOrWhiteSpace(debridLinkSettings.Value.ApiKey))
         {
-            Log.Information("Feed import download of decision {DecisionId} not started: DebridLink:ApiKey is not set.", decisionId);
+            logger.LogInformation("Feed import download of decision {DecisionId} not started: DebridLink:ApiKey is not set.", decisionId);
             return;
         }
 

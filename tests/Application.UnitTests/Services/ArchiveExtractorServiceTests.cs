@@ -6,7 +6,7 @@ namespace Application.UnitTests.Services;
 
 public sealed class ArchiveExtractorServiceTests : IDisposable
 {
-    private readonly ArchiveExtractorService _service = new();
+    private readonly ArchiveExtractorService _service = new(NullLogger<ArchiveExtractorService>.Instance);
     private readonly string _tempDir;
 
     public ArchiveExtractorServiceTests()

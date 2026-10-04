@@ -13,10 +13,10 @@ public class DleArticleLinkExtractorTests
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "FeedImports", "Fixtures", name));
 
     private static ArticleExtraction ExtractPlaneteBd(string fixture, IReadOnlyList<string>? hosts = null) =>
-        new PlaneteBdLinkExtractor().Extract(Fixture(fixture), new Uri("https://planete-bd.org/bd/1.html"), hosts ?? s_hosters);
+        new PlaneteBdLinkExtractor(NullLogger<PlaneteBdLinkExtractor>.Instance).Extract(Fixture(fixture), new Uri("https://planete-bd.org/bd/1.html"), hosts ?? s_hosters);
 
     private static ArticleExtraction ExtractZoneEbook(string fixture) =>
-        new ZoneEbookLinkExtractor().Extract(Fixture(fixture), new Uri("https://zone-ebook.com/bd-comics-mangas/1.html"), s_hosters);
+        new ZoneEbookLinkExtractor(NullLogger<ZoneEbookLinkExtractor>.Instance).Extract(Fixture(fixture), new Uri("https://zone-ebook.com/bd-comics-mangas/1.html"), s_hosters);
 
     [Theory]
     [InlineData("https://planete-bd.org/bd/1.html", true, false)]
@@ -25,8 +25,8 @@ public class DleArticleLinkExtractorTests
     [InlineData("https://other.example/bd/1.html", false, false)]
     public void CanHandle_Should_MatchOwnSiteOnly(string address, bool planeteBd, bool zoneEbook)
     {
-        new PlaneteBdLinkExtractor().CanHandle(new Uri(address)).Should().Be(planeteBd);
-        new ZoneEbookLinkExtractor().CanHandle(new Uri(address)).Should().Be(zoneEbook);
+        new PlaneteBdLinkExtractor(NullLogger<PlaneteBdLinkExtractor>.Instance).CanHandle(new Uri(address)).Should().Be(planeteBd);
+        new ZoneEbookLinkExtractor(NullLogger<ZoneEbookLinkExtractor>.Instance).CanHandle(new Uri(address)).Should().Be(zoneEbook);
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class DleArticleLinkExtractorTests
     [Fact]
     public void Extract_Should_FallBackToWholePage_WhenArticleBlockIsMissing()
     {
-        var extraction = new PlaneteBdLinkExtractor().Extract(
+        var extraction = new PlaneteBdLinkExtractor(NullLogger<PlaneteBdLinkExtractor>.Instance).Extract(
             "<html><body><a href=\"https://fileq.net/abc.html\">Blacksad.T03.cbz</a></body></html>",
             new Uri("https://planete-bd.org/bd/1.html"), s_hosters);
 

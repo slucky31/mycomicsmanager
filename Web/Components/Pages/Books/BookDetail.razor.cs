@@ -1,7 +1,6 @@
 using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Serilog;
 using Web.Extensions;
 using Web.Services;
 
@@ -13,6 +12,7 @@ public partial class BookDetail
     [Inject] private IBooksService BooksService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILogger<BookDetail> Logger { get; set; } = default!;
 
     [Parameter]
     public string BookId { get; set; } = string.Empty;
@@ -51,7 +51,7 @@ public partial class BookDetail
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
             _loadError = true;
-            Log.Error(ex, "Unexpected error while loading book");
+            Logger.LogError(ex, "Unexpected error while loading book");
         }
         finally
         {
@@ -77,13 +77,13 @@ public partial class BookDetail
             else
             {
                 Snackbar.Add($"Unexpected error while adding reading date", Severity.Error);
-                Log.Error("Unexpected error while adding reading date");
+                Logger.LogError("Unexpected error while adding reading date");
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
             Snackbar.Add($"Unexpected error while adding reading date", Severity.Error);
-            Log.Error(ex, "Unexpected error while adding reading date");
+            Logger.LogError(ex, "Unexpected error while adding reading date");
         }
         finally
         {
@@ -115,14 +115,14 @@ public partial class BookDetail
                 else
                 {
                     Snackbar.Add("Failed to delete book", Severity.Error);
-                    Log.Error("Failed to delete book: {Description}", res.Error?.Description);
+                    Logger.LogError("Failed to delete book: {Description}", res.Error!.Description);
                 }
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
             Snackbar.Add("Failed to delete book", Severity.Error);
-            Log.Error(ex, "Unexpected error deleting book {BookId}", BookId);
+            Logger.LogError(ex, "Unexpected error deleting book {BookId}", BookId);
         }
     }
 

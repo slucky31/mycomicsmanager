@@ -3,7 +3,6 @@ using Application.FeedImports.Manage;
 using Domain.FeedImports;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Serilog;
 using Web.Extensions;
 using Web.Models;
 using Web.Services;
@@ -18,6 +17,7 @@ public partial class FeedImports
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private FeedImportNotifier Notifier { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private ILogger<FeedImports> Logger { get; set; } = default!;
 
     private MudTable<FeedImportDecisionViewModel>? _table;
     private FeedImportDecisionStatus? _statusFilter;
@@ -57,7 +57,7 @@ public partial class FeedImports
         else if (result.IsFailure)
         {
             Snackbar.Add("Impossible de charger les décisions d'import.", Severity.Error);
-            Log.Error("FeedImports: failed to load decisions: {ErrorDescription}", result.Error?.Description);
+            Logger.LogError("FeedImports: failed to load decisions: {ErrorDescription}", result.Error!.Description);
         }
 
         return _lastData;
@@ -106,7 +106,7 @@ public partial class FeedImports
             else if (result.IsFailure)
             {
                 Snackbar.Add(result.Error?.Description ?? "Impossible de lancer la synchronisation.", Severity.Error);
-                Log.Error("FeedImports: failed to trigger sync: {ErrorDescription}", result.Error?.Description);
+                Logger.LogError("FeedImports: failed to trigger sync: {ErrorDescription}", result.Error!.Description);
             }
 
             await ReloadAsync();
@@ -172,7 +172,7 @@ public partial class FeedImports
             }
 
             Snackbar.Add(result.Error?.Description ?? "Impossible de mettre à jour la décision.", Severity.Error);
-            Log.Error("FeedImports: action {Action} on decision {DecisionId} failed: {ErrorDescription}",
+            Logger.LogError("FeedImports: action {Action} on decision {DecisionId} failed: {ErrorDescription}",
                 actionName, decisionId, result.Error?.Description);
             return false;
         }
@@ -226,7 +226,7 @@ public partial class FeedImports
             if (result.IsFailure)
             {
                 Snackbar.Add(result.Error?.Description ?? "Impossible de supprimer les décisions.", Severity.Error);
-                Log.Error("FeedImports: failed to delete decisions: {ErrorDescription}", result.Error?.Description);
+                Logger.LogError("FeedImports: failed to delete decisions: {ErrorDescription}", result.Error!.Description);
                 return;
             }
 

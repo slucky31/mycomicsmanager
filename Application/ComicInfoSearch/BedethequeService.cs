@@ -5,14 +5,13 @@ using System.Text.RegularExpressions;
 using Application.Helpers;
 using Application.Interfaces;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
 
 public partial class BedethequeService : IBedethequeService
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<BedethequeService>();
-
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IIsbnBedethequeCacheRepository _cacheRepository;
     private readonly BedethequeSettings _settings;
@@ -20,12 +19,15 @@ public partial class BedethequeService : IBedethequeService
     private readonly string _coversBaseUrl;
     private readonly string _serieUrlPrefix;
     private readonly string _serieBdUrlPrefix;
+    private readonly ILogger<BedethequeService> _logger;
 
     public BedethequeService(
         IHttpClientFactory httpClientFactory,
         IIsbnBedethequeCacheRepository cacheRepository,
-        IOptions<BedethequeSettings> settings)
+        IOptions<BedethequeSettings> settings,
+        ILogger<BedethequeService> logger)
     {
+        _logger = logger;
         _httpClientFactory = httpClientFactory;
         _cacheRepository = cacheRepository;
         _settings = settings.Value;
@@ -45,7 +47,7 @@ public partial class BedethequeService : IBedethequeService
             var cachedUrl = await _cacheRepository.GetUrlByIsbnAsync(cleanIsbn, ct);
             if (cachedUrl is not null)
             {
-                Log.Information("Cache hit for ISBN {Isbn}: {Url}", cleanIsbn, cachedUrl);
+                _logger.LogInformation("Cache hit for ISBN {Isbn}: {Url}", cleanIsbn, cachedUrl);
             }
 
             var url = cachedUrl ?? await ResolveUrlAsync(cleanIsbn, ct);
@@ -54,7 +56,7 @@ public partial class BedethequeService : IBedethequeService
                 return CreateNotFoundResult();
             }
 
-            Log.Information("Fetching Bedetheque page: {Url}", url);
+            _logger.LogInformation("Fetching Bedetheque page: {Url}", url);
             var html = await FetchPageAsync(url, ct);
             if (html is null)
             {
@@ -66,24 +68,24 @@ public partial class BedethequeService : IBedethequeService
             if (result.Found && cachedUrl is null)
             {
                 await _cacheRepository.SaveAsync(cleanIsbn, url, ct);
-                Log.Information("Cached Bedetheque URL for ISBN {Isbn}: {Url}", cleanIsbn, url);
+                _logger.LogInformation("Cached Bedetheque URL for ISBN {Isbn}: {Url}", cleanIsbn, url);
             }
 
             return result;
         }
         catch (HttpRequestException ex)
         {
-            Log.Error(ex, "HTTP error searching Bedetheque for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "HTTP error searching Bedetheque for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (JsonException ex)
         {
-            Log.Error(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
         catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
         {
-            Log.Error(ex, "Timeout searching Bedetheque for ISBN: {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "Timeout searching Bedetheque for ISBN: {Isbn}", cleanIsbn);
             return CreateNotFoundResult();
         }
     }
@@ -92,7 +94,7 @@ public partial class BedethequeService : IBedethequeService
     {
         if (string.IsNullOrWhiteSpace(_settings.SerpApiKey))
         {
-            Log.Warning("SerpApi key is not configured, skipping Bedetheque search for ISBN {Isbn}", isbn);
+            _logger.LogWarning("SerpApi key is not configured, skipping Bedetheque search for ISBN {Isbn}", isbn);
             return null;
         }
 
@@ -115,13 +117,13 @@ public partial class BedethequeService : IBedethequeService
     private async Task<string?> TrySearchFormatAsync(string searchIsbn, string normalizedIsbn, CancellationToken ct)
     {
         var serpUrl = BuildSerpApiUrl(searchIsbn);
-        Log.Information("Calling SerpApi for ISBN {Isbn} (search: {SearchIsbn})", normalizedIsbn, searchIsbn);
+        _logger.LogInformation("Calling SerpApi for ISBN {Isbn} (search: {SearchIsbn})", normalizedIsbn, searchIsbn);
 
         var serpClient = _httpClientFactory.CreateClient("SerpApi");
         var response = await serpClient.GetAsync(new Uri(serpUrl), ct);
         if (!response.IsSuccessStatusCode)
         {
-            Log.Warning("SerpApi returned {StatusCode} for ISBN {SearchIsbn}", response.StatusCode, searchIsbn);
+            _logger.LogWarning("SerpApi returned {StatusCode} for ISBN {SearchIsbn}", response.StatusCode, searchIsbn);
             return null;
         }
 
@@ -150,14 +152,14 @@ public partial class BedethequeService : IBedethequeService
             }
         }
 
-        Log.Warning("No match for search ISBN {SearchIsbn} ({BdCount} BD, {SerieCount} serie links)",
+        _logger.LogWarning("No match for search ISBN {SearchIsbn} ({BdCount} BD, {SerieCount} serie links)",
             searchIsbn, bdLinks.Count, serieLinks.Count);
         return null;
     }
 
     private async Task<string?> ResolveSeriePageAsync(string serieUrl, string isbn, CancellationToken ct)
     {
-        Log.Information("Parsing serie page for ISBN {Isbn}: {SerieUrl}", isbn, serieUrl);
+        _logger.LogInformation("Parsing serie page for ISBN {Isbn}: {SerieUrl}", isbn, serieUrl);
         var html = await FetchPageAsync(serieUrl, ct);
         if (html is null)
         {
@@ -191,12 +193,12 @@ public partial class BedethequeService : IBedethequeService
             var href = anchor?.GetAttributeValue("href", string.Empty);
             if (!string.IsNullOrEmpty(href))
             {
-                Log.Information("Found album URL via serie page for ISBN {Isbn}: {Href}", isbn, href);
+                _logger.LogInformation("Found album URL via serie page for ISBN {Isbn}: {Href}", isbn, href);
                 return href;
             }
         }
 
-        Log.Warning("ISBN {Isbn} not found in serie page {SerieUrl}", isbn, serieUrl);
+        _logger.LogWarning("ISBN {Isbn} not found in serie page {SerieUrl}", isbn, serieUrl);
         return null;
     }
 
@@ -213,14 +215,14 @@ public partial class BedethequeService : IBedethequeService
 
         if (!response.IsSuccessStatusCode)
         {
-            Log.Warning("Bedetheque page returned {StatusCode} for URL: {Url}", response.StatusCode, url);
+            _logger.LogWarning("Bedetheque page returned {StatusCode} for URL: {Url}", response.StatusCode, url);
             return null;
         }
 
         return await response.Content.ReadAsStringAsync(ct);
     }
 
-    private static BedethequeBookResult ParsePage(string html, string pageUrl, string coversBaseUrl)
+    private BedethequeBookResult ParsePage(string html, string pageUrl, string coversBaseUrl)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
@@ -234,7 +236,7 @@ public partial class BedethequeService : IBedethequeService
         var numberOfPages = ParseNumberOfPages(doc);
         var coverUrl = BuildCoverUrl(pageUrl, coversBaseUrl);
 
-        Log.Information("Parsed Bedetheque page: {Serie} T{Volume} - {Title}", serie, volumeNumber, title);
+        _logger.LogInformation("Parsed Bedetheque page: {Serie} T{Volume} - {Title}", serie, volumeNumber, title);
 
         return new BedethequeBookResult(
             Title: title,
@@ -335,7 +337,7 @@ public partial class BedethequeService : IBedethequeService
     [GeneratedRegex(@"(\d{2})/(\d{4})", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex MonthYearRegex();
 
-    private static DateOnly? ParsePublishDate(HtmlDocument doc)
+    private DateOnly? ParsePublishDate(HtmlDocument doc)
     {
         // The Dépot/Dépôt légal <li> — "légal" is common to both spelling variants
         var li = doc.DocumentNode.SelectSingleNode(
@@ -352,7 +354,7 @@ public partial class BedethequeService : IBedethequeService
             var parutionMatch = ParutionDateRegex().Match(griseSpan.InnerText);
             if (parutionMatch.Success)
             {
-                var parsed = PublishDateHelper.ParsePublishDate(parutionMatch.Groups[1].Value);
+                var parsed = PublishDateHelper.ParsePublishDate(parutionMatch.Groups[1].Value, _logger);
                 if (parsed is not null)
                 {
                     return parsed;

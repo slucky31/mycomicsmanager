@@ -31,7 +31,7 @@ public class SyncFeedImportsCommandHandlerTests
             .Returns(Result<IReadOnlyList<MinifluxCategory>>.Success([new MinifluxCategory(1, "Tech"), new MinifluxCategory(CategoryId, " bd ")]));
         _minifluxClient.UnstarAsync(Arg.Any<long>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
-        _handler = new SyncFeedImportsCommandHandler(_minifluxClient, _repository, _unitOfWork, Options.Create(_settings));
+        _handler = new SyncFeedImportsCommandHandler(_minifluxClient, _repository, _unitOfWork, Options.Create(_settings), NullLogger<SyncFeedImportsCommandHandler>.Instance);
     }
 
     private static MinifluxEntry CreateEntry(long id) =>

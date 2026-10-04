@@ -6,13 +6,11 @@ using Domain.Primitives;
 namespace Web.Infrastructure;
 
 // Debrid-Link API v2 (https://debrid-link.com/api_doc/v2): every answer is {"success": bool, "value" | "error"}.
-internal sealed class DebridLinkClient(HttpClient httpClient) : IDebridLinkClient
+internal sealed class DebridLinkClient(HttpClient httpClient, ILogger<DebridLinkClient> logger) : IDebridLinkClient
 {
     private static readonly Uri s_domainsUri = new("downloader/domains", UriKind.Relative);
     private static readonly Uri s_addUri = new("downloader/add", UriKind.Relative);
     private static readonly Uri s_accountUri = new("account/infos", UriKind.Relative);
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<DebridLinkClient>();
 
     public async Task<Result<IReadOnlyList<string>>> GetSupportedDomainsAsync(CancellationToken cancellationToken = default)
     {
@@ -60,14 +58,14 @@ internal sealed class DebridLinkClient(HttpClient httpClient) : IDebridLinkClien
         return ToFile(link);
     }
 
-    internal static Result<DebridLinkFile> ToFile(JsonElement link)
+    internal Result<DebridLinkFile> ToFile(JsonElement link)
     {
         if (link.ValueKind != JsonValueKind.Object ||
             !link.TryGetProperty("downloadUrl", out var downloadUrl) ||
             downloadUrl.ValueKind != JsonValueKind.String ||
             !Uri.TryCreate(downloadUrl.GetString(), UriKind.Absolute, out var downloadUri))
         {
-            Log.Warning("Debrid-Link returned a link without a valid downloadUrl");
+            logger.LogWarning("Debrid-Link returned a link without a valid downloadUrl");
             return FeedImportError.DebridLinkUnavailable;
         }
 
@@ -96,7 +94,7 @@ internal sealed class DebridLinkClient(HttpClient httpClient) : IDebridLinkClien
 
     private static TError WithCode(TError error, string code) => new(error.Code, $"{error.Description} ({code})");
 
-    private static async Task<Result<JsonElement>> SendAsync(Func<Task<HttpResponseMessage>> send, CancellationToken cancellationToken)
+    private async Task<Result<JsonElement>> SendAsync(Func<Task<HttpResponseMessage>> send, CancellationToken cancellationToken)
     {
         try
         {
@@ -112,14 +110,14 @@ internal sealed class DebridLinkClient(HttpClient httpClient) : IDebridLinkClien
             var code = body is { } error && error.TryGetProperty("error", out var errorCode) && errorCode.ValueKind == JsonValueKind.String
                 ? errorCode.GetString()
                 : null;
-            Log.Warning("Debrid-Link returned {StatusCode} for {Uri}: {ErrorCode}",
+            logger.LogWarning("Debrid-Link returned {StatusCode} for {Uri}: {ErrorCode}",
                 (int)response.StatusCode, response.RequestMessage?.RequestUri?.AbsolutePath, code ?? "(no error code)");
             return MapError(code);
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException
                                    || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested))
         {
-            Log.Warning(ex, "Debrid-Link request failed");
+            logger.LogWarning(ex, "Debrid-Link request failed");
             return FeedImportError.DebridLinkUnavailable;
         }
     }

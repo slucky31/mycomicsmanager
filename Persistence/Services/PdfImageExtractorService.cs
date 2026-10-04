@@ -1,14 +1,13 @@
 using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 using UglyToad.PdfPig;
 
 namespace Persistence.Services;
 
-public class PdfImageExtractorService : IPdfImageExtractor
+public class PdfImageExtractorService(ILogger<PdfImageExtractorService> logger) : IPdfImageExtractor
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<PdfImageExtractorService>();
-
     public bool CanHandle(string filePath) =>
         string.Equals(Path.GetExtension(filePath), ".pdf", StringComparison.OrdinalIgnoreCase);
 
@@ -19,7 +18,7 @@ public class PdfImageExtractorService : IPdfImageExtractor
     {
         if (!File.Exists(pdfPath))
         {
-            Log.Warning("PDF not found: {Path}", pdfPath);
+            logger.LogWarning("PDF not found: {Path}", pdfPath);
             return FileProcessingError.FileNotFound;
         }
 
@@ -30,12 +29,12 @@ public class PdfImageExtractorService : IPdfImageExtractor
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Log.Error(ex, "Failed to extract images from PDF: {Path}", pdfPath);
+            logger.LogError(ex, "Failed to extract images from PDF: {Path}", pdfPath);
             return FileProcessingError.CorruptArchive;
         }
     }
 
-    private static Result<PdfExtractionResult> ExtractInternal(
+    private Result<PdfExtractionResult> ExtractInternal(
         string pdfPath,
         string destinationPath,
         CancellationToken ct)
@@ -61,7 +60,7 @@ public class PdfImageExtractorService : IPdfImageExtractor
             }
         }
 
-        Log.Information("Extracted {Count} images from PDF", extractedPaths.Count);
+        logger.LogInformation("Extracted {Count} images from PDF", extractedPaths.Count);
         return new PdfExtractionResult(extractedPaths, extractedPaths.Count);
     }
 

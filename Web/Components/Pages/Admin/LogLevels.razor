@@ -1,0 +1,68 @@
+﻿@page "/admin/log-levels"
+@attribute [Authorize(Roles = "Admin")]
+@using Web.Infrastructure
+
+<PageLayout Title="Log levels" Icon="@Icons.Material.Filled.Tune">
+
+    <MudText Typo="Typo.body2" Class="mb-3">
+        There are @_loggers.Count loggers. A change applies immediately and lasts until the next restart;
+        a logger without a level of its own (<em>inherited</em>) follows its parent namespace.
+    </MudText>
+
+    <div class="d-flex align-center gap-3 mb-3">
+        <MudTextField T="string" @bind-Value="_filter" Immediate="true" DebounceInterval="200"
+                      Label="Filter" Placeholder="Web.Services" Clearable="true"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                      Variant="Variant.Outlined" Margin="Margin.Dense" />
+        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.RestartAlt" OnClick="ResetAll">
+            Reset
+        </MudButton>
+    </div>
+
+    <MudTable T="LoggerLevel" Items="_loggers" Filter="MatchesFilter" Dense="true" Hover="true" Striped="true"
+              Breakpoint="Breakpoint.Sm" Class="rounded-lg">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel T="LoggerLevel" SortBy="l => l.Name">Name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel T="LoggerLevel" SortBy="l => l.EffectiveLevel">Level</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">
+                <span class="logger-name">@context.Name</span>
+                @if (context.ConfiguredLevel is null)
+                {
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Text">inherited</MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="Level">
+                <div class="d-flex align-center flex-wrap gap-1">
+                    @foreach (var option in s_levels)
+                    {
+                        var isCurrent = context.EffectiveLevel == option.Level;
+                        <MudButton Size="Size.Small"
+                                   Variant="@(isCurrent ? Variant.Filled : Variant.Outlined)"
+                                   Color="@(isCurrent ? option.Color : Color.Default)"
+                                   aria-pressed="@(isCurrent ? "true" : "false")"
+                                   OnClick="() => SetLevel(context.Name, option.Level)">
+                            @option.Label
+                        </MudButton>
+                    }
+                    @if (context.ConfiguredLevel is not null && context.Name != LogLevelSwitches.RootLoggerName)
+                    {
+                        <MudTooltip Text="Inherit the level of the parent namespace">
+                            <MudIconButton Icon="@Icons.Material.Filled.Undo" Size="Size.Small"
+                                           aria-label="@($"Inherit the level of the parent namespace for {context.Name}")"
+                                           OnClick="() => SetLevel(context.Name, null)" />
+                        </MudTooltip>
+                    }
+                </div>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No logger matches the filter.</MudText>
+        </NoRecordsContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="s_pageSizeOptions" />
+        </PagerContent>
+    </MudTable>
+
+</PageLayout>

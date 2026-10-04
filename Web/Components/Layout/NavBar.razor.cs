@@ -13,6 +13,7 @@ public partial class NavBar : IDisposable
     [Inject] private IServiceScopeFactory ScopeFactory { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     [Inject] private FeedImportNotifier FeedImportNotifier { get; set; } = default!;
+    [Inject] private ILogger<NavBar> Logger { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,7 +61,7 @@ public partial class NavBar : IDisposable
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Serilog.Log.ForContext<NavBar>().Error(ex, "NavBar: failed to count the feed imports awaiting arbitration");
+            Logger.LogError(ex, "NavBar: failed to count the feed imports awaiting arbitration");
             _arbitrationCount = 0;
         }
     }

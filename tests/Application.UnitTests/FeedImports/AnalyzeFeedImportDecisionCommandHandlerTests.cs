@@ -32,8 +32,8 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
         _bookReadService.ListIdentitiesByUserAsync(s_userId, Arg.Any<CancellationToken>()).Returns([]);
         _handler = new AnalyzeFeedImportDecisionCommandHandler(
             _repository, _pageFetcher,
-            [new PlaneteBdLinkExtractor(), new ZoneEbookLinkExtractor(), new GenericDownloadLinkExtractor()],
-            _bookReadService, _unitOfWork, Options.Create(_settings));
+            [new PlaneteBdLinkExtractor(NullLogger<PlaneteBdLinkExtractor>.Instance), new ZoneEbookLinkExtractor(NullLogger<ZoneEbookLinkExtractor>.Instance), new GenericDownloadLinkExtractor()],
+            _bookReadService, _unitOfWork, Options.Create(_settings), NullLogger<AnalyzeFeedImportDecisionCommandHandler>.Instance);
     }
 
     private FeedImportDecision GivenDecision(string title = "Blacksad - Tome 3 - Âme rouge", string url = "https://www.planete-bd.org/blacksad-3")

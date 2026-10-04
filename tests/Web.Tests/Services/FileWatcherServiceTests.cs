@@ -8,6 +8,7 @@ using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using Web.Services;
@@ -76,7 +77,7 @@ public sealed class FileWatcherServiceTests : IDisposable
             SupportedExtensions = [".cbz", ".cbr", ".zip", ".rar", ".pdf"]
         });
 
-        _service = new FileWatcherService(_scopeFactory, _enqueuer, settings, lifetime);
+        _service = new FileWatcherService(_scopeFactory, _enqueuer, settings, lifetime, NullLogger<FileWatcherService>.Instance);
     }
 
     public void Dispose()

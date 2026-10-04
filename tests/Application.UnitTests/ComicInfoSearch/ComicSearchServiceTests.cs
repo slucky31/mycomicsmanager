@@ -64,7 +64,7 @@ public sealed class ComicSearchServiceTests
         _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(GoogleBooksNotFound);
 
-        _sut = new ComicSearchService(_openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings);
+        _sut = new ComicSearchService(_openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
     }
 
     #region SearchByIsbnAsync Tests
@@ -1172,7 +1172,7 @@ public sealed class ComicSearchServiceWithLocalCoverTests
             .Returns(new CloudinaryUploadResult(null, null, false, "not configured"));
 
         _sut = new ComicSearchService(
-            _openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings);
+            _openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
     }
 
     [Fact]

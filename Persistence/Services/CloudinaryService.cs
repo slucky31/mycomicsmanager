@@ -4,22 +4,23 @@ using Application.Interfaces;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Domain.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Persistence.Services;
 
 public class CloudinaryService : ICloudinaryService
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<CloudinaryService>();
-
     private static readonly HashSet<string> s_allowedCoverHosts =
         new(["www.bedetheque.com", "books.google.com", "books.googleusercontent.com", "covers.openlibrary.org"],
             StringComparer.OrdinalIgnoreCase);
 
     private readonly Cloudinary _cloudinary;
+    private readonly ILogger<CloudinaryService> _logger;
 
-    public CloudinaryService(IOptions<CloudinarySettings> settings)
+    public CloudinaryService(IOptions<CloudinarySettings> settings, ILogger<CloudinaryService> logger)
     {
+        _logger = logger;
         var config = settings.Value;
         var account = new Account(config.CloudName, config.ApiKey, config.ApiSecret);
         _cloudinary = new Cloudinary(account);
@@ -34,12 +35,12 @@ public class CloudinaryService : ICloudinaryService
     {
         if (!sourceUrl.IsAllowedHttpsHost(s_allowedCoverHosts))
         {
-            Log.Warning("SSRF guard blocked Cloudinary upload from {SourceUrl}", sourceUrl);
+            _logger.LogWarning("SSRF guard blocked Cloudinary upload from {SourceUrl}", sourceUrl);
             return new CloudinaryUploadResult(null, null, false,
                 $"URL host '{sourceUrl.Host}' is not in the allowed list.");
         }
 
-        Log.Information("Uploading image to Cloudinary from {SourceUrl} to folder {Folder}", sourceUrl, folder);
+        _logger.LogInformation("Uploading image to Cloudinary from {SourceUrl} to folder {Folder}", sourceUrl, folder);
 
         var uploadParams = CreateUploadParams(
             new FileDescription(sourceUrl.ToString()), folder, publicId);
@@ -53,7 +54,7 @@ public class CloudinaryService : ICloudinaryService
         string publicId,
         CancellationToken cancellationToken = default)
     {
-        Log.Information("Uploading image to Cloudinary from file {FilePath} to folder {Folder}", filePath, folder);
+        _logger.LogInformation("Uploading image to Cloudinary from file {FilePath} to folder {Folder}", filePath, folder);
 
         FileStream? stream = null;
         try
@@ -67,7 +68,7 @@ public class CloudinaryService : ICloudinaryService
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Log.Error(ex, "Could not read file for Cloudinary upload: {FilePath}", filePath);
+            _logger.LogError(ex, "Could not read file for Cloudinary upload: {FilePath}", filePath);
             return new CloudinaryUploadResult(null, null, false, ex.Message);
         }
         finally
@@ -86,7 +87,7 @@ public class CloudinaryService : ICloudinaryService
         string publicId,
         CancellationToken cancellationToken = default)
     {
-        Log.Information("Uploading image to Cloudinary from stream {FileName} to folder {Folder}", fileName, folder);
+        _logger.LogInformation("Uploading image to Cloudinary from stream {FileName} to folder {Folder}", fileName, folder);
 
         var uploadParams = CreateUploadParams(
             new FileDescription(fileName, imageStream), folder, publicId);
@@ -103,7 +104,7 @@ public class CloudinaryService : ICloudinaryService
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !cancellationToken.IsCancellationRequested)
         {
-            Log.Warning(ex, "Cloudinary connectivity check failed");
+            _logger.LogWarning(ex, "Cloudinary connectivity check failed");
             return false;
         }
     }
@@ -129,21 +130,21 @@ public class CloudinaryService : ICloudinaryService
 
             if (uploadResult.Error != null)
             {
-                Log.Error("Cloudinary upload failed: {Error}", uploadResult.Error.Message);
+                _logger.LogError("Cloudinary upload failed: {Error}", uploadResult.Error.Message);
                 return new CloudinaryUploadResult(null, null, false, uploadResult.Error.Message);
             }
 
-            Log.Information("Image uploaded successfully to Cloudinary: {Url}", uploadResult.SecureUrl);
+            _logger.LogInformation("Image uploaded successfully to Cloudinary: {Url}", uploadResult.SecureUrl);
             return new CloudinaryUploadResult(uploadResult.SecureUrl, uploadResult.PublicId, true, null);
         }
         catch (HttpRequestException ex)
         {
-            Log.Error(ex, "HTTP error uploading to Cloudinary from {Source}", source);
+            _logger.LogError(ex, "HTTP error uploading to Cloudinary from {Source}", source);
             return new CloudinaryUploadResult(null, null, false, ex.Message);
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            Log.Error(ex, "Timeout uploading to Cloudinary from {Source}", source);
+            _logger.LogError(ex, "Timeout uploading to Cloudinary from {Source}", source);
             return new CloudinaryUploadResult(null, null, false, "Upload timeout");
         }
     }

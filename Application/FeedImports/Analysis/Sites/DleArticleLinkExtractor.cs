@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Application.Helpers;
 using Domain.Extensions;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 
 namespace Application.FeedImports.Analysis.Sites;
 
@@ -9,13 +10,11 @@ namespace Application.FeedImports.Analysis.Sites;
 // a post block holding the metadata (genre, tomes, sometimes the ISBN) and, after
 // "Lien(s) de téléchargement", one anchor per file whose text is "File.Name.cbz - 101.5 MB".
 // Only that block is read, so the sidebar, share buttons and ads never contribute links.
-public abstract partial class DleArticleLinkExtractor : IDownloadLinkExtractor
+public abstract partial class DleArticleLinkExtractor(ILogger logger) : IDownloadLinkExtractor
 {
     // "ISBN : 9782203211582", "ISBN ‏ : ‎ 978-2-203-21158-2"
     [GeneratedRegex(@"ISBN\D{0,12}((?:97[89][\d\- ]{10,16})|(?:\d[\d\- ]{8,12}[\dXx]))", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex IsbnPattern();
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<DleArticleLinkExtractor>();
 
     protected abstract string SiteDomain { get; }
 
@@ -47,7 +46,7 @@ public abstract partial class DleArticleLinkExtractor : IDownloadLinkExtractor
         if (article is null)
         {
             // The site layout changed: read the whole page rather than miss every link.
-            Log.Warning("Feed import: article block not found on {Url}, falling back to the generic extractor", pageUri);
+            logger.LogWarning("Feed import: article block not found on {Url}, falling back to the generic extractor", pageUri);
             return new ArticleExtraction(GenericDownloadLinkExtractor.ExtractLinks(document.DocumentNode, pageUri, allowedDownloadHosts));
         }
 

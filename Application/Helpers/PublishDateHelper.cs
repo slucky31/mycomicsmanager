@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Helpers;
 
@@ -6,10 +7,10 @@ public static class PublishDateHelper
 {
     public const string DisplayFormat = "dd/MM/yyyy";
 
-    private static Serilog.ILogger Log => Serilog.Log.ForContext(typeof(PublishDateHelper));
-
-    public static DateOnly? ParsePublishDate(string? dateString)
+    public static DateOnly? ParsePublishDate(string? dateString, ILogger logger)
     {
+        ArgumentNullException.ThrowIfNull(logger);
+
         if (string.IsNullOrWhiteSpace(dateString))
         {
             return null;
@@ -46,7 +47,7 @@ public static class PublishDateHelper
             return DateOnly.FromDateTime(dateTime);
         }
 
-        Log.Warning("Unable to parse publish date: {DateString}", dateString);
+        logger.LogWarning("Unable to parse publish date: {DateString}", dateString);
         return null;
     }
 }

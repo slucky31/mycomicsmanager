@@ -147,5 +147,8 @@ Enforced via `.editorconfig`:
 ### Blazor — JS Interop Side Effects
 - Any C# state mutation tied to a `JS.InvokeVoidAsync` call must happen **after** the call returns, never before, so that a JS exception leaves the state consistent and allows a retry on the next render.
 
+### Logging
+- Every class logs through an injected `ILogger<T>` (Razor components: `[Inject] private ILogger<T> Logger`), so each log carries a `SourceContext` whose level can be changed at runtime. The static `Serilog.Log` is reserved to `Program.cs` (enforced by Architecture.Tests).
+
 ### IDisposable — Replace-and-Dispose
 - When replacing an `IDisposable` field (e.g., `CancellationTokenSource`), always call `.Dispose()` on the previous instance before assigning the new one to avoid resource leaks.

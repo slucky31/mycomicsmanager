@@ -2,6 +2,7 @@ using System.Net;
 using Application.ImportJobs;
 using AwesomeAssertions;
 using Domain.FeedImports;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Web.Infrastructure;
 using Xunit;
@@ -27,7 +28,7 @@ public sealed class FeedImportFileDownloaderTests : IDisposable
     {
         using var handler = new StubHandler(responder);
         using var httpClient = new HttpClient(handler, disposeHandler: false);
-        var downloader = new FeedImportFileDownloader(httpClient, Options.Create(new ImportSettings { TempDirectory = _tempDirectory }));
+        var downloader = new FeedImportFileDownloader(httpClient, Options.Create(new ImportSettings { TempDirectory = _tempDirectory }), NullLogger<FeedImportFileDownloader>.Instance);
         return await downloader.DownloadAsync(s_downloadUrl, maxBytes, TestContext.Current.CancellationToken);
     }
 

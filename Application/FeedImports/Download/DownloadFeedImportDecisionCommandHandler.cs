@@ -7,6 +7,7 @@ using Domain.Extensions;
 using Domain.FeedImports;
 using Domain.Libraries;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 
 namespace Application.FeedImports.Download;
 
@@ -19,7 +20,8 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
     IUnitOfWork unitOfWork,
     FeedImportDownloadServices downloadServices,
     FeedImportDepositServices depositServices,
-    FeedImportDownloadOptions options) : ICommandHandler<DownloadFeedImportDecisionCommand>
+    FeedImportDownloadOptions options,
+    ILogger<DownloadFeedImportDecisionCommandHandler> logger) : ICommandHandler<DownloadFeedImportDecisionCommand>
 {
     public const string LibraryStep = "Bibliothèque";
     public const string DownloadStep = "Téléchargement";
@@ -27,8 +29,6 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
 
     public const string TargetLibraryColor = "#5C6BC0";
     public const string TargetLibraryIcon = "CollectionsBookmark";
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<DownloadFeedImportDecisionCommandHandler>();
 
     // These failures would be the same on every mirror: trying the next one would only burn the quota.
     private static readonly HashSet<string> s_stopCodes =
@@ -111,7 +111,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
                 return created.Error!;
             }
 
-            Log.Information("Feed import: digital library {LibraryName} created for the downloads", name);
+            logger.LogInformation("Feed import: digital library {LibraryName} created for the downloads", name);
             return created.Value!;
         }
 
@@ -144,7 +144,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
             }
 
             lastError = result.Error!;
-            Log.Warning("Feed import: mirror {Host} of decision {DecisionId} failed: [{Code}] {Description}",
+            logger.LogWarning("Feed import: mirror {Host} of decision {DecisionId} failed: [{Code}] {Description}",
                 mirror.Host, decision.Id, lastError.Code, lastError.Description);
             if (s_stopCodes.Contains(lastError.Code))
             {
@@ -282,7 +282,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
         }
 
         depositServices.ImportJobEnqueuer.Enqueue(job.Value.Id);
-        Log.Information("Feed import: decision {DecisionId} downloaded from {Host} into {Path}, import job {ImportJobId}",
+        logger.LogInformation("Feed import: decision {DecisionId} downloaded from {Host} into {Path}, import job {ImportJobId}",
             decision.Id, download.Mirror.Host, path.Value, job.Value.Id);
         return Result.Success();
     }

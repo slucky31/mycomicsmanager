@@ -3,7 +3,6 @@ using Application.Helpers;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Serilog;
 using Web.Services;
 using Web.Validators;
 
@@ -18,6 +17,7 @@ public partial class ImportBookMetaFromWeb
     [Inject] private IGoogleBooksService GoogleBooksService { get; set; } = default!;
     [Inject] private IComicSearchService ComicSearchService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILogger<ImportBookMetaFromWeb> Logger { get; set; } = default!;
 
     [Parameter]
     public string BookId { get; set; } = string.Empty;
@@ -78,7 +78,7 @@ public partial class ImportBookMetaFromWeb
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
             _loadError = true;
-            Log.Error(ex, "Unexpected error loading book for import {BookId}", BookId);
+            Logger.LogError(ex, "Unexpected error loading book for import {BookId}", BookId);
         }
         finally
         {
@@ -106,7 +106,7 @@ public partial class ImportBookMetaFromWeb
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
-            Log.Error(ex, "Error fetching Bedetheque for ISBN {ISBN}", _currentBook.ISBN);
+            Logger.LogError(ex, "Error fetching Bedetheque for ISBN {ISBN}", _currentBook.ISBN);
             Snackbar.Add("Could not fetch data from Bedetheque. You can still save with current values.", Severity.Warning);
         }
 
@@ -121,7 +121,7 @@ public partial class ImportBookMetaFromWeb
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
-            Log.Error(ex, "Error fetching OpenLibrary for ISBN {ISBN}", _currentBook.ISBN);
+            Logger.LogError(ex, "Error fetching OpenLibrary for ISBN {ISBN}", _currentBook.ISBN);
             Snackbar.Add("Could not fetch data from OpenLibrary. You can still save with current values.", Severity.Warning);
         }
         finally
@@ -140,7 +140,7 @@ public partial class ImportBookMetaFromWeb
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
-            Log.Error(ex, "Error fetching Google Books for ISBN {ISBN}", _currentBook.ISBN);
+            Logger.LogError(ex, "Error fetching Google Books for ISBN {ISBN}", _currentBook.ISBN);
             Snackbar.Add("Could not fetch data from Google Books. You can still save with current values.", Severity.Warning);
         }
         finally
@@ -263,7 +263,7 @@ public partial class ImportBookMetaFromWeb
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
             {
-                Log.Error(ex, "Failed to upload cover to Cloudinary for book {BookId}, keeping original URL", BookId);
+                Logger.LogError(ex, "Failed to upload cover to Cloudinary for book {BookId}, keeping original URL", BookId);
                 Snackbar.Add("Cover could not be uploaded to Cloudinary. The original URL will be saved.", Severity.Warning);
             }
         }

@@ -8,11 +8,9 @@ using Domain.Primitives;
 
 namespace Web.Infrastructure;
 
-internal sealed class MinifluxClient(HttpClient httpClient) : IMinifluxClient
+internal sealed class MinifluxClient(HttpClient httpClient, ILogger<MinifluxClient> logger) : IMinifluxClient
 {
     private const int PageSize = 100;
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<MinifluxClient>();
 
     public async Task<Result<IReadOnlyList<MinifluxCategory>>> GetCategoriesAsync(CancellationToken cancellationToken = default)
     {
@@ -73,7 +71,7 @@ internal sealed class MinifluxClient(HttpClient httpClient) : IMinifluxClient
             using var response = await httpClient.PutAsync(toggleUri, content: null, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                Log.Warning("Miniflux returned {StatusCode} when toggling the star of entry {EntryId}", (int)response.StatusCode, entryId);
+                logger.LogWarning("Miniflux returned {StatusCode} when toggling the star of entry {EntryId}", (int)response.StatusCode, entryId);
                 return FeedImportError.MinifluxUnavailable;
             }
 
@@ -81,7 +79,7 @@ internal sealed class MinifluxClient(HttpClient httpClient) : IMinifluxClient
         }
         catch (Exception ex) when (IsTransportError(ex, cancellationToken))
         {
-            Log.Warning(ex, "Miniflux request failed when toggling the star of entry {EntryId}", entryId);
+            logger.LogWarning(ex, "Miniflux request failed when toggling the star of entry {EntryId}", entryId);
             return FeedImportError.MinifluxUnavailable;
         }
     }
@@ -99,7 +97,7 @@ internal sealed class MinifluxClient(HttpClient httpClient) : IMinifluxClient
 
             if (!response.IsSuccessStatusCode)
             {
-                Log.Warning("Miniflux returned {StatusCode} for {Uri}", (int)response.StatusCode, uri);
+                logger.LogWarning("Miniflux returned {StatusCode} for {Uri}", (int)response.StatusCode, uri);
                 return response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
                     ? FeedImportError.MinifluxUnauthorized
                     : FeedImportError.MinifluxUnavailable;
@@ -108,7 +106,7 @@ internal sealed class MinifluxClient(HttpClient httpClient) : IMinifluxClient
             var body = await response.Content.ReadFromJsonAsync<T>(cancellationToken);
             if (body is null)
             {
-                Log.Warning("Miniflux returned an empty body for {Uri}", uri);
+                logger.LogWarning("Miniflux returned an empty body for {Uri}", uri);
                 return FeedImportError.MinifluxUnavailable;
             }
 
@@ -116,7 +114,7 @@ internal sealed class MinifluxClient(HttpClient httpClient) : IMinifluxClient
         }
         catch (Exception ex) when (IsTransportError(ex, cancellationToken))
         {
-            Log.Warning(ex, "Miniflux request failed for {Uri}", uri);
+            logger.LogWarning(ex, "Miniflux request failed for {Uri}", uri);
             return FeedImportError.MinifluxUnavailable;
         }
     }

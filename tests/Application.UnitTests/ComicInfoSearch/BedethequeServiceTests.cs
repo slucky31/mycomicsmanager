@@ -65,7 +65,7 @@ public sealed class BedethequeServiceTests : IDisposable
     {
         cache ??= EmptyCache();
         var options = Options.Create(settings ?? DefaultSettings);
-        return new BedethequeService(factory, cache, options);
+        return new BedethequeService(factory, cache, options, NullLogger<BedethequeService>.Instance);
     }
 
     private static IIsbnBedethequeCacheRepository EmptyCache()

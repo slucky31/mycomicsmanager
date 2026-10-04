@@ -1,27 +1,29 @@
 using System.Text.RegularExpressions;
 using Application.Helpers;
 using Application.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
 
 public partial class ComicSearchService : IComicSearchService
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<ComicSearchService>();
-
     private readonly IOpenLibraryService _openLibraryService;
     private readonly IGoogleBooksService _googleBooksService;
     private readonly IBedethequeService _bedethequeService;
     private readonly ICloudinaryService _cloudinaryService;
     private readonly CloudinarySettings _cloudinarySettings;
+    private readonly ILogger<ComicSearchService> _logger;
 
     public ComicSearchService(
         IOpenLibraryService openLibraryService,
         IGoogleBooksService googleBooksService,
         IBedethequeService bedethequeService,
         ICloudinaryService cloudinaryService,
-        IOptions<CloudinarySettings> cloudinarySettings)
+        IOptions<CloudinarySettings> cloudinarySettings,
+        ILogger<ComicSearchService> logger)
     {
+        _logger = logger;
         _openLibraryService = openLibraryService;
         _googleBooksService = googleBooksService;
         _bedethequeService = bedethequeService;
@@ -42,37 +44,37 @@ public partial class ComicSearchService : IComicSearchService
 
             if (bedethequeResult.Found)
             {
-                Log.Information("Book found via Bedetheque for ISBN {Isbn}", cleanIsbn);
+                _logger.LogInformation("Book found via Bedetheque for ISBN {Isbn}", cleanIsbn);
                 return await MapBedethequeResultAsync(bedethequeResult, cleanIsbn, cancellationToken);
             }
 
             // Fallback to Google Books
-            Log.Information("Bedetheque returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
+            _logger.LogInformation("Bedetheque returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
             var googleResult = await _googleBooksService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
 
             if (googleResult.Found)
             {
-                Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
+                _logger.LogInformation("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
                 return await MapBookResultToComicSearchResultAsync(
                     googleResult, cleanIsbn, cancellationToken);
             }
 
             // Fallback to OpenLibrary
-            Log.Information("Google Books returned no result for ISBN {Isbn}, trying OpenLibrary", cleanIsbn);
+            _logger.LogInformation("Google Books returned no result for ISBN {Isbn}, trying OpenLibrary", cleanIsbn);
             var olResult = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
 
             if (olResult.Found)
             {
-                Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
+                _logger.LogInformation("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
                 return await MapBookResultToComicSearchResultAsync(olResult, cleanIsbn, cancellationToken);
             }
 
-            Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
+            _logger.LogWarning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
             return CreateNotFoundResult(cleanIsbn);
         }
         catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
         {
-            Log.Error(ex, "Unexpected error searching for ISBN {Isbn}", cleanIsbn);
+            _logger.LogError(ex, "Unexpected error searching for ISBN {Isbn}", cleanIsbn);
             return CreateNotFoundResult(cleanIsbn);
         }
     }
@@ -127,35 +129,35 @@ public partial class ComicSearchService : IComicSearchService
             var bedethequeResult = await _bedethequeService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
             if (bedethequeResult.Found)
             {
-                Log.Information("Book found via Bedetheque for ISBN {Isbn}", cleanIsbn);
+                _logger.LogInformation("Book found via Bedetheque for ISBN {Isbn}", cleanIsbn);
                 var imageUrl = await UploadCoverStreamOrRemoteAsync(
                     coverStream, coverFileName, bedethequeResult.CoverUrl, cleanIsbn, cancellationToken);
                 return MapBedethequeResultSync(bedethequeResult, cleanIsbn, imageUrl);
             }
 
             // Fallback to Google Books
-            Log.Information("Bedetheque returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
+            _logger.LogInformation("Bedetheque returned no result for ISBN {Isbn}, trying Google Books", cleanIsbn);
             var googleResult = await _googleBooksService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
             if (googleResult.Found)
             {
-                Log.Information("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
+                _logger.LogInformation("Book found via Google Books for ISBN {Isbn}", cleanIsbn);
                 var imageUrl = await UploadCoverStreamOrRemoteAsync(
                     coverStream, coverFileName, googleResult.CoverUrl, cleanIsbn, cancellationToken);
                 return MapBookResultSync(googleResult, cleanIsbn, imageUrl);
             }
 
             // Fallback to OpenLibrary
-            Log.Information("Google Books returned no result for ISBN {Isbn}, trying OpenLibrary", cleanIsbn);
+            _logger.LogInformation("Google Books returned no result for ISBN {Isbn}, trying OpenLibrary", cleanIsbn);
             var olResult = await _openLibraryService.SearchByIsbnAsync(cleanIsbn, cancellationToken);
             if (olResult.Found)
             {
-                Log.Information("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
+                _logger.LogInformation("Book found via OpenLibrary for ISBN {Isbn}", cleanIsbn);
                 var imageUrl = await UploadCoverStreamOrRemoteAsync(
                     coverStream, coverFileName, olResult.CoverUrl, cleanIsbn, cancellationToken);
                 return MapBookResultSync(olResult, cleanIsbn, imageUrl);
             }
 
-            Log.Warning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
+            _logger.LogWarning("No data found for ISBN {Isbn} in any provider", cleanIsbn);
         }
 
         // No metadata found – upload local cover only (guid-based publicId when no ISBN)
@@ -166,10 +168,10 @@ public partial class ComicSearchService : IComicSearchService
         return CreateNotFoundResult(cleanIsbn) with { ImageUrl = coverImageUrl };
     }
 
-    private static ComicSearchResult MapBedethequeResultSync(
+    private ComicSearchResult MapBedethequeResultSync(
         BedethequeBookResult bedethequeResult, string isbn, string imageUrl)
     {
-        Log.Information("Mapped Bedetheque result: {Serie} T{Volume} - {Title}",
+        _logger.LogInformation("Mapped Bedetheque result: {Serie} T{Volume} - {Title}",
             bedethequeResult.Serie, bedethequeResult.VolumeNumber, bedethequeResult.Title);
 
         return new ComicSearchResult(
@@ -189,7 +191,7 @@ public partial class ComicSearchService : IComicSearchService
     private ComicSearchResult MapBookResultSync(IBookSearchResult bookResult, string isbn, string imageUrl)
     {
         var (title, serie, volumeNumber) = ParseTitleInfo(bookResult.Title, bookResult.Subtitle);
-        Log.Information("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
+        _logger.LogInformation("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
         return new ComicSearchResult(
             Title: title,
             Serie: serie,
@@ -245,15 +247,15 @@ public partial class ComicSearchService : IComicSearchService
 
             if (uploadResult.Success && uploadResult.Url != null)
             {
-                Log.Information("Local cover uploaded to Cloudinary: {Url}", uploadResult.Url);
+                _logger.LogInformation("Local cover uploaded to Cloudinary: {Url}", uploadResult.Url);
                 return uploadResult.Url.ToString();
             }
 
-            Log.Warning("Failed to upload local cover to Cloudinary: {Error}", uploadResult.Error);
+            _logger.LogWarning("Failed to upload local cover to Cloudinary: {Error}", uploadResult.Error);
         }
         catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
         {
-            Log.Warning(ex, "Unexpected error uploading local cover for ISBN {Isbn}", isbn);
+            _logger.LogWarning(ex, "Unexpected error uploading local cover for ISBN {Isbn}", isbn);
         }
 
         return string.Empty;
@@ -273,15 +275,15 @@ public partial class ComicSearchService : IComicSearchService
 
             if (uploadResult.Success && uploadResult.Url != null)
             {
-                Log.Information("Cover uploaded to Cloudinary: {Url}", uploadResult.Url);
+                _logger.LogInformation("Cover uploaded to Cloudinary: {Url}", uploadResult.Url);
                 return uploadResult.Url.ToString();
             }
 
-            Log.Warning("Failed to upload cover to Cloudinary: {Error}. Using original URL.", uploadResult.Error);
+            _logger.LogWarning("Failed to upload cover to Cloudinary: {Error}. Using original URL.", uploadResult.Error);
         }
         catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
         {
-            Log.Warning(ex, "Unexpected error uploading cover to Cloudinary for {CoverUrl}. Using original URL.", coverUrl);
+            _logger.LogWarning(ex, "Unexpected error uploading cover to Cloudinary for {CoverUrl}. Using original URL.", coverUrl);
         }
 
         return coverUrl.ToString();

@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 using Persistence.LocalStorage;
 using SharpCompress.Archives;
 using SharpCompress.Common;
@@ -8,10 +9,8 @@ using SharpCompress.Readers;
 
 namespace Persistence.Services;
 
-public class ArchiveExtractorService : IArchiveExtractor
+public class ArchiveExtractorService(ILogger<ArchiveExtractorService> logger) : IArchiveExtractor
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<ArchiveExtractorService>();
-
     private static readonly HashSet<string> s_supportedArchives =
         new(StringComparer.OrdinalIgnoreCase) { ".cbz", ".zip", ".cbr", ".rar" };
 
@@ -31,7 +30,7 @@ public class ArchiveExtractorService : IArchiveExtractor
     {
         if (!File.Exists(archivePath))
         {
-            Log.Warning("Archive not found: {Path}", archivePath);
+            logger.LogWarning("Archive not found: {Path}", archivePath);
             return FileProcessingError.FileNotFound;
         }
 
@@ -42,17 +41,17 @@ public class ArchiveExtractorService : IArchiveExtractor
         }
         catch (InvalidDataException ex)
         {
-            Log.Error(ex, "Corrupt archive: {Path}", archivePath);
+            logger.LogError(ex, "Corrupt archive: {Path}", archivePath);
             return FileProcessingError.CorruptArchive;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Log.Error(ex, "Failed to extract archive: {Path}", archivePath);
+            logger.LogError(ex, "Failed to extract archive: {Path}", archivePath);
             return FileProcessingError.ProcessingFailed;
         }
     }
 
-    private static Result<ArchiveExtractionResult> ExtractInternal(string archivePath, string destinationPath)
+    private Result<ArchiveExtractionResult> ExtractInternal(string archivePath, string destinationPath)
     {
         var extractedFiles = new List<string>();
         string? comicInfoXmlPath = null;
@@ -93,7 +92,7 @@ public class ArchiveExtractorService : IArchiveExtractor
             var destFilePath = Path.GetFullPath(Path.Combine(destinationPath, entryName));
             if (!PathContainment.IsWithinNormalizedRoot(normalizedDest, destFilePath, StringComparison.Ordinal))
             {
-                Log.Warning("Path traversal attempt blocked: {Entry}", entry.Key);
+                logger.LogWarning("Path traversal attempt blocked: {Entry}", entry.Key);
                 continue;
             }
 
@@ -113,7 +112,7 @@ public class ArchiveExtractorService : IArchiveExtractor
             .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        Log.Information("Extracted {Count} files from archive, ComicInfo.xml: {HasXml}",
+        logger.LogInformation("Extracted {Count} files from archive, ComicInfo.xml: {HasXml}",
             sortedImageFiles.Count, comicInfoXmlPath is not null);
 
         return new ArchiveExtractionResult(sortedImageFiles, comicInfoXmlPath);

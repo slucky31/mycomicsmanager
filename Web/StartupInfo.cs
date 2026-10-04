@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Serilog;
 
 namespace Web;
 
@@ -12,9 +11,11 @@ internal static class StartupInfo
     private const double Gibi = Mebi * 1024;
     private const string Mcm_Product = "MCM";
 
-    internal static void Print()
+    internal static void Print(ILogger logger)
     {
-        Log.Information("\n\n" + """
+        ArgumentNullException.ThrowIfNull(logger);
+
+        logger.LogInformation("\n\n" + """
             88,dPYba,,adPYba,   ,adPPYba, 88,dPYba,,adPYba,   
             88P'   "88"    "8a a8"     "" 88P'   "88"    "8a  
             88      88      88 8b         88      88      88  
@@ -22,20 +23,23 @@ internal static class StartupInfo
             88      88      88  `"Ybbd8"' 88      88      88  
             """ + "\n");
 
-        // OS and .NET information
-        Log.Information("OSArchitecture: {@OSArchitecture}", RuntimeInformation.OSArchitecture);
-        Log.Information("OSDescription: {@OSDescription}", RuntimeInformation.OSArchitecture);
-        Log.Information("FrameworkDescription: {@FrameworkDescription}", RuntimeInformation.FrameworkDescription);
-
-        // Environment information
-        Log.Information("UserName: {@UserName}", Environment.UserName);
-        Log.Information("HostName : {@HostName}", Dns.GetHostName());
-
-        // Hardware information
-        var gcInfo = GC.GetGCMemoryInfo();
-        var totalMemoryBytes = gcInfo.TotalAvailableMemoryBytes;
-        Log.Information("ProcessorCount: {@ProcessorCount}", Environment.ProcessorCount);
-        Log.Information("TotalAvailableMemoryBytes: {@TotalMemoryBytes} ({@TotalMemoryBytesInBestUnit})", totalMemoryBytes, GetInBestUnit(totalMemoryBytes));
+        var totalMemoryBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+        logger.LogInformation(
+            "OSArchitecture: {OSArchitecture}\n" +
+            "OSDescription: {OSDescription}\n" +
+            "FrameworkDescription: {FrameworkDescription}\n" +
+            "UserName: {UserName}\n" +
+            "HostName: {HostName}\n" +
+            "ProcessorCount: {ProcessorCount}\n" +
+            "TotalAvailableMemoryBytes: {TotalMemoryBytes} ({TotalMemoryBytesInBestUnit})",
+            RuntimeInformation.OSArchitecture,
+            RuntimeInformation.OSDescription,
+            RuntimeInformation.FrameworkDescription,
+            Environment.UserName,
+            Dns.GetHostName(),
+            Environment.ProcessorCount,
+            totalMemoryBytes,
+            GetInBestUnit(totalMemoryBytes));
 
         // Version information
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -43,7 +47,7 @@ internal static class StartupInfo
             var productAttribute = assembly.GetCustomAttribute<AssemblyProductAttribute>();
             if (productAttribute != null && productAttribute.Product == Mcm_Product)
             {
-                Log.Information("Assembly Versions: {@AssemblyName} - {@AssemblyVersion}", assembly.GetName().Name, assembly.GetName().Version!.ToString());
+                logger.LogInformation("Assembly Versions: {@AssemblyName} - {@AssemblyVersion}", assembly.GetName().Name, assembly.GetName().Version!.ToString());
             }
         }
     }

@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Ardalis.GuardClauses;
 using Domain.FeedImports;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Application.FeedImports.Sync;
@@ -11,10 +12,9 @@ public sealed class SyncFeedImportsCommandHandler(
     IMinifluxClient minifluxClient,
     IFeedImportDecisionRepository decisionRepository,
     IUnitOfWork unitOfWork,
-    IOptions<MinifluxSettings> minifluxSettings) : ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult>
+    IOptions<MinifluxSettings> minifluxSettings,
+    ILogger<SyncFeedImportsCommandHandler> logger) : ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult>
 {
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<SyncFeedImportsCommandHandler>();
-
     private enum EntryOutcome
     {
         Created,
@@ -97,7 +97,7 @@ public sealed class SyncFeedImportsCommandHandler(
         var unstarResult = await minifluxClient.UnstarAsync(entry.Id, cancellationToken);
         if (unstarResult.IsFailure)
         {
-            Log.Warning("Feed import: failed to unstar Miniflux entry {EntryId}: [{Code}] {Description}",
+            logger.LogWarning("Feed import: failed to unstar Miniflux entry {EntryId}: [{Code}] {Description}",
                 entry.Id, unstarResult.Error!.Code, unstarResult.Error.Description);
         }
 
@@ -109,7 +109,7 @@ public sealed class SyncFeedImportsCommandHandler(
         var createResult = FeedImportDecision.Create(userId, entry.Id, entry.Title, entry.Url, entry.PublishedAt?.UtcDateTime);
         if (createResult.IsFailure)
         {
-            Log.Warning("Feed import: Miniflux entry {EntryId} rejected ({Url}): {Description}",
+            logger.LogWarning("Feed import: Miniflux entry {EntryId} rejected ({Url}): {Description}",
                 entry.Id, entry.Url, createResult.Error!.Description);
             return false;
         }
@@ -121,7 +121,7 @@ public sealed class SyncFeedImportsCommandHandler(
         {
             // Detach the unsaved decision so it is not re-sent with the next entry's SaveChanges.
             decisionRepository.Remove(decision);
-            Log.Error("Feed import: failed to save decision for Miniflux entry {EntryId}: [{Code}] {Description}",
+            logger.LogError("Feed import: failed to save decision for Miniflux entry {EntryId}: [{Code}] {Description}",
                 entry.Id, saveResult.Error!.Code, saveResult.Error.Description);
             return false;
         }

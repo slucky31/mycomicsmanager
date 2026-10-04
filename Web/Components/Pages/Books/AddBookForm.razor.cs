@@ -4,7 +4,6 @@ using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Serilog;
 using Web.Services;
 using Web.Validators;
 
@@ -17,6 +16,7 @@ public partial class AddBookForm
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IComicSearchService ComicSearchService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILogger<AddBookForm> Logger { get; set; } = default!;
 
     [SupplyParameterFromQuery]
     public string? Isbn { get; set; }
@@ -98,7 +98,7 @@ public partial class AddBookForm
             {
                 _bookModel = new BookUiDto { ISBN = cleanedIsbn, VolumeNumber = 1, LibraryId = _bookModel.LibraryId };
                 Snackbar.Add("Error searching for book", Severity.Error);
-                Log.Error(ex, "Error searching for book");
+                Logger.LogError(ex, "Error searching for book");
             }
 
             _isLoading = false;
@@ -152,7 +152,7 @@ public partial class AddBookForm
         else
         {
             Snackbar.Add($"Failed to add book", Severity.Error);
-            Log.Error("Failed to add book: {Description}", result.Error?.Description);
+            Logger.LogError("Failed to add book: {Description}", result.Error!.Description);
         }
 
         _isSaving = false;

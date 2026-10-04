@@ -7,11 +7,9 @@ using Microsoft.Extensions.Options;
 namespace Web.Infrastructure;
 
 // Streams an unlocked file into Import:TempDirectory, never into the watched import directory.
-internal sealed class FeedImportFileDownloader(HttpClient httpClient, IOptions<ImportSettings> importSettings) : IFeedImportFileDownloader
+internal sealed class FeedImportFileDownloader(HttpClient httpClient, IOptions<ImportSettings> importSettings, ILogger<FeedImportFileDownloader> logger) : IFeedImportFileDownloader
 {
     private const int BufferSize = 81920;
-
-    private static Serilog.ILogger Log => Serilog.Log.ForContext<FeedImportFileDownloader>();
 
     public async Task<Result<DownloadedFile>> DownloadAsync(Uri downloadUrl, long maxBytes, CancellationToken cancellationToken = default)
     {
@@ -33,7 +31,7 @@ internal sealed class FeedImportFileDownloader(HttpClient httpClient, IOptions<I
         catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException
                                    || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested))
         {
-            Log.Warning(ex, "Download from {Host} failed", downloadUrl.Host);
+            logger.LogWarning(ex, "Download from {Host} failed", downloadUrl.Host);
             Discard(tempPath);
             return FeedImportError.DownloadFailed;
         }
@@ -55,7 +53,7 @@ internal sealed class FeedImportFileDownloader(HttpClient httpClient, IOptions<I
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Log.Warning(ex, "Temporary download {Path} could not be deleted", tempFilePath);
+            logger.LogWarning(ex, "Temporary download {Path} could not be deleted", tempFilePath);
         }
     }
 
@@ -64,7 +62,7 @@ internal sealed class FeedImportFileDownloader(HttpClient httpClient, IOptions<I
         using var response = await httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            Log.Warning("Download from {Host} returned {StatusCode}", downloadUrl.Host, (int)response.StatusCode);
+            logger.LogWarning("Download from {Host} returned {StatusCode}", downloadUrl.Host, (int)response.StatusCode);
             return new TError(FeedImportError.DownloadFailed.Code, $"{FeedImportError.DownloadFailed.Description} (HTTP {(int)response.StatusCode})");
         }
 

@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using AwesomeAssertions;
 using Domain.FeedImports;
+using Microsoft.Extensions.Logging.Abstractions;
 using Web.Infrastructure;
 using Xunit;
 
@@ -16,7 +17,7 @@ public sealed class DebridLinkClientTests
     {
         var handler = new RecordingHandler(responder);
         var httpClient = new HttpClient(handler) { BaseAddress = s_baseAddress };
-        return (new DebridLinkClient(httpClient), handler, httpClient);
+        return (new DebridLinkClient(httpClient, NullLogger<DebridLinkClient>.Instance), handler, httpClient);
     }
 
     private static HttpResponseMessage Json(string json, HttpStatusCode status = HttpStatusCode.OK) =>
