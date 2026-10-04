@@ -110,7 +110,7 @@ public partial class EditBook
             else
             {
                 Snackbar.Add("Failed to update book", Severity.Error);
-                Logger.LogError("Failed to update book: {Description}", result.Error?.Description);
+                Logger.LogError("Failed to update book: {Description}", result.Error!.Description);
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
@@ -145,7 +145,7 @@ public partial class EditBook
                 else
                 {
                     Snackbar.Add("An unexpected error occurred while deleting the reading.", Severity.Error);
-                    Logger.LogError("An unexpected error occurred while deleting reading date {ReadingDateId} for book {BookId}: {Description}", readingDateId, BookId, res.Error?.Description);
+                    Logger.LogError("An unexpected error occurred while deleting reading date {ReadingDateId} for book {BookId}: {Description}", readingDateId, BookId, res.Error!.Description);
                 }
             }
         }

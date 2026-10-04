@@ -57,7 +57,7 @@ public partial class FeedImports
         else if (result.IsFailure)
         {
             Snackbar.Add("Impossible de charger les décisions d'import.", Severity.Error);
-            Logger.LogError("FeedImports: failed to load decisions: {ErrorDescription}", result.Error?.Description);
+            Logger.LogError("FeedImports: failed to load decisions: {ErrorDescription}", result.Error!.Description);
         }
 
         return _lastData;
@@ -106,7 +106,7 @@ public partial class FeedImports
             else if (result.IsFailure)
             {
                 Snackbar.Add(result.Error?.Description ?? "Impossible de lancer la synchronisation.", Severity.Error);
-                Logger.LogError("FeedImports: failed to trigger sync: {ErrorDescription}", result.Error?.Description);
+                Logger.LogError("FeedImports: failed to trigger sync: {ErrorDescription}", result.Error!.Description);
             }
 
             await ReloadAsync();
@@ -226,7 +226,7 @@ public partial class FeedImports
             if (result.IsFailure)
             {
                 Snackbar.Add(result.Error?.Description ?? "Impossible de supprimer les décisions.", Severity.Error);
-                Logger.LogError("FeedImports: failed to delete decisions: {ErrorDescription}", result.Error?.Description);
+                Logger.LogError("FeedImports: failed to delete decisions: {ErrorDescription}", result.Error!.Description);
                 return;
             }
 

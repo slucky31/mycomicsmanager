@@ -59,7 +59,7 @@ public partial class AddLibrary
         else
         {
             Snackbar.Add("Failed to create library", Severity.Error);
-            Logger.LogError("Failed to create library: {Error}", result.Error?.Description);
+            Logger.LogError("Failed to create library: {Error}", result.Error!.Description);
             _isSaving = false;
         }
     }

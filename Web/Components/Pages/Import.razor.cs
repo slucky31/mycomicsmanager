@@ -73,7 +73,7 @@ public partial class Import : IAsyncDisposable
         else if (result.IsFailure)
         {
             _loadError = "Impossible de charger les librairies.";
-            Logger.LogError("Import: failed to load libraries: {Error}", result.Error?.Description);
+            Logger.LogError("Import: failed to load libraries: {Error}", result.Error!.Description);
         }
     }
 
@@ -102,7 +102,7 @@ public partial class Import : IAsyncDisposable
             {
                 _jobs = [];
                 Snackbar.Add(result.Error?.Description ?? "Impossible de charger les imports.", Severity.Error);
-                Logger.LogError("Import: failed to load jobs for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
+                Logger.LogError("Import: failed to load jobs for library {LibraryId}: {Error}", capturedLibraryId, result.Error!.Description);
             }
 
             StartPollingIfNeeded();
@@ -151,7 +151,7 @@ public partial class Import : IAsyncDisposable
                 else if (result.IsFailure)
                 {
                     _uploadErrors.Add($"{file.Name}: {result.Error?.Description ?? "Erreur inconnue"}");
-                    Logger.LogError("Import: upload failed for {FileName}: {Error}", file.Name, result.Error?.Description);
+                    Logger.LogError("Import: upload failed for {FileName}: {Error}", file.Name, result.Error!.Description);
                 }
             }
 
@@ -219,7 +219,7 @@ public partial class Import : IAsyncDisposable
         }
         else if (result.IsFailure)
         {
-            Logger.LogError("Import: polling failed for library {LibraryId}: {Error}", capturedLibraryId, result.Error?.Description);
+            Logger.LogError("Import: polling failed for library {LibraryId}: {Error}", capturedLibraryId, result.Error!.Description);
         }
 
         StateHasChanged();
@@ -253,7 +253,7 @@ public partial class Import : IAsyncDisposable
                 else
                 {
                     errors++;
-                    Logger.LogError("Import: failed to delete terminal job {JobId}: {Error}", jobId, result.Error?.Description);
+                    Logger.LogError("Import: failed to delete terminal job {JobId}: {Error}", jobId, result.Error!.Description);
                 }
             }
 

@@ -52,7 +52,7 @@ public partial class Statistics : IAsyncDisposable
         else if (result.IsFailure)
         {
             Snackbar.Add("Failed to load libraries", Severity.Error);
-            Logger.LogError("Statistics: failed to load libraries: {ErrorDescription}", result.Error?.Description);
+            Logger.LogError("Statistics: failed to load libraries: {ErrorDescription}", result.Error!.Description);
         }
     }
 
@@ -83,7 +83,7 @@ public partial class Statistics : IAsyncDisposable
             else if (result.IsFailure)
             {
                 Snackbar.Add("Failed to load statistics", Severity.Error);
-                Logger.LogError("Statistics: failed to load statistics for library {LibraryId}: {ErrorDescription}", libraryId, result.Error?.Description);
+                Logger.LogError("Statistics: failed to load statistics for library {LibraryId}: {ErrorDescription}", libraryId, result.Error!.Description);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

@@ -61,6 +61,33 @@ public sealed class LogLevelsComponentTests
     }
 
     [Fact]
+    public async Task SetLevel_Should_InheritTheParentLevel_WhenInheritIsClicked()
+    {
+        var switches = CreateSwitches();
+        switches.Set(LoggerName, LogEventLevel.Error);
+        await using var ctx = CreateContext(switches);
+        var cut = ctx.Render<LogLevels>();
+
+        await cut.Find($"button[aria-label='Inherit the level of the parent namespace for {LoggerName}']").ClickAsync(new());
+
+        var logger = switches.GetLoggers().Single(l => l.Name == LoggerName);
+        logger.ConfiguredLevel.Should().BeNull();
+        logger.EffectiveLevel.Should().Be(LogEventLevel.Information);
+    }
+
+    [Fact]
+    public async Task MatchesFilter_Should_ShowOnlyTheMatchingLoggers_WhenAFilterIsTyped()
+    {
+        await using var ctx = CreateContext(CreateSwitches());
+        var cut = ctx.Render<LogLevels>();
+
+        await cut.Find("input").InputAsync(new() { Value = " feedimportsync " });
+
+        cut.WaitForAssertion(() => cut.FindAll(".logger-name").Select(e => e.TextContent)
+            .Should().Equal(LoggerName));
+    }
+
+    [Fact]
     public async Task ResetAll_Should_RestoreTheConfiguredLevels_WhenResetIsClicked()
     {
         var switches = CreateSwitches();

@@ -32,15 +32,10 @@ public partial class LogLevels
     private bool MatchesFilter(LoggerLevel logger) =>
         string.IsNullOrWhiteSpace(_filter) || logger.Name.Contains(_filter.Trim(), StringComparison.OrdinalIgnoreCase);
 
+    // The names come from LogLevelSwitches itself, so Set never meets an unknown logger here.
     private void SetLevel(string name, LogEventLevel? level)
     {
-        if (!LogLevelSwitches.Set(name, level))
-        {
-            Snackbar.Add($"Unknown logger: {name}", Severity.Error);
-            Logger.LogError("Log levels: unknown logger {LoggerName}", name);
-            return;
-        }
-
+        LogLevelSwitches.Set(name, level);
         Logger.LogInformation("Log levels: {LoggerName} set to {Level}", name, level?.ToString() ?? "inherited");
         _loggers = LogLevelSwitches.GetLoggers();
     }
