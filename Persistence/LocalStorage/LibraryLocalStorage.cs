@@ -1,6 +1,7 @@
 using System.Text;
 using Application.Libraries;
 using Ardalis.GuardClauses;
+using Domain.Books;
 using Domain.Errors;
 using Domain.Extensions;
 using Domain.Primitives;
@@ -104,6 +105,49 @@ public class LibraryLocalStorage : ILibraryLocalStorage
 
         Directory.Move(originPath.ToString(), destinationPath.ToString());
         return Result.Success();
+    }
+
+    public Result<string> MoveFile(string sourceFilePath, string destinationFolderName)
+    {
+        if (string.IsNullOrEmpty(rootPath) || string.IsNullOrEmpty(sourceFilePath) || string.IsNullOrEmpty(destinationFolderName))
+        {
+            return LibraryLocalStorageError.ArgumentNullOrEmpty;
+        }
+
+        var sanitizedDestination = destinationFolderName.RemoveDiacritics();
+        var destinationValidation = ValidatePath(sanitizedDestination);
+        if (destinationValidation.IsFailure)
+        {
+            return destinationValidation.Error!;
+        }
+
+        if (!PathContainment.IsWithin(rootPath, sourceFilePath))
+        {
+            return LibraryLocalStorageError.InvalidPath;
+        }
+
+        if (!File.Exists(sourceFilePath))
+        {
+            return BooksError.FileNotFound;
+        }
+
+        var destinationDirectory = Path.Combine(rootPath.TrimEnd(_charsToTrim), sanitizedDestination);
+        var destinationPath = Path.Combine(destinationDirectory, Path.GetFileName(sourceFilePath));
+        if (File.Exists(destinationPath))
+        {
+            return BooksError.FileAlreadyExists;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(destinationDirectory);
+            File.Move(sourceFilePath, destinationPath, overwrite: false);
+            return destinationPath;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return LibraryLocalStorageError.FileMoveFailed;
+        }
     }
 
     public Result Delete(string folderName)

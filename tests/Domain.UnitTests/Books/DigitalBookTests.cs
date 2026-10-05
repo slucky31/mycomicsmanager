@@ -183,4 +183,29 @@ public class DigitalBookTests
         result2.IsSuccess.Should().BeTrue();
         result1.Value!.Id.Should().NotBe(result2.Value!.Id);
     }
+
+    [Fact]
+    public void MoveToLibrary_Should_ChangeLibraryAndFilePath_WhenTargetIsAnotherLibrary()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+        var targetLibraryId = Guid.CreateVersion7();
+
+        var result = book.MoveToLibrary(targetLibraryId, "BD/tome-01.cbz");
+
+        result.IsSuccess.Should().BeTrue();
+        book.LibraryId.Should().Be(targetLibraryId);
+        book.FilePath.Should().Be("BD/tome-01.cbz");
+    }
+
+    [Fact]
+    public void MoveToLibrary_Should_FailWithoutChange_WhenTargetIsCurrentLibraryOrPathIsEmpty()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+
+        book.MoveToLibrary(DefaultLibraryId, "BD/tome-01.cbz").Error.Should().Be(BooksError.AlreadyInLibrary);
+        book.MoveToLibrary(Guid.CreateVersion7(), " ").Error.Should().Be(BooksError.BadRequest);
+        book.MoveToLibrary(Guid.Empty, "BD/tome-01.cbz").Error.Should().Be(BooksError.BadRequest);
+        book.LibraryId.Should().Be(DefaultLibraryId);
+        book.FilePath.Should().Be(DefaultFilePath);
+    }
 }
