@@ -8,10 +8,8 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Serilog.Events;
-using Web.Components.Layout;
 using Web.Components.Pages.Admin;
 using Web.Infrastructure;
-using Web.Services;
 using Xunit;
 
 namespace Web.Tests.Components.Pages;
@@ -98,25 +96,5 @@ public sealed class LogLevelsComponentTests
         await cut.FindAll("button").Single(b => b.TextContent.Trim() == "Reset").ClickAsync(new());
 
         switches.GetLoggers().Single(l => l.Name == LoggerName).ConfiguredLevel.Should().BeNull();
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task NavBar_Should_ShowTheLogsLink_OnlyToAdmins(bool isAdmin)
-    {
-        await using var ctx = CreateContext(CreateSwitches());
-        ctx.Services.AddSingleton(Substitute.For<IFeedImportService>());
-        ctx.Services.AddSingleton(new FeedImportNotifier());
-        var authorization = ctx.AddAuthorization();
-        authorization.SetAuthorized("user");
-        if (isAdmin)
-        {
-            authorization.SetRoles("Admin");
-        }
-
-        var cut = ctx.Render<NavBar>();
-
-        cut.FindAll("a[href='/admin/log-levels']").Count.Should().Be(isAdmin ? 2 : 0);
     }
 }

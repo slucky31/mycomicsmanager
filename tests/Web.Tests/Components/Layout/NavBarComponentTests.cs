@@ -27,4 +27,19 @@ public sealed class NavBarComponentTests
 
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("3 decisions awaiting arbitration"));
     }
+
+    [Fact]
+    public async Task NavBar_Should_NotShowTheLogsLink_WhenSignedInAsAdmin()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddMudServices();
+        ctx.Services.AddSingleton(Substitute.For<IFeedImportService>());
+        ctx.Services.AddSingleton(new FeedImportNotifier());
+        ctx.AddAuthorization().SetAuthorized("admin").SetRoles("Admin");
+
+        var cut = ctx.Render<NavBar>();
+
+        cut.FindAll("a[href='/admin/log-levels']").Should().BeEmpty();
+    }
 }
