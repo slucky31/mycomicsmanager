@@ -131,4 +131,21 @@ public sealed class FeedImportDecisionViewModelTests
             CanForceDownload: true, CanRetry: false, CanCorrect: true, CanIgnore: true, "Blacksad", "Âme rouge", 3));
         actions.Any.Should().BeTrue();
     }
+
+    [Theory]
+    [InlineData(512L, "512 B")]
+    [InlineData(2_048L, "2 KB")]
+    [InlineData(3_145_728L, "3.0 MB")]
+    [InlineData(2_147_483_648L, "2.0 GB")]
+    public void From_Should_DisplayCandidateSizeInEnglishUnits(long sizeBytes, string expected)
+    {
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 11, "Blacksad - Tome 3", "https://planete-bd.org/11", null).Value!;
+        decision.RecordLinks(
+            [new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", sizeBytes, [new DownloadMirror("https://1fichier.com/?a", "1fichier.com")])],
+            ParsedComicTitle.Empty, "1 link", FeedImportDecidedBy.Auto);
+
+        var viewModel = FeedImportDecisionViewModel.From(decision);
+
+        viewModel.Candidates[0].SizeDisplay.Should().Be(expected);
+    }
 }
