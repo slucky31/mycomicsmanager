@@ -42,15 +42,15 @@ public record ImportJobViewModel(
 
     public string? ConversionDetail =>
         Status == "Converting" && TotalImagesToConvert > 0
-            ? $"{ConvertedImagesCount}/{TotalImagesToConvert} images converties"
+            ? $"{ConvertedImagesCount}/{TotalImagesToConvert} images converted"
             : null;
 
     public string FileSizeDisplay => OriginalFileSize switch
     {
-        >= 1_073_741_824 => $"{OriginalFileSize / 1_073_741_824.0:F1} Go",
-        >= 1_048_576 => $"{OriginalFileSize / 1_048_576.0:F1} Mo",
-        >= 1_024 => $"{OriginalFileSize / 1_024.0:F0} Ko",
-        _ => $"{OriginalFileSize} o"
+        >= 1_073_741_824 => $"{OriginalFileSize / 1_073_741_824.0:F1} GB",
+        >= 1_048_576 => $"{OriginalFileSize / 1_048_576.0:F1} MB",
+        >= 1_024 => $"{OriginalFileSize / 1_024.0:F0} KB",
+        _ => $"{OriginalFileSize} B"
     };
 
     public string StatusCssClass => Status switch
@@ -76,14 +76,14 @@ public record ImportJobViewModel(
 
     private static string GetStatusDisplay(ImportJobStatus status) => status switch
     {
-        ImportJobStatus.Pending => "En attente",
-        ImportJobStatus.Extracting => "Extraction...",
-        ImportJobStatus.Converting => "Conversion images...",
-        ImportJobStatus.SearchingMetadata => "Recherche métadonnées...",
-        ImportJobStatus.UploadingCover => "Upload couverture...",
-        ImportJobStatus.BuildingArchive => "Construction archive...",
-        ImportJobStatus.Completed => "Terminé",
-        ImportJobStatus.Failed => "Échoué",
+        ImportJobStatus.Pending => "Pending",
+        ImportJobStatus.Extracting => "Extracting...",
+        ImportJobStatus.Converting => "Converting images...",
+        ImportJobStatus.SearchingMetadata => "Searching metadata...",
+        ImportJobStatus.UploadingCover => "Uploading cover...",
+        ImportJobStatus.BuildingArchive => "Building archive...",
+        ImportJobStatus.Completed => "Completed",
+        ImportJobStatus.Failed => "Failed",
         _ => status.ToString()
     };
 

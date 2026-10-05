@@ -28,7 +28,7 @@ public sealed class ForceFailImportJobCommandHandler(
             return ImportJobError.NotFound;
         }
 
-        var failResult = job.Fail(job.Status.ToString(), "Marqué en échec manuellement.");
+        var failResult = job.Fail(job.Status.ToString(), "Manually marked as failed.");
         if (failResult.IsFailure)
         {
             return failResult.Error!;

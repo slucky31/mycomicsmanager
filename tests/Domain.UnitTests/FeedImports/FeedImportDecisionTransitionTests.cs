@@ -235,7 +235,7 @@ public class FeedImportDecisionTransitionTests
         result.IsSuccess.Should().BeTrue();
         decision.Status.Should().Be(FeedImportDecisionStatus.Downloading);
         decision.Events.Should().HaveCount(eventCount + 1);
-        decision.Events[^1].Description.Should().Be("Échec du miroir 1fichier.com : Fichier indisponible");
+        decision.Events[^1].Description.Should().Be("Mirror 1fichier.com failed: Fichier indisponible");
     }
 
     [Fact]
@@ -257,7 +257,7 @@ public class FeedImportDecisionTransitionTests
         decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
         decision.ImportJobId.Should().Be(jobId);
         decision.ChosenMirror.Should().Be("https://1fichier.com/?abc");
-        decision.Reason.Should().Contain("« À trier »");
+        decision.Reason.Should().Contain("\"À trier\"");
     }
 
     [Fact]
@@ -337,7 +337,7 @@ public class FeedImportDecisionTransitionTests
         decision.ErrorStep.Should().BeNull();
         decision.ErrorMessage.Should().BeNull();
         decision.GetCandidates().Should().ContainSingle();
-        decision.Reason.Should().Be("Relancé par l'utilisateur.");
+        decision.Reason.Should().Be("Retried by the user.");
     }
 
     [Fact]
@@ -387,7 +387,7 @@ public class FeedImportDecisionTransitionTests
         decision.ParsedVolume.Should().Be(4);
         decision.ParsedTitle.Should().Be("L'enfer, le silence");
         decision.MatchedBookId.Should().BeNull();
-        decision.Reason.Should().Be("Corrigé par l'utilisateur : Blacksad T4 · L'enfer, le silence.");
+        decision.Reason.Should().Be("Corrected by the user: Blacksad T4 · L'enfer, le silence.");
     }
 
     [Fact]

@@ -56,7 +56,7 @@ public partial class FeedImports
         }
         else if (result.IsFailure)
         {
-            Snackbar.Add("Impossible de charger les décisions d'import.", Severity.Error);
+            Snackbar.Add("Unable to load the import decisions.", Severity.Error);
             Logger.LogError("FeedImports: failed to load decisions: {ErrorDescription}", result.Error!.Description);
         }
 
@@ -101,11 +101,11 @@ public partial class FeedImports
             var result = FeedImportService.TriggerSync();
             if (result.IsSuccess)
             {
-                Snackbar.Add("Synchronisation lancée. Rafraîchissez la liste dans quelques instants.", Severity.Info);
+                Snackbar.Add("Sync started. Refresh the list in a few moments.", Severity.Info);
             }
             else if (result.IsFailure)
             {
-                Snackbar.Add(result.Error?.Description ?? "Impossible de lancer la synchronisation.", Severity.Error);
+                Snackbar.Add(result.Error?.Description ?? "Unable to start the sync.", Severity.Error);
                 Logger.LogError("FeedImports: failed to trigger sync: {ErrorDescription}", result.Error!.Description);
             }
 
@@ -165,13 +165,13 @@ public partial class FeedImports
             var result = await action();
             if (result.IsSuccess)
             {
-                Snackbar.Add("Décision mise à jour.", Severity.Success);
+                Snackbar.Add("Decision updated.", Severity.Success);
                 await ReloadAsync();
                 Notifier.NotifyChanged();
                 return true;
             }
 
-            Snackbar.Add(result.Error?.Description ?? "Impossible de mettre à jour la décision.", Severity.Error);
+            Snackbar.Add(result.Error?.Description ?? "Unable to update the decision.", Severity.Error);
             Logger.LogError("FeedImports: action {Action} on decision {DecisionId} failed: {ErrorDescription}",
                 actionName, decisionId, result.Error?.Description);
             return false;
@@ -185,7 +185,7 @@ public partial class FeedImports
     internal Task DeleteAsync(FeedImportDecisionViewModel decision) =>
         ConfirmAndDeleteAsync(
             [decision.Id],
-            $"Supprimer la décision « {decision.EntryTitle} » et son historique ? Le livre déjà importé est conservé.");
+            $"Delete the decision \"{decision.EntryTitle}\" and its history? The book already imported is kept.");
 
     internal Task DeleteSelectedAsync()
     {
@@ -193,14 +193,14 @@ public partial class FeedImports
         var skipped = _selectedDecisions.Count - ids.Count;
         if (ids.Count == 0)
         {
-            Snackbar.Add("Les décisions sélectionnées sont en cours de téléchargement.", Severity.Info);
+            Snackbar.Add("The selected decisions are being downloaded.", Severity.Info);
             return Task.CompletedTask;
         }
 
-        var message = $"Supprimer {ids.Count} décision(s) et leur historique ? Les livres déjà importés sont conservés.";
+        var message = $"Delete {ids.Count} decision(s) and their history? The books already imported are kept.";
         if (skipped > 0)
         {
-            message += $" {skipped} décision(s) en cours de téléchargement seront conservées.";
+            message += $" {skipped} decision(s) being downloaded will be kept.";
         }
 
         return ConfirmAndDeleteAsync(ids, message);
@@ -213,7 +213,7 @@ public partial class FeedImports
             return;
         }
 
-        var confirmed = await DialogService.ShowConfirmationAsync("Supprimer des imports", message, "Supprimer");
+        var confirmed = await DialogService.ShowConfirmationAsync("Delete imports", message, "Delete");
         if (!confirmed)
         {
             return;
@@ -225,7 +225,7 @@ public partial class FeedImports
             var result = await FeedImportService.DeleteAsync(decisionIds);
             if (result.IsFailure)
             {
-                Snackbar.Add(result.Error?.Description ?? "Impossible de supprimer les décisions.", Severity.Error);
+                Snackbar.Add(result.Error?.Description ?? "Unable to delete the decisions.", Severity.Error);
                 Logger.LogError("FeedImports: failed to delete decisions: {ErrorDescription}", result.Error!.Description);
                 return;
             }
@@ -233,11 +233,11 @@ public partial class FeedImports
             var notDeleted = decisionIds.Count - result.Value;
             if (notDeleted == 0)
             {
-                Snackbar.Add($"{result.Value} décision(s) supprimée(s).", Severity.Success);
+                Snackbar.Add($"{result.Value} decision(s) deleted.", Severity.Success);
             }
             else
             {
-                Snackbar.Add($"{result.Value} décision(s) supprimée(s), {notDeleted} non supprimée(s) (téléchargement ou import en cours).", Severity.Warning);
+                Snackbar.Add($"{result.Value} decision(s) deleted, {notDeleted} not deleted (download or import in progress).", Severity.Warning);
             }
 
             await ReloadAsync();

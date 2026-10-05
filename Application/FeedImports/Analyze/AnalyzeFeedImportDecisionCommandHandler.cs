@@ -22,8 +22,8 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
     ILogger<AnalyzeFeedImportDecisionCommandHandler> logger) : ICommandHandler<AnalyzeFeedImportDecisionCommand>
 {
     public const string SourceStep = "Source";
-    public const string FetchStep = "Récupération de la page";
-    public const string ExtractionStep = "Extraction des liens";
+    public const string FetchStep = "Page fetch";
+    public const string ExtractionStep = "Link extraction";
 
     public async Task<Result> Handle(AnalyzeFeedImportDecisionCommand command, CancellationToken cancellationToken)
     {
@@ -80,7 +80,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         var links = extraction.Links;
         if (links.Count == 0)
         {
-            return decision.Fail(ExtractionStep, "Aucun lien vers un hébergeur autorisé (FeedImport:AllowedDownloadHosts).");
+            return decision.Fail(ExtractionStep, "No link to an allowed host (FeedImport:AllowedDownloadHosts).");
         }
 
         var grouping = DownloadLinkGrouper.Group(links, decision.EntryTitle);

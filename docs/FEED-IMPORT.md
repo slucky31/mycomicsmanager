@@ -12,7 +12,7 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
 
 1. Dans Miniflux, mettre une étoile sur un article de la catégorie « BD ».
 2. Toutes les `FeedImport:SyncIntervalMinutes` minutes (ou via le bouton
-   « Synchroniser maintenant » de `/feed-imports`), le job Hangfire
+   « Sync now » de `/feed-imports`), le job Hangfire
    `feed-import-sync` récupère les articles ★ de cette catégorie.
 3. Chaque nouvel article est enregistré comme décision `Pending`, **puis**
    son étoile est retirée dans Miniflux. Si le retrait échoue, il est
@@ -28,7 +28,7 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
    - chaque livre est comparé aux bibliothèques de l'utilisateur : doublon certain → `SkippedDuplicate`,
      doublon probable ou regroupement ambigu → `AwaitingArbitration`, sinon → `LinksExtracted`.
 5. Le suivi et l'arbitrage se font dans la page **Feeds** (`/feed-imports`) de MCM : déplier une
-   décision « À arbitrer » pour choisir le bon lien, fusionner les liens en miroirs, ou confirmer /
+   décision « Awaiting arbitration » pour choisir le bon lien, fusionner les liens en miroirs, ou confirmer /
    infirmer le doublon.
 6. À la fin de chaque synchronisation, si `DebridLink:ApiKey` est renseignée, chaque décision
    `LinksExtracted` (y compris celles débloquées par un arbitrage) part dans un job Hangfire
@@ -44,7 +44,7 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
      est déposé dans le dossier d'import de la bibliothèque (copie en `.part` puis renommage) →
      `Downloaded` ;
    - `Downloaded` est l'état final côté Feeds : la suite (extraction, conversion, métadonnées) se
-     suit dans la page **Import**, que le bouton « Suivre l'import » ouvre sur la bibliothèque « À trier ».
+     suit dans la page **Import**, que le bouton « Track import » ouvre sur la bibliothèque « À trier ».
 7. Une fois le livre importé, le ranger depuis sa fiche avec **Move to…** : MCM propose la bibliothèque
    qui contient déjà le plus de tomes de la même série, et déplace le fichier CBZ avec le livre.
 
@@ -55,15 +55,15 @@ action est tracée dans l'historique, décidée par « Utilisateur ») :
 
 | Action | Disponible pour | Effet |
 | ------ | --------------- | ----- |
-| **Forcer le téléchargement** | Doublon, doublon probable | Passe outre le doublon et lance le téléchargement |
-| **Relancer** | Échoué, Ignoré, téléchargement interrompu depuis plus d'une heure | Refait le contrôle des doublons sur les liens enregistrés puis télécharge ; sans lien, l'article est réanalysé |
-| **Corriger série / tome** | Un seul fichier : liens extraits, doublon (probable), échoué, ignoré | Remplace la lecture du titre puis refait le contrôle des doublons |
-| **Ignorer** | En attente, liens extraits, à arbitrer, doublon, échoué | Plus rien n'est fait pour cette décision |
+| **Force download** | Doublon, doublon probable | Passe outre le doublon et lance le téléchargement |
+| **Retry** | Échoué, Ignoré, téléchargement interrompu depuis plus d'une heure | Refait le contrôle des doublons sur les liens enregistrés puis télécharge ; sans lien, l'article est réanalysé |
+| **Fix series / volume** | Un seul fichier : liens extraits, doublon (probable), échoué, ignoré | Remplace la lecture du titre puis refait le contrôle des doublons |
+| **Ignore** | En attente, liens extraits, à arbitrer, doublon, échoué | Plus rien n'est fait pour cette décision |
 
-Quand une action ou un arbitrage aboutit à « Liens extraits », le téléchargement démarre aussitôt (si
+Quand une action ou un arbitrage aboutit à « Links extracted », le téléchargement démarre aussitôt (si
 `DebridLink:ApiKey` est renseignée), sans attendre la synchronisation suivante.
 
-Le menu **Feeds** affiche un badge avec le nombre de décisions « À arbitrer ».
+Le menu **Feeds** affiche un badge avec le nombre de décisions « Awaiting arbitration ».
 
 ### Règles de doublon
 
@@ -183,9 +183,9 @@ Si `FeedImport:Enabled` vaut `true` et qu'une valeur obligatoire manque,
 2. Dashboard Hangfire (`/hangfire`, rôle Admin) → **Recurring jobs** : le job
    `feed-import-sync` est présent avec la bonne périodicité.
 3. Mettre une étoile sur un article de la catégorie « BD », puis
-   **Feeds → Synchroniser maintenant**.
+   **Feeds → Sync now**.
 4. Après quelques secondes, rafraîchir la liste : l'article apparaît en
-   « En attente » et son étoile a disparu dans Miniflux.
+   « Pending » et son étoile a disparu dans Miniflux.
 
 En cas de problème, les logs Serilog contiennent un résumé à chaque
 synchronisation (`Feed import sync done: ...`) ou l'erreur rencontrée
@@ -200,14 +200,14 @@ synchronisation (`Feed import sync done: ...`) ou l'erreur rencontrée
 | `Miniflux category not found` | La catégorie `Miniflux:CategoryName` n'existe pas (la comparaison ignore la casse) |
 | `user configured in FeedImport:UserEmail not found` | L'email ne correspond à aucun utilisateur MCM (se connecter une fois à MCM d'abord) |
 | `SSRF guard blocked outgoing request` | `Miniflux:BaseUrl` pointe vers un autre hôte que celui appelé |
-| Décision « Échoué » à l'étape *Source* | Le domaine de l'article n'est pas dans `FeedImport:AllowedSourceHosts` |
-| Décision « Échoué » à l'étape *Extraction des liens* | Aucun lien vers un hébergeur de `FeedImport:AllowedDownloadHosts` sur la page (par exemple un article qui ne propose que fileq.net ou frdl.io) |
+| Décision « Failed » à l'étape *Source* | Le domaine de l'article n'est pas dans `FeedImport:AllowedSourceHosts` |
+| Décision « Failed » à l'étape *Link extraction* | Aucun lien vers un hébergeur de `FeedImport:AllowedDownloadHosts` sur la page (par exemple un article qui ne propose que fileq.net ou frdl.io) |
 | L'article reste ★ dans Miniflux | Échec du retrait d'étoile : il est réessayé à chaque synchronisation (voir les logs `failed to unstar`) |
-| Les décisions restent « Liens extraits » | `DebridLink:ApiKey` absente (log `Feed import downloads skipped`) |
-| Décision « Échoué » à l'étape *Téléchargement* : clé absente ou invalide | Clé Debrid-Link expirée ou révoquée : en générer une nouvelle |
-| Décision « Échoué » : *Domaine de téléchargement non autorisé (xxx)* | Debrid-Link sert le fichier depuis un domaine inconnu : l'ajouter à `DebridLink:DownloadHosts` |
-| Décision « Échoué » : *Quota Debrid-Link atteint* | Limite journalière du compte : les autres miroirs ne sont pas essayés pour ne pas consommer le quota |
-| Décision « Échoué » à l'étape *Bibliothèque* | Une bibliothèque **physique** porte déjà le nom `FeedImport:TargetLibraryName` |
-| Décision « Échoué » à l'étape *Import* | Le fichier téléchargé n'a pas pu être remis au pipeline d'import (création de la tâche ou dépôt dans le dossier) |
+| Les décisions restent « Links extracted » | `DebridLink:ApiKey` absente (log `Feed import downloads skipped`) |
+| Décision « Failed » à l'étape *Download* : clé absente ou invalide | Clé Debrid-Link expirée ou révoquée : en générer une nouvelle |
+| Décision « Failed » : *Download domain not allowed. (xxx)* | Debrid-Link sert le fichier depuis un domaine inconnu : l'ajouter à `DebridLink:DownloadHosts` |
+| Décision « Failed » : *Debrid-Link quota reached.* | Limite journalière du compte : les autres miroirs ne sont pas essayés pour ne pas consommer le quota |
+| Décision « Failed » à l'étape *Library* | Une bibliothèque **physique** porte déjà le nom `FeedImport:TargetLibraryName` |
+| Décision « Failed » à l'étape *Import* | Le fichier téléchargé n'a pas pu être remis au pipeline d'import (création de la tâche ou dépôt dans le dossier) |
 | Fichier téléchargé mais livre absent | L'import lui-même a échoué : voir la page **Import** de la bibliothèque « À trier » |
-| Décision bloquée en « Téléchargement... » | Application arrêtée pendant le téléchargement : le bouton « Relancer » apparaît une heure après le début du téléchargement |
+| Décision bloquée en « Downloading... » | Application arrêtée pendant le téléchargement : le bouton « Retry » apparaît une heure après le début du téléchargement |

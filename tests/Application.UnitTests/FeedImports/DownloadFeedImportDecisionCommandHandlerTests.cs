@@ -192,7 +192,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
 
         decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
         decision.ChosenMirror.Should().Be(RapidgatorUrl);
-        decision.Events.Should().Contain(e => e.Description.StartsWith("Échec du miroir 1fichier.com", StringComparison.Ordinal));
+        decision.Events.Should().Contain(e => e.Description.StartsWith("Mirror 1fichier.com failed", StringComparison.Ordinal));
     }
 
     [Fact]

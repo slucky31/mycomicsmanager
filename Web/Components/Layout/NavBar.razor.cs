@@ -67,8 +67,8 @@ public partial class NavBar : IDisposable
     }
 
     private string ArbitrationBadgeLabel => _arbitrationCount == 1
-        ? "1 décision à arbitrer"
-        : $"{_arbitrationCount} décisions à arbitrer";
+        ? "1 decision awaiting arbitration"
+        : $"{_arbitrationCount} decisions awaiting arbitration";
 
     public void Dispose()
     {

@@ -164,7 +164,7 @@ public sealed class ImportComponentTests
         await using var setup = await SetupAsync(
             librariesResult: Result<IPagedList<Library>>.Failure(new TError("lib:err", "boom")));
 
-        setup.Cut.Markup.Should().Contain("Impossible de charger les librairies.");
+        setup.Cut.Markup.Should().Contain("Unable to load the libraries.");
     }
 
     // ── LoadJobsAsync ─────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ public sealed class ImportComponentTests
         await setup.Cut.InvokeAsync(() => fileUpload.Instance.FilesChanged.InvokeAsync(files));
 
         setup.Cut.Markup.Should().Contain("new.cbz");
-        setup.Snackbar.Received().Add(Arg.Is<string>(s => s.Contains("envoyé")), Severity.Success,
+        setup.Snackbar.Received().Add(Arg.Is<string>(s => s.Contains("uploaded")), Severity.Success,
             Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
     }
 
@@ -277,7 +277,7 @@ public sealed class ImportComponentTests
         var card = setup.Cut.FindComponent<ImportJobCard>();
         await setup.Cut.InvokeAsync(() => card.Instance.OnForceFail.InvokeAsync(job.Id));
 
-        setup.Snackbar.Received().Add("Import marqué comme échoué.", Severity.Warning,
+        setup.Snackbar.Received().Add("Import marked as failed.", Severity.Warning,
             Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
     }
 
@@ -321,7 +321,7 @@ public sealed class ImportComponentTests
 
         await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteTerminalJobsAsync);
 
-        setup.Snackbar.Received().Add(Arg.Is<string>(s => s.Contains("Impossible de supprimer")), Severity.Error,
+        setup.Snackbar.Received().Add(Arg.Is<string>(s => s.Contains("Unable to delete")), Severity.Error,
             Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
     }
 
@@ -333,7 +333,7 @@ public sealed class ImportComponentTests
         var job = CreateJob(status: "Extracting", fileName: "polling.cbz");
         await using var setup = await SetupAsync(initialJobs: [job]);
 
-        var updatedJob = job with { Status = "Completed", StatusDisplay = "Terminé" };
+        var updatedJob = job with { Status = "Completed", StatusDisplay = "Completed" };
         setup.ImportService.GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>())
             .Returns(Result<IReadOnlyList<ImportJobViewModel>>.Success([updatedJob]));
 

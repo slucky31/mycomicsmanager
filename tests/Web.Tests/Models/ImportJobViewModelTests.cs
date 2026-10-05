@@ -112,7 +112,7 @@ public sealed class ImportJobViewModelTests
 
         var viewModel = ImportJobViewModel.From(job);
 
-        viewModel.ConversionDetail.Should().Be("3/10 images converties");
+        viewModel.ConversionDetail.Should().Be("3/10 images converted");
     }
 
     [Fact]
@@ -130,10 +130,10 @@ public sealed class ImportJobViewModelTests
     // ── FileSizeDisplay ───────────────────────────────────────────────────────
 
     [Theory]
-    [InlineData(500L, "500 o")]
-    [InlineData(2_048L, "2 Ko")]
-    [InlineData(5_242_880L, "5.0 Mo")]
-    [InlineData(2_147_483_648L, "2.0 Go")]
+    [InlineData(500L, "500 B")]
+    [InlineData(2_048L, "2 KB")]
+    [InlineData(5_242_880L, "5.0 MB")]
+    [InlineData(2_147_483_648L, "2.0 GB")]
     public void FileSizeDisplay_Should_FormatAccordingToMagnitude(long size, string expected)
     {
         // FileSizeDisplay interpolates with the thread's current culture; pin it to
@@ -169,13 +169,13 @@ public sealed class ImportJobViewModelTests
     // ── GetStatusDisplay / GetStatusColor / GetProgressPercent (via From) ────
 
     [Theory]
-    [InlineData(ImportJobStatus.Pending, "En attente", Color.Default, 0)]
-    [InlineData(ImportJobStatus.Extracting, "Extraction...", Color.Info, 15)]
-    [InlineData(ImportJobStatus.SearchingMetadata, "Recherche métadonnées...", Color.Info, 55)]
-    [InlineData(ImportJobStatus.UploadingCover, "Upload couverture...", Color.Info, 70)]
-    [InlineData(ImportJobStatus.BuildingArchive, "Construction archive...", Color.Info, 85)]
-    [InlineData(ImportJobStatus.Completed, "Terminé", Color.Success, 100)]
-    [InlineData(ImportJobStatus.Failed, "Échoué", Color.Error, 0)]
+    [InlineData(ImportJobStatus.Pending, "Pending", Color.Default, 0)]
+    [InlineData(ImportJobStatus.Extracting, "Extracting...", Color.Info, 15)]
+    [InlineData(ImportJobStatus.SearchingMetadata, "Searching metadata...", Color.Info, 55)]
+    [InlineData(ImportJobStatus.UploadingCover, "Uploading cover...", Color.Info, 70)]
+    [InlineData(ImportJobStatus.BuildingArchive, "Building archive...", Color.Info, 85)]
+    [InlineData(ImportJobStatus.Completed, "Completed", Color.Success, 100)]
+    [InlineData(ImportJobStatus.Failed, "Failed", Color.Error, 0)]
     public void From_Should_MapStatusDisplayColorAndProgress(
         ImportJobStatus status, string expectedDisplay, Color expectedColor, int expectedProgress)
     {

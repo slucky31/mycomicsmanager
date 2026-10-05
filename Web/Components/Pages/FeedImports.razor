@@ -10,14 +10,14 @@
 
     <div class="feed-imports-toolbar mb-4">
         <MudSelect T="FeedImportDecisionStatus?"
-                   Label="Statut"
+                   Label="Status"
                    Value="_statusFilter"
                    ValueChanged="OnStatusChangedAsync"
                    Variant="Variant.Outlined"
                    Margin="Margin.Dense"
                    AnchorOrigin="Origin.BottomCenter"
                    Class="feed-imports-status">
-            <MudSelectItem T="FeedImportDecisionStatus?" Value="@((FeedImportDecisionStatus?)null)">Tous les statuts</MudSelectItem>
+            <MudSelectItem T="FeedImportDecisionStatus?" Value="@((FeedImportDecisionStatus?)null)">All statuses</MudSelectItem>
             @foreach (var status in FeedImportDecisionViewModel.FilterableStatuses)
             {
                 <MudSelectItem T="FeedImportDecisionStatus?" Value="@status">@FeedImportDecisionViewModel.GetStatusDisplay(status)</MudSelectItem>
@@ -25,7 +25,7 @@
         </MudSelect>
 
         <MudTextField T="string"
-                      Label="Rechercher"
+                      Label="Search"
                       Value="_searchTerm"
                       ValueChanged="OnSearchChangedAsync"
                       DebounceInterval="400"
@@ -44,7 +44,7 @@
                        Disabled="_isSyncRequested"
                        OnClick="SyncNowAsync"
                        Class="feed-imports-sync">
-                Synchroniser maintenant
+                Sync now
             </MudButton>
         }
 
@@ -56,7 +56,7 @@
                        Disabled="_isDeleting"
                        OnClick="DeleteSelectedAsync"
                        Class="feed-imports-delete-selection">
-                Supprimer la sélection (@_selectedDecisions.Count)
+                Delete selection (@_selectedDecisions.Count)
             </MudButton>
         }
     </div>
@@ -64,7 +64,7 @@
     @if (!FeedImportService.IsSyncEnabled)
     {
         <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
-            La synchronisation Miniflux est désactivée (FeedImport:Enabled).
+            Miniflux sync is disabled (FeedImport:Enabled).
         </MudAlert>
     }
 
@@ -82,9 +82,9 @@
         <HeaderContent>
             <MudTh Class="feed-imports-expand-col"></MudTh>
             <MudTh>Article</MudTh>
-            <MudTh>Statut</MudTh>
-            <MudTh>Raison</MudTh>
-            <MudTh>Enregistré le</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Reason</MudTh>
+            <MudTh>Saved on</MudTh>
             <MudTh Class="feed-imports-delete-col"></MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -92,7 +92,7 @@
                 <MudIconButton Icon="@(IsExpanded(context.Id) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
                                Size="Size.Small"
                                OnClick="@(() => ToggleDetail(context.Id))"
-                               aria-label="@(IsExpanded(context.Id) ? "Masquer le détail" : "Afficher le détail")" />
+                               aria-label="@(IsExpanded(context.Id) ? "Hide details" : "Show details")" />
             </MudTd>
             <MudTd DataLabel="Article">
                 <div class="feed-imports-article">
@@ -107,13 +107,13 @@
                     }
                 </div>
             </MudTd>
-            <MudTd DataLabel="Statut">
+            <MudTd DataLabel="Status">
                 <MudChip T="string" Size="Size.Small" Color="@context.StatusColor" Class="feed-imports-status-chip">@context.StatusDisplay</MudChip>
             </MudTd>
-            <MudTd DataLabel="Raison">
+            <MudTd DataLabel="Reason">
                 <MudText Typo="Typo.body2">@context.Reason</MudText>
             </MudTd>
-            <MudTd DataLabel="Enregistré le">
+            <MudTd DataLabel="Saved on">
                 <MudText Typo="Typo.caption">@context.CreatedAtDisplay</MudText>
             </MudTd>
             <MudTd Class="feed-imports-delete-col">
@@ -122,7 +122,7 @@
                                Color="Color.Error"
                                Disabled="@(!context.CanDelete || _isDeleting || IsBusy(context.Id))"
                                OnClick="@(() => DeleteAsync(context))"
-                               aria-label="Supprimer la décision" />
+                               aria-label="Delete decision" />
             </MudTd>
         </RowTemplate>
         <ChildRowContent>
@@ -138,20 +138,20 @@
                         {
                             <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3">
                                 <div class="feed-imports-arbitration">
-                                    <span>Doublon probable : vérifiez le livre déjà présent avant de continuer.</span>
+                                    <span>Probable duplicate: check the existing book before continuing.</span>
                                     @if (context.MatchedBookId is not null)
                                     {
-                                        <MudLink Href="@($"/books/{context.MatchedBookId}")" Typo="Typo.body2">Voir le livre déjà présent</MudLink>
+                                        <MudLink Href="@($"/books/{context.MatchedBookId}")" Typo="Typo.body2">View the existing book</MudLink>
                                     }
                                     <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
                                                Disabled="@IsBusy(context.Id)"
                                                OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.NotDuplicate, null))">
-                                        Pas un doublon
+                                        Not a duplicate
                                     </MudButton>
                                     <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning"
                                                Disabled="@IsBusy(context.Id)"
                                                OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.ConfirmDuplicate, null))">
-                                        Confirmer le doublon
+                                        Confirm duplicate
                                     </MudButton>
                                 </div>
                             </MudAlert>
@@ -160,13 +160,13 @@
                         {
                             <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
                                 <div class="feed-imports-arbitration">
-                                    <span>Liens ambigus : gardez le bon fichier ci-dessous, ou indiquez que tous les liens sont le même fichier.</span>
+                                    <span>Ambiguous links: keep the right file below, or state that all the links are the same file.</span>
                                     @if (context.Candidates.Count > 1)
                                     {
                                         <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
                                                    Disabled="@IsBusy(context.Id)"
                                                    OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.MergeAsMirrors, null))">
-                                            Tous ces liens sont le même fichier
+                                            All these links are the same file
                                         </MudButton>
                                     }
                                 </div>
@@ -182,7 +182,7 @@
                                                StartIcon="@Icons.Material.Filled.Download"
                                                Disabled="@IsBusy(context.Id)"
                                                OnClick="@(() => ApplyActionAsync(context.Id, FeedImportDecisionAction.ForceDownload))">
-                                        Forcer le téléchargement
+                                        Force download
                                     </MudButton>
                                 }
                                 @if (context.ManualActions.CanRetry)
@@ -191,7 +191,7 @@
                                                StartIcon="@Icons.Material.Filled.Replay"
                                                Disabled="@IsBusy(context.Id)"
                                                OnClick="@(() => ApplyActionAsync(context.Id, FeedImportDecisionAction.Retry))">
-                                        Relancer
+                                        Retry
                                     </MudButton>
                                 }
                                 @if (context.ManualActions.CanCorrect)
@@ -200,7 +200,7 @@
                                                StartIcon="@Icons.Material.Filled.Edit"
                                                Disabled="@(IsBusy(context.Id) || IsEditing(context.Id))"
                                                OnClick="@(() => StartCorrection(context))">
-                                        Corriger série / tome
+                                        Fix series / volume
                                     </MudButton>
                                 }
                                 @if (context.ManualActions.CanIgnore)
@@ -209,7 +209,7 @@
                                                StartIcon="@Icons.Material.Filled.Block"
                                                Disabled="@IsBusy(context.Id)"
                                                OnClick="@(() => ApplyActionAsync(context.Id, FeedImportDecisionAction.Ignore))">
-                                        Ignorer
+                                        Ignore
                                     </MudButton>
                                 }
                             </div>
@@ -217,22 +217,22 @@
                         @if (IsEditing(context.Id))
                         {
                             <MudPaper Outlined="true" Class="feed-imports-correction pa-3 mb-3">
-                                <MudText Typo="Typo.subtitle2" Class="mb-2">Corriger la lecture du titre (le contrôle des doublons est refait)</MudText>
+                                <MudText Typo="Typo.subtitle2" Class="mb-2">Fix the title parsing (the duplicate check runs again)</MudText>
                                 <div class="feed-imports-correction-fields">
-                                    <MudTextField T="string" Label="Série" @bind-Value="_correction!.Serie" Required="true"
+                                    <MudTextField T="string" Label="Series" @bind-Value="_correction!.Serie" Required="true"
                                                   Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="200" />
-                                    <MudNumericField T="int?" Label="Tome" @bind-Value="_correction.Volume" Min="0"
+                                    <MudNumericField T="int?" Label="Volume" @bind-Value="_correction.Volume" Min="0"
                                                      Variant="Variant.Outlined" Margin="Margin.Dense" />
-                                    <MudTextField T="string" Label="Titre" @bind-Value="_correction.Title"
+                                    <MudTextField T="string" Label="Title" @bind-Value="_correction.Title"
                                                   Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="300" />
                                 </div>
                                 <div class="feed-imports-actions mt-2">
                                     <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
                                                Disabled="@(IsBusy(context.Id) || string.IsNullOrWhiteSpace(_correction.Serie))"
                                                OnClick="@(() => SaveCorrectionAsync(context.Id))">
-                                        Enregistrer
+                                        Save
                                     </MudButton>
-                                    <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="CancelCorrection">Annuler</MudButton>
+                                    <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="CancelCorrection">Cancel</MudButton>
                                 </div>
                             </MudPaper>
                         }
@@ -241,33 +241,33 @@
                             <section class="feed-imports-detail-section">
                                 <MudText Typo="Typo.subtitle2" Class="feed-imports-detail-title">Article</MudText>
                                 <dl class="feed-imports-facts">
-                                    <dt>Publié le</dt>
+                                    <dt>Published on</dt>
                                     <dd>@context.PublishedAtDisplay</dd>
-                                    <dt>Lu comme</dt>
+                                    <dt>Parsed as</dt>
                                     <dd>@(context.ParsedDisplay ?? "-")</dd>
-                                    <dt>Décidé par</dt>
+                                    <dt>Decided by</dt>
                                     <dd>@context.DecidedByDisplay</dd>
                                 </dl>
                                 <MudButton Href="@context.EntryUrl" Target="_blank" rel="noopener noreferrer nofollow"
                                            Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
                                            StartIcon="@Icons.Material.Filled.OpenInNew" Class="mt-1">
-                                    Ouvrir l'article
+                                    Open article
                                 </MudButton>
                                 @if (context.ImportPageUrl is not null)
                                 {
                                     <MudButton Href="@context.ImportPageUrl"
                                                Size="Size.Small" Variant="Variant.Text" Color="Color.Success"
                                                StartIcon="@Icons.Material.Filled.Upload" Class="mt-1">
-                                        Suivre l'import
+                                        Track import
                                     </MudButton>
                                 }
                             </section>
 
                             <section class="feed-imports-detail-section">
-                                <MudText Typo="Typo.subtitle2" Class="feed-imports-detail-title">Fichiers</MudText>
+                                <MudText Typo="Typo.subtitle2" Class="feed-imports-detail-title">Files</MudText>
                                 @if (context.Candidates.Count == 0)
                                 {
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Aucun lien extrait pour l'instant.</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">No link extracted yet.</MudText>
                                 }
                                 @foreach (var candidate in context.Candidates)
                                 {
@@ -284,7 +284,7 @@
                                                 <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
                                                            Disabled="@IsBusy(context.Id)"
                                                            OnClick="@(() => ResolveAsync(context.Id, FeedImportArbitrationAction.KeepCandidate, candidate.Index))">
-                                                    Garder ce lien
+                                                    Keep this link
                                                 </MudButton>
                                             }
                                         </div>
@@ -293,7 +293,7 @@
                                             {
                                                 <a class="@(mirror.IsChosen ? "feed-imports-mirror is-chosen" : "feed-imports-mirror")" href="@mirror.Url"
                                                    target="_blank" rel="noopener noreferrer nofollow"
-                                                   title="@(mirror.IsChosen ? "Miroir utilisé pour le téléchargement" : null)">
+                                                   title="@(mirror.IsChosen ? "Mirror used for the download" : null)">
                                                     <MudIcon Icon="@(mirror.IsChosen ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.OpenInNew)" Size="Size.Small" />
                                                     @mirror.Host
                                                 </a>
@@ -304,7 +304,7 @@
                             </section>
 
                             <section class="feed-imports-detail-section">
-                                <MudText Typo="Typo.subtitle2" Class="feed-imports-detail-title">Historique</MudText>
+                                <MudText Typo="Typo.subtitle2" Class="feed-imports-detail-title">History</MudText>
                                 <ol class="feed-imports-timeline">
                                     @foreach (var evt in context.Events)
                                     {
@@ -322,13 +322,13 @@
             }
         </ChildRowContent>
         <NoRecordsContent>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Aucune décision d'import.</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">No import decisions.</MudText>
         </NoRecordsContent>
         <LoadingContent>
-            <MudText Typo="Typo.body2">Chargement...</MudText>
+            <MudText Typo="Typo.body2">Loading...</MudText>
         </LoadingContent>
         <PagerContent>
-            <MudTablePager PageSizeOptions="@s_pageSizeOptions" RowsPerPageString="Par page :" />
+            <MudTablePager PageSizeOptions="@s_pageSizeOptions" RowsPerPageString="Rows per page:" />
         </PagerContent>
     </MudTable>
 

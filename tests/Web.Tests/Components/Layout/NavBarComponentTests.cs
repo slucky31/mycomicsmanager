@@ -25,6 +25,6 @@ public sealed class NavBarComponentTests
 
         var cut = ctx.Render<NavBar>();
 
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("3 décisions à arbitrer"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("3 decisions awaiting arbitration"));
     }
 }
