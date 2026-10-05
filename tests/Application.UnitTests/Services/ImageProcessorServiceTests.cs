@@ -6,27 +6,36 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Application.UnitTests.Services;
 
-public sealed class ImageProcessorServiceTests : IDisposable
+// Contract shared by every WebP converter: the ImageSharp and the SkiaSharp implementations must behave the same.
+public abstract class ImageProcessorContractTests : IDisposable
 {
-    private readonly ImageProcessorService _service = new(NullLogger<ImageProcessorService>.Instance);
+    private readonly IImageProcessor _service;
     private readonly string _tempDir;
 
-    public ImageProcessorServiceTests()
+    protected ImageProcessorContractTests(IImageProcessor service)
     {
+        _service = service;
         _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempDir);
     }
 
     public void Dispose()
     {
-        if (Directory.Exists(_tempDir))
-        {
-            Directory.Delete(_tempDir, true);
-        }
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    private string CreateSourceDir(string name = "source")
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing && Directory.Exists(_tempDir))
+        {
+            Directory.Delete(_tempDir, true);
+        }
+    }
+
+    protected IImageProcessor Service => _service;
+
+    protected string CreateSourceDir(string name = "source")
     {
         var dir = Path.Combine(_tempDir, name);
         Directory.CreateDirectory(dir);
@@ -393,3 +402,5 @@ public sealed class ImageProcessorServiceTests : IDisposable
         Directory.GetFiles(destDir, "*.webp").Should().HaveCount(1);
     }
 }
+
+public sealed class ImageProcessorServiceTests() : ImageProcessorContractTests(new ImageProcessorService(NullLogger<ImageProcessorService>.Instance));
