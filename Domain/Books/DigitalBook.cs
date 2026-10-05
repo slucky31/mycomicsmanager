@@ -10,6 +10,24 @@ public sealed class DigitalBook : Book
 
     private DigitalBook() { }
 
+    // The file has already been moved into the folder of the target library.
+    public Result MoveToLibrary(Guid libraryId, string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return BooksError.BadRequest;
+        }
+
+        var changed = ChangeLibrary(libraryId);
+        if (changed.IsFailure)
+        {
+            return changed;
+        }
+
+        FilePath = filePath;
+        return Result.Success();
+    }
+
     public static Result<DigitalBook> Create(
         BookMetadata metadata,
         Guid libraryId,

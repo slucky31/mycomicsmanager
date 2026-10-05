@@ -35,6 +35,12 @@
                                OnClick="EditBook"
                                aria-label="Edit book"
                                Class="d-none d-sm-flex" />
+                <MudIconButton Icon="@Icons.Material.Filled.DriveFileMove"
+                               Color="Color.Inherit"
+                               OnClick="MoveBookAsync"
+                               Disabled="_isMoving"
+                               aria-label="Move book to another library"
+                               Class="d-none d-sm-flex" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                Color="Color.Inherit"
                                OnClick="DeleteBookAsync"
@@ -51,6 +57,9 @@
                                  OnClick="ImportFromWeb">Import from Web</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.Edit"
                                  OnClick="EditBook">Edit</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.DriveFileMove"
+                                 Disabled="_isMoving"
+                                 OnClick="MoveBookAsync">Move to…</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.Delete"
                                  IconColor="Color.Error"
                                  OnClick="DeleteBookAsync">Delete</MudMenuItem>

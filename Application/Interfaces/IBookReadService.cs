@@ -16,4 +16,7 @@ public interface IBookReadService
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<BookIdentityDto>> ListIdentitiesByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    // Serie of every book of the user, with its library: used to suggest where a book belongs.
+    Task<IReadOnlyList<BookSerieLocationDto>> ListSerieLocationsAsync(Guid userId, CancellationToken cancellationToken = default);
 }

@@ -32,6 +32,29 @@ public abstract class Book : Entity<Guid>
 
     protected Book() { }
 
+    // Checked before any file is moved, so a refused move never leaves the file and the database out of sync.
+    public Result CanMoveToLibrary(Guid libraryId)
+    {
+        if (libraryId == Guid.Empty)
+        {
+            return BooksError.BadRequest;
+        }
+
+        return libraryId == LibraryId ? BooksError.AlreadyInLibrary : Result.Success();
+    }
+
+    protected Result ChangeLibrary(Guid libraryId)
+    {
+        var check = CanMoveToLibrary(libraryId);
+        if (check.IsFailure)
+        {
+            return check;
+        }
+
+        LibraryId = libraryId;
+        return Result.Success();
+    }
+
     public Result Update(BookMetadata metadata)
     {
         var validationResult = ValidateMetadataForUpdate(metadata);

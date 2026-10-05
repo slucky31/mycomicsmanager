@@ -74,4 +74,12 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
             .OrderBy(b => b.Id)
             .Select(b => new BookIdentityDto(b.Id, b.Serie, b.Title, b.VolumeNumber, b.ISBN, b.Library!.Name))
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<BookSerieLocationDto>> ListSerieLocationsAsync(Guid userId, CancellationToken cancellationToken = default)
+        => await context.Set<Book>()
+            .AsNoTracking()
+            .Where(b => b.Library!.UserId == userId)
+            .OrderBy(b => b.Id)
+            .Select(b => new BookSerieLocationDto(b.LibraryId, b.Serie))
+            .ToListAsync(cancellationToken);
 }

@@ -6,6 +6,8 @@ public sealed class PhysicalBook : Book
 {
     private PhysicalBook() { }
 
+    public Result MoveToLibrary(Guid libraryId) => ChangeLibrary(libraryId);
+
     public static Result<PhysicalBook> Create(BookMetadata metadata, Guid libraryId)
     {
         if (string.IsNullOrWhiteSpace(metadata.Serie) ||
