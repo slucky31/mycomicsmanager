@@ -83,7 +83,7 @@ public sealed class BookDetailComponentTests
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad"));
         await cut.InvokeAsync(() => cut.Instance.MoveBookAsync());
 
-        await dialogs.DidNotReceiveWithAnyArgs().ShowAsync<MoveBookDialog>(default, default(DialogParameters)!, default);
+        await dialogs.DidNotReceive().ShowAsync<MoveBookDialog>(Arg.Any<string?>(), Arg.Any<DialogParameters>(), Arg.Any<DialogOptions?>());
         snackbar.Received(1).Add("No other library of the same type", Severity.Info, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
         await moveService.DidNotReceive().MoveAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
