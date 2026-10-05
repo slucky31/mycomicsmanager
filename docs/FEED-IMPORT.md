@@ -45,6 +45,8 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
      `Downloaded` ;
    - `Downloaded` est l'état final côté Feeds : la suite (extraction, conversion, métadonnées) se
      suit dans la page **Import**, que le bouton « Suivre l'import » ouvre sur la bibliothèque « À trier ».
+7. Une fois le livre importé, le ranger depuis sa fiche avec **Move to…** : MCM propose la bibliothèque
+   qui contient déjà le plus de tomes de la même série, et déplace le fichier CBZ avec le livre.
 
 ### Actions manuelles
 

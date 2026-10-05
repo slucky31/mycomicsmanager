@@ -1,0 +1,32 @@
+<MudDialog>
+    <DialogContent>
+        <MudText Class="mb-3">Choose the library to move this book to. Its file is moved too.</MudText>
+        <MudSelect T="Guid"
+                   Label="Library"
+                   @bind-Value="_selectedLibraryId"
+                   Variant="Variant.Outlined"
+                   AnchorOrigin="Origin.BottomCenter">
+            @foreach (var target in Targets)
+            {
+                <MudSelectItem T="Guid" Value="@target.Id">
+                    <div class="move-book-option">
+                        <span class="move-book-color" style="@($"background-color: {target.Color}")"></span>
+                        <span>@target.Name</span>
+                        @if (target.Hint is not null)
+                        {
+                            <span class="move-book-hint">@target.Hint</span>
+                        }
+                        @if (target.IsSuggested)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined">Suggested</MudChip>
+                        }
+                    </div>
+                </MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_selectedLibraryId == Guid.Empty)" OnClick="Confirm">Move</MudButton>
+    </DialogActions>
+</MudDialog>

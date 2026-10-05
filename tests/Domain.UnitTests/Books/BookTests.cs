@@ -288,4 +288,21 @@ public class BookTests
         // Assert
         book.Library.Should().BeNull();
     }
+
+    // -------------------------------------------------------
+    // MoveToLibrary
+    // -------------------------------------------------------
+
+    [Fact]
+    public void MoveToLibrary_Should_ChangeLibrary_WhenPhysicalBookMovesToAnotherLibrary()
+    {
+        var book = PhysicalBook.Create(new BookMetadata("Blacksad", "Âme rouge", "9781401245252"), DefaultLibraryId).Value!;
+        var targetLibraryId = Guid.CreateVersion7();
+
+        var result = book.MoveToLibrary(targetLibraryId);
+
+        result.IsSuccess.Should().BeTrue();
+        book.LibraryId.Should().Be(targetLibraryId);
+        book.MoveToLibrary(targetLibraryId).Error.Should().Be(BooksError.AlreadyInLibrary);
+    }
 }

@@ -1,5 +1,6 @@
 using System.Text;
 using Base.Integration.Tests;
+using Domain.Books;
 using Domain.Errors;
 using Persistence.LocalStorage;
 
@@ -371,4 +372,51 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         result.Error.Should().Be(LibraryLocalStorageError.InvalidPath);
     }
 
+    [Fact]
+    public void MoveFile_Should_MoveFileIntoTargetLibraryFolder_AndReturnNewPath()
+    {
+        // Arrange
+        var source = Guid.NewGuid().ToString();
+        var target = $"Bandes dessinées {Guid.NewGuid()}";
+        Directory.CreateDirectory(Path.Combine(LibraryLocalStorage.rootPath, source));
+        var sourceFile = Path.Combine(LibraryLocalStorage.rootPath, source, "Blacksad T03.cbz");
+        CreateFile(sourceFile);
+
+        // Act
+        var result = LibraryLocalStorage.MoveFile(sourceFile, target);
+
+        // Assert
+        var expected = Path.Combine(LibraryLocalStorage.rootPath, target.Replace("é", "e", StringComparison.Ordinal), "Blacksad T03.cbz");
+        result.Value.Should().Be(expected);
+        File.Exists(expected).Should().BeTrue();
+        File.Exists(sourceFile).Should().BeFalse();
+    }
+
+    [Fact]
+    public void MoveFile_Should_KeepBothFiles_WhenTargetAlreadyHasAFileWithSameName()
+    {
+        // Arrange
+        var source = Guid.NewGuid().ToString();
+        var target = Guid.NewGuid().ToString();
+        Directory.CreateDirectory(Path.Combine(LibraryLocalStorage.rootPath, source));
+        Directory.CreateDirectory(Path.Combine(LibraryLocalStorage.rootPath, target));
+        var sourceFile = Path.Combine(LibraryLocalStorage.rootPath, source, "Blacksad T03.cbz");
+        CreateFile(sourceFile);
+        CreateFile(Path.Combine(LibraryLocalStorage.rootPath, target, "Blacksad T03.cbz"));
+
+        // Act
+        var result = LibraryLocalStorage.MoveFile(sourceFile, target);
+
+        // Assert
+        result.Error.Should().Be(BooksError.FileAlreadyExists);
+        File.Exists(sourceFile).Should().BeTrue();
+    }
+
+    [Fact]
+    public void MoveFile_Should_ReturnError_WhenSourceIsMissingOrOutsideRoot()
+    {
+        LibraryLocalStorage.MoveFile(Path.Combine(LibraryLocalStorage.rootPath, "missing.cbz"), "BD").Error.Should().Be(BooksError.FileNotFound);
+        LibraryLocalStorage.MoveFile(Path.Combine(Path.GetTempPath(), "outside.cbz"), "BD").Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+        LibraryLocalStorage.MoveFile(Path.Combine(LibraryLocalStorage.rootPath, "x.cbz"), "../outside").Error.Should().Be(LibraryLocalStorageError.InvalidPath);
+    }
 }
