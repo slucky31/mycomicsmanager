@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.22.0"></a>
+## [10.22.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.0) (2026-10-05)
+
+### ✨ Features
+
+* **settings:** add an Administration section (Logs + Hangfire) to the Settings page ([#1082](https://www.github.com/slucky31/mycomicsmanager/issues/1082)) ([9af586e](https://www.github.com/slucky31/mycomicsmanager/commit/9af586e1eaef3f5f3a3cc755561219e4e37b6247))
+
 <a name="10.21.0"></a>
 ## [10.21.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.21.0) (2026-10-05)
 
