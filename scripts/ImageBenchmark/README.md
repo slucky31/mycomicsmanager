@@ -24,6 +24,7 @@ On the Pi (no .NET install needed, the tool is self-contained):
 
 ```bash
 cd ~/image-benchmark
+chmod +x ImageBenchmark   # the execute bit is lost when copying through Windows or a zip
 ./ImageBenchmark ~/comics/MyComic.cbz --runs 3 --out ~/bench
 ```
 
