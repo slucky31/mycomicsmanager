@@ -315,6 +315,7 @@ static string BuildReport(BenchmarkOptions options, int pages, string formats, l
     sb.AppendLine();
     sb.AppendLine("Peak memory = VmHWM of the process (native buffers included). Time = median of the runs.");
     sb.AppendLine("PSNR against a reference resized with Lanczos3 without compression: the higher the better (> 35 dB: differences hard to see).");
+    sb.AppendLine("The reference is decoded by ImageSharp and Lanczos3 is close to its default bicubic kernel, so the PSNR favours ImageSharp: compare a few pages by eye before deciding.");
     return sb.ToString();
 }
 

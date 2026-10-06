@@ -4,8 +4,9 @@ using SkiaSharp;
 namespace Persistence.Services;
 
 // SkiaSharp implementation, designed for the memory of a Raspberry Pi:
-// - a JPEG is decoded directly at a reduced scale (1/2, 1/4, 1/8) when it is much larger than the target,
-//   so the full-size bitmap is never allocated;
+// - a JPEG is decoded directly at a reduced scale (1/2, 1/4, 1/8) when it is at least twice the target,
+//   so the full-size bitmap is never allocated. The other scales libjpeg offers (3/8, 5/8, 6/8...) are not
+//   used: they blur and alias line art far more than a resize does;
 // - the remaining reduction is done in halving steps while the ratio exceeds 2×, then one high-quality resize;
 // - every page is encoded as lossy WebP, PNG sources included.
 public class SkiaImageProcessorService(ILogger<SkiaImageProcessorService> logger) : WebpImageProcessorBase(logger)
@@ -15,6 +16,7 @@ public class SkiaImageProcessorService(ILogger<SkiaImageProcessorService> logger
 
     private static readonly SKSamplingOptions s_stepSampling = new(SKFilterMode.Linear, SKMipmapMode.None);
     private static readonly SKSamplingOptions s_finalSampling = new(SKCubicResampler.Mitchell);
+    private static readonly int[] s_decodeDenominators = [8, 4, 2];
 
     protected override Task<ImageSize?> IdentifyAsync(string filePath, CancellationToken ct)
     {
@@ -59,12 +61,26 @@ public class SkiaImageProcessorService(ILogger<SkiaImageProcessorService> logger
         return null;
     }
 
-    // Decodes at the smallest scale the codec supports that is still at least as wide as the target
-    // (only JPEG supports scaled decoding; other formats are decoded at full size).
+    // Largest power-of-two reduction (1/8, 1/4, 1/2) that keeps the decoded width at least equal to the target.
+    internal static int DecodeScaleDenominator(int sourceWidth, int targetWidth)
+    {
+        foreach (var denominator in s_decodeDenominators)
+        {
+            if ((sourceWidth + denominator - 1) / denominator >= targetWidth)
+            {
+                return denominator;
+            }
+        }
+
+        return 1;
+    }
+
+    // Only JPEG supports scaled decoding: the other formats return their full size and are decoded as is.
     private static SKBitmap Decode(SKCodec codec, int targetWidth)
     {
         var full = codec.Info;
-        var scaled = targetWidth < full.Width ? codec.GetScaledDimensions((float)targetWidth / full.Width) : full.Size;
+        var denominator = DecodeScaleDenominator(full.Width, targetWidth);
+        var scaled = denominator == 1 ? full.Size : codec.GetScaledDimensions(1f / denominator);
         var decodeSize = scaled.Width >= targetWidth ? scaled : full.Size;
 
         var info = new SKImageInfo(decodeSize.Width, decodeSize.Height, SKColorType.Rgba8888, SKAlphaType.Premul);

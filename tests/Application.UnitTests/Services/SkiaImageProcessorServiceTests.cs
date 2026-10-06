@@ -30,6 +30,19 @@ public sealed class SkiaImageProcessorServiceTests()
     }
 
     [Theory]
+    [InlineData(1988, 1400, 1)] // 1.4×: a 6/8 decode would soften the lines, full decode then resize
+    [InlineData(2797, 1400, 1)] // 1/2 would give 1399px
+    [InlineData(2800, 1400, 2)]
+    [InlineData(4000, 1400, 2)] // 2.9×: 1/2, not 3/8
+    [InlineData(5599, 1400, 4)] // 1/4 rounds up to 1400
+    [InlineData(11200, 1400, 8)]
+    [InlineData(1000, 1400, 1)] // smaller than the target
+    public void DecodeScaleDenominator_Should_KeepOnlyPowerOfTwoScales_WhenSourceIsLargerThanTarget(int sourceWidth, int targetWidth, int expected)
+    {
+        SkiaImageProcessorService.DecodeScaleDenominator(sourceWidth, targetWidth).Should().Be(expected);
+    }
+
+    [Theory]
     [InlineData(5600, 8000)] // 4× the target: decoded at 1/4 scale, no resize step left
     [InlineData(3000, 4500)] // 2.1×: decoded at 1/2 scale, then a final resize
     [InlineData(7000, 5000)] // double page, 2.5× the doubled target
