@@ -22,7 +22,7 @@ public class BookMoveWorkflow(
         if (result.IsFailure)
         {
             snackbar.Add(result.Error!.Description ?? "Failed to move book", Severity.Error);
-            logger.LogError("Failed to move book {BookId}: {Description}", bookId, result.Error!.Description);
+            logger.LogError("Failed to move book {BookId}: {Description}", bookId, result.Error.Description);
             return false;
         }
 
