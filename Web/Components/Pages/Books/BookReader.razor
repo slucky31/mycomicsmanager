@@ -24,7 +24,7 @@
     }
     else
     {
-        <img src="@PageUrl(_currentPage)" alt="@($"Page {_currentPage + 1}")" class="reader-page" />
+        <img @ref="_pageImage" src="@PageUrl(_currentPage)" alt="@($"Page {_currentPage + 1}")" class="reader-page" />
 
         @* Preload the neighbouring pages so turning a page is instant (cached by the browser only). *@
         @if (_currentPage + 1 < _info.PageCount)
@@ -41,6 +41,16 @@
             <div class="reader-toolbar reader-toolbar-top">
                 <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="CloseAsync" aria-label="Close reader" />
                 <MudText Typo="Typo.subtitle1" Class="reader-title">@_info.Serie - @_info.Title</MudText>
+                <MudSpacer />
+                @if (_isExtractingIsbn)
+                {
+                    <MudProgressCircular Color="Color.Inherit" Indeterminate="true" Size="Size.Small" Class="mx-3" aria-label="Reading the page" />
+                }
+                else
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.DocumentScanner" Color="Color.Inherit" OnClick="ExtractIsbnAsync"
+                                   aria-label="Find the ISBN on this page" title="Find the ISBN on this page" />
+                }
             </div>
 
             <div class="reader-toolbar reader-toolbar-bottom">
@@ -56,7 +66,7 @@
 
         @if (_showFinish)
         {
-            <div class="reader-finish">
+            <div class="reader-overlay">
                 <MudPaper Class="pa-6 rounded-lg d-flex flex-column align-center gap-3" Elevation="8">
                     <MudText Typo="Typo.h6">You finished this book</MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary">Rate it to add a reading date.</MudText>
@@ -68,6 +78,24 @@
                             Mark as read
                         </MudButton>
                     </div>
+                </MudPaper>
+            </div>
+        }
+
+        @if (_isbnCandidates.Count > 0)
+        {
+            <div class="reader-overlay">
+                <MudPaper Class="pa-6 rounded-lg d-flex flex-column align-center gap-3" Elevation="8">
+                    <MudText Typo="Typo.h6">@(_isbnCandidates.Count == 1 ? "ISBN found on this page" : "ISBNs found on this page")</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Select it to fetch the information of the book.</MudText>
+                    @foreach (var isbn in _isbnCandidates)
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.TravelExplore"
+                                   Class="reader-isbn" OnClick="@(() => FetchBookInfoAsync(isbn))">
+                            @isbn
+                        </MudButton>
+                    }
+                    <MudButton Variant="Variant.Text" Class="mt-2" OnClick="CloseIsbnCandidates">Cancel</MudButton>
                 </MudPaper>
             </div>
         }

@@ -22,7 +22,13 @@ public partial class ImportBookMetaFromWeb
     [Parameter]
     public string BookId { get; set; } = string.Empty;
 
+    // An ISBN read on a page of the book (reader): the search uses it, and saving stores it on the book.
+    [SupplyParameterFromQuery(Name = "isbn")]
+    public string? Isbn { get; set; }
+
     private BookUiDto? _currentBook;
+    private string? _isbn;
+    private bool _isbnFromPage;
     private BedethequeBookResult? _bedethequeResult;
     private OpenLibraryBookResult? _olResult;
     private GoogleBooksBookResult? _googleResult;
@@ -71,6 +77,7 @@ public partial class ImportBookMetaFromWeb
             }
 
             _currentBook = BookUiDto.Convert(result.Value);
+            ResolveIsbn(_currentBook.ISBN);
             _isLoading = false;
             StateHasChanged();
             await FetchWebServicesAsync();
@@ -86,18 +93,28 @@ public partial class ImportBookMetaFromWeb
         }
     }
 
+    private void ResolveIsbn(string? currentIsbn)
+    {
+        var isbnFromPage = !string.IsNullOrWhiteSpace(Isbn) && IsbnHelper.IsValidISBN(Isbn)
+            ? IsbnHelper.NormalizeIsbn(Isbn)
+            : null;
+
+        _isbn = isbnFromPage ?? currentIsbn;
+        _isbnFromPage = isbnFromPage is not null && !string.Equals(isbnFromPage, currentIsbn, StringComparison.Ordinal);
+    }
+
     private async Task FetchWebServicesAsync()
     {
-        if (_currentBook is null || string.IsNullOrWhiteSpace(_currentBook.ISBN))
+        if (_currentBook is null || string.IsNullOrWhiteSpace(_isbn))
         {
             return;
         }
 
         // Start all requests concurrently, then await each independently so that
         // a failure in one provider does not prevent the other's result from being used.
-        var bedethequeTask = BedethequeService.SearchByIsbnAsync(_currentBook.ISBN);
-        var olTask = OpenLibraryService.SearchByIsbnAsync(_currentBook.ISBN);
-        var googleTask = GoogleBooksService.SearchByIsbnAsync(_currentBook.ISBN);
+        var bedethequeTask = BedethequeService.SearchByIsbnAsync(_isbn);
+        var olTask = OpenLibraryService.SearchByIsbnAsync(_isbn);
+        var googleTask = GoogleBooksService.SearchByIsbnAsync(_isbn);
 
         try
         {
@@ -106,7 +123,7 @@ public partial class ImportBookMetaFromWeb
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
-            Logger.LogError(ex, "Error fetching Bedetheque for ISBN {ISBN}", _currentBook.ISBN);
+            Logger.LogError(ex, "Error fetching Bedetheque for ISBN {ISBN}", _isbn);
             Snackbar.Add("Could not fetch data from Bedetheque. You can still save with current values.", Severity.Warning);
         }
 
@@ -121,7 +138,7 @@ public partial class ImportBookMetaFromWeb
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
-            Logger.LogError(ex, "Error fetching OpenLibrary for ISBN {ISBN}", _currentBook.ISBN);
+            Logger.LogError(ex, "Error fetching OpenLibrary for ISBN {ISBN}", _isbn);
             Snackbar.Add("Could not fetch data from OpenLibrary. You can still save with current values.", Severity.Warning);
         }
         finally
@@ -140,7 +157,7 @@ public partial class ImportBookMetaFromWeb
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
-            Logger.LogError(ex, "Error fetching Google Books for ISBN {ISBN}", _currentBook.ISBN);
+            Logger.LogError(ex, "Error fetching Google Books for ISBN {ISBN}", _isbn);
             Snackbar.Add("Could not fetch data from Google Books. You can still save with current values.", Severity.Warning);
         }
         finally
@@ -259,7 +276,7 @@ public partial class ImportBookMetaFromWeb
         {
             try
             {
-                cover = await ComicSearchService.UploadCoverAsync(coverUri, _currentBook.ISBN ?? string.Empty);
+                cover = await ComicSearchService.UploadCoverAsync(coverUri, _isbn ?? string.Empty);
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
             {
@@ -291,7 +308,7 @@ public partial class ImportBookMetaFromWeb
             _currentBook.Id.ToString(),
             serie,
             title,
-            _currentBook.ISBN ?? string.Empty,
+            _isbn ?? string.Empty,
             volumeNumber,
             cover,
             authors,
