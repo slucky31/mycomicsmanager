@@ -41,6 +41,7 @@
                                 <MudMenuItem Icon="@Icons.Material.Filled.Download" IconColor="Color.Secondary" OnClick="@(() => OnDownload.InvokeAsync(book.Id))">Download CBZ</MudMenuItem>
                             }
                             <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.DriveFileMove" OnClick="@(() => OnMove.InvokeAsync(book.Id))">Move to…</MudMenuItem>
                             <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(book.Id))">Delete</MudMenuItem>
                         </MudMenu>
                     </div>

@@ -155,6 +155,7 @@
                 <BooksListView @ref="_booksListView"
                                ServerData="LoadListDataAsync"
                                OnDelete="@DeleteAsync"
+                               OnMove="@MoveAsync"
                                ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
                                OnDownload="@DownloadBookAsync" />
             }
@@ -198,12 +199,14 @@
                     case ViewMode.Cards:
                         <BooksCardsView Books="@_displayedBooks"
                                         OnDelete="@DeleteAsync"
+                                        OnMove="@MoveAsync"
                                         ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
                                         OnDownload="@DownloadBookAsync" />
                         break;
                     case ViewMode.Covers:
                         <BooksCoversView Books="@_displayedBooks"
                                          OnDelete="@DeleteAsync"
+                                         OnMove="@MoveAsync"
                                          ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
                                          OnDownload="@DownloadBookAsync" />
                         break;

@@ -55,6 +55,7 @@
                     {
                         <MudIconButton Icon="@Icons.Material.Filled.Download" Size="Size.Small" Color="Color.Secondary" OnClick="@(() => OnDownload.InvokeAsync(context.Id))" aria-label="Download CBZ" />
                     }
+                    <MudIconButton Icon="@Icons.Material.Filled.DriveFileMove" Size="Size.Small" Color="Color.Default" OnClick="@(() => OnMove.InvokeAsync(context.Id))" aria-label="Move book to another library" />
                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(context.Id))" aria-label="Delete book" />
                 </div>
             </MudTd>
