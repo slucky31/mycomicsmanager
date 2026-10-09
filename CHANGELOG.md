@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.22.2"></a>
+## [10.22.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.2) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency microsoft.testing.extensions.codecoverage to 18.12.0 ([#1085](https://www.github.com/slucky31/mycomicsmanager/issues/1085)) ([6d981b9](https://www.github.com/slucky31/mycomicsmanager/commit/6d981b98968062f354ef85746222074c977b20a5))
+
 <a name="10.22.1"></a>
 ## [10.22.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.1) (2026-10-09)
 
