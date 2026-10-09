@@ -61,6 +61,18 @@ public sealed class BookMoveWorkflowTests
     }
 
     [Fact]
+    public async Task ChooseAndMoveAsync_Should_ShowError_WhenTargetsCannotBeLoaded()
+    {
+        _moveService.GetTargetsAsync(s_bookId, Arg.Any<CancellationToken>()).Returns(Result<BookMoveTargets>.Failure(BooksError.NotFound));
+
+        var moved = await _workflow.ChooseAndMoveAsync(s_bookId, TestContext.Current.CancellationToken);
+
+        moved.Should().BeFalse();
+        _snackbar.Received(1).Add("Failed to load libraries", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        await _dialogs.DidNotReceive().ShowAsync<MoveBookDialog>(Arg.Any<string?>(), Arg.Any<DialogParameters>(), Arg.Any<DialogOptions?>());
+    }
+
+    [Fact]
     public async Task ChooseAndMoveAsync_Should_NotOpenDialog_WhenNoOtherLibraryOfSameType()
     {
         _moveService.GetTargetsAsync(s_bookId, Arg.Any<CancellationToken>()).Returns(new BookMoveTargets([], null));

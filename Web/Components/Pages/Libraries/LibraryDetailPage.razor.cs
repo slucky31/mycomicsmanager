@@ -418,7 +418,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         await JS.InvokeVoidAsync("open", $"/api/books/{bookId}/download", "_blank");
     }
 
-    private async Task MoveAsync(Guid bookId)
+    internal async Task MoveAsync(Guid bookId)
     {
         if (_isMoving)
         {

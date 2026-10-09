@@ -53,6 +53,21 @@ public sealed class BooksViewsMoveTests : IAsyncDisposable
         movedId.Should().Be(_book.Id);
     }
 
+    [Fact]
+    public async Task OnMove_Should_ReceiveTheBookId_WhenTheListMoveButtonIsClicked()
+    {
+        var movedId = Guid.Empty;
+        var cut = _ctx.Render<BooksListView>(p => p
+            .Add(c => c.ServerData, (_, _) => Task.FromResult(new TableData<BookListItemViewModel> { Items = [_book], TotalItems = 1 }))
+            .Add(c => c.OnDelete, _ => { })
+            .Add(c => c.OnMove, id => movedId = id));
+
+        var moveButton = cut.WaitForElement("button[aria-label='Move book to another library']");
+        await moveButton.ClickAsync(new());
+
+        movedId.Should().Be(_book.Id);
+    }
+
     private static async Task ChooseMoveFromMenuAsync(IRenderedComponent<IComponent> cut, IRenderedComponent<MudPopoverProvider> provider)
     {
         await cut.Find("button[aria-label='More actions']").ClickAsync(new());

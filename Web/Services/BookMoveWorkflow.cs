@@ -21,8 +21,8 @@ public class BookMoveWorkflow(
         var result = await bookMoveService.MoveAsync(bookId, targetLibraryId.Value, cancellationToken);
         if (result.IsFailure)
         {
-            snackbar.Add(result.Error?.Description ?? "Failed to move book", Severity.Error);
-            logger.LogError("Failed to move book {BookId}: {Description}", bookId, result.Error?.Description);
+            snackbar.Add(result.Error!.Description ?? "Failed to move book", Severity.Error);
+            logger.LogError("Failed to move book {BookId}: {Description}", bookId, result.Error!.Description);
             return false;
         }
 
@@ -37,7 +37,7 @@ public class BookMoveWorkflow(
         if (targets.IsFailure)
         {
             snackbar.Add("Failed to load libraries", Severity.Error);
-            logger.LogError("Failed to load move targets for book {BookId}: {Description}", bookId, targets.Error?.Description);
+            logger.LogError("Failed to load move targets for book {BookId}: {Description}", bookId, targets.Error!.Description);
             return null;
         }
 
