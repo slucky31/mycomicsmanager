@@ -62,7 +62,7 @@ internal static class BooksEndpoints
         return Results.File(digitalBook.FilePath, "application/x-cbz", fileName, enableRangeProcessing: true);
     }
 
-    private static async Task<IResult> GetBookPageAsync(
+    internal static async Task<IResult> GetBookPageAsync(
         Guid bookId,
         int pageIndex,
         ClaimsPrincipal user,
@@ -94,7 +94,7 @@ internal static class BooksEndpoints
 
     // Resolves the application user id from the Auth0 "sub" claim, falling back to the email
     // for users not yet migrated to sub-based AuthId. Returns null when the user is unknown.
-    private static async Task<Guid?> ResolveUserIdAsync(ClaimsPrincipal user, IUserReadService userReadService, CancellationToken ct)
+    internal static async Task<Guid?> ResolveUserIdAsync(ClaimsPrincipal user, IUserReadService userReadService, CancellationToken ct)
     {
         var sub = user.FindFirstValue("sub")
                ?? user.FindFirstValue(ClaimTypes.NameIdentifier);

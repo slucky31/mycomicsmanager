@@ -45,7 +45,7 @@ public sealed partial class BookReader : IAsyncDisposable
 
         try
         {
-            var result = await BookReaderService.GetReaderInfoAsync(_bookGuid);
+            var result = await BookReaderService.GetReaderInfoAsync(_bookGuid, CancellationToken.None);
             if (result.IsSuccess && result.Value is not null)
             {
                 _info = result.Value;
@@ -166,7 +166,7 @@ public sealed partial class BookReader : IAsyncDisposable
 
         try
         {
-            var result = await BookReaderService.SaveProgressAsync(_bookGuid, pageIndex);
+            var result = await BookReaderService.SaveProgressAsync(_bookGuid, pageIndex, CancellationToken.None);
             if (result.IsSuccess)
             {
                 _savedPage = pageIndex;
@@ -188,7 +188,7 @@ public sealed partial class BookReader : IAsyncDisposable
 
         try
         {
-            var result = await BooksService.AddReadingDate(BookId, _rating);
+            var result = await BooksService.AddReadingDate(BookId, _rating, CancellationToken.None);
             if (result.IsFailure)
             {
                 Snackbar.Add("Unexpected error while adding reading date", Severity.Error);
@@ -235,7 +235,7 @@ public sealed partial class BookReader : IAsyncDisposable
         {
             try
             {
-                await _jsModule.InvokeVoidAsync("detach");
+                await _jsModule.InvokeVoidAsync("detach", CancellationToken.None);
                 await _jsModule.DisposeAsync();
             }
             catch (JSDisconnectedException)

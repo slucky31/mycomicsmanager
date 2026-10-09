@@ -108,4 +108,89 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("This book cannot be read"));
         _snackbar.Received(1).Add(FileProcessingError.CorruptArchive.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
+
+    [Fact]
+    public async Task OnNavigationKey_Should_TurnPagesAndClose()
+    {
+        var cut = RenderReader(pageCount: 20, lastReadPage: 7);
+        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+
+        await cut.Instance.OnNavigationKey("ArrowRight");
+        await cut.Instance.OnNavigationKey("ArrowRight");
+        await cut.Instance.OnNavigationKey("ArrowLeft");
+        await cut.Instance.OnNavigationKey("Enter");
+        CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/8");
+
+        await cut.Instance.OnNavigationKey("Escape");
+
+        await _readerService.Received(1).SaveProgressAsync(_bookId, 8, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GoToPageAsync_Should_SaveProgress_WhenReaderStaysOnAPage()
+    {
+        var cut = RenderReader(pageCount: 20, lastReadPage: 7);
+        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+
+        await cut.Find("button.reader-zone-next").ClickAsync(new());
+
+        // The save is debounced and triggers no render, so poll for it.
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (_readerService.ReceivedCalls().All(c => c.GetMethodInfo().Name != nameof(IBookReaderService.SaveProgressAsync)) && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50, Xunit.TestContext.Current.CancellationToken);
+        }
+
+        await _readerService.Received(1).SaveProgressAsync(_bookId, 8, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ToggleControls_Should_HideAndShowTheToolbars()
+    {
+        var cut = RenderReader(pageCount: 20, lastReadPage: 0);
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reader-toolbar").Should().HaveCount(2));
+
+        await cut.Find("button.reader-zone-toggle").ClickAsync(new());
+        cut.FindAll(".reader-toolbar").Should().BeEmpty();
+
+        await cut.Find("button.reader-zone-toggle").ClickAsync(new());
+        cut.FindAll(".reader-toolbar").Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task MarkAsReadAsync_Should_ShowAnErrorAndStayOnTheBook_WhenAddingTheReadingDateFails()
+    {
+        _booksService.AddReadingDate(_bookId.ToString(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ReadingDate>.Failure(BooksError.NotFound));
+        var cut = RenderReader(pageCount: 3, lastReadPage: 2);
+        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        await cut.Find("button.reader-zone-next").ClickAsync(new());
+
+        await cut.FindAll("button").Single(b => b.TextContent.Contains("Mark as read", StringComparison.Ordinal)).ClickAsync(new());
+
+        _snackbar.Received(1).Add("Unexpected error while adding reading date", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        await _readerService.DidNotReceive().SaveProgressAsync(_bookId, 0, Arg.Any<CancellationToken>());
+        cut.Markup.Should().Contain("You finished this book");
+    }
+
+    [Fact]
+    public async Task CloseFinish_Should_HideTheFinishPanel()
+    {
+        var cut = RenderReader(pageCount: 3, lastReadPage: 2);
+        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        await cut.Find("button.reader-zone-next").ClickAsync(new());
+
+        await cut.FindAll("button").Single(b => b.TextContent.Contains("Keep reading", StringComparison.Ordinal)).ClickAsync(new());
+
+        cut.Markup.Should().NotContain("You finished this book");
+    }
+
+    [Fact]
+    public async Task OnInitializedAsync_Should_ShowAnError_WhenBookIdIsInvalid()
+    {
+        var cut = _ctx.Render<BookReader>(p => p.Add(c => c.BookId, "not-a-guid"));
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("This book cannot be read"));
+        await _readerService.DidNotReceive().GetReaderInfoAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
 }
