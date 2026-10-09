@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.23.0"></a>
+## [10.23.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.23.0) (2026-10-09)
+
+### ✨ Features
+
+* **books:** move a book from the library views' menus ([#1087](https://www.github.com/slucky31/mycomicsmanager/issues/1087)) ([6d444f3](https://www.github.com/slucky31/mycomicsmanager/commit/6d444f32e1954a819764e9f3747e4a35f3ba5246))
+
 <a name="10.22.2"></a>
 ## [10.22.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.2) (2026-10-09)
 
