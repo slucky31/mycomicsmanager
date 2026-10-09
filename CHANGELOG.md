@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.24.0"></a>
+## [10.24.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.24.0) (2026-10-09)
+
+### ✨ Features
+
+* **books:** add an in-app reader for digital books ([#1089](https://www.github.com/slucky31/mycomicsmanager/issues/1089)) ([c97f9c7](https://www.github.com/slucky31/mycomicsmanager/commit/c97f9c7161ec1d9be60a7e2a6a67bdffbfb344da))
+
 <a name="10.23.0"></a>
 ## [10.23.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.23.0) (2026-10-09)
 
