@@ -17,4 +17,6 @@ public static class BooksError
     public static readonly TError AlreadyInLibrary = new("BOK410", "The book is already in this library");
     public static readonly TError FileNotFound = new("BOK411", "The book file was not found");
     public static readonly TError FileAlreadyExists = new("BOK412", "A file with the same name already exists in the target library");
+    public static readonly TError NotDigital = new("BOK413", "Only digital books can be read");
+    public static readonly TError PageNotFound = new("BOK414", "The requested page does not exist");
 }

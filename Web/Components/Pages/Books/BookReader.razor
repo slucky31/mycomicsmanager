@@ -1,0 +1,75 @@
+@page "/books/{BookId}/read"
+@layout ScannerLayout
+@rendermode InteractiveServer
+
+<PageTitle>@(_info is null ? "Reader" : _info.Title)</PageTitle>
+
+<div class="book-reader" @ref="_surface">
+    @if (_isLoading)
+    {
+        <div class="reader-center">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </div>
+    }
+    else if (_info is null)
+    {
+        <div class="reader-center">
+            <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Error" />
+            <MudText Typo="Typo.h6" Class="mt-4">This book cannot be read</MudText>
+            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled" Color="Color.Primary"
+                       Class="mt-4" OnClick="CloseAsync">
+                Back to book
+            </MudButton>
+        </div>
+    }
+    else
+    {
+        <img src="@PageUrl(_currentPage)" alt="@($"Page {_currentPage + 1}")" class="reader-page" />
+
+        @* Preload the neighbouring pages so turning a page is instant (cached by the browser only). *@
+        @if (_currentPage + 1 < _info.PageCount)
+        {
+            <img src="@PageUrl(_currentPage + 1)" alt="" class="reader-preload" aria-hidden="true" />
+        }
+
+        <button type="button" class="reader-zone reader-zone-previous" aria-label="Previous page" @onclick="PreviousPageAsync"></button>
+        <button type="button" class="reader-zone reader-zone-toggle" aria-label="Show or hide the controls" @onclick="ToggleControls"></button>
+        <button type="button" class="reader-zone reader-zone-next" aria-label="Next page" @onclick="NextPageAsync"></button>
+
+        @if (_showControls)
+        {
+            <div class="reader-toolbar reader-toolbar-top">
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="CloseAsync" aria-label="Close reader" />
+                <MudText Typo="Typo.subtitle1" Class="reader-title">@_info.Serie - @_info.Title</MudText>
+            </div>
+
+            <div class="reader-toolbar reader-toolbar-bottom">
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Color="Color.Inherit"
+                               Disabled="@(_currentPage == 0)" OnClick="PreviousPageAsync" aria-label="Previous page" />
+                <MudSlider T="int" Min="1" Max="@_info.PageCount" Value="@(_currentPage + 1)"
+                           ValueChanged="OnSliderChangedAsync" Immediate="false" Color="Color.Primary" Class="reader-slider" />
+                <MudText Typo="Typo.body2" Class="reader-counter">@(_currentPage + 1) / @_info.PageCount</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Color="Color.Inherit"
+                               OnClick="NextPageAsync" aria-label="Next page" />
+            </div>
+        }
+
+        @if (_showFinish)
+        {
+            <div class="reader-finish">
+                <MudPaper Class="pa-6 rounded-lg d-flex flex-column align-center gap-3" Elevation="8">
+                    <MudText Typo="Typo.h6">You finished this book</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Rate it to add a reading date.</MudText>
+                    <MudRating @bind-SelectedValue="_rating" MaxValue="5" Size="Size.Large" />
+                    <div class="d-flex gap-2 mt-2">
+                        <MudButton Variant="Variant.Text" OnClick="CloseFinish">Keep reading</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check"
+                                   Disabled="@_isMarkingAsRead" OnClick="MarkAsReadAsync">
+                            Mark as read
+                        </MudButton>
+                    </div>
+                </MudPaper>
+            </div>
+        }
+    }
+</div>

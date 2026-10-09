@@ -97,6 +97,8 @@ public partial class BookDetail
 
     private void EditBook() => NavigationManager.NavigateTo($"/books/{BookId}/edit");
 
+    private void ReadBook() => NavigationManager.NavigateTo($"/books/{BookId}/read");
+
     private async Task DeleteBookAsync()
     {
         try

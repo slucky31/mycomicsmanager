@@ -8,7 +8,21 @@ public sealed class DigitalBook : Book
 
     public long FileSize { get; private set; }
 
+    // Zero-based index of the last page displayed in the reader.
+    public int LastReadPage { get; private set; }
+
     private DigitalBook() { }
+
+    public Result UpdateReadingProgress(int pageIndex)
+    {
+        if (pageIndex < 0)
+        {
+            return BooksError.BadRequest;
+        }
+
+        LastReadPage = pageIndex;
+        return Result.Success();
+    }
 
     // The file has already been moved into the folder of the target library.
     public Result MoveToLibrary(Guid libraryId, string filePath)
