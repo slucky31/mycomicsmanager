@@ -9,6 +9,7 @@ using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Persistence.LocalStorage;
 using Persistence.Queries;
 using Persistence.Repositories;
@@ -58,6 +59,8 @@ public static class ProjectDependencyInjection
         services.AddScoped<IComicArchiveBuilder, ComicArchiveBuilderService>();
         services.AddScoped<IComicInfoXmlService, ComicInfoXmlService>();
         services.AddScoped<IBookFileService, BookFileService>();
+        services.AddScoped<IComicPageReader>(provider =>
+            new ComicPageReaderService(rootPath, provider.GetRequiredService<ILogger<ComicPageReaderService>>()));
 
         // Config Cloudinary service for cover image storage
         var cloudinarySection = configuration.GetSection("Cloudinary");

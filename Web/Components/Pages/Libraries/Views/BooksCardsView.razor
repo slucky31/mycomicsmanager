@@ -38,6 +38,7 @@
                             <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload" Href="@($"/books/{book.Id}/import")">Import from Web</MudMenuItem>
                             @if (ShowDownload)
                             {
+                                <MudMenuItem Icon="@Icons.Material.Filled.MenuBook" Href="@($"/books/{book.Id}/read")">Read</MudMenuItem>
                                 <MudMenuItem Icon="@Icons.Material.Filled.Download" IconColor="Color.Secondary" OnClick="@(() => OnDownload.InvokeAsync(book.Id))">Download CBZ</MudMenuItem>
                             }
                             <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>

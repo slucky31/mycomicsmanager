@@ -25,6 +25,14 @@
             @if (_book is not null)
             {
                 @* Desktop: icon buttons *@
+                @if (_book is DigitalBook)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.MenuBook"
+                                   Color="Color.Inherit"
+                                   OnClick="ReadBook"
+                                   aria-label="Read book"
+                                   Class="d-none d-sm-flex" />
+                }
                 <MudIconButton Icon="@Icons.Material.Filled.CloudDownload"
                                Color="Color.Inherit"
                                OnClick="ImportFromWeb"
@@ -53,6 +61,11 @@
                          Dense="true"
                          AriaLabel="More actions"
                          Class="d-flex d-sm-none">
+                    @if (_book is DigitalBook)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Filled.MenuBook"
+                                     OnClick="ReadBook">Read</MudMenuItem>
+                    }
                     <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload"
                                  OnClick="ImportFromWeb">Import from Web</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.Edit"

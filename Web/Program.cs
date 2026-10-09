@@ -205,6 +205,7 @@ builder.Services.AddMudServices(config =>
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
 builder.Services.AddScoped<IBookMoveService, BookMoveService>();
+builder.Services.AddScoped<IBookReaderService, BookReaderService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<ImportJobHandlers>();
 builder.Services.AddScoped<ProcessImportJobRepositories>();

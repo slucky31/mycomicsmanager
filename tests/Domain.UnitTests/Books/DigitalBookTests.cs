@@ -208,4 +208,28 @@ public class DigitalBookTests
         book.LibraryId.Should().Be(DefaultLibraryId);
         book.FilePath.Should().Be(DefaultFilePath);
     }
+
+    [Fact]
+    public void UpdateReadingProgress_Should_StorePage_WhenIndexIsPositiveOrZero()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+
+        book.UpdateReadingProgress(12).IsSuccess.Should().BeTrue();
+        book.LastReadPage.Should().Be(12);
+
+        book.UpdateReadingProgress(0).IsSuccess.Should().BeTrue();
+        book.LastReadPage.Should().Be(0);
+    }
+
+    [Fact]
+    public void UpdateReadingProgress_Should_FailWithoutChange_WhenIndexIsNegative()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+        book.UpdateReadingProgress(5);
+
+        var result = book.UpdateReadingProgress(-1);
+
+        result.Error.Should().Be(BooksError.BadRequest);
+        book.LastReadPage.Should().Be(5);
+    }
 }
