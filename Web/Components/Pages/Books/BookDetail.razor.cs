@@ -1,9 +1,7 @@
 using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Web.Components.Pages.Dialogs;
 using Web.Extensions;
-using Web.Models;
 using Web.Services;
 
 namespace Web.Components.Pages.Books;
@@ -12,7 +10,7 @@ public partial class BookDetail
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
-    [Inject] private IBookMoveService BookMoveService { get; set; } = default!;
+    [Inject] private IBookMoveWorkflow BookMoveWorkflow { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private ILogger<BookDetail> Logger { get; set; } = default!;
@@ -140,53 +138,15 @@ public partial class BookDetail
         _isMoving = true;
         try
         {
-            var targetLibraryId = await ChooseTargetLibraryAsync(_book.Id);
-            if (targetLibraryId is null)
+            if (await BookMoveWorkflow.ChooseAndMoveAsync(_book.Id))
             {
-                return;
-            }
-
-            var result = await BookMoveService.MoveAsync(_book.Id, targetLibraryId.Value);
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Book moved", Severity.Success);
                 await LoadBookAsync();
-            }
-            else if (result.IsFailure)
-            {
-                Snackbar.Add(result.Error?.Description ?? "Failed to move book", Severity.Error);
-                Logger.LogError("Failed to move book {BookId}: {Description}", _book.Id, result.Error?.Description);
             }
         }
         finally
         {
             _isMoving = false;
         }
-    }
-
-    // Null when there is nowhere to go, the targets could not be loaded or the user cancelled.
-    private async Task<Guid?> ChooseTargetLibraryAsync(Guid bookId)
-    {
-        var targets = await BookMoveService.GetTargetsAsync(bookId);
-        if (targets.IsFailure)
-        {
-            Snackbar.Add("Failed to load libraries", Severity.Error);
-            Logger.LogError("Failed to load move targets for book {BookId}: {Description}", bookId, targets.Error?.Description);
-            return null;
-        }
-
-        var options = BookMoveTargetViewModel.From(targets.Value!);
-        if (options.Count == 0)
-        {
-            Snackbar.Add("No other library of the same type", Severity.Info);
-            return null;
-        }
-
-        var parameters = new DialogParameters<MoveBookDialog> { { x => x.Targets, options } };
-        var dialog = await DialogService.ShowAsync<MoveBookDialog>(
-            "Move to another library", parameters, new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true });
-        var choice = await dialog.Result;
-        return choice is { Canceled: false, Data: Guid libraryId } ? libraryId : null;
     }
 
     private void GoBack()
