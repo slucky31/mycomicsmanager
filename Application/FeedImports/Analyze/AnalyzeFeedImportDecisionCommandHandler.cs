@@ -85,8 +85,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         }
 
         var grouping = extraction.Links.Count == 0 ? null : DownloadLinkGrouper.Group(extraction.Links, decision.EntryTitle);
-        // Ambiguous links stay on a single decision, until the user groups them.
-        var supportedCount = grouping is null ? 0 : grouping.IsAmbiguous ? 1 : grouping.Candidates.Count;
+        var supportedCount = CountSupportedDecisions(grouping);
         var decisions = CreateDecisions(decision, supportedCount + unsupported.Count);
         if (decisions.IsFailure)
         {
@@ -100,6 +99,17 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         return applied.IsFailure
             ? applied
             : FailUnsupported(decisions.Value[supportedCount..], unsupported, decision.EntryTitle, isOnlyBook, pageIsbn);
+    }
+
+    // Ambiguous links stay on a single decision, until the user groups them.
+    private static int CountSupportedDecisions(LinkGroupingResult? grouping)
+    {
+        if (grouping is null)
+        {
+            return 0;
+        }
+
+        return grouping.IsAmbiguous ? 1 : grouping.Candidates.Count;
     }
 
     // Files only offered on hosts outside FeedImport:AllowedDownloadHosts, one candidate per file.
