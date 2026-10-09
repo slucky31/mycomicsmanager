@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.23.0"></a>
+## [10.23.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.23.0) (2026-10-09)
+
+### ✨ Features
+
+* **books:** move a book from the library views' menus ([#1087](https://www.github.com/slucky31/mycomicsmanager/issues/1087)) ([6d444f3](https://www.github.com/slucky31/mycomicsmanager/commit/6d444f32e1954a819764e9f3747e4a35f3ba5246))
+
+<a name="10.22.2"></a>
+## [10.22.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.2) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency microsoft.testing.extensions.codecoverage to 18.12.0 ([#1085](https://www.github.com/slucky31/mycomicsmanager/issues/1085)) ([6d981b9](https://www.github.com/slucky31/mycomicsmanager/commit/6d981b98968062f354ef85746222074c977b20a5))
+
+<a name="10.22.1"></a>
+## [10.22.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.1) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **feed-imports:** report files offered only on unsupported hosts as failed decisions ([#1086](https://www.github.com/slucky31/mycomicsmanager/issues/1086)) ([15012f1](https://www.github.com/slucky31/mycomicsmanager/commit/15012f1ae66a2463cb95ca833ef99c81461708fe))
+
 <a name="10.22.0"></a>
 ## [10.22.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.0) (2026-10-05)
 

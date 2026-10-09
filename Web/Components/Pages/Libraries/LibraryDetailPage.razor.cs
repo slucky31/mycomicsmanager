@@ -16,6 +16,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
 {
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
+    [Inject] private IBookMoveWorkflow BookMoveWorkflow { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -40,6 +41,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private BooksListView? _booksListView;
 
     private bool _isLoading = true;
+    private bool _isMoving;
     private bool _observerInitialized;
     private DotNetObjectReference<LibraryDetailPage>? _dotNetRef;
     private CancellationTokenSource? _searchCts;
@@ -416,6 +418,41 @@ public partial class LibraryDetailPage : IAsyncDisposable
         await JS.InvokeVoidAsync("open", $"/api/books/{bookId}/download", "_blank");
     }
 
+    internal async Task MoveAsync(Guid bookId)
+    {
+        if (_isMoving)
+        {
+            return;
+        }
+
+        _isMoving = true;
+        try
+        {
+            if (await BookMoveWorkflow.ChooseAndMoveAsync(bookId, _disposalCts.Token))
+            {
+                // The book has left this library: reload so it disappears from the current view.
+                await ReloadBooksAsync();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed while moving; nothing to update.
+        }
+        finally
+        {
+            _isMoving = false;
+        }
+    }
+
+    private async Task ReloadBooksAsync()
+    {
+        await LoadDataAsync();
+        if (_currentViewMode == ViewMode.List && _booksListView is not null)
+        {
+            await _booksListView.ReloadAsync();
+        }
+    }
+
     private async Task DeleteAsync(Guid bookId)
     {
         var parameters = new DialogParameters<ConfirmationDialog>
@@ -443,11 +480,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
                 if (res.IsSuccess)
                 {
-                    await LoadDataAsync();
-                    if (_currentViewMode == ViewMode.List && _booksListView is not null)
-                    {
-                        await _booksListView.ReloadAsync();
-                    }
+                    await ReloadBooksAsync();
                 }
                 else
                 {

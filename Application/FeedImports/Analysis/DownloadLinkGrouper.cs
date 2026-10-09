@@ -71,6 +71,6 @@ public static class DownloadLinkGrouper
         return new DownloadCandidate(label, fileName, links.Select(l => l.SizeBytes).FirstOrDefault(s => s.HasValue), mirrors);
     }
 
-    private static string NormalizeFileName(string fileName) =>
+    internal static string NormalizeFileName(string fileName) =>
         new(Path.GetFileNameWithoutExtension(fileName).RemoveDiacritics().ToUpperInvariant().Where(char.IsLetterOrDigit).ToArray());
 }
