@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.24.1"></a>
+## [10.24.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.24.1) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency sharpcompress to 0.50.5 ([#1090](https://www.github.com/slucky31/mycomicsmanager/issues/1090)) ([1e950da](https://www.github.com/slucky31/mycomicsmanager/commit/1e950da1d90a1fe5bbd55ce045f187c92cd3664b))
+
 <a name="10.24.0"></a>
 ## [10.24.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.24.0) (2026-10-09)
 
