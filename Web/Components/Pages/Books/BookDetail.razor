@@ -161,22 +161,51 @@
                                 </div>
                             </div>
 
-                            @* ISBNs read on the pages, when there were several of them *@
-                            @if (IsbnCandidates.Count > 0)
+                            @* Search of the ISBN printed on the pages, while the book has none *@
+                            @if (_book is DigitalBook digitalBook)
                             {
-                                <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
-                                    <MudText Typo="Typo.body2">Several ISBNs are printed in this book. Pick its own to fetch its information:</MudText>
-                                    <div class="d-flex flex-wrap gap-2 mt-2">
-                                        @foreach (var isbn in IsbnCandidates)
-                                        {
+                                var isbnScanState = digitalBook.GetIsbnScanState();
+                                @if (isbnScanState == IsbnScanState.Candidates)
+                                {
+                                    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                                        <MudText Typo="Typo.body2">Several ISBNs are printed in this book. Pick its own to fetch its information:</MudText>
+                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                            @foreach (var isbn in digitalBook.IsbnCandidates)
+                                            {
+                                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                                           StartIcon="@Icons.Material.Filled.TravelExplore" Style="font-family: monospace;"
+                                                           OnClick="@(() => UseIsbnCandidate(isbn))">
+                                                    @isbn
+                                                </MudButton>
+                                            }
+                                        </div>
+                                    </MudAlert>
+                                }
+                                else if (isbnScanState != IsbnScanState.HasIsbn)
+                                {
+                                    <MudAlert Severity="Severity.Normal" Dense="true" Icon="@IsbnScanStateDisplay.Icon(isbnScanState)" Class="mb-3 book-detail-isbn-scan">
+                                        <MudText Typo="Typo.body2">
+                                            @(isbnScanState == IsbnScanState.NotFound
+                                                ? $"No ISBN found in the pages (scanned on {digitalBook.IsbnScannedAt!.Value.ToString(PublishDateHelper.DisplayFormat)})."
+                                                : "The pages were not scanned for an ISBN yet.")
+                                        </MudText>
+                                        <div class="d-flex flex-wrap gap-2 mt-2">
                                             <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
-                                                       StartIcon="@Icons.Material.Filled.TravelExplore" Style="font-family: monospace;"
-                                                       OnClick="@(() => UseIsbnCandidate(isbn))">
-                                                @isbn
+                                                       StartIcon="@Icons.Material.Filled.DocumentScanner"
+                                                       Disabled="_isScanningIsbn" OnClick="ScanIsbnAsync">
+                                                @if (_isScanningIsbn)
+                                                {
+                                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                                }
+                                                @(isbnScanState == IsbnScanState.NotFound ? "Scan again" : "Scan the pages")
                                             </MudButton>
-                                        }
-                                    </div>
-                                </MudAlert>
+                                            <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                                                       StartIcon="@Icons.Material.Filled.MenuBook" OnClick="FindIsbn">
+                                                Look in the reader
+                                            </MudButton>
+                                        </div>
+                                    </MudAlert>
+                                }
                             }
 
                             @* Volume *@

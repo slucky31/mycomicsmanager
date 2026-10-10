@@ -1,3 +1,5 @@
+using Domain.Books;
+
 namespace Application.Books.List;
 
 public sealed class BookSummaryDto
@@ -13,4 +15,5 @@ public sealed class BookSummaryDto
     public DateTime? LastRead { get; init; }
     public int? LastRating { get; init; }
     public int ReadCount { get; init; }
+    public IsbnScanState IsbnScanState { get; init; }
 }

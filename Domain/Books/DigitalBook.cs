@@ -20,6 +20,8 @@ public sealed class DigitalBook : Book
 
     private DigitalBook() { }
 
+    public IsbnScanState GetIsbnScanState() => IsbnScanStates.Of(ISBN, _isbnCandidates.Count, IsbnScannedAt);
+
     public Result RecordIsbnScan(IReadOnlyList<string> candidates, DateTime scannedAtUtc)
     {
         if (candidates is null || candidates.Any(string.IsNullOrWhiteSpace))

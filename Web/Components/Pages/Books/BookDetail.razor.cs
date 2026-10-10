@@ -1,3 +1,4 @@
+using Application.Books.IsbnScan;
 using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -14,6 +15,7 @@ public partial class BookDetail
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private ILogger<BookDetail> Logger { get; set; } = default!;
+    [Inject] private IIsbnScanService IsbnScanService { get; set; } = default!;
 
     [Parameter]
     public string BookId { get; set; } = string.Empty;
@@ -25,6 +27,7 @@ public partial class BookDetail
     private int _newRating = 1;
     private bool _isAddingReading;
     private bool _isMoving;
+    private bool _isScanningIsbn;
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,8 +102,60 @@ public partial class BookDetail
 
     private void ReadBook() => NavigationManager.NavigateTo($"/books/{BookId}/read");
 
-    // The book drops its candidates as soon as it gets an ISBN.
-    private IReadOnlyList<string> IsbnCandidates => _book is DigitalBook digitalBook ? digitalBook.IsbnCandidates : [];
+    // Reads the pages on the server right away (a few seconds), then shows what they gave.
+    private async Task ScanIsbnAsync()
+    {
+        if (_book is null || _isScanningIsbn)
+        {
+            return;
+        }
+
+        _isScanningIsbn = true;
+        try
+        {
+            var result = await IsbnScanService.ScanBookAsync(_book.Id);
+            if (result.IsFailure)
+            {
+                Snackbar.Add("Unable to scan the pages of this book", Severity.Error);
+                Logger.LogError("Unable to scan the pages of book {BookId} for its ISBN: {Error}", BookId, result.Error?.Code);
+                return;
+            }
+
+            await ShowIsbnScanOutcomeAsync(result.Value);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Snackbar.Add("Unable to scan the pages of this book", Severity.Error);
+            Logger.LogError(ex, "Unexpected error while scanning the pages of book {BookId} for its ISBN", BookId);
+        }
+        finally
+        {
+            _isScanningIsbn = false;
+        }
+    }
+
+    private async Task ShowIsbnScanOutcomeAsync(IsbnScanOutcome outcome)
+    {
+        switch (outcome)
+        {
+            case IsbnScanOutcome.Assigned:
+                // The book has its ISBN now: fetch its information right away.
+                Snackbar.Add("ISBN found in the pages", Severity.Success);
+                NavigationManager.NavigateTo($"/books/{BookId}/import");
+                return;
+            case IsbnScanOutcome.WithCandidates:
+                Snackbar.Add("Several ISBNs found in the pages: pick the book's own", Severity.Info);
+                break;
+            case IsbnScanOutcome.WithoutIsbn:
+                Snackbar.Add("No ISBN found in the pages", Severity.Warning);
+                break;
+            default:
+                Snackbar.Add("The pages could not be read", Severity.Error);
+                return;
+        }
+
+        await LoadBookAsync();
+    }
 
     private void UseIsbnCandidate(string isbn) =>
         NavigationManager.NavigateTo($"/books/{BookId}/import?isbn={Uri.EscapeDataString(isbn)}");

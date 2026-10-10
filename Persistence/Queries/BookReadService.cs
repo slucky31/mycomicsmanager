@@ -60,7 +60,13 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
             LastRating = b.ReadingDates
                 .OrderByDescending(rd => rd.Date)
                 .Select(rd => (int?)rd.Rating)
-                .FirstOrDefault()
+                .FirstOrDefault(),
+            // Same rules as IsbnScanStates.Of, written out so that the database evaluates them.
+            IsbnScanState = !(b is DigitalBook) || (b.ISBN != null && b.ISBN != "")
+                ? IsbnScanState.HasIsbn
+                : ((DigitalBook)b).IsbnCandidates.Count > 0
+                    ? IsbnScanState.Candidates
+                    : ((DigitalBook)b).IsbnScannedAt == null ? IsbnScanState.NotScanned : IsbnScanState.NotFound
         });
 #pragma warning restore CA1826
 

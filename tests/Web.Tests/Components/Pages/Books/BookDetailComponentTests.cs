@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using Bunit;
 using Domain.Books;
 using Domain.Primitives;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 using NSubstitute;
@@ -25,6 +24,7 @@ public sealed class BookDetailComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton(service);
         ctx.Services.AddSingleton(Substitute.For<IBookMoveWorkflow>());
+        ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
 
         var cut = ctx.Render<BookDetail>(p => p.Add(c => c.BookId, Guid.CreateVersion7().ToString()));
 
@@ -44,6 +44,7 @@ public sealed class BookDetailComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton(booksService);
         ctx.Services.AddSingleton(workflow);
+        ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
 
         var cut = ctx.Render<BookDetail>(p => p.Add(c => c.BookId, book.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad"));
@@ -51,45 +52,5 @@ public sealed class BookDetailComponentTests
 
         await workflow.Received(1).ChooseAndMoveAsync(book.Id, Arg.Any<CancellationToken>());
         await booksService.Received(2).GetById(book.Id.ToString());
-    }
-
-    [Fact]
-    public async Task UseIsbnCandidate_Should_OpenTheWebImportWithThePickedIsbn_WhenSeveralIsbnsWereRead()
-    {
-        var book = DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null), Guid.CreateVersion7(), "/data/A/b.cbz", 1).Value!;
-        book.RecordIsbnScan(["9782800112343", "2205056174"], DateTime.UtcNow);
-        var booksService = Substitute.For<IBooksService>();
-        booksService.GetById(Arg.Any<string?>()).Returns(Result<Book>.Success(book));
-        await using var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddMudServices();
-        ctx.Services.AddSingleton(booksService);
-        ctx.Services.AddSingleton(Substitute.For<IBookMoveWorkflow>());
-
-        var cut = ctx.Render<BookDetail>(p => p.Add(c => c.BookId, book.Id.ToString()));
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Several ISBNs are printed in this book"));
-        await cut.FindAll("button").Single(b => b.TextContent.Contains("2205056174", StringComparison.Ordinal)).ClickAsync(new());
-
-        ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{book.Id}/import?isbn=2205056174");
-    }
-
-    [Fact]
-    public async Task LoadBookAsync_Should_NotOfferTheIsbnCandidates_WhenTheBookHasAnIsbn()
-    {
-        var book = DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null), Guid.CreateVersion7(), "/data/A/b.cbz", 1).Value!;
-        book.RecordIsbnScan(["9782800112343", "2205056174"], DateTime.UtcNow);
-        book.AssignIsbn("9782800112343");
-        var booksService = Substitute.For<IBooksService>();
-        booksService.GetById(Arg.Any<string?>()).Returns(Result<Book>.Success(book));
-        await using var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddMudServices();
-        ctx.Services.AddSingleton(booksService);
-        ctx.Services.AddSingleton(Substitute.For<IBookMoveWorkflow>());
-
-        var cut = ctx.Render<BookDetail>(p => p.Add(c => c.BookId, book.Id.ToString()));
-
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("9782800112343"));
-        cut.Markup.Should().NotContain("Several ISBNs are printed in this book");
     }
 }

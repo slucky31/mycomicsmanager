@@ -46,7 +46,14 @@
                 }
             </MudTd>
             <MudTd DataLabel="ISBN">
-                <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.ISBN</MudText>
+                @if (string.IsNullOrEmpty(context.ISBN))
+                {
+                    <IsbnScanStateIcon State="@context.IsbnScanState" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.ISBN</MudText>
+                }
             </MudTd>
             <MudTd DataLabel="Actions" Style="text-align: right;" Class="list-actions-cell">
                 <div class="action-buttons">
