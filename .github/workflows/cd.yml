@@ -4,6 +4,16 @@ on:
   push:
     branches: [ main ]
 
+# One CD run at a time on main. Two overlapping runs would each compute the same next version
+# and push their own release commit, and the first push could drop a merge that landed meanwhile.
+# A queued run is not cancelled by the one in progress; if a third merge arrives, it replaces
+# the queued one, whose commits it contains anyway (Versionize releases everything since the
+# last tag). Release commits only re-trigger this workflow to be skipped (see build.if): they
+# get a group of their own so they never take the place of a queued merge.
+concurrency:
+  group: ${{ startsWith(github.event.head_commit.message, 'chore(release):') && format('cd-release-commit-{0}', github.sha) || 'cd-main' }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build, Test & Analyze
@@ -112,6 +122,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      pushed: ${{ steps.main-head.outputs.current }}
+      sha: ${{ steps.release-commit.outputs.sha }}
     steps:
       # actions/checkout persists the given token's credentials (as an http.extraheader) for
       # every git command in this job. If left at the default GITHUB_TOKEN, that persisted
@@ -125,47 +138,73 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
+      # A merge that landed on main after this run started is not in this release commit:
+      # pushing it would be rejected (or, forced, would drop that merge). Leave the release to
+      # the run of that merge, queued behind this one, which releases every commit since the
+      # last tag.
+      - name: Check main is still at this run's commit
+        id: main-head
+        run: |
+          git fetch origin main
+          if [ "$(git rev-parse origin/main)" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::main moved past $GITHUB_SHA: the next CD run releases these commits."
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup git
+        if: steps.main-head.outputs.current == 'true'
         run: |
           git config --global user.email "nicolas.dufaut@gmail.com"
           git config --global user.name "slucky31"
 
       - name: Install Versionize
+        if: steps.main-head.outputs.current == 'true'
         run: dotnet tool install --global Versionize
 
       # Pin the exact version the build job already analyzed and reported to SonarCloud,
       # instead of recomputing it here - keeps the two in sync and avoids a second scan
       # of commit history landing on a different result.
       - name: Versioning
+        if: steps.main-head.outputs.current == 'true'
         run: versionize --release-as "${{ needs.build.outputs.version }}"
 
       # The default GITHUB_TOKEN can't push to main: required status checks only run on
       # PRs, never on a direct push, so branch protection rejects it. RELEASE_TOKEN is a
       # PAT from an admin account, exempted via enforce_admins=false.
+      # Never forced: if main still moved in the meantime, the push fails instead of dropping
+      # that merge, and the next run releases it.
       - name: Push changes to GitHub
+        if: steps.main-head.outputs.current == 'true'
         uses: ad-m/github-push-action@881a6320fdb16eb5318c5054f31c218aec2b324c # v1.3.0
         with:
           github_token: ${{ secrets.RELEASE_TOKEN }}
           branch: ${{ github.ref }}
           tags: true
-          force: true
+
+      - name: Record the release commit
+        id: release-commit
+        if: steps.main-head.outputs.current == 'true'
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   docker-web:
     name: Publish Docker
     needs: [build, release]
-    if: needs.build.outputs.released == 'true'
+    if: needs.build.outputs.released == 'true' && needs.release.outputs.pushed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
       # Without an explicit ref, checkout resolves the SHA that triggered this workflow run,
-      # i.e. the commit *before* the release job's Versionize push. Pinning to main picks up
-      # that bump commit, so the image is built with the version it's tagged with.
+      # i.e. the commit *before* the release job's Versionize push. Pinning to the release
+      # commit picks up that bump, so the image is built with the version it's tagged with
+      # (and not with a later merge that main may already hold).
       - name : Checkout
         uses: actions/checkout@v7
         with:
-          ref: main
+          ref: ${{ needs.release.outputs.sha }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - name: Set up Docker Buildx
