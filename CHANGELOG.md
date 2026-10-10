@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.26.0"></a>
+## [10.26.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.26.0) (2026-10-10)
+
+### ✨ Features
+
+* **search:** search the BnF catalogue first and pause Bedetheque when Cloudflare blocks it ([#1099](https://www.github.com/slucky31/mycomicsmanager/issues/1099)) ([a48266b](https://www.github.com/slucky31/mycomicsmanager/commit/a48266b1f19536b5185cfc28965113fd202c0c21))
+
 <a name="10.25.1"></a>
 ## [10.25.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.25.1) (2026-10-10)
 
