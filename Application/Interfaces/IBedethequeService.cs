@@ -9,7 +9,9 @@ public record BedethequeBookResult(
     DateOnly? PublishDate,
     int? NumberOfPages,
     Uri? CoverUrl,
-    bool Found
+    bool Found,
+    // The source could not be searched (error, timeout, blocked): unlike !Found, it may know the book.
+    bool Failed = false
 );
 
 public interface IBedethequeService
