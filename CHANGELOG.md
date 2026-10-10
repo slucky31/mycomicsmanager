@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.25.1"></a>
+## [10.25.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.25.1) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **ci:** run integration tests against a local PostgreSQL 18 service ([#1096](https://www.github.com/slucky31/mycomicsmanager/issues/1096)) ([79a24a7](https://www.github.com/slucky31/mycomicsmanager/commit/79a24a7a180180d5033adc28d81f87703067e838))
+
 <a name="10.25.0"></a>
 ## [10.25.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.25.0) (2026-10-10)
 
