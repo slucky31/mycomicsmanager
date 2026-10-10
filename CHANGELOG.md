@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.29.1"></a>
+## [10.29.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.29.1) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **ci:** serialize CD runs and never force-push the release commit ([#1104](https://www.github.com/slucky31/mycomicsmanager/issues/1104)) ([79639aa](https://www.github.com/slucky31/mycomicsmanager/commit/79639aa3440abf8defb8b261de1a0debd5bbe1e9))
+* **deps:** update xunit-dotnet monorepo ([#1092](https://www.github.com/slucky31/mycomicsmanager/issues/1092)) ([4500e1a](https://www.github.com/slucky31/mycomicsmanager/commit/4500e1a39b4c3cd2be6dd97827ab7f6320d3d06d))
+
 <a name="10.29.0"></a>
 ## [10.29.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.29.0) (2026-10-10)
 
