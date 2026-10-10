@@ -1,0 +1,120 @@
+3 bibliothèques
+[
+ {
+  "name": "Read Books",
+  "id": "019cf8a4-cef4-7ce8-98f8-d22343da75c3",
+  "digital": false,
+  "books": 24,
+  "first_book": "01a024a2-bf75-781f-a1df-d2d98a3ba23a"
+ },
+ {
+  "name": "MesEbooks",
+  "id": "01a0bdcd-9112-7e69-ac9d-3823f033e410",
+  "digital": true,
+  "books": 0,
+  "first_book": null
+ },
+ {
+  "name": "À trier",
+  "id": "01a10db7-5a64-73bc-91be-9aed30dcff5f",
+  "digital": true,
+  "books": 24,
+  "first_book": "01a1266d-7acc-7075-bbc4-490f9d28106c"
+ }
+]
+Livre 01a1266d-7acc-7075-bbc4-490f9d28106c lisible, page large: 1
+Bibliothèque détail: Read Books | livre papier: 01a024a2-bf75-781f-a1df-d2d98a3ba23a | livre numérique: 01a1266d-7acc-7075-bbc4-490f9d28106c | planche large: 01a1266d-7acc-7075-bbc4-490f9d28106c p.1
+== mobile
+  ok 1-mobile-navigation.png
+  ok 2-mobile-liste-bibliotheques.png
+  ok 2-mobile-liste-bibliotheques-bas.png
+  ok 3-mobile-bibliotheque-haut.png
+  ok 3-mobile-bibliotheque-filtres-tri.png
+  ok 3-mobile-bibliotheque-defilement.png
+  ok 4-mobile-fiche-livre-papier-haut.png
+  ok 4-mobile-fiche-livre-papier-bas.png
+  ok 4-mobile-fiche-livre-numerique-haut.png
+  ok 4-mobile-fiche-livre-numerique-bas.png
+  ok 5-mobile-lecteur-controles-visibles.png
+  ok 5-mobile-lecteur-controles-masques.png
+  ok 5-mobile-lecteur-planche-large-masques.png
+  ok 5-mobile-lecteur-planche-large-visibles.png
+  ok 7-mobile-scanner-isbn.png
+  ok 8-mobile-ajout-livre.png
+  ok 8-mobile-ajout-livre-bas.png
+  ok 9-mobile-formulaire-livre.png
+  ok 9-mobile-formulaire-livre-erreurs.png
+  ok 9-mobile-formulaire-livre-bas.png
+  ok 10-mobile-edition-livre.png
+  ok 10-mobile-edition-livre-bas.png
+  ok 11-mobile-import.png
+  ok 12-mobile-flux-imports.png
+  ok 12-mobile-flux-imports-bas.png
+  ok 13-mobile-statistiques.png
+  ok 13-mobile-statistiques-bas.png
+  ok 14-mobile-ajout-bibliotheque.png
+  ok 15-mobile-parametres.png
+  ok 15-mobile-parametres-bas.png
+  ok 16-mobile-import-isbn.png
+  ok 16-mobile-import-isbn-bas.png
+== tablette
+  ok 1-tablette-navigation.png
+  ok 2-tablette-liste-bibliotheques.png
+  ok 2-tablette-liste-bibliotheques-bas.png
+  ok 3-tablette-bibliotheque-haut.png
+  (pas de menu tri en tablette : tri/vues déjà dans l'en-tête)
+  ok 3-tablette-bibliotheque-menu-livre.png
+  ok 3-tablette-bibliotheque-defilement.png
+  ok 4-tablette-fiche-livre-papier-haut.png
+  ok 4-tablette-fiche-livre-papier-bas.png
+  ok 4-tablette-fiche-livre-numerique-haut.png
+  ok 4-tablette-fiche-livre-numerique-bas.png
+  ok 5-tablette-lecteur-controles-visibles.png
+  ok 5-tablette-lecteur-controles-masques.png
+  ok 5-tablette-lecteur-planche-large-masques.png
+  ok 5-tablette-lecteur-planche-large-visibles.png
+  ok 8-tablette-ajout-livre.png
+  ok 8-tablette-ajout-livre-bas.png
+  ok 9-tablette-formulaire-livre.png
+  ok 9-tablette-formulaire-livre-erreurs.png
+  ok 9-tablette-formulaire-livre-bas.png
+  ok 10-tablette-edition-livre.png
+  ok 10-tablette-edition-livre-bas.png
+  ok 11-tablette-import.png
+  ok 12-tablette-flux-imports.png
+  ok 12-tablette-flux-imports-bas.png
+  ok 13-tablette-statistiques.png
+  ok 13-tablette-statistiques-bas.png
+  ok 14-tablette-ajout-bibliotheque.png
+  ok 15-tablette-parametres.png
+  ok 15-tablette-parametres-bas.png
+  ok 16-tablette-import-isbn.png
+  ok 16-tablette-import-isbn-bas.png
+== desktop
+  ok 1-desktop-navigation.png
+  ok 2-desktop-liste-bibliotheques.png
+  ok 2-desktop-liste-bibliotheques-bas.png
+  ok 3-desktop-bibliotheque-haut.png
+  (pas de menu tri en desktop : tri/vues déjà dans l'en-tête)
+  ok 3-desktop-bibliotheque-menu-livre.png
+  ok 3-desktop-bibliotheque-defilement.png
+  ok 4-desktop-fiche-livre-papier-haut.png
+  ok 4-desktop-fiche-livre-papier-bas.png
+  ok 4-desktop-fiche-livre-numerique-haut.png
+  ok 4-desktop-fiche-livre-numerique-bas.png
+  ok 5-desktop-lecteur-controles-visibles.png
+  ok 5-desktop-lecteur-controles-masques.png
+  ok 5-desktop-lecteur-planche-large-masques.png
+  ok 5-desktop-lecteur-planche-large-visibles.png
+  ok 8-desktop-ajout-livre.png
+  ok 9-desktop-formulaire-livre.png
+  ok 9-desktop-formulaire-livre-erreurs.png
+  ok 10-desktop-edition-livre.png
+  ok 11-desktop-import.png
+  ok 12-desktop-flux-imports.png
+  ok 13-desktop-statistiques.png
+  ok 14-desktop-ajout-bibliotheque.png
+  ok 15-desktop-parametres.png
+  ok 15-desktop-parametres-bas.png
+  ok 16-desktop-import-isbn.png
+  ok 16-desktop-import-isbn-bas.png
