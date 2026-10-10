@@ -31,7 +31,8 @@ public sealed class FileWatcherServiceTests : IDisposable
 
     public FileWatcherServiceTests()
     {
-        _importDir = Path.Combine(Path.GetTempPath(), "fws-tests", Guid.NewGuid().ToString());
+        // Not a bare GUID: the import root itself must not be mistaken for a library folder.
+        _importDir = Path.Combine(Path.GetTempPath(), "fws-tests", $"import-{Guid.NewGuid():N}");
         Directory.CreateDirectory(_importDir);
 
         _libraryRepository = Substitute.For<IRepository<Library, Guid>>();
@@ -160,6 +161,7 @@ public sealed class FileWatcherServiceTests : IDisposable
     {
         // File is directly in import root — parent name is not a GUID
         var filePath = Path.Combine(_importDir, "comic.cbz");
+        await File.WriteAllBytesAsync(filePath, new byte[512], TestContext.Current.CancellationToken);
 
         await _service.ProcessFileAsync(filePath, CancellationToken.None);
 

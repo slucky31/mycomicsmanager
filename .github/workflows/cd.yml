@@ -13,6 +13,24 @@ jobs:
     # skip it, which also skips the jobs that depend on build.
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
+    # Integration tests run against a throwaway PostgreSQL on the runner itself: the
+    # self-hosted server is too far from GitHub's runners, and its round-trip latency
+    # made Persistence.Tests take ~2.5 min instead of ~10 s. Keep the major version in
+    # line with production (PostgreSQL 18).
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          # Throwaway database reachable only from this job: no password needed.
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: mcm_tests
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     permissions:
       contents: read
     outputs:
@@ -81,7 +99,7 @@ jobs:
       - name: Tests
         run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --coverage --coverage-output-format cobertura
         env:
-          ConnectionStrings__NeonConnectionUnitTests: ${{ secrets.CONNECTIONSTRINGS_NEONCONNECTIONUNITTESTS }}
+          ConnectionStrings__NeonConnectionUnitTests: Host=localhost;Port=5432;Database=mcm_tests;Username=postgres
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
