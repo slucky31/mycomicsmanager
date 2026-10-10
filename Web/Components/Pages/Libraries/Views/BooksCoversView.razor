@@ -34,7 +34,8 @@
                 @if (book.IsbnScanState != IsbnScanState.HasIsbn)
                 {
                     <div class="book-cover-isbn-state">
-                        <IsbnScanStateIcon State="@book.IsbnScanState" OnDarkBackground="true" />
+                        <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount"
+                                           HideWhenKnown="true" OnDarkBackground="true" />
                     </div>
                 }
 

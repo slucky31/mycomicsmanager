@@ -68,16 +68,7 @@
 
                     <div class="d-flex align-center justify-space-between mt-auto pt-2">
                         <div class="d-flex align-center gap-2">
-                            @if (!string.IsNullOrEmpty(book.ISBN))
-                            {
-                                <MudTooltip Text="@book.ISBN" Placement="Placement.Top">
-                                    <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Small" Class="book-card-meta-icon" />
-                                </MudTooltip>
-                            }
-                            else
-                            {
-                                <IsbnScanStateIcon State="@book.IsbnScanState" Class="book-card-meta-icon" />
-                            }
+                            <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount" Isbn="@book.ISBN" />
                             @if (book.LastRating.HasValue)
                             {
                                 <MudRating SelectedValue="@book.LastRating.Value" MaxValue="5" Disabled="true" Size="Size.Small" />

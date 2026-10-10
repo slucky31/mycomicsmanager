@@ -10,12 +10,12 @@ public sealed class IsbnScanStateDisplayTests
 {
     [Theory]
     [InlineData(IsbnScanState.NotScanned, "No ISBN: the pages were not scanned yet")]
-    [InlineData(IsbnScanState.Candidates, "Several ISBNs found in the pages: pick the book's own")]
+    [InlineData(IsbnScanState.Candidates, "2 ISBNs found in the pages: pick the book's own")]
     [InlineData(IsbnScanState.NotFound, "No ISBN found in the pages")]
     [InlineData(IsbnScanState.HasIsbn, "")]
     public void Label_Should_DescribeTheState(IsbnScanState state, string expected)
     {
-        IsbnScanStateDisplay.Label(state).Should().Be(expected);
+        IsbnScanStateDisplay.Label(state, candidateCount: 2).Should().Be(expected);
     }
 
     [Fact]
@@ -28,11 +28,29 @@ public sealed class IsbnScanStateDisplayTests
     }
 
     [Theory]
-    [InlineData(IsbnScanState.Candidates, Color.Warning)]
-    [InlineData(IsbnScanState.NotScanned, Color.Default)]
-    [InlineData(IsbnScanState.NotFound, Color.Default)]
-    public void Color_Should_OnlyHighlightTheCandidates(IsbnScanState state, Color expected)
+    [InlineData(IsbnScanState.NotScanned, "?")]
+    [InlineData(IsbnScanState.Candidates, "3")]
+    [InlineData(IsbnScanState.NotFound, null)]
+    [InlineData(IsbnScanState.HasIsbn, null)]
+    public void BadgeContent_Should_TellWhyTheIsbnIsMissing(IsbnScanState state, string? expected)
     {
-        IsbnScanStateDisplay.Color(state).Should().Be(expected);
+        IsbnScanStateDisplay.BadgeContent(state, candidateCount: 3).Should().Be(expected);
+    }
+
+    [Fact]
+    public void BadgeIcon_Should_OnlyBeACross_WhenNothingWasFound()
+    {
+        IsbnScanStateDisplay.BadgeIcon(IsbnScanState.NotFound).Should().Be(Icons.Material.Filled.Close);
+        IsbnScanStateDisplay.BadgeIcon(IsbnScanState.NotScanned).Should().BeNull();
+        IsbnScanStateDisplay.BadgeIcon(IsbnScanState.Candidates).Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(IsbnScanState.Candidates, Color.Warning)]
+    [InlineData(IsbnScanState.NotFound, Color.Error)]
+    [InlineData(IsbnScanState.NotScanned, Color.Dark)]
+    public void BadgeColor_Should_HighlightTheCandidates(IsbnScanState state, Color expected)
+    {
+        IsbnScanStateDisplay.BadgeColor(state).Should().Be(expected);
     }
 }
