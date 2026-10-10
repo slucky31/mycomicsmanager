@@ -140,7 +140,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
     [Fact]
     public async Task ProcessImagesAsync_Should_PreserveAspectRatio()
     {
-        // Arrange — portrait 1000x1500 → target width 140, expected height 210
+        // Arrange — portrait 100x150 → target width 140, expected height 210
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
         await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"), width: 100, height: 150);
@@ -285,7 +285,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
     [Fact]
     public async Task ProcessImagesAsync_Should_ReconvertWebp_WhenWidthDoesNotMatchTarget()
     {
-        // Arrange — WebP at 800px, but target is 1400px → must be re-converted
+        // Arrange — WebP at 80px, but target is 140px → must be re-converted
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
         await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 80, height: 120);
@@ -325,7 +325,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
     [Fact]
     public async Task ProcessImagesAsync_Should_SkipDoublePage_WhenWidthMatchesDoubleTarget()
     {
-        // Arrange — landscape WebP at 2800px (double page at targetWidth=140) → skip
+        // Arrange — landscape WebP at 280px (double page at targetWidth=140) → skip
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
         await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 280, height: 210);
