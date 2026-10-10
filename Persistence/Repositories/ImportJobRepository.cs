@@ -13,6 +13,14 @@ public class ImportJobRepository(ApplicationDbContext context) : IImportJobRepos
     public async Task<ImportJob?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => await context.ImportJobs.FirstOrDefaultAsync(j => j.Id == id, ct);
 
+    public async Task<IReadOnlyList<ImportJob>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken ct = default)
+        => ids.Count == 0
+            ? []
+            : await context.ImportJobs
+                .AsNoTracking()
+                .Where(j => ids.Contains(j.Id))
+                .ToListAsync(ct);
+
     public async Task<IReadOnlyList<ImportJob>> GetByLibraryIdAsync(Guid libraryId, CancellationToken ct = default)
         => await context.ImportJobs
             .AsNoTracking()
