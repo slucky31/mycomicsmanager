@@ -14,5 +14,8 @@ public record BedethequeBookResult(
 
 public interface IBedethequeService
 {
+    // False when Bedetheque is turned off in the settings (Bedetheque:Enabled).
+    bool IsEnabled { get; }
+
     Task<BedethequeBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default);
 }

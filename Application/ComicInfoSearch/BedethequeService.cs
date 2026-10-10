@@ -20,14 +20,17 @@ public partial class BedethequeService : IBedethequeService
     private readonly string _serieUrlPrefix;
     private readonly string _serieBdUrlPrefix;
     private readonly ILogger<BedethequeService> _logger;
+    private readonly BedethequeCircuit _circuit;
 
     public BedethequeService(
         IHttpClientFactory httpClientFactory,
         IIsbnBedethequeCacheRepository cacheRepository,
         IOptions<BedethequeSettings> settings,
+        BedethequeCircuit circuit,
         ILogger<BedethequeService> logger)
     {
         _logger = logger;
+        _circuit = circuit;
         _httpClientFactory = httpClientFactory;
         _cacheRepository = cacheRepository;
         _settings = settings.Value;
@@ -38,9 +41,22 @@ public partial class BedethequeService : IBedethequeService
         _serieBdUrlPrefix = $"{baseUrl}/serie-bd";
     }
 
+    public bool IsEnabled => _settings.Enabled;
+
     public async Task<BedethequeBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default)
     {
         var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
+        if (!_settings.Enabled)
+        {
+            return CreateNotFoundResult();
+        }
+
+        if (_circuit.PausedUntil is { } pausedUntil)
+        {
+            _logger.LogInformation("Bedetheque is paused until {PausedUntil} after a Cloudflare challenge: ISBN {Isbn} not searched",
+                pausedUntil, cleanIsbn);
+            return CreateNotFoundResult();
+        }
 
         try
         {
@@ -169,10 +185,12 @@ public partial class BedethequeService : IBedethequeService
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
+        // Bedetheque has used both http:// and https:// schema.org types.
         var items = doc.DocumentNode.SelectNodes(
-            "//li[@itemscope and @itemtype='https://schema.org/Book']");
+            "//li[@itemscope and contains(@itemtype, 'schema.org/Book')]");
         if (items is null)
         {
+            _logger.LogWarning("No album list found in serie page {SerieUrl} for ISBN {Isbn}", serieUrl, isbn);
             return null;
         }
 
@@ -213,14 +231,30 @@ public partial class BedethequeService : IBedethequeService
         var client = _httpClientFactory.CreateClient("Bedetheque");
         var response = await client.GetAsync(new Uri(url), ct);
 
+        var html = await response.Content.ReadAsStringAsync(ct);
+        if (IsCloudflareChallenge(response, html))
+        {
+            var until = _circuit.Pause(TimeSpan.FromHours(_settings.CloudflarePauseHours));
+            _logger.LogWarning(
+                "Bedetheque answered with a Cloudflare challenge instead of the page {Url}: the server's requests are blocked, Bedetheque is paused until {PausedUntil}",
+                url, until);
+            return null;
+        }
+
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogWarning("Bedetheque page returned {StatusCode} for URL: {Url}", response.StatusCode, url);
             return null;
         }
 
-        return await response.Content.ReadAsStringAsync(ct);
+        return html;
     }
+
+    // The "Just a moment..." page asks the browser to run a script: no album can be read from it.
+    private static bool IsCloudflareChallenge(HttpResponseMessage response, string html) =>
+        response.Headers.Contains("cf-mitigated")
+        || (html.Contains("Just a moment", StringComparison.OrdinalIgnoreCase)
+            && html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase));
 
     private BedethequeBookResult ParsePage(string html, string pageUrl, string coversBaseUrl)
     {

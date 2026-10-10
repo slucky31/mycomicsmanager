@@ -54,7 +54,11 @@
                     <div class="import-field-label">TITLE</div>
                     <MudRadioGroup T="BookSource" @bind-Value="_selectedTitle" Class="import-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.Title)
-                        @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.Title))
+                        @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.Title))
+                        @if (BedethequeService.IsEnabled)
+                        {
+                            @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.Title))
+                        }
                         @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Title))
                         @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Title))
                     </MudRadioGroup>
@@ -65,7 +69,11 @@
                     <div class="import-field-label">SERIE</div>
                     <MudRadioGroup T="BookSource" @bind-Value="_selectedSerie" Class="import-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Serie))
-                        @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.Serie))
+                        @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.Serie))
+                        @if (BedethequeService.IsEnabled)
+                        {
+                            @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.Serie))
+                        }
                         @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Serie))
                         @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Serie))
                     </MudRadioGroup>
@@ -76,7 +84,11 @@
                     <div class="import-field-label">VOLUME NUMBER</div>
                     <MudRadioGroup T="BookSource" @bind-Value="_selectedVolumeNumber" Class="import-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.VolumeNumber.ToString())
-                        @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.VolumeNumber))
+                        @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.VolumeNumber))
+                        @if (BedethequeService.IsEnabled)
+                        {
+                            @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.VolumeNumber))
+                        }
                         @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.VolumeNumber))
                         @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.VolumeNumber))
                     </MudRadioGroup>
@@ -87,7 +99,11 @@
                     <div class="import-field-label">AUTHORS</div>
                     <MudRadioGroup T="BookSource" @bind-Value="_selectedAuthors" Class="import-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Authors))
-                        @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.Authors))
+                        @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.Authors))
+                        @if (BedethequeService.IsEnabled)
+                        {
+                            @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.Authors))
+                        }
                         @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Authors))
                         @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Authors))
                     </MudRadioGroup>
@@ -98,7 +114,11 @@
                     <div class="import-field-label">PUBLISHERS</div>
                     <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishers" Class="import-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Publishers))
-                        @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.Publishers))
+                        @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.Publishers))
+                        @if (BedethequeService.IsEnabled)
+                        {
+                            @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.Publishers))
+                        }
                         @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.Publishers))
                         @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.Publishers))
                     </MudRadioGroup>
@@ -109,7 +129,11 @@
                     <div class="import-field-label">PUBLISH DATE</div>
                     <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishDate" Class="import-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.PublishDate?.ToString(PublishDateHelper.DisplayFormat))
-                        @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.PublishDate))
+                        @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.PublishDate))
+                        @if (BedethequeService.IsEnabled)
+                        {
+                            @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.PublishDate))
+                        }
                         @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.PublishDate))
                         @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.PublishDate))
                     </MudRadioGroup>
@@ -120,7 +144,11 @@
                     <div class="import-field-label">NUMBER OF PAGES</div>
                     <MudRadioGroup T="BookSource" @bind-Value="_selectedNumberOfPages" Class="import-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.NumberOfPages?.ToString())
-                        @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.NumberOfPages))
+                        @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.NumberOfPages))
+                        @if (BedethequeService.IsEnabled)
+                        {
+                            @SourceOption(BookSource.Bedetheque,  "BEDETHEQUE",   GetBedethequeValue(BookFieldKeys.NumberOfPages))
+                        }
                         @SourceOption(BookSource.OpenLibrary, "OPENLIBRARY",  GetOlValue(BookFieldKeys.NumberOfPages))
                         @SourceOption(BookSource.Google,      "GOOGLE BOOKS", GetGoogleValue(BookFieldKeys.NumberOfPages))
                     </MudRadioGroup>
@@ -143,19 +171,22 @@
                                 }
                             </div>
                         </MudRadio>
-                        <MudRadio T="BookSource" Value="BookSource.Bedetheque" Dense="true" Disabled="@(_bedethequeResult?.CoverUrl is null)">
-                            <div class="import-option">
-                                <span class="import-source-label">BEDETHEQUE</span>
-                                @if (_bedethequeResult?.CoverUrl is not null)
-                                {
-                                    <img src="@_bedethequeResult.CoverUrl" class="import-cover-thumb" alt="bedetheque cover" />
-                                }
-                                else
-                                {
-                                    <span class="import-source-value">—</span>
-                                }
-                            </div>
-                        </MudRadio>
+                        @if (BedethequeService.IsEnabled)
+                        {
+                            <MudRadio T="BookSource" Value="BookSource.Bedetheque" Dense="true" Disabled="@(_bedethequeResult?.CoverUrl is null)">
+                                <div class="import-option">
+                                    <span class="import-source-label">BEDETHEQUE</span>
+                                    @if (_bedethequeResult?.CoverUrl is not null)
+                                    {
+                                        <img src="@_bedethequeResult.CoverUrl" class="import-cover-thumb" alt="bedetheque cover" />
+                                    }
+                                    else
+                                    {
+                                        <span class="import-source-value">—</span>
+                                    }
+                                </div>
+                            </MudRadio>
+                        }
                         <MudRadio T="BookSource" Value="BookSource.OpenLibrary" Dense="true" Disabled="@(_olResult?.CoverUrl is null)">
                             <div class="import-option">
                                 <span class="import-source-label">OPENLIBRARY</span>

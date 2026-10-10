@@ -11,7 +11,7 @@ namespace Web.Tests.Components.Pages.Libraries.Views;
 
 public sealed class BooksViewsIsbnScanStateTests : IAsyncDisposable
 {
-    private const string CandidatesLabel = "Several ISBNs found in the pages: pick the book's own";
+    private const string CandidatesLabel = "2 ISBNs found in the pages: pick the book's own";
 
     private readonly BunitContext _ctx = new();
 
@@ -24,7 +24,7 @@ public sealed class BooksViewsIsbnScanStateTests : IAsyncDisposable
     public ValueTask DisposeAsync() => _ctx.DisposeAsync();
 
     private static BookListItemViewModel Book(string? isbn, IsbnScanState state) =>
-        new(Guid.CreateVersion7(), "Blacksad", "Âme rouge", isbn, 4, string.Empty, "Canales", "Dargaud", null, null, 0, state);
+        new(Guid.CreateVersion7(), "Blacksad", "Âme rouge", isbn, 4, string.Empty, "Canales", "Dargaud", null, null, 0, state, state == IsbnScanState.Candidates ? 2 : 0);
 
     private string Cards(BookListItemViewModel book) => _ctx.Render<BooksCardsView>(p => p.Add(c => c.Books, [book])).Markup;
 

@@ -1,0 +1,9 @@
+/* A missing ISBN: the QR code is faded, the badge tells why. */
+::deep .isbn-state-missing {
+    opacity: 0.45;
+}
+
+::deep .isbn-state-badge .mud-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+}

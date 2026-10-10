@@ -48,7 +48,7 @@
             <MudTd DataLabel="ISBN">
                 @if (string.IsNullOrEmpty(context.ISBN))
                 {
-                    <IsbnScanStateIcon State="@context.IsbnScanState" />
+                    <IsbnScanStateIcon State="@context.IsbnScanState" CandidateCount="@context.IsbnCandidateCount" />
                 }
                 else
                 {

@@ -1,11 +1,27 @@
 @using Domain.Books
 @using Web.Models
 
-@if (State != IsbnScanState.HasIsbn)
+@if (State == IsbnScanState.HasIsbn)
 {
-    <MudTooltip Text="@IsbnScanStateDisplay.Label(State)" Placement="Placement.Top">
-        <MudIcon Icon="@IsbnScanStateDisplay.Icon(State)" Size="Size.Small"
-                 Color="@(OnDarkBackground && State != IsbnScanState.Candidates ? Color.Inherit : IsbnScanStateDisplay.Color(State))"
-                 Class="@Class" role="img" aria-label="@IsbnScanStateDisplay.Label(State)" />
+    @if (!HideWhenKnown)
+    {
+        <MudTooltip Text="@(Isbn ?? "ISBN")" Placement="Placement.Top">
+            <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="@Size" Color="Color.Primary"
+                     Class="@Class" role="img" aria-label="@($"ISBN {Isbn}".TrimEnd())" />
+        </MudTooltip>
+    }
+}
+else
+{
+    <MudTooltip Text="@IsbnScanStateDisplay.Label(State, CandidateCount)" Placement="Placement.Top">
+        <MudBadge Content="@IsbnScanStateDisplay.BadgeContent(State, CandidateCount)"
+                  Icon="@IsbnScanStateDisplay.BadgeIcon(State)"
+                  Color="@IsbnScanStateDisplay.BadgeColor(State)"
+                  Overlap="true" Bordered="true" Class="isbn-state-badge">
+            <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="@Size"
+                     Color="@(OnDarkBackground ? Color.Inherit : Color.Default)"
+                     Class="@($"isbn-state-missing {Class}".TrimEnd())"
+                     role="img" aria-label="@IsbnScanStateDisplay.Label(State, CandidateCount)" />
+        </MudBadge>
     </MudTooltip>
 }
