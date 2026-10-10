@@ -61,12 +61,9 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
                 .OrderByDescending(rd => rd.Date)
                 .Select(rd => (int?)rd.Rating)
                 .FirstOrDefault(),
-            // Same rules as IsbnScanStates.Of, written out so that the database evaluates them.
-            IsbnScanState = !(b is DigitalBook) || (b.ISBN != null && b.ISBN != "")
-                ? IsbnScanState.HasIsbn
-                : ((DigitalBook)b).IsbnCandidates.Count > 0
-                    ? IsbnScanState.Candidates
-                    : ((DigitalBook)b).IsbnScannedAt == null ? IsbnScanState.NotScanned : IsbnScanState.NotFound
+            // Null for a physical book (it always has an ISBN).
+            IsbnCandidateCount = (int?)((DigitalBook)b).IsbnCandidates.Count,
+            IsbnScannedAt = ((DigitalBook)b).IsbnScannedAt
         });
 #pragma warning restore CA1826
 

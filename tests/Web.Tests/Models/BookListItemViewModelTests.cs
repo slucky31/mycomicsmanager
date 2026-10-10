@@ -11,7 +11,7 @@ public sealed class BookListItemViewModelTests
     [Fact]
     public void From_Should_KeepTheIsbnScanStateOfTheSummary()
     {
-        var dto = new BookSummaryDto { Id = Guid.CreateVersion7(), Serie = "Blacksad", Title = "Âme rouge", IsbnScanState = IsbnScanState.NotFound };
+        var dto = new BookSummaryDto { Id = Guid.CreateVersion7(), Serie = "Blacksad", Title = "Âme rouge", IsbnScannedAt = DateTime.UtcNow };
 
         var viewModel = BookListItemViewModel.From(dto);
 

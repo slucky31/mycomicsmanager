@@ -15,5 +15,8 @@ public sealed class BookSummaryDto
     public DateTime? LastRead { get; init; }
     public int? LastRating { get; init; }
     public int ReadCount { get; init; }
-    public IsbnScanState IsbnScanState { get; init; }
+    public int? IsbnCandidateCount { get; init; }
+    public DateTime? IsbnScannedAt { get; init; }
+
+    public IsbnScanState IsbnScanState => IsbnScanStates.Of(ISBN, IsbnCandidateCount ?? 0, IsbnScannedAt);
 }
