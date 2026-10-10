@@ -2,6 +2,7 @@ using Domain.Books;
 using Domain.FeedImports;
 using Domain.ImportJobs;
 using Domain.Libraries;
+using Domain.Settings;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +30,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<FeedImportDecision> FeedImportDecisions => Set<FeedImportDecision>();
 
     public DbSet<FeedImportDecisionEvent> FeedImportDecisionEvents => Set<FeedImportDecisionEvent>();
+
+    public DbSet<FeatureToggleOverride> FeatureToggleOverrides => Set<FeatureToggleOverride>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,6 +98,10 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<IsbnBedethequeUrl>().Property(x => x.ISBN).HasMaxLength(20);
             modelBuilder.Entity<IsbnBedethequeUrl>().Property(x => x.Url).HasMaxLength(500);
             modelBuilder.Entity<IsbnBedethequeUrl>().HasIndex(x => x.ISBN).IsUnique();
+
+            modelBuilder.Entity<FeatureToggleOverride>().ToTable("FeatureToggleOverrides");
+            modelBuilder.Entity<FeatureToggleOverride>().Property(o => o.Toggle).HasConversion<string>().HasMaxLength(64);
+            modelBuilder.Entity<FeatureToggleOverride>().HasIndex(o => o.Toggle).IsUnique();
         }
     }
 

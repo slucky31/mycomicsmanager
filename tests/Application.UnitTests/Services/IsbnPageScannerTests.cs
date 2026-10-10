@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Domain.Books;
 using Domain.Errors;
 using Domain.Primitives;
+using Domain.Settings;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using Persistence.Services;
@@ -18,11 +19,13 @@ public sealed class IsbnPageScannerTests : IDisposable
     private readonly IPageTextRecognizer _recognizer = Substitute.For<IPageTextRecognizer>();
     private readonly IComicPageReader _pageReader = Substitute.For<IComicPageReader>();
     private readonly IsbnOcrSettings _settings = new();
+    private readonly IFeatureToggles _featureToggles = Substitute.For<IFeatureToggles>();
 
     public IsbnPageScannerTests()
     {
         _pagesDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_pagesDir);
+        _featureToggles.IsEnabled(FeatureToggle.IsbnOcr).Returns(true);
         // Each page image is the index of the page, so the recognizer can tell which page it reads.
         _recognizer.RecognizeAsync(Arg.Any<ReadOnlyMemory<byte>>(), Arg.Any<CancellationToken>())
             .Returns(Result<string>.Success("Chapitre 1"));
@@ -38,7 +41,7 @@ public sealed class IsbnPageScannerTests : IDisposable
     }
 
     private IsbnPageScanner CreateScanner() =>
-        new(_recognizer, _pageReader, Options.Create(_settings), NullLogger<IsbnPageScanner>.Instance);
+        new(_recognizer, _pageReader, Options.Create(_settings), _featureToggles, NullLogger<IsbnPageScanner>.Instance);
 
     private List<string> CreatePages(int count) =>
         [.. Enumerable.Range(0, count).Select(index =>
@@ -122,7 +125,7 @@ public sealed class IsbnPageScannerTests : IDisposable
     [Fact]
     public async Task ScanPagesAsync_Should_ReturnNotScanned_WhenTheOcrIsDisabled()
     {
-        _settings.Enabled = false;
+        _featureToggles.IsEnabled(FeatureToggle.IsbnOcr).Returns(false);
 
         var result = await CreateScanner().ScanPagesAsync(CreatePages(20), TestContext.Current.CancellationToken);
 
@@ -160,7 +163,7 @@ public sealed class IsbnPageScannerTests : IDisposable
     [Fact]
     public async Task ScanArchiveAsync_Should_ReturnNotScanned_WhenTheOcrIsDisabled()
     {
-        _settings.Enabled = false;
+        _featureToggles.IsEnabled(FeatureToggle.IsbnOcr).Returns(false);
 
         var result = await CreateScanner().ScanArchiveAsync(ArchivePath, TestContext.Current.CancellationToken);
 

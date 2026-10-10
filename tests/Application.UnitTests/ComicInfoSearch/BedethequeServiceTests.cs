@@ -1,6 +1,7 @@
 using System.Net;
 using Application.ComicInfoSearch;
 using Application.Interfaces;
+using Domain.Settings;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
@@ -62,12 +63,15 @@ public sealed class BedethequeServiceTests : IDisposable
         IHttpClientFactory factory,
         IIsbnBedethequeCacheRepository? cache = null,
         BedethequeSettings? settings = null,
-        BedethequeCircuit? circuit = null)
+        BedethequeCircuit? circuit = null,
+        bool enabled = true)
     {
         cache ??= EmptyCache();
         var options = Options.Create(settings ?? DefaultSettings);
+        var featureToggles = Substitute.For<IFeatureToggles>();
+        featureToggles.IsEnabled(FeatureToggle.Bedetheque).Returns(enabled);
         return new BedethequeService(factory, cache, options, circuit ?? new BedethequeCircuit(TimeProvider.System),
-            NullLogger<BedethequeService>.Instance);
+            featureToggles, NullLogger<BedethequeService>.Instance);
     }
 
     private static IIsbnBedethequeCacheRepository EmptyCache()
@@ -729,14 +733,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var factory = FactoryWith(
             Track(new FakeHttpMessageHandler(_ => { requests++; return JsonResponse(SerpApiJson(PageUrl)); })),
             Track(new FakeHttpMessageHandler(_ => { requests++; return HtmlResponse(FullAlbumHtml); })));
-        var settings = new BedethequeSettings
-        {
-            SerpApiKey = "test-key",
-            SerpApiBaseUrl = new Uri("https://serpapi.com"),
-            BaseUrl = new Uri("https://www.bedetheque.com"),
-            Enabled = false
-        };
-        var service = CreateService(factory, settings: settings);
+        var service = CreateService(factory, enabled: false);
 
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 

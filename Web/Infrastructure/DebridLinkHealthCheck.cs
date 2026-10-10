@@ -1,4 +1,6 @@
 using Application.FeedImports;
+using Application.Interfaces;
+using Domain.Settings;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -8,15 +10,15 @@ namespace Web.Infrastructure;
 // rest of the application keeps running (and starting) without it.
 internal sealed class DebridLinkHealthCheck(
     IDebridLinkClient debridLinkClient,
-    IOptions<FeedImportSettings> feedImportSettings,
+    IFeatureToggles featureToggles,
     IOptions<DebridLinkSettings> debridLinkSettings,
     HealthCheckResultCache<DebridLinkHealthCheck> cache) : IHealthCheck
 {
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        if (!feedImportSettings.Value.Enabled)
+        if (!featureToggles.IsEnabled(FeatureToggle.FeedImport))
         {
-            return Task.FromResult(HealthCheckResult.Healthy("Feed import is disabled (FeedImport:Enabled): Debrid-Link is not checked."));
+            return Task.FromResult(HealthCheckResult.Healthy("Feed import is turned off: Debrid-Link is not checked."));
         }
 
         if (string.IsNullOrWhiteSpace(debridLinkSettings.Value.ApiKey))

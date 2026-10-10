@@ -2,6 +2,7 @@ using Application.Books.IsbnScan;
 using Application.Helpers;
 using Application.Interfaces;
 using Domain.Errors;
+using Domain.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -11,6 +12,7 @@ public sealed class IsbnPageScanner(
     IPageTextRecognizer recognizer,
     IComicPageReader pageReader,
     IOptions<IsbnOcrSettings> options,
+    IFeatureToggles featureToggles,
     ILogger<IsbnPageScanner> logger) : IIsbnPageScanner
 {
     private readonly IsbnOcrSettings _settings = options.Value;
@@ -20,7 +22,7 @@ public sealed class IsbnPageScanner(
 
     public async Task<IsbnScanResult> ScanArchiveAsync(string archivePath, CancellationToken ct = default)
     {
-        if (!_settings.Enabled)
+        if (!featureToggles.IsEnabled(FeatureToggle.IsbnOcr))
         {
             return IsbnScanResult.NotScanned;
         }
@@ -40,7 +42,7 @@ public sealed class IsbnPageScanner(
         Func<int, CancellationToken, Task<ReadOnlyMemory<byte>?>> readPage,
         CancellationToken ct)
     {
-        if (!_settings.Enabled)
+        if (!featureToggles.IsEnabled(FeatureToggle.IsbnOcr))
         {
             return IsbnScanResult.NotScanned;
         }

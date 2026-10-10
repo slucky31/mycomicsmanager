@@ -176,6 +176,12 @@ Pour une liste, une variable par élément : `FeedImport__AllowedDownloadHosts__
 Si `FeedImport:Enabled` vaut `true` et qu'une valeur obligatoire manque,
 **l'application refuse de démarrer** et le log indique la clé en cause.
 
+La synchronisation peut aussi être activée ou désactivée à chaud par un
+administrateur dans **Settings → Administration → Features** : le choix est
+enregistré en base, prime sur `FeedImport:Enabled` et ajoute ou retire
+aussitôt le job récurrent. L'activation est refusée si une valeur
+obligatoire (`FeedImport:UserEmail`, `Miniflux:*`) manque.
+
 > **Staging et prod partagent le même Miniflux.** N'activer
 > `FeedImport:Enabled` que sur **un seul** environnement (la prod) : sinon
 > le premier qui synchronise retire l'étoile et l'article n'apparaît que

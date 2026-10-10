@@ -6,6 +6,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages;
+using Web.Services;
 using Xunit;
 
 namespace Web.Tests.Components.Pages;
@@ -28,6 +29,7 @@ public sealed class UserSettingsComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton(healthCheckService);
         ctx.Services.AddSingleton(snackbar);
+        ctx.Services.AddSingleton(Substitute.For<IFeatureToggleService>());
         var authorization = ctx.AddAuthorization();
         authorization.SetAuthorized("user");
         if (isAdmin)

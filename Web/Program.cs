@@ -226,6 +226,7 @@ builder.Services.AddScoped<IBooksService, BooksService>();
 builder.Services.AddScoped<IBookMoveService, BookMoveService>();
 builder.Services.AddScoped<IBookMoveWorkflow, BookMoveWorkflow>();
 builder.Services.AddScoped<IBookReaderService, BookReaderService>();
+builder.Services.AddScoped<IFeatureToggleService, FeatureToggleService>();
 builder.Services.AddScoped<IIsbnScanService, IsbnScanService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<ImportJobHandlers>();
@@ -256,7 +257,10 @@ var importSettings = app.Services.GetRequiredService<IOptions<ImportSettings>>()
 Directory.CreateDirectory(importSettings.ImportDirectory);
 Directory.CreateDirectory(importSettings.TempDirectory);
 
-// Register (or remove) the recurring Miniflux sync according to FeedImport:Enabled
+// Values chosen in the Settings page (Features), before anything reads them
+await app.Services.LoadFeatureTogglesAsync();
+
+// Register (or remove) the recurring Miniflux sync according to the FeedImport feature toggle
 app.Services.ScheduleFeedImportSync();
 
 // Refuse to start if a dependency (database, Cloudinary, import directory, ...) is unreachable,
