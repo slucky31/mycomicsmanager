@@ -48,6 +48,15 @@
             </MudButton>
         }
 
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Error"
+                   StartIcon="@Icons.Material.Filled.DeleteSweep"
+                   Disabled="_isDeleting"
+                   OnClick="DeleteDownloadedAsync"
+                   Class="feed-imports-delete-downloaded">
+            Delete downloaded
+        </MudButton>
+
         @if (_selectedDecisions.Count > 0)
         {
             <MudButton Variant="Variant.Outlined"

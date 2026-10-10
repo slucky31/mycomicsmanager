@@ -154,6 +154,17 @@ public class FeedImportService(
         return deleted == 0 && lastError is not null ? lastError : deleted;
     }
 
+    public async Task<Result<DeleteDownloadedFeedImportDecisionsResult>> DeleteDownloadedAsync(CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await handlers.DeleteDownloaded.Handle(new DeleteDownloadedFeedImportDecisionsCommand(userIdResult.Value), cancellationToken);
+    }
+
     // Badge of the navigation bar: 0 when the user cannot be resolved (not signed in yet).
     public async Task<int> CountAwaitingArbitrationAsync(CancellationToken cancellationToken = default)
     {

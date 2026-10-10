@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.27.1"></a>
+## [10.27.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.27.1) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **auth:** keep users signed in for 7 days across redeploys ([#1102](https://www.github.com/slucky31/mycomicsmanager/issues/1102)) ([164fba6](https://www.github.com/slucky31/mycomicsmanager/commit/164fba604d01d5a8bd44aa93bb3656724b309130))
+
 <a name="10.27.0"></a>
 ## [10.27.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.27.0) (2026-10-10)
 

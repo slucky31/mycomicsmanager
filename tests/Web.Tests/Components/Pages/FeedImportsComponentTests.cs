@@ -1,4 +1,5 @@
 using Application.FeedImports.Arbitrate;
+using Application.FeedImports.Delete;
 using Application.FeedImports.Manage;
 using AwesomeAssertions;
 using Bunit;
@@ -341,5 +342,55 @@ public sealed class FeedImportsComponentTests
 
         await service.Received(1).DeleteAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 1), Arg.Any<CancellationToken>());
         snackbar.Received(1).Add("1 decision(s) deleted.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Theory]
+    [InlineData(0, "2 decision(s) deleted.", Severity.Success)]
+    [InlineData(1, "2 decision(s) deleted, 1 kept (import running or failed).", Severity.Info)]
+    public async Task DeleteDownloadedAsync_Should_DeleteAndReport_WhenUserConfirms(int kept, string message, Severity severity)
+    {
+        var service = CreateService();
+        service.DeleteDownloadedAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<DeleteDownloadedFeedImportDecisionsResult>.Success(new DeleteDownloadedFeedImportDecisionsResult(2, kept)));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service, CreateDialogService(confirmed: true));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await Button(cut, "Delete downloaded").ClickAsync(new());
+
+        await service.Received(1).DeleteDownloadedAsync(Arg.Any<CancellationToken>());
+        snackbar.Received(1).Add(message, severity, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteDownloadedAsync_Should_NotDelete_WhenUserCancels()
+    {
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderAsync(service, CreateDialogService(confirmed: false));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await Button(cut, "Delete downloaded").ClickAsync(new());
+
+        await service.DidNotReceiveWithAnyArgs().DeleteDownloadedAsync(Xunit.TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task DeleteDownloadedAsync_Should_ShowError_WhenDeletionFails()
+    {
+        var service = CreateService();
+        service.DeleteDownloadedAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<DeleteDownloadedFeedImportDecisionsResult>.Failure(FeedImportError.BadRequest));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service, CreateDialogService(confirmed: true));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await Button(cut, "Delete downloaded").ClickAsync(new());
+
+        snackbar.Received(1).Add(FeedImportError.BadRequest.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 }

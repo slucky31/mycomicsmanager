@@ -12,4 +12,5 @@ public sealed record FeedImportHandlers(
     ICommandHandler<ResolveFeedImportArbitrationCommand> ResolveArbitration,
     ICommandHandler<ManageFeedImportDecisionCommand, FeedImportDecisionStatus> Manage,
     ICommandHandler<CorrectFeedImportDecisionCommand, FeedImportDecisionStatus> Correct,
-    ICommandHandler<DeleteFeedImportDecisionCommand> Delete);
+    ICommandHandler<DeleteFeedImportDecisionCommand> Delete,
+    ICommandHandler<DeleteDownloadedFeedImportDecisionsCommand, DeleteDownloadedFeedImportDecisionsResult> DeleteDownloaded);

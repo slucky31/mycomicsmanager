@@ -173,6 +173,29 @@ public class FeedImportDecisionRepositoryTests(IntegrationTestWebAppFactory fact
     }
 
     [Fact]
+    public async Task GetByStatusAsync_Should_ReturnTrackedDecisionsOfUserWithStatus()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var failed = CreateDecision(userId, 8008);
+        failed.Fail("Step", "Erreur");
+        var otherUserFailed = CreateDecision(Guid.CreateVersion7(), 8009);
+        otherUserFailed.Fail("Step", "Erreur");
+        FeedImportDecisionRepository.Add(failed);
+        FeedImportDecisionRepository.Add(otherUserFailed);
+        FeedImportDecisionRepository.Add(CreateDecision(userId, 8010));
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        Context.ChangeTracker.Clear();
+
+        // Act
+        var decisions = await FeedImportDecisionRepository.GetByStatusAsync(userId, FeedImportDecisionStatus.Failed, TestContext.Current.CancellationToken);
+
+        // Assert
+        decisions.Should().ContainSingle().Which.Id.Should().Be(failed.Id);
+        Context.Entry(decisions[0]).State.Should().Be(EntityState.Unchanged);
+    }
+
+    [Fact]
     public async Task Remove_Should_DeleteDecisionAndItsEvents_AndKeepSiblings()
     {
         // Arrange
