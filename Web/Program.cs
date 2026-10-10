@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using MudBlazor;
 using MudBlazor.Services;
 using Persistence;
@@ -69,6 +70,9 @@ builder.Services.AddOptions<LocalStorageConfiguration>()
     .Validate(cfg => Directory.Exists(cfg.RootPath), "LocalStorage:RootPath does not exist; check the volume is mounted")
     .ValidateOnStart();
 
+// Identifies the application to the book data services it calls.
+const string appUserAgent = "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)";
+
 // Config OpenLibrary settings
 var openLibrarySection = configuration.GetSection("OpenLibrary");
 builder.Services.AddOptions<OpenLibrarySettings>()
@@ -78,7 +82,7 @@ builder.Services.AddOptions<OpenLibrarySettings>()
 // Config OpenLibrary service for ISBN lookup
 builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =>
 {
-    client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
+    client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, appUserAgent);
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(sp => new SsrfGuardHandler(
@@ -92,7 +96,7 @@ builder.Services.AddOptions<BnfCatalogueSettings>()
     .ValidateOnStart();
 builder.Services.AddHttpClient<IBnfCatalogueService, BnfCatalogueService>(client =>
 {
-    client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
+    client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, appUserAgent);
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(sp => new SsrfGuardHandler(
@@ -110,7 +114,7 @@ builder.Services.AddOptions<GoogleBooksSettings>()
 // Config Google Books service for ISBN lookup (fallback)
 builder.Services.AddHttpClient<IGoogleBooksService, GoogleBooksService>(client =>
 {
-    client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
+    client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, appUserAgent);
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(sp => new SsrfGuardHandler(
@@ -127,7 +131,7 @@ builder.Services.AddOptions<BedethequeSettings>()
 // Config Bedetheque HTTP clients
 builder.Services.AddHttpClient("Bedetheque", client =>
 {
-    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+    client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(sp => new SsrfGuardHandler(
