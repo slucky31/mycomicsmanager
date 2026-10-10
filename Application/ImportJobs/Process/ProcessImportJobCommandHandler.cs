@@ -425,7 +425,7 @@ public sealed class ProcessImportJobCommandHandler(
         if (isbnScan is { Completed: true })
         {
             // A single ISBN is already the book's: only several of them are kept as candidates.
-            IReadOnlyList<string> candidates = isbnScan.Isbns.Count > 1 ? isbnScan.Isbns : [];
+            var candidates = isbnScan.Isbns.Count > 1 ? isbnScan.Isbns : Array.Empty<string>();
             digitalBook.RecordIsbnScan(candidates, externalServices.Clock.GetUtcNow().UtcDateTime);
         }
 

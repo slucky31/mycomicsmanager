@@ -426,7 +426,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         _isStartingIsbnScan = true;
         try
         {
-            var result = await IsbnScanService.StartLibraryScanAsync(_library.Id);
+            var result = await IsbnScanService.StartLibraryScanAsync(_library.Id, CancellationToken.None);
             if (result.IsFailure)
             {
                 Snackbar.Add("Unable to start the search of the missing ISBNs", Severity.Error);

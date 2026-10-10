@@ -113,7 +113,7 @@ public partial class BookDetail
         _isScanningIsbn = true;
         try
         {
-            var result = await IsbnScanService.ScanBookAsync(_book.Id);
+            var result = await IsbnScanService.ScanBookAsync(_book.Id, CancellationToken.None);
             if (result.IsFailure)
             {
                 Snackbar.Add("Unable to scan the pages of this book", Severity.Error);

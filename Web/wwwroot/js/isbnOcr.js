@@ -42,7 +42,7 @@ function getWorker() {
 }
 
 function enlarge(image) {
-    if (!image || !image.complete || image.naturalWidth === 0) {
+    if (!image?.complete || image.naturalWidth === 0) {
         throw new Error("The page is not loaded yet");
     }
 

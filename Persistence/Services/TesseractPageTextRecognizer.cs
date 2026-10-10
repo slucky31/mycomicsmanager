@@ -97,9 +97,9 @@ public sealed class TesseractPageTextRecognizer(
 
             return await output;
         }
-        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        catch (OperationCanceledException ex) when (!ct.IsCancellationRequested)
         {
-            logger.LogWarning("Tesseract did not read the page within {Timeout} s", _settings.PageTimeoutSeconds);
+            logger.LogWarning(ex, "Tesseract did not read the page within {Timeout} s", _settings.PageTimeoutSeconds);
             return OcrError.Timeout;
         }
         catch (IOException ex)
