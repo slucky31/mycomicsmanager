@@ -38,6 +38,7 @@ public sealed class LibraryDetailPageMoveTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_booksService);
         _ctx.Services.AddSingleton(_workflow);
         _ctx.Services.AddSingleton(_stateService);
+        _ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
     }
 
     public ValueTask DisposeAsync() => _ctx.DisposeAsync();
