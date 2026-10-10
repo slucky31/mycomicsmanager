@@ -1,4 +1,5 @@
 using Application.FeedImports.Arbitrate;
+using Application.FeedImports.Delete;
 using Application.FeedImports.Manage;
 using Domain.FeedImports;
 using Domain.Primitives;
@@ -32,6 +33,9 @@ public interface IFeedImportService
     // Deletes each decision on its own: returns how many were deleted (the others are logged),
     // or the last error when none could be deleted.
     Task<Result<int>> DeleteAsync(IReadOnlyCollection<Guid> decisionIds, CancellationToken cancellationToken = default);
+
+    // Deletes every Downloaded decision whose import succeeded; the others are kept.
+    Task<Result<DeleteDownloadedFeedImportDecisionsResult>> DeleteDownloadedAsync(CancellationToken cancellationToken = default);
 
     Task<int> CountAwaitingArbitrationAsync(CancellationToken cancellationToken = default);
 }

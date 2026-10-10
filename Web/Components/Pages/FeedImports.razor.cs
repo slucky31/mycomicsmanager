@@ -249,6 +249,52 @@ public partial class FeedImports
         }
     }
 
+    internal async Task DeleteDownloadedAsync()
+    {
+        if (_isDeleting || _busyDecisionId is not null)
+        {
+            return;
+        }
+
+        var confirmed = await DialogService.ShowConfirmationAsync(
+            "Delete downloaded",
+            "Delete every downloaded decision whose import succeeded, with its history? The books already imported are kept; the decisions whose import is running or failed are kept too.",
+            "Delete");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        _isDeleting = true;
+        try
+        {
+            var result = await FeedImportService.DeleteDownloadedAsync();
+            if (result.IsFailure)
+            {
+                Snackbar.Add(result.Error?.Description ?? "Unable to delete the downloaded decisions.", Severity.Error);
+                Logger.LogError("FeedImports: failed to delete downloaded decisions: {ErrorDescription}", result.Error!.Description);
+                return;
+            }
+
+            var summary = result.Value!;
+            if (summary.Kept == 0)
+            {
+                Snackbar.Add($"{summary.Deleted} decision(s) deleted.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add($"{summary.Deleted} decision(s) deleted, {summary.Kept} kept (import running or failed).", Severity.Info);
+            }
+
+            await ReloadAsync();
+            Notifier.NotifyChanged();
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
+    }
+
     private sealed class CorrectionForm(Guid decisionId)
     {
         public Guid DecisionId { get; } = decisionId;
