@@ -3,12 +3,13 @@ using Domain.FeedImports;
 using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Users;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
 
 
-public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
+public class ApplicationDbContext(DbContextOptions options) : DbContext(options), IDataProtectionKeyContext
 {
     public DbSet<Library> Libraries => Set<Library>();
 
@@ -29,6 +30,9 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<FeedImportDecision> FeedImportDecisions => Set<FeedImportDecision>();
 
     public DbSet<FeedImportDecisionEvent> FeedImportDecisionEvents => Set<FeedImportDecisionEvent>();
+
+    // ASP.NET Core Data Protection key ring: kept in the database so the auth cookies survive a redeploy.
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
