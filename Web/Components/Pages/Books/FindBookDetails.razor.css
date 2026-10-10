@@ -1,13 +1,13 @@
 /* ── Page shell ──────────────────────────────────────────────── */
 
-.import-page {
+.find-details-page {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     background: var(--mud-palette-background);
 }
 
-.import-content {
+.find-details-content {
     flex: 1;
     overflow-y: auto;
     padding: 16px;
@@ -16,20 +16,20 @@
 
 /* ── Field cards ─────────────────────────────────────────────── */
 
-.import-fields {
+.find-details-fields {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.import-field-card {
+.find-details-field-card {
     background: var(--mud-palette-surface);
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-.import-field-label {
+.find-details-field-label {
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -40,8 +40,8 @@
 
 /* ── Radio group: CSS Grid forces each option onto its own row ── */
 
-::deep .import-radio-group,
-::deep .import-radio-group.mud-radio-group {
+::deep .find-details-radio-group,
+::deep .find-details-radio-group.mud-radio-group {
     display: grid !important;
     grid-template-columns: 1fr !important;
     width: 100% !important;
@@ -49,7 +49,7 @@
 
 /* ── Each radio label ────────────────────────────────────────── */
 
-::deep .import-radio-group label.mud-radio {
+::deep .find-details-radio-group label.mud-radio {
     width: 100%;
     margin: 0;
     padding: 7px 12px;
@@ -63,22 +63,22 @@
     transition: background-color 0.12s ease, border-left-color 0.12s ease;
 }
 
-::deep .import-radio-group label.mud-radio:last-child {
+::deep .find-details-radio-group label.mud-radio:last-child {
     border-bottom: none;
 }
 
-::deep .import-radio-group label.mud-radio:has(input:checked) {
+::deep .find-details-radio-group label.mud-radio:has(input:checked) {
     border-left-color: var(--mud-palette-primary);
     background: color-mix(in srgb, var(--mud-palette-primary) 6%, transparent);
 }
 
-::deep .import-radio-group label.mud-radio.mud-disabled {
+::deep .find-details-radio-group label.mud-radio.mud-disabled {
     opacity: 0.45;
     cursor: default;
 }
 
 /* Remove MudBlazor's default label margin/padding inside the radio */
-::deep .import-radio-group .mud-radio-content {
+::deep .find-details-radio-group .mud-radio-content {
     flex: 1;
     min-width: 0;
     padding: 0;
@@ -87,7 +87,7 @@
 
 /* ── Option row layout ───────────────────────────────────────── */
 
-.import-option {
+.find-details-option {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -95,7 +95,7 @@
     min-width: 0;
 }
 
-.import-source-label {
+.find-details-source-label {
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -104,7 +104,7 @@
     flex-shrink: 0;
 }
 
-.import-source-value {
+.find-details-source-value {
     flex: 1;
     font-size: 0.82rem;
     color: var(--mud-palette-text-primary);
@@ -115,7 +115,7 @@
 
 /* ── Cover thumbnail ─────────────────────────────────────────── */
 
-.import-cover-thumb {
+.find-details-cover-thumb {
     height: 48px;
     width: auto;
     border-radius: 3px;
@@ -125,7 +125,7 @@
 
 /* ── Action bar ──────────────────────────────────────────────── */
 
-.import-actions {
+.find-details-actions {
     position: sticky;
     bottom: 0;
     display: flex;
@@ -139,7 +139,7 @@
 
 /* ── Search progress ─────────────────────────────────────────── */
 
-.import-search-status {
+.find-details-search-status {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -149,19 +149,19 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-.import-search-summary {
+.find-details-search-summary {
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
-.import-search-sources {
+.find-details-search-sources {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 16px;
 }
 
-.import-search-source {
+.find-details-search-source {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -173,23 +173,23 @@
 
 /* ── Search state of a source ────────────────────────────────── */
 
-.import-source-state {
+.find-details-source-state {
     display: inline-flex;
     width: 20px;
     flex-shrink: 0;
     justify-content: center;
 }
 
-::deep .import-state-searching {
-    animation: import-state-pulse 1.2s ease-in-out infinite;
+::deep .find-details-state-searching {
+    animation: find-details-state-pulse 1.2s ease-in-out infinite;
 }
 
-@keyframes import-state-pulse {
+@keyframes find-details-state-pulse {
     50% { opacity: 0.35; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    ::deep .import-state-searching {
+    ::deep .find-details-state-searching {
         animation: none;
     }
 }

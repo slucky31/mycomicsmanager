@@ -3,7 +3,7 @@ using MudBlazor;
 
 namespace Web.Models;
 
-// Where the search of one source (BnF, Google Books...) stands on the import page.
+// Where the search of one source (BnF, Google Books...) stands on the "Find book details" page.
 public enum ProviderSearchState
 {
     Searching,

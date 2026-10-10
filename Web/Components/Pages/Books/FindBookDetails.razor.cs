@@ -9,7 +9,7 @@ using Web.Validators;
 
 namespace Web.Components.Pages.Books;
 
-public partial class ImportBookMetaFromWeb
+public partial class FindBookDetails
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
@@ -19,7 +19,7 @@ public partial class ImportBookMetaFromWeb
     [Inject] private IGoogleBooksService GoogleBooksService { get; set; } = default!;
     [Inject] private IComicSearchService ComicSearchService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private ILogger<ImportBookMetaFromWeb> Logger { get; set; } = default!;
+    [Inject] private ILogger<FindBookDetails> Logger { get; set; } = default!;
 
     [Parameter]
     public string BookId { get; set; } = string.Empty;

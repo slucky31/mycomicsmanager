@@ -38,10 +38,10 @@
                                    aria-label="Find the ISBN in the pages"
                                    Class="d-none d-sm-flex" />
                 }
-                <MudIconButton Icon="@Icons.Material.Filled.CloudDownload"
+                <MudIconButton Icon="@Icons.Material.Filled.ManageSearch"
                                Color="Color.Inherit"
-                               OnClick="ImportFromWeb"
-                               aria-label="Import book"
+                               OnClick="FindDetails"
+                               aria-label="Find book details"
                                Class="d-none d-sm-flex" />
                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                Color="Color.Inherit"
@@ -73,8 +73,8 @@
                         <MudMenuItem Icon="@Icons.Material.Filled.DocumentScanner"
                                      OnClick="FindIsbn">Find ISBN</MudMenuItem>
                     }
-                    <MudMenuItem Icon="@Icons.Material.Filled.CloudDownload"
-                                 OnClick="ImportFromWeb">Import from Web</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.ManageSearch"
+                                 OnClick="FindDetails">Find book details</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.Edit"
                                  OnClick="EditBook">Edit</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.DriveFileMove"

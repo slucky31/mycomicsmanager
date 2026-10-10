@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Web.Tests.Components.Pages.Books;
 
-public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
+public sealed class FindBookDetailsComponentTests : IAsyncDisposable
 {
     private const string PageIsbn = "9782800112343";
 
@@ -25,7 +25,7 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
     private readonly IGoogleBooksService _googleBooksService = Substitute.For<IGoogleBooksService>();
     private readonly Book _book = DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null), Guid.CreateVersion7(), "/data/A/b.cbz", 1).Value!;
 
-    public ImportBookMetaFromWebComponentTests()
+    public FindBookDetailsComponentTests()
     {
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
@@ -54,8 +54,8 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
     [Fact]
     public async Task ApplyAndSaveAsync_Should_SearchAndSaveTheIsbnReadOnThePage_WhenTheBookHasNone()
     {
-        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn=978-2-8001-1234-3");
-        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn=978-2-8001-1234-3");
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain(PageIsbn));
 
         await cut.FindAll("button").Single(b => b.TextContent.Contains("Apply", StringComparison.Ordinal)).ClickAsync(new());
@@ -67,8 +67,8 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
     [Fact]
     public async Task LoadBookThenFetchAsync_Should_IgnoreTheIsbnParameter_WhenItIsInvalid()
     {
-        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn=9782800112344");
-        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn=9782800112344");
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Âme rouge"));
 
         cut.Markup.Should().NotContain("read on the book's page");
@@ -78,8 +78,8 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
     [Fact]
     public async Task OnParametersSetAsync_Should_SearchEachServiceOnce_WhenThePageOpens()
     {
-        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn={PageIsbn}");
-        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn={PageIsbn}");
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain(PageIsbn));
 
         cut.Render();
@@ -95,8 +95,8 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
     {
         _bnfService.SearchByIsbnAsync(PageIsbn, Arg.Any<CancellationToken>())
             .Returns(new BnfBookResult("Tangente", null, ["Céline Wagner"], ["des Ronds dans l'O"], new DateOnly(2012, 1, 1), 82, null, Found: true));
-        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn={PageIsbn}");
-        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn={PageIsbn}");
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Céline Wagner"));
 
         // The author radio of the BnF column.
@@ -111,7 +111,7 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
     public async Task OnParametersSetAsync_Should_HideBedetheque_WhenItIsTurnedOff()
     {
         _bedethequeService.IsEnabled.Returns(false);
-        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("BNF"));
 
         cut.Markup.Should().NotContain("BEDETHEQUE");
@@ -123,8 +123,8 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
     {
         var google = new TaskCompletionSource<GoogleBooksBookResult>();
         _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(google.Task);
-        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn={PageIsbn}");
-        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn={PageIsbn}");
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
 
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Searching the sources… (3/4)"));
         cut.Markup.Should().Contain("GOOGLE BOOKS: searching…").And.Contain("BNF: book not found");
@@ -142,8 +142,8 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
             .Returns(new BnfBookResult(string.Empty, null, [], [], null, null, null, Found: false, Failed: true));
         _openLibraryService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException<OpenLibraryBookResult>(new HttpRequestException("Network unreachable")));
-        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn={PageIsbn}");
-        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn={PageIsbn}");
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
 
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Search complete"));
         cut.Markup.Should().Contain("BNF: could not be searched")
