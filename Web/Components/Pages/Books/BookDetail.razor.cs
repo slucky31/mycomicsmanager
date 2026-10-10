@@ -3,6 +3,7 @@ using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Web.Extensions;
+using Web.Models;
 using Web.Services;
 
 namespace Web.Components.Pages.Books;
@@ -105,6 +106,10 @@ public partial class BookDetail
     private IsbnScanState IsbnScanState => _book is DigitalBook digitalBook ? digitalBook.GetIsbnScanState() : IsbnScanState.HasIsbn;
 
     private int IsbnCandidateCount => _book is DigitalBook digitalBook ? digitalBook.IsbnCandidates.Count : 0;
+
+    // Books imported before their size was recorded have none (0): nothing is shown for them.
+    private string? FileSizeDisplay =>
+        _book is DigitalBook { FileSize: > 0 } digitalBook ? FileSizeFormatter.Format(digitalBook.FileSize) : null;
 
     // Reads the pages on the server right away (a few seconds), then shows what they gave.
     private async Task ScanIsbnAsync()
