@@ -72,10 +72,28 @@ public abstract class Book : Entity<Guid>
         Publishers = metadata.Publishers;
         PublishDate = metadata.PublishDate;
         NumberOfPages = metadata.NumberOfPages;
+        OnIsbnChanged();
+        return Result.Success();
+    }
+
+    // Sets the ISBN alone (e.g. read on the pages of the book), leaving the other metadata untouched.
+    public Result AssignIsbn(string isbn)
+    {
+        if (string.IsNullOrWhiteSpace(isbn) || isbn.Length > BookConstants.MaxIsbnLength)
+        {
+            return BooksError.InvalidISBN;
+        }
+
+        ISBN = isbn;
+        OnIsbnChanged();
         return Result.Success();
     }
 
     protected virtual Result ValidateMetadataForUpdate(BookMetadata metadata) => Result.Success();
+
+    protected virtual void OnIsbnChanged()
+    {
+    }
 
     public ReadingDate AddReadingDate(DateTime date, int rating)
     {

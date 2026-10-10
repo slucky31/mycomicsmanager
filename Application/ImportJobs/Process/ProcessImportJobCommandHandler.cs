@@ -93,23 +93,24 @@ public sealed class ProcessImportJobCommandHandler(
             var webpFiles = externalServices.TempWorkspace.GetWebpFiles(convertedDir);
 
             var metaResult = await SearchMetadataStepAsync(
-                importJob, extractResult.Value, convertResult.Value!, convertedDir, ct);
+                importJob, extractResult.Value, convertResult.Value!, webpFiles, convertedDir, ct);
             if (metaResult.IsFailure)
             { return metaResult.Error!; }
+            var (meta, isbnScan) = metaResult.Value;
 
             var coverResult = await UploadCoverStepAsync(
-                importJob, metaResult.Value!.ISBN, webpFiles, ct);
+                importJob, meta.ISBN, webpFiles, ct);
             if (coverResult.IsFailure)
             { return coverResult.Error!; }
             var imageLink = coverResult.Value!;
 
             var archiveResult = await BuildArchiveStepAsync(
-                importJob, metaResult.Value.ISBN, webpFiles, convertedDir, tempDir, ct);
+                importJob, meta.ISBN, webpFiles, convertedDir, tempDir, ct);
             if (archiveResult.IsFailure)
             { return archiveResult.Error!; }
 
             return await CompleteStepAsync(
-                importJob, library, metaResult.Value, archiveResult.Value, imageLink, ct);
+                importJob, library, meta, isbnScan, archiveResult.Value, imageLink, ct);
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException or HttpRequestException or InvalidDataException)
         { return await HandleUnexpectedExceptionAsync(importJob, ex, ct); }
@@ -240,10 +241,11 @@ public sealed class ProcessImportJobCommandHandler(
 
     // ── Step 4: SearchingMetadata ─────────────────────────────────────────────
 
-    private async Task<Result<BookMetadata>> SearchMetadataStepAsync(
+    private async Task<Result<(BookMetadata Metadata, IsbnScanResult? IsbnScan)>> SearchMetadataStepAsync(
         ImportJob importJob,
         ComicInfoData? comicInfo,
         ImageProcessingResult conversion,
+        IReadOnlyList<string> pages,
         string convertedDir,
         CancellationToken ct)
     {
@@ -253,7 +255,7 @@ public sealed class ProcessImportJobCommandHandler(
             return await FailJobAsync(importJob, "SearchingMetadata", advanceResult.Error!, ct);
         }
 
-        var isbn = FileNameIsbnExtractor.ExtractIsbn(importJob.OriginalFileName) ?? comicInfo?.Isbn;
+        var (isbn, isbnScan) = await ResolveIsbnAsync(importJob, comicInfo, pages, ct);
         var serie = comicInfo?.Series ?? Path.GetFileNameWithoutExtension(importJob.OriginalFileName);
         var title = comicInfo?.Title ?? serie;
         var authors = comicInfo?.Writer ?? string.Empty;
@@ -291,9 +293,32 @@ public sealed class ProcessImportJobCommandHandler(
             return await FailJobAsync(importJob, "SearchingMetadata", writeResult.Error!, ct);
         }
 
-        return new BookMetadata(serie, title, isbn, volumeNumber,
+        var metadata = new BookMetadata(serie, title, isbn, volumeNumber,
             NumberOfPages: pageCount > 0 ? pageCount : null,
             Authors: authors, Publishers: publishers, PublishDate: publishDate);
+        return (metadata, isbnScan);
+    }
+
+    // The file name and ComicInfo.xml come first: the pages are only read (OCR) when neither has an ISBN.
+    private async Task<(string? Isbn, IsbnScanResult? Scan)> ResolveIsbnAsync(
+        ImportJob importJob, ComicInfoData? comicInfo, IReadOnlyList<string> pages, CancellationToken ct)
+    {
+        var isbn = FileNameIsbnExtractor.ExtractIsbn(importJob.OriginalFileName) ?? comicInfo?.Isbn;
+        if (!string.IsNullOrWhiteSpace(isbn))
+        {
+            return (isbn, null);
+        }
+
+        var scan = await externalServices.IsbnScanner.ScanPagesAsync(pages, ct);
+        if (scan.Isbns.Count > 1)
+        {
+            // Picking one would give the book the metadata and the file name of another one: the user chooses.
+            logger.LogInformation("Import job {JobId}: {Count} ISBNs read on the pages, left to the user to pick",
+                importJob.Id, scan.Isbns.Count);
+            return (null, scan);
+        }
+
+        return (scan.Isbns.Count == 1 ? scan.Isbns[0] : null, scan);
     }
 
     // ── Step 5: UploadingCover (best-effort, never fails the pipeline) ────────
@@ -364,6 +389,7 @@ public sealed class ProcessImportJobCommandHandler(
         ImportJob importJob,
         Library library,
         BookMetadata meta,
+        IsbnScanResult? isbnScan,
         (string OutputPath, string OutputFileName, long FileSize) archive,
         string imageLink,
         CancellationToken ct)
@@ -396,6 +422,11 @@ public sealed class ProcessImportJobCommandHandler(
         }
 
         var digitalBook = bookResult.Value!;
+        if (isbnScan is { Completed: true })
+        {
+            // A single ISBN is already the book's: only several of them are kept as candidates.
+            digitalBook.RecordIsbnScan(isbnScan.Isbns.Count > 1 ? isbnScan.Isbns : [], externalServices.Clock.GetUtcNow().UtcDateTime);
+        }
 
         repositories.Books.Add(digitalBook);
         importJob.Complete(digitalBook.Id);

@@ -14,12 +14,13 @@ public sealed record BookListItemViewModel(
     string Publishers,
     DateTime? LastRead,
     int? LastRating,
-    int ReadCount)
+    int ReadCount,
+    IsbnScanState IsbnScanState = IsbnScanState.HasIsbn)
 {
     public static BookListItemViewModel From(BookSummaryDto dto) =>
         new(dto.Id, dto.Serie, dto.Title, dto.ISBN, dto.VolumeNumber,
             dto.ImageLink, dto.Authors, dto.Publishers,
-            dto.LastRead, dto.LastRating, dto.ReadCount);
+            dto.LastRead, dto.LastRating, dto.ReadCount, dto.IsbnScanState);
 
     public static BookListItemViewModel From(Book book)
     {
@@ -35,6 +36,7 @@ public sealed record BookListItemViewModel(
             book.Publishers,
             lastEntry?.Date,
             lastEntry?.Rating,
-            book.ReadingDates.Count);
+            book.ReadingDates.Count,
+            book is DigitalBook digitalBook ? digitalBook.GetIsbnScanState() : IsbnScanState.HasIsbn);
     }
 }

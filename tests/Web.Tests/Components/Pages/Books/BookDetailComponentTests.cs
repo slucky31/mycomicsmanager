@@ -24,6 +24,7 @@ public sealed class BookDetailComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton(service);
         ctx.Services.AddSingleton(Substitute.For<IBookMoveWorkflow>());
+        ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
 
         var cut = ctx.Render<BookDetail>(p => p.Add(c => c.BookId, Guid.CreateVersion7().ToString()));
 
@@ -43,6 +44,7 @@ public sealed class BookDetailComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton(booksService);
         ctx.Services.AddSingleton(workflow);
+        ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
 
         var cut = ctx.Render<BookDetail>(p => p.Add(c => c.BookId, book.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad"));

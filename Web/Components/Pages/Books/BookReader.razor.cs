@@ -1,4 +1,5 @@
 using Application.Books.Read;
+using Application.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -8,7 +9,13 @@ namespace Web.Components.Pages.Books;
 
 public sealed partial class BookReader : IAsyncDisposable
 {
+    // "?mode=isbn": the reader only looks for the ISBN, starts on the first page and never saves the progress.
+    public const string IsbnSearchMode = "isbn";
+
     private static readonly TimeSpan s_saveProgressDelay = TimeSpan.FromSeconds(1);
+
+    // The first OCR also downloads the engine and its language data.
+    private static readonly TimeSpan s_isbnOcrTimeout = TimeSpan.FromMinutes(2);
 
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBookReaderService BookReaderService { get; set; } = default!;
@@ -20,6 +27,9 @@ public sealed partial class BookReader : IAsyncDisposable
     [Parameter]
     public string BookId { get; set; } = string.Empty;
 
+    [SupplyParameterFromQuery(Name = "mode")]
+    public string? Mode { get; set; }
+
     private Guid _bookGuid;
     private BookReaderInfoDto? _info;
     private bool _isLoading = true;
@@ -29,11 +39,20 @@ public sealed partial class BookReader : IAsyncDisposable
     private bool _showFinish;
     private int _rating = 3;
     private bool _isMarkingAsRead;
+    private bool _isExtractingIsbn;
+    private IReadOnlyList<string> _isbnCandidates = [];
+    private IReadOnlyList<int> _quickPages = [];
+    private string? _scanProgress;
 
     private ElementReference _surface;
+    private ElementReference _pageImage;
     private IJSObjectReference? _jsModule;
+    private IJSObjectReference? _ocrModule;
     private DotNetObjectReference<BookReader>? _dotNetObjectRef;
     private CancellationTokenSource? _saveCts;
+    private CancellationTokenSource? _scanCts;
+
+    private bool IsIsbnSearch => string.Equals(Mode, IsbnSearchMode, StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,8 +68,9 @@ public sealed partial class BookReader : IAsyncDisposable
             if (result.IsSuccess && result.Value is not null)
             {
                 _info = result.Value;
-                _currentPage = _info.LastReadPage;
-                _savedPage = _currentPage;
+                _savedPage = _info.LastReadPage;
+                _currentPage = IsIsbnSearch ? 0 : _info.LastReadPage;
+                _quickPages = IsIsbnSearch ? IsbnScanPages.GetPagesInReadingOrder(_info.PageCount) : [];
             }
             else if (result.IsFailure)
             {
@@ -107,7 +127,8 @@ public sealed partial class BookReader : IAsyncDisposable
     {
         if (_info is not null && _currentPage >= _info.PageCount - 1)
         {
-            _showFinish = true;
+            // Looking for the ISBN on the back cover is not finishing the book.
+            _showFinish = !IsIsbnSearch;
             StateHasChanged();
             return Task.CompletedTask;
         }
@@ -134,10 +155,138 @@ public sealed partial class BookReader : IAsyncDisposable
 
     private void CloseFinish() => _showFinish = false;
 
+    private void CloseIsbnCandidates() => _isbnCandidates = [];
+
+    // The OCR runs in the browser on the page already displayed: only its text comes back.
+    private async Task ExtractIsbnAsync()
+    {
+        if (_isExtractingIsbn)
+        {
+            return;
+        }
+
+        var pageIndex = _currentPage;
+        _isExtractingIsbn = true;
+
+        try
+        {
+            var module = await GetOcrModuleAsync();
+            var text = await module.InvokeAsync<string>("recognize", s_isbnOcrTimeout, _pageImage);
+            if (pageIndex != _currentPage)
+            {
+                // The reader turned the page meanwhile: this text belongs to another page.
+                return;
+            }
+
+            ShowIsbnCandidates(TextIsbnExtractor.ExtractAll(text));
+        }
+        catch (Exception ex) when (ex is JSException or OperationCanceledException)
+        {
+            Snackbar.Add("Unable to read the text of this page", Severity.Error);
+            Logger.LogError(ex, "Unable to read the text of page {PageIndex} of book {BookId}", pageIndex, BookId);
+        }
+        finally
+        {
+            _isExtractingIsbn = false;
+        }
+    }
+
+    // Reads the first and last pages one by one, the most likely first, until one shows an ISBN.
+    private async Task ScanIsbnPagesAsync()
+    {
+        if (_info is null || _isExtractingIsbn)
+        {
+            return;
+        }
+
+        var pages = IsbnScanPages.GetScanOrder(_info.PageCount);
+        if (_scanCts is not null)
+        {
+            await _scanCts.CancelAsync();
+            _scanCts.Dispose();
+        }
+
+        _scanCts = new CancellationTokenSource();
+        var token = _scanCts.Token;
+        _isExtractingIsbn = true;
+
+        try
+        {
+            var module = await GetOcrModuleAsync();
+            for (var i = 0; i < pages.Count; i++)
+            {
+                _scanProgress = $"{i + 1} / {pages.Count}";
+                StateHasChanged();
+
+                var isbns = await ReadIsbnsAsync(module, pages[i], token);
+                if (isbns.Count > 0)
+                {
+                    // Shows the page where the ISBN is printed, so the reader can check it.
+                    await GoToPageAsync(pages[i]);
+                    _isbnCandidates = isbns;
+                    return;
+                }
+            }
+
+            Snackbar.Add("No ISBN found in the first and last pages", Severity.Warning);
+        }
+        catch (Exception ex) when (token.IsCancellationRequested || ex is JSDisconnectedException)
+        {
+            // The reader was closed during the scan.
+        }
+        catch (Exception ex) when (ex is JSException or OperationCanceledException)
+        {
+            Snackbar.Add("Unable to read the text of the pages", Severity.Error);
+            Logger.LogError(ex, "Unable to scan the pages of book {BookId} for its ISBN", BookId);
+        }
+        finally
+        {
+            _isExtractingIsbn = false;
+            _scanProgress = null;
+        }
+    }
+
+    private async Task<IReadOnlyList<string>> ReadIsbnsAsync(IJSObjectReference module, int pageIndex, CancellationToken token)
+    {
+        using var pageCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+        pageCts.CancelAfter(s_isbnOcrTimeout);
+        var text = await module.InvokeAsync<string>("recognizeUrl", pageCts.Token, PageUrl(pageIndex));
+        return TextIsbnExtractor.ExtractAll(text);
+    }
+
+    private async Task<IJSObjectReference> GetOcrModuleAsync()
+    {
+        var module = _ocrModule ?? await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/isbnOcr.js");
+        _ocrModule = module;
+        return module;
+    }
+
+    private void ShowIsbnCandidates(IReadOnlyList<string> isbns)
+    {
+        if (isbns.Count == 0)
+        {
+            Snackbar.Add("No ISBN found on this page", Severity.Warning);
+            return;
+        }
+
+        _isbnCandidates = isbns;
+    }
+
+    private async Task FetchBookInfoAsync(string isbn)
+    {
+        await SaveProgressAsync(_currentPage);
+        NavigationManager.NavigateTo($"/books/{BookId}/import?isbn={Uri.EscapeDataString(isbn)}");
+    }
+
     // Saving on every page turn would hammer the database while flipping through a book:
     // the progress is only written once the reader stays on a page for a moment.
     private void ScheduleProgressSave()
     {
+        if (IsIsbnSearch)
+        {
+            return;
+        }
+
         _saveCts?.Cancel();
         _saveCts?.Dispose();
         _saveCts = new CancellationTokenSource();
@@ -159,7 +308,7 @@ public sealed partial class BookReader : IAsyncDisposable
 
     private async Task SaveProgressAsync(int pageIndex)
     {
-        if (_info is null || pageIndex == _savedPage)
+        if (_info is null || IsIsbnSearch || pageIndex == _savedPage)
         {
             return;
         }
@@ -228,26 +377,41 @@ public sealed partial class BookReader : IAsyncDisposable
             _saveCts = null;
         }
 
+        if (_scanCts is not null)
+        {
+            await _scanCts.CancelAsync();
+            _scanCts.Dispose();
+            _scanCts = null;
+        }
+
         // Leaving the page another way (browser back, menu) must not lose the progress.
         await SaveProgressAsync(_currentPage);
 
-        if (_jsModule is not null)
-        {
-            try
-            {
-                await _jsModule.InvokeVoidAsync("detach", CancellationToken.None);
-                await _jsModule.DisposeAsync();
-            }
-            catch (JSDisconnectedException)
-            {
-                // The circuit is gone: the browser already dropped the listeners.
-            }
-            catch (JSException)
-            {
-                // Ignore
-            }
-        }
+        await ReleaseModuleAsync(_jsModule, "detach");
+        await ReleaseModuleAsync(_ocrModule, "terminate");
 
         _dotNetObjectRef?.Dispose();
+    }
+
+    private static async Task ReleaseModuleAsync(IJSObjectReference? module, string cleanupFunction)
+    {
+        if (module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await module.InvokeVoidAsync(cleanupFunction, CancellationToken.None);
+            await module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // The circuit is gone: the browser already released the module's resources.
+        }
+        catch (JSException)
+        {
+            // Ignore
+        }
     }
 }

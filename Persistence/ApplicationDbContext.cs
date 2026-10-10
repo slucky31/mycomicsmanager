@@ -66,6 +66,9 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<PhysicalBook>().ToTable("PhysicalBooks");
             modelBuilder.Entity<DigitalBook>().ToTable("DigitalBooks");
             modelBuilder.Entity<DigitalBook>().Property(b => b.FilePath).HasMaxLength(BookConstants.MaxFilePathLength);
+            modelBuilder.Entity<DigitalBook>().PrimitiveCollection(b => b.IsbnCandidates)
+                .HasField("_isbnCandidates")
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
 
             modelBuilder.Entity<ImportJob>().ToTable("ImportJobs");
             modelBuilder.Entity<ImportJob>().Property(j => j.OriginalFileName).HasMaxLength(ImportJobConstants.MaxFileNameLength);

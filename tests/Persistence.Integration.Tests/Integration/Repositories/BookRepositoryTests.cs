@@ -494,4 +494,43 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         savedBook.PublishDate.Should().Be(updatedPublishDate);
         savedBook.NumberOfPages.Should().Be(240);
     }
+
+    private DigitalBook CreateDigitalBook(string title, string? isbn = null) =>
+        DigitalBook.Create(new BookMetadata("Blacksad", title, isbn), DefaultLibrary.Id, $"/data/A/{title}.cbz", 1024).Value!;
+
+    [Fact]
+    public async Task GetByIdAsync_Should_ReloadTheIsbnScan_WhenTheBookWasScanned()
+    {
+        var book = CreateDigitalBook("Arctic Nation");
+        var scannedAt = new DateTime(2026, 10, 10, 8, 0, 0, DateTimeKind.Utc);
+        book.RecordIsbnScan(["9782800112343", "2205056174"], scannedAt);
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+        Context.ChangeTracker.Clear();
+
+        var result = await BookRepository.GetByIdAsync(book.Id) as DigitalBook;
+
+        Guard.Against.Null(result);
+        result.IsbnCandidates.Should().Equal("9782800112343", "2205056174");
+        result.IsbnScannedAt.Should().Be(scannedAt);
+    }
+
+    [Fact]
+    public async Task ListIdsToScanForIsbnAsync_Should_OnlyReturnTheDigitalBooksWithoutIsbnNeverScanned()
+    {
+        var toScan = CreateDigitalBook("Âme rouge");
+        var withIsbn = CreateDigitalBook("Arctic Nation", "9782205050196");
+        var scanned = CreateDigitalBook("L'enfer, le silence");
+        scanned.RecordIsbnScan([], DateTime.UtcNow);
+        var physical = CreateBook("Blacksad", "Amarillo", "9780785199999");
+        BookRepository.Add(toScan);
+        BookRepository.Add(withIsbn);
+        BookRepository.Add(scanned);
+        BookRepository.Add(physical);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        var result = await BookRepository.ListIdsToScanForIsbnAsync(DefaultLibrary.Id, CancellationToken.None);
+
+        result.Should().Equal(toScan.Id);
+    }
 }

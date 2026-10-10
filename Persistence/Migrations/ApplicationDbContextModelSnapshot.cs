@@ -433,6 +433,13 @@ namespace Persistence.Migrations
                     b.Property<long>("FileSize")
                         .HasColumnType("bigint");
 
+                    b.PrimitiveCollection<string[]>("IsbnCandidates")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<DateTime?>("IsbnScannedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("LastReadPage")
                         .HasColumnType("integer");
 

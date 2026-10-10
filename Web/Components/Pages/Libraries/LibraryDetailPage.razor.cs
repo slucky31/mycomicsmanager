@@ -23,12 +23,14 @@ public partial class LibraryDetailPage : IAsyncDisposable
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private LibraryStateService LibraryStateService { get; set; } = default!;
     [Inject] private ILogger<LibraryDetailPage> Logger { get; set; } = default!;
+    [Inject] private IIsbnScanService IsbnScanService { get; set; } = default!;
 
     [Parameter] public string? LibraryId { get; set; }
 
     private const int PageSize = 24;
 
     private LibraryUiDto? _library;
+    private bool _isStartingIsbnScan;
     private Guid _libraryGuid;
 
     // Cards / Covers — accumulated pages
@@ -412,6 +414,43 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private void AddBook() => NavigationManager.NavigateTo($"/books/add?libraryId={LibraryId}");
 
     private void NavigateToImport() => NavigationManager.NavigateTo($"/import?libraryId={LibraryId}");
+
+
+    private async Task FindMissingIsbnsAsync()
+    {
+        if (_library is null)
+        {
+            return;
+        }
+
+        _isStartingIsbnScan = true;
+        try
+        {
+            var result = await IsbnScanService.StartLibraryScanAsync(_library.Id, CancellationToken.None);
+            if (result.IsFailure)
+            {
+                Snackbar.Add("Unable to start the search of the missing ISBNs", Severity.Error);
+                Logger.LogError("Unable to start the ISBN scan of library {LibraryId}: {Error}", _library.Id, result.Error?.Code);
+            }
+            else if (result.Value == 0)
+            {
+                Snackbar.Add("Every book of this library has an ISBN or was already scanned", Severity.Info);
+            }
+            else
+            {
+                Snackbar.Add($"Reading the pages of {result.Value} book(s) in the background. A book showing several ISBNs lets you pick its own.", Severity.Success);
+            }
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Snackbar.Add("Unable to start the search of the missing ISBNs", Severity.Error);
+            Logger.LogError(ex, "Unexpected error while starting the ISBN scan of library {LibraryId}", _library.Id);
+        }
+        finally
+        {
+            _isStartingIsbnScan = false;
+        }
+    }
 
     private async Task DownloadBookAsync(Guid bookId)
     {

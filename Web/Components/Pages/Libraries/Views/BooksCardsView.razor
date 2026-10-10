@@ -1,3 +1,4 @@
+@using Web.Components.Pages.Books
 @using Web.Components.SharedComponents
 
 <div>
@@ -39,6 +40,7 @@
                             @if (ShowDownload)
                             {
                                 <MudMenuItem Icon="@Icons.Material.Filled.MenuBook" Href="@($"/books/{book.Id}/read")">Read</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.DocumentScanner" Href="@($"/books/{book.Id}/read?mode={BookReader.IsbnSearchMode}")">Find ISBN</MudMenuItem>
                                 <MudMenuItem Icon="@Icons.Material.Filled.Download" IconColor="Color.Secondary" OnClick="@(() => OnDownload.InvokeAsync(book.Id))">Download CBZ</MudMenuItem>
                             }
                             <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
@@ -71,6 +73,10 @@
                                 <MudTooltip Text="@book.ISBN" Placement="Placement.Top">
                                     <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Small" Class="book-card-meta-icon" />
                                 </MudTooltip>
+                            }
+                            else
+                            {
+                                <IsbnScanStateIcon State="@book.IsbnScanState" Class="book-card-meta-icon" />
                             }
                             @if (book.LastRating.HasValue)
                             {

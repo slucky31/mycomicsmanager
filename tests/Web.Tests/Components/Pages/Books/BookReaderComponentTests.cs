@@ -4,7 +4,9 @@ using Bunit;
 using Domain.Books;
 using Domain.Errors;
 using Domain.Primitives;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
@@ -21,11 +23,13 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     private readonly IBookReaderService _readerService = Substitute.For<IBookReaderService>();
     private readonly IBooksService _booksService = Substitute.For<IBooksService>();
     private readonly ISnackbar _snackbar = Substitute.For<ISnackbar>();
+    private readonly BunitJSModuleInterop _ocrModule;
 
     public BookReaderComponentTests()
     {
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.JSInterop.SetupModule("./js/bookReader.js");
+        _ocrModule = _ctx.JSInterop.SetupModule("./js/isbnOcr.js");
         _ctx.Services.AddMudServices();
         _ctx.Services.AddSingleton(_readerService);
         _ctx.Services.AddSingleton(_booksService);
@@ -192,5 +196,168 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
 
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("This book cannot be read"));
         await _readerService.DidNotReceive().GetReaderInfoAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    private async Task<IRenderedComponent<BookReader>> ExtractIsbnAsync(string recognizedText)
+    {
+        _ocrModule.Setup<string>("recognize", _ => true).SetResult(recognizedText);
+        var cut = RenderReader(pageCount: 20, lastReadPage: 1);
+        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+
+        await cut.Find("button[aria-label='Find the ISBN on this page']").ClickAsync(new());
+        return cut;
+    }
+
+    private static IEnumerable<AngleSharp.Dom.IElement> IsbnButtons(IRenderedComponent<BookReader> cut) =>
+        cut.FindAll("button.reader-isbn");
+
+    [Fact]
+    public async Task ExtractIsbnAsync_Should_ShowTheIsbnsReadOnThePage()
+    {
+        var cut = await ExtractIsbnAsync("Dépôt légal : mars 2024\nISBN 978-2-8001-1234-3\nIntégrale : 2-205-05617-4");
+
+        IsbnButtons(cut).Select(b => b.TextContent.Trim()).Should().Equal("9782800112343", "2205056174");
+    }
+
+    [Fact]
+    public async Task ExtractIsbnAsync_Should_WarnTheReader_WhenThePageHasNoIsbn()
+    {
+        var cut = await ExtractIsbnAsync("Chapitre 1");
+
+        IsbnButtons(cut).Should().BeEmpty();
+        _snackbar.Received(1).Add("No ISBN found on this page", Severity.Warning, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ExtractIsbnAsync_Should_ShowAnError_WhenTheOcrFails()
+    {
+        _ocrModule.Setup<string>("recognize", _ => true).SetException(new JSException("Unable to load the OCR library"));
+        var cut = RenderReader(pageCount: 20, lastReadPage: 1);
+        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+
+        await cut.Find("button[aria-label='Find the ISBN on this page']").ClickAsync(new());
+
+        _snackbar.Received(1).Add("Unable to read the text of this page", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        cut.FindAll("button[aria-label='Find the ISBN on this page']").Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task ExtractIsbnAsync_Should_IgnoreTheText_WhenThePageWasTurnedMeanwhile()
+    {
+        var recognition = _ocrModule.Setup<string>("recognize", _ => true);
+        var cut = RenderReader(pageCount: 20, lastReadPage: 1);
+        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        await cut.Find("button[aria-label='Find the ISBN on this page']").ClickAsync(new());
+        await cut.Find("button.reader-zone-next").ClickAsync(new());
+
+        await cut.InvokeAsync(() => recognition.SetResult("ISBN 978-2-8001-1234-3"));
+
+        await cut.WaitForAssertionAsync(() => cut.FindAll("button[aria-label='Find the ISBN on this page']").Should().ContainSingle());
+        IsbnButtons(cut).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task FetchBookInfoAsync_Should_OpenTheWebImportWithTheSelectedIsbn()
+    {
+        var cut = await ExtractIsbnAsync("ISBN 978-2-8001-1234-3");
+
+        await IsbnButtons(cut).Single().ClickAsync(new());
+
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_bookId}/import?isbn=9782800112343");
+    }
+
+    [Fact]
+    public async Task CloseIsbnCandidates_Should_HideTheIsbnPanel()
+    {
+        var cut = await ExtractIsbnAsync("ISBN 978-2-8001-1234-3");
+
+        await cut.FindAll("button").Single(b => b.TextContent.Contains("Cancel", StringComparison.Ordinal)).ClickAsync(new());
+
+        IsbnButtons(cut).Should().BeEmpty();
+    }
+
+    private async Task<IRenderedComponent<BookReader>> RenderIsbnSearchAsync(int pageCount, int lastReadPage)
+    {
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_bookId}/read?mode=isbn");
+        var cut = RenderReader(pageCount, lastReadPage);
+        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        return cut;
+    }
+
+    private static Task GoToQuickPageAsync(IRenderedComponent<BookReader> cut, int pageNumber) =>
+        cut.Find($"button[aria-label='Go to page {pageNumber}']").ClickAsync(new());
+
+    [Fact]
+    public async Task OnInitializedAsync_Should_OpenTheFirstPageWithShortcutsToBothEnds_WhenSearchingTheIsbn()
+    {
+        var cut = await RenderIsbnSearchAsync(pageCount: 20, lastReadPage: 7);
+
+        CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/0");
+        cut.FindAll("button.reader-quick-page").Select(b => b.TextContent.Trim())
+            .Should().Equal("1", "2", "3", "4", "5", "16", "17", "18", "19", "20");
+    }
+
+    [Fact]
+    public async Task CloseAsync_Should_NotSaveTheProgress_WhenSearchingTheIsbn()
+    {
+        var cut = await RenderIsbnSearchAsync(pageCount: 20, lastReadPage: 7);
+        await GoToQuickPageAsync(cut, 19);
+
+        await cut.Find("button[aria-label='Close reader']").ClickAsync(new());
+
+        CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/18");
+        await _readerService.DidNotReceive().SaveProgressAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task NextPageAsync_Should_NotShowTheFinishPanel_WhenSearchingTheIsbn()
+    {
+        var cut = await RenderIsbnSearchAsync(pageCount: 20, lastReadPage: 0);
+        await GoToQuickPageAsync(cut, 20);
+
+        await cut.Find("button.reader-zone-next").ClickAsync(new());
+
+        cut.Markup.Should().NotContain("You finished this book");
+    }
+
+    [Fact]
+    public async Task ScanIsbnPagesAsync_Should_ShowThePageWhereTheIsbnIsPrinted_WithoutSavingTheProgress()
+    {
+        _ocrModule.Setup<string>("recognizeUrl", call => Equals(call.Arguments[0], $"/api/books/{_bookId}/pages/18"))
+            .SetResult("ISBN 978-2-8001-1234-3");
+        var cut = await RenderIsbnSearchAsync(pageCount: 20, lastReadPage: 7);
+
+        await cut.Find("button[aria-label='Scan the first and last pages']").ClickAsync(new());
+        await cut.WaitForAssertionAsync(() => IsbnButtons(cut).Should().ContainSingle());
+        await IsbnButtons(cut).Single().ClickAsync(new());
+
+        CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/18");
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_bookId}/import?isbn=9782800112343");
+        await _readerService.DidNotReceive().SaveProgressAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ScanIsbnPagesAsync_Should_WarnTheReader_WhenNoPageHasAnIsbn()
+    {
+        _ocrModule.Setup<string>("recognizeUrl", _ => true).SetResult("Chapitre 1");
+        var cut = await RenderIsbnSearchAsync(pageCount: 20, lastReadPage: 0);
+
+        await cut.Find("button[aria-label='Scan the first and last pages']").ClickAsync(new());
+
+        await cut.WaitForAssertionAsync(() =>
+            _snackbar.Received(1).Add("No ISBN found in the first and last pages", Severity.Warning, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
+        _ocrModule.Invocations["recognizeUrl"].Should().HaveCount(10);
+    }
+
+    [Fact]
+    public async Task ScanIsbnPagesAsync_Should_ShowAnError_WhenTheOcrFails()
+    {
+        _ocrModule.Setup<string>("recognizeUrl", _ => true).SetException(new JSException("Unable to load the OCR library"));
+        var cut = await RenderIsbnSearchAsync(pageCount: 20, lastReadPage: 0);
+
+        await cut.Find("button[aria-label='Scan the first and last pages']").ClickAsync(new());
+
+        await cut.WaitForAssertionAsync(() =>
+            _snackbar.Received(1).Add("Unable to read the text of the pages", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
     }
 }

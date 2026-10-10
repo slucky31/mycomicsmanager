@@ -26,6 +26,9 @@ public class ProcessImportJobCommandHandlerTests
     private readonly IUnitOfWork _unitOfWork;
     private readonly ITempWorkspace _tempWorkspace;
     private readonly IImportDirectoryStorage _importDirectoryStorage;
+    private readonly IIsbnPageScanner _isbnScanner = Substitute.For<IIsbnPageScanner>();
+    private readonly TimeProvider _clock = Substitute.For<TimeProvider>();
+    private static readonly DateTimeOffset s_now = new(2026, 10, 10, 8, 0, 0, TimeSpan.Zero);
 
     private static readonly Guid s_userId = Guid.CreateVersion7();
     private static readonly TError s_processingError = new("FP500", "Processing failed");
@@ -59,6 +62,8 @@ public class ProcessImportJobCommandHandlerTests
                     ConvertedDir: Path.Combine(tempDir, "converted"));
         });
         _tempWorkspace.GetWebpFiles(Arg.Any<string>()).Returns(["cover.webp"]);
+        _isbnScanner.ScanPagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>()).Returns(IsbnScanResult.NotScanned);
+        _clock.GetUtcNow().Returns(s_now);
         _tempWorkspace.MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
             .Returns(callInfo => Result<string>.Success(
                 Path.Combine(Path.GetTempPath(), "library", callInfo.ArgAt<string>(2))));
@@ -69,7 +74,7 @@ public class ProcessImportJobCommandHandlerTests
             new ProcessImportJobFileProcessors(
                 _archiveExtractor, _pdfImageExtractor, _imageProcessor, _archiveBuilder, _comicInfoXmlService),
             new ProcessImportJobExternalServices(
-                _comicSearchService, _cloudinaryService, _tempWorkspace, _importDirectoryStorage),
+                _comicSearchService, _cloudinaryService, _tempWorkspace, _importDirectoryStorage, _isbnScanner, _clock),
             NullLogger<ProcessImportJobCommandHandler>.Instance);
     }
 
@@ -293,6 +298,97 @@ public class ProcessImportJobCommandHandlerTests
 
         await _comicSearchService.DidNotReceive()
             .SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    // ── ISBN read on the pages (OCR) ──────────────────────────────────────────
+
+    private ImportJob SetupJobWithoutIsbn()
+    {
+        var job = CreatePendingJob("My Comic Without Isbn.cbz", "/srv/noisbn.cbz");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+        SetupImageProcessor();
+        SetupComicInfoXml();
+        SetupCloudinary();
+        SetupArchiveBuilder();
+        return job;
+    }
+
+    [Fact]
+    public async Task Handle_Should_UseTheIsbnReadOnThePages_WhenNeitherTheFileNameNorComicInfoHasOne()
+    {
+        var job = SetupJobWithoutIsbn();
+        _isbnScanner.ScanPagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())
+            .Returns(new IsbnScanResult(true, ["9782075162869"]));
+        _comicSearchService.SearchByIsbnAsync("9782075162869", Arg.Any<CancellationToken>())
+            .Returns(new ComicSearchResult("Title", "Serie", "9782075162869", 1, "", "Author", "Publisher", null, null, true));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        await _isbnScanner.Received(1).ScanPagesAsync(
+            Arg.Is<IReadOnlyList<string>>(pages => pages.Count == 1 && pages[0] == "cover.webp"), Arg.Any<CancellationToken>());
+        result.Value!.ISBN.Should().Be("9782075162869");
+        result.Value.Title.Should().Be("Title");
+        result.Value.IsbnCandidates.Should().BeEmpty();
+        result.Value.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
+        _tempWorkspace.Received(1).MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), "9782075162869.cbz");
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepTheIsbnsAsCandidates_WhenThePagesShowSeveral()
+    {
+        var job = SetupJobWithoutIsbn();
+        _isbnScanner.ScanPagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())
+            .Returns(new IsbnScanResult(true, ["9782075162869", "2205056174"]));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Value!.ISBN.Should().BeNull();
+        result.Value.IsbnCandidates.Should().Equal("9782075162869", "2205056174");
+        await _comicSearchService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_RecordTheScan_WhenThePagesShowNoIsbn()
+    {
+        var job = SetupJobWithoutIsbn();
+        _isbnScanner.ScanPagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())
+            .Returns(new IsbnScanResult(true, []));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Value!.ISBN.Should().BeNull();
+        result.Value.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
+    }
+
+    [Fact]
+    public async Task Handle_Should_LeaveTheBookToBeScannedLater_WhenThePagesCouldNotBeScanned()
+    {
+        var job = SetupJobWithoutIsbn();
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.IsbnScannedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotReadThePages_WhenTheFileNameHasAnIsbn()
+    {
+        var job = CreatePendingJob("Serie 9782075162869.cbz", "/srv/Serie 9782075162869.cbz");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+        SetupImageProcessor();
+        SetupComicInfoXml();
+        SetupCloudinary();
+        SetupArchiveBuilder();
+        SetupNoMetadataSearch();
+
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        await _isbnScanner.DidNotReceive().ScanPagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>());
     }
 
     // ── Cover upload ──────────────────────────────────────────────────────────
