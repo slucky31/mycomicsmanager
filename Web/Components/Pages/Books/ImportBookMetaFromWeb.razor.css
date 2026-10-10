@@ -136,3 +136,60 @@
     border-top: 1px solid var(--mud-palette-lines-default);
     z-index: 10;
 }
+
+/* ── Search progress ─────────────────────────────────────────── */
+
+.import-search-status {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--mud-palette-surface);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.import-search-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.import-search-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+}
+
+.import-search-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--mud-palette-text-secondary);
+}
+
+/* ── Search state of a source ────────────────────────────────── */
+
+.import-source-state {
+    display: inline-flex;
+    width: 20px;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+::deep .import-state-searching {
+    animation: import-state-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes import-state-pulse {
+    50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::deep .import-state-searching {
+        animation: none;
+    }
+}

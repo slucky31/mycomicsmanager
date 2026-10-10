@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -37,7 +38,8 @@ public class OpenLibraryService : IOpenLibraryService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("OpenLibrary returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
-                return CreateNotFoundResult();
+                // OpenLibrary answers 404 for a book it does not know.
+                return response.StatusCode == HttpStatusCode.NotFound ? CreateNotFoundResult() : CreateFailedResult();
             }
 
             var bookData = await response.Content.ReadFromJsonAsync<OpenLibraryEdition>(
@@ -75,17 +77,17 @@ public class OpenLibraryService : IOpenLibraryService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (JsonException ex)
         {
             _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (TaskCanceledException ex) when (ex.CancellationToken != cancellationToken)
         {
             _logger.LogError(ex, "Timeout searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
     }
 
@@ -129,6 +131,8 @@ public class OpenLibraryService : IOpenLibraryService
 
         return authorNames;
     }
+
+    private static OpenLibraryBookResult CreateFailedResult() => CreateNotFoundResult() with { Failed = true };
 
     private static OpenLibraryBookResult CreateNotFoundResult() =>
         new(

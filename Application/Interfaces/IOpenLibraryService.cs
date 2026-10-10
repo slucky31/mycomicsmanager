@@ -8,7 +8,8 @@ public record OpenLibraryBookResult(
     DateOnly? PublishDate,
     int? NumberOfPages,
     Uri? CoverUrl,
-    bool Found
+    bool Found,
+    bool Failed = false
 ) : IBookSearchResult;
 
 public interface IOpenLibraryService

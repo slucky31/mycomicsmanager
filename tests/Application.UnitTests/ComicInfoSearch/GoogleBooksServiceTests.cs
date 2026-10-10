@@ -144,12 +144,13 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeFalse();
         result.Title.Should().BeEmpty();
         result.CoverUrl.Should().BeNull();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenApiReturnsError()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenApiReturnsError()
     {
         // Arrange
         using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
@@ -165,10 +166,11 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenHttpRequestFails()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenHttpRequestFails()
     {
         // Arrange
         using var handler = new MockHttpMessageHandler(
@@ -182,10 +184,11 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenJsonIsInvalid()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenJsonIsInvalid()
     {
         // Arrange
         using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
@@ -201,6 +204,7 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
@@ -649,7 +653,7 @@ public sealed class GoogleBooksServiceTests
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTimeoutOccurs()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenTimeoutOccurs()
     {
         // Arrange – TaskCanceledException from an internal timeout (CancellationToken.None is not cancelled)
         using var handler = new MockHttpMessageHandler(new TaskCanceledException("Request timed out"));
@@ -661,6 +665,7 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]

@@ -3,6 +3,7 @@ using Application.Helpers;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Web.Models;
 using Web.Services;
 using Web.Validators;
 
@@ -37,6 +38,9 @@ public partial class ImportBookMetaFromWeb
     private ParsedTitleInfo? _bnfParsed;
     private ParsedTitleInfo? _olParsed;
     private ParsedTitleInfo? _googleParsed;
+
+    // The state of each web search, in the order the sources are shown.
+    private readonly SortedDictionary<BookSource, ProviderSearchState> _searchStates = new();
 
     private bool _isLoading = true;
     private bool _loadError;
@@ -118,32 +122,75 @@ public partial class ImportBookMetaFromWeb
             return;
         }
 
-        // Start all requests concurrently, then await each independently so that
-        // a failure in one provider does not prevent the other's result from being used.
+        // Start all requests concurrently, then apply each result as soon as it comes, so that
+        // a slow or failing provider neither delays nor prevents the others.
         var isbn = _isbn;
-        var bnfTask = BnfCatalogueService.SearchByIsbnAsync(isbn);
-        var bedethequeTask = BedethequeService.IsEnabled ? BedethequeService.SearchByIsbnAsync(isbn) : null;
-        var olTask = OpenLibraryService.SearchByIsbnAsync(isbn);
-        var googleTask = GoogleBooksService.SearchByIsbnAsync(isbn);
+        _searchStates.Clear();
+        List<Task> searches =
+        [
+            SearchProviderAsync(BookSource.Bnf, "the BnF catalogue", BnfCatalogueService.SearchByIsbnAsync(isbn), result =>
+            {
+                _bnfResult = result;
+                _bnfParsed = ParseTitle(result);
+                return ProviderSearchStates.Of(result);
+            }),
+            SearchProviderAsync(BookSource.OpenLibrary, "OpenLibrary", OpenLibraryService.SearchByIsbnAsync(isbn), result =>
+            {
+                _olResult = result;
+                _olParsed = ParseTitle(result);
+                return ProviderSearchStates.Of(result);
+            }),
+            SearchProviderAsync(BookSource.Google, "Google Books", GoogleBooksService.SearchByIsbnAsync(isbn), result =>
+            {
+                _googleResult = result;
+                _googleParsed = ParseTitle(result);
+                return ProviderSearchStates.Of(result);
+            }),
+        ];
 
-        _bnfResult = await AwaitProviderAsync(bnfTask, "the BnF catalogue");
-        _bnfParsed = ParseTitle(_bnfResult);
-        StateHasChanged();
-
-        if (bedethequeTask is not null)
+        if (BedethequeService.IsEnabled)
         {
-            _bedethequeResult = await AwaitProviderAsync(bedethequeTask, "Bedetheque");
-            StateHasChanged();
+            searches.Add(SearchProviderAsync(BookSource.Bedetheque, "Bedetheque", BedethequeService.SearchByIsbnAsync(isbn), result =>
+            {
+                _bedethequeResult = result;
+                return ProviderSearchStates.Of(result);
+            }));
         }
 
-        _olResult = await AwaitProviderAsync(olTask, "OpenLibrary");
-        _olParsed = ParseTitle(_olResult);
         StateHasChanged();
+        await Task.WhenAll(searches);
+    }
 
-        _googleResult = await AwaitProviderAsync(googleTask, "Google Books");
-        _googleParsed = ParseTitle(_googleResult);
+    private async Task SearchProviderAsync<T>(BookSource source, string provider, Task<T> search, Func<T?, ProviderSearchState> apply)
+        where T : class
+    {
+        _searchStates[source] = ProviderSearchState.Searching;
+        var searchedFor = _searchedFor;
+
+        var result = await AwaitProviderAsync(search, provider);
+
+        // Another book or ISBN was opened meanwhile: this result is not for the page shown.
+        if (_searchedFor != searchedFor)
+        {
+            return;
+        }
+
+        _searchStates[source] = apply(result);
         StateHasChanged();
     }
+
+    private bool IsSearching => _searchStates.ContainsValue(ProviderSearchState.Searching);
+
+    private int SearchesDone => _searchStates.Values.Count(state => state != ProviderSearchState.Searching);
+
+    private static string SourceName(BookSource source) => source switch
+    {
+        BookSource.Bnf => "BNF",
+        BookSource.Bedetheque => "BEDETHEQUE",
+        BookSource.OpenLibrary => "OPENLIBRARY",
+        BookSource.Google => "GOOGLE BOOKS",
+        _ => "CURRENT",
+    };
 
     private async Task<T?> AwaitProviderAsync<T>(Task<T> task, string provider) where T : class
     {

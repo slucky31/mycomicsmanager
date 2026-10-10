@@ -78,39 +78,54 @@ public sealed class BnfCatalogueServiceTests : IDisposable
     {
         var (service, _) = CreateService(_ => Xml(NoRecordResponse));
 
-        (await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken)).Found.Should().BeFalse();
+        var result = await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeFalse();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTheBnfAnswersWithAnError()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenTheBnfAnswersWithAnError()
     {
         var (service, _) = CreateService(_ => new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
 
-        (await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken)).Found.Should().BeFalse();
+        var result = await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTheAnswerIsNotXml()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenTheAnswerIsNotXml()
     {
         var (service, _) = CreateService(_ => Xml("<html><body>maintenance"));
 
-        (await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken)).Found.Should().BeFalse();
+        var result = await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTheRequestFails()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenTheRequestFails()
     {
         var (service, _) = CreateService(_ => throw new HttpRequestException("Network unreachable"));
 
-        (await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken)).Found.Should().BeFalse();
+        var result = await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTheRequestTimesOut()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenTheRequestTimesOut()
     {
         var (service, _) = CreateService(_ => throw new TaskCanceledException("Timeout"));
 
-        (await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken)).Found.Should().BeFalse();
+        var result = await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Theory]

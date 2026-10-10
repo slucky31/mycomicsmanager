@@ -9,7 +9,8 @@ public record BnfBookResult(
     DateOnly? PublishDate,
     int? NumberOfPages,
     Uri? CoverUrl,
-    bool Found
+    bool Found,
+    bool Failed = false
 ) : IBookSearchResult;
 
 /// <summary>

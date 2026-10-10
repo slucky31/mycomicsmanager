@@ -3,6 +3,7 @@
 
 @using Application.Helpers
 @using Application.Interfaces
+@using Web.Models
 @using Web.Services
 @using Web.Validators
 
@@ -35,12 +36,60 @@
                 @<MudRadio T="BookSource" Value="@source" Dense="true" Disabled="@(value is null)">
                     <div class="import-option">
                         <span class="import-source-label">@label</span>
+                        @SearchStateIcon(source)
                         <span class="import-source-value">@(value ?? "—")</span>
                     </div>
                 </MudRadio>;
 
+                // Every web source shows where its search stands; the current values have none.
+                RenderFragment SearchStateIcon(BookSource source) =>
+                @<span class="import-source-state">
+                    @if (_searchStates.TryGetValue(source, out var state))
+                    {
+                        var label = ProviderSearchStateDisplay.Label(state, SourceName(source));
+                        <MudTooltip Text="@label">
+                            <MudIcon Icon="@ProviderSearchStateDisplay.Icon(state)"
+                                     Color="@ProviderSearchStateDisplay.Color(state)"
+                                     Size="Size.Small"
+                                     Class="@(state == ProviderSearchState.Searching ? "import-state-searching" : null)"
+                                     aria-label="@label" />
+                        </MudTooltip>
+                    }
+                </span>;
+
 
             <div class="import-fields">
+
+                @* SEARCH PROGRESS *@
+                @if (_searchStates.Count > 0)
+                {
+                    <div class="import-search-status" role="status" aria-live="polite">
+                        <div class="import-search-summary">
+                            @if (IsSearching)
+                            {
+                                <MudText Typo="Typo.body2">Searching the sources… (@SearchesDone/@_searchStates.Count)</MudText>
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.DoneAll" Color="Color.Success" Size="Size.Small" />
+                                <MudText Typo="Typo.body2">Search complete</MudText>
+                            }
+                        </div>
+                        <div class="import-search-sources">
+                            @foreach (var source in _searchStates.Keys)
+                            {
+                                <span class="import-search-source">
+                                    @SearchStateIcon(source)
+                                    @SourceName(source)
+                                </span>
+                            }
+                        </div>
+                        @if (IsSearching)
+                        {
+                            <MudProgressLinear Color="Color.Primary" Value="@(100.0 * SearchesDone / _searchStates.Count)" Size="Size.Small" Rounded="true" />
+                        }
+                    </div>
+                }
 
                 @if (_isbnFromPage)
                 {
@@ -176,6 +225,7 @@
                             <MudRadio T="BookSource" Value="BookSource.Bedetheque" Dense="true" Disabled="@(_bedethequeResult?.CoverUrl is null)">
                                 <div class="import-option">
                                     <span class="import-source-label">BEDETHEQUE</span>
+                                    @SearchStateIcon(BookSource.Bedetheque)
                                     @if (_bedethequeResult?.CoverUrl is not null)
                                     {
                                         <img src="@_bedethequeResult.CoverUrl" class="import-cover-thumb" alt="bedetheque cover" />
@@ -190,6 +240,7 @@
                         <MudRadio T="BookSource" Value="BookSource.OpenLibrary" Dense="true" Disabled="@(_olResult?.CoverUrl is null)">
                             <div class="import-option">
                                 <span class="import-source-label">OPENLIBRARY</span>
+                                @SearchStateIcon(BookSource.OpenLibrary)
                                 @if (_olResult?.CoverUrl is not null)
                                 {
                                     <img src="@_olResult.CoverUrl" class="import-cover-thumb" alt="openlibrary cover" />
@@ -203,6 +254,7 @@
                         <MudRadio T="BookSource" Value="BookSource.Google" Dense="true" Disabled="@(_googleResult?.CoverUrl is null)">
                             <div class="import-option">
                                 <span class="import-source-label">GOOGLE BOOKS</span>
+                                @SearchStateIcon(BookSource.Google)
                                 @if (_googleResult?.CoverUrl is not null)
                                 {
                                     <img src="@_googleResult.CoverUrl" class="import-cover-thumb" alt="google cover" />

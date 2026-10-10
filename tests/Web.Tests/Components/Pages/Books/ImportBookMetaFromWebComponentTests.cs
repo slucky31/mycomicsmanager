@@ -117,4 +117,37 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
         cut.Markup.Should().NotContain("BEDETHEQUE");
         await _bedethequeService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task FetchWebServicesAsync_Should_ShowTheProgress_UntilEverySourceHasAnswered()
+    {
+        var google = new TaskCompletionSource<GoogleBooksBookResult>();
+        _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(google.Task);
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn={PageIsbn}");
+        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Searching the sources… (3/4)"));
+        cut.Markup.Should().Contain("GOOGLE BOOKS: searching…").And.Contain("BNF: book not found");
+
+        google.SetResult(new GoogleBooksBookResult("Âme rouge", null, [], [], null, null, null, null, [], null, Found: true));
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Search complete"));
+        cut.Markup.Should().Contain("GOOGLE BOOKS: book found");
+    }
+
+    [Fact]
+    public async Task FetchWebServicesAsync_Should_ShowTheSourcesThatCouldNotBeSearched()
+    {
+        _bnfService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new BnfBookResult(string.Empty, null, [], [], null, null, null, Found: false, Failed: true));
+        _openLibraryService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<OpenLibraryBookResult>(new HttpRequestException("Network unreachable")));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn={PageIsbn}");
+        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Search complete"));
+        cut.Markup.Should().Contain("BNF: could not be searched")
+            .And.Contain("OPENLIBRARY: could not be searched")
+            .And.Contain("GOOGLE BOOKS: book not found");
+    }
 }
