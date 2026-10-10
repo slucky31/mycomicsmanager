@@ -11,6 +11,7 @@ using HealthChecks.ApplicationStatus.DependencyInjection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -182,9 +183,15 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
 builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
     .Configure(options =>
     {
-        options.ExpireTimeSpan = TimeSpan.FromDays(3);
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = true;
     });
+
+// The keys encrypting the auth cookie are kept in PostgreSQL: stored in the container, they were lost
+// at each redeploy, signing every user out.
+builder.Services.AddDataProtection()
+    .SetApplicationName("MyComicsManager")
+    .PersistKeysToDbContext<ApplicationDbContext>();
 
 // Register CustomAuthenticationStateProvider
 builder.Services.AddCascadingAuthenticationState();

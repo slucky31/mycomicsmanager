@@ -12,7 +12,7 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261010125904_AddFeatureToggleOverrides")]
+    [Migration("20261010140938_AddFeatureToggleOverrides")]
     partial class AddFeatureToggleOverrides
     {
         /// <inheritdoc />
@@ -450,6 +450,25 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
                 });
 
             modelBuilder.Entity("Domain.Books.DigitalBook", b =>
