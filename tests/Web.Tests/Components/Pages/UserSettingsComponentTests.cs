@@ -6,6 +6,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages;
+using Web.Infrastructure;
 using Web.Services;
 using Xunit;
 
@@ -57,6 +58,21 @@ public sealed class UserSettingsComponentTests
 
         cut.Markup.Should().Contain("cloudinary");
         cut.Markup.Should().Contain("Healthy");
+    }
+
+    [Fact]
+    public async Task OnInitializedAsync_Should_RenderApplicationVersion()
+    {
+        var healthCheckService = Substitute.For<HealthCheckService>();
+        healthCheckService
+            .CheckHealthAsync(Arg.Any<Func<HealthCheckRegistration, bool>?>(), Arg.Any<CancellationToken>())
+            .Returns(CreateReport(HealthStatus.Healthy));
+
+        var (ctx, cut, _) = await RenderAsync(healthCheckService);
+        await using var _ = ctx;
+
+        var expected = typeof(AppVersion).Assembly.GetName().Version!.ToString(3);
+        cut.Find(".app-version").TextContent.Should().Be($"V{expected}");
     }
 
     [Fact]
