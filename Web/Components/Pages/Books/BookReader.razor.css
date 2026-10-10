@@ -102,3 +102,31 @@
     font-size: 1.1rem;
     letter-spacing: 0.05em;
 }
+
+::deep .reader-mode {
+    white-space: nowrap;
+}
+
+.reader-quick-pages {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 56px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2;
+}
+
+::deep .reader-quick-page {
+    min-width: 40px;
+}
+
+.reader-quick-gap {
+    color: #fff;
+    padding: 0 4px;
+}

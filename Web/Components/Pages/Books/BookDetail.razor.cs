@@ -99,6 +99,8 @@ public partial class BookDetail
 
     private void ReadBook() => NavigationManager.NavigateTo($"/books/{BookId}/read");
 
+    private void FindIsbn() => NavigationManager.NavigateTo($"/books/{BookId}/read?mode={BookReader.IsbnSearchMode}");
+
     private async Task DeleteBookAsync()
     {
         try

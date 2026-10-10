@@ -58,11 +58,24 @@ function enlarge(image) {
     return canvas;
 }
 
-export async function recognize(image) {
+async function recognizeImage(image) {
     const canvas = enlarge(image);
     const worker = await getWorker();
     const { data } = await worker.recognize(canvas);
     return data.text ?? "";
+}
+
+// Reads the page displayed by the reader.
+export function recognize(image) {
+    return recognizeImage(image);
+}
+
+// Reads a page without displaying it (scan of the first and last pages).
+export async function recognizeUrl(url) {
+    const image = new Image();
+    image.src = url;
+    await image.decode();
+    return recognizeImage(image);
 }
 
 export async function terminate() {
