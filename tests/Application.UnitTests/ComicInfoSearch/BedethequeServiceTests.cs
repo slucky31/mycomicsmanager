@@ -61,11 +61,13 @@ public sealed class BedethequeServiceTests : IDisposable
     private static BedethequeService CreateService(
         IHttpClientFactory factory,
         IIsbnBedethequeCacheRepository? cache = null,
-        BedethequeSettings? settings = null)
+        BedethequeSettings? settings = null,
+        BedethequeCircuit? circuit = null)
     {
         cache ??= EmptyCache();
         var options = Options.Create(settings ?? DefaultSettings);
-        return new BedethequeService(factory, cache, options, NullLogger<BedethequeService>.Instance);
+        return new BedethequeService(factory, cache, options, circuit ?? new BedethequeCircuit(TimeProvider.System),
+            NullLogger<BedethequeService>.Instance);
     }
 
     private static IIsbnBedethequeCacheRepository EmptyCache()
@@ -694,11 +696,53 @@ public sealed class BedethequeServiceTests : IDisposable
                 }
                 return response;
             })));
-        var service = CreateService(factory);
+        var circuit = new BedethequeCircuit(TimeProvider.System);
+        var service = CreateService(factory, circuit: circuit);
 
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
+        circuit.PausedUntil.Should().NotBeNull("the next searches must not spend SerpApi calls while Cloudflare blocks the server");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_NotCallAnything_WhileBedethequeIsPaused()
+    {
+        var requests = 0;
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => { requests++; return JsonResponse(SerpApiJson(PageUrl)); })),
+            Track(new FakeHttpMessageHandler(_ => { requests++; return HtmlResponse(FullAlbumHtml); })));
+        var circuit = new BedethequeCircuit(TimeProvider.System);
+        circuit.Pause(TimeSpan.FromHours(24));
+        var service = CreateService(factory, circuit: circuit);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        requests.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_NotCallAnything_WhenBedethequeIsTurnedOff()
+    {
+        var requests = 0;
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => { requests++; return JsonResponse(SerpApiJson(PageUrl)); })),
+            Track(new FakeHttpMessageHandler(_ => { requests++; return HtmlResponse(FullAlbumHtml); })));
+        var settings = new BedethequeSettings
+        {
+            SerpApiKey = "test-key",
+            SerpApiBaseUrl = new Uri("https://serpapi.com"),
+            BaseUrl = new Uri("https://www.bedetheque.com"),
+            Enabled = false
+        };
+        var service = CreateService(factory, settings: settings);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        service.IsEnabled.Should().BeFalse();
+        result.Found.Should().BeFalse();
+        requests.Should().Be(0);
     }
 
     [Fact]

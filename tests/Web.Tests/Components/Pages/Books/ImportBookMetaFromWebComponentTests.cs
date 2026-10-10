@@ -19,6 +19,7 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
 
     private readonly BunitContext _ctx = new();
     private readonly IBooksService _booksService = Substitute.For<IBooksService>();
+    private readonly IBnfCatalogueService _bnfService = Substitute.For<IBnfCatalogueService>();
     private readonly IBedethequeService _bedethequeService = Substitute.For<IBedethequeService>();
     private readonly IOpenLibraryService _openLibraryService = Substitute.For<IOpenLibraryService>();
     private readonly IGoogleBooksService _googleBooksService = Substitute.For<IGoogleBooksService>();
@@ -29,6 +30,7 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
         _ctx.Services.AddSingleton(_booksService);
+        _ctx.Services.AddSingleton(_bnfService);
         _ctx.Services.AddSingleton(_bedethequeService);
         _ctx.Services.AddSingleton(_openLibraryService);
         _ctx.Services.AddSingleton(_googleBooksService);
@@ -36,6 +38,9 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
 
         _booksService.GetById(_book.Id.ToString()).Returns(Result<Book>.Success(_book));
         _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Book>.Success(_book));
+        _bedethequeService.IsEnabled.Returns(true);
+        _bnfService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new BnfBookResult(string.Empty, null, [], [], null, null, null, Found: false));
         _bedethequeService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new BedethequeBookResult(string.Empty, string.Empty, 0, [], [], null, null, null, Found: false));
         _openLibraryService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -79,8 +84,37 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
 
         cut.Render();
 
+        await _bnfService.Received(1).SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _bedethequeService.Received(1).SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _openLibraryService.Received(1).SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _googleBooksService.Received(1).SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ApplyAndSaveAsync_Should_SaveTheValuesPickedFromTheBnf()
+    {
+        _bnfService.SearchByIsbnAsync(PageIsbn, Arg.Any<CancellationToken>())
+            .Returns(new BnfBookResult("Tangente", null, ["Céline Wagner"], ["des Ronds dans l'O"], new DateOnly(2012, 1, 1), 82, null, Found: true));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn={PageIsbn}");
+        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Céline Wagner"));
+
+        // The author radio of the BnF column.
+        await cut.FindAll("input[type=radio]").Single(r => r.ParentElement!.ParentElement!.TextContent.Contains("Céline Wagner", StringComparison.Ordinal))
+            .ClickAsync(new());
+        await cut.FindAll("button").Single(b => b.TextContent.Contains("Apply", StringComparison.Ordinal)).ClickAsync(new());
+
+        await _booksService.Received(1).Update(Arg.Is<UpdateBookRequest>(r => r.Authors == "Céline Wagner"), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task OnParametersSetAsync_Should_HideBedetheque_WhenItIsTurnedOff()
+    {
+        _bedethequeService.IsEnabled.Returns(false);
+        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("BNF"));
+
+        cut.Markup.Should().NotContain("BEDETHEQUE");
+        await _bedethequeService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }

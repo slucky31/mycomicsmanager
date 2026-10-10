@@ -12,6 +12,7 @@ public partial class ImportBookMetaFromWeb
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
+    [Inject] private IBnfCatalogueService BnfCatalogueService { get; set; } = default!;
     [Inject] private IBedethequeService BedethequeService { get; set; } = default!;
     [Inject] private IOpenLibraryService OpenLibraryService { get; set; } = default!;
     [Inject] private IGoogleBooksService GoogleBooksService { get; set; } = default!;
@@ -29,9 +30,11 @@ public partial class ImportBookMetaFromWeb
     private BookUiDto? _currentBook;
     private string? _isbn;
     private bool _isbnFromPage;
+    private BnfBookResult? _bnfResult;
     private BedethequeBookResult? _bedethequeResult;
     private OpenLibraryBookResult? _olResult;
     private GoogleBooksBookResult? _googleResult;
+    private ParsedTitleInfo? _bnfParsed;
     private ParsedTitleInfo? _olParsed;
     private ParsedTitleInfo? _googleParsed;
 
@@ -117,58 +120,55 @@ public partial class ImportBookMetaFromWeb
 
         // Start all requests concurrently, then await each independently so that
         // a failure in one provider does not prevent the other's result from being used.
-        var bedethequeTask = BedethequeService.SearchByIsbnAsync(_isbn);
-        var olTask = OpenLibraryService.SearchByIsbnAsync(_isbn);
-        var googleTask = GoogleBooksService.SearchByIsbnAsync(_isbn);
+        var isbn = _isbn;
+        var bnfTask = BnfCatalogueService.SearchByIsbnAsync(isbn);
+        var bedethequeTask = BedethequeService.IsEnabled ? BedethequeService.SearchByIsbnAsync(isbn) : null;
+        var olTask = OpenLibraryService.SearchByIsbnAsync(isbn);
+        var googleTask = GoogleBooksService.SearchByIsbnAsync(isbn);
 
-        try
-        {
-            _bedethequeResult = await bedethequeTask;
-            StateHasChanged();
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
-        {
-            Logger.LogError(ex, "Error fetching Bedetheque for ISBN {ISBN}", _isbn);
-            Snackbar.Add("Could not fetch data from Bedetheque. You can still save with current values.", Severity.Warning);
-        }
+        _bnfResult = await AwaitProviderAsync(bnfTask, "the BnF catalogue");
+        _bnfParsed = ParseTitle(_bnfResult);
+        StateHasChanged();
 
-        try
+        if (bedethequeTask is not null)
         {
-            _olResult = await olTask;
-            if (_olResult.Found)
-            {
-                var (title, serie, volumeNumber) = ComicSearchService.ParseTitleInfo(_olResult.Title, _olResult.Subtitle);
-                _olParsed = new ParsedTitleInfo(title, serie, volumeNumber);
-            }
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
-        {
-            Logger.LogError(ex, "Error fetching OpenLibrary for ISBN {ISBN}", _isbn);
-            Snackbar.Add("Could not fetch data from OpenLibrary. You can still save with current values.", Severity.Warning);
-        }
-        finally
-        {
+            _bedethequeResult = await AwaitProviderAsync(bedethequeTask, "Bedetheque");
             StateHasChanged();
         }
 
+        _olResult = await AwaitProviderAsync(olTask, "OpenLibrary");
+        _olParsed = ParseTitle(_olResult);
+        StateHasChanged();
+
+        _googleResult = await AwaitProviderAsync(googleTask, "Google Books");
+        _googleParsed = ParseTitle(_googleResult);
+        StateHasChanged();
+    }
+
+    private async Task<T?> AwaitProviderAsync<T>(Task<T> task, string provider) where T : class
+    {
         try
         {
-            _googleResult = await googleTask;
-            if (_googleResult.Found)
-            {
-                var (title, serie, volumeNumber) = ComicSearchService.ParseTitleInfo(_googleResult.Title, _googleResult.Subtitle);
-                _googleParsed = new ParsedTitleInfo(title, serie, volumeNumber);
-            }
+            return await task;
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
-            Logger.LogError(ex, "Error fetching Google Books for ISBN {ISBN}", _isbn);
-            Snackbar.Add("Could not fetch data from Google Books. You can still save with current values.", Severity.Warning);
+            Logger.LogError(ex, "Error fetching {Provider} for ISBN {ISBN}", provider, _isbn);
+            Snackbar.Add($"Could not fetch data from {provider}. You can still save with current values.", Severity.Warning);
+            return null;
         }
-        finally
+    }
+
+    // The title of these sources mixes the series, the volume and the title of the book.
+    private ParsedTitleInfo? ParseTitle(IBookSearchResult? result)
+    {
+        if (result is not { Found: true })
         {
-            StateHasChanged();
+            return null;
         }
+
+        var (title, serie, volumeNumber) = ComicSearchService.ParseTitleInfo(result.Title, result.Subtitle);
+        return new ParsedTitleInfo(title, serie, volumeNumber);
     }
 
     private string? GetBedethequeValue(string field)
@@ -192,31 +192,32 @@ public partial class ImportBookMetaFromWeb
         };
     }
 
-    private string? GetOlValue(string field) => field switch
+    private static string? GetBookResultValue(IBookSearchResult? result, ParsedTitleInfo? parsed, string field)
     {
-        BookFieldKeys.Title => _olParsed?.Title,
-        BookFieldKeys.Serie => _olParsed?.Serie,
-        BookFieldKeys.VolumeNumber => _olParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
-        BookFieldKeys.Authors => _olResult?.Found == true ? NullIfEmpty(string.Join(", ", _olResult.Authors)) : null,
-        BookFieldKeys.Publishers => _olResult?.Found == true ? NullIfEmpty(string.Join(", ", _olResult.Publishers)) : null,
-        BookFieldKeys.PublishDate => _olResult?.Found == true ? _olResult.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture) : null,
-        BookFieldKeys.NumberOfPages => _olResult?.Found == true ? _olResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
-        BookFieldKeys.Cover => _olResult?.CoverUrl?.ToString(),
-        _ => null
-    };
+        if (result is not { Found: true })
+        {
+            return null;
+        }
 
-    private string? GetGoogleValue(string field) => field switch
-    {
-        BookFieldKeys.Title => _googleParsed?.Title,
-        BookFieldKeys.Serie => _googleParsed?.Serie,
-        BookFieldKeys.VolumeNumber => _googleParsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
-        BookFieldKeys.Authors => _googleResult?.Found == true ? NullIfEmpty(string.Join(", ", _googleResult.Authors)) : null,
-        BookFieldKeys.Publishers => _googleResult?.Found == true ? NullIfEmpty(string.Join(", ", _googleResult.Publishers)) : null,
-        BookFieldKeys.PublishDate => _googleResult?.Found == true ? _googleResult.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture) : null,
-        BookFieldKeys.NumberOfPages => _googleResult?.Found == true ? _googleResult.NumberOfPages?.ToString(CultureInfo.InvariantCulture) : null,
-        BookFieldKeys.Cover => _googleResult?.CoverUrl?.ToString(),
-        _ => null
-    };
+        return field switch
+        {
+            BookFieldKeys.Title => parsed?.Title,
+            BookFieldKeys.Serie => parsed?.Serie,
+            BookFieldKeys.VolumeNumber => parsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
+            BookFieldKeys.Authors => NullIfEmpty(string.Join(", ", result.Authors)),
+            BookFieldKeys.Publishers => NullIfEmpty(string.Join(", ", result.Publishers)),
+            BookFieldKeys.PublishDate => result.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture),
+            BookFieldKeys.NumberOfPages => result.NumberOfPages?.ToString(CultureInfo.InvariantCulture),
+            BookFieldKeys.Cover => result.CoverUrl?.ToString(),
+            _ => null
+        };
+    }
+
+    private string? GetBnfValue(string field) => GetBookResultValue(_bnfResult, _bnfParsed, field);
+
+    private string? GetOlValue(string field) => GetBookResultValue(_olResult, _olParsed, field);
+
+    private string? GetGoogleValue(string field) => GetBookResultValue(_googleResult, _googleParsed, field);
 
     private string? GetResolvedValue(string field)
     {
@@ -235,6 +236,7 @@ public partial class ImportBookMetaFromWeb
 
         return source switch
         {
+            BookSource.Bnf => GetBnfValue(field),
             BookSource.Bedetheque => GetBedethequeValue(field),
             BookSource.OpenLibrary => GetOlValue(field),
             BookSource.Google => GetGoogleValue(field),
@@ -342,6 +344,7 @@ public partial class ImportBookMetaFromWeb
 public enum BookSource
 {
     Current,
+    Bnf,
     Bedetheque,
     OpenLibrary,
     Google

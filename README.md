@@ -109,6 +109,8 @@ Copiez `appsettings.json` en `appsettings.Development.json` et renseignez les va
 }
 ```
 
+La recherche par ISBN interroge, dans l'ordre, le catalogue de la BnF (sans clé), Google Books, OpenLibrary puis Bedetheque. Bedetheque est derrière Cloudflare, qui peut bloquer les requêtes du serveur : `Bedetheque__Enabled=false` le désactive, et après un blocage il est mis en pause `Bedetheque__CloudflarePauseHours` heures (24 par défaut) pour ne pas consommer d'appels SerpApi.
+
 Google Books a besoin d'une clé API (gratuite, 1 000 requêtes par jour) : sans elle, les requêtes partagent le quota anonyme de Google, presque toujours épuisé (réponse `429 Too Many Requests`). Créez une clé « Books API » dans la [console Google Cloud](https://console.cloud.google.com/apis/library/books.googleapis.com) et passez-la avec la variable d'environnement `GoogleBooks__ApiKey`.
 
 > ⚠️ Ne committez jamais vos secrets. Utilisez des variables d'environnement en production.

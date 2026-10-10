@@ -20,14 +20,17 @@ public partial class BedethequeService : IBedethequeService
     private readonly string _serieUrlPrefix;
     private readonly string _serieBdUrlPrefix;
     private readonly ILogger<BedethequeService> _logger;
+    private readonly BedethequeCircuit _circuit;
 
     public BedethequeService(
         IHttpClientFactory httpClientFactory,
         IIsbnBedethequeCacheRepository cacheRepository,
         IOptions<BedethequeSettings> settings,
+        BedethequeCircuit circuit,
         ILogger<BedethequeService> logger)
     {
         _logger = logger;
+        _circuit = circuit;
         _httpClientFactory = httpClientFactory;
         _cacheRepository = cacheRepository;
         _settings = settings.Value;
@@ -38,9 +41,22 @@ public partial class BedethequeService : IBedethequeService
         _serieBdUrlPrefix = $"{baseUrl}/serie-bd";
     }
 
+    public bool IsEnabled => _settings.Enabled;
+
     public async Task<BedethequeBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default)
     {
         var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
+        if (!_settings.Enabled)
+        {
+            return CreateNotFoundResult();
+        }
+
+        if (_circuit.PausedUntil is { } pausedUntil)
+        {
+            _logger.LogInformation("Bedetheque is paused until {PausedUntil} after a Cloudflare challenge: ISBN {Isbn} not searched",
+                pausedUntil, cleanIsbn);
+            return CreateNotFoundResult();
+        }
 
         try
         {
@@ -218,9 +234,10 @@ public partial class BedethequeService : IBedethequeService
         var html = await response.Content.ReadAsStringAsync(ct);
         if (IsCloudflareChallenge(response, html))
         {
+            var until = _circuit.Pause(TimeSpan.FromHours(_settings.CloudflarePauseHours));
             _logger.LogWarning(
-                "Bedetheque answered with a Cloudflare challenge instead of the page {Url}: the server's requests are blocked",
-                url);
+                "Bedetheque answered with a Cloudflare challenge instead of the page {Url}: the server's requests are blocked, Bedetheque is paused until {PausedUntil}",
+                url, until);
             return null;
         }
 

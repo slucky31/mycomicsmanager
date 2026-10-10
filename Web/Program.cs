@@ -86,6 +86,20 @@ builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =
         new HashSet<string>(["openlibrary.org", "covers.openlibrary.org"], StringComparer.OrdinalIgnoreCase)))
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
+// Config BnF catalogue (SRU API) for ISBN lookup: knows almost every French comic
+builder.Services.AddOptions<BnfCatalogueSettings>()
+    .Bind(configuration.GetSection("BnfCatalogue"))
+    .ValidateOnStart();
+builder.Services.AddHttpClient<IBnfCatalogueService, BnfCatalogueService>(client =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
+    client.Timeout = TimeSpan.FromSeconds(30);
+})
+    .AddHttpMessageHandler(sp => new SsrfGuardHandler(
+        sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
+        new HashSet<string>(["catalogue.bnf.fr"], StringComparer.OrdinalIgnoreCase)))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
+
 // Config Google Books settings
 var googleBooksSection = configuration.GetSection("GoogleBooks");
 builder.Services.AddOptions<GoogleBooksSettings>()
@@ -127,6 +141,7 @@ builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.Fr
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
 // Config Bedetheque service
+builder.Services.AddSingleton<BedethequeCircuit>();
 builder.Services.AddScoped<IBedethequeService, BedethequeService>();
 
 // Config feed import (Miniflux starred entries -> FeedImportDecisions)
