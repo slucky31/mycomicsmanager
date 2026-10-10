@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.28.0"></a>
+## [10.28.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.28.0) (2026-10-10)
+
+### ✨ Features
+
+* **feed-imports:** add a "Delete downloaded" button ([#1100](https://www.github.com/slucky31/mycomicsmanager/issues/1100)) ([280357b](https://www.github.com/slucky31/mycomicsmanager/commit/280357b38ebe9b30929348e7b22cce423139680e))
+
 <a name="10.27.1"></a>
 ## [10.27.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.27.1) (2026-10-10)
 
