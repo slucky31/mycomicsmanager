@@ -31,7 +31,7 @@ public class GoogleBooksService : IGoogleBooksService
         try
         {
 
-            var url = new Uri(_settings.BaseUrl + SearchPath + cleanIsbn);
+            var url = WithApiKey(_settings.BaseUrl + SearchPath + cleanIsbn);
 
             _logger.LogInformation("Searching Google Books for ISBN: {Isbn}", cleanIsbn);
 
@@ -115,7 +115,7 @@ public class GoogleBooksService : IGoogleBooksService
             {
                 _logger.LogInformation("Fetching detailed volume info from: {SelfLink}", searchVolume.SelfLink);
                 var detailedVolume = await _httpClient.GetFromJsonAsync<GoogleBooksVolume>(
-                    searchVolume.SelfLink, JsonOptions, cancellationToken);
+                    WithApiKey(searchVolume.SelfLink), JsonOptions, cancellationToken);
 
                 if (detailedVolume?.VolumeInfo is not null)
                 {
@@ -138,6 +138,17 @@ public class GoogleBooksService : IGoogleBooksService
 
         // Fallback to search result data
         return searchVolume.VolumeInfo;
+    }
+
+    private Uri WithApiKey(string url)
+    {
+        if (string.IsNullOrWhiteSpace(_settings.ApiKey))
+        {
+            return new Uri(url);
+        }
+
+        var separator = url.Contains('?', StringComparison.Ordinal) ? '&' : '?';
+        return new Uri($"{url}{separator}key={Uri.EscapeDataString(_settings.ApiKey)}");
     }
 
     private static Uri? GetBestCoverUrl(GoogleBooksImageLinks? imageLinks)

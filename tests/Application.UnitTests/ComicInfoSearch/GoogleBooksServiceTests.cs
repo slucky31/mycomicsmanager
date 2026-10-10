@@ -10,8 +10,33 @@ public sealed class GoogleBooksServiceTests
     private const string ValidIsbnWithDashes = "978-2-205-08916-5";
     private static readonly Uri GoogleBooksBaseUrl = new("https://www.googleapis.com/books/v1");
 
-    private static GoogleBooksService CreateService(HttpClient httpClient) =>
-        new(httpClient, Options.Create(new GoogleBooksSettings { BaseUrl = GoogleBooksBaseUrl }), NullLogger<GoogleBooksService>.Instance);
+    private static GoogleBooksService CreateService(HttpClient httpClient, string? apiKey = null) =>
+        new(httpClient, Options.Create(new GoogleBooksSettings { BaseUrl = GoogleBooksBaseUrl, ApiKey = apiKey }), NullLogger<GoogleBooksService>.Instance);
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_SendTheApiKey_WhenOneIsConfigured()
+    {
+        // Arrange
+        var searchResponse = """
+        { "totalItems": 1, "items": [{ "selfLink": "https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ", "volumeInfo": { "title": "Fullmetal Alchemist" } }] }
+        """;
+        var detailedResponse = """
+        { "volumeInfo": { "title": "Fullmetal Alchemist Tome 23" } }
+        """;
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}&key=my-key"] = CreateJsonResponse(searchResponse),
+            ["https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ?key=my-key"] = CreateJsonResponse(detailedResponse)
+        });
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient, apiKey: "my-key");
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Title.Should().Be("Fullmetal Alchemist Tome 23");
+    }
 
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnBookResult_WhenBookFound()

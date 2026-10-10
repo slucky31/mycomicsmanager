@@ -154,7 +154,7 @@
                         <div class="mt-4">
                             @* ISBN *@
                             <div class="book-detail-info-item">
-                                <MudIcon Icon="@Icons.Material.Filled.QrCode" Color="Color.Secondary" />
+                                <IsbnScanStateIcon State="@IsbnScanState" CandidateCount="@IsbnCandidateCount" Isbn="@_book.ISBN" Size="Size.Medium" />
                                 <div>
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">ISBN</MudText>
                                     <MudText Typo="Typo.body1" Style="font-family: monospace;">@_book.ISBN</MudText>

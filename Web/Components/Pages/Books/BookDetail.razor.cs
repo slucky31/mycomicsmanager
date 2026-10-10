@@ -102,6 +102,10 @@ public partial class BookDetail
 
     private void ReadBook() => NavigationManager.NavigateTo($"/books/{BookId}/read");
 
+    private IsbnScanState IsbnScanState => _book is DigitalBook digitalBook ? digitalBook.GetIsbnScanState() : IsbnScanState.HasIsbn;
+
+    private int IsbnCandidateCount => _book is DigitalBook digitalBook ? digitalBook.IsbnCandidates.Count : 0;
+
     // Reads the pages on the server right away (a few seconds), then shows what they gave.
     private async Task ScanIsbnAsync()
     {
