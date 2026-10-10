@@ -148,7 +148,7 @@ public sealed class FeedImportsComponentTests
 
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
         cut.Markup.Should().NotContain("Sync now");
-        cut.Markup.Should().Contain("Miniflux sync is disabled");
+        cut.Markup.Should().Contain("Miniflux sync is turned off");
     }
 
     private static FeedImportDecisionViewModel CreateProbableDuplicate()

@@ -1,7 +1,9 @@
 using Application.FeedImports;
+using Application.Interfaces;
 using AwesomeAssertions;
 using Domain.FeedImports;
 using Domain.Primitives;
+using Domain.Settings;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -14,9 +16,16 @@ public sealed class MinifluxHealthCheckTests
 {
     private readonly IMinifluxClient _client = Substitute.For<IMinifluxClient>();
 
+    private static IFeatureToggles FeatureToggles(bool enabled)
+    {
+        var featureToggles = Substitute.For<IFeatureToggles>();
+        featureToggles.IsEnabled(FeatureToggle.FeedImport).Returns(enabled);
+        return featureToggles;
+    }
+
     private MinifluxHealthCheck Build(bool enabled = true) => new(
         _client,
-        Options.Create(new FeedImportSettings { Enabled = enabled }),
+        FeatureToggles(enabled),
         Options.Create(new MinifluxSettings { CategoryName = "BD" }),
         new HealthCheckResultCache<MinifluxHealthCheck>());
 

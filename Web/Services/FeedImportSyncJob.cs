@@ -6,6 +6,7 @@ using Application.FeedImports.Sync;
 using Application.Interfaces;
 using Application.Users;
 using Domain.FeedImports;
+using Domain.Settings;
 using Hangfire;
 using Microsoft.Extensions.Options;
 
@@ -15,6 +16,7 @@ public class FeedImportSyncJob(
     IServiceScopeFactory scopeFactory,
     IBackgroundJobClient backgroundJobClient,
     IOptions<FeedImportSettings> feedImportSettings,
+    IFeatureToggles featureToggles,
     IOptions<DebridLinkSettings> debridLinkSettings,
     ILogger<FeedImportSyncJob> logger)
 {
@@ -27,9 +29,9 @@ public class FeedImportSyncJob(
     public async Task SyncAsync(CancellationToken cancellationToken = default)
     {
         var settings = feedImportSettings.Value;
-        if (!settings.Enabled)
+        if (!featureToggles.IsEnabled(FeatureToggle.FeedImport))
         {
-            logger.LogInformation("Feed import sync skipped: FeedImport:Enabled is false.");
+            logger.LogInformation("Feed import sync skipped: feed import is turned off.");
             return;
         }
 
@@ -144,12 +146,12 @@ public class FeedImportSyncJob(
         ? string.Create(CultureInfo.InvariantCulture, $"*/{minutes} * * * *")
         : string.Create(CultureInfo.InvariantCulture, $"0 */{minutes / 60} * * *");
 
-    public static void Schedule(IRecurringJobManager recurringJobManager, FeedImportSettings settings)
+    public static void Schedule(IRecurringJobManager recurringJobManager, FeedImportSettings settings, bool enabled)
     {
         ArgumentNullException.ThrowIfNull(recurringJobManager);
         ArgumentNullException.ThrowIfNull(settings);
 
-        if (!settings.Enabled)
+        if (!enabled)
         {
             recurringJobManager.RemoveIfExists(RecurringJobId);
             return;

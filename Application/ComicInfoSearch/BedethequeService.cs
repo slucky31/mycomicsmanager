@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Application.Helpers;
 using Application.Interfaces;
+using Domain.Settings;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -21,16 +22,19 @@ public partial class BedethequeService : IBedethequeService
     private readonly string _serieBdUrlPrefix;
     private readonly ILogger<BedethequeService> _logger;
     private readonly BedethequeCircuit _circuit;
+    private readonly IFeatureToggles _featureToggles;
 
     public BedethequeService(
         IHttpClientFactory httpClientFactory,
         IIsbnBedethequeCacheRepository cacheRepository,
         IOptions<BedethequeSettings> settings,
         BedethequeCircuit circuit,
+        IFeatureToggles featureToggles,
         ILogger<BedethequeService> logger)
     {
         _logger = logger;
         _circuit = circuit;
+        _featureToggles = featureToggles;
         _httpClientFactory = httpClientFactory;
         _cacheRepository = cacheRepository;
         _settings = settings.Value;
@@ -41,12 +45,12 @@ public partial class BedethequeService : IBedethequeService
         _serieBdUrlPrefix = $"{baseUrl}/serie-bd";
     }
 
-    public bool IsEnabled => _settings.Enabled;
+    public bool IsEnabled => _featureToggles.IsEnabled(FeatureToggle.Bedetheque);
 
     public async Task<BedethequeBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default)
     {
         var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
-        if (!_settings.Enabled)
+        if (!IsEnabled)
         {
             return CreateNotFoundResult();
         }
