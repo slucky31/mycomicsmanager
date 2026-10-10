@@ -126,6 +126,11 @@ public partial class FindBookDetails
         // a slow or failing provider neither delays nor prevents the others.
         var isbn = _isbn;
         _searchStates.Clear();
+        foreach (var source in WebSources())
+        {
+            _searchStates[source] = ProviderSearchState.Searching;
+        }
+
         List<Task> searches =
         [
             SearchProviderAsync(BookSource.Bnf, "the BnF catalogue", BnfCatalogueService.SearchByIsbnAsync(isbn), result =>
@@ -164,7 +169,6 @@ public partial class FindBookDetails
     private async Task SearchProviderAsync<T>(BookSource source, string provider, Task<T> search, Func<T?, ProviderSearchState> apply)
         where T : class
     {
-        _searchStates[source] = ProviderSearchState.Searching;
         var searchedFor = _searchedFor;
 
         var result = await AwaitProviderAsync(search, provider);
@@ -178,6 +182,10 @@ public partial class FindBookDetails
         _searchStates[source] = apply(result);
         StateHasChanged();
     }
+
+    private IEnumerable<BookSource> WebSources() => BedethequeService.IsEnabled
+        ? [BookSource.Bnf, BookSource.Bedetheque, BookSource.OpenLibrary, BookSource.Google]
+        : [BookSource.Bnf, BookSource.OpenLibrary, BookSource.Google];
 
     private bool IsSearching => _searchStates.ContainsValue(ProviderSearchState.Searching);
 
