@@ -95,6 +95,7 @@ Enforced via `.editorconfig`:
 
 - Conventional commits: `type(scope): summary` (e.g., `feat(books): add ISBN validation`)
 - PR titles must start with `feat` or `fix` (enforced by `.github/semantic.yml`)
+- Never stack PRs (a branch based on another unmerged PR branch): branch from `main` only. The CI and SonarCloud only run on PRs targeting `main`, so a stacked PR is never analyzed. When a change depends on an unmerged PR, add it to that PR or wait for it to be merged.
 - Never commit secrets; use environment variables
 - After opening or pushing to a PR, check its state (CI + SonarCloud) and fix until it is clean: SonarCloud must report **0 issues** of every kind (bugs, vulnerabilities, security hotspots, code smells, duplications) and the PR's **new-code coverage must be above 80%**. UI code (Razor components and their code-behind) is exempt from the coverage target, but everything else (services, handlers, domain, view models) must meet it. Before pushing, measure coverage on the changed lines locally (`dotnet test --coverage --coverage-output-format cobertura`).
 
