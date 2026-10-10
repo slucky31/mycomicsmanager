@@ -671,6 +671,36 @@ public sealed class BedethequeServiceTests : IDisposable
         result.Found.Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.OK, false)]
+    [InlineData(HttpStatusCode.Forbidden, false)]
+    [InlineData(HttpStatusCode.Forbidden, true)]
+    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenBedethequeAnswersWithACloudflareChallenge(HttpStatusCode status, bool mitigatedHeader)
+    {
+        var serieUrl = "https://www.bedetheque.com/serie-34958-BD-Tangente.html";
+        var serpJson = SerpApiJson(serieUrl);
+        var challenge = mitigatedHeader
+            ? "<html><body>Blocked</body></html>"
+            : "<html><head><title>Just a moment...</title></head><body>Checking your browser - cloudflare</body></html>";
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
+            Track(new FakeHttpMessageHandler(_ =>
+            {
+                var response = HtmlResponse(challenge);
+                response.StatusCode = status;
+                if (mitigatedHeader)
+                {
+                    response.Headers.Add("cf-mitigated", "challenge");
+                }
+                return response;
+            })));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+    }
+
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenSeriePageHasNoBookItems()
     {

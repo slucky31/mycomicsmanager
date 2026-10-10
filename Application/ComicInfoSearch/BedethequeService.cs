@@ -215,14 +215,29 @@ public partial class BedethequeService : IBedethequeService
         var client = _httpClientFactory.CreateClient("Bedetheque");
         var response = await client.GetAsync(new Uri(url), ct);
 
+        var html = await response.Content.ReadAsStringAsync(ct);
+        if (IsCloudflareChallenge(response, html))
+        {
+            _logger.LogWarning(
+                "Bedetheque answered with a Cloudflare challenge instead of the page {Url}: the server's requests are blocked",
+                url);
+            return null;
+        }
+
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogWarning("Bedetheque page returned {StatusCode} for URL: {Url}", response.StatusCode, url);
             return null;
         }
 
-        return await response.Content.ReadAsStringAsync(ct);
+        return html;
     }
+
+    // The "Just a moment..." page asks the browser to run a script: no album can be read from it.
+    private static bool IsCloudflareChallenge(HttpResponseMessage response, string html) =>
+        response.Headers.Contains("cf-mitigated")
+        || (html.Contains("Just a moment", StringComparison.OrdinalIgnoreCase)
+            && html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase));
 
     private BedethequeBookResult ParsePage(string html, string pageUrl, string coversBaseUrl)
     {
