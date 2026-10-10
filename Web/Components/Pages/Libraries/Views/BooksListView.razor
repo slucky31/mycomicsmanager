@@ -1,3 +1,4 @@
+@using Web.Components.Pages.Books
 @using Web.Components.SharedComponents
 
 <MudPaper Elevation="0">
@@ -45,7 +46,14 @@
                 }
             </MudTd>
             <MudTd DataLabel="ISBN">
-                <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.ISBN</MudText>
+                @if (string.IsNullOrEmpty(context.ISBN))
+                {
+                    <IsbnScanStateIcon State="@context.IsbnScanState" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.ISBN</MudText>
+                }
             </MudTd>
             <MudTd DataLabel="Actions" Style="text-align: right;" Class="list-actions-cell">
                 <div class="action-buttons">
@@ -53,8 +61,11 @@
                     <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/edit")" aria-label="Edit book" />
                     @if (ShowDownload)
                     {
+                        <MudIconButton Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/read")" aria-label="Read book" />
+                        <MudIconButton Icon="@Icons.Material.Filled.DocumentScanner" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/read?mode={BookReader.IsbnSearchMode}")" aria-label="Find the ISBN in the pages" />
                         <MudIconButton Icon="@Icons.Material.Filled.Download" Size="Size.Small" Color="Color.Secondary" OnClick="@(() => OnDownload.InvokeAsync(context.Id))" aria-label="Download CBZ" />
                     }
+                    <MudIconButton Icon="@Icons.Material.Filled.DriveFileMove" Size="Size.Small" Color="Color.Default" OnClick="@(() => OnMove.InvokeAsync(context.Id))" aria-label="Move book to another library" />
                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(context.Id))" aria-label="Delete book" />
                 </div>
             </MudTd>

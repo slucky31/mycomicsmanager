@@ -13,6 +13,9 @@ public partial class BooksCardsView
     [Parameter, EditorRequired]
     public EventCallback<Guid> OnDelete { get; set; }
 
+    [Parameter, EditorRequired]
+    public EventCallback<Guid> OnMove { get; set; }
+
     [Parameter]
     public bool ShowDownload { get; set; }
 

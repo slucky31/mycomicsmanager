@@ -75,6 +75,7 @@ Les règles d'architecture sont vérifiées automatiquement via `tests/Architect
 - [Docker](https://www.docker.com/) (optionnel)
 - Une base de données [PostgreSQL](https://www.postgresql.org/) (auto-hébergée)
 - Un tenant [Auth0](https://auth0.com/)
+- [Tesseract](https://github.com/tesseract-ocr/tesseract) (optionnel, déjà inclus dans l'image Docker) : lit l'ISBN imprimé dans les pages des BD importées (`apt install tesseract-ocr tesseract-ocr-eng`). Sans lui, l'import fonctionne mais ne cherche pas l'ISBN dans les pages ; la section `IsbnOcr` de `appsettings.json` permet de le désactiver ou d'indiquer son chemin.
 
 ### Démarrage local
 

@@ -99,6 +99,13 @@
                                Class="d-none d-sm-flex ml-1">
                         Import
                     </MudButton>
+                    <MudIconButton Icon="@Icons.Material.Filled.DocumentScanner"
+                                   Color="Color.Inherit"
+                                   Disabled="_isStartingIsbnScan"
+                                   OnClick="FindMissingIsbnsAsync"
+                                   aria-label="Find the missing ISBNs in the pages"
+                                   title="Find the missing ISBNs in the pages"
+                                   Class="d-none d-sm-flex ml-1" />
                 }
 
                 @* Mobile: 3-dots menu with view + sort options *@
@@ -132,6 +139,8 @@
                     {
                         <MudDivider Class="my-1" />
                         <MudMenuItem Icon="@Icons.Material.Filled.Upload" OnClick="NavigateToImport">Import</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.DocumentScanner" Disabled="_isStartingIsbnScan"
+                                     OnClick="FindMissingIsbnsAsync">Find missing ISBNs</MudMenuItem>
                     }
                 </MudMenu>
             </Actions>
@@ -155,6 +164,7 @@
                 <BooksListView @ref="_booksListView"
                                ServerData="LoadListDataAsync"
                                OnDelete="@DeleteAsync"
+                               OnMove="@MoveAsync"
                                ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
                                OnDownload="@DownloadBookAsync" />
             }
@@ -198,12 +208,14 @@
                     case ViewMode.Cards:
                         <BooksCardsView Books="@_displayedBooks"
                                         OnDelete="@DeleteAsync"
+                                        OnMove="@MoveAsync"
                                         ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
                                         OnDownload="@DownloadBookAsync" />
                         break;
                     case ViewMode.Covers:
                         <BooksCoversView Books="@_displayedBooks"
                                          OnDelete="@DeleteAsync"
+                                         OnMove="@MoveAsync"
                                          ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
                                          OnDownload="@DownloadBookAsync" />
                         break;

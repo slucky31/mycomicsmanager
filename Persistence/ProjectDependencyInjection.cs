@@ -1,3 +1,4 @@
+using Application.Books.IsbnScan;
 using Application.ComicInfoSearch;
 using Application.ImportJobs;
 using Application.Interfaces;
@@ -9,6 +10,7 @@ using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Persistence.LocalStorage;
 using Persistence.Queries;
 using Persistence.Repositories;
@@ -58,6 +60,17 @@ public static class ProjectDependencyInjection
         services.AddScoped<IComicArchiveBuilder, ComicArchiveBuilderService>();
         services.AddScoped<IComicInfoXmlService, ComicInfoXmlService>();
         services.AddScoped<IBookFileService, BookFileService>();
+        services.AddScoped<IComicPageReader>(provider =>
+            new ComicPageReaderService(rootPath, provider.GetRequiredService<ILogger<ComicPageReaderService>>()));
+
+        // Config the OCR (Tesseract command line) reading the ISBN printed on the pages
+        services.AddOptions<IsbnOcrSettings>()
+            .Bind(configuration.GetSection("IsbnOcr"))
+            .Validate(cfg => !cfg.Enabled || !string.IsNullOrWhiteSpace(cfg.TesseractPath), "IsbnOcr:TesseractPath is required")
+            .Validate(cfg => cfg.PagesFromEachEnd > 0 && cfg.PageTimeoutSeconds > 0, "IsbnOcr:PagesFromEachEnd and PageTimeoutSeconds must be positive")
+            .ValidateOnStart();
+        services.AddSingleton<IPageTextRecognizer, TesseractPageTextRecognizer>();
+        services.AddScoped<IIsbnPageScanner, IsbnPageScanner>();
 
         // Config Cloudinary service for cover image storage
         var cloudinarySection = configuration.GetSection("Cloudinary");

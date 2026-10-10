@@ -1,9 +1,8 @@
+using Application.Books.IsbnScan;
 using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Web.Components.Pages.Dialogs;
 using Web.Extensions;
-using Web.Models;
 using Web.Services;
 
 namespace Web.Components.Pages.Books;
@@ -12,10 +11,11 @@ public partial class BookDetail
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
-    [Inject] private IBookMoveService BookMoveService { get; set; } = default!;
+    [Inject] private IBookMoveWorkflow BookMoveWorkflow { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private ILogger<BookDetail> Logger { get; set; } = default!;
+    [Inject] private IIsbnScanService IsbnScanService { get; set; } = default!;
 
     [Parameter]
     public string BookId { get; set; } = string.Empty;
@@ -27,6 +27,7 @@ public partial class BookDetail
     private int _newRating = 1;
     private bool _isAddingReading;
     private bool _isMoving;
+    private bool _isScanningIsbn;
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,6 +100,68 @@ public partial class BookDetail
 
     private void EditBook() => NavigationManager.NavigateTo($"/books/{BookId}/edit");
 
+    private void ReadBook() => NavigationManager.NavigateTo($"/books/{BookId}/read");
+
+    // Reads the pages on the server right away (a few seconds), then shows what they gave.
+    private async Task ScanIsbnAsync()
+    {
+        if (_book is null || _isScanningIsbn)
+        {
+            return;
+        }
+
+        _isScanningIsbn = true;
+        try
+        {
+            var result = await IsbnScanService.ScanBookAsync(_book.Id, CancellationToken.None);
+            if (result.IsFailure)
+            {
+                Snackbar.Add("Unable to scan the pages of this book", Severity.Error);
+                Logger.LogError("Unable to scan the pages of book {BookId} for its ISBN: {Error}", BookId, result.Error?.Code);
+                return;
+            }
+
+            await ShowIsbnScanOutcomeAsync(result.Value);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Snackbar.Add("Unable to scan the pages of this book", Severity.Error);
+            Logger.LogError(ex, "Unexpected error while scanning the pages of book {BookId} for its ISBN", BookId);
+        }
+        finally
+        {
+            _isScanningIsbn = false;
+        }
+    }
+
+    private async Task ShowIsbnScanOutcomeAsync(IsbnScanOutcome outcome)
+    {
+        switch (outcome)
+        {
+            case IsbnScanOutcome.Assigned:
+                // The book has its ISBN now: fetch its information right away.
+                Snackbar.Add("ISBN found in the pages", Severity.Success);
+                NavigationManager.NavigateTo($"/books/{BookId}/import");
+                return;
+            case IsbnScanOutcome.WithCandidates:
+                Snackbar.Add("Several ISBNs found in the pages: pick the book's own", Severity.Info);
+                break;
+            case IsbnScanOutcome.WithoutIsbn:
+                Snackbar.Add("No ISBN found in the pages", Severity.Warning);
+                break;
+            default:
+                Snackbar.Add("The pages could not be read", Severity.Error);
+                return;
+        }
+
+        await LoadBookAsync();
+    }
+
+    private void UseIsbnCandidate(string isbn) =>
+        NavigationManager.NavigateTo($"/books/{BookId}/import?isbn={Uri.EscapeDataString(isbn)}");
+
+    private void FindIsbn() => NavigationManager.NavigateTo($"/books/{BookId}/read?mode={BookReader.IsbnSearchMode}");
+
     private async Task DeleteBookAsync()
     {
         try
@@ -140,53 +203,15 @@ public partial class BookDetail
         _isMoving = true;
         try
         {
-            var targetLibraryId = await ChooseTargetLibraryAsync(_book.Id);
-            if (targetLibraryId is null)
+            if (await BookMoveWorkflow.ChooseAndMoveAsync(_book.Id))
             {
-                return;
-            }
-
-            var result = await BookMoveService.MoveAsync(_book.Id, targetLibraryId.Value);
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Book moved", Severity.Success);
                 await LoadBookAsync();
-            }
-            else if (result.IsFailure)
-            {
-                Snackbar.Add(result.Error?.Description ?? "Failed to move book", Severity.Error);
-                Logger.LogError("Failed to move book {BookId}: {Description}", _book.Id, result.Error?.Description);
             }
         }
         finally
         {
             _isMoving = false;
         }
-    }
-
-    // Null when there is nowhere to go, the targets could not be loaded or the user cancelled.
-    private async Task<Guid?> ChooseTargetLibraryAsync(Guid bookId)
-    {
-        var targets = await BookMoveService.GetTargetsAsync(bookId);
-        if (targets.IsFailure)
-        {
-            Snackbar.Add("Failed to load libraries", Severity.Error);
-            Logger.LogError("Failed to load move targets for book {BookId}: {Description}", bookId, targets.Error?.Description);
-            return null;
-        }
-
-        var options = BookMoveTargetViewModel.From(targets.Value!);
-        if (options.Count == 0)
-        {
-            Snackbar.Add("No other library of the same type", Severity.Info);
-            return null;
-        }
-
-        var parameters = new DialogParameters<MoveBookDialog> { { x => x.Targets, options } };
-        var dialog = await DialogService.ShowAsync<MoveBookDialog>(
-            "Move to another library", parameters, new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true });
-        var choice = await dialog.Result;
-        return choice is { Canceled: false, Data: Guid libraryId } ? libraryId : null;
     }
 
     private void GoBack()

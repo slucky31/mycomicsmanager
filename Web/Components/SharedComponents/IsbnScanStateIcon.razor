@@ -1,0 +1,11 @@
+@using Domain.Books
+@using Web.Models
+
+@if (State != IsbnScanState.HasIsbn)
+{
+    <MudTooltip Text="@IsbnScanStateDisplay.Label(State)" Placement="Placement.Top">
+        <MudIcon Icon="@IsbnScanStateDisplay.Icon(State)" Size="Size.Small"
+                 Color="@(OnDarkBackground && State != IsbnScanState.Candidates ? Color.Inherit : IsbnScanStateDisplay.Color(State))"
+                 Class="@Class" role="img" aria-label="@IsbnScanStateDisplay.Label(State)" />
+    </MudTooltip>
+}

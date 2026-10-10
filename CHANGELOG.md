@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.25.0"></a>
+## [10.25.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.25.0) (2026-10-10)
+
+### ✨ Features
+
+* **books:** read the ISBN printed on the pages of digital books ([#1093](https://www.github.com/slucky31/mycomicsmanager/issues/1093)) ([334ee1b](https://www.github.com/slucky31/mycomicsmanager/commit/334ee1b2634e6c1a00bf68c5bdbe222de049070c))
+
+<a name="10.24.1"></a>
+## [10.24.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.24.1) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency sharpcompress to 0.50.5 ([#1090](https://www.github.com/slucky31/mycomicsmanager/issues/1090)) ([1e950da](https://www.github.com/slucky31/mycomicsmanager/commit/1e950da1d90a1fe5bbd55ce045f187c92cd3664b))
+
+<a name="10.24.0"></a>
+## [10.24.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.24.0) (2026-10-09)
+
+### ✨ Features
+
+* **books:** add an in-app reader for digital books ([#1089](https://www.github.com/slucky31/mycomicsmanager/issues/1089)) ([c97f9c7](https://www.github.com/slucky31/mycomicsmanager/commit/c97f9c7161ec1d9be60a7e2a6a67bdffbfb344da))
+
+<a name="10.23.0"></a>
+## [10.23.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.23.0) (2026-10-09)
+
+### ✨ Features
+
+* **books:** move a book from the library views' menus ([#1087](https://www.github.com/slucky31/mycomicsmanager/issues/1087)) ([6d444f3](https://www.github.com/slucky31/mycomicsmanager/commit/6d444f32e1954a819764e9f3747e4a35f3ba5246))
+
+<a name="10.22.2"></a>
+## [10.22.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.2) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency microsoft.testing.extensions.codecoverage to 18.12.0 ([#1085](https://www.github.com/slucky31/mycomicsmanager/issues/1085)) ([6d981b9](https://www.github.com/slucky31/mycomicsmanager/commit/6d981b98968062f354ef85746222074c977b20a5))
+
+<a name="10.22.1"></a>
+## [10.22.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.1) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **feed-imports:** report files offered only on unsupported hosts as failed decisions ([#1086](https://www.github.com/slucky31/mycomicsmanager/issues/1086)) ([15012f1](https://www.github.com/slucky31/mycomicsmanager/commit/15012f1ae66a2463cb95ca833ef99c81461708fe))
+
 <a name="10.22.0"></a>
 ## [10.22.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.22.0) (2026-10-05)
 

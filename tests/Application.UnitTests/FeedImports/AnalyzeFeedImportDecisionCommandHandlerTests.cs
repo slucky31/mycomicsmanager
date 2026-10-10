@@ -203,6 +203,46 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_Should_FailWithLinksEachFile_WhenOnlyOfferedOnUnsupportedHost()
+    {
+        _settings.AllowedDownloadHosts = ["dailyuploads.net", "trbt.cc"];
+        var decision = GivenDecision(
+            title: "Old boy - L'intégrale",
+            url: "https://zone-ebook.com/bd-comics-mangas/425275-old-boy-lintgrale.html");
+        GivenPage(Fixture("zone-ebook_425275-old-boy-lintegrale.html"));
+        var added = new List<FeedImportDecision>();
+        _repository.When(r => r.Add(Arg.Any<FeedImportDecision>())).Do(c => added.Add(c.Arg<FeedImportDecision>()));
+
+        await HandleAsync(decision);
+
+        var decisions = new[] { decision }.Concat(added).ToList();
+        decisions.Select(d => (d.ItemIndex, d.Status, d.ParsedVolume)).Should().Equal(
+            (0, FeedImportDecisionStatus.LinksExtracted, 1),
+            (1, FeedImportDecisionStatus.LinksExtracted, 3),
+            (2, FeedImportDecisionStatus.Failed, 2),
+            (3, FeedImportDecisionStatus.Failed, 4));
+        var unsupported = decisions[2];
+        unsupported.ErrorStep.Should().Be(AnalyzeFeedImportDecisionCommandHandler.ExtractionStep);
+        unsupported.ErrorMessage.Should().Be($"{FeedImportError.DownloadHostNotSupported.Description}: fileq.net.");
+        unsupported.GetCandidates().Should().ContainSingle().Which.Mirrors.Should().ContainSingle()
+            .Which.Url.Should().Be("https://fileq.net/mr1etz20e0sg.html");
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotReportFile_WhenAnAllowedHostAlsoServesIt()
+    {
+        _settings.AllowedDownloadHosts = ["trbt.cc"];
+        var decision = GivenDecision(title: "El Borbah - Tome 1");
+        GivenPage(Fixture("planete-bd_151223-el-borbah-tome-1.html"));
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.LinksExtracted);
+        decision.GetCandidates().Should().ContainSingle().Which.Mirrors.Should().ContainSingle().Which.Host.Should().Be("trbt.cc");
+        _repository.DidNotReceive().Add(Arg.Any<FeedImportDecision>());
+    }
+
+    [Fact]
     public async Task Handle_Should_DetectDuplicateByPageIsbn_WhenRealArticleStatesIt()
     {
         var decision = GivenDecision(

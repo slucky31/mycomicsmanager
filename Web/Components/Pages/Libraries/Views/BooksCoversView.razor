@@ -1,3 +1,5 @@
+@using Domain.Books
+@using Web.Components.Pages.Books
 @using Web.Components.SharedComponents
 
 <div>
@@ -29,14 +31,24 @@
                     </div>
                 }
 
+                @if (book.IsbnScanState != IsbnScanState.HasIsbn)
+                {
+                    <div class="book-cover-isbn-state">
+                        <IsbnScanStateIcon State="@book.IsbnScanState" OnDarkBackground="true" />
+                    </div>
+                }
+
                 <div class="book-cover-actions">
                     <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" AriaLabel="More actions">
                         <MudMenuItem Icon="@Icons.Material.Filled.Visibility" Href="@($"/books/{book.Id}")">View</MudMenuItem>
                         @if (ShowDownload)
                         {
+                            <MudMenuItem Icon="@Icons.Material.Filled.MenuBook" Href="@($"/books/{book.Id}/read")">Read</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.DocumentScanner" Href="@($"/books/{book.Id}/read?mode={BookReader.IsbnSearchMode}")">Find ISBN</MudMenuItem>
                             <MudMenuItem Icon="@Icons.Material.Filled.Download" IconColor="Color.Secondary" OnClick="@(() => OnDownload.InvokeAsync(book.Id))">Download CBZ</MudMenuItem>
                         }
                         <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.DriveFileMove" OnClick="@(() => OnMove.InvokeAsync(book.Id))">Move to…</MudMenuItem>
                         <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(book.Id))">Delete</MudMenuItem>
                     </MudMenu>
                 </div>
@@ -50,7 +62,7 @@
                     @if (book.LastRating.HasValue)
                     {
                         <MudRating SelectedValue="@book.LastRating.Value" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />
-                    }                    
+                    }
                 </div>
             </MudPaper>
         </MudItem>

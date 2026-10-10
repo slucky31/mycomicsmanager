@@ -208,4 +208,102 @@ public class DigitalBookTests
         book.LibraryId.Should().Be(DefaultLibraryId);
         book.FilePath.Should().Be(DefaultFilePath);
     }
+
+    [Fact]
+    public void UpdateReadingProgress_Should_StorePage_WhenIndexIsPositiveOrZero()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+
+        book.UpdateReadingProgress(12).IsSuccess.Should().BeTrue();
+        book.LastReadPage.Should().Be(12);
+
+        book.UpdateReadingProgress(0).IsSuccess.Should().BeTrue();
+        book.LastReadPage.Should().Be(0);
+    }
+
+    [Fact]
+    public void UpdateReadingProgress_Should_FailWithoutChange_WhenIndexIsNegative()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+        book.UpdateReadingProgress(5);
+
+        var result = book.UpdateReadingProgress(-1);
+
+        result.Error.Should().Be(BooksError.BadRequest);
+        book.LastReadPage.Should().Be(5);
+    }
+
+    private static DigitalBook CreateBookWithoutIsbn() =>
+        DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, null), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+
+    [Fact]
+    public void RecordIsbnScan_Should_KeepEachCandidateOnceAndTheScanDate()
+    {
+        var book = CreateBookWithoutIsbn();
+        var scannedAt = new DateTime(2026, 10, 10, 8, 0, 0, DateTimeKind.Utc);
+
+        var result = book.RecordIsbnScan(["9782800112343", "2205056174", "9782800112343"], scannedAt);
+
+        result.IsSuccess.Should().BeTrue();
+        book.IsbnCandidates.Should().Equal("9782800112343", "2205056174");
+        book.IsbnScannedAt.Should().Be(scannedAt);
+    }
+
+    [Fact]
+    public void RecordIsbnScan_Should_ReturnInvalidIsbn_WhenACandidateIsEmpty()
+    {
+        var book = CreateBookWithoutIsbn();
+
+        book.RecordIsbnScan(["9782800112343", " "], DateTime.UtcNow).Error.Should().Be(BooksError.InvalidISBN);
+        book.RecordIsbnScan(null!, DateTime.UtcNow).Error.Should().Be(BooksError.InvalidISBN);
+        book.IsbnScannedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public void AssignIsbn_Should_SetTheIsbnAndDropTheCandidates()
+    {
+        var book = CreateBookWithoutIsbn();
+        book.RecordIsbnScan(["9782800112343", "2205056174"], DateTime.UtcNow);
+
+        var result = book.AssignIsbn("2205056174");
+
+        result.IsSuccess.Should().BeTrue();
+        book.ISBN.Should().Be("2205056174");
+        book.Title.Should().Be(DefaultTitle);
+        book.IsbnCandidates.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData("978280011234397828001123")]
+    public void AssignIsbn_Should_ReturnInvalidIsbn_WhenTheIsbnIsEmptyOrTooLong(string isbn)
+    {
+        var book = CreateBookWithoutIsbn();
+
+        book.AssignIsbn(isbn).Error.Should().Be(BooksError.InvalidISBN);
+        book.ISBN.Should().BeNull();
+    }
+
+    [Fact]
+    public void Update_Should_DropTheCandidates_WhenTheBookGetsAnIsbn()
+    {
+        var book = CreateBookWithoutIsbn();
+        book.RecordIsbnScan(["9782800112343", "2205056174"], DateTime.UtcNow);
+
+        book.Update(new BookMetadata(DefaultSerie, DefaultTitle, "9782800112343"));
+
+        book.IsbnCandidates.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Update_Should_KeepTheCandidates_WhenTheBookStillHasNoIsbn()
+    {
+        var book = CreateBookWithoutIsbn();
+        book.RecordIsbnScan(["9782800112343", "2205056174"], DateTime.UtcNow);
+
+        book.Update(new BookMetadata(DefaultSerie, "Arctic Nation", null));
+
+        book.IsbnCandidates.Should().HaveCount(2);
+    }
 }

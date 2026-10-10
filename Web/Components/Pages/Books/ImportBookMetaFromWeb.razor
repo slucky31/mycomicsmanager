@@ -30,7 +30,7 @@
         }
         else
         {
-            
+
                 RenderFragment SourceOption(BookSource source, string label, string? value) =>
                 @<MudRadio T="BookSource" Value="@source" Dense="true" Disabled="@(value is null)">
                     <div class="import-option">
@@ -38,9 +38,16 @@
                         <span class="import-source-value">@(value ?? "—")</span>
                     </div>
                 </MudRadio>;
-            
+
 
             <div class="import-fields">
+
+                @if (_isbnFromPage)
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        ISBN <b>@_isbn</b> read on the book's page will be saved with the book@(string.IsNullOrWhiteSpace(_currentBook.ISBN) ? "." : $", in place of {_currentBook.ISBN}.")
+                    </MudAlert>
+                }
 
                 @* TITLE *@
                 <div class="import-field-card">
