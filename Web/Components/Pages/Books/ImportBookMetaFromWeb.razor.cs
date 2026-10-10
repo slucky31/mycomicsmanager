@@ -51,13 +51,18 @@ public partial class ImportBookMetaFromWeb
 
     private sealed record ParsedTitleInfo(string Title, string Serie, int VolumeNumber);
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadBookThenFetchAsync();
-    }
+    // The book and ISBN the page last searched for: each search costs SerpApi and Google quota.
+    private (string BookId, string? Isbn)? _searchedFor;
 
+    // Runs after the first initialization too, so the page is loaded once per book.
     protected override async Task OnParametersSetAsync()
     {
+        if (_searchedFor == (BookId, Isbn))
+        {
+            return;
+        }
+
+        _searchedFor = (BookId, Isbn);
         await LoadBookThenFetchAsync();
     }
 

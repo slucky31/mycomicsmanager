@@ -69,4 +69,18 @@ public sealed class ImportBookMetaFromWebComponentTests : IAsyncDisposable
         cut.Markup.Should().NotContain("read on the book's page");
         await _bedethequeService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task OnParametersSetAsync_Should_SearchEachServiceOnce_WhenThePageOpens()
+    {
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/import?isbn={PageIsbn}");
+        var cut = _ctx.Render<ImportBookMetaFromWeb>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain(PageIsbn));
+
+        cut.Render();
+
+        await _bedethequeService.Received(1).SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _openLibraryService.Received(1).SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _googleBooksService.Received(1).SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
 }

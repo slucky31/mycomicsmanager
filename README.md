@@ -109,6 +109,8 @@ Copiez `appsettings.json` en `appsettings.Development.json` et renseignez les va
 }
 ```
 
+Google Books a besoin d'une clé API (gratuite, 1 000 requêtes par jour) : sans elle, les requêtes partagent le quota anonyme de Google, presque toujours épuisé (réponse `429 Too Many Requests`). Créez une clé « Books API » dans la [console Google Cloud](https://console.cloud.google.com/apis/library/books.googleapis.com) et passez-la avec la variable d'environnement `GoogleBooks__ApiKey`.
+
 > ⚠️ Ne committez jamais vos secrets. Utilisez des variables d'environnement en production.
 
 ### Migrations EF Core

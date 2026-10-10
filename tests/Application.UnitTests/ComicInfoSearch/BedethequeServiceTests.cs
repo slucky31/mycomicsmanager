@@ -604,13 +604,15 @@ public sealed class BedethequeServiceTests : IDisposable
 
     // ── SearchByIsbnAsync — serie page resolution ────────────────────
 
-    [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnFound_WhenSeriePageContainsMatchingIsbn()
+    [Theory]
+    [InlineData("https://schema.org/Book")]
+    [InlineData("http://schema.org/Book")]
+    public async Task SearchByIsbnAsync_Should_ReturnFound_WhenSeriePageContainsMatchingIsbn(string itemType)
     {
         var serieUrl = "https://www.bedetheque.com/serie-Biguden-123.html";
         var serieHtml = $"""
             <html><body><ul>
-              <li itemscope itemtype="https://schema.org/Book">
+              <li itemscope itemtype="{itemType}">
                 <span itemprop="isbn">{ValidIsbn}</span>
                 <a itemprop="url" class="titre" href="{PageUrl}">L'Ankou</a>
               </li>

@@ -169,10 +169,12 @@ public partial class BedethequeService : IBedethequeService
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
+        // Bedetheque has used both http:// and https:// schema.org types.
         var items = doc.DocumentNode.SelectNodes(
-            "//li[@itemscope and @itemtype='https://schema.org/Book']");
+            "//li[@itemscope and contains(@itemtype, 'schema.org/Book')]");
         if (items is null)
         {
+            _logger.LogWarning("No album list found in serie page {SerieUrl} for ISBN {Isbn}", serieUrl, isbn);
             return null;
         }
 
