@@ -161,6 +161,24 @@
                                 </div>
                             </div>
 
+                            @* ISBNs read on the pages, when there were several of them *@
+                            @if (IsbnCandidates.Count > 0)
+                            {
+                                <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                                    <MudText Typo="Typo.body2">Several ISBNs are printed in this book. Pick its own to fetch its information:</MudText>
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        @foreach (var isbn in IsbnCandidates)
+                                        {
+                                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                                       StartIcon="@Icons.Material.Filled.TravelExplore" Style="font-family: monospace;"
+                                                       OnClick="@(() => UseIsbnCandidate(isbn))">
+                                                @isbn
+                                            </MudButton>
+                                        }
+                                    </div>
+                                </MudAlert>
+                            }
+
                             @* Volume *@
                             <div class="book-detail-info-item">
                                 <MudIcon Icon="@Icons.Material.Filled.Numbers" Color="Color.Secondary" />

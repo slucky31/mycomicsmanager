@@ -6,4 +6,6 @@ public record ProcessImportJobExternalServices(
     IComicSearchService ComicSearch,
     ICloudinaryService Cloudinary,
     ITempWorkspace TempWorkspace,
-    IImportDirectoryStorage ImportStorage);
+    IImportDirectoryStorage ImportStorage,
+    IIsbnPageScanner IsbnScanner,
+    TimeProvider Clock);

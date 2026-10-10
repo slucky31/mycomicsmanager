@@ -99,6 +99,12 @@ public partial class BookDetail
 
     private void ReadBook() => NavigationManager.NavigateTo($"/books/{BookId}/read");
 
+    // The book drops its candidates as soon as it gets an ISBN.
+    private IReadOnlyList<string> IsbnCandidates => _book is DigitalBook digitalBook ? digitalBook.IsbnCandidates : [];
+
+    private void UseIsbnCandidate(string isbn) =>
+        NavigationManager.NavigateTo($"/books/{BookId}/import?isbn={Uri.EscapeDataString(isbn)}");
+
     private void FindIsbn() => NavigationManager.NavigateTo($"/books/{BookId}/read?mode={BookReader.IsbnSearchMode}");
 
     private async Task DeleteBookAsync()
