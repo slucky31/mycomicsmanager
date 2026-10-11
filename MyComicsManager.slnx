@@ -10,7 +10,6 @@
   </Folder>
   <Folder Name="/scripts/">
     <Project Path="scripts/FixCoverImages/FixCoverImages.csproj" />
-    <Project Path="scripts/ImageBenchmark/ImageBenchmark.csproj" />
   </Folder>
   <Folder Name="/Solution items/">
     <File Path=".editorconfig" />

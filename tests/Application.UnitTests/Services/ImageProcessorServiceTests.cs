@@ -1,62 +1,59 @@
 using Application.Interfaces;
 using Domain.Errors;
 using Persistence.Services;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 
 namespace Application.UnitTests.Services;
 
-// Contract shared by every WebP converter: the ImageSharp and the SkiaSharp implementations must behave the same.
-public abstract class ImageProcessorContractTests : IDisposable
+public sealed class ImageProcessorServiceTests : IDisposable
 {
     private readonly string _tempDir;
 
-    protected ImageProcessorContractTests(IImageProcessor service)
+    public ImageProcessorServiceTests()
     {
-        Service = service;
+        Service = new ImageProcessorService(NullLogger<ImageProcessorService>.Instance);
         _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempDir);
     }
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing && Directory.Exists(_tempDir))
+        if (Directory.Exists(_tempDir))
         {
             Directory.Delete(_tempDir, true);
         }
     }
 
-    protected IImageProcessor Service { get; }
+    private ImageProcessorService Service { get; }
 
-    protected string CreateSourceDir(string name = "source")
+    private string CreateSourceDir(string name = "source")
     {
         var dir = Path.Combine(_tempDir, name);
         Directory.CreateDirectory(dir);
         return dir;
     }
 
-    private static async Task CreateJpegAsync(string path, int width = 100, int height = 150)
+    private static Task CreateJpegAsync(string path, int width = 100, int height = 150) =>
+        SaveAsync(path, width, height, SKEncodedImageFormat.Jpeg);
+
+    private static Task CreatePngAsync(string path, int width = 100, int height = 150) =>
+        SaveAsync(path, width, height, SKEncodedImageFormat.Png);
+
+    private static Task CreateWebpAsync(string path, int width = 1400, int height = 2100) =>
+        SaveAsync(path, width, height, SKEncodedImageFormat.Webp);
+
+    private static async Task SaveAsync(string path, int width, int height, SKEncodedImageFormat format, SKColor? color = null)
     {
-        using var image = new Image<Rgba32>(width, height);
-        await image.SaveAsJpegAsync(path);
+        using var bitmap = new SKBitmap(width, height);
+        bitmap.Erase(color ?? SKColors.Black);
+        using var data = bitmap.Encode(format, 90);
+        await File.WriteAllBytesAsync(path, data.ToArray());
     }
 
-    private static async Task CreatePngAsync(string path, int width = 100, int height = 150)
+    private static (int Width, int Height) ReadSize(string path)
     {
-        using var image = new Image<Rgba32>(width, height);
-        await image.SaveAsPngAsync(path);
-    }
-
-    private static async Task CreateWebpAsync(string path, int width = 1400, int height = 2100)
-    {
-        using var image = new Image<Rgba32>(width, height);
-        await image.SaveAsWebpAsync(path);
+        using var codec = SKCodec.Create(path);
+        return (codec.Info.Width, codec.Info.Height);
     }
 
     [Fact]
@@ -124,7 +121,7 @@ public abstract class ImageProcessorContractTests : IDisposable
 
         // Assert
         var outputFile = Directory.GetFiles(destDir, "*.webp").Single();
-        using var resultImage = await Image.LoadAsync(outputFile, TestContext.Current.CancellationToken);
+        var resultImage = ReadSize(outputFile);
         resultImage.Width.Should().Be(1400);
     }
 
@@ -141,7 +138,7 @@ public abstract class ImageProcessorContractTests : IDisposable
 
         // Assert
         var outputFile = Directory.GetFiles(destDir, "*.webp").Single();
-        using var resultImage = await Image.LoadAsync(outputFile, TestContext.Current.CancellationToken);
+        var resultImage = ReadSize(outputFile);
         resultImage.Width.Should().Be(2800);
     }
 
@@ -158,7 +155,7 @@ public abstract class ImageProcessorContractTests : IDisposable
 
         // Assert
         var outputFile = Directory.GetFiles(destDir, "*.webp").Single();
-        using var resultImage = await Image.LoadAsync(outputFile, TestContext.Current.CancellationToken);
+        var resultImage = ReadSize(outputFile);
         resultImage.Width.Should().Be(1400);
         resultImage.Height.Should().Be(2100);
     }
@@ -306,7 +303,7 @@ public abstract class ImageProcessorContractTests : IDisposable
         result.Value!.ProcessedCount.Should().Be(1);
         result.Value.SkippedCount.Should().Be(0);
         var outputFile = Directory.GetFiles(destDir, "*.webp").Single();
-        using var resultImage = await Image.LoadAsync(outputFile, TestContext.Current.CancellationToken);
+        var resultImage = ReadSize(outputFile);
         resultImage.Width.Should().Be(1400);
     }
 
@@ -400,6 +397,59 @@ public abstract class ImageProcessorContractTests : IDisposable
         result.Value!.ProcessedCount.Should().Be(1);
         Directory.GetFiles(destDir, "*.webp").Should().HaveCount(1);
     }
-}
 
-public sealed class ImageProcessorServiceTests() : ImageProcessorContractTests(new ImageProcessorService(NullLogger<ImageProcessorService>.Instance));
+    // "VP8 " is the lossy WebP bitstream, "VP8L" the lossless one.
+    private static string WebpChunk(string path) => System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(path), 12, 4);
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_EncodePngAsLossyWebp()
+    {
+        // Arrange
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await SaveAsync(Path.Combine(sourceDir, "page-001.png"), 2000, 3000, SKEncodedImageFormat.Png, new SKColor(200, 30, 30));
+
+        // Act
+        var result = await Service.ProcessImagesAsync(sourceDir, destDir, 1400, null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        WebpChunk(Path.Combine(destDir, "page-001.webp")).Should().Be("VP8 ");
+    }
+
+    [Theory]
+    [InlineData(1988, 1400, 1)] // 1.4×: a 6/8 decode would soften the lines, full decode then resize
+    [InlineData(2797, 1400, 1)] // 1/2 would give 1399px
+    [InlineData(2800, 1400, 2)]
+    [InlineData(4000, 1400, 2)] // 2.9×: 1/2, not 3/8
+    [InlineData(5599, 1400, 4)] // 1/4 rounds up to 1400
+    [InlineData(11200, 1400, 8)]
+    [InlineData(1000, 1400, 1)] // smaller than the target
+    public void DecodeScaleDenominator_Should_KeepOnlyPowerOfTwoScales_WhenSourceIsLargerThanTarget(int sourceWidth, int targetWidth, int expected)
+    {
+        ImageProcessorService.DecodeScaleDenominator(sourceWidth, targetWidth).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(5600, 8000)] // 4× the target: decoded at 1/4 scale, no resize step left
+    [InlineData(3000, 4500)] // 2.1×: decoded at 1/2 scale, then a final resize
+    [InlineData(7000, 5000)] // double page, 2.5× the doubled target
+    public async Task ProcessImagesAsync_Should_ReachExactTargetSize_WhenJpegIsDecodedAtReducedScale(int width, int height)
+    {
+        // Arrange
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await SaveAsync(Path.Combine(sourceDir, "page-001.jpg"), width, height, SKEncodedImageFormat.Jpeg, new SKColor(10, 120, 200));
+        var expectedWidth = width > height ? 2800 : 1400;
+        var expectedHeight = (int)Math.Round((double)height * expectedWidth / width);
+
+        // Act
+        var result = await Service.ProcessImagesAsync(sourceDir, destDir, 1400, null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        var info = ReadSize(Path.Combine(destDir, "page-001.webp"));
+        info.Width.Should().Be(expectedWidth);
+        info.Height.Should().Be(expectedHeight);
+    }
+}
