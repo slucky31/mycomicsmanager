@@ -1,5 +1,6 @@
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
+using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
 
@@ -249,5 +250,26 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         found.Should().NotBeNull();
         found.Id.Should().Be(_lib2.Id);
         otherUser.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetSummariesAsync_Should_ReturnTheUserLibrariesByName_WithTheirBookCount()
+    {
+        // Arrange
+        await CreateLibraries();
+        Context.Books.Add(PhysicalBook.Create(new BookMetadata("Blacksad", "Quelque part entre les ombres", "9781000099991", 1), _lib2.Id).Value!);
+        Context.Books.Add(PhysicalBook.Create(new BookMetadata("Blacksad", "Arctic-Nation", "9781000099992", 2), _lib2.Id).Value!);
+        var otherUserLibrary = Library.Create("0-other user", "#5C6BC0", "Bookmark", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
+        LibraryRepository.Add(otherUserLibrary);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var summaries = await LibraryReadService.GetSummariesAsync(s_userId, TestContext.Current.CancellationToken);
+
+        // Assert
+        summaries.Select(s => s.Id).Should().Equal(_libs.OrderBy(l => l.Name, StringComparer.Ordinal).Select(l => l.Id));
+        summaries.Single(s => s.Id == _lib2.Id).BookCount.Should().Be(2);
+        summaries.Single(s => s.Id == _lib1.Id).BookCount.Should().Be(0);
+        summaries.Single(s => s.Id == _lib2.Id).Should().BeEquivalentTo(new { Name = "2-comics", Color = "#5C6BC0", Icon = "Bookmark", BookType = LibraryBookType.Physical });
     }
 }

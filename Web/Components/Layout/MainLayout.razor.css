@@ -1,17 +1,30 @@
-.page {
-    position: relative;
-    display: flex;
-    flex-direction: column;
+/* The page leaves room for the navigation of its screen width (NavBar.razor.css) and for the
+   iPhone system areas (notch in landscape, home indicator). */
+.page-body {
+    display: block;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
-main {
-    flex: 1;
+/* Phone: room for the fixed bottom bar (64 px + home indicator); full-height pages subtract the same */
+@media (max-width: 959.98px) {
+    .page-body.with-nav {
+        padding-bottom: calc(64px + env(safe-area-inset-bottom));
+    }
 }
 
-/* Mobile: Add padding so content is not hidden behind the fixed bottom nav bar */
-@media (max-width: 959.95px) {
-    .page-body {
-        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+/* Tablet: 88 px rail */
+@media (min-width: 960px) {
+    .page-body.with-nav {
+        margin-left: 88px;
+        padding-left: 0;
+    }
+}
+
+/* Desktop: 260 px side bar */
+@media (min-width: 1440px) {
+    .page-body.with-nav {
+        margin-left: 260px;
     }
 }
 

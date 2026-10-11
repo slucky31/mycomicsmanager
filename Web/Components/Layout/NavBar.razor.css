@@ -1,22 +1,25 @@
-::deep .navbar-item {
-    color: white;
-    text-transform: capitalize;
+/* Navigation by screen width (ADR-0021):
+   < 960 px: bottom bar; 960-1439 px: 88 px rail; >= 1440 px: 260 px side bar listing the libraries. */
+
+/* ── Shared ───────────────────────────────────────────── */
+.nav-badge {
+    position: absolute;
+    top: -4px;
+    right: 4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background-color: #F5A524;
+    color: #1B1D24;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
 }
 
-::deep .navbar-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-::deep .navbar-item.active {
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Desktop navigation - hidden on mobile, shown on desktop */
-.desktop-nav {
-    display: none;
-}
-
-/* Bottom navigation for mobile */
+/* ── Phone: bottom bar ────────────────────────────────── */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -25,55 +28,211 @@
     z-index: 1100;
     display: flex;
     background-color: #131B2C;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 8px 0;
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
 .bottom-nav-item {
-    flex: 1;
+    flex: 1 1 0;
+    min-height: 64px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 6px 4px;
-    color: rgba(255, 255, 255, 0.6);
+    gap: 4px;
+    color: #ffffff;
     text-decoration: none;
-    transition: all 0.2s ease;
-    min-height: 56px;
-    cursor: pointer;
-    border: none;
-    background: transparent;
 }
 
-.bottom-nav-item:hover,
-.bottom-nav-item.active {
-    color: white;
+.bottom-nav-icon {
+    position: relative;
+    width: 56px;
+    height: 30px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.bottom-nav-item.active {
-    color: var(--mud-palette-primary);
-}
-
-.bottom-nav-item ::deep .mud-icon-root {
-    font-size: 24px;
-    margin-bottom: 2px;
+.bottom-nav-item.active .bottom-nav-icon,
+.bottom-nav-item.active-parent .bottom-nav-icon {
+    background-color: rgba(139, 127, 245, 0.32);
 }
 
 .bottom-nav-label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
-    text-transform: capitalize;
     line-height: 1.2;
 }
 
-/* Desktop breakpoint */
-@media (min-width: 960px) {
-    .desktop-nav {
-        display: flex;
-    }
+/* ── Tablet and desktop: rail, then side bar ──────────── */
+.side-nav {
+    display: none;
+}
 
+@media (min-width: 960px) {
     .bottom-nav {
         display: none;
+    }
+
+    .side-nav {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1100;
+        width: 88px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 0 calc(16px + env(safe-area-inset-bottom));
+        background-color: #131B2C;
+        overflow-y: auto;
+    }
+
+    .side-nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        color: #ffffff;
+        text-decoration: none;
+    }
+
+    .side-nav-logo {
+        border-radius: 10px;
+    }
+
+    .side-nav-title,
+    .side-nav-libraries {
+        display: none;
+    }
+
+    .side-nav-item {
+        width: 88px;
+        min-height: 64px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .side-nav-icon {
+        position: relative;
+        width: 56px;
+        height: 32px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .side-nav-item.active .side-nav-icon,
+    .side-nav-item.active-parent .side-nav-icon {
+        background-color: rgba(139, 127, 245, 0.32);
+    }
+
+    .side-nav-item:hover .side-nav-icon {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .side-nav-spacer {
+        flex-grow: 1;
+    }
+}
+
+@media (min-width: 1440px) {
+    .side-nav {
+        width: 260px;
+        align-items: stretch;
+        gap: 4px;
+        padding: 20px 12px calc(20px + env(safe-area-inset-bottom));
+    }
+
+    .side-nav-brand {
+        padding: 0 8px;
+        margin-bottom: 20px;
+    }
+
+    .side-nav-title {
+        display: inline;
+        font-family: 'Bangers', system-ui;
+        font-size: 24px;
+    }
+
+    .side-nav-item {
+        width: auto;
+        min-height: 44px;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 14px;
+        padding: 0 14px;
+        border-radius: 22px;
+        font-size: 15px;
+    }
+
+    /* The icon and the badge become items of the row: icon, label, then the badge at the end. */
+    .side-nav-icon {
+        display: contents;
+    }
+
+    .side-nav-label {
+        order: 1;
+    }
+
+    .side-nav-item.active,
+    .side-nav-library.active {
+        background-color: rgba(139, 127, 245, 0.32);
+    }
+
+    .side-nav-item:hover,
+    .side-nav-library:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .side-nav-item .nav-badge {
+        position: static;
+        order: 2;
+        margin-left: auto;
+    }
+
+    .side-nav-libraries {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-bottom: 8px;
+    }
+
+    .side-nav-library {
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 14px 0 22px;
+        border-radius: 20px;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .side-nav-library-name {
+        flex-grow: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .side-nav-library-count {
+        font-size: 12px;
+        color: #B9B9C6;
     }
 }

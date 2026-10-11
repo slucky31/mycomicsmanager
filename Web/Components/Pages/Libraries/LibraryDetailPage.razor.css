@@ -1,8 +1,14 @@
 .library-detail-page {
     display: flex;
     flex-direction: column;
-    /* 64px = MudBlazor default AppBar height */
-    height: calc(100dvh - 64px);
+    /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
+    height: 100dvh;
+}
+
+@media (max-width: 959.98px) {
+    .library-detail-page {
+        height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
 }
 
 /* ── Header ───────────────────────────────────────────── */
@@ -63,11 +69,6 @@
 
 /* ── Mobile ───────────────────────────────────────────── */
 @media (max-width: 599px) {
-    .library-detail-page {
-        /* subtract bottom nav height (~72px) as well */
-        height: calc(100dvh - 64px - 72px - env(safe-area-inset-bottom, 0px));
-    }
-
     .library-detail-header {
         padding: 0 12px;
     }

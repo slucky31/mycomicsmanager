@@ -4,6 +4,7 @@ using Application.Libraries.Create;
 using Application.Libraries.Delete;
 using Application.Libraries.GetById;
 using Application.Libraries.List;
+using Application.Libraries.Summaries;
 using Application.Libraries.Update;
 using Domain.Libraries;
 using Domain.Primitives;
@@ -13,6 +14,7 @@ namespace Web.Services;
 public class LibrariesService(
     IQueryHandler<GetLibraryQuery, Library> getLibraryHandler,
     IQueryHandler<GetLibrariesQuery, IPagedList<Library>> getLibrariesHandler,
+    IQueryHandler<GetLibrarySummariesQuery, IReadOnlyList<LibrarySummary>> getLibrarySummariesHandler,
     ICommandHandler<CreateLibraryCommand, Library> createLibraryHandler,
     ICommandHandler<UpdateLibraryCommand, Library> updateLibraryHandler,
     ICommandHandler<DeleteLibraryCommand> deleteLibraryHandler,
@@ -89,6 +91,17 @@ public class LibrariesService(
         var query = new GetLibrariesQuery(searchTerm, sortColumn, sortOrder, page, pageSize, userIdResult.Value);
 
         return await getLibrariesHandler.Handle(query, cancellationToken);
+    }
+
+    public async Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await getLibrarySummariesHandler.Handle(new GetLibrarySummariesQuery(userIdResult.Value), cancellationToken);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)

@@ -10,15 +10,12 @@
                    BackdropClick="false"
                    NoHeader="false"
                    Position="DialogPosition.Center"
-                   CloseOnEscapeKey="true"
-                   
-                    />
+                   CloseOnEscapeKey="true" />
 
-<MudLayout>
+@if (_showNavigation)
+{
     <NavBar />
-    <MudMainContent>
-        <div class="page-body">
-            @Body
-        </div>
-    </MudMainContent>    
-</MudLayout>
+}
+<main class="page-body @(_showNavigation ? "with-nav" : string.Empty)">
+    @Body
+</main>
