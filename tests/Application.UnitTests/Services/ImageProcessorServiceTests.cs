@@ -430,6 +430,39 @@ public sealed class ImageProcessorServiceTests : IDisposable
         ImageProcessorService.DecodeScaleDenominator(sourceWidth, targetWidth).Should().Be(expected);
     }
 
+    [Fact]
+    public async Task ProcessImagesAsync_Should_ReachExactTargetSize_WhenPngIsReducedInHalvingSteps()
+    {
+        // Arrange — 600px to 140px: two halving steps (600, 300, 150), then the final resize
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreatePngAsync(Path.Combine(sourceDir, "page-001.png"), width: 600, height: 900);
+
+        // Act
+        var result = await Service.ProcessImagesAsync(sourceDir, destDir, 140, null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        ReadSize(Path.Combine(destDir, "page-001.webp")).Should().Be((140, 210));
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_ReturnFailure_WhenImageExceedsMaxDimension()
+    {
+        // Arrange — 8001px is one pixel over the limit that protects the memory of the Raspberry Pi
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreatePngAsync(Path.Combine(sourceDir, "huge.png"), width: 10, height: 8001);
+
+        // Act
+        var result = await Service.ProcessImagesAsync(sourceDir, destDir, 140, null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("FP503");
+        result.Error.Description.Should().Contain("huge.png");
+    }
+
     [Theory]
     [InlineData(5600, 8000)] // 4× the target: decoded at 1/4 scale, no resize step left
     [InlineData(3000, 4500)] // 2.1×: decoded at 1/2 scale, then a final resize

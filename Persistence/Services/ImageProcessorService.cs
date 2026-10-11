@@ -243,34 +243,25 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
 
     private static SKBitmap ResizeInSteps(SKBitmap source, int targetWidth, int targetHeight)
     {
-        var current = source;
+        // The source belongs to the caller: only the halved copies are released here, even when a resize fails.
+        SKBitmap? intermediate = null;
         try
         {
+            var current = source;
             // Halving steps keep the quality of a large reduction without the cost of a single cubic resample.
             while (current.Width >= targetWidth * 2)
             {
                 var half = Resize(current, current.Width / 2, Math.Max(targetHeight, current.Height / 2), s_stepSampling);
-                if (!ReferenceEquals(current, source))
-                {
-                    current.Dispose();
-                }
+                intermediate?.Dispose();
+                intermediate = half;
                 current = half;
             }
 
-            var final = Resize(current, targetWidth, targetHeight, s_finalSampling);
-            if (!ReferenceEquals(current, source))
-            {
-                current.Dispose();
-            }
-            return final;
+            return Resize(current, targetWidth, targetHeight, s_finalSampling);
         }
-        catch
+        finally
         {
-            if (!ReferenceEquals(current, source))
-            {
-                current.Dispose();
-            }
-            throw;
+            intermediate?.Dispose();
         }
     }
 
