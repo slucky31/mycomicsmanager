@@ -47,11 +47,13 @@ public abstract partial class DleArticleLinkExtractor(ILogger logger) : IDownloa
         {
             // The site layout changed: read the whole page rather than miss every link.
             logger.LogWarning("Feed import: article block not found on {Url}, falling back to the generic extractor", pageUri);
-            return new ArticleExtraction(GenericDownloadLinkExtractor.ExtractLinks(document.DocumentNode, pageUri, allowedDownloadHosts));
+            return GenericDownloadLinkExtractor.ExtractLinks(document.DocumentNode, pageUri, allowedDownloadHosts);
         }
 
-        var links = GenericDownloadLinkExtractor.ExtractLinks(article, pageUri, allowedDownloadHosts);
-        return new ArticleExtraction(links, FindIsbn(HtmlEntity.DeEntitize(article.InnerText)));
+        return GenericDownloadLinkExtractor.ExtractLinks(article, pageUri, allowedDownloadHosts) with
+        {
+            Isbn = FindIsbn(HtmlEntity.DeEntitize(article.InnerText))
+        };
     }
 
     private static string? FindIsbn(string text)

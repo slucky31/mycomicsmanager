@@ -1,4 +1,6 @@
 using Application.FeedImports;
+using Application.Interfaces;
+using Domain.Settings;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -8,15 +10,15 @@ namespace Web.Infrastructure;
 // of the application keeps running (and starting) without it.
 internal sealed class MinifluxHealthCheck(
     IMinifluxClient minifluxClient,
-    IOptions<FeedImportSettings> feedImportSettings,
+    IFeatureToggles featureToggles,
     IOptions<MinifluxSettings> minifluxSettings,
     HealthCheckResultCache<MinifluxHealthCheck> cache) : IHealthCheck
 {
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        if (!feedImportSettings.Value.Enabled)
+        if (!featureToggles.IsEnabled(FeatureToggle.FeedImport))
         {
-            return Task.FromResult(HealthCheckResult.Healthy("Feed import is disabled (FeedImport:Enabled): Miniflux is not checked."));
+            return Task.FromResult(HealthCheckResult.Healthy("Feed import is turned off: Miniflux is not checked."));
         }
 
         return cache.GetOrAddAsync(CheckMinifluxAsync, cancellationToken);

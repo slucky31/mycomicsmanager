@@ -427,6 +427,25 @@ public class FeedImportDecision : Entity<Guid>
         return Result.Success();
     }
 
+    // Links found but not downloadable automatically (e.g. host not supported): kept so the user can download the file by hand.
+    public Result FailWithLinks(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed, string step, string errorMessage)
+    {
+        if (string.IsNullOrWhiteSpace(step) || string.IsNullOrWhiteSpace(errorMessage))
+        {
+            return FeedImportError.BadRequest;
+        }
+
+        var check = EnsureCanAnalyze(candidates, parsed);
+        if (check.IsFailure)
+        {
+            return check;
+        }
+
+        SetAnalysis(candidates, parsed);
+        MatchedBookId = null;
+        return Fail(step, errorMessage);
+    }
+
     private Result EnsureCanAnalyze(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed)
     {
         if (candidates is null || candidates.Count == 0 || candidates.Any(c => c.Mirrors.Count == 0) || parsed is null)

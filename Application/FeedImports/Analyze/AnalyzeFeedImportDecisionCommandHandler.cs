@@ -12,6 +12,7 @@ namespace Application.FeedImports.Analyze;
 
 // Pending decision -> fetch the article page -> extract and group links -> duplicate check per book.
 // Ends in LinksExtracted, AwaitingArbitration, SkippedDuplicate or Failed; never downloads anything.
+// Each file only offered on a host outside FeedImport:AllowedDownloadHosts becomes a Failed decision keeping its links.
 public sealed class AnalyzeFeedImportDecisionCommandHandler(
     IFeedImportDecisionRepository decisionRepository,
     IArticlePageFetcher pageFetcher,
@@ -77,35 +78,60 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         var extractor = extractors.FirstOrDefault(e => !e.IsFallback && e.CanHandle(pageUri))
                         ?? extractors.First(e => e.IsFallback);
         var extraction = extractor.Extract(htmlResult.Value!, pageUri, settings.AllowedDownloadHosts);
-        var links = extraction.Links;
-        if (links.Count == 0)
+        var unsupported = GroupUnsupportedLinks(extraction, decision.EntryTitle);
+        if (extraction.Links.Count == 0 && unsupported.Count == 0)
         {
             return decision.Fail(ExtractionStep, "No link to an allowed host (FeedImport:AllowedDownloadHosts).");
         }
 
-        var grouping = DownloadLinkGrouper.Group(links, decision.EntryTitle);
-        if (grouping.IsAmbiguous)
+        var grouping = extraction.Links.Count == 0 ? null : DownloadLinkGrouper.Group(extraction.Links, decision.EntryTitle);
+        var supportedCount = CountSupportedDecisions(grouping);
+        var decisions = CreateDecisions(decision, supportedCount + unsupported.Count);
+        if (decisions.IsFailure)
         {
-            var parsed = ComicTitleParser.Parse(decision.EntryTitle);
-            return decision.RequestArbitration(
-                FeedImportArbitrationKind.AmbiguousLinks, grouping.Candidates, parsed, matchedBookId: null,
-                grouping.AmbiguityReason!, FeedImportDecidedBy.Auto);
+            return decisions.Error!;
         }
 
-        var books = await bookReadService.ListIdentitiesByUserAsync(decision.UserId, cancellationToken);
-        return ApplyToBooks(decision, grouping.Candidates, books, extraction.Isbn);
+        // The ISBN printed on the page only describes the book when the article holds a single one.
+        var isOnlyBook = decisions.Value!.Count == 1;
+        var pageIsbn = isOnlyBook ? extraction.Isbn : null;
+        var applied = await ApplySupportedAsync(decisions.Value[..supportedCount], grouping, isOnlyBook, pageIsbn, cancellationToken);
+        return applied.IsFailure
+            ? applied
+            : FailUnsupported(decisions.Value[supportedCount..], unsupported, decision.EntryTitle, isOnlyBook, pageIsbn);
+    }
+
+    // Ambiguous links stay on a single decision, until the user groups them.
+    private static int CountSupportedDecisions(LinkGroupingResult? grouping)
+    {
+        if (grouping is null)
+        {
+            return 0;
+        }
+
+        return grouping.IsAmbiguous ? 1 : grouping.Candidates.Count;
+    }
+
+    // Files only offered on hosts outside FeedImport:AllowedDownloadHosts, one candidate per file.
+    // A file also served by an allowed host is not reported; neither is anything when an allowed link has no
+    // file name, since it may be a mirror of any of them.
+    private static IReadOnlyList<DownloadCandidate> GroupUnsupportedLinks(ArticleExtraction extraction, string articleTitle)
+    {
+        if (extraction.UnsupportedLinks.Count == 0 || extraction.Links.Any(l => l.FileName is null))
+        {
+            return [];
+        }
+
+        var served = extraction.Links.Select(l => DownloadLinkGrouper.NormalizeFileName(l.FileName!)).ToHashSet(StringComparer.Ordinal);
+        var links = extraction.UnsupportedLinks.Where(l => !served.Contains(DownloadLinkGrouper.NormalizeFileName(l.FileName!))).ToList();
+        return DownloadLinkGrouper.Group(links, articleTitle).Candidates;
     }
 
     // One decision per book: the original keeps the first book, the others become sibling decisions.
-    private Result ApplyToBooks(
-        FeedImportDecision decision,
-        IReadOnlyList<DownloadCandidate> candidates,
-        IReadOnlyList<Books.BookIdentityDto> books,
-        string? pageIsbn)
+    private Result<List<FeedImportDecision>> CreateDecisions(FeedImportDecision decision, int count)
     {
-        var isOnlyBook = candidates.Count == 1;
         var decisions = new List<FeedImportDecision> { decision };
-        for (var i = 1; i < candidates.Count; i++)
+        for (var i = 1; i < count; i++)
         {
             var sibling = decision.CreateSibling(i);
             if (sibling.IsFailure)
@@ -116,14 +142,62 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
             decisions.Add(sibling.Value!);
         }
 
-        for (var i = 0; i < candidates.Count; i++)
+        return decisions;
+    }
+
+    private async Task<Result> ApplySupportedAsync(
+        List<FeedImportDecision> decisions,
+        LinkGroupingResult? grouping,
+        bool isOnlyBook,
+        string? pageIsbn,
+        CancellationToken cancellationToken)
+    {
+        if (grouping is null)
         {
-            // The ISBN printed on the page only describes the book when the article holds a single one.
-            var parsed = FeedImportAnalysisRules.ParseCandidate(candidates[i], decision.EntryTitle, isOnlyBook, isOnlyBook ? pageIsbn : null);
-            var applied = FeedImportAnalysisRules.ApplyDuplicateCheck(decisions[i], candidates[i], parsed, books, FeedImportDecidedBy.Auto);
+            return Result.Success();
+        }
+
+        if (grouping.IsAmbiguous)
+        {
+            var parsed = ComicTitleParser.Parse(decisions[0].EntryTitle);
+            return decisions[0].RequestArbitration(
+                FeedImportArbitrationKind.AmbiguousLinks, grouping.Candidates, parsed, matchedBookId: null,
+                grouping.AmbiguityReason!, FeedImportDecidedBy.Auto);
+        }
+
+        var books = await bookReadService.ListIdentitiesByUserAsync(decisions[0].UserId, cancellationToken);
+        for (var i = 0; i < decisions.Count; i++)
+        {
+            var candidate = grouping.Candidates[i];
+            var parsed = FeedImportAnalysisRules.ParseCandidate(candidate, decisions[i].EntryTitle, isOnlyBook, pageIsbn);
+            var applied = FeedImportAnalysisRules.ApplyDuplicateCheck(decisions[i], candidate, parsed, books, FeedImportDecidedBy.Auto);
             if (applied.IsFailure)
             {
                 return applied;
+            }
+        }
+
+        return Result.Success();
+    }
+
+    // Failed with their links: the user downloads these files by hand.
+    private static Result FailUnsupported(
+        List<FeedImportDecision> decisions,
+        IReadOnlyList<DownloadCandidate> candidates,
+        string articleTitle,
+        bool isOnlyBook,
+        string? pageIsbn)
+    {
+        for (var i = 0; i < decisions.Count; i++)
+        {
+            var candidate = candidates[i];
+            var parsed = FeedImportAnalysisRules.ParseCandidate(candidate, articleTitle, isOnlyBook, pageIsbn);
+            var hosts = string.Join(", ", candidate.Mirrors.Select(m => m.Host).Distinct(StringComparer.OrdinalIgnoreCase));
+            var failed = decisions[i].FailWithLinks(
+                [candidate], parsed, ExtractionStep, $"{FeedImportError.DownloadHostNotSupported.Description}: {hosts}.");
+            if (failed.IsFailure)
+            {
+                return failed;
             }
         }
 

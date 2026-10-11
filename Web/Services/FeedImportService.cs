@@ -7,6 +7,7 @@ using Application.Interfaces;
 using Application.Libraries;
 using Domain.FeedImports;
 using Domain.Primitives;
+using Domain.Settings;
 using Hangfire;
 using Microsoft.Extensions.Options;
 using Web.Models;
@@ -21,10 +22,11 @@ public class FeedImportService(
     IFeedImportDecisionReadService decisionReadService,
     IBackgroundJobClient backgroundJobClient,
     IOptions<FeedImportSettings> feedImportSettings,
+    IFeatureToggles featureToggles,
     IOptions<DebridLinkSettings> debridLinkSettings,
     ILogger<FeedImportService> logger) : IFeedImportService
 {
-    public bool IsSyncEnabled => feedImportSettings.Value.Enabled;
+    public bool IsSyncEnabled => featureToggles.IsEnabled(FeatureToggle.FeedImport);
 
     public async Task<Result<FeedImportDecisionPageViewModel>> GetDecisionsAsync(
         FeedImportDecisionStatus? status,
@@ -150,6 +152,17 @@ public class FeedImportService(
 
         // Nothing deleted: the reason is shown to the user.
         return deleted == 0 && lastError is not null ? lastError : deleted;
+    }
+
+    public async Task<Result<DeleteDownloadedFeedImportDecisionsResult>> DeleteDownloadedAsync(CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await handlers.DeleteDownloaded.Handle(new DeleteDownloadedFeedImportDecisionsCommand(userIdResult.Value), cancellationToken);
     }
 
     // Badge of the navigation bar: 0 when the user cannot be resolved (not signed in yet).

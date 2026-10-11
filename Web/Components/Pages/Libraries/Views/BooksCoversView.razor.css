@@ -67,3 +67,14 @@
     border-radius: 20px;
     padding: 4px 10px;
 }
+
+::deep .book-cover-isbn-state {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: flex;
+    padding: 4px;
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+}

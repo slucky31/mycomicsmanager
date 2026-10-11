@@ -1,4 +1,6 @@
 using Application.FeedImports;
+using Application.Interfaces;
+using Domain.Settings;
 using Hangfire;
 using Microsoft.Extensions.Options;
 using Web.Infrastructure;
@@ -113,7 +115,8 @@ public static class FeedImportConfiguration
     public static void ScheduleFeedImportSync(this IServiceProvider services)
     {
         var settings = services.GetRequiredService<IOptions<FeedImportSettings>>().Value;
-        FeedImportSyncJob.Schedule(services.GetRequiredService<IRecurringJobManager>(), settings);
+        var enabled = services.GetRequiredService<IFeatureToggles>().IsEnabled(FeatureToggle.FeedImport);
+        FeedImportSyncJob.Schedule(services.GetRequiredService<IRecurringJobManager>(), settings, enabled);
     }
 
     private static bool IsHttpUri(Uri? uri) =>

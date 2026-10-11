@@ -396,6 +396,34 @@ namespace Persistence.Migrations
                     b.ToTable("Libraries", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Settings.FeatureToggleOverride", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Toggle")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Toggle")
+                        .IsUnique();
+
+                    b.ToTable("FeatureToggleOverrides", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -421,6 +449,25 @@ namespace Persistence.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
+                });
+
             modelBuilder.Entity("Domain.Books.DigitalBook", b =>
                 {
                     b.HasBaseType("Domain.Books.Book");
@@ -432,6 +479,16 @@ namespace Persistence.Migrations
 
                     b.Property<long>("FileSize")
                         .HasColumnType("bigint");
+
+                    b.PrimitiveCollection<string[]>("IsbnCandidates")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<DateTime?>("IsbnScannedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("LastReadPage")
+                        .HasColumnType("integer");
 
                     b.ToTable("DigitalBooks", (string)null);
                 });

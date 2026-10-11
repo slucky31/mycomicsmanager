@@ -159,6 +159,33 @@ public class FeedImportDecisionTransitionTests
     }
 
     [Fact]
+    public void FailWithLinks_Should_KeepCandidatesAndParsedTitle_WhenPending()
+    {
+        var decision = CreatePending();
+
+        var result = decision.FailWithLinks([s_candidate], s_parsed, "Link extraction", "Host not supported: fileq.net.");
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.Failed);
+        decision.ErrorStep.Should().Be("Link extraction");
+        decision.ErrorMessage.Should().Be("Host not supported: fileq.net.");
+        decision.ParsedVolume.Should().Be(3);
+        decision.GetCandidates().Should().ContainSingle().Which.Should().BeEquivalentTo(s_candidate);
+    }
+
+    [Fact]
+    public void FailWithLinks_Should_ReturnBadRequestAndKeepPending_WhenCandidateHasNoMirror()
+    {
+        var decision = CreatePending();
+
+        var result = decision.FailWithLinks([s_candidate with { Mirrors = [] }], s_parsed, "Link extraction", "x");
+
+        result.Error.Should().Be(FeedImportError.BadRequest);
+        decision.Status.Should().Be(FeedImportDecisionStatus.Pending);
+        decision.Links.Should().BeNull();
+    }
+
+    [Fact]
     public void CreateSibling_Should_CopyEntryWithNextItemIndex_WhenPending()
     {
         var decision = CreatePending();

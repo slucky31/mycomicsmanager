@@ -10,8 +10,33 @@ public sealed class GoogleBooksServiceTests
     private const string ValidIsbnWithDashes = "978-2-205-08916-5";
     private static readonly Uri GoogleBooksBaseUrl = new("https://www.googleapis.com/books/v1");
 
-    private static GoogleBooksService CreateService(HttpClient httpClient) =>
-        new(httpClient, Options.Create(new GoogleBooksSettings { BaseUrl = GoogleBooksBaseUrl }), NullLogger<GoogleBooksService>.Instance);
+    private static GoogleBooksService CreateService(HttpClient httpClient, string? apiKey = null) =>
+        new(httpClient, Options.Create(new GoogleBooksSettings { BaseUrl = GoogleBooksBaseUrl, ApiKey = apiKey }), NullLogger<GoogleBooksService>.Instance);
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_SendTheApiKey_WhenOneIsConfigured()
+    {
+        // Arrange
+        var searchResponse = """
+        { "totalItems": 1, "items": [{ "selfLink": "https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ", "volumeInfo": { "title": "Fullmetal Alchemist" } }] }
+        """;
+        var detailedResponse = """
+        { "volumeInfo": { "title": "Fullmetal Alchemist Tome 23" } }
+        """;
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}&key=my-key"] = CreateJsonResponse(searchResponse),
+            ["https://www.googleapis.com/books/v1/volumes/kOJlRgAACAAJ?key=my-key"] = CreateJsonResponse(detailedResponse)
+        });
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient, apiKey: "my-key");
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Title.Should().Be("Fullmetal Alchemist Tome 23");
+    }
 
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnBookResult_WhenBookFound()
@@ -119,12 +144,13 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeFalse();
         result.Title.Should().BeEmpty();
         result.CoverUrl.Should().BeNull();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenApiReturnsError()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenApiReturnsError()
     {
         // Arrange
         using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
@@ -140,10 +166,11 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenHttpRequestFails()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenHttpRequestFails()
     {
         // Arrange
         using var handler = new MockHttpMessageHandler(
@@ -157,10 +184,11 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenJsonIsInvalid()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenJsonIsInvalid()
     {
         // Arrange
         using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
@@ -176,6 +204,7 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
@@ -624,7 +653,7 @@ public sealed class GoogleBooksServiceTests
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTimeoutOccurs()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenTimeoutOccurs()
     {
         // Arrange – TaskCanceledException from an internal timeout (CancellationToken.None is not cancelled)
         using var handler = new MockHttpMessageHandler(new TaskCanceledException("Request timed out"));
@@ -636,6 +665,7 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]

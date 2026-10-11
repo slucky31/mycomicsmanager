@@ -25,6 +25,10 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
    - les liens vers les hébergeurs de `FeedImport:AllowedDownloadHosts` sont extraits puis regroupés :
      les liens vers le même fichier (même nom, ou hébergeurs différents) sont des **miroirs** ;
      des noms de fichiers différents sont des **livres différents**, chacun avec sa propre décision ;
+   - un fichier proposé uniquement sur un hébergeur absent de `FeedImport:AllowedDownloadHosts`
+     (fileq.net, frdl.io…) devient une décision `Failed` à l'étape *Link extraction* qui garde ses liens,
+     pour le télécharger à la main depuis la page **Feeds** ; un fichier aussi servi par un hébergeur
+     autorisé n'est pas signalé ;
    - chaque livre est comparé aux bibliothèques de l'utilisateur : doublon certain → `SkippedDuplicate`,
      doublon probable ou regroupement ambigu → `AwaitingArbitration`, sinon → `LinksExtracted`.
 5. Le suivi et l'arbitrage se font dans la page **Feeds** (`/feed-imports`) de MCM : déplier une
@@ -172,6 +176,12 @@ Pour une liste, une variable par élément : `FeedImport__AllowedDownloadHosts__
 Si `FeedImport:Enabled` vaut `true` et qu'une valeur obligatoire manque,
 **l'application refuse de démarrer** et le log indique la clé en cause.
 
+La synchronisation peut aussi être activée ou désactivée à chaud par un
+administrateur dans **Settings → Administration → Features** : le choix est
+enregistré en base, prime sur `FeedImport:Enabled` et ajoute ou retire
+aussitôt le job récurrent. L'activation est refusée si une valeur
+obligatoire (`FeedImport:UserEmail`, `Miniflux:*`) manque.
+
 > **Staging et prod partagent le même Miniflux.** N'activer
 > `FeedImport:Enabled` que sur **un seul** environnement (la prod) : sinon
 > le premier qui synchronise retire l'étoile et l'article n'apparaît que
@@ -201,7 +211,7 @@ synchronisation (`Feed import sync done: ...`) ou l'erreur rencontrée
 | `user configured in FeedImport:UserEmail not found` | L'email ne correspond à aucun utilisateur MCM (se connecter une fois à MCM d'abord) |
 | `SSRF guard blocked outgoing request` | `Miniflux:BaseUrl` pointe vers un autre hôte que celui appelé |
 | Décision « Failed » à l'étape *Source* | Le domaine de l'article n'est pas dans `FeedImport:AllowedSourceHosts` |
-| Décision « Failed » à l'étape *Link extraction* | Aucun lien vers un hébergeur de `FeedImport:AllowedDownloadHosts` sur la page (par exemple un article qui ne propose que fileq.net ou frdl.io) |
+| Décision « Failed » à l'étape *Link extraction* | Aucun lien vers un hébergeur de `FeedImport:AllowedDownloadHosts` sur la page ; ou, avec le message `Host not supported`, un fichier proposé uniquement sur un hébergeur non autorisé (fileq.net, frdl.io…) : ses liens sont affichés dans la décision pour un téléchargement manuel |
 | L'article reste ★ dans Miniflux | Échec du retrait d'étoile : il est réessayé à chaque synchronisation (voir les logs `failed to unstar`) |
 | Les décisions restent « Links extracted » | `DebridLink:ApiKey` absente (log `Feed import downloads skipped`) |
 | Décision « Failed » à l'étape *Download* : clé absente ou invalide | Clé Debrid-Link expirée ou révoquée : en générer une nouvelle |

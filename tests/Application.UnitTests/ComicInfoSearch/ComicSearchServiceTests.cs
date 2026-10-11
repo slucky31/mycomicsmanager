@@ -13,6 +13,7 @@ public sealed class ComicSearchServiceTests
     private static readonly string[] SingleAuthorArray = ["Author"];
     private static readonly string[] SinglePublisherArray = ["Publisher"];
 
+    private readonly IBnfCatalogueService _bnfService = BnfNotFoundFactory.Create();
     private readonly IOpenLibraryService _openLibraryService;
     private readonly IGoogleBooksService _googleBooksService;
     private readonly IBedethequeService _bedethequeService;
@@ -63,8 +64,10 @@ public sealed class ComicSearchServiceTests
             .Returns(BedethequeNotFound);
         _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(GoogleBooksNotFound);
+        _openLibraryService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new OpenLibraryBookResult(string.Empty, null, [], [], null, null, null, Found: false));
 
-        _sut = new ComicSearchService(_openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
+        _sut = new ComicSearchService(_bnfService, _openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
     }
 
     #region SearchByIsbnAsync Tests
@@ -858,7 +861,7 @@ public sealed class ComicSearchServiceTests
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_ShouldNotCallGoogleBooksOrOpenLibrary_WhenBedethequeReturnsData()
+    public async Task SearchByIsbnAsync_Should_AskBedethequeLast_WhenNoOtherSourceKnowsTheBook()
     {
         // Arrange
         const string isbn = "9781234567890";
@@ -877,15 +880,60 @@ public sealed class ComicSearchServiceTests
             .Returns(bedethequeResult);
 
         // Act
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Serie.Should().Be("Biguden");
+        Received.InOrder(() =>
+        {
+            _bnfService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
+            _googleBooksService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
+            _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
+            _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
+        });
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_TakeTheBnfRecordAndTheGoogleCover_WhenTheBnfKnowsTheBook()
+    {
+        // Arrange
+        const string isbn = "9782917237359";
+        var coverUrl = new Uri("https://books.google.com/content?id=tangente&img=1");
+        _bnfService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(new BnfBookResult("Tangente", null, ["Céline Wagner"], ["des Ronds dans l'O"], new DateOnly(2012, 1, 1), 82, null, Found: true));
+        _googleBooksService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(GoogleBooksNotFound with { Found = true, Title = "Tangente (Google)", CoverUrl = coverUrl });
+        _cloudinaryService.UploadImageFromUrlAsync(coverUrl, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(new Uri("https://res.cloudinary.com/test/tangente.jpg"), "tangente", true, null));
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeTrue();
+        result.Serie.Should().Be("Tangente");
+        result.Authors.Should().Be("Céline Wagner");
+        result.NumberOfPages.Should().Be(82);
+        result.ImageUrl.Should().Be("https://res.cloudinary.com/test/tangente.jpg");
+        await _bedethequeService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_TakeTheOpenLibraryCover_WhenTheBnfKnowsTheBookButGoogleHasNoCover()
+    {
+        // Arrange
+        const string isbn = "9782917237359";
+        var coverUrl = new Uri("https://covers.openlibrary.org/b/id/42-L.jpg");
+        _bnfService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(new BnfBookResult("Tangente", null, [], [], null, null, null, Found: true));
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(new OpenLibraryBookResult("Tangente", null, [], [], null, null, coverUrl, Found: true));
+
+        // Act
         await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
 
         // Assert
-        await _googleBooksService.DidNotReceive().SearchByIsbnAsync(
-            Arg.Any<string>(),
-            Arg.Any<CancellationToken>());
-        await _openLibraryService.DidNotReceive().SearchByIsbnAsync(
-            Arg.Any<string>(),
-            Arg.Any<CancellationToken>());
+        await _cloudinaryService.Received(1).UploadImageFromUrlAsync(coverUrl, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -1091,6 +1139,7 @@ public sealed class ComicSearchServiceTests
 // Keep this class in the same file as it was originally (record tests)
 public sealed class ComicSearchServiceWithLocalCoverTests
 {
+    private readonly IBnfCatalogueService _bnfService = BnfNotFoundFactory.Create();
     private readonly IOpenLibraryService _openLibraryService;
     private readonly IGoogleBooksService _googleBooksService;
     private readonly IBedethequeService _bedethequeService;
@@ -1165,6 +1214,8 @@ public sealed class ComicSearchServiceWithLocalCoverTests
             .Returns(BedethequeNotFound);
         _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(GoogleBooksNotFound);
+        _openLibraryService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new OpenLibraryBookResult(string.Empty, null, [], [], null, null, null, Found: false));
 
         // Default no-op for stream uploads so tests without explicit setup don't throw
         _cloudinaryService.UploadImageFromStreamAsync(
@@ -1172,7 +1223,7 @@ public sealed class ComicSearchServiceWithLocalCoverTests
             .Returns(new CloudinaryUploadResult(null, null, false, "not configured"));
 
         _sut = new ComicSearchService(
-            _openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
+            _bnfService, _openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
     }
 
     [Fact]
@@ -1462,5 +1513,16 @@ public sealed class ComicSearchServiceWithLocalCoverTests
         // Assert: exception is caught, ImageUrl falls back to empty string
         result.Found.Should().BeTrue();
         result.ImageUrl.Should().BeEmpty();
+    }
+}
+
+internal static class BnfNotFoundFactory
+{
+    public static IBnfCatalogueService Create()
+    {
+        var service = Substitute.For<IBnfCatalogueService>();
+        service.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new BnfBookResult(string.Empty, null, [], [], null, null, null, Found: false));
+        return service;
     }
 }

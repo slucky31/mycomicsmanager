@@ -4,6 +4,7 @@ using Application.Libraries.Create;
 using Application.Libraries.Delete;
 using Application.Libraries.GetById;
 using Application.Libraries.List;
+using Application.Libraries.Summaries;
 using Application.Libraries.Update;
 using Ardalis.GuardClauses;
 using AwesomeAssertions;
@@ -20,6 +21,7 @@ public sealed class LibrariesServiceTests
 {
     private readonly IQueryHandler<GetLibraryQuery, Library> _getLibraryHandler;
     private readonly IQueryHandler<GetLibrariesQuery, IPagedList<Library>> _getLibrariesHandler;
+    private readonly IQueryHandler<GetLibrarySummariesQuery, IReadOnlyList<LibrarySummary>> _getLibrarySummariesHandler;
     private readonly ICommandHandler<CreateLibraryCommand, Library> _createLibraryHandler;
     private readonly ICommandHandler<UpdateLibraryCommand, Library> _updateLibraryHandler;
     private readonly ICommandHandler<DeleteLibraryCommand> _deleteLibraryHandler;
@@ -32,6 +34,7 @@ public sealed class LibrariesServiceTests
     {
         _getLibraryHandler = Substitute.For<IQueryHandler<GetLibraryQuery, Library>>();
         _getLibrariesHandler = Substitute.For<IQueryHandler<GetLibrariesQuery, IPagedList<Library>>>();
+        _getLibrarySummariesHandler = Substitute.For<IQueryHandler<GetLibrarySummariesQuery, IReadOnlyList<LibrarySummary>>>();
         _createLibraryHandler = Substitute.For<ICommandHandler<CreateLibraryCommand, Library>>();
         _updateLibraryHandler = Substitute.For<ICommandHandler<UpdateLibraryCommand, Library>>();
         _deleteLibraryHandler = Substitute.For<ICommandHandler<DeleteLibraryCommand>>();
@@ -41,6 +44,7 @@ public sealed class LibrariesServiceTests
         _service = new LibrariesService(
             _getLibraryHandler,
             _getLibrariesHandler,
+            _getLibrarySummariesHandler,
             _createLibraryHandler,
             _updateLibraryHandler,
             _deleteLibraryHandler,
@@ -328,6 +332,44 @@ public sealed class LibrariesServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UsersError.NotFound);
         await _updateLibraryHandler.DidNotReceive().Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region GetSummaries Tests
+
+    [Fact]
+    public async Task GetSummaries_Should_QueryTheCurrentUserLibraries()
+    {
+        // Arrange
+        IReadOnlyList<LibrarySummary> summaries = [new(Guid.CreateVersion7(), "Read Books", "#5C6BC0", "Bookmark", LibraryBookType.Physical, 24)];
+        _getLibrarySummariesHandler.Handle(Arg.Any<GetLibrarySummariesQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<LibrarySummary>>.Success(summaries));
+
+        // Act
+        var result = await _service.GetSummaries(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(summaries);
+        await _getLibrarySummariesHandler.Received(1).Handle(
+            Arg.Is<GetLibrarySummariesQuery>(q => q.UserId == DefaultUserId),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetSummaries_Should_ReturnTheUserError_WhenTheCurrentUserIsUnknown()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        // Act
+        var result = await _service.GetSummaries(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _getLibrarySummariesHandler.DidNotReceive().Handle(Arg.Any<GetLibrarySummariesQuery>(), Arg.Any<CancellationToken>());
     }
 
     #endregion

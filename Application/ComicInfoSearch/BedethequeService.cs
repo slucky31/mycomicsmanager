@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Application.Helpers;
 using Application.Interfaces;
+using Domain.Settings;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,14 +21,20 @@ public partial class BedethequeService : IBedethequeService
     private readonly string _serieUrlPrefix;
     private readonly string _serieBdUrlPrefix;
     private readonly ILogger<BedethequeService> _logger;
+    private readonly BedethequeCircuit _circuit;
+    private readonly IFeatureToggles _featureToggles;
 
     public BedethequeService(
         IHttpClientFactory httpClientFactory,
         IIsbnBedethequeCacheRepository cacheRepository,
         IOptions<BedethequeSettings> settings,
+        BedethequeCircuit circuit,
+        IFeatureToggles featureToggles,
         ILogger<BedethequeService> logger)
     {
         _logger = logger;
+        _circuit = circuit;
+        _featureToggles = featureToggles;
         _httpClientFactory = httpClientFactory;
         _cacheRepository = cacheRepository;
         _settings = settings.Value;
@@ -38,9 +45,22 @@ public partial class BedethequeService : IBedethequeService
         _serieBdUrlPrefix = $"{baseUrl}/serie-bd";
     }
 
+    public bool IsEnabled => _featureToggles.IsEnabled(FeatureToggle.Bedetheque);
+
     public async Task<BedethequeBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default)
     {
         var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
+        if (!IsEnabled)
+        {
+            return CreateNotFoundResult();
+        }
+
+        if (_circuit.PausedUntil is { } pausedUntil)
+        {
+            _logger.LogInformation("Bedetheque is paused until {PausedUntil} after a Cloudflare challenge: ISBN {Isbn} not searched",
+                pausedUntil, cleanIsbn);
+            return CreateFailedResult();
+        }
 
         try
         {
@@ -53,14 +73,16 @@ public partial class BedethequeService : IBedethequeService
             var url = cachedUrl ?? await ResolveUrlAsync(cleanIsbn, ct);
             if (url is null)
             {
-                return CreateNotFoundResult();
+                // A serie page blocked by Cloudflare pauses Bedetheque: the album may exist.
+                return _circuit.PausedUntil is null ? CreateNotFoundResult() : CreateFailedResult();
             }
 
             _logger.LogInformation("Fetching Bedetheque page: {Url}", url);
             var html = await FetchPageAsync(url, ct);
+            // The album page exists but could not be read (blocked or in error).
             if (html is null)
             {
-                return CreateNotFoundResult();
+                return CreateFailedResult();
             }
 
             var result = ParsePage(html, url, _coversBaseUrl);
@@ -76,17 +98,17 @@ public partial class BedethequeService : IBedethequeService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error searching Bedetheque for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (JsonException ex)
         {
             _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
         {
             _logger.LogError(ex, "Timeout searching Bedetheque for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
     }
 
@@ -169,10 +191,12 @@ public partial class BedethequeService : IBedethequeService
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
+        // Bedetheque has used both http:// and https:// schema.org types.
         var items = doc.DocumentNode.SelectNodes(
-            "//li[@itemscope and @itemtype='https://schema.org/Book']");
+            "//li[@itemscope and contains(@itemtype, 'schema.org/Book')]");
         if (items is null)
         {
+            _logger.LogWarning("No album list found in serie page {SerieUrl} for ISBN {Isbn}", serieUrl, isbn);
             return null;
         }
 
@@ -213,14 +237,30 @@ public partial class BedethequeService : IBedethequeService
         var client = _httpClientFactory.CreateClient("Bedetheque");
         var response = await client.GetAsync(new Uri(url), ct);
 
+        var html = await response.Content.ReadAsStringAsync(ct);
+        if (IsCloudflareChallenge(response, html))
+        {
+            var until = _circuit.Pause(TimeSpan.FromHours(_settings.CloudflarePauseHours));
+            _logger.LogWarning(
+                "Bedetheque answered with a Cloudflare challenge instead of the page {Url}: the server's requests are blocked, Bedetheque is paused until {PausedUntil}",
+                url, until);
+            return null;
+        }
+
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogWarning("Bedetheque page returned {StatusCode} for URL: {Url}", response.StatusCode, url);
             return null;
         }
 
-        return await response.Content.ReadAsStringAsync(ct);
+        return html;
     }
+
+    // The "Just a moment..." page asks the browser to run a script: no album can be read from it.
+    private static bool IsCloudflareChallenge(HttpResponseMessage response, string html) =>
+        response.Headers.Contains("cf-mitigated")
+        || (html.Contains("Just a moment", StringComparison.OrdinalIgnoreCase)
+            && html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase));
 
     private BedethequeBookResult ParsePage(string html, string pageUrl, string coversBaseUrl)
     {
@@ -410,6 +450,8 @@ public partial class BedethequeService : IBedethequeService
 
         return new Uri($"{coversBaseUrl}{match.Groups[1].Value}.jpg");
     }
+
+    private static BedethequeBookResult CreateFailedResult() => CreateNotFoundResult() with { Failed = true };
 
     private static BedethequeBookResult CreateNotFoundResult() =>
         new(

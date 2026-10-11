@@ -31,7 +31,7 @@ public class GoogleBooksService : IGoogleBooksService
         try
         {
 
-            var url = new Uri(_settings.BaseUrl + SearchPath + cleanIsbn);
+            var url = WithApiKey(_settings.BaseUrl + SearchPath + cleanIsbn);
 
             _logger.LogInformation("Searching Google Books for ISBN: {Isbn}", cleanIsbn);
 
@@ -40,7 +40,7 @@ public class GoogleBooksService : IGoogleBooksService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Google Books returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
-                return CreateNotFoundResult();
+                return CreateFailedResult();
             }
 
             var searchResponse = await response.Content.ReadFromJsonAsync<GoogleBooksSearchResponse>(
@@ -91,17 +91,17 @@ public class GoogleBooksService : IGoogleBooksService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error searching Google Books for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (JsonException ex)
         {
             _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             _logger.LogError(ex, "Timeout searching Google Books for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
     }
 
@@ -115,7 +115,7 @@ public class GoogleBooksService : IGoogleBooksService
             {
                 _logger.LogInformation("Fetching detailed volume info from: {SelfLink}", searchVolume.SelfLink);
                 var detailedVolume = await _httpClient.GetFromJsonAsync<GoogleBooksVolume>(
-                    searchVolume.SelfLink, JsonOptions, cancellationToken);
+                    WithApiKey(searchVolume.SelfLink), JsonOptions, cancellationToken);
 
                 if (detailedVolume?.VolumeInfo is not null)
                 {
@@ -138,6 +138,17 @@ public class GoogleBooksService : IGoogleBooksService
 
         // Fallback to search result data
         return searchVolume.VolumeInfo;
+    }
+
+    private Uri WithApiKey(string url)
+    {
+        if (string.IsNullOrWhiteSpace(_settings.ApiKey))
+        {
+            return new Uri(url);
+        }
+
+        var separator = url.Contains('?', StringComparison.Ordinal) ? '&' : '?';
+        return new Uri($"{url}{separator}key={Uri.EscapeDataString(_settings.ApiKey)}");
     }
 
     private static Uri? GetBestCoverUrl(GoogleBooksImageLinks? imageLinks)
@@ -183,6 +194,8 @@ public class GoogleBooksService : IGoogleBooksService
 
         return new Uri(builder.ToString());
     }
+
+    private static GoogleBooksBookResult CreateFailedResult() => CreateNotFoundResult() with { Failed = true };
 
     private static GoogleBooksBookResult CreateNotFoundResult() =>
         new(

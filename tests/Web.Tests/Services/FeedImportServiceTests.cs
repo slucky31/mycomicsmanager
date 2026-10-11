@@ -10,6 +10,7 @@ using AwesomeAssertions;
 using Domain.FeedImports;
 using Domain.Libraries;
 using Domain.Primitives;
+using Domain.Settings;
 using Domain.Users;
 using Hangfire;
 using Hangfire.Common;
@@ -38,7 +39,10 @@ public sealed class FeedImportServiceTests
         Substitute.For<ICommandHandler<CorrectFeedImportDecisionCommand, FeedImportDecisionStatus>>();
     private readonly ICommandHandler<DeleteFeedImportDecisionCommand> _deleteHandler =
         Substitute.For<ICommandHandler<DeleteFeedImportDecisionCommand>>();
-    private readonly FeedImportSettings _settings = new() { Enabled = true };
+    private readonly ICommandHandler<DeleteDownloadedFeedImportDecisionsCommand, DeleteDownloadedFeedImportDecisionsResult> _deleteDownloadedHandler =
+        Substitute.For<ICommandHandler<DeleteDownloadedFeedImportDecisionsCommand, DeleteDownloadedFeedImportDecisionsResult>>();
+    private readonly FeedImportSettings _settings = new();
+    private readonly IFeatureToggles _featureToggles = Substitute.For<IFeatureToggles>();
     private readonly DebridLinkSettings _debridLinkSettings = new() { ApiKey = "key" };
     private readonly FeedImportService _service;
 
@@ -46,13 +50,14 @@ public sealed class FeedImportServiceTests
     {
         _handler = Substitute.For<IQueryHandler<GetPagedFeedImportDecisionsQuery, FeedImportDecisionPage>>();
         _resolveHandler = Substitute.For<ICommandHandler<ResolveFeedImportArbitrationCommand>>();
+        _featureToggles.IsEnabled(FeatureToggle.FeedImport).Returns(true);
         _currentUserService = Substitute.For<ICurrentUserService>();
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
         _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
         _service = new FeedImportService(
-            new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler, _deleteHandler),
+            new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler, _deleteHandler, _deleteDownloadedHandler),
             _currentUserService, _libraryReadService, _decisionReadService, _backgroundJobClient,
-            Options.Create(_settings), Options.Create(_debridLinkSettings), NullLogger<FeedImportService>.Instance);
+            Options.Create(_settings), _featureToggles, Options.Create(_debridLinkSettings), NullLogger<FeedImportService>.Instance);
     }
 
     [Fact]
@@ -123,7 +128,7 @@ public sealed class FeedImportServiceTests
     [Fact]
     public void TriggerSync_Should_ReturnDisabled_WhenFeedImportIsDisabled()
     {
-        _settings.Enabled = false;
+        _featureToggles.IsEnabled(FeatureToggle.FeedImport).Returns(false);
 
         var result = _service.TriggerSync();
 
@@ -246,6 +251,29 @@ public sealed class FeedImportServiceTests
 
         result.Error.Should().Be(UsersError.NotFound);
         await _deleteHandler.DidNotReceiveWithAnyArgs().Handle(default!, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task DeleteDownloadedAsync_Should_DeleteForCurrentUser_WhenUserIsResolved()
+    {
+        var summary = new DeleteDownloadedFeedImportDecisionsResult(3, 1);
+        _deleteDownloadedHandler.Handle(new DeleteDownloadedFeedImportDecisionsCommand(s_userId), Arg.Any<CancellationToken>())
+            .Returns(Result<DeleteDownloadedFeedImportDecisionsResult>.Success(summary));
+
+        var result = await _service.DeleteDownloadedAsync(TestContext.Current.CancellationToken);
+
+        result.Value.Should().Be(summary);
+    }
+
+    [Fact]
+    public async Task DeleteDownloadedAsync_Should_ReturnError_WhenUserNotResolved()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        var result = await _service.DeleteDownloadedAsync(TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(UsersError.NotFound);
+        await _deleteDownloadedHandler.DidNotReceiveWithAnyArgs().Handle(default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]

@@ -116,6 +116,18 @@ public class DleArticleLinkExtractorTests
     }
 
     [Fact]
+    public void Extract_Should_KeepFilesOnOtherHostsAside_WhenTheirHostIsNotAllowed()
+    {
+        var extraction = new ZoneEbookLinkExtractor(NullLogger<ZoneEbookLinkExtractor>.Instance).Extract(
+            Fixture("zone-ebook_425275-old-boy-lintegrale.html"), new Uri("https://zone-ebook.com/bd-comics-mangas/1.html"),
+            ["dailyuploads.net", "trbt.cc"]);
+
+        extraction.Links.Select(l => l.FileName).Should().Equal("Old.Boy.T01.pdf", "Old.Boy.T03.pdf");
+        extraction.UnsupportedLinks.Select(l => (l.FileName, l.Host)).Should().Equal(
+            ("Old.Boy.T02.pdf", "fileq.net"), ("Old.Boy.T04.pdf", "frdl.io"));
+    }
+
+    [Fact]
     public void Extract_Should_FallBackToWholePage_WhenArticleBlockIsMissing()
     {
         var extraction = new PlaneteBdLinkExtractor(NullLogger<PlaneteBdLinkExtractor>.Instance).Extract(

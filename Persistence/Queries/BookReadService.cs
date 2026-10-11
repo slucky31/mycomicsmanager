@@ -60,7 +60,10 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
             LastRating = b.ReadingDates
                 .OrderByDescending(rd => rd.Date)
                 .Select(rd => (int?)rd.Rating)
-                .FirstOrDefault()
+                .FirstOrDefault(),
+            // Null for a physical book (it always has an ISBN).
+            IsbnCandidateCount = (int?)((DigitalBook)b).IsbnCandidates.Count,
+            IsbnScannedAt = ((DigitalBook)b).IsbnScannedAt
         });
 #pragma warning restore CA1826
 

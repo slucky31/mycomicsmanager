@@ -66,6 +66,15 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Guid>> ListIdsToScanForIsbnAsync(Guid libraryId, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Set<DigitalBook>()
+            .Where(b => b.LibraryId == libraryId && (b.ISBN == null || b.ISBN == "") && b.IsbnScannedAt == null)
+            .OrderBy(b => b.Id)
+            .Select(b => b.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Book>> ListByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await dbContext.Set<Book>()

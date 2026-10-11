@@ -15,8 +15,6 @@ public sealed record StatisticsViewModel(
 {
     public const string ReadingsSeriesName = "Readings";
 
-    private static readonly string[] s_sizeUnits = ["B", "KB", "MB", "GB", "TB"];
-
     public static StatisticsViewModel From(StatisticsDto dto, bool allLibraries)
     {
         ArgumentNullException.ThrowIfNull(dto);
@@ -64,7 +62,7 @@ public sealed record StatisticsViewModel(
 
         if (dto.DigitalStorageBytes > 0)
         {
-            cards.Add(new("Digital storage", FormatBytes(dto.DigitalStorageBytes), Icons.Material.Filled.Storage));
+            cards.Add(new("Digital storage", FileSizeFormatter.Format(dto.DigitalStorageBytes), Icons.Material.Filled.Storage));
         }
 
         return cards;
@@ -74,18 +72,4 @@ public sealed record StatisticsViewModel(
 
     private static string FormatRating(double? rating) =>
         rating is { } value ? $"{value.ToString("0.0", CultureInfo.InvariantCulture)} / 5" : "–";
-
-    public static string FormatBytes(long bytes)
-    {
-        double size = bytes;
-        var unit = 0;
-        while (size >= 1024 && unit < s_sizeUnits.Length - 1)
-        {
-            size /= 1024;
-            unit++;
-        }
-
-        var format = unit == 0 ? "0" : "0.#";
-        return $"{size.ToString(format, CultureInfo.InvariantCulture)} {s_sizeUnits[unit]}";
-    }
 }

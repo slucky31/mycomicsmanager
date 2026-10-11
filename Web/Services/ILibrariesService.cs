@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Application.Interfaces;
+using Application.Libraries.Summaries;
 using Domain.Libraries;
 using Domain.Primitives;
 
@@ -20,6 +21,9 @@ public interface ILibrariesService
 
     Task<Result<IPagedList<Library>>> FilterBy(string? searchTerm,
         LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(
         CancellationToken cancellationToken = default);
 
     Task<Result> Delete(string? id,

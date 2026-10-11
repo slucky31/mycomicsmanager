@@ -1,7 +1,9 @@
 using Application.FeedImports;
+using Application.Interfaces;
 using AwesomeAssertions;
 using Domain.FeedImports;
 using Domain.Primitives;
+using Domain.Settings;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -14,9 +16,16 @@ public sealed class DebridLinkHealthCheckTests
 {
     private readonly IDebridLinkClient _client = Substitute.For<IDebridLinkClient>();
 
+    private static IFeatureToggles FeatureToggles(bool enabled)
+    {
+        var featureToggles = Substitute.For<IFeatureToggles>();
+        featureToggles.IsEnabled(FeatureToggle.FeedImport).Returns(enabled);
+        return featureToggles;
+    }
+
     private DebridLinkHealthCheck Build(bool enabled = true, string apiKey = "secret") => new(
         _client,
-        Options.Create(new FeedImportSettings { Enabled = enabled }),
+        FeatureToggles(enabled),
         Options.Create(new DebridLinkSettings { ApiKey = apiKey }),
         new HealthCheckResultCache<DebridLinkHealthCheck>());
 

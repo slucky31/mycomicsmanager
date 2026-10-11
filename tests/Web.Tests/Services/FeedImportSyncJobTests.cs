@@ -7,6 +7,7 @@ using Application.Users;
 using AwesomeAssertions;
 using Domain.FeedImports;
 using Domain.Primitives;
+using Domain.Settings;
 using Domain.Users;
 using Hangfire;
 using Hangfire.Common;
@@ -32,9 +33,11 @@ public sealed class FeedImportSyncJobTests
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly FeedImportSettings _settings = new() { Enabled = true, UserEmail = UserEmail };
     private readonly DebridLinkSettings _debridLinkSettings = new() { ApiKey = "key" };
+    private readonly IFeatureToggles _featureToggles = Substitute.For<IFeatureToggles>();
 
     public FeedImportSyncJobTests()
     {
+        _featureToggles.IsEnabled(FeatureToggle.FeedImport).Returns(true);
         _handler = Substitute.For<ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult>>();
         _userReadService = Substitute.For<IUserReadService>();
         _decisionRepository = Substitute.For<IFeedImportDecisionRepository>();
@@ -55,7 +58,7 @@ public sealed class FeedImportSyncJobTests
     }
 
     private FeedImportSyncJob CreateJob() =>
-        new(_scopeFactory, _backgroundJobClient, Options.Create(_settings), Options.Create(_debridLinkSettings), NullLogger<FeedImportSyncJob>.Instance);
+        new(_scopeFactory, _backgroundJobClient, Options.Create(_settings), _featureToggles, Options.Create(_debridLinkSettings), NullLogger<FeedImportSyncJob>.Instance);
 
     private User ArrangeUserWithFailedSync()
     {
@@ -132,7 +135,7 @@ public sealed class FeedImportSyncJobTests
     [Fact]
     public async Task SyncAsync_Should_DoNothing_WhenDisabled()
     {
-        _settings.Enabled = false;
+        _featureToggles.IsEnabled(FeatureToggle.FeedImport).Returns(false);
 
         await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
 
@@ -176,7 +179,7 @@ public sealed class FeedImportSyncJobTests
     {
         var manager = Substitute.For<IRecurringJobManager>();
 
-        FeedImportSyncJob.Schedule(manager, new FeedImportSettings { Enabled = true, SyncIntervalMinutes = 15 });
+        FeedImportSyncJob.Schedule(manager, new FeedImportSettings { SyncIntervalMinutes = 15 }, enabled: true);
 
         manager.Received(1).AddOrUpdate(
             FeedImportSyncJob.RecurringJobId,
@@ -191,7 +194,7 @@ public sealed class FeedImportSyncJobTests
     {
         var manager = Substitute.For<IRecurringJobManager>();
 
-        FeedImportSyncJob.Schedule(manager, new FeedImportSettings { Enabled = false });
+        FeedImportSyncJob.Schedule(manager, new FeedImportSettings(), enabled: false);
 
         manager.Received(1).RemoveIfExists(FeedImportSyncJob.RecurringJobId);
     }

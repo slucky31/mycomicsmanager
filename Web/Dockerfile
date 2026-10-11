@@ -18,8 +18,9 @@ RUN dotnet publish "./Web/Web.csproj" -a $TARGETARCH -o /app
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0.12-noble
 
+# tesseract-ocr reads the ISBN printed on the pages of the imported books.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends curl tesseract-ocr tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
@@ -29,4 +30,3 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -fsS http://localhost:8080/health || exit 1
 USER $APP_UID
 ENTRYPOINT ["./Web"]
-

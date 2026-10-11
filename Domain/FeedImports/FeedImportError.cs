@@ -20,6 +20,7 @@ public static class FeedImportError
     public static readonly TError DebridLinkHostQuotaReached = new("FEED429H", "Debrid-Link quota reached for this host.");
     public static readonly TError DebridLinkHostNotSupported = new("FEED422D", "Host not supported by Debrid-Link.");
     public static readonly TError DownloadHostNotAllowed = new("FEED403H", "Download domain not allowed.");
+    public static readonly TError DownloadHostNotSupported = new("FEED422H", "Host not supported (FeedImport:AllowedDownloadHosts), download the file manually");
     public static readonly TError DownloadFailed = new("FEED502F", "The file download failed.");
     public static readonly TError FileTooLarge = new("FEED413", "File too large (Import:MaxFileSizeMb).");
     public static readonly TError UnsupportedFileType = new("FEED415", "Unsupported file type (Import:SupportedExtensions).");

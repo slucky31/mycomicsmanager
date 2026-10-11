@@ -11,10 +11,12 @@ using HealthChecks.ApplicationStatus.DependencyInjection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using MudBlazor;
 using MudBlazor.Services;
 using Persistence;
@@ -69,6 +71,9 @@ builder.Services.AddOptions<LocalStorageConfiguration>()
     .Validate(cfg => Directory.Exists(cfg.RootPath), "LocalStorage:RootPath does not exist; check the volume is mounted")
     .ValidateOnStart();
 
+// Identifies the application to the book data services it calls.
+const string appUserAgent = "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)";
+
 // Config OpenLibrary settings
 var openLibrarySection = configuration.GetSection("OpenLibrary");
 builder.Services.AddOptions<OpenLibrarySettings>()
@@ -78,12 +83,26 @@ builder.Services.AddOptions<OpenLibrarySettings>()
 // Config OpenLibrary service for ISBN lookup
 builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =>
 {
-    client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
+    client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, appUserAgent);
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(sp => new SsrfGuardHandler(
         sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
         new HashSet<string>(["openlibrary.org", "covers.openlibrary.org"], StringComparer.OrdinalIgnoreCase)))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
+
+// Config BnF catalogue (SRU API) for ISBN lookup: knows almost every French comic
+builder.Services.AddOptions<BnfCatalogueSettings>()
+    .Bind(configuration.GetSection("BnfCatalogue"))
+    .ValidateOnStart();
+builder.Services.AddHttpClient<IBnfCatalogueService, BnfCatalogueService>(client =>
+{
+    client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, appUserAgent);
+    client.Timeout = TimeSpan.FromSeconds(30);
+})
+    .AddHttpMessageHandler(sp => new SsrfGuardHandler(
+        sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
+        new HashSet<string>(["catalogue.bnf.fr"], StringComparer.OrdinalIgnoreCase)))
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
 // Config Google Books settings
@@ -96,7 +115,7 @@ builder.Services.AddOptions<GoogleBooksSettings>()
 // Config Google Books service for ISBN lookup (fallback)
 builder.Services.AddHttpClient<IGoogleBooksService, GoogleBooksService>(client =>
 {
-    client.DefaultRequestHeaders.Add("User-Agent", "MyComicsManager/1.0 (https://github.com/slucky31/mycomicsmanager)");
+    client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, appUserAgent);
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(sp => new SsrfGuardHandler(
@@ -113,7 +132,7 @@ builder.Services.AddOptions<BedethequeSettings>()
 // Config Bedetheque HTTP clients
 builder.Services.AddHttpClient("Bedetheque", client =>
 {
-    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+    client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
     .AddHttpMessageHandler(sp => new SsrfGuardHandler(
@@ -127,6 +146,7 @@ builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.Fr
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
 // Config Bedetheque service
+builder.Services.AddSingleton<BedethequeCircuit>();
 builder.Services.AddScoped<IBedethequeService, BedethequeService>();
 
 // Config feed import (Miniflux starred entries -> FeedImportDecisions)
@@ -163,9 +183,15 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
 builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
     .Configure(options =>
     {
-        options.ExpireTimeSpan = TimeSpan.FromDays(3);
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = true;
     });
+
+// The keys encrypting the auth cookie are kept in PostgreSQL: stored in the container, they were lost
+// at each redeploy, signing every user out.
+builder.Services.AddDataProtection()
+    .SetApplicationName("MyComicsManager")
+    .PersistKeysToDbContext<ApplicationDbContext>();
 
 // Register CustomAuthenticationStateProvider
 builder.Services.AddCascadingAuthenticationState();
@@ -205,6 +231,10 @@ builder.Services.AddMudServices(config =>
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
 builder.Services.AddScoped<IBookMoveService, BookMoveService>();
+builder.Services.AddScoped<IBookMoveWorkflow, BookMoveWorkflow>();
+builder.Services.AddScoped<IBookReaderService, BookReaderService>();
+builder.Services.AddScoped<IFeatureToggleService, FeatureToggleService>();
+builder.Services.AddScoped<IIsbnScanService, IsbnScanService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<ImportJobHandlers>();
 builder.Services.AddScoped<ProcessImportJobRepositories>();
@@ -215,6 +245,8 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();
 builder.Services.AddScoped<IImportOrchestrator, ImportOrchestrator>();
 builder.Services.AddSingleton<IImportJobEnqueuer, HangfireImportJobEnqueuer>();
+builder.Services.AddScoped<IIsbnScanOrchestrator, IsbnScanOrchestrator>();
+builder.Services.AddSingleton<IIsbnScanJobEnqueuer, HangfireIsbnScanJobEnqueuer>();
 builder.Services.AddHostedService<FileWatcherService>();
 builder.Services.AddHostedService<IconPickerWarmupService>();
 
@@ -232,7 +264,10 @@ var importSettings = app.Services.GetRequiredService<IOptions<ImportSettings>>()
 Directory.CreateDirectory(importSettings.ImportDirectory);
 Directory.CreateDirectory(importSettings.TempDirectory);
 
-// Register (or remove) the recurring Miniflux sync according to FeedImport:Enabled
+// Values chosen in the Settings page (Features), before anything reads them
+await app.Services.LoadFeatureTogglesAsync();
+
+// Register (or remove) the recurring Miniflux sync according to the FeedImport feature toggle
 app.Services.ScheduleFeedImportSync();
 
 // Refuse to start if a dependency (database, Cloudinary, import directory, ...) is unreachable,

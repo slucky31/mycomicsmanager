@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Application.Interfaces;
 using Application.Libraries;
+using Application.Libraries.Summaries;
 using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,22 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 #pragma warning restore CA1311 // Specify a culture or use an invariant version
 #pragma warning restore CA1304 // Specify CultureInfo
 #pragma warning restore CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
+    }
+
+    public async Task<IReadOnlyList<LibrarySummary>> GetSummariesAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await context.Libraries.AsNoTracking()
+            .Where(l => l.UserId == userId)
+            .OrderBy(l => l.Name)
+            .ThenBy(l => l.Id)
+            .Select(l => new LibrarySummary(
+                l.Id,
+                l.Name,
+                l.Color,
+                l.Icon,
+                l.BookType,
+                context.Books.Count(b => b.LibraryId == l.Id)))
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<bool> ExistsByNameAsync(string name, Guid userId, Guid? excludeId = null, CancellationToken cancellationToken = default)

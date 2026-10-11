@@ -2,13 +2,15 @@ using Domain.Books;
 using Domain.FeedImports;
 using Domain.ImportJobs;
 using Domain.Libraries;
+using Domain.Settings;
 using Domain.Users;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
 
 
-public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
+public class ApplicationDbContext(DbContextOptions options) : DbContext(options), IDataProtectionKeyContext
 {
     public DbSet<Library> Libraries => Set<Library>();
 
@@ -29,6 +31,11 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<FeedImportDecision> FeedImportDecisions => Set<FeedImportDecision>();
 
     public DbSet<FeedImportDecisionEvent> FeedImportDecisionEvents => Set<FeedImportDecisionEvent>();
+
+    public DbSet<FeatureToggleOverride> FeatureToggleOverrides => Set<FeatureToggleOverride>();
+
+    // ASP.NET Core Data Protection key ring: kept in the database so the auth cookies survive a redeploy.
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,6 +73,9 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<PhysicalBook>().ToTable("PhysicalBooks");
             modelBuilder.Entity<DigitalBook>().ToTable("DigitalBooks");
             modelBuilder.Entity<DigitalBook>().Property(b => b.FilePath).HasMaxLength(BookConstants.MaxFilePathLength);
+            modelBuilder.Entity<DigitalBook>().PrimitiveCollection(b => b.IsbnCandidates)
+                .HasField("_isbnCandidates")
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
 
             modelBuilder.Entity<ImportJob>().ToTable("ImportJobs");
             modelBuilder.Entity<ImportJob>().Property(j => j.OriginalFileName).HasMaxLength(ImportJobConstants.MaxFileNameLength);
@@ -92,6 +102,10 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<IsbnBedethequeUrl>().Property(x => x.ISBN).HasMaxLength(20);
             modelBuilder.Entity<IsbnBedethequeUrl>().Property(x => x.Url).HasMaxLength(500);
             modelBuilder.Entity<IsbnBedethequeUrl>().HasIndex(x => x.ISBN).IsUnique();
+
+            modelBuilder.Entity<FeatureToggleOverride>().ToTable("FeatureToggleOverrides");
+            modelBuilder.Entity<FeatureToggleOverride>().Property(o => o.Toggle).HasConversion<string>().HasMaxLength(64);
+            modelBuilder.Entity<FeatureToggleOverride>().HasIndex(o => o.Toggle).IsUnique();
         }
     }
 

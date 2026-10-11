@@ -4,6 +4,7 @@ using Application.FeedImports.Analysis;
 using Application.FeedImports.Analysis.Sites;
 using Application.FeedImports.Download;
 using Application.Interfaces;
+using Application.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -31,6 +32,10 @@ public static class ApplicationDependencyInjection
         services.AddSingleton<IDownloadLinkExtractor, ZoneEbookLinkExtractor>();
         services.AddSingleton<IDownloadLinkExtractor, GenericDownloadLinkExtractor>();
         services.TryAddSingleton(TimeProvider.System);
+
+        services.AddSingleton<FeatureToggleDefaults>();
+        services.AddSingleton<FeatureToggles>();
+        services.AddSingleton<IFeatureToggles>(sp => sp.GetRequiredService<FeatureToggles>());
 
         return services;
     }

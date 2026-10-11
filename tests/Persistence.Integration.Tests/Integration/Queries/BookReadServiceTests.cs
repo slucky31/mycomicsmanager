@@ -275,4 +275,42 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         // Assert
         locations.Should().ContainSingle().Which.Should().Be(new BookSerieLocationDto(DefaultLibrary.Id, "Blacksad"));
     }
+
+    // ── ISBN scan state ──────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetPagedByLibraryAsync_Should_ReturnTheIsbnScanStateOfEachBook()
+    {
+        // Arrange
+        DigitalBook Digital(string title, string? isbn = null) =>
+            DigitalBook.Create(new BookMetadata("Blacksad", title, isbn), DefaultLibrary.Id, $"/data/A/{title}.cbz", 1024).Value!;
+        var physical = CreateBook("Blacksad", "Amarillo", "9780000000991");
+        var withIsbn = Digital("Arctic Nation", "9782205050196");
+        var notScanned = Digital("Âme rouge");
+        var candidates = Digital("L'enfer, le silence");
+        candidates.RecordIsbnScan(["9782800112343", "2205056174"], DateTime.UtcNow);
+        var notFound = Digital("Quelque part entre les ombres");
+        notFound.RecordIsbnScan([], DateTime.UtcNow);
+        BookRepository.Add(physical);
+        BookRepository.Add(withIsbn);
+        BookRepository.Add(notScanned);
+        BookRepository.Add(candidates);
+        BookRepository.Add(notFound);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await BookReadService.GetPagedByLibraryAsync(
+            DefaultLibrary.Id, DefaultLibrary.UserId, 1, 24, BookSortOrder.IdAsc, null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Items.Should().NotBeNull();
+        result.Items!.ToDictionary(b => b.Id, b => b.IsbnScanState).Should().BeEquivalentTo(new Dictionary<Guid, IsbnScanState>
+        {
+            [physical.Id] = IsbnScanState.HasIsbn,
+            [withIsbn.Id] = IsbnScanState.HasIsbn,
+            [notScanned.Id] = IsbnScanState.NotScanned,
+            [candidates.Id] = IsbnScanState.Candidates,
+            [notFound.Id] = IsbnScanState.NotFound,
+        });
+    }
 }

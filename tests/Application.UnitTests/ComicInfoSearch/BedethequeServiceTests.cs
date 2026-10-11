@@ -1,6 +1,7 @@
 using System.Net;
 using Application.ComicInfoSearch;
 using Application.Interfaces;
+using Domain.Settings;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
@@ -61,11 +62,16 @@ public sealed class BedethequeServiceTests : IDisposable
     private static BedethequeService CreateService(
         IHttpClientFactory factory,
         IIsbnBedethequeCacheRepository? cache = null,
-        BedethequeSettings? settings = null)
+        BedethequeSettings? settings = null,
+        BedethequeCircuit? circuit = null,
+        bool enabled = true)
     {
         cache ??= EmptyCache();
         var options = Options.Create(settings ?? DefaultSettings);
-        return new BedethequeService(factory, cache, options, NullLogger<BedethequeService>.Instance);
+        var featureToggles = Substitute.For<IFeatureToggles>();
+        featureToggles.IsEnabled(FeatureToggle.Bedetheque).Returns(enabled);
+        return new BedethequeService(factory, cache, options, circuit ?? new BedethequeCircuit(TimeProvider.System),
+            featureToggles, NullLogger<BedethequeService>.Instance);
     }
 
     private static IIsbnBedethequeCacheRepository EmptyCache()
@@ -207,6 +213,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeFalse();
     }
 
     [Fact]
@@ -245,7 +252,7 @@ public sealed class BedethequeServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenPageFetchFails()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenPageFetchFails()
     {
         var factory = FactoryWith(
             Track(new FakeHttpMessageHandler(_ => JsonResponse(SerpApiJson(PageUrl)))),
@@ -255,6 +262,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
@@ -270,7 +278,7 @@ public sealed class BedethequeServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenHttpRequestFails()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenHttpRequestFails()
     {
         var factory = FactoryWith(Track(new FakeHttpMessageHandler(new HttpRequestException("Network error"))));
         var service = CreateService(factory);
@@ -278,10 +286,11 @@ public sealed class BedethequeServiceTests : IDisposable
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenJsonParsingFails()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenJsonParsingFails()
     {
         var factory = FactoryWith(Track(new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -292,10 +301,11 @@ public sealed class BedethequeServiceTests : IDisposable
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTimeoutOccurs()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenTimeoutOccurs()
     {
         // TaskCanceledException without a cancelled caller token → internal timeout
         var factory = FactoryWith(Track(new FakeHttpMessageHandler(new TaskCanceledException("Timeout"))));
@@ -304,6 +314,7 @@ public sealed class BedethequeServiceTests : IDisposable
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
@@ -604,13 +615,15 @@ public sealed class BedethequeServiceTests : IDisposable
 
     // ── SearchByIsbnAsync — serie page resolution ────────────────────
 
-    [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnFound_WhenSeriePageContainsMatchingIsbn()
+    [Theory]
+    [InlineData("https://schema.org/Book")]
+    [InlineData("http://schema.org/Book")]
+    public async Task SearchByIsbnAsync_Should_ReturnFound_WhenSeriePageContainsMatchingIsbn(string itemType)
     {
         var serieUrl = "https://www.bedetheque.com/serie-Biguden-123.html";
         var serieHtml = $"""
             <html><body><ul>
-              <li itemscope itemtype="https://schema.org/Book">
+              <li itemscope itemtype="{itemType}">
                 <span itemprop="isbn">{ValidIsbn}</span>
                 <a itemprop="url" class="titre" href="{PageUrl}">L'Ankou</a>
               </li>
@@ -667,6 +680,73 @@ public sealed class BedethequeServiceTests : IDisposable
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK, false)]
+    [InlineData(HttpStatusCode.Forbidden, false)]
+    [InlineData(HttpStatusCode.Forbidden, true)]
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenBedethequeAnswersWithACloudflareChallenge(HttpStatusCode status, bool mitigatedHeader)
+    {
+        var serieUrl = "https://www.bedetheque.com/serie-34958-BD-Tangente.html";
+        var serpJson = SerpApiJson(serieUrl);
+        var challenge = mitigatedHeader
+            ? "<html><body>Blocked</body></html>"
+            : "<html><head><title>Just a moment...</title></head><body>Checking your browser - cloudflare</body></html>";
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
+            Track(new FakeHttpMessageHandler(_ =>
+            {
+                var response = HtmlResponse(challenge);
+                response.StatusCode = status;
+                if (mitigatedHeader)
+                {
+                    response.Headers.Add("cf-mitigated", "challenge");
+                }
+                return response;
+            })));
+        var circuit = new BedethequeCircuit(TimeProvider.System);
+        var service = CreateService(factory, circuit: circuit);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
+        circuit.PausedUntil.Should().NotBeNull("the next searches must not spend SerpApi calls while Cloudflare blocks the server");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_NotCallAnything_WhileBedethequeIsPaused()
+    {
+        var requests = 0;
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => { requests++; return JsonResponse(SerpApiJson(PageUrl)); })),
+            Track(new FakeHttpMessageHandler(_ => { requests++; return HtmlResponse(FullAlbumHtml); })));
+        var circuit = new BedethequeCircuit(TimeProvider.System);
+        circuit.Pause(TimeSpan.FromHours(24));
+        var service = CreateService(factory, circuit: circuit);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
+        requests.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_NotCallAnything_WhenBedethequeIsTurnedOff()
+    {
+        var requests = 0;
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => { requests++; return JsonResponse(SerpApiJson(PageUrl)); })),
+            Track(new FakeHttpMessageHandler(_ => { requests++; return HtmlResponse(FullAlbumHtml); })));
+        var service = CreateService(factory, enabled: false);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        service.IsEnabled.Should().BeFalse();
+        result.Found.Should().BeFalse();
+        requests.Should().Be(0);
     }
 
     [Fact]

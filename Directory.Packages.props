@@ -12,10 +12,11 @@
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="bunit" Version="2.11.3" />
     <PackageVersion Include="CloudinaryDotNet" Version="1.29.3" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="Google.Apis.CustomSearchAPI.v1" Version="1.74.0.3520" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.13.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
@@ -43,13 +44,13 @@
     <PackageVersion Include="Hangfire.PostgreSql" Version="1.21.1" />
     <PackageVersion Include="Scrutor" Version="7.0.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
-    <PackageVersion Include="SharpCompress" Version="0.50.4" />
+    <PackageVersion Include="SharpCompress" Version="0.50.5" />
     <PackageVersion Include="SkiaSharp" Version="4.153.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
     <PackageVersion Include="PdfPig" Version="0.1.16" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.35.0.4138" />
-    <PackageVersion Include="xunit.v3" Version="4.0.1" />
-    <PackageVersion Include="xunit.v3.extensibility.core" Version="4.0.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
+    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+    <PackageVersion Include="xunit.v3.extensibility.core" Version="4.0.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
   </ItemGroup>
 </Project>

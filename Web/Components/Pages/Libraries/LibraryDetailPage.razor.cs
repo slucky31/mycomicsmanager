@@ -16,18 +16,21 @@ public partial class LibraryDetailPage : IAsyncDisposable
 {
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
+    [Inject] private IBookMoveWorkflow BookMoveWorkflow { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private LibraryStateService LibraryStateService { get; set; } = default!;
     [Inject] private ILogger<LibraryDetailPage> Logger { get; set; } = default!;
+    [Inject] private IIsbnScanService IsbnScanService { get; set; } = default!;
 
     [Parameter] public string? LibraryId { get; set; }
 
     private const int PageSize = 24;
 
     private LibraryUiDto? _library;
+    private bool _isStartingIsbnScan;
     private Guid _libraryGuid;
 
     // Cards / Covers — accumulated pages
@@ -40,6 +43,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private BooksListView? _booksListView;
 
     private bool _isLoading = true;
+    private bool _isMoving;
     private bool _observerInitialized;
     private DotNetObjectReference<LibraryDetailPage>? _dotNetRef;
     private CancellationTokenSource? _searchCts;
@@ -411,9 +415,81 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     private void NavigateToImport() => NavigationManager.NavigateTo($"/import?libraryId={LibraryId}");
 
+
+    private async Task FindMissingIsbnsAsync()
+    {
+        if (_library is null)
+        {
+            return;
+        }
+
+        _isStartingIsbnScan = true;
+        try
+        {
+            var result = await IsbnScanService.StartLibraryScanAsync(_library.Id, CancellationToken.None);
+            if (result.IsFailure)
+            {
+                Snackbar.Add("Unable to start the search of the missing ISBNs", Severity.Error);
+                Logger.LogError("Unable to start the ISBN scan of library {LibraryId}: {Error}", _library.Id, result.Error?.Code);
+            }
+            else if (result.Value == 0)
+            {
+                Snackbar.Add("Every book of this library has an ISBN or was already scanned", Severity.Info);
+            }
+            else
+            {
+                Snackbar.Add($"Reading the pages of {result.Value} book(s) in the background. A book showing several ISBNs lets you pick its own.", Severity.Success);
+            }
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Snackbar.Add("Unable to start the search of the missing ISBNs", Severity.Error);
+            Logger.LogError(ex, "Unexpected error while starting the ISBN scan of library {LibraryId}", _library.Id);
+        }
+        finally
+        {
+            _isStartingIsbnScan = false;
+        }
+    }
+
     private async Task DownloadBookAsync(Guid bookId)
     {
         await JS.InvokeVoidAsync("open", $"/api/books/{bookId}/download", "_blank");
+    }
+
+    internal async Task MoveAsync(Guid bookId)
+    {
+        if (_isMoving)
+        {
+            return;
+        }
+
+        _isMoving = true;
+        try
+        {
+            if (await BookMoveWorkflow.ChooseAndMoveAsync(bookId, _disposalCts.Token))
+            {
+                // The book has left this library: reload so it disappears from the current view.
+                await ReloadBooksAsync();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed while moving; nothing to update.
+        }
+        finally
+        {
+            _isMoving = false;
+        }
+    }
+
+    private async Task ReloadBooksAsync()
+    {
+        await LoadDataAsync();
+        if (_currentViewMode == ViewMode.List && _booksListView is not null)
+        {
+            await _booksListView.ReloadAsync();
+        }
     }
 
     private async Task DeleteAsync(Guid bookId)
@@ -443,11 +519,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
                 if (res.IsSuccess)
                 {
-                    await LoadDataAsync();
-                    if (_currentViewMode == ViewMode.List && _booksListView is not null)
-                    {
-                        await _booksListView.ReloadAsync();
-                    }
+                    await ReloadBooksAsync();
                 }
                 else
                 {

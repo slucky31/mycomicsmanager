@@ -1,0 +1,30 @@
+<MudText Typo="Typo.subtitle1" Class="mt-6"><strong>Features</strong></MudText>
+<MudText Typo="Typo.body2" Class="mb-3">
+    A change applies immediately and is kept across restarts. Set back to its configured value, a feature follows the configuration again.
+</MudText>
+
+<div class="feature-toggles">
+    @foreach (var toggle in _toggles)
+    {
+        <div class="feature-toggle d-flex align-center justify-space-between gap-4 py-2">
+            <div>
+                <MudText Typo="Typo.body1">@toggle.Label</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">@toggle.Description</MudText>
+                <div class="d-flex align-center gap-2">
+                    <MudText Typo="Typo.caption">@toggle.ConfigurationDisplay</MudText>
+                    @if (toggle.IsOverridden)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">overridden</MudChip>
+                    }
+                </div>
+            </div>
+            <MudSwitch T="bool"
+                       Value="toggle.Enabled"
+                       ValueChanged="@(enabled => SetAsync(toggle.Toggle, enabled))"
+                       Disabled="_isSaving"
+                       Color="Color.Primary"
+                       Label="@(toggle.Enabled ? "On" : "Off")"
+                       aria-label="@($"{toggle.Label}: on or off")" />
+        </div>
+    }
+</div>

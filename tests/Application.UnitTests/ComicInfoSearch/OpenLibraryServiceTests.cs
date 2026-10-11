@@ -95,12 +95,33 @@ public class OpenLibraryServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeFalse();
         result.Title.Should().BeEmpty();
         result.CoverUrl.Should().BeNull();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenHttpRequestFails()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenApiReturnsAServerError()
+    {
+        // Arrange
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://openlibrary.org/isbn/{ValidIsbn}.json"] = new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient);
+
+        // Act
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenHttpRequestFails()
     {
         // Arrange
         using var handler = new MockHttpMessageHandler(
@@ -114,10 +135,11 @@ public class OpenLibraryServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenJsonIsInvalid()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenJsonIsInvalid()
     {
         // Arrange
         using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
@@ -133,6 +155,7 @@ public class OpenLibraryServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
@@ -272,7 +295,7 @@ public class OpenLibraryServiceTests
     }
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ReturnNotFound_WhenTimeoutOccurs()
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenTimeoutOccurs()
     {
         // Arrange – TaskCanceledException with a token different from the caller's (internal timeout)
         using var cts = new CancellationTokenSource();
@@ -286,6 +309,7 @@ public class OpenLibraryServiceTests
 
         // Assert
         result.Found.Should().BeFalse();
+        result.Failed.Should().BeTrue();
     }
 
     [Fact]
