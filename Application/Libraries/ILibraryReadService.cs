@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Libraries.Summaries;
 using Domain.Libraries;
 using Domain.Primitives;
 
@@ -17,6 +18,11 @@ public interface ILibraryReadService
 
     Task<Library?> GetByNameAsync(
         string name,
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    // Every library of the user, ordered by name, with its book count.
+    Task<IReadOnlyList<LibrarySummary>> GetSummariesAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
 

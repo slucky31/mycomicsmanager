@@ -61,6 +61,7 @@ plusieurs fichiers, couches, ou le choix d'une techno/convention.
 | [0018](0018-conventional-commits-versionize.md) | Conventional Commits + Versionize pour le versioning automatique | Acceptée | 2026-09-19 |
 | [0019](0019-integration-miniflux-debrid-link.md) | Import automatique des BD depuis Miniflux via Debrid-Link | Acceptée | 2026-10-02 |
 | [0020](0020-logging-ilogger-et-niveaux-modifiables-a-chaud.md) | Logging — `ILogger<T>` injecté, niveaux modifiables à chaud, fichiers HTTP séparés | Acceptée | 2026-10-04 |
+| [0021](0021-refonte-ui-mobile-tablette-grand-ecran.md) | Refonte UI — mobile, tablette paysage et grand écran | Acceptée | 2026-10-11 |
 
 ## Backlog de candidates
 
@@ -97,6 +98,6 @@ Cocher/déplacer vers l'index au fur et à mesure qu'une ADR est rédigée.
 - [x] Consolidation des outils d'analyse statique (SonarCloud/CodeQL/DeepSource se recouvrent) — tranché par [ADR-0013](0013-outils-qualite-et-securite.md)
 - [x] Convention de logging : `ILogger<T>` injecté vs appels statiques `Log.*` — [ADR-0020](0020-logging-ilogger-et-niveaux-modifiables-a-chaud.md)
 - [ ] Durcissement du pipeline d'import (pagination, politique de retry Hangfire, limites anti-DoS sur l'extraction PDF)
-- [ ] Refonte graphique de la liste de livres (options en discussion dans TODO.md)
+- [x] Refonte graphique de la liste de livres — [ADR-0021](0021-refonte-ui-mobile-tablette-grand-ecran.md)
 - [ ] Répartition des responsabilités entre jobs Hangfire et `FileWatcherService`
 - [ ] Convention unique de sortie des rapports de couverture de tests

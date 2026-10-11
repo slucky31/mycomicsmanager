@@ -1,73 +1,87 @@
-@* Top App Bar *@
-<MudAppBar Elevation="0" Style="background-color: #131B2C;">
-    @* Logo and Title *@
-    <MudImage Src="logo.png" Alt="MyComicsManager Logo" Width="36" Height="36" Elevation="25" Class="rounded-lg mr-2" />
-    <MudText Typo="Typo.h5" Class="d-none d-sm-flex" Style="font-family: 'Bangers', system-ui; font-weight: 400; font-style: normal;">MyComicsManager</MudText>
-    <MudText Typo="Typo.h6" Class="d-flex d-sm-none" Style="font-family: 'Bangers', system-ui; font-weight: 400; font-style: normal;">MCM</MudText>
+@using Web.Components.SharedComponents
 
-    <MudSpacer />
+@* Tablet (rail) and desktop (side bar): one navigation, its width set by the screen width (NavBar.razor.css). *@
+<nav class="side-nav" aria-label="Main">
+    <a href="/libraries/list" class="side-nav-brand" aria-label="MyComicsManager, libraries">
+        <img src="logo.png" alt="" width="40" height="40" class="side-nav-logo" />
+        <span class="side-nav-title">MyComicsManager</span>
+    </a>
 
-    @* Desktop: Full navigation *@
-    <div class="desktop-nav">
-        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/libraries") ? "active" : "")}")"
-                   Variant="Variant.Text"
-                   Href="/libraries/list"
-                   StartIcon="@Icons.Material.Filled.CollectionsBookmark">
-            Libraries
-        </MudButton>
-        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/statistics") ? "active" : "")}")"
-                   Variant="Variant.Text"
-                   Href="/statistics"
-                   StartIcon="@Icons.Material.Filled.BarChart">
-            Statistics
-        </MudButton>
-        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/import") ? "active" : "")}")"
-                   Variant="Variant.Text"
-                   Href="/import"
-                   StartIcon="@Icons.Material.Filled.Upload">
-            Import
-        </MudButton>
-        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/feed-imports") ? "active" : "")}")"
-                   Variant="Variant.Text"
-                   Href="/feed-imports"
-                   StartIcon="@Icons.Material.Filled.RssFeed">
-            <MudBadge Content="@_arbitrationCount" Visible="@(_arbitrationCount > 0)" Color="Color.Warning"
-                      Overlap="false" Origin="Origin.TopRight" title="@ArbitrationBadgeLabel">
-                Feeds
-            </MudBadge>
-        </MudButton>
-        <MudButton Class="@($"ml-3 navbar-item {(IsActive("/settings") ? "active" : "")}")"
-                   Variant="Variant.Text"
-                   Href="/settings"
-                   StartIcon="@Icons.Material.Filled.Settings">
-            Settings
-        </MudButton>
-    </div>
-</MudAppBar>
+    <a href="/libraries/list" class="side-nav-item @LibrariesEntryClass" aria-current="@AriaCurrent(IsLibrariesEntryActive)">
+        <span class="side-nav-icon"><MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" /></span>
+        <span class="side-nav-label">Libraries</span>
+    </a>
 
-@* Mobile: Bottom Navigation *@
-<nav class="bottom-nav">
-    <a href="/libraries/list" class="bottom-nav-item @(IsActive("/libraries") ? "active" : "")">
-        <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" />
+    @if (_libraries.Count > 0)
+    {
+        <div class="side-nav-libraries">
+            @foreach (var library in _libraries)
+            {
+                var isCurrent = library.Id == _currentLibraryId;
+                <a href="@library.Href" class="side-nav-library @ActiveClass(isCurrent)" aria-current="@AriaCurrent(isCurrent)" aria-label="@library.AriaLabel">
+                    <MudIcon Icon="@IconPicker.Resolve(library.Icon)" Style="@($"color: {library.Color};")" Size="Size.Small" />
+                    <span class="side-nav-library-name">@library.Name</span>
+                    <span class="side-nav-library-count" aria-hidden="true">@library.CountLabel</span>
+                </a>
+            }
+        </div>
+    }
+
+    <a href="/statistics" class="side-nav-item @ActiveClass(IsActive("/statistics"))" aria-current="@AriaCurrent(IsActive("/statistics"))">
+        <span class="side-nav-icon"><MudIcon Icon="@Icons.Material.Filled.BarChart" /></span>
+        <span class="side-nav-label">Statistics</span>
+    </a>
+    <a href="/import" class="side-nav-item @ActiveClass(IsActive("/import"))" aria-current="@AriaCurrent(IsActive("/import"))">
+        <span class="side-nav-icon"><MudIcon Icon="@Icons.Material.Filled.Upload" /></span>
+        <span class="side-nav-label">Import</span>
+    </a>
+    <a href="/feed-imports" class="side-nav-item @ActiveClass(IsActive("/feed-imports"))" aria-current="@AriaCurrent(IsActive("/feed-imports"))"
+       aria-label="@FeedsLabel">
+        <span class="side-nav-icon">
+            <MudIcon Icon="@Icons.Material.Filled.RssFeed" />
+            @if (_arbitrationCount > 0)
+            {
+                <span class="nav-badge" title="@ArbitrationBadgeLabel">@_arbitrationCount</span>
+            }
+        </span>
+        <span class="side-nav-label">Feeds</span>
+    </a>
+
+    <span class="side-nav-spacer"></span>
+
+    <a href="/settings" class="side-nav-item @ActiveClass(IsActive("/settings"))" aria-current="@AriaCurrent(IsActive("/settings"))">
+        <span class="side-nav-icon"><MudIcon Icon="@Icons.Material.Filled.Settings" /></span>
+        <span class="side-nav-label">Settings</span>
+    </a>
+</nav>
+
+@* Phone: bottom navigation. *@
+<nav class="bottom-nav" aria-label="Main">
+    <a href="/libraries/list" class="bottom-nav-item @LibrariesEntryClass" aria-current="@AriaCurrent(IsLibrariesEntryActive)">
+        <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" /></span>
         <span class="bottom-nav-label">Libraries</span>
     </a>
-    <a href="/statistics" class="bottom-nav-item @(IsActive("/statistics") ? "active" : "")">
-        <MudIcon Icon="@Icons.Material.Filled.BarChart" />
+    <a href="/statistics" class="bottom-nav-item @ActiveClass(IsActive("/statistics"))" aria-current="@AriaCurrent(IsActive("/statistics"))">
+        <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.BarChart" /></span>
         <span class="bottom-nav-label">Stats</span>
     </a>
-    <a href="/import" class="bottom-nav-item @(IsActive("/import") ? "active" : "")">
-        <MudIcon Icon="@Icons.Material.Filled.Upload" />
+    <a href="/import" class="bottom-nav-item @ActiveClass(IsActive("/import"))" aria-current="@AriaCurrent(IsActive("/import"))">
+        <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.Upload" /></span>
         <span class="bottom-nav-label">Import</span>
     </a>
-    <a href="/feed-imports" class="bottom-nav-item @(IsActive("/feed-imports") ? "active" : "")"
-       aria-label="@(_arbitrationCount > 0 ? $"Feeds, {ArbitrationBadgeLabel}" : "Feeds")">
-        <MudBadge Content="@_arbitrationCount" Visible="@(_arbitrationCount > 0)" Color="Color.Warning" Overlap="true" Dot="true">
+    <a href="/feed-imports" class="bottom-nav-item @ActiveClass(IsActive("/feed-imports"))" aria-current="@AriaCurrent(IsActive("/feed-imports"))"
+       aria-label="@FeedsLabel">
+        <span class="bottom-nav-icon">
             <MudIcon Icon="@Icons.Material.Filled.RssFeed" />
-        </MudBadge>
+            @if (_arbitrationCount > 0)
+            {
+                <span class="nav-badge" title="@ArbitrationBadgeLabel">@_arbitrationCount</span>
+            }
+        </span>
         <span class="bottom-nav-label">Feeds</span>
     </a>
-    <a href="/settings" class="bottom-nav-item @(IsActive("/settings") ? "active" : "")">
-        <MudIcon Icon="@Icons.Material.Filled.Settings" />
+    <a href="/settings" class="bottom-nav-item @ActiveClass(IsActive("/settings"))" aria-current="@AriaCurrent(IsActive("/settings"))">
+        <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.Settings" /></span>
         <span class="bottom-nav-label">Settings</span>
     </a>
 </nav>
