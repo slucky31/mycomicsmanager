@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.32.0"></a>
+## [10.32.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.32.0) (2026-10-11)
+
+### ✨ Features
+
+* **ui:** adaptive navigation (bottom bar, rail, side bar) + ADR-0021 ([#1119](https://www.github.com/slucky31/mycomicsmanager/issues/1119)) ([1ea70ad](https://www.github.com/slucky31/mycomicsmanager/commit/1ea70ad78d13aba2f36219c80fedb91cb8e8d0f8))
+
 <a name="10.31.0"></a>
 ## [10.31.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.31.0) (2026-10-11)
 
