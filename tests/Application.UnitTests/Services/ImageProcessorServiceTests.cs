@@ -50,10 +50,12 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await File.WriteAllBytesAsync(path, data.ToArray());
     }
 
-    private static (int Width, int Height) ReadSize(string path)
+    private readonly record struct PixelSize(int Width, int Height);
+
+    private static PixelSize ReadSize(string path)
     {
         using var codec = SKCodec.Create(path);
-        return (codec.Info.Width, codec.Info.Height);
+        return new PixelSize(codec.Info.Width, codec.Info.Height);
     }
 
     [Fact]
@@ -443,7 +445,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        ReadSize(Path.Combine(destDir, "page-001.webp")).Should().Be((140, 210));
+        ReadSize(Path.Combine(destDir, "page-001.webp")).Should().Be(new PixelSize(140, 210));
     }
 
     [Fact]
