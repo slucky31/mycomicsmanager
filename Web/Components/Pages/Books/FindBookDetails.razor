@@ -1,18 +1,19 @@
-@page "/books/{BookId}/import"
+@page "/books/{BookId}/find-details"
 @rendermode InteractiveServer
 
 @using Application.Helpers
 @using Application.Interfaces
+@using Web.Models
 @using Web.Services
 @using Web.Validators
 
-<div class="import-page">
+<div class="find-details-page">
 
     @* ── Header ── *@
-    <PageHeader Title="Import from Web" OnBack="Cancel" />
+    <PageHeader Title="Find book details" OnBack="Cancel" />
 
     @* ── Body ── *@
-    <div class="import-content">
+    <div class="find-details-content">
         @if (_isLoading)
         {
             <div class="d-flex flex-column align-center justify-center pa-8">
@@ -33,14 +34,62 @@
 
                 RenderFragment SourceOption(BookSource source, string label, string? value) =>
                 @<MudRadio T="BookSource" Value="@source" Dense="true" Disabled="@(value is null)">
-                    <div class="import-option">
-                        <span class="import-source-label">@label</span>
-                        <span class="import-source-value">@(value ?? "—")</span>
+                    <div class="find-details-option">
+                        <span class="find-details-source-label">@label</span>
+                        @SearchStateIcon(source)
+                        <span class="find-details-source-value">@(value ?? "—")</span>
                     </div>
                 </MudRadio>;
 
+                // Every web source shows where its search stands; the current values have none.
+                RenderFragment SearchStateIcon(BookSource source) =>
+                @<span class="find-details-source-state">
+                    @if (_searchStates.TryGetValue(source, out var state))
+                    {
+                        var label = ProviderSearchStateDisplay.Label(state, SourceName(source));
+                        <MudTooltip Text="@label">
+                            <MudIcon Icon="@ProviderSearchStateDisplay.Icon(state)"
+                                     Color="@ProviderSearchStateDisplay.Color(state)"
+                                     Size="Size.Small"
+                                     Class="@(state == ProviderSearchState.Searching ? "find-details-state-searching" : null)"
+                                     aria-label="@label" />
+                        </MudTooltip>
+                    }
+                </span>;
 
-            <div class="import-fields">
+
+            <div class="find-details-fields">
+
+                @* SEARCH PROGRESS *@
+                @if (_searchStates.Count > 0)
+                {
+                    <div class="find-details-search-status" role="status" aria-live="polite">
+                        <div class="find-details-search-summary">
+                            @if (IsSearching)
+                            {
+                                <MudText Typo="Typo.body2">Searching the sources… (@SearchesDone/@_searchStates.Count)</MudText>
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.DoneAll" Color="Color.Success" Size="Size.Small" />
+                                <MudText Typo="Typo.body2">Search complete</MudText>
+                            }
+                        </div>
+                        <div class="find-details-search-sources">
+                            @foreach (var source in _searchStates.Keys)
+                            {
+                                <span class="find-details-search-source">
+                                    @SearchStateIcon(source)
+                                    @SourceName(source)
+                                </span>
+                            }
+                        </div>
+                        @if (IsSearching)
+                        {
+                            <MudProgressLinear Color="Color.Primary" Value="@(100.0 * SearchesDone / _searchStates.Count)" Size="Size.Small" Rounded="true" />
+                        }
+                    </div>
+                }
 
                 @if (_isbnFromPage)
                 {
@@ -50,9 +99,9 @@
                 }
 
                 @* TITLE *@
-                <div class="import-field-card">
-                    <div class="import-field-label">TITLE</div>
-                    <MudRadioGroup T="BookSource" @bind-Value="_selectedTitle" Class="import-radio-group">
+                <div class="find-details-field-card">
+                    <div class="find-details-field-label">TITLE</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedTitle" Class="find-details-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.Title)
                         @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.Title))
                         @if (BedethequeService.IsEnabled)
@@ -65,9 +114,9 @@
                 </div>
 
                 @* SERIE *@
-                <div class="import-field-card">
-                    <div class="import-field-label">SERIE</div>
-                    <MudRadioGroup T="BookSource" @bind-Value="_selectedSerie" Class="import-radio-group">
+                <div class="find-details-field-card">
+                    <div class="find-details-field-label">SERIE</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedSerie" Class="find-details-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Serie))
                         @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.Serie))
                         @if (BedethequeService.IsEnabled)
@@ -80,9 +129,9 @@
                 </div>
 
                 @* VOLUME NUMBER *@
-                <div class="import-field-card">
-                    <div class="import-field-label">VOLUME NUMBER</div>
-                    <MudRadioGroup T="BookSource" @bind-Value="_selectedVolumeNumber" Class="import-radio-group">
+                <div class="find-details-field-card">
+                    <div class="find-details-field-label">VOLUME NUMBER</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedVolumeNumber" Class="find-details-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.VolumeNumber.ToString())
                         @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.VolumeNumber))
                         @if (BedethequeService.IsEnabled)
@@ -95,9 +144,9 @@
                 </div>
 
                 @* AUTHORS *@
-                <div class="import-field-card">
-                    <div class="import-field-label">AUTHORS</div>
-                    <MudRadioGroup T="BookSource" @bind-Value="_selectedAuthors" Class="import-radio-group">
+                <div class="find-details-field-card">
+                    <div class="find-details-field-label">AUTHORS</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedAuthors" Class="find-details-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Authors))
                         @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.Authors))
                         @if (BedethequeService.IsEnabled)
@@ -110,9 +159,9 @@
                 </div>
 
                 @* PUBLISHERS *@
-                <div class="import-field-card">
-                    <div class="import-field-label">PUBLISHERS</div>
-                    <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishers" Class="import-radio-group">
+                <div class="find-details-field-card">
+                    <div class="find-details-field-label">PUBLISHERS</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishers" Class="find-details-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      NullIfEmpty(_currentBook.Publishers))
                         @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.Publishers))
                         @if (BedethequeService.IsEnabled)
@@ -125,9 +174,9 @@
                 </div>
 
                 @* PUBLISH DATE *@
-                <div class="import-field-card">
-                    <div class="import-field-label">PUBLISH DATE</div>
-                    <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishDate" Class="import-radio-group">
+                <div class="find-details-field-card">
+                    <div class="find-details-field-label">PUBLISH DATE</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedPublishDate" Class="find-details-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.PublishDate?.ToString(PublishDateHelper.DisplayFormat))
                         @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.PublishDate))
                         @if (BedethequeService.IsEnabled)
@@ -140,9 +189,9 @@
                 </div>
 
                 @* NUMBER OF PAGES *@
-                <div class="import-field-card">
-                    <div class="import-field-label">NUMBER OF PAGES</div>
-                    <MudRadioGroup T="BookSource" @bind-Value="_selectedNumberOfPages" Class="import-radio-group">
+                <div class="find-details-field-card">
+                    <div class="find-details-field-label">NUMBER OF PAGES</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedNumberOfPages" Class="find-details-radio-group">
                         @SourceOption(BookSource.Current,     "CURRENT",      _currentBook.NumberOfPages?.ToString())
                         @SourceOption(BookSource.Bnf,         "BNF",          GetBnfValue(BookFieldKeys.NumberOfPages))
                         @if (BedethequeService.IsEnabled)
@@ -155,61 +204,64 @@
                 </div>
 
                 @* COVER IMAGE *@
-                <div class="import-field-card">
-                    <div class="import-field-label">COVER IMAGE</div>
-                    <MudRadioGroup T="BookSource" @bind-Value="_selectedCover" Class="import-radio-group">
+                <div class="find-details-field-card">
+                    <div class="find-details-field-label">COVER IMAGE</div>
+                    <MudRadioGroup T="BookSource" @bind-Value="_selectedCover" Class="find-details-radio-group">
                         <MudRadio T="BookSource" Value="BookSource.Current" Dense="true">
-                            <div class="import-option">
-                                <span class="import-source-label">CURRENT</span>
+                            <div class="find-details-option">
+                                <span class="find-details-source-label">CURRENT</span>
                                 @if (!string.IsNullOrEmpty(_currentBook.ImageLink))
                                 {
-                                    <img src="@_currentBook.ImageLink" class="import-cover-thumb" alt="current cover" />
+                                    <img src="@_currentBook.ImageLink" class="find-details-cover-thumb" alt="current cover" />
                                 }
                                 else
                                 {
-                                    <span class="import-source-value">—</span>
+                                    <span class="find-details-source-value">—</span>
                                 }
                             </div>
                         </MudRadio>
                         @if (BedethequeService.IsEnabled)
                         {
                             <MudRadio T="BookSource" Value="BookSource.Bedetheque" Dense="true" Disabled="@(_bedethequeResult?.CoverUrl is null)">
-                                <div class="import-option">
-                                    <span class="import-source-label">BEDETHEQUE</span>
+                                <div class="find-details-option">
+                                    <span class="find-details-source-label">BEDETHEQUE</span>
+                                    @SearchStateIcon(BookSource.Bedetheque)
                                     @if (_bedethequeResult?.CoverUrl is not null)
                                     {
-                                        <img src="@_bedethequeResult.CoverUrl" class="import-cover-thumb" alt="bedetheque cover" />
+                                        <img src="@_bedethequeResult.CoverUrl" class="find-details-cover-thumb" alt="bedetheque cover" />
                                     }
                                     else
                                     {
-                                        <span class="import-source-value">—</span>
+                                        <span class="find-details-source-value">—</span>
                                     }
                                 </div>
                             </MudRadio>
                         }
                         <MudRadio T="BookSource" Value="BookSource.OpenLibrary" Dense="true" Disabled="@(_olResult?.CoverUrl is null)">
-                            <div class="import-option">
-                                <span class="import-source-label">OPENLIBRARY</span>
+                            <div class="find-details-option">
+                                <span class="find-details-source-label">OPENLIBRARY</span>
+                                @SearchStateIcon(BookSource.OpenLibrary)
                                 @if (_olResult?.CoverUrl is not null)
                                 {
-                                    <img src="@_olResult.CoverUrl" class="import-cover-thumb" alt="openlibrary cover" />
+                                    <img src="@_olResult.CoverUrl" class="find-details-cover-thumb" alt="openlibrary cover" />
                                 }
                                 else
                                 {
-                                    <span class="import-source-value">—</span>
+                                    <span class="find-details-source-value">—</span>
                                 }
                             </div>
                         </MudRadio>
                         <MudRadio T="BookSource" Value="BookSource.Google" Dense="true" Disabled="@(_googleResult?.CoverUrl is null)">
-                            <div class="import-option">
-                                <span class="import-source-label">GOOGLE BOOKS</span>
+                            <div class="find-details-option">
+                                <span class="find-details-source-label">GOOGLE BOOKS</span>
+                                @SearchStateIcon(BookSource.Google)
                                 @if (_googleResult?.CoverUrl is not null)
                                 {
-                                    <img src="@_googleResult.CoverUrl" class="import-cover-thumb" alt="google cover" />
+                                    <img src="@_googleResult.CoverUrl" class="find-details-cover-thumb" alt="google cover" />
                                 }
                                 else
                                 {
-                                    <span class="import-source-value">—</span>
+                                    <span class="find-details-source-value">—</span>
                                 }
                             </div>
                         </MudRadio>
@@ -219,7 +271,7 @@
             </div>
 
             @* ── Actions ── *@
-            <div class="import-actions">
+            <div class="find-details-actions">
                 <MudButton Variant="Variant.Text"
                            OnClick="Cancel"
                            Disabled="_isSaving">

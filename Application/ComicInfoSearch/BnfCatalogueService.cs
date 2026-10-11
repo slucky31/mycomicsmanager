@@ -55,7 +55,7 @@ public partial class BnfCatalogueService : IBnfCatalogueService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("BnF catalogue returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
-                return CreateNotFoundResult();
+                return CreateFailedResult();
             }
 
             var xml = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -71,17 +71,17 @@ public partial class BnfCatalogueService : IBnfCatalogueService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error searching the BnF catalogue for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (XmlException ex)
         {
             _logger.LogError(ex, "XML parsing error for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             _logger.LogError(ex, "Timeout searching the BnF catalogue for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
     }
 
@@ -143,6 +143,8 @@ public partial class BnfCatalogueService : IBnfCatalogueService
         var match = value is null ? Match.Empty : PagesPattern().Match(value);
         return match.Success && int.TryParse(match.Groups["pages"].Value, CultureInfo.InvariantCulture, out var pages) ? pages : null;
     }
+
+    private static BnfBookResult CreateFailedResult() => CreateNotFoundResult() with { Failed = true };
 
     private static BnfBookResult CreateNotFoundResult() =>
         new(string.Empty, null, [], [], null, null, null, Found: false);

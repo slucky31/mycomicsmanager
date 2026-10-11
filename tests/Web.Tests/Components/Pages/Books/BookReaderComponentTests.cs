@@ -257,13 +257,13 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task FetchBookInfoAsync_Should_OpenTheWebImportWithTheSelectedIsbn()
+    public async Task FetchBookInfoAsync_Should_OpenFindBookDetailsWithTheSelectedIsbn()
     {
         var cut = await ExtractIsbnAsync("ISBN 978-2-8001-1234-3");
 
         await IsbnButtons(cut).Single().ClickAsync(new());
 
-        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_bookId}/import?isbn=9782800112343");
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_bookId}/find-details?isbn=9782800112343");
     }
 
     [Fact]
@@ -332,7 +332,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         await IsbnButtons(cut).Single().ClickAsync(new());
 
         CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/18");
-        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_bookId}/import?isbn=9782800112343");
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_bookId}/find-details?isbn=9782800112343");
         await _readerService.DidNotReceive().SaveProgressAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 

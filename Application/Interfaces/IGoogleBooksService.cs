@@ -11,7 +11,8 @@ public record GoogleBooksBookResult(
     string? Description,
     IReadOnlyList<string> Categories,
     string? Language,
-    bool Found
+    bool Found,
+    bool Failed = false
 ) : IBookSearchResult;
 
 public interface IGoogleBooksService

@@ -96,7 +96,7 @@ public partial class BookDetail
         }
     }
 
-    private void ImportFromWeb() => NavigationManager.NavigateTo($"/books/{BookId}/import");
+    private void FindDetails() => NavigationManager.NavigateTo($"/books/{BookId}/find-details");
 
     private void EditBook() => NavigationManager.NavigateTo($"/books/{BookId}/edit");
 
@@ -145,7 +145,7 @@ public partial class BookDetail
             case IsbnScanOutcome.Assigned:
                 // The book has its ISBN now: fetch its information right away.
                 Snackbar.Add("ISBN found in the pages", Severity.Success);
-                NavigationManager.NavigateTo($"/books/{BookId}/import");
+                NavigationManager.NavigateTo($"/books/{BookId}/find-details");
                 return;
             case IsbnScanOutcome.WithCandidates:
                 Snackbar.Add("Several ISBNs found in the pages: pick the book's own", Severity.Info);
@@ -162,7 +162,7 @@ public partial class BookDetail
     }
 
     private void UseIsbnCandidate(string isbn) =>
-        NavigationManager.NavigateTo($"/books/{BookId}/import?isbn={Uri.EscapeDataString(isbn)}");
+        NavigationManager.NavigateTo($"/books/{BookId}/find-details?isbn={Uri.EscapeDataString(isbn)}");
 
     private void FindIsbn() => NavigationManager.NavigateTo($"/books/{BookId}/read?mode={BookReader.IsbnSearchMode}");
 

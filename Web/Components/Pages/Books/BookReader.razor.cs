@@ -275,7 +275,7 @@ public sealed partial class BookReader : IAsyncDisposable
     private async Task FetchBookInfoAsync(string isbn)
     {
         await SaveProgressAsync(_currentPage);
-        NavigationManager.NavigateTo($"/books/{BookId}/import?isbn={Uri.EscapeDataString(isbn)}");
+        NavigationManager.NavigateTo($"/books/{BookId}/find-details?isbn={Uri.EscapeDataString(isbn)}");
     }
 
     // Saving on every page turn would hammer the database while flipping through a book:

@@ -59,7 +59,7 @@ public partial class BedethequeService : IBedethequeService
         {
             _logger.LogInformation("Bedetheque is paused until {PausedUntil} after a Cloudflare challenge: ISBN {Isbn} not searched",
                 pausedUntil, cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
 
         try
@@ -73,14 +73,16 @@ public partial class BedethequeService : IBedethequeService
             var url = cachedUrl ?? await ResolveUrlAsync(cleanIsbn, ct);
             if (url is null)
             {
-                return CreateNotFoundResult();
+                // A serie page blocked by Cloudflare pauses Bedetheque: the album may exist.
+                return _circuit.PausedUntil is null ? CreateNotFoundResult() : CreateFailedResult();
             }
 
             _logger.LogInformation("Fetching Bedetheque page: {Url}", url);
             var html = await FetchPageAsync(url, ct);
+            // The album page exists but could not be read (blocked or in error).
             if (html is null)
             {
-                return CreateNotFoundResult();
+                return CreateFailedResult();
             }
 
             var result = ParsePage(html, url, _coversBaseUrl);
@@ -96,17 +98,17 @@ public partial class BedethequeService : IBedethequeService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error searching Bedetheque for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (JsonException ex)
         {
             _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
         {
             _logger.LogError(ex, "Timeout searching Bedetheque for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
     }
 
@@ -448,6 +450,8 @@ public partial class BedethequeService : IBedethequeService
 
         return new Uri($"{coversBaseUrl}{match.Groups[1].Value}.jpg");
     }
+
+    private static BedethequeBookResult CreateFailedResult() => CreateNotFoundResult() with { Failed = true };
 
     private static BedethequeBookResult CreateNotFoundResult() =>
         new(

@@ -40,7 +40,7 @@ public class GoogleBooksService : IGoogleBooksService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Google Books returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
-                return CreateNotFoundResult();
+                return CreateFailedResult();
             }
 
             var searchResponse = await response.Content.ReadFromJsonAsync<GoogleBooksSearchResponse>(
@@ -91,17 +91,17 @@ public class GoogleBooksService : IGoogleBooksService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error searching Google Books for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (JsonException ex)
         {
             _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             _logger.LogError(ex, "Timeout searching Google Books for ISBN: {Isbn}", cleanIsbn);
-            return CreateNotFoundResult();
+            return CreateFailedResult();
         }
     }
 
@@ -194,6 +194,8 @@ public class GoogleBooksService : IGoogleBooksService
 
         return new Uri(builder.ToString());
     }
+
+    private static GoogleBooksBookResult CreateFailedResult() => CreateNotFoundResult() with { Failed = true };
 
     private static GoogleBooksBookResult CreateNotFoundResult() =>
         new(

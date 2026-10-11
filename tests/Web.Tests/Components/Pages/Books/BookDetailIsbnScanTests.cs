@@ -87,14 +87,14 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task UseIsbnCandidate_Should_OpenTheWebImportWithThePickedIsbn_WhenSeveralIsbnsWereRead()
+    public async Task UseIsbnCandidate_Should_OpenFindBookDetailsWithThePickedIsbn_WhenSeveralIsbnsWereRead()
     {
         _book.RecordIsbnScan(["9782800112343", "2205056174"], DateTime.UtcNow);
         var cut = await RenderAsync();
 
         await ClickAsync(cut, "2205056174");
 
-        CurrentUri.Should().EndWith($"/books/{_book.Id}/import?isbn=2205056174");
+        CurrentUri.Should().EndWith($"/books/{_book.Id}/find-details?isbn=2205056174");
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ScanIsbnAsync_Should_OpenTheWebImport_WhenTheIsbnWasFound()
+    public async Task ScanIsbnAsync_Should_OpenFindBookDetails_WhenTheIsbnWasFound()
     {
         ScanReturns(IsbnScanOutcome.Assigned);
         var cut = await RenderAsync();
@@ -116,7 +116,7 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
         await ClickAsync(cut, "Scan the pages");
 
         ShouldShow("ISBN found in the pages", Severity.Success);
-        CurrentUri.Should().EndWith($"/books/{_book.Id}/import");
+        CurrentUri.Should().EndWith($"/books/{_book.Id}/find-details");
     }
 
     [Theory]
