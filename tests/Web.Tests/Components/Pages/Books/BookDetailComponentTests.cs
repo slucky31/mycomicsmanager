@@ -53,4 +53,40 @@ public sealed class BookDetailComponentTests
         await workflow.Received(1).ChooseAndMoveAsync(book.Id, Arg.Any<CancellationToken>());
         await booksService.Received(2).GetById(book.Id.ToString());
     }
+
+    [Fact]
+    public async Task FileSizeDisplay_Should_ShowTheFileSize_WhenTheBookIsDigital()
+    {
+        var book = DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null), Guid.CreateVersion7(), "/data/A/b.cbz", 52_428_800L).Value!;
+
+        var markup = await RenderMarkupAsync(book);
+
+        markup.Should().Contain("File Size").And.Contain("50 MB");
+    }
+
+    [Fact]
+    public async Task FileSizeDisplay_Should_HideTheFileSize_WhenTheBookIsPhysical()
+    {
+        var book = PhysicalBook.Create(new BookMetadata("Blacksad", "Âme rouge", "9782205050059"), Guid.CreateVersion7()).Value!;
+
+        var markup = await RenderMarkupAsync(book);
+
+        markup.Should().NotContain("File Size");
+    }
+
+    private static async Task<string> RenderMarkupAsync(Book book)
+    {
+        var booksService = Substitute.For<IBooksService>();
+        booksService.GetById(Arg.Any<string?>()).Returns(Result<Book>.Success(book));
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddMudServices();
+        ctx.Services.AddSingleton(booksService);
+        ctx.Services.AddSingleton(Substitute.For<IBookMoveWorkflow>());
+        ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
+
+        var cut = ctx.Render<BookDetail>(p => p.Add(c => c.BookId, book.Id.ToString()));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad"));
+        return cut.Markup;
+    }
 }

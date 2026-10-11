@@ -265,6 +265,18 @@
                                 </div>
                             }
 
+                            @* File size of the digital book, read-only *@
+                            @if (FileSizeDisplay is { } fileSize)
+                            {
+                                <div class="book-detail-info-item">
+                                    <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Secondary" />
+                                    <div>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">File Size</MudText>
+                                        <MudText Typo="Typo.body1">@fileSize</MudText>
+                                    </div>
+                                </div>
+                            }
+
                             @* Reading history *@
                             <div class="book-detail-info-item">
                                 <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" />
