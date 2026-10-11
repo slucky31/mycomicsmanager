@@ -3,6 +3,7 @@ using Application.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
+using Web.Infrastructure;
 using Web.Services;
 
 namespace Web.Components.Pages.Books;
@@ -99,7 +100,7 @@ public sealed partial class BookReader : IAsyncDisposable
         try
         {
             _dotNetObjectRef ??= DotNetObjectReference.Create(this);
-            var module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/bookReader.js");
+            var module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", AppVersion.Versioned("./js/bookReader.js"));
             await module.InvokeVoidAsync("attach", _surface, _dotNetObjectRef);
             _jsModule = module;
         }
@@ -256,7 +257,7 @@ public sealed partial class BookReader : IAsyncDisposable
 
     private async Task<IJSObjectReference> GetOcrModuleAsync()
     {
-        var module = _ocrModule ?? await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/isbnOcr.js");
+        var module = _ocrModule ?? await JSRuntime.InvokeAsync<IJSObjectReference>("import", AppVersion.Versioned("./js/isbnOcr.js"));
         _ocrModule = module;
         return module;
     }

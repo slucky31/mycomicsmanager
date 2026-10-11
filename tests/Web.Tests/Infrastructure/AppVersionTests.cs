@@ -25,4 +25,26 @@ public sealed class AppVersionTests
     {
         AppVersion.Format(" ", null).Should().Be("unknown");
     }
+
+    [Theory]
+    [InlineData("mcm.Web.styles.css", "10.32.0", "mcm.Web.styles.css?v=10.32.0")]
+    [InlineData("./js/bookReader.js", "10.32.0-beta+1", "./js/bookReader.js?v=10.32.0-beta%2B1")]
+    public void Versioned_Should_AppendTheEscapedVersionToThePath(string path, string version, string expected)
+    {
+        AppVersion.Versioned(path, version).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Versioned_Should_UseTheCurrentVersion()
+    {
+        AppVersion.Versioned("mcm.Web.styles.css").Should().Be($"mcm.Web.styles.css?v={Uri.EscapeDataString(AppVersion.Current)}");
+    }
+
+    [Fact]
+    public void Versioned_Should_Throw_WhenThePathIsEmpty()
+    {
+        var act = () => AppVersion.Versioned(" ", "10.32.0");
+
+        act.Should().Throw<ArgumentException>();
+    }
 }

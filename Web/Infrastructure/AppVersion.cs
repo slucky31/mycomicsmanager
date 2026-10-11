@@ -20,4 +20,15 @@ internal static class AppVersion
 
         return assemblyVersion?.ToString(3) ?? "unknown";
     }
+
+    // Static files are served without a fingerprint: the version in the URL makes browsers (the iPhone home-screen
+    // app above all) load the new file after a release instead of keeping the cached one.
+    public static string Versioned(string path) => Versioned(path, Current);
+
+    internal static string Versioned(string path, string version)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        return $"{path}?v={Uri.EscapeDataString(version)}";
+    }
 }
