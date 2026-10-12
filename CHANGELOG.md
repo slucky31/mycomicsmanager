@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.35.1"></a>
+## [10.35.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.35.1) (2026-10-12)
+
+### 🐛 Bug Fixes
+
+* **reader:** do not finish the book when switching to page by page ([#1126](https://www.github.com/slucky31/mycomicsmanager/issues/1126)) ([400538f](https://www.github.com/slucky31/mycomicsmanager/commit/400538f6c9c9950e5913fe6bfa9ba61b794d6583))
+
 <a name="10.35.0"></a>
 ## [10.35.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.35.0) (2026-10-12)
 
