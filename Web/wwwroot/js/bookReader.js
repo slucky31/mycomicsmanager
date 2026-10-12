@@ -12,6 +12,7 @@ const VISIBLE_ROW_PROBE = 1 / 3;
 const END_TOLERANCE = 2;
 const SWIPE_MIN_DISTANCE = 50;
 const GESTURE_HELP_KEY = "mcm.reader.gestureHelpSeen";
+const PORTRAIT_KEY = "mcm.reader.portraitAccepted";
 
 let state = null;
 
@@ -120,7 +121,11 @@ export function attach(scroller, dotNetObjectRef, initialRow, options) {
     window.addEventListener("resize", current.onResize);
     state = current;
 
-    return { canUseFullscreen: document.fullscreenEnabled === true, gestureHelpSeen: isGestureHelpSeen() };
+    return {
+        canUseFullscreen: document.fullscreenEnabled === true,
+        gestureHelpSeen: isGestureHelpSeen(),
+        portraitAccepted: isPortraitAccepted(),
+    };
 }
 
 // The display settings changed and the rows were rendered again: shows the given row.
@@ -142,6 +147,15 @@ export function markGestureHelpSeen() {
         localStorage.setItem(GESTURE_HELP_KEY, "true");
     } catch {
         // Storage disabled (private browsing): the help shows again next time.
+    }
+}
+
+// On a phone, reading in portrait is a choice kept until the app is closed.
+export function acceptPortrait() {
+    try {
+        sessionStorage.setItem(PORTRAIT_KEY, "true");
+    } catch {
+        // Storage disabled: the invitation to rotate shows again at the next opening.
     }
 }
 
@@ -182,6 +196,14 @@ function isGestureHelpSeen() {
     } catch {
         // Without storage the help would show at every opening: better not to show it at all.
         return true;
+    }
+}
+
+function isPortraitAccepted() {
+    try {
+        return sessionStorage.getItem(PORTRAIT_KEY) === "true";
+    } catch {
+        return false;
     }
 }
 

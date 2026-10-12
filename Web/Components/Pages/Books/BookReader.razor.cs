@@ -71,6 +71,8 @@ public sealed partial class BookReader : IAsyncDisposable
     private bool _canUseFullscreen;
     private bool _showDisplayPanel;
     private bool _showGestureHelp;
+    // Shown on phones held in portrait only (CSS), until the reader rotates or chooses to read in portrait.
+    private bool _showRotatePrompt;
     // The rows were rendered again for new settings: the script must be told before it measures them.
     private bool _pendingConfigure;
     // Page by page, a new page was rendered: the script shows its top.
@@ -203,6 +205,7 @@ public sealed partial class BookReader : IAsyncDisposable
             _pendingScroll = false;
             _canUseFullscreen = clientState?.CanUseFullscreen ?? false;
             _showGestureHelp = clientState is { GestureHelpSeen: false };
+            _showRotatePrompt = clientState is { PortraitAccepted: false };
             StateHasChanged();
         }
         catch (JSException ex)
@@ -411,6 +414,23 @@ public sealed partial class BookReader : IAsyncDisposable
         }
 
         _showGestureHelp = false;
+    }
+
+    private async Task ReadInPortraitAsync()
+    {
+        if (_jsModule is not null)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("acceptPortrait", CancellationToken.None);
+            }
+            catch (JSException ex)
+            {
+                Logger.LogWarning(ex, "Unable to remember that the reader chose to read in portrait");
+            }
+        }
+
+        _showRotatePrompt = false;
     }
 
     private void ToggleControls() => _showControls = !_showControls;

@@ -226,7 +226,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     [Fact]
     public async Task ToggleFullscreenAsync_Should_AskTheBrowser_WhenItSupportsFullScreen()
     {
-        _readerModule.Setup<ReaderClientState>("attach", _ => true).SetResult(new ReaderClientState(CanUseFullscreen: true, GestureHelpSeen: true));
+        _readerModule.Setup<ReaderClientState>("attach", _ => true).SetResult(new ReaderClientState(CanUseFullscreen: true, GestureHelpSeen: true, PortraitAccepted: true));
         var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 0);
 
         await cut.WaitForAssertionAsync(() => cut.FindAll("button[aria-label='Full screen']").Should().ContainSingle());
@@ -377,7 +377,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     [Fact]
     public async Task OnAfterRenderAsync_Should_ShowTheGestureHelp_OnlyUntilItIsDismissed()
     {
-        _readerModule.Setup<ReaderClientState>("attach", _ => true).SetResult(new ReaderClientState(CanUseFullscreen: false, GestureHelpSeen: false));
+        _readerModule.Setup<ReaderClientState>("attach", _ => true).SetResult(new ReaderClientState(CanUseFullscreen: false, GestureHelpSeen: false, PortraitAccepted: true));
         var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 0);
         await cut.WaitForAssertionAsync(() => cut.FindAll(".reader-help").Should().ContainSingle());
         cut.Find(".reader-help").TextContent.Should().Contain("scroll freely");
@@ -386,6 +386,40 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
 
         cut.FindAll(".reader-help").Should().BeEmpty();
         _readerModule.Invocations.Should().Contain(i => i.Identifier == "markGestureHelpSeen");
+    }
+
+    [Fact]
+    public async Task ReadInPortraitAsync_Should_HideTheRotatePrompt_AndRememberTheChoice()
+    {
+        _readerModule.Setup<ReaderClientState>("attach", _ => true).SetResult(new ReaderClientState(CanUseFullscreen: false, GestureHelpSeen: true, PortraitAccepted: false));
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 0);
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reader-rotate").Should().ContainSingle());
+
+        await ClickButtonWithTextAsync(cut, "Read in portrait anyway");
+
+        cut.FindAll(".reader-rotate").Should().BeEmpty();
+        _readerModule.Invocations.Should().Contain(i => i.Identifier == "acceptPortrait");
+    }
+
+    [Fact]
+    public async Task OnAfterRenderAsync_Should_NotShowTheRotatePrompt_WhenPortraitWasChosenInThisSession()
+    {
+        _readerModule.Setup<ReaderClientState>("attach", _ => true).SetResult(new ReaderClientState(CanUseFullscreen: false, GestureHelpSeen: true, PortraitAccepted: true));
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 0);
+
+        cut.FindAll(".reader-rotate").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task CloseAsync_Should_GoBackToTheBook_FromTheRotatePrompt()
+    {
+        _readerModule.Setup<ReaderClientState>("attach", _ => true).SetResult(new ReaderClientState(CanUseFullscreen: false, GestureHelpSeen: true, PortraitAccepted: false));
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 3);
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reader-rotate").Should().ContainSingle());
+
+        await ClickAsync(cut, "Back to the book");
+
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_bookId}");
     }
 
     [Fact]

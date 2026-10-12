@@ -207,6 +207,19 @@
             </div>
         }
 
+        @if (_showRotatePrompt)
+        {
+            @* Visible on phones held in portrait only: iOS does not let a web app lock the orientation. *@
+            <div class="reader-rotate" role="dialog" aria-modal="true" aria-label="Rotate your phone">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" OnClick="CloseAsync"
+                               Class="reader-rotate-back" aria-label="Back to the book" />
+                <MudIcon Icon="@Icons.Material.Filled.ScreenRotation" Style="font-size: 4rem;" />
+                <MudText Typo="Typo.h6">Rotate your phone to read</MudText>
+                <MudText Typo="Typo.body2" Class="reader-rotate-hint">In landscape, the pages fill the width of the screen.</MudText>
+                <MudButton Variant="Variant.Outlined" Color="Color.Inherit" OnClick="ReadInPortraitAsync">Read in portrait anyway</MudButton>
+            </div>
+        }
+
         @if (_showFinish)
         {
             <div class="reader-overlay">
