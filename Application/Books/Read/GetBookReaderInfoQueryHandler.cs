@@ -40,6 +40,6 @@ public sealed class GetBookReaderInfoQueryHandler(
         // The archive may have been replaced by a shorter one since the progress was saved.
         var lastReadPage = Math.Clamp(book.LastReadPage, 0, pageCount - 1);
 
-        return new BookReaderInfoDto(book.Id, book.Serie, book.Title, book.VolumeNumber, pageCount, lastReadPage);
+        return new BookReaderInfoDto(book.Id, book.Serie, book.Title, book.VolumeNumber, pageCount, lastReadPage, book.ReaderSettings);
     }
 }

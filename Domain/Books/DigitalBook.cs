@@ -11,6 +11,15 @@ public sealed class DigitalBook : Book
     // Zero-based index of the last page displayed in the reader.
     public int LastReadPage { get; private set; }
 
+    // How the reader displays this book, chosen by the reader in its "Display" panel.
+    public ReaderLayout ReaderLayout { get; private set; }
+
+    public ReaderScrolling ReaderScrolling { get; private set; }
+
+    public ReadingDirection ReadingDirection { get; private set; }
+
+    public ReaderSettings ReaderSettings => new(ReaderLayout, ReaderScrolling, ReadingDirection);
+
     // ISBNs read on the pages that could not be assigned automatically (several of them): the user picks one.
     private readonly List<string> _isbnCandidates = [];
     public IReadOnlyList<string> IsbnCandidates => _isbnCandidates.AsReadOnly();
@@ -52,6 +61,19 @@ public sealed class DigitalBook : Book
         }
 
         LastReadPage = pageIndex;
+        return Result.Success();
+    }
+
+    public Result UpdateReaderSettings(ReaderSettings settings)
+    {
+        if (settings is null || !settings.IsValid())
+        {
+            return BooksError.BadRequest;
+        }
+
+        ReaderLayout = settings.Layout;
+        ReaderScrolling = settings.Scrolling;
+        ReadingDirection = settings.Direction;
         return Result.Success();
     }
 

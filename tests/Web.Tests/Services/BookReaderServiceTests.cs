@@ -1,8 +1,10 @@
 using Application.Abstractions.Messaging;
 using Application.Books.Read;
+using Application.Books.ReaderDisplay;
 using Application.Books.ReadingProgress;
 using Application.Interfaces;
 using AwesomeAssertions;
+using Domain.Books;
 using Domain.Primitives;
 using NSubstitute;
 using Web.Services;
@@ -16,20 +18,21 @@ public sealed class BookReaderServiceTests
 
     private readonly IQueryHandler<GetBookReaderInfoQuery, BookReaderInfoDto> _infoHandler = Substitute.For<IQueryHandler<GetBookReaderInfoQuery, BookReaderInfoDto>>();
     private readonly ICommandHandler<UpdateReadingProgressCommand> _progressHandler = Substitute.For<ICommandHandler<UpdateReadingProgressCommand>>();
+    private readonly ICommandHandler<UpdateReaderSettingsCommand> _settingsHandler = Substitute.For<ICommandHandler<UpdateReaderSettingsCommand>>();
     private readonly ICurrentUserService _currentUserService = Substitute.For<ICurrentUserService>();
     private readonly BookReaderService _service;
 
     public BookReaderServiceTests()
     {
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
-        _service = new BookReaderService(_infoHandler, _progressHandler, _currentUserService);
+        _service = new BookReaderService(_infoHandler, _progressHandler, _settingsHandler, _currentUserService);
     }
 
     [Fact]
     public async Task GetReaderInfoAsync_Should_QueryForCurrentUser()
     {
         var bookId = Guid.CreateVersion7();
-        var info = new BookReaderInfoDto(bookId, "Blacksad", "Arctic Nation", 2, 48, 5);
+        var info = new BookReaderInfoDto(bookId, "Blacksad", "Arctic Nation", 2, 48, 5, ReaderSettings.Default);
         _infoHandler.Handle(new GetBookReaderInfoQuery(bookId, s_userId), Arg.Any<CancellationToken>()).Returns(info);
 
         var result = await _service.GetReaderInfoAsync(bookId, TestContext.Current.CancellationToken);
@@ -59,5 +62,30 @@ public sealed class BookReaderServiceTests
 
         result.Error.Should().Be(userError);
         await _progressHandler.DidNotReceive().Handle(Arg.Any<UpdateReadingProgressCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SaveSettingsAsync_Should_SendCommandForCurrentUser()
+    {
+        var bookId = Guid.CreateVersion7();
+        var settings = new ReaderSettings(ReaderLayout.TwoPages, ReaderScrolling.PageByPage, ReadingDirection.RightToLeft);
+        _settingsHandler.Handle(Arg.Any<UpdateReaderSettingsCommand>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        var result = await _service.SaveSettingsAsync(bookId, settings, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        await _settingsHandler.Received(1).Handle(new UpdateReaderSettingsCommand(bookId, s_userId, settings), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SaveSettingsAsync_Should_NotSendCommand_WhenUserIsUnknown()
+    {
+        var userError = new TError("USR404", "User not found");
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(userError));
+
+        var result = await _service.SaveSettingsAsync(Guid.CreateVersion7(), ReaderSettings.Default, TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(userError);
+        await _settingsHandler.DidNotReceive().Handle(Arg.Any<UpdateReaderSettingsCommand>(), Arg.Any<CancellationToken>());
     }
 }

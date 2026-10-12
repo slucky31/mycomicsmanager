@@ -13,6 +13,7 @@ using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages.Books;
 using Web.Infrastructure;
+using Web.Models;
 using Web.Services;
 using Xunit;
 
@@ -46,16 +47,16 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         await _ctx.DisposeAsync();
     }
 
-    private IRenderedComponent<BookReader> RenderReader(int pageCount, int lastReadPage)
+    private IRenderedComponent<BookReader> RenderReader(int pageCount, int lastReadPage, ReaderSettings? settings = null)
     {
         _readerService.GetReaderInfoAsync(_bookId, Arg.Any<CancellationToken>())
-            .Returns(new BookReaderInfoDto(_bookId, "Blacksad", "Arctic Nation", 2, pageCount, lastReadPage));
+            .Returns(new BookReaderInfoDto(_bookId, "Blacksad", "Arctic Nation", 2, pageCount, lastReadPage, settings ?? ReaderSettings.Default));
         return _ctx.Render<BookReader>(p => p.Add(c => c.BookId, _bookId.ToString()));
     }
 
-    private async Task<IRenderedComponent<BookReader>> RenderAttachedReaderAsync(int pageCount, int lastReadPage)
+    private async Task<IRenderedComponent<BookReader>> RenderAttachedReaderAsync(int pageCount, int lastReadPage, ReaderSettings? settings = null)
     {
-        var cut = RenderReader(pageCount, lastReadPage);
+        var cut = RenderReader(pageCount, lastReadPage, settings);
         await WaitForAttachAsync(cut);
         return cut;
     }
@@ -69,8 +70,8 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     private static int[] RequestedPages(IRenderedComponent<BookReader> cut) =>
         cut.FindAll(".reader-page:not(.reader-page-pending)").Select(p => int.Parse(p.GetAttribute("data-page")!, CultureInfo.InvariantCulture)).ToArray();
 
-    private int[] ScrolledPages() =>
-        _readerModule.Invocations.Where(i => i.Identifier == "scrollToPage").Select(i => (int)i.Arguments[0]!).ToArray();
+    private int[] ScrolledRows() =>
+        _readerModule.Invocations.Where(i => i.Identifier == "scrollToRow").Select(i => (int)i.Arguments[0]!).ToArray();
 
     private static Task ClickAsync(IRenderedComponent<BookReader> cut, string ariaLabel) =>
         cut.Find($"button[aria-label='{ariaLabel}']").ClickAsync(new());
@@ -97,7 +98,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
 
         await ClickAsync(cut, "Next page");
 
-        ScrolledPages().Should().Equal(8);
+        ScrolledRows().Should().Equal(8);
         Counter(cut).Should().Be("9 / 20");
         RequestedPages(cut).Should().Contain(11);
     }
@@ -105,7 +106,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     [Fact]
     public async Task GoToPageAsync_Should_StayOnThePage_WhenTheScrollFails()
     {
-        _readerModule.SetupVoid("scrollToPage", _ => true).SetException(new JSException("The reader is gone"));
+        _readerModule.SetupVoid("scrollToRow", _ => true).SetException(new JSException("The reader is gone"));
         var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
 
         await ClickAsync(cut, "Next page");
@@ -114,17 +115,17 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task OnVisiblePageChanged_Should_FollowThePageBeingRead()
+    public async Task OnVisibleRowChanged_Should_FollowThePageBeingRead()
     {
         var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
 
-        await cut.Instance.OnVisiblePageChanged(12);
-        await cut.Instance.OnVisiblePageChanged(-1);
-        await cut.Instance.OnVisiblePageChanged(20);
+        await cut.Instance.OnVisibleRowChanged(12);
+        await cut.Instance.OnVisibleRowChanged(-1);
+        await cut.Instance.OnVisibleRowChanged(20);
 
         Counter(cut).Should().Be("13 / 20");
         RequestedPages(cut).Should().Equal(6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
-        ScrolledPages().Should().BeEmpty();
+        ScrolledRows().Should().BeEmpty();
     }
 
     [Fact]
@@ -225,7 +226,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     [Fact]
     public async Task ToggleFullscreenAsync_Should_AskTheBrowser_WhenItSupportsFullScreen()
     {
-        _readerModule.Setup<bool>("attach", _ => true).SetResult(true);
+        _readerModule.Setup<ReaderClientState>("attach", _ => true).SetResult(new ReaderClientState(CanUseFullscreen: true, GestureHelpSeen: true));
         var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 0);
 
         await cut.WaitForAssertionAsync(() => cut.FindAll("button[aria-label='Full screen']").Should().ContainSingle());
@@ -266,6 +267,132 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         await ClickButtonWithTextAsync(cut, "Keep reading");
 
         cut.Markup.Should().NotContain("You finished this book");
+    }
+
+    private static readonly ReaderSettings s_manga = new(ReaderLayout.FitWidth, ReaderScrolling.Continuous, ReadingDirection.RightToLeft);
+    private static readonly ReaderSettings s_pageByPage = new(ReaderLayout.SinglePage, ReaderScrolling.PageByPage, ReadingDirection.LeftToRight);
+
+    private static int[] DisplayedRows(IRenderedComponent<BookReader> cut) =>
+        cut.FindAll(".reader-row").Select(r => int.Parse(r.GetAttribute("data-row")!, CultureInfo.InvariantCulture)).ToArray();
+
+    private static async Task ChooseDisplayOptionAsync(IRenderedComponent<BookReader> cut, string label)
+    {
+        await ClickAsync(cut, "Display");
+        await cut.FindAll("button.reader-option").Single(b => b.TextContent.Contains(label, StringComparison.Ordinal)).ClickAsync(new());
+    }
+
+    [Fact]
+    public async Task OnAfterRenderAsync_Should_TellTheScriptHowTheBookIsDisplayed()
+    {
+        await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7, s_manga);
+
+        var attach = _readerModule.Invocations["attach"].Single();
+        attach.Arguments[3].Should().Be(new ReaderScriptOptions(Paged: false, RightToLeft: true, FitWidth: true));
+    }
+
+    [Fact]
+    public async Task ApplySettingsAsync_Should_ShowTheSamePageInTheNewLayout_AndSaveTheSettings()
+    {
+        _readerService.SaveSettingsAsync(_bookId, Arg.Any<ReaderSettings>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 4);
+
+        await ChooseDisplayOptionAsync(cut, "Two pages");
+
+        Counter(cut).Should().Be("4-5 / 20");
+        cut.Find(".reader-scroll").ClassList.Should().Contain(["reader-layout-two", "reader-snap"]);
+        await cut.WaitForAssertionAsync(() => _readerModule.Invocations.Should().Contain(i => i.Identifier == "configure"));
+        _readerModule.Invocations["configure"].Single().Arguments.Should().Equal(new ReaderScriptOptions(false, false, false), 2);
+        var expected = new ReaderSettings(ReaderLayout.TwoPages, ReaderScrolling.Continuous, ReadingDirection.LeftToRight);
+        await _readerService.Received(1).SaveSettingsAsync(_bookId, expected, Arg.Any<CancellationToken>());
+        cut.Find("button.reader-option-selected[aria-pressed='true']").TextContent.Should().Contain("Two pages");
+    }
+
+    [Fact]
+    public async Task ApplySettingsAsync_Should_WarnTheReader_WhenTheSettingsCannotBeSaved()
+    {
+        _readerService.SaveSettingsAsync(_bookId, Arg.Any<ReaderSettings>(), Arg.Any<CancellationToken>()).Returns(Result.Failure(BooksError.NotFound));
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 4);
+
+        await ChooseDisplayOptionAsync(cut, "Right to left");
+
+        _snackbar.Received(1).Add("Unable to save the display settings", Severity.Warning, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        cut.Find(".reader-direction").TextContent.Should().Contain("Right to left");
+    }
+
+    [Fact]
+    public async Task ApplySettingsAsync_Should_NotSave_WhenTheChosenOptionIsAlreadySelected()
+    {
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 4);
+
+        await ChooseDisplayOptionAsync(cut, "Fit width");
+        await ClickAsync(cut, "Close the display settings");
+
+        await _readerService.DidNotReceive().SaveSettingsAsync(Arg.Any<Guid>(), Arg.Any<ReaderSettings>(), Arg.Any<CancellationToken>());
+        cut.FindAll(".reader-panel").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task OnNavigationKey_Should_TurnPagesTheOtherWay_WhenReadingRightToLeft()
+    {
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7, s_manga);
+
+        await cut.Instance.OnNavigationKey("ArrowLeft");
+        Counter(cut).Should().Be("9 / 20");
+
+        await cut.Instance.OnNavigationKey("ArrowRight");
+        await cut.Instance.OnNavigationKey("ArrowRight");
+        Counter(cut).Should().Be("7 / 20");
+        cut.Find(".reader-slider").GetAttribute("dir").Should().Be("rtl");
+    }
+
+    [Fact]
+    public async Task OnTurnPage_Should_ShowOnlyTheNextPage_WhenReadingPageByPage()
+    {
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7, s_pageByPage);
+        DisplayedRows(cut).Should().Equal(7);
+        cut.Find("img.reader-preload").GetAttribute("src").Should().Be($"/api/books/{_bookId}/pages/8");
+
+        await cut.Instance.OnTurnPage(1);
+
+        DisplayedRows(cut).Should().Equal(8);
+        Counter(cut).Should().Be("9 / 20");
+        await cut.WaitForAssertionAsync(() => ScrolledRows().Should().Equal(8));
+
+        await cut.Instance.OnTurnPage(-1);
+        DisplayedRows(cut).Should().Equal(7);
+    }
+
+    [Fact]
+    public async Task OnTurnPage_Should_ShowTheFinishPanel_AfterTheLastPage()
+    {
+        var cut = await RenderAttachedReaderAsync(pageCount: 3, lastReadPage: 2, s_pageByPage);
+
+        await cut.Instance.OnTurnPage(1);
+
+        cut.Markup.Should().Contain("You finished this book");
+        cut.FindAll("img.reader-preload").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task OnAfterRenderAsync_Should_ShowTheGestureHelp_OnlyUntilItIsDismissed()
+    {
+        _readerModule.Setup<ReaderClientState>("attach", _ => true).SetResult(new ReaderClientState(CanUseFullscreen: false, GestureHelpSeen: false));
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 0);
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reader-help").Should().ContainSingle());
+        cut.Find(".reader-help").TextContent.Should().Contain("scroll freely");
+
+        await ClickButtonWithTextAsync(cut, "Got it");
+
+        cut.FindAll(".reader-help").Should().BeEmpty();
+        _readerModule.Invocations.Should().Contain(i => i.Identifier == "markGestureHelpSeen");
+    }
+
+    [Fact]
+    public async Task OnAfterRenderAsync_Should_NotShowTheGestureHelp_WhenItWasAlreadySeen()
+    {
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 0);
+
+        cut.FindAll(".reader-help").Should().BeEmpty();
     }
 
     [Fact]
@@ -336,7 +463,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 1);
         var extraction = FindIsbnOnThePageAsync(cut, provider);
         await cut.WaitForAssertionAsync(() => _ocrModule.Invocations.Should().Contain(i => i.Identifier == "recognizeUrl"));
-        await cut.Instance.OnVisiblePageChanged(2);
+        await cut.Instance.OnVisibleRowChanged(2);
 
         await cut.InvokeAsync(() => recognition.SetResult("ISBN 978-2-8001-1234-3"));
         await extraction;
@@ -418,7 +545,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         await cut.WaitForAssertionAsync(() => IsbnButtons(cut).Should().ContainSingle());
         await IsbnButtons(cut).Single().ClickAsync(new());
 
-        ScrolledPages().Should().Equal(18);
+        ScrolledRows().Should().Equal(18);
         _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_bookId}/find-details?isbn=9782800112343");
         await _readerService.DidNotReceive().SaveProgressAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }

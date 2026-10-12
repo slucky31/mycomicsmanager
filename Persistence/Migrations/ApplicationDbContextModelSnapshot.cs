@@ -490,6 +490,15 @@ namespace Persistence.Migrations
                     b.Property<int>("LastReadPage")
                         .HasColumnType("integer");
 
+                    b.Property<int>("ReaderLayout")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ReaderScrolling")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ReadingDirection")
+                        .HasColumnType("integer");
+
                     b.ToTable("DigitalBooks", (string)null);
                 });
 

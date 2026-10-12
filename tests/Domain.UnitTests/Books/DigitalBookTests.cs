@@ -233,6 +233,45 @@ public class DigitalBookTests
         book.LastReadPage.Should().Be(5);
     }
 
+    [Fact]
+    public void Create_Should_UseTheDefaultReaderSettings()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+
+        book.ReaderSettings.Should().Be(new ReaderSettings(ReaderLayout.FitWidth, ReaderScrolling.Continuous, ReadingDirection.LeftToRight));
+    }
+
+    [Fact]
+    public void UpdateReaderSettings_Should_StoreTheSettings()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+        var settings = new ReaderSettings(ReaderLayout.TwoPages, ReaderScrolling.PageByPage, ReadingDirection.RightToLeft);
+
+        var result = book.UpdateReaderSettings(settings);
+
+        result.IsSuccess.Should().BeTrue();
+        book.ReaderSettings.Should().Be(settings);
+    }
+
+    [Fact]
+    public void UpdateReaderSettings_Should_FailWithoutChange_WhenASettingIsUnknown()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+
+        var result = book.UpdateReaderSettings(new ReaderSettings((ReaderLayout)42, ReaderScrolling.PageByPage, ReadingDirection.RightToLeft));
+
+        result.Error.Should().Be(BooksError.BadRequest);
+        book.ReaderSettings.Should().Be(ReaderSettings.Default);
+    }
+
+    [Fact]
+    public void UpdateReaderSettings_Should_Fail_WhenSettingsAreNull()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+
+        book.UpdateReaderSettings(null!).Error.Should().Be(BooksError.BadRequest);
+    }
+
     private static DigitalBook CreateBookWithoutIsbn() =>
         DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, null), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
 

@@ -100,6 +100,19 @@ public class GetBookReaderInfoQueryHandlerTests
         var result = await _handler.Handle(new GetBookReaderInfoQuery(book.Id, s_userId), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(new BookReaderInfoDto(book.Id, "Blacksad", "Quelque part entre les ombres", 1, 20, expectedPage));
+        result.Value.Should().Be(new BookReaderInfoDto(book.Id, "Blacksad", "Quelque part entre les ombres", 1, 20, expectedPage, ReaderSettings.Default));
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnTheReaderSettingsOfTheBook()
+    {
+        var book = CreateDigitalBook(0);
+        var settings = new ReaderSettings(ReaderLayout.SinglePage, ReaderScrolling.PageByPage, ReadingDirection.RightToLeft);
+        book.UpdateReaderSettings(settings);
+        _pageReader.CountPagesAsync(FilePath, Arg.Any<CancellationToken>()).Returns(20);
+
+        var result = await _handler.Handle(new GetBookReaderInfoQuery(book.Id, s_userId), TestContext.Current.CancellationToken);
+
+        result.Value!.Settings.Should().Be(settings);
     }
 }
