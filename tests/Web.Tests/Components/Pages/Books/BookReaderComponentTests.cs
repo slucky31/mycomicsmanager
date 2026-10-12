@@ -11,6 +11,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages.Books;
+using Web.Infrastructure;
 using Web.Services;
 using Xunit;
 
@@ -28,8 +29,8 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     public BookReaderComponentTests()
     {
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        _ctx.JSInterop.SetupModule("./js/bookReader.js");
-        _ocrModule = _ctx.JSInterop.SetupModule("./js/isbnOcr.js");
+        _ctx.JSInterop.SetupModule(AppVersion.Versioned("./js/bookReader.js"));
+        _ocrModule = _ctx.JSInterop.SetupModule(AppVersion.Versioned("./js/isbnOcr.js"));
         _ctx.Services.AddMudServices();
         _ctx.Services.AddSingleton(_readerService);
         _ctx.Services.AddSingleton(_booksService);

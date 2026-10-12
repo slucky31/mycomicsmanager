@@ -2,6 +2,7 @@ using Application.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
+using Web.Infrastructure;
 
 namespace Web.Components.Pages.Books;
 
@@ -35,7 +36,7 @@ public sealed partial class AddBookScan : IAsyncDisposable
         try
         {
             _dotNetObjectRef = DotNetObjectReference.Create(this);
-            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/isbnScanner.js");
+            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", AppVersion.Versioned("./js/isbnScanner.js"));
 
             if (_jsModule != null)
             {
