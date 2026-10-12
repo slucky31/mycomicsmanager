@@ -5,10 +5,7 @@ using Domain.Errors;
 using Domain.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace Persistence.Services;
 
@@ -24,45 +21,54 @@ public sealed class TesseractPageTextRecognizer(
     private const double MaxUpscale = 2;
     private const int MaxLongSide = 4096;
 
-    private static readonly PngEncoder s_grayscaleEncoder = new()
-    {
-        ColorType = PngColorType.Grayscale,
-        BitDepth = PngBitDepth.Bit8,
-    };
+    private static readonly SKSamplingOptions s_upscaleSampling = new(SKCubicResampler.CatmullRom);
 
     private readonly IsbnOcrSettings _settings = options.Value;
 
     public async Task<Result<string>> RecognizeAsync(ReadOnlyMemory<byte> image, CancellationToken ct = default)
     {
-        byte[] png;
-        try
+        var png = Prepare(image);
+        if (png is null)
         {
-            png = await PrepareAsync(image, ct);
-        }
-        catch (Exception ex) when (ex is UnknownImageFormatException or InvalidImageContentException or NotSupportedException)
-        {
-            logger.LogWarning(ex, "Page image cannot be decoded for OCR");
+            logger.LogWarning("Page image cannot be decoded for OCR");
             return OcrError.UnreadableImage;
         }
 
         return await RunTesseractAsync(png, ct);
     }
 
-    // Grayscale and enlarged: what Tesseract reads best.
-    private static async Task<byte[]> PrepareAsync(ReadOnlyMemory<byte> image, CancellationToken ct)
+    // Grayscale and enlarged: what Tesseract reads best. Null when the bytes are not a readable image.
+    private static byte[]? Prepare(ReadOnlyMemory<byte> image)
     {
-        using var page = Image.Load<L8>(image.Span);
-        var scale = Math.Min(MaxUpscale, (double)MaxLongSide / Math.Max(page.Width, page.Height));
-        if (scale > 1)
+        using var stream = new MemoryStream(image.ToArray(), writable: false);
+        using var codec = SKCodec.Create(stream, out var result);
+        if (result != SKCodecResult.Success)
         {
-            var width = (int)Math.Round(page.Width * scale);
-            var height = (int)Math.Round(page.Height * scale);
-            page.Mutate(x => x.Resize(width, height, KnownResamplers.Bicubic));
+            return null;
         }
 
-        using var buffer = new MemoryStream();
-        await page.SaveAsPngAsync(buffer, s_grayscaleEncoder, ct);
-        return buffer.ToArray();
+        using var page = SKBitmap.Decode(codec);
+        if (page is null)
+        {
+            return null;
+        }
+
+        var scale = Math.Min(MaxUpscale, (double)MaxLongSide / Math.Max(page.Width, page.Height));
+        using var enlarged = scale > 1 ? Enlarge(page, scale) : null;
+        // The colour to grayscale conversion is done last: Skia only resamples colour bitmaps.
+        using var grayscale = (enlarged ?? page).Copy(SKColorType.Gray8)
+            ?? throw new InvalidOperationException("Grayscale conversion failed");
+        using var png = grayscale.Encode(SKEncodedImageFormat.Png, 100)
+            ?? throw new InvalidOperationException("PNG encoding failed");
+        return png.ToArray();
+    }
+
+    private static SKBitmap Enlarge(SKBitmap page, double scale)
+    {
+        var width = (int)Math.Round(page.Width * scale);
+        var height = (int)Math.Round(page.Height * scale);
+        return page.Resize(new SKImageInfo(width, height, page.ColorType, page.AlphaType), s_upscaleSampling)
+            ?? throw new InvalidOperationException($"Resize to {width}×{height} failed");
     }
 
     private async Task<Result<string>> RunTesseractAsync(byte[] png, CancellationToken ct)

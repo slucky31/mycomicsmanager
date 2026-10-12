@@ -2,8 +2,7 @@ using Application.Books.IsbnScan;
 using Domain.Errors;
 using Microsoft.Extensions.Options;
 using Persistence.Services;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 
 namespace Application.UnitTests.Services;
 
@@ -45,10 +44,10 @@ public sealed class TesseractPageTextRecognizerTests : IDisposable
 
     private static byte[] CreatePage(int width, int height)
     {
-        using var image = new Image<Rgb24>(width, height);
-        using var buffer = new MemoryStream();
-        image.SaveAsPng(buffer);
-        return buffer.ToArray();
+        using var image = new SKBitmap(width, height);
+        image.Erase(SKColors.White);
+        using var png = image.Encode(SKEncodedImageFormat.Png, 100);
+        return png.ToArray();
     }
 
     [Fact]
@@ -73,10 +72,10 @@ public sealed class TesseractPageTextRecognizerTests : IDisposable
 
         await CreateRecognizer(tesseract).RecognizeAsync(CreatePage(width, height), TestContext.Current.CancellationToken);
 
-        var info = await Image.IdentifyAsync(received, TestContext.Current.CancellationToken);
-        info.Width.Should().Be(expectedWidth);
-        info.Height.Should().Be(expectedHeight);
-        info.PixelType.BitsPerPixel.Should().Be(8);
+        using var codec = SKCodec.Create(received);
+        codec.Info.Width.Should().Be(expectedWidth);
+        codec.Info.Height.Should().Be(expectedHeight);
+        codec.Info.ColorType.Should().Be(SKColorType.Gray8);
     }
 
     [Fact]
