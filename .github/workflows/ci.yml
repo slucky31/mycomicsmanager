@@ -33,10 +33,10 @@ jobs:
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of SonarCloud analysis
 
-      - name: Set up JDK 21
+      - name: Set up JDK
         uses: actions/setup-java@v6
         with:
-          # Temurin 21 is in the runner's tool cache: nothing to download.
+          # Temurin is in the runner's tool cache for every LTS version: nothing to download.
           distribution: 'temurin'
           java-version: '21'
 
