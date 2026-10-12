@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.35.0"></a>
+## [10.35.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.35.0) (2026-10-12)
+
+### ✨ Features
+
+* **reader:** display panel with layouts, page by page, manga direction and gesture help ([#1125](https://www.github.com/slucky31/mycomicsmanager/issues/1125)) ([8c371b1](https://www.github.com/slucky31/mycomicsmanager/commit/8c371b17eecc8b1a63bce71b9a7058bcd30138e9))
+
 <a name="10.34.3"></a>
 ## [10.34.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.34.3) (2026-10-12)
 
