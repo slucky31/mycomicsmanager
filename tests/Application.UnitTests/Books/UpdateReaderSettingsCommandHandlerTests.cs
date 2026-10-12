@@ -28,22 +28,27 @@ public class UpdateReaderSettingsCommandHandlerTests
         _handler = new UpdateReaderSettingsCommandHandler(_bookRepository, _libraryRepository, _unitOfWork);
     }
 
-    public static TheoryData<bool, bool, ReaderSettings?> InvalidCommands => new()
-    {
-        { true, false, s_manga },
-        { false, true, s_manga },
-        { false, false, null },
-        { false, false, new ReaderSettings(ReaderLayout.FitWidth, (ReaderScrolling)9, ReadingDirection.LeftToRight) },
-        { false, false, new ReaderSettings(ReaderLayout.FitWidth, ReaderScrolling.Continuous, (ReadingDirection)9) },
-    };
-
     [Theory]
-    [MemberData(nameof(InvalidCommands))]
-    public async Task Handle_Should_ReturnBadRequest_WhenParametersAreInvalid(bool emptyBookId, bool emptyUserId, ReaderSettings? settings)
+    [InlineData(true, false, 0, 0, 0)]
+    [InlineData(false, true, 0, 0, 0)]
+    [InlineData(false, false, 9, 0, 0)]
+    [InlineData(false, false, 0, 9, 0)]
+    [InlineData(false, false, 0, 0, 9)]
+    public async Task Handle_Should_ReturnBadRequest_WhenParametersAreInvalid(bool emptyBookId, bool emptyUserId, int layout, int scrolling, int direction)
     {
-        var command = new UpdateReaderSettingsCommand(emptyBookId ? Guid.Empty : _book.Id, emptyUserId ? Guid.Empty : s_userId, settings!);
+        var settings = new ReaderSettings((ReaderLayout)layout, (ReaderScrolling)scrolling, (ReadingDirection)direction);
+        var command = new UpdateReaderSettingsCommand(emptyBookId ? Guid.Empty : _book.Id, emptyUserId ? Guid.Empty : s_userId, settings);
 
         var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(BooksError.BadRequest);
+        await _bookRepository.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenSettingsAreNull()
+    {
+        var result = await _handler.Handle(new UpdateReaderSettingsCommand(_book.Id, s_userId, null!), TestContext.Current.CancellationToken);
 
         result.Error.Should().Be(BooksError.BadRequest);
         await _bookRepository.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());

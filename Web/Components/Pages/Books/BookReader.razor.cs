@@ -113,9 +113,18 @@ public sealed partial class BookReader : IAsyncDisposable
     }
 
     // Page by page, only the current row is in the document.
-    private IEnumerable<int> DisplayedRows => _spreads is null
-        ? []
-        : IsPaged ? [_currentRow] : Enumerable.Range(0, _spreads.Count);
+    private IEnumerable<int> DisplayedRows
+    {
+        get
+        {
+            if (_spreads is null)
+            {
+                return [];
+            }
+
+            return IsPaged ? [_currentRow] : Enumerable.Range(0, _spreads.Count);
+        }
+    }
 
     private IEnumerable<int> PreloadedPages => IsPaged && _spreads is not null && !IsLastRow
         ? _spreads.PagesOf(_currentRow + 1)

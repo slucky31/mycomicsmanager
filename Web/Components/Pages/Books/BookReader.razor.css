@@ -277,7 +277,8 @@
 
 .reader-option-selected {
     border-color: #594AE2;
-    background: rgba(89, 74, 226, 0.1);
+    /* The primary color at 10 % over white, opaque so that the contrast (5.2:1) can be checked. */
+    background: #EEEDFC;
     color: #594AE2;
     font-weight: 500;
 }
