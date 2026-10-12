@@ -65,12 +65,7 @@ async function recognizeImage(image) {
     return data.text ?? "";
 }
 
-// Reads the page displayed by the reader.
-export function recognize(image) {
-    return recognizeImage(image);
-}
-
-// Reads a page without displaying it (scan of the first and last pages).
+// Reads a page from its URL: the page displayed by the reader comes from the browser cache.
 export async function recognizeUrl(url) {
     const image = new Image();
     image.src = url;

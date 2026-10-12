@@ -1,3 +1,4 @@
+using System.Globalization;
 using Application.Books.Read;
 using AwesomeAssertions;
 using Bunit;
@@ -24,12 +25,13 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     private readonly IBookReaderService _readerService = Substitute.For<IBookReaderService>();
     private readonly IBooksService _booksService = Substitute.For<IBooksService>();
     private readonly ISnackbar _snackbar = Substitute.For<ISnackbar>();
+    private readonly BunitJSModuleInterop _readerModule;
     private readonly BunitJSModuleInterop _ocrModule;
 
     public BookReaderComponentTests()
     {
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        _ctx.JSInterop.SetupModule(AppVersion.Versioned("./js/bookReader.js"));
+        _readerModule = _ctx.JSInterop.SetupModule(AppVersion.Versioned("./js/bookReader.js"));
         _ocrModule = _ctx.JSInterop.SetupModule(AppVersion.Versioned("./js/isbnOcr.js"));
         _ctx.Services.AddMudServices();
         _ctx.Services.AddSingleton(_readerService);
@@ -51,37 +53,87 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         return _ctx.Render<BookReader>(p => p.Add(c => c.BookId, _bookId.ToString()));
     }
 
-    private static string CurrentPageSource(IRenderedComponent<BookReader> cut) =>
-        cut.Find("img.reader-page").GetAttribute("src")!;
+    private async Task<IRenderedComponent<BookReader>> RenderAttachedReaderAsync(int pageCount, int lastReadPage)
+    {
+        var cut = RenderReader(pageCount, lastReadPage);
+        await WaitForAttachAsync(cut);
+        return cut;
+    }
+
+    private Task WaitForAttachAsync(IRenderedComponent<BookReader> cut) =>
+        cut.WaitForAssertionAsync(() => _readerModule.Invocations.Should().Contain(i => i.Identifier == "attach"));
+
+    private static string Counter(IRenderedComponent<BookReader> cut) =>
+        cut.Find(".reader-toolbar-bottom .reader-counter").TextContent.Trim();
+
+    private static int[] RequestedPages(IRenderedComponent<BookReader> cut) =>
+        cut.FindAll(".reader-page:not(.reader-page-pending)").Select(p => int.Parse(p.GetAttribute("data-page")!, CultureInfo.InvariantCulture)).ToArray();
+
+    private int[] ScrolledPages() =>
+        _readerModule.Invocations.Where(i => i.Identifier == "scrollToPage").Select(i => (int)i.Arguments[0]!).ToArray();
+
+    private static Task ClickAsync(IRenderedComponent<BookReader> cut, string ariaLabel) =>
+        cut.Find($"button[aria-label='{ariaLabel}']").ClickAsync(new());
+
+    private static Task ClickButtonWithTextAsync(IRenderedComponent<BookReader> cut, string text) =>
+        cut.FindAll("button").Single(b => b.TextContent.Contains(text, StringComparison.Ordinal)).ClickAsync(new());
 
     [Fact]
-    public async Task OnInitializedAsync_Should_OpenTheLastReadPage()
+    public async Task OnInitializedAsync_Should_OpenTheLastReadPage_AndLoadOnlyItsNeighbours()
     {
-        var cut = RenderReader(pageCount: 20, lastReadPage: 7);
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
 
-        await cut.WaitForAssertionAsync(() => CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/7"));
-        cut.Markup.Should().Contain("8 / 20");
+        Counter(cut).Should().Be("8 / 20");
+        _readerModule.Invocations["attach"].Single().Arguments[2].Should().Be(7);
+        cut.FindAll(".reader-page").Should().HaveCount(20);
+        RequestedPages(cut).Should().Equal(6, 7, 8, 9, 10);
+        cut.Find("img[alt='Page 8']").GetAttribute("src").Should().Be($"/api/books/{_bookId}/pages/7");
     }
 
     [Fact]
-    public async Task NextPageAsync_Should_ShowTheFollowingPage()
+    public async Task NextPageAsync_Should_ScrollToTheFollowingPage()
     {
-        var cut = RenderReader(pageCount: 20, lastReadPage: 7);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
 
-        await cut.Find("button.reader-zone-next").ClickAsync(new());
+        await ClickAsync(cut, "Next page");
 
-        CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/8");
+        ScrolledPages().Should().Equal(8);
+        Counter(cut).Should().Be("9 / 20");
+        RequestedPages(cut).Should().Contain(11);
+    }
+
+    [Fact]
+    public async Task GoToPageAsync_Should_StayOnThePage_WhenTheScrollFails()
+    {
+        _readerModule.SetupVoid("scrollToPage", _ => true).SetException(new JSException("The reader is gone"));
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
+
+        await ClickAsync(cut, "Next page");
+
+        Counter(cut).Should().Be("8 / 20");
+    }
+
+    [Fact]
+    public async Task OnVisiblePageChanged_Should_FollowThePageBeingRead()
+    {
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
+
+        await cut.Instance.OnVisiblePageChanged(12);
+        await cut.Instance.OnVisiblePageChanged(-1);
+        await cut.Instance.OnVisiblePageChanged(20);
+
+        Counter(cut).Should().Be("13 / 20");
+        RequestedPages(cut).Should().Equal(6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+        ScrolledPages().Should().BeEmpty();
     }
 
     [Fact]
     public async Task CloseAsync_Should_SaveTheCurrentPage()
     {
-        var cut = RenderReader(pageCount: 20, lastReadPage: 7);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
-        await cut.Find("button.reader-zone-previous").ClickAsync(new());
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
+        await ClickAsync(cut, "Previous page");
 
-        await cut.Find("button[aria-label='Close reader']").ClickAsync(new());
+        await ClickAsync(cut, "Close reader");
 
         await _readerService.Received(1).SaveProgressAsync(_bookId, 6, Arg.Any<CancellationToken>());
     }
@@ -90,16 +142,25 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     public async Task MarkAsReadAsync_Should_AddReadingDateAndRestartTheBook_WhenLastPageIsPassed()
     {
         _booksService.AddReadingDate(_bookId.ToString(), 3, Arg.Any<CancellationToken>()).Returns(Result<ReadingDate>.Success(null!));
-        var cut = RenderReader(pageCount: 3, lastReadPage: 2);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        var cut = await RenderAttachedReaderAsync(pageCount: 3, lastReadPage: 2);
 
-        await cut.Find("button.reader-zone-next").ClickAsync(new());
+        await ClickAsync(cut, "Next page");
         cut.Markup.Should().Contain("You finished this book");
 
-        await cut.FindAll("button").Single(b => b.TextContent.Contains("Mark as read", StringComparison.Ordinal)).ClickAsync(new());
+        await ClickButtonWithTextAsync(cut, "Mark as read");
 
         await _booksService.Received(1).AddReadingDate(_bookId.ToString(), 3, Arg.Any<CancellationToken>());
         await _readerService.Received(1).SaveProgressAsync(_bookId, 0, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task OnReachedEnd_Should_ShowTheFinishPanel()
+    {
+        var cut = await RenderAttachedReaderAsync(pageCount: 3, lastReadPage: 0);
+
+        await cut.Instance.OnReachedEnd();
+
+        cut.Markup.Should().Contain("You finished this book");
     }
 
     [Fact]
@@ -117,14 +178,13 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     [Fact]
     public async Task OnNavigationKey_Should_TurnPagesAndClose()
     {
-        var cut = RenderReader(pageCount: 20, lastReadPage: 7);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
 
         await cut.Instance.OnNavigationKey("ArrowRight");
         await cut.Instance.OnNavigationKey("ArrowRight");
         await cut.Instance.OnNavigationKey("ArrowLeft");
         await cut.Instance.OnNavigationKey("Enter");
-        CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/8");
+        Counter(cut).Should().Be("9 / 20");
 
         await cut.Instance.OnNavigationKey("Escape");
 
@@ -134,10 +194,9 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     [Fact]
     public async Task GoToPageAsync_Should_SaveProgress_WhenReaderStaysOnAPage()
     {
-        var cut = RenderReader(pageCount: 20, lastReadPage: 7);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
 
-        await cut.Find("button.reader-zone-next").ClickAsync(new());
+        await ClickAsync(cut, "Next page");
 
         // The save is debounced and triggers no render, so poll for it.
         var deadline = DateTime.UtcNow.AddSeconds(5);
@@ -150,16 +209,37 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ToggleControls_Should_HideAndShowTheToolbars()
+    public async Task OnCenterTap_Should_SwapTheToolbarsForTheProgressLine()
     {
-        var cut = RenderReader(pageCount: 20, lastReadPage: 0);
-        await cut.WaitForAssertionAsync(() => cut.FindAll(".reader-toolbar").Should().HaveCount(2));
-
-        await cut.Find("button.reader-zone-toggle").ClickAsync(new());
-        cut.FindAll(".reader-toolbar").Should().BeEmpty();
-
-        await cut.Find("button.reader-zone-toggle").ClickAsync(new());
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 4);
         cut.FindAll(".reader-toolbar").Should().HaveCount(2);
+
+        await cut.Instance.OnCenterTap();
+        cut.FindAll(".reader-toolbar").Should().BeEmpty();
+        cut.Find(".reader-progress-value").GetAttribute("style").Should().Contain("width: 25%");
+
+        await cut.Instance.OnCenterTap();
+        cut.FindAll(".reader-toolbar").Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task ToggleFullscreenAsync_Should_AskTheBrowser_WhenItSupportsFullScreen()
+    {
+        _readerModule.Setup<bool>("attach", _ => true).SetResult(true);
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 0);
+
+        await cut.WaitForAssertionAsync(() => cut.FindAll("button[aria-label='Full screen']").Should().ContainSingle());
+        await ClickAsync(cut, "Full screen");
+
+        _readerModule.Invocations.Should().Contain(i => i.Identifier == "toggleFullscreen");
+    }
+
+    [Fact]
+    public async Task OnAfterRenderAsync_Should_HideTheFullScreenButton_WhenTheBrowserDoesNotSupportIt()
+    {
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 0);
+
+        cut.FindAll("button[aria-label='Full screen']").Should().BeEmpty();
     }
 
     [Fact]
@@ -167,11 +247,10 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     {
         _booksService.AddReadingDate(_bookId.ToString(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Result<ReadingDate>.Failure(BooksError.NotFound));
-        var cut = RenderReader(pageCount: 3, lastReadPage: 2);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
-        await cut.Find("button.reader-zone-next").ClickAsync(new());
+        var cut = await RenderAttachedReaderAsync(pageCount: 3, lastReadPage: 2);
+        await ClickAsync(cut, "Next page");
 
-        await cut.FindAll("button").Single(b => b.TextContent.Contains("Mark as read", StringComparison.Ordinal)).ClickAsync(new());
+        await ClickButtonWithTextAsync(cut, "Mark as read");
 
         _snackbar.Received(1).Add("Unexpected error while adding reading date", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
         await _readerService.DidNotReceive().SaveProgressAsync(_bookId, 0, Arg.Any<CancellationToken>());
@@ -181,11 +260,10 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     [Fact]
     public async Task CloseFinish_Should_HideTheFinishPanel()
     {
-        var cut = RenderReader(pageCount: 3, lastReadPage: 2);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
-        await cut.Find("button.reader-zone-next").ClickAsync(new());
+        var cut = await RenderAttachedReaderAsync(pageCount: 3, lastReadPage: 2);
+        await ClickAsync(cut, "Next page");
 
-        await cut.FindAll("button").Single(b => b.TextContent.Contains("Keep reading", StringComparison.Ordinal)).ClickAsync(new());
+        await ClickButtonWithTextAsync(cut, "Keep reading");
 
         cut.Markup.Should().NotContain("You finished this book");
     }
@@ -199,13 +277,20 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         await _readerService.DidNotReceive().GetReaderInfoAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
+    private static async Task FindIsbnOnThePageAsync(IRenderedComponent<BookReader> cut, IRenderedComponent<MudPopoverProvider> provider)
+    {
+        await ClickAsync(cut, "More actions");
+        await provider.WaitForElement(".mud-menu-item:contains('Find the ISBN on this page')").ClickAsync(new());
+    }
+
     private async Task<IRenderedComponent<BookReader>> ExtractIsbnAsync(string recognizedText)
     {
-        _ocrModule.Setup<string>("recognize", _ => true).SetResult(recognizedText);
-        var cut = RenderReader(pageCount: 20, lastReadPage: 1);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        _ocrModule.Setup<string>("recognizeUrl", call => Equals(call.Arguments[0], $"/api/books/{_bookId}/pages/1"))
+            .SetResult(recognizedText);
+        var provider = _ctx.Render<MudPopoverProvider>();
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 1);
 
-        await cut.Find("button[aria-label='Find the ISBN on this page']").ClickAsync(new());
+        await FindIsbnOnThePageAsync(cut, provider);
         return cut;
     }
 
@@ -217,7 +302,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     {
         var cut = await ExtractIsbnAsync("Dépôt légal : mars 2024\nISBN 978-2-8001-1234-3\nIntégrale : 2-205-05617-4");
 
-        IsbnButtons(cut).Select(b => b.TextContent.Trim()).Should().Equal("9782800112343", "2205056174");
+        await cut.WaitForAssertionAsync(() => IsbnButtons(cut).Select(b => b.TextContent.Trim()).Should().Equal("9782800112343", "2205056174"));
     }
 
     [Fact]
@@ -225,35 +310,38 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     {
         var cut = await ExtractIsbnAsync("Chapitre 1");
 
+        await cut.WaitForAssertionAsync(() =>
+            _snackbar.Received(1).Add("No ISBN found on this page", Severity.Warning, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
         IsbnButtons(cut).Should().BeEmpty();
-        _snackbar.Received(1).Add("No ISBN found on this page", Severity.Warning, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 
     [Fact]
     public async Task ExtractIsbnAsync_Should_ShowAnError_WhenTheOcrFails()
     {
-        _ocrModule.Setup<string>("recognize", _ => true).SetException(new JSException("Unable to load the OCR library"));
-        var cut = RenderReader(pageCount: 20, lastReadPage: 1);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
+        _ocrModule.Setup<string>("recognizeUrl", _ => true).SetException(new JSException("Unable to load the OCR library"));
+        var provider = _ctx.Render<MudPopoverProvider>();
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 1);
 
-        await cut.Find("button[aria-label='Find the ISBN on this page']").ClickAsync(new());
+        await FindIsbnOnThePageAsync(cut, provider);
 
-        _snackbar.Received(1).Add("Unable to read the text of this page", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
-        cut.FindAll("button[aria-label='Find the ISBN on this page']").Should().ContainSingle();
+        await cut.WaitForAssertionAsync(() =>
+            _snackbar.Received(1).Add("Unable to read the text of this page", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
     }
 
     [Fact]
     public async Task ExtractIsbnAsync_Should_IgnoreTheText_WhenThePageWasTurnedMeanwhile()
     {
-        var recognition = _ocrModule.Setup<string>("recognize", _ => true);
-        var cut = RenderReader(pageCount: 20, lastReadPage: 1);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
-        await cut.Find("button[aria-label='Find the ISBN on this page']").ClickAsync(new());
-        await cut.Find("button.reader-zone-next").ClickAsync(new());
+        var recognition = _ocrModule.Setup<string>("recognizeUrl", _ => true);
+        var provider = _ctx.Render<MudPopoverProvider>();
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 1);
+        var extraction = FindIsbnOnThePageAsync(cut, provider);
+        await cut.WaitForAssertionAsync(() => _ocrModule.Invocations.Should().Contain(i => i.Identifier == "recognizeUrl"));
+        await cut.Instance.OnVisiblePageChanged(2);
 
         await cut.InvokeAsync(() => recognition.SetResult("ISBN 978-2-8001-1234-3"));
+        await extraction;
 
-        await cut.WaitForAssertionAsync(() => cut.FindAll("button[aria-label='Find the ISBN on this page']").Should().ContainSingle());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".mud-progress-circular").Should().BeEmpty());
         IsbnButtons(cut).Should().BeEmpty();
     }
 
@@ -280,9 +368,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     private async Task<IRenderedComponent<BookReader>> RenderIsbnSearchAsync(int pageCount, int lastReadPage)
     {
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_bookId}/read?mode=isbn");
-        var cut = RenderReader(pageCount, lastReadPage);
-        await cut.WaitForAssertionAsync(() => cut.FindAll("img.reader-page").Should().ContainSingle());
-        return cut;
+        return await RenderAttachedReaderAsync(pageCount, lastReadPage);
     }
 
     private static Task GoToQuickPageAsync(IRenderedComponent<BookReader> cut, int pageNumber) =>
@@ -293,7 +379,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     {
         var cut = await RenderIsbnSearchAsync(pageCount: 20, lastReadPage: 7);
 
-        CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/0");
+        Counter(cut).Should().Be("1 / 20");
         cut.FindAll("button.reader-quick-page").Select(b => b.TextContent.Trim())
             .Should().Equal("1", "2", "3", "4", "5", "16", "17", "18", "19", "20");
     }
@@ -306,7 +392,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
 
         await cut.Find("button[aria-label='Close reader']").ClickAsync(new());
 
-        CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/18");
+        Counter(cut).Should().Be("19 / 20");
         await _readerService.DidNotReceive().SaveProgressAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
@@ -316,7 +402,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         var cut = await RenderIsbnSearchAsync(pageCount: 20, lastReadPage: 0);
         await GoToQuickPageAsync(cut, 20);
 
-        await cut.Find("button.reader-zone-next").ClickAsync(new());
+        await ClickAsync(cut, "Next page");
 
         cut.Markup.Should().NotContain("You finished this book");
     }
@@ -332,7 +418,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         await cut.WaitForAssertionAsync(() => IsbnButtons(cut).Should().ContainSingle());
         await IsbnButtons(cut).Single().ClickAsync(new());
 
-        CurrentPageSource(cut).Should().Be($"/api/books/{_bookId}/pages/18");
+        ScrolledPages().Should().Equal(18);
         _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_bookId}/find-details?isbn=9782800112343");
         await _readerService.DidNotReceive().SaveProgressAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }

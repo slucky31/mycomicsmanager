@@ -15,60 +15,78 @@
     justify-content: center;
 }
 
-.reader-page {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+/* The pages scroll inside this container: position fixed makes it the offset parent the script measures from. */
+.reader-scroll {
+    position: fixed;
+    inset: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* The script keeps the page being read in place when a page above it loads. */
+    overflow-anchor: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.reader-pages {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Until its image is loaded, a page keeps the usual comic page ratio (PLACEHOLDER_RATIO in bookReader.js). */
+.reader-page-pending {
+    aspect-ratio: 2 / 3;
+}
+
+.reader-page-image {
     display: block;
-}
-
-.reader-preload {
-    display: none;
-}
-
-.reader-zone {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    background: transparent;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-}
-
-.reader-zone-previous {
-    left: 0;
-    width: 30%;
-}
-
-.reader-zone-toggle {
-    left: 30%;
-    width: 40%;
-}
-
-.reader-zone-next {
-    right: 0;
-    width: 30%;
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto 2 / 3;
 }
 
 .reader-toolbar {
-    position: absolute;
+    position: fixed;
     left: 0;
     right: 0;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 4px 12px;
-    background: rgba(0, 0, 0, 0.75);
+    gap: 4px;
+    padding: 0 8px;
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+    background: rgba(19, 27, 44, 0.92);
     z-index: 2;
 }
 
 .reader-toolbar-top {
     top: 0;
+    min-height: 56px;
+    padding-top: env(safe-area-inset-top);
 }
 
 .reader-toolbar-bottom {
     bottom: 0;
+    min-height: 56px;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.reader-progress {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.reader-progress-value {
+    height: 100%;
+    background: #594AE2;
 }
 
 .reader-title {
@@ -88,7 +106,7 @@
 }
 
 .reader-overlay {
-    position: absolute;
+    position: fixed;
     inset: 0;
     display: flex;
     align-items: center;
@@ -108,10 +126,10 @@
 }
 
 .reader-quick-pages {
-    position: absolute;
+    position: fixed;
     left: 0;
     right: 0;
-    bottom: 56px;
+    bottom: calc(56px + env(safe-area-inset-bottom));
     display: flex;
     flex-wrap: wrap;
     justify-content: center;

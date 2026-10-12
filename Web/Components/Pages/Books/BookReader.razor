@@ -4,7 +4,7 @@
 
 <PageTitle>@(_info is null ? "Reader" : _info.Title)</PageTitle>
 
-<div class="book-reader" @ref="_surface">
+<div class="book-reader">
     @if (_isLoading)
     {
         <div class="reader-center">
@@ -24,23 +24,30 @@
     }
     else
     {
-        <img @ref="_pageImage" src="@PageUrl(_currentPage)" alt="@($"Page {_currentPage + 1}")" class="reader-page" />
-
-        @* Preload the neighbouring pages so turning a page is instant (cached by the browser only). *@
-        @if (_currentPage + 1 < _info.PageCount)
-        {
-            <img src="@PageUrl(_currentPage + 1)" alt="" class="reader-preload" aria-hidden="true" />
-        }
-
-        <button type="button" class="reader-zone reader-zone-previous" aria-label="Previous page" @onclick="PreviousPageAsync"></button>
-        <button type="button" class="reader-zone reader-zone-toggle" aria-label="Show or hide the controls" @onclick="ToggleControls"></button>
-        <button type="button" class="reader-zone reader-zone-next" aria-label="Next page" @onclick="NextPageAsync"></button>
+        <div class="reader-scroll" @ref="_scroller">
+            <div class="reader-pages">
+                @for (var i = 0; i < _info.PageCount; i++)
+                {
+                    var pageIndex = i;
+                    @if (_pages.IsRequested(pageIndex))
+                    {
+                        <div class="reader-page" data-page="@pageIndex">
+                            <img src="@PageUrl(pageIndex)" alt="@($"Page {pageIndex + 1}")" class="reader-page-image" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="reader-page reader-page-pending" data-page="@pageIndex"></div>
+                    }
+                }
+            </div>
+        </div>
 
         @if (_showControls)
         {
-            <div class="reader-toolbar reader-toolbar-top">
-                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="CloseAsync" aria-label="Close reader" />
-                <MudText Typo="Typo.subtitle1" Class="reader-title">@_info.Serie - @_info.Title</MudText>
+            <header class="reader-toolbar reader-toolbar-top">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" OnClick="CloseAsync" aria-label="Close reader" />
+                <MudText Typo="Typo.subtitle1" Class="reader-title">@ReaderDisplay.Title(_info.Serie, _info.Title)</MudText>
                 @if (IsIsbnSearch)
                 {
                     <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="reader-mode">ISBN search · progress not saved</MudChip>
@@ -54,17 +61,23 @@
                     }
                     <MudProgressCircular Color="Color.Inherit" Indeterminate="true" Size="Size.Small" Class="mx-3" aria-label="Reading the page" />
                 }
-                else
+                else if (IsIsbnSearch)
                 {
-                    @if (IsIsbnSearch)
-                    {
-                        <MudIconButton Icon="@Icons.Material.Filled.ManageSearch" Color="Color.Inherit" OnClick="ScanIsbnPagesAsync"
-                                       aria-label="Scan the first and last pages" title="Scan the first and last pages" />
-                    }
-                    <MudIconButton Icon="@Icons.Material.Filled.DocumentScanner" Color="Color.Inherit" OnClick="ExtractIsbnAsync"
-                                   aria-label="Find the ISBN on this page" title="Find the ISBN on this page" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ManageSearch" Color="Color.Inherit" OnClick="ScanIsbnPagesAsync"
+                                   aria-label="Scan the first and last pages" title="Scan the first and last pages" />
                 }
-            </div>
+                @if (_canUseFullscreen)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Fullscreen" Color="Color.Inherit" OnClick="ToggleFullscreenAsync"
+                                   aria-label="Full screen" title="Full screen (F)" />
+                }
+                <MudMenu Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Inherit" AriaLabel="More actions"
+                         AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <MudMenuItem Icon="@Icons.Material.Filled.DocumentScanner" Disabled="@_isExtractingIsbn" OnClick="ExtractIsbnAsync">
+                        Find the ISBN on this page
+                    </MudMenuItem>
+                </MudMenu>
+            </header>
 
             @if (_quickPages.Count > 0)
             {
@@ -86,7 +99,7 @@
                 </nav>
             }
 
-            <div class="reader-toolbar reader-toolbar-bottom">
+            <footer class="reader-toolbar reader-toolbar-bottom">
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Color="Color.Inherit"
                                Disabled="@(_currentPage == 0)" OnClick="PreviousPageAsync" aria-label="Previous page" />
                 <MudSlider T="int" Min="1" Max="@_info.PageCount" Value="@(_currentPage + 1)"
@@ -94,6 +107,12 @@
                 <MudText Typo="Typo.body2" Class="reader-counter">@(_currentPage + 1) / @_info.PageCount</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Color="Color.Inherit"
                                OnClick="NextPageAsync" aria-label="Next page" />
+            </footer>
+        }
+        else
+        {
+            <div class="reader-progress" aria-hidden="true">
+                <div class="reader-progress-value" style="width: @ReaderDisplay.ProgressWidth(_currentPage, _info.PageCount)"></div>
             </div>
         }
 
