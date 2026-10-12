@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.34.3"></a>
+## [10.34.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.34.3) (2026-10-12)
+
+### 🐛 Bug Fixes
+
+* **reader:** stay on the page being read when the tablet turns to portrait ([#1124](https://www.github.com/slucky31/mycomicsmanager/issues/1124)) ([44f10c4](https://www.github.com/slucky31/mycomicsmanager/commit/44f10c454c7bb426d5ca9d80c869b871a3f522b2))
+
 <a name="10.34.2"></a>
 ## [10.34.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.34.2) (2026-10-12)
 
