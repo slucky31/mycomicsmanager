@@ -4,31 +4,30 @@ on:
   pull_request:
     branches: [ main ]
 
+# A new push to a PR makes the run in progress for its previous commit useless: cancel it.
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build, Test & Analyze
     runs-on: ubuntu-latest
-    # Integration tests run against a throwaway PostgreSQL on the runner itself: the
-    # self-hosted server is too far from GitHub's runners, and its round-trip latency
-    # made Persistence.Tests take ~2.5 min instead of ~10 s. Keep the major version in
-    # line with production (PostgreSQL 18).
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          # Throwaway database reachable only from this job: no password needed.
-          POSTGRES_HOST_AUTH_METHOD: trust
-          POSTGRES_DB: mcm_tests
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     permissions:
       contents: read
     steps:
+      # Integration tests run against a throwaway PostgreSQL on the runner itself: the
+      # self-hosted server is too far from GitHub's runners, and its round-trip latency
+      # made Persistence.Tests take ~2.5 min instead of ~10 s. Keep the major version in
+      # line with production (PostgreSQL 18).
+      # Started in the background rather than as a job service, which held the first step
+      # for ~15-20 s: the image pull and the start-up now overlap the restore and the build.
+      # Throwaway database reachable only from this job: no password needed.
+      - name: Start PostgreSQL
+        run: >
+          nohup docker run --rm --name postgres -p 5432:5432
+          -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=mcm_tests
+          postgres:18 > "$RUNNER_TEMP/postgres.log" 2>&1 &
       - name : Checkout
         uses: actions/checkout@v7
         with:
@@ -37,7 +36,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          distribution: 'zulu'
+          # Temurin 21 is in the runner's tool cache: nothing to download.
+          distribution: 'temurin'
           java-version: '21'
 
       - name: Setup .NET Core
@@ -76,6 +76,12 @@ jobs:
           /d:sonar.coverage.exclusions="**/wwwroot/js/**"
       - name: Build
         run: dotnet build --configuration Release --no-restore
+      # Checked over TCP: while initializing, the image runs a temporary server on the Unix
+      # socket only, which reports ready before the restart. The log shows why on a timeout.
+      - name: Wait for PostgreSQL
+        run: |
+          timeout 120 bash -c 'until docker exec postgres pg_isready -h 127.0.0.1 -U postgres -q 2>/dev/null; do sleep 1; done' \
+            || { cat "$RUNNER_TEMP/postgres.log"; exit 1; }
       - name: Tests
         run: dotnet test --configuration Release --no-build --no-restore --results-directory "test-results" --coverage --coverage-output-format cobertura
         env:
@@ -85,26 +91,19 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: dotnet-sonarscanner end
 
+  # Runs alongside the build job instead of after it: it only checks that the image still
+  # builds and pushes no image (hence no registry login).
   docker-web:
     name: Docker Build
-    needs: build
-    runs-on: ubuntu-latest
+    # The image targets linux/arm64: a native arm64 runner builds it without QEMU emulation.
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
-      packages: write
     steps:
       - name : Checkout
         uses: actions/checkout@v7
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - name: Log in to the Container registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Docker image MyComicsManagerWeb
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -113,4 +112,7 @@ jobs:
           platforms: linux/arm64
           file: ./Web/Dockerfile
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Only the final image's layers (the apt-get one is worth keeping): the build stage
+          # changes with every commit, and its NuGet packages restore faster than they download
+          # back from the cache.
+          cache-to: type=gha,mode=min

@@ -9,11 +9,21 @@ COPY Application/Application.csproj ./Application/
 COPY Persistence/Persistence.csproj ./Persistence/
 COPY Web/Web.csproj ./Web/
 COPY Directory.Packages.props .
-RUN dotnet restore "./Web/Web.csproj" -a $TARGETARCH
+# The NuGet packages (~1.2 GB) and their download cache stay in BuildKit cache mounts, out of the
+# layer: kept in the CI layer cache, they took longer to download back (~70 s) than to restore.
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    --mount=type=cache,id=nuget-http,target=/root/.local/share/NuGet/http-cache \
+    dotnet restore "./Web/Web.csproj" -a $TARGETARCH
 
 # copy everything else and build app
 COPY . .
-RUN dotnet publish "./Web/Web.csproj" -a $TARGETARCH -o /app
+# The analyzers already ran in the CI build and SonarCloud: skipping them here leaves the
+# binaries unchanged (source generators still run) and saves about a quarter of the compile.
+# No --no-restore: if the restore layer came from the cache while the cache mount is empty,
+# this restores the packages again.
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    --mount=type=cache,id=nuget-http,target=/root/.local/share/NuGet/http-cache \
+    dotnet publish "./Web/Web.csproj" -a $TARGETARCH -o /app -p:RunAnalyzers=false
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0.12-noble
