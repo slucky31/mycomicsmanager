@@ -19,5 +19,6 @@ public sealed record ReaderScriptOptions(bool Paged, bool RightToLeft, bool FitW
     }
 }
 
-// Returned by bookReader.js when it attaches to the reader.
-public sealed record ReaderClientState(bool CanUseFullscreen, bool GestureHelpSeen);
+// Returned by bookReader.js when it attaches to the reader. PortraitAccepted: the reader chose to read in portrait
+// on a phone earlier in this session.
+public sealed record ReaderClientState(bool CanUseFullscreen, bool GestureHelpSeen, bool PortraitAccepted);
