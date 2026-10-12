@@ -97,9 +97,9 @@ export function toggleFullscreen() {
         return;
     }
     if (document.fullscreenElement) {
-        document.exitFullscreen();
+        void document.exitFullscreen();
     } else {
-        document.documentElement.requestFullscreen();
+        void document.documentElement.requestFullscreen();
     }
 }
 
@@ -116,7 +116,7 @@ export function detach() {
     current.scroller.removeEventListener("load", current.onImageLoad, true);
     document.removeEventListener("keydown", current.onKey);
     if (document.fullscreenElement) {
-        document.exitFullscreen();
+        void document.exitFullscreen();
     }
 }
 

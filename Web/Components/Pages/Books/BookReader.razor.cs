@@ -180,7 +180,7 @@ public sealed partial class BookReader : IAsyncDisposable
 
         try
         {
-            await _jsModule.InvokeVoidAsync("scrollToPage", pageIndex);
+            await _jsModule.InvokeVoidAsync("scrollToPage", CancellationToken.None, pageIndex);
         }
         catch (JSException ex)
         {
@@ -210,7 +210,7 @@ public sealed partial class BookReader : IAsyncDisposable
 
         try
         {
-            await _jsModule.InvokeVoidAsync("toggleFullscreen");
+            await _jsModule.InvokeVoidAsync("toggleFullscreen", CancellationToken.None);
         }
         catch (JSException ex)
         {
