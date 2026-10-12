@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.33.1"></a>
+## [10.33.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.33.1) (2026-10-12)
+
+### 🐛 Bug Fixes
+
+* **ui:** version static asset URLs so the iPhone app loads the new styles ([#1120](https://www.github.com/slucky31/mycomicsmanager/issues/1120)) ([f19fb5a](https://www.github.com/slucky31/mycomicsmanager/commit/f19fb5ac631f9fb42d84ed0bb105c317560de530))
+
 <a name="10.33.0"></a>
 ## [10.33.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.33.0) (2026-10-12)
 
