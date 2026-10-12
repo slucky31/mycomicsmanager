@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.33.0"></a>
+## [10.33.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.33.0) (2026-10-12)
+
+### ✨ Features
+
+* **import:** convert comic pages to WebP with SkiaSharp instead of ImageSharp ([#1084](https://www.github.com/slucky31/mycomicsmanager/issues/1084)) ([420c618](https://www.github.com/slucky31/mycomicsmanager/commit/420c61829cde9919f0bf99acac410d8a2e1b2f4d))
+
 <a name="10.32.0"></a>
 ## [10.32.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.32.0) (2026-10-11)
 
