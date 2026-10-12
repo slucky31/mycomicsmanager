@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.34.0"></a>
+## [10.34.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.34.0) (2026-10-12)
+
+### ✨ Features
+
+* **reader:** fit pages to the width with continuous vertical scrolling ([#1121](https://www.github.com/slucky31/mycomicsmanager/issues/1121)) ([e49c88b](https://www.github.com/slucky31/mycomicsmanager/commit/e49c88b8e0520bb4a18b1c096814c2375596809a))
+
 <a name="10.33.1"></a>
 ## [10.33.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.33.1) (2026-10-12)
 
