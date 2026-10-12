@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.34.1"></a>
+## [10.34.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.34.1) (2026-10-12)
+
+### 🐛 Bug Fixes
+
+* **reader:** keep tracking the visible page once new pages are loaded ([#1122](https://www.github.com/slucky31/mycomicsmanager/issues/1122)) ([7984c4c](https://www.github.com/slucky31/mycomicsmanager/commit/7984c4cf4548448bfd70b4443172600f06592e3f))
+
 <a name="10.34.0"></a>
 ## [10.34.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.34.0) (2026-10-12)
 
