@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.37.0"></a>
+## [10.37.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.37.0) (2026-10-12)
+
+### ✨ Features
+
+* **reader:** invite to rotate the phone, with reading in portrait kept ([#1128](https://www.github.com/slucky31/mycomicsmanager/issues/1128)) ([2318131](https://www.github.com/slucky31/mycomicsmanager/commit/2318131577920622e891d9c351801e7bbcfcb5fc))
+
 <a name="10.36.0"></a>
 ## [10.36.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.36.0) (2026-10-12)
 
