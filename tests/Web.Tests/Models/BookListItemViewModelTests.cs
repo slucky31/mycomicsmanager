@@ -41,4 +41,24 @@ public sealed class BookListItemViewModelTests
 
         BookListItemViewModel.From(book).IsbnScanState.Should().Be(IsbnScanState.HasIsbn);
     }
+
+    [Theory]
+    [InlineData("Blacksad", 4, "#4", "Blacksad · #4")]
+    [InlineData("Blacksad", 0, null, "Blacksad")]
+    [InlineData("", 2, "#2", "#2")]
+    public void From_Should_PrepareTheVolumeAndTheSeriesShownOnTheBook(string serie, int volume, string? expectedBadge, string expectedSerie)
+    {
+        var dto = new BookSummaryDto { Id = Guid.CreateVersion7(), Serie = serie, Title = "Âme rouge", VolumeNumber = volume };
+
+        var viewModel = BookListItemViewModel.From(dto);
+
+        viewModel.VolumeBadge.Should().Be(expectedBadge);
+        viewModel.SerieAndVolume.Should().Be(expectedSerie);
+    }
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(2, true)]
+    public void HasBeenRead_Should_BeTrue_WhenTheBookWasReadAtLeastOnce(int readCount, bool expected) =>
+        BookListItemViewModel.From(new BookSummaryDto { Title = "Âme rouge", ReadCount = readCount }).HasBeenRead.Should().Be(expected);
 }

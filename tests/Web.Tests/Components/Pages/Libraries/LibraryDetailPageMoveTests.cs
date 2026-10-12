@@ -55,26 +55,24 @@ public sealed class LibraryDetailPageMoveTests : IAsyncDisposable
     private Task<Result<IPagedList<BookSummaryDto>>> ReceivedPageLoads(int count) =>
         _booksService.Received(count).GetPagedByLibrary(_library.Id, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<BookSortOrder>(), Arg.Any<string?>(), Arg.Any<CancellationToken>());
 
-    [Theory]
-    [InlineData(ViewMode.Cards, 1)]
-    [InlineData(ViewMode.List, 2)]
-    public async Task MoveAsync_Should_ReloadTheBooks_WhenTheBookWasMoved(ViewMode viewMode, int expectedLoads)
+    [Fact]
+    public async Task MoveAsync_Should_ReloadTheBooks_WhenTheBookWasMoved()
     {
         var bookId = Guid.CreateVersion7();
         _workflow.ChooseAndMoveAsync(bookId, Arg.Any<CancellationToken>()).Returns(true);
-        var cut = await RenderAsync(viewMode);
+        var cut = await RenderAsync(ViewMode.List);
 
         await cut.InvokeAsync(() => cut.Instance.MoveAsync(bookId));
 
         await _workflow.Received(1).ChooseAndMoveAsync(bookId, Arg.Any<CancellationToken>());
-        await ReceivedPageLoads(expectedLoads);
+        await ReceivedPageLoads(1);
     }
 
     [Fact]
     public async Task MoveAsync_Should_NotReload_WhenTheBookWasNotMoved()
     {
         _workflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(false);
-        var cut = await RenderAsync(ViewMode.Cards);
+        var cut = await RenderAsync(ViewMode.Covers);
 
         await cut.InvokeAsync(() => cut.Instance.MoveAsync(Guid.CreateVersion7()));
 
@@ -86,7 +84,7 @@ public sealed class LibraryDetailPageMoveTests : IAsyncDisposable
     {
         var pending = new TaskCompletionSource<bool>();
         _workflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(pending.Task);
-        var cut = await RenderAsync(ViewMode.Cards);
+        var cut = await RenderAsync(ViewMode.Covers);
 
         var first = cut.InvokeAsync(() => cut.Instance.MoveAsync(Guid.CreateVersion7()));
         await cut.InvokeAsync(() => cut.Instance.MoveAsync(Guid.CreateVersion7()));
@@ -100,7 +98,7 @@ public sealed class LibraryDetailPageMoveTests : IAsyncDisposable
     public async Task MoveAsync_Should_SwallowCancellation_WhenThePageIsDisposedDuringTheMove()
     {
         _workflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).ThrowsAsync(new OperationCanceledException());
-        var cut = await RenderAsync(ViewMode.Cards);
+        var cut = await RenderAsync(ViewMode.Covers);
 
         var move = () => cut.InvokeAsync(() => cut.Instance.MoveAsync(Guid.CreateVersion7()));
 

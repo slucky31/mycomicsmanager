@@ -1,0 +1,25 @@
+@using Web.Models
+
+@if (Open)
+{
+    <div class="action-sheet-backdrop" @onclick="CloseAsync"></div>
+    <div @ref="_panel"
+         class="@(Anchor is null ? "action-sheet action-sheet-centered" : "action-sheet")"
+         style="@PopupPlacement.Style(Anchor, AlignEnd)"
+         role="dialog"
+         aria-modal="true"
+         aria-label="@AriaLabel"
+         tabindex="-1"
+         @onkeydown="OnKeyDownAsync">
+        <div class="action-sheet-handle" aria-hidden="true"></div>
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <div class="action-sheet-title-row">
+                <h2 class="action-sheet-title">@Title</h2>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="CloseAsync" aria-label="Close" Class="action-sheet-close" />
+            </div>
+        }
+        @Header
+        @ChildContent
+    </div>
+}

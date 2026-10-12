@@ -1,27 +1,14 @@
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
 using Web.Models;
 
 namespace Web.Components.Pages.Libraries.Views;
 
+// List view: 1 column on a phone, 2 on a tablet, 3 on a large screen.
 public partial class BooksListView
 {
     [Parameter, EditorRequired]
-    public Func<TableState, CancellationToken, Task<TableData<BookListItemViewModel>>> ServerData { get; set; } = default!;
+    public IReadOnlyList<BookListItemViewModel> Books { get; set; } = default!;
 
     [Parameter, EditorRequired]
-    public EventCallback<Guid> OnDelete { get; set; }
-
-    [Parameter, EditorRequired]
-    public EventCallback<Guid> OnMove { get; set; }
-
-    [Parameter]
-    public bool ShowDownload { get; set; }
-
-    [Parameter]
-    public EventCallback<Guid> OnDownload { get; set; }
-
-    private MudTable<BookListItemViewModel>? _table;
-
-    public Task ReloadAsync() => _table?.ReloadServerData() ?? Task.CompletedTask;
+    public EventCallback<BookListItemViewModel> OnActions { get; set; }
 }

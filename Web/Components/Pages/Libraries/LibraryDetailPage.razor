@@ -2,242 +2,162 @@
 
 @page "/libraries/{LibraryId}"
 
-@using Domain.Books
 @using Domain.Libraries
 @using Web.Components.Pages.Libraries.Views
 @using Web.Components.SharedComponents
 @using Web.Enums
-@using Web.Validators
+@using Web.Models
 
 <PageTitle>@(_library?.Name ?? "Library") — MyComicsManager</PageTitle>
 
 <div class="library-detail-page">
-    @if (_isLoading)
+    @if (_library is not null)
     {
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
-    }
-    else
-    {
-        @* Library header *@
-        <PageHeader Title="@(_library?.Name ?? "")"
-                    LibraryColor="@_library?.Color"
-                    OnBack="GoBack">
-            <Actions>
-                @* Desktop: view toggle buttons *@
-                <MudButtonGroup OverrideStyles="false" Class="mr-2 d-none d-sm-flex">
-                    <MudTooltip Text="Card View">
-                        <MudIconButton Icon="@Icons.Material.Filled.ViewModule"
-                                       Color="@(_currentViewMode == ViewMode.Cards ? Color.Primary : Color.Default)"
-                                       Variant="@(_currentViewMode == ViewMode.Cards ? Variant.Filled : Variant.Outlined)"
-                                       OnClick="@(() => SetViewModeAsync(ViewMode.Cards))"
-                                       aria-label="Card View"
-                                       Class="view-toggle-btn" />
-                    </MudTooltip>
-                    <MudTooltip Text="Cover View">
-                        <MudIconButton Icon="@Icons.Material.Filled.GridView"
-                                       Color="@(_currentViewMode == ViewMode.Covers ? Color.Primary : Color.Default)"
-                                       Variant="@(_currentViewMode == ViewMode.Covers ? Variant.Filled : Variant.Outlined)"
-                                       OnClick="@(() => SetViewModeAsync(ViewMode.Covers))"
-                                       aria-label="Cover View"
-                                       Class="view-toggle-btn" />
-                    </MudTooltip>
-                    <MudTooltip Text="List View">
-                        <MudIconButton Icon="@Icons.Material.Filled.ViewList"
-                                       Color="@(_currentViewMode == ViewMode.List ? Color.Primary : Color.Default)"
-                                       Variant="@(_currentViewMode == ViewMode.List ? Variant.Filled : Variant.Outlined)"
-                                       OnClick="@(() => SetViewModeAsync(ViewMode.List))"
-                                       aria-label="List View"
-                                       Class="view-toggle-btn" />
-                    </MudTooltip>
-                </MudButtonGroup>
-
-                @* Desktop: sort buttons *@
-                <MudButtonGroup OverrideStyles="false" Class="mr-2 d-none d-sm-flex">
-                    <MudTooltip Text="Sort: newest first">
-                        <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
-                                       Color="@(_currentSortOrder == BookSortOrder.IdDesc ? Color.Primary : Color.Default)"
-                                       Variant="@(_currentSortOrder == BookSortOrder.IdDesc ? Variant.Filled : Variant.Outlined)"
-                                       OnClick="@(() => SetSortOrderAsync(BookSortOrder.IdDesc))"
-                                       aria-label="Sort: newest first"
-                                       Class="view-toggle-btn" />
-                    </MudTooltip>
-                    <MudTooltip Text="Sort: oldest first">
-                        <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
-                                       Color="@(_currentSortOrder == BookSortOrder.IdAsc ? Color.Primary : Color.Default)"
-                                       Variant="@(_currentSortOrder == BookSortOrder.IdAsc ? Variant.Filled : Variant.Outlined)"
-                                       OnClick="@(() => SetSortOrderAsync(BookSortOrder.IdAsc))"
-                                       aria-label="Sort: oldest first"
-                                       Class="view-toggle-btn" />
-                    </MudTooltip>
-                    <MudTooltip Text="Sort: series &amp; volume">
-                        <MudIconButton Icon="@Icons.Material.Filled.SortByAlpha"
-                                       Color="@(_currentSortOrder == BookSortOrder.SerieAndVolumeAsc ? Color.Primary : Color.Default)"
-                                       Variant="@(_currentSortOrder == BookSortOrder.SerieAndVolumeAsc ? Variant.Filled : Variant.Outlined)"
-                                       OnClick="@(() => SetSortOrderAsync(BookSortOrder.SerieAndVolumeAsc))"
-                                       aria-label="Sort: series and volume"
-                                       Class="view-toggle-btn" />
-                    </MudTooltip>
-                </MudButtonGroup>
-
-                @if (_library?.BookType != LibraryBookType.Digital)
-                {
-                    <MudButton StartIcon="@Icons.Material.Filled.Add"
-                               Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               OnClick="AddBook"
-                               Class="d-none d-sm-flex">
-                        New Book
-                    </MudButton>
-                }
-
-                @if (_library?.BookType == LibraryBookType.Digital)
-                {
-                    <MudButton StartIcon="@Icons.Material.Filled.Upload"
-                               Variant="Variant.Outlined"
-                               Color="Color.Secondary"
-                               OnClick="NavigateToImport"
-                               Class="d-none d-sm-flex ml-1">
-                        Import
-                    </MudButton>
-                    <MudIconButton Icon="@Icons.Material.Filled.DocumentScanner"
-                                   Color="Color.Inherit"
-                                   Disabled="_isStartingIsbnScan"
-                                   OnClick="FindMissingIsbnsAsync"
-                                   aria-label="Find the missing ISBNs in the pages"
-                                   title="Find the missing ISBNs in the pages"
-                                   Class="d-none d-sm-flex ml-1" />
-                }
-
-                @* Mobile: 3-dots menu with view + sort options *@
-                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                         AriaLabel="More actions"
-                         Color="Color.Inherit"
-                         Dense="true"
-                         Class="d-flex d-sm-none">
-                    <MudText Typo="Typo.overline" Class="px-4 pt-2 mud-text-secondary">View</MudText>
-                    <MudMenuItem Icon="@Icons.Material.Filled.ViewModule"
-                                 IconColor="@(_currentViewMode == ViewMode.Cards ? Color.Primary : Color.Default)"
-                                 OnClick="@(() => SetViewModeAsync(ViewMode.Cards))">Cards</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Filled.GridView"
-                                 IconColor="@(_currentViewMode == ViewMode.Covers ? Color.Primary : Color.Default)"
-                                 OnClick="@(() => SetViewModeAsync(ViewMode.Covers))">Covers</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Filled.ViewList"
-                                 IconColor="@(_currentViewMode == ViewMode.List ? Color.Primary : Color.Default)"
-                                 OnClick="@(() => SetViewModeAsync(ViewMode.List))">List</MudMenuItem>
-                    <MudDivider Class="my-1" />
-                    <MudText Typo="Typo.overline" Class="px-4 mud-text-secondary">Sort</MudText>
-                    <MudMenuItem Icon="@Icons.Material.Filled.ArrowDownward"
-                                 IconColor="@(_currentSortOrder == BookSortOrder.IdDesc ? Color.Primary : Color.Default)"
-                                 OnClick="@(() => SetSortOrderAsync(BookSortOrder.IdDesc))">Newest first</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Filled.ArrowUpward"
-                                 IconColor="@(_currentSortOrder == BookSortOrder.IdAsc ? Color.Primary : Color.Default)"
-                                 OnClick="@(() => SetSortOrderAsync(BookSortOrder.IdAsc))">Oldest first</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Filled.SortByAlpha"
-                                 IconColor="@(_currentSortOrder == BookSortOrder.SerieAndVolumeAsc ? Color.Primary : Color.Default)"
-                                 OnClick="@(() => SetSortOrderAsync(BookSortOrder.SerieAndVolumeAsc))">Series &amp; volume</MudMenuItem>
-                    @if (_library?.BookType == LibraryBookType.Digital)
+        <header class="@(_isSearchOpen ? "library-bar library-bar-searching" : "library-bar")">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" aria-label="Back to libraries" Class="library-bar-back" />
+            <div class="library-bar-title">
+                <h1>@_library.Name</h1>
+                <div class="library-bar-subtitle">
+                    @LibraryDisplay.Subtitle(_libraryBookCount, _currentSortOrder)<span class="library-bar-view"> · @LibraryDisplay.ViewLabel(_currentViewMode)</span>
+                </div>
+            </div>
+            <div class="library-search">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="CloseSearch" aria-label="Close search" Class="library-search-close" />
+                <label class="library-search-field">
+                    <MudIcon Icon="@Icons.Material.Filled.Search" Class="library-search-icon" />
+                    <input @ref="_searchInput" type="search" placeholder="Search by title or series" aria-label="Search by title or series"
+                           @bind="SearchTerm" @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(SearchTerm))
                     {
-                        <MudDivider Class="my-1" />
-                        <MudMenuItem Icon="@Icons.Material.Filled.Upload" OnClick="NavigateToImport">Import</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.DocumentScanner" Disabled="_isStartingIsbnScan"
-                                     OnClick="FindMissingIsbnsAsync">Find missing ISBNs</MudMenuItem>
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="ClearSearch" aria-label="Clear search" />
                     }
-                </MudMenu>
-            </Actions>
-        </PageHeader>
-
-        @* Search bar — sticky with header *@
-        <div class="library-search-wrapper">
-            <MudTextField @bind-Value="_searchTerm"
-                          Placeholder="Search by title or series…"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          Clearable="true"
-                          Immediate="true"
-                          Variant="Variant.Outlined" />
-        </div>
-        <div class="library-detail-content">
-
-            @* List view: MudTable manages its own empty/no-results states *@
-            @if (_currentViewMode == ViewMode.List)
+                </label>
+            </div>
+            <MudIconButton Icon="@Icons.Material.Filled.Search" OnClick="OpenSearch" aria-label="Search" Class="library-bar-search" />
+            <MudIconButton id="@SortAndViewButtonId" Icon="@Icons.Material.Filled.Tune" OnClick="OpenSortAndViewAsync" aria-label="Sort and view" Class="library-bar-action" />
+            @if (IsDigital)
             {
-                <BooksListView @ref="_booksListView"
-                               ServerData="LoadListDataAsync"
-                               OnDelete="@DeleteAsync"
-                               OnMove="@MoveAsync"
-                               ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
-                               OnDownload="@DownloadBookAsync" />
-            }
-            @* Cards / Covers: check empty states before rendering *@
-            else if (_displayedBooks.Count == 0 && string.IsNullOrWhiteSpace(_searchTerm))
-            {
-                <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Style="min-height: 400px;" Elevation="0">
-                    <MudIcon Icon="@IconPicker.Resolve(_library?.Icon)"
-                             Style="@($"color: {_library?.Color}; font-size: 80px; opacity: 0.4;")" />
-                    <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-4">No books in this library yet</MudText>
-                    @if (_library?.BookType == LibraryBookType.Digital)
-                    {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Start by importing your first ebook</MudText>
-                        <MudButton StartIcon="@Icons.Material.Filled.Upload" Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToImport">
-                            Import
-                        </MudButton>
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Start by adding your first book</MudText>
-                        <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBook">
-                            Add Your First Book
-                        </MudButton>
-                    }
-                </MudPaper>
-            }
-            else if (_displayedBooks.Count == 0)
-            {
-                <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Style="min-height: 300px;" Elevation="0">
-                    <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Secondary" Style="font-size: 64px; opacity: 0.5;" />
-                    <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-4">No results for "@_searchTerm"</MudText>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mt-2" OnClick="@(() => _searchTerm = string.Empty)">
-                        Clear search
-                    </MudButton>
-                </MudPaper>
+                <MudIconButton id="@MoreActionsButtonId" Icon="@Icons.Material.Filled.MoreHoriz" OnClick="OpenMoreActionsAsync" aria-label="More actions" Class="library-bar-action" />
             }
             else
             {
-                @switch (_currentViewMode)
-                {
-                    case ViewMode.Cards:
-                        <BooksCardsView Books="@_displayedBooks"
-                                        OnDelete="@DeleteAsync"
-                                        OnMove="@MoveAsync"
-                                        ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
-                                        OnDownload="@DownloadBookAsync" />
-                        break;
-                    case ViewMode.Covers:
-                        <BooksCoversView Books="@_displayedBooks"
-                                         OnDelete="@DeleteAsync"
-                                         OnMove="@MoveAsync"
-                                         ShowDownload="@(_library?.BookType == LibraryBookType.Digital)"
-                                         OnDownload="@DownloadBookAsync" />
-                        break;
-                }
-                @if (_isLoadingMore)
-                {
-                    <div class="d-flex justify-center pa-4">
-                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
-                    </div>
-                }
-                <div id="scroll-sentinel"></div>
+                <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddBook" aria-label="New book" Class="library-bar-add" />
+                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBook" Class="library-bar-new-book">New book</MudButton>
             }
-        </div>
+        </header>
+
+        @if (!string.IsNullOrEmpty(_shownSearch) && _displayedBooks.Count > 0)
+        {
+            <div class="library-search-results" role="status">@LibraryDisplay.SearchResults(_resultCount, _shownSearch)</div>
+        }
     }
+
+    <div @ref="_content" class="library-detail-content">
+        @if (_isLoading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
+        }
+        else if (_displayedBooks.Count == 0 && string.IsNullOrEmpty(_shownSearch))
+        {
+            <div class="library-empty">
+                <MudIcon Icon="@IconPicker.Resolve(_library?.Icon)" Style="@($"color: {_library?.Color}; font-size: 80px; opacity: 0.4;")" />
+                <MudText Typo="Typo.h6" Class="mt-4">No books in this library yet</MudText>
+                @if (IsDigital)
+                {
+                    <MudText Typo="Typo.body2" Class="library-empty-hint">Start by importing your first ebook</MudText>
+                    <MudButton StartIcon="@Icons.Material.Filled.Upload" Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToImport">Import</MudButton>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Class="library-empty-hint">Start by adding your first book</MudText>
+                    <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBook">Add your first book</MudButton>
+                }
+            </div>
+        }
+        else if (_displayedBooks.Count == 0)
+        {
+            <div class="library-empty">
+                <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 64px; opacity: 0.5;" />
+                <MudText Typo="Typo.h6" Class="mt-4">No results for “@_shownSearch”</MudText>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mt-2" OnClick="ClearSearch">Clear search</MudButton>
+            </div>
+        }
+        else
+        {
+            @if (_currentViewMode == ViewMode.List)
+            {
+                <BooksListView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" />
+            }
+            else
+            {
+                <BooksCoversView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" />
+            }
+            @if (_isLoadingMore)
+            {
+                <div class="d-flex justify-center pa-4">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
+                </div>
+            }
+            <div id="scroll-sentinel"></div>
+        }
+    </div>
 </div>
 
-@* FAB — outside page div to ensure viewport positioning *@
-@if (!_isLoading && _library?.BookType != LibraryBookType.Digital)
+<ActionSheet Open="@(_openSheet == LibrarySheet.SortAndView)" AriaLabel="Sort and view" Title="Sort and view"
+             Anchor="@_sheetAnchor" AlignEnd="true" OnClose="CloseSheet">
+    <div class="action-sheet-section">Sort by</div>
+    <ActionSheetItem Icon="@Icons.Material.Filled.ArrowDownward" Text="Newest first"
+                     Selected="@(_currentSortOrder == BookSortOrder.IdDesc)" OnClick="() => ChooseSortOrderAsync(BookSortOrder.IdDesc)" />
+    <ActionSheetItem Icon="@Icons.Material.Filled.ArrowUpward" Text="Oldest first"
+                     Selected="@(_currentSortOrder == BookSortOrder.IdAsc)" OnClick="() => ChooseSortOrderAsync(BookSortOrder.IdAsc)" />
+    <ActionSheetItem Icon="@Icons.Material.Filled.SortByAlpha" Text="Series & volume"
+                     Selected="@(_currentSortOrder == BookSortOrder.SerieAndVolumeAsc)" OnClick="() => ChooseSortOrderAsync(BookSortOrder.SerieAndVolumeAsc)" />
+    <div class="action-sheet-divider"></div>
+    <div class="action-sheet-section">View</div>
+    <ActionSheetItem Icon="@Icons.Material.Filled.GridView" Text="Covers" Description="Most books on screen"
+                     Selected="@(_currentViewMode == ViewMode.Covers)" OnClick="() => ChooseViewMode(ViewMode.Covers)" />
+    <ActionSheetItem Icon="@Icons.Material.Filled.ViewList" Text="List" Description="Title, series, authors, rating"
+                     Selected="@(_currentViewMode == ViewMode.List)" OnClick="() => ChooseViewMode(ViewMode.List)" />
+</ActionSheet>
+
+<ActionSheet Open="@(_openSheet == LibrarySheet.MoreActions)" AriaLabel="More actions"
+             Anchor="@_sheetAnchor" AlignEnd="true" OnClose="CloseSheet">
+    <ActionSheetItem Icon="@Icons.Material.Filled.Upload" Text="Import" Href="@($"/import?libraryId={LibraryId}")" />
+    <ActionSheetItem Icon="@Icons.Material.Filled.DocumentScanner" Text="Find missing ISBNs"
+                     Disabled="_isStartingIsbnScan" OnClick="FindMissingIsbnsAsync" />
+</ActionSheet>
+
+@if (_actionsBook is { } book)
 {
-    <div class="fab-add-book d-sm-none">
-        <MudFab Color="Color.Primary"
-                StartIcon="@Icons.Material.Filled.Add"
-                OnClick="AddBook" />
-    </div>
+    <ActionSheet Open="@(_openSheet == LibrarySheet.BookActions)" AriaLabel="@($"Actions for {book.Title}")"
+                 Anchor="@_sheetAnchor" AlignEnd="@_sheetAlignEnd" OnClose="CloseSheet">
+        <Header>
+            <div class="book-actions-header">
+                @if (!string.IsNullOrEmpty(book.ImageLink))
+                {
+                    <img src="@book.ImageLink" alt="" />
+                }
+                <div class="book-actions-heading">
+                    <div class="book-actions-title">@book.Title</div>
+                    <div class="book-actions-serie">@book.SerieAndVolume</div>
+                </div>
+            </div>
+        </Header>
+        <ChildContent>
+            @if (IsDigital)
+            {
+                <ActionSheetItem Icon="@Icons.Material.Filled.MenuBook" Text="Read" Href="@($"/books/{book.Id}/read")" />
+            }
+            <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit" Href="@($"/books/{book.Id}/edit")" />
+            <ActionSheetItem Icon="@Icons.Material.Filled.ManageSearch" Text="Import info from the web" Href="@($"/books/{book.Id}/find-details")" />
+            @if (IsDigital)
+            {
+                <ActionSheetItem Icon="@Icons.Material.Filled.DocumentScanner" Text="Find ISBN" Href="@($"/books/{book.Id}/read?mode={Books.BookReader.IsbnSearchMode}")" />
+                <ActionSheetItem Icon="@Icons.Material.Filled.Download" Text="Download CBZ" OnClick="() => DownloadBookAsync(book.Id)" />
+            }
+            <ActionSheetItem Icon="@Icons.Material.Filled.DriveFileMove" Text="Move to another library" OnClick="() => MoveAsync(book.Id)" />
+            <div class="action-sheet-divider"></div>
+            <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete" Danger="true" OnClick="() => DeleteAsync(book.Id)" />
+        </ChildContent>
+    </ActionSheet>
 }

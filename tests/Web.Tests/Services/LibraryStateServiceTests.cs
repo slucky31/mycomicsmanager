@@ -21,14 +21,14 @@ public class LibraryStateServiceTests
     public void Save_Should_PersistState_WhenCalled()
     {
         var libraryId = Guid.NewGuid();
-        var state = new LibraryPageState("batman", ViewMode.Cards);
+        var state = new LibraryPageState("batman", ViewMode.Covers);
 
         _service.Save(libraryId, state);
         var result = _service.Load(libraryId);
 
         result.Should().NotBeNull();
         result!.Search.Should().Be("batman");
-        result.View.Should().Be(ViewMode.Cards);
+        result.View.Should().Be(ViewMode.Covers);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class LibraryStateServiceTests
     {
         var savedId = Guid.NewGuid();
         var otherId = Guid.NewGuid();
-        _service.Save(savedId, new LibraryPageState("x", ViewMode.Cards));
+        _service.Save(savedId, new LibraryPageState("x", ViewMode.Covers));
 
         var result = _service.Load(otherId);
 
@@ -61,7 +61,7 @@ public class LibraryStateServiceTests
     {
         var id1 = Guid.NewGuid();
         var id2 = Guid.NewGuid();
-        _service.Save(id1, new LibraryPageState("search1", ViewMode.Cards));
+        _service.Save(id1, new LibraryPageState("search1", ViewMode.Covers));
         _service.Save(id2, new LibraryPageState("search2", ViewMode.List));
 
         _service.Load(id1)!.Search.Should().Be("search1");

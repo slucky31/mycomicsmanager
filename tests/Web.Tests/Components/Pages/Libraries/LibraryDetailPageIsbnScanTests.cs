@@ -52,7 +52,8 @@ public sealed class LibraryDetailPageIsbnScanTests : IAsyncDisposable
     {
         var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Comics"));
-        await cut.Find("button[aria-label='Find the missing ISBNs in the pages']").ClickAsync(new());
+        await cut.Find("button[aria-label='More actions']").ClickAsync(new());
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Find missing ISBNs')").ClickAsync(new());
     }
 
     private void ShouldShow(string message, Severity severity) =>

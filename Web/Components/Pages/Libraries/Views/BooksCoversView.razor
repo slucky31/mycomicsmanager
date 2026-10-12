@@ -1,72 +1,39 @@
 @using Domain.Books
-@using Web.Components.Pages.Books
 @using Web.Components.SharedComponents
 
-<div>
-<MudGrid Spacing="3">
+<div class="covers-grid">
     @foreach (var book in Books)
     {
-            <MudItem @key="book.Id" xs="6" sm="4" md="3" lg="2">
-            <MudPaper Class="book-cover-card" Elevation="4">
-                @if (!string.IsNullOrEmpty(book.ImageLink))
-                {
-                    <MudImage Src="@book.ImageLink" Alt="@book.Title" Class="book-cover-image" />
-                }
-                else
-                {
-                    <div class="book-cover-placeholder">
-                        <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Style="opacity: 0.8; margin-bottom: 8px;" />
-                        <MudText Typo="Typo.subtitle2" Class="font-weight-bold">@book.Title</MudText>
-                        @if (!string.IsNullOrEmpty(book.Serie))
-                        {
-                            <MudText Typo="Typo.caption" Style="opacity: 0.8;">@book.Serie</MudText>
-                        }
-                    </div>
-                }
-
-                @if (book.VolumeNumber > 0)
-                {
-                    <div class="book-cover-badge">
-                        <MudText Typo="Typo.caption" Style="color: white; font-weight: 600;">Vol. @book.VolumeNumber</MudText>
-                    </div>
-                }
-
-                @if (book.IsbnScanState != IsbnScanState.HasIsbn)
-                {
-                    <div class="book-cover-isbn-state">
-                        <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount"
-                                           HideWhenKnown="true" OnDarkBackground="true" />
-                    </div>
-                }
-
-                <div class="book-cover-actions">
-                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" AriaLabel="More actions">
-                        <MudMenuItem Icon="@Icons.Material.Filled.Visibility" Href="@($"/books/{book.Id}")">View</MudMenuItem>
-                        @if (ShowDownload)
-                        {
-                            <MudMenuItem Icon="@Icons.Material.Filled.MenuBook" Href="@($"/books/{book.Id}/read")">Read</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Filled.DocumentScanner" Href="@($"/books/{book.Id}/read?mode={BookReader.IsbnSearchMode}")">Find ISBN</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Filled.Download" IconColor="Color.Secondary" OnClick="@(() => OnDownload.InvokeAsync(book.Id))">Download CBZ</MudMenuItem>
-                        }
-                        <MudMenuItem Icon="@Icons.Material.Filled.Edit" Href="@($"/books/{book.Id}/edit")">Edit</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.DriveFileMove" OnClick="@(() => OnMove.InvokeAsync(book.Id))">Move to…</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(book.Id))">Delete</MudMenuItem>
-                    </MudMenu>
-                </div>
-
-                <div class="book-cover-overlay">
-                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Style="color: white; line-height: 1.2;">@book.Title</MudText>
-                    @if (!string.IsNullOrEmpty(book.Serie))
+        <div @key="book.Id" class="cover-item" data-book-id="@book.Id">
+            <a class="cover-link" href="@($"/books/{book.Id}")">
+                <span class="cover-frame">
+                    @if (!string.IsNullOrEmpty(book.ImageLink))
                     {
-                        <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.8);">@book.Serie</MudText>
+                        <img class="cover-image" src="@book.ImageLink" alt="@($"Cover of {book.Title}")" loading="lazy" />
                     }
-                    @if (book.LastRating.HasValue)
+                    else
                     {
-                        <MudRating SelectedValue="@book.LastRating.Value" MaxValue="5" Disabled="true" Size="Size.Small" Class="mt-1" />
+                        <span class="cover-placeholder">@book.Title</span>
                     }
-                </div>
-            </MudPaper>
-        </MudItem>
+                    @if (book.VolumeBadge is not null)
+                    {
+                        <span class="cover-volume">@book.VolumeBadge</span>
+                    }
+                    @if (book.IsbnScanState != IsbnScanState.HasIsbn)
+                    {
+                        <span class="cover-isbn-state">
+                            <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount" OnDarkBackground="true" />
+                        </span>
+                    }
+                </span>
+                <span class="cover-title">@book.Title</span>
+                <span class="cover-serie">@book.Serie</span>
+            </a>
+            @* Touch screens open the actions with a long press (libraryPage.js); a mouse shows this button on hover. *@
+            <button type="button" id="@BookActionsIds.Of(book.Id)" class="cover-actions"
+                    aria-label="@($"More actions for {book.Title}")" @onclick="() => OnActions.InvokeAsync(book)">
+                <MudIcon Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
+            </button>
+        </div>
     }
-</MudGrid>
 </div>

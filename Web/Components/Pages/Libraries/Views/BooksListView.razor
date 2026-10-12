@@ -1,83 +1,51 @@
-@using Web.Components.Pages.Books
 @using Web.Components.SharedComponents
 
-<MudPaper Elevation="0">
-    <MudTable @ref="_table" ServerData="ServerData" Hover="true" Breakpoint="Breakpoint.Xs" Dense="true" Striped="true" Class="rounded-lg">
-        <HeaderContent>
-            <MudTh>Series</MudTh>
-            <MudTh Style="text-align: center;">Vol.</MudTh>
-            <MudTh>Title</MudTh>
-            <MudTh Style="text-align: center;">Last Read</MudTh>
-            <MudTh Style="text-align: center;">Last Rating</MudTh>
-            <MudTh>ISBN</MudTh>
-            <MudTh Style="text-align: right;">Actions</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Series">
-                <MudText Typo="Typo.body2" Color="Color.Primary">@context.Serie</MudText>
-            </MudTd>
-            <MudTd DataLabel="Volume" Style="text-align: center;">
-                @if (context.VolumeNumber > 0)
+<div class="list-grid">
+    @foreach (var book in Books)
+    {
+        <div @key="book.Id" class="list-item" data-book-id="@book.Id">
+            <a class="list-link" href="@($"/books/{book.Id}")">
+                @if (!string.IsNullOrEmpty(book.ImageLink))
                 {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Default">@context.VolumeNumber</MudChip>
-                }
-            </MudTd>
-            <MudTd DataLabel="Title">
-                <MudText Typo="Typo.body2" Class="font-weight-medium">@context.Title</MudText>
-            </MudTd>
-            <MudTd DataLabel="Last Read" Style="text-align: center;">
-                @if (context.LastRead.HasValue)
-                {
-                    <MudText Typo="Typo.caption">@context.LastRead.Value.ToString("d")</MudText>
+                    <img class="list-thumb" src="@book.ImageLink" alt="" loading="lazy" />
                 }
                 else
                 {
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
+                    <span class="list-thumb list-thumb-empty" aria-hidden="true"></span>
                 }
-            </MudTd>
-            <MudTd DataLabel="Last Rating" Style="text-align: center;">
-                @if (context.LastRating.HasValue)
-                {
-                    <MudRating SelectedValue="@context.LastRating.Value" MaxValue="5" Disabled="true" Size="Size.Small" />
-                }
-                else
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
-                }
-            </MudTd>
-            <MudTd DataLabel="ISBN">
-                @if (string.IsNullOrEmpty(context.ISBN))
-                {
-                    <IsbnScanStateIcon State="@context.IsbnScanState" CandidateCount="@context.IsbnCandidateCount" />
-                }
-                else
-                {
-                    <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.ISBN</MudText>
-                }
-            </MudTd>
-            <MudTd DataLabel="Actions" Style="text-align: right;" Class="list-actions-cell">
-                <div class="action-buttons">
-                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Default" Href="@($"/books/{context.Id}")" aria-label="View book" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/edit")" aria-label="Edit book" />
-                    @if (ShowDownload)
+                <span class="list-text">
+                    <span class="list-title">@book.Title</span>
+                    @if (!string.IsNullOrEmpty(book.SerieAndVolume))
                     {
-                        <MudIconButton Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/read")" aria-label="Read book" />
-                        <MudIconButton Icon="@Icons.Material.Filled.DocumentScanner" Size="Size.Small" Color="Color.Primary" Href="@($"/books/{context.Id}/read?mode={BookReader.IsbnSearchMode}")" aria-label="Find the ISBN in the pages" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Download" Size="Size.Small" Color="Color.Secondary" OnClick="@(() => OnDownload.InvokeAsync(context.Id))" aria-label="Download CBZ" />
+                        <span class="list-meta">@book.SerieAndVolume</span>
                     }
-                    <MudIconButton Icon="@Icons.Material.Filled.DriveFileMove" Size="Size.Small" Color="Color.Default" OnClick="@(() => OnMove.InvokeAsync(context.Id))" aria-label="Move book to another library" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(e => OnDelete.InvokeAsync(context.Id))" aria-label="Delete book" />
-                </div>
-            </MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-4">No books found.</MudText>
-        </NoRecordsContent>
-        <LoadingContent>
-            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-4">Loading…</MudText>
-        </LoadingContent>
-        <PagerContent>
-            <MudTablePager PageSizeOptions="new int[] { 25, 50, 100 }" />
-        </PagerContent>
-    </MudTable>
-</MudPaper>
+                    @if (!string.IsNullOrEmpty(book.Authors))
+                    {
+                        <span class="list-meta">@book.Authors</span>
+                    }
+                    <span class="list-spacer"></span>
+                    <span class="list-badges">
+                        <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount" Isbn="@book.ISBN" />
+                        @if (book.LastRating is { } rating)
+                        {
+                            <span class="list-rating" role="img" aria-label="@($"Rated {rating} out of 5")">
+                                @for (var star = 1; star <= 5; star++)
+                                {
+                                    <MudIcon Icon="@(star <= rating ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" Class="list-star" />
+                                }
+                            </span>
+                        }
+                        @if (book.HasBeenRead)
+                        {
+                            <span class="list-read"><MudIcon Icon="@Icons.Material.Filled.Check" Class="list-read-icon" />Read</span>
+                        }
+                    </span>
+                </span>
+            </a>
+            <button type="button" id="@BookActionsIds.Of(book.Id)" class="list-actions"
+                    aria-label="@($"More actions for {book.Title}")" @onclick="() => OnActions.InvokeAsync(book)">
+                <MudIcon Icon="@Icons.Material.Filled.MoreVert" />
+            </button>
+        </div>
+    }
+</div>
