@@ -287,7 +287,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7, s_manga);
 
         var attach = _readerModule.Invocations["attach"].Single();
-        attach.Arguments[3].Should().Be(new ReaderScriptOptions(Paged: false, RightToLeft: true, FitWidth: true));
+        attach.Arguments[3].Should().Be(ReaderScriptOptions.From(s_manga));
     }
 
     [Fact]
@@ -297,12 +297,13 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 4);
 
         await ChooseDisplayOptionAsync(cut, "Two pages");
+        var expected = new ReaderSettings(ReaderLayout.TwoPages, ReaderScrolling.Continuous, ReadingDirection.LeftToRight);
 
         Counter(cut).Should().Be("4-5 / 20");
         cut.Find(".reader-scroll").ClassList.Should().Contain(["reader-layout-two", "reader-snap"]);
         await cut.WaitForAssertionAsync(() => _readerModule.Invocations.Should().Contain(i => i.Identifier == "configure"));
-        _readerModule.Invocations["configure"].Single().Arguments.Should().Equal(new ReaderScriptOptions(false, false, false), 2);
-        var expected = new ReaderSettings(ReaderLayout.TwoPages, ReaderScrolling.Continuous, ReadingDirection.LeftToRight);
+        _readerModule.Invocations["configure"].Single().Arguments.Should().Equal(ReaderScriptOptions.From(expected), 2);
+        cut.Find(".reader-scroll").GetAttribute("data-layout").Should().Be("TwoPages-Continuous-LeftToRight");
         await _readerService.Received(1).SaveSettingsAsync(_bookId, expected, Arg.Any<CancellationToken>());
         cut.Find("button.reader-option-selected[aria-pressed='true']").TextContent.Should().Contain("Two pages");
     }

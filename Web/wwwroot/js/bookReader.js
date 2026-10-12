@@ -15,7 +15,7 @@ const GESTURE_HELP_KEY = "mcm.reader.gestureHelpSeen";
 
 let state = null;
 
-// options: { paged, rightToLeft, fitWidth }
+// options: { paged, rightToLeft, fitWidth, key }
 export function attach(scroller, dotNetObjectRef, initialRow, options) {
     detach();
 
@@ -70,7 +70,9 @@ export function attach(scroller, dotNetObjectRef, initialRow, options) {
     // Rotating the tablet changes the width, hence the height of every page: the same scroll offset
     // would land on another page, or past the end of the book once the pages get shorter.
     current.onResize = () => {
-        restoreAnchorIfResized(current);
+        if (isConfiguredForRows(current)) {
+            restoreAnchorIfResized(current);
+        }
     };
 
     current.onKey = (event) => {
@@ -190,6 +192,10 @@ function resetPosition(current, row) {
     current.anchor = readAnchor(current);
 }
 
+function isConfiguredForRows(current) {
+    return current.scroller.dataset.layout === current.options.key;
+}
+
 // The height of the pages follows their width: a new width means the scroll offsets changed.
 function pagesWidth(current) {
     return current.scroller.firstElementChild?.clientWidth ?? current.scroller.clientWidth;
@@ -264,6 +270,12 @@ function isAtEnd(scroller) {
 }
 
 function reportPosition(current) {
+    // New settings were rendered but not yet sent to the script: the rows on screen changed under it
+    // (switching to page by page leaves one row, scrolled to its bottom). It is not the reader moving.
+    if (!isConfiguredForRows(current)) {
+        return;
+    }
+
     // Browsers may report the scroll caused by a rotation before the resize event:
     // it is not the reader moving, the page being read is put back instead.
     if (restoreAnchorIfResized(current)) {

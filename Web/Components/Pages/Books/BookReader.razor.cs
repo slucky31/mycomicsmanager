@@ -94,7 +94,7 @@ public sealed partial class BookReader : IAsyncDisposable
 
     private bool IsLastRow => _spreads is null || _currentRow >= _spreads.Count - 1;
 
-    private ReaderScriptOptions ScriptOptions => new(IsPaged, IsRightToLeft, _settings.Layout == ReaderLayout.FitWidth);
+    private ReaderScriptOptions ScriptOptions => ReaderScriptOptions.From(_settings);
 
     private string ScrollerClass
     {
