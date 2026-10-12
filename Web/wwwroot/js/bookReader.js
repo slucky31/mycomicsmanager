@@ -18,7 +18,6 @@ export function attach(scroller, dotNetObjectRef, initialPage) {
     const current = {
         scroller,
         dotNetObjectRef,
-        pages: Array.from(scroller.querySelectorAll("[data-page]")),
         visiblePage: initialPage,
         atEnd: false,
         frame: 0,
@@ -120,8 +119,13 @@ export function detach() {
     }
 }
 
+// The page elements are read again at each use: Blazor may replace an element when it re-renders the pages.
+function pagesOf(current) {
+    return current.scroller.querySelectorAll("[data-page]");
+}
+
 function scrollToPageOf(current, pageIndex) {
-    const page = current.pages[pageIndex];
+    const page = pagesOf(current)[pageIndex];
     if (page) {
         current.scroller.scrollTop = page.offsetTop;
     }
@@ -159,15 +163,16 @@ function reportPosition(current) {
 // The pages are in order: the last one starting above the probe line is the visible one.
 // At the bottom of the book, a short last page may never reach that line: it is still the one read.
 function findVisiblePage(current) {
+    const pages = pagesOf(current);
     if (isAtEnd(current.scroller)) {
-        return current.pages.length - 1;
+        return pages.length - 1;
     }
     const probe = current.scroller.scrollTop + current.scroller.clientHeight * VISIBLE_PAGE_PROBE;
     let low = 0;
-    let high = current.pages.length - 1;
+    let high = pages.length - 1;
     while (low < high) {
         const middle = Math.ceil((low + high) / 2);
-        if (current.pages[middle].offsetTop <= probe) {
+        if (pages[middle].offsetTop <= probe) {
             low = middle;
         } else {
             high = middle - 1;
