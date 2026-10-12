@@ -29,16 +29,14 @@
                 @for (var i = 0; i < _info.PageCount; i++)
                 {
                     var pageIndex = i;
-                    @if (_pages.IsRequested(pageIndex))
-                    {
-                        <div class="reader-page" data-page="@pageIndex">
+                    var isRequested = _pages.IsRequested(pageIndex);
+                    @* One element per page, kept across renders: only its image is added, so the scroll position holds. *@
+                    <div class="@(isRequested ? "reader-page" : "reader-page reader-page-pending")" data-page="@pageIndex">
+                        @if (isRequested)
+                        {
                             <img src="@PageUrl(pageIndex)" alt="@($"Page {pageIndex + 1}")" class="reader-page-image" />
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="reader-page reader-page-pending" data-page="@pageIndex"></div>
-                    }
+                        }
+                    </div>
                 }
             </div>
         </div>
