@@ -21,10 +21,12 @@ export function attach(scroller, dotNetObjectRef, initialPage) {
         visiblePage: initialPage,
         atEnd: false,
         frame: 0,
+        anchor: { page: initialPage, ratio: 0 },
     };
 
     scrollToPageOf(current, initialPage);
     current.atEnd = isAtEnd(scroller);
+    current.anchor = readAnchor(current);
 
     current.onScroll = () => {
         if (current.frame === 0) {
@@ -60,6 +62,14 @@ export function attach(scroller, dotNetObjectRef, initialPage) {
         }
     };
 
+    // Rotating the tablet changes the width, hence the height of every page: the same scroll offset
+    // would land on a page much further (and not loaded yet). The page being read is put back on screen.
+    // The resize event comes before the scroll and animation frame callbacks, so the anchor is still
+    // the one read before the rotation.
+    current.onResize = () => {
+        restoreAnchor(current);
+    };
+
     current.onKey = (event) => {
         if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
             return;
@@ -80,6 +90,7 @@ export function attach(scroller, dotNetObjectRef, initialPage) {
     scroller.addEventListener("click", current.onClick);
     scroller.addEventListener("load", current.onImageLoad, true);
     document.addEventListener("keydown", current.onKey);
+    window.addEventListener("resize", current.onResize);
     state = current;
 
     return document.fullscreenEnabled === true;
@@ -114,6 +125,7 @@ export function detach() {
     current.scroller.removeEventListener("click", current.onClick);
     current.scroller.removeEventListener("load", current.onImageLoad, true);
     document.removeEventListener("keydown", current.onKey);
+    window.removeEventListener("resize", current.onResize);
     if (document.fullscreenElement) {
         void document.exitFullscreen();
     }
@@ -147,6 +159,8 @@ function isAtEnd(scroller) {
 }
 
 function reportPosition(current) {
+    current.anchor = readAnchor(current);
+
     const visiblePage = findVisiblePage(current);
     if (visiblePage !== current.visiblePage) {
         current.visiblePage = visiblePage;
@@ -168,15 +182,40 @@ function findVisiblePage(current) {
         return pages.length - 1;
     }
     const probe = current.scroller.scrollTop + current.scroller.clientHeight * VISIBLE_PAGE_PROBE;
+    return pageAt(pages, probe);
+}
+
+// The pages are in order: the last one starting above the line y.
+function pageAt(pages, y) {
     let low = 0;
     let high = pages.length - 1;
     while (low < high) {
         const middle = Math.ceil((low + high) / 2);
-        if (pages[middle].offsetTop <= probe) {
+        if (pages[middle].offsetTop <= y) {
             low = middle;
         } else {
             high = middle - 1;
         }
     }
     return low;
+}
+
+// The page at the top of the screen, and how far into it the screen starts (0 = its top, 1 = its bottom).
+function readAnchor(current) {
+    const pages = pagesOf(current);
+    if (pages.length === 0) {
+        return current.anchor;
+    }
+    const top = current.scroller.scrollTop;
+    const page = pageAt(pages, top);
+    const element = pages[page];
+    const ratio = element.offsetHeight > 0 ? (top - element.offsetTop) / element.offsetHeight : 0;
+    return { page, ratio };
+}
+
+function restoreAnchor(current) {
+    const element = pagesOf(current)[current.anchor.page];
+    if (element) {
+        current.scroller.scrollTop = element.offsetTop + current.anchor.ratio * element.offsetHeight;
+    }
 }
