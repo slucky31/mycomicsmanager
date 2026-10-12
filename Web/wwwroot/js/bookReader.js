@@ -21,7 +21,7 @@ export function attach(scroller, dotNetObjectRef, initialPage) {
         visiblePage: initialPage,
         atEnd: false,
         frame: 0,
-        anchor: { page: initialPage, ratio: 0 },
+        anchor: { page: initialPage, ratio: 0, width: 0 },
     };
 
     scrollToPageOf(current, initialPage);
@@ -63,11 +63,9 @@ export function attach(scroller, dotNetObjectRef, initialPage) {
     };
 
     // Rotating the tablet changes the width, hence the height of every page: the same scroll offset
-    // would land on a page much further (and not loaded yet). The page being read is put back on screen.
-    // The resize event comes before the scroll and animation frame callbacks, so the anchor is still
-    // the one read before the rotation.
+    // would land on another page, or past the end of the book once the pages get shorter.
     current.onResize = () => {
-        restoreAnchor(current);
+        restoreAnchorIfResized(current);
     };
 
     current.onKey = (event) => {
@@ -131,6 +129,11 @@ export function detach() {
     }
 }
 
+// The height of the pages follows their width: a new width means the scroll offsets changed.
+function pagesWidth(current) {
+    return current.scroller.firstElementChild?.clientWidth ?? current.scroller.clientWidth;
+}
+
 // The page elements are read again at each use: Blazor may replace an element when it re-renders the pages.
 function pagesOf(current) {
     return current.scroller.querySelectorAll("[data-page]");
@@ -159,6 +162,11 @@ function isAtEnd(scroller) {
 }
 
 function reportPosition(current) {
+    // Browsers may report the scroll caused by a rotation before the resize event:
+    // it is not the reader moving, the page being read is put back instead.
+    if (restoreAnchorIfResized(current)) {
+        return;
+    }
     current.anchor = readAnchor(current);
 
     const visiblePage = findVisiblePage(current);
@@ -210,12 +218,19 @@ function readAnchor(current) {
     const page = pageAt(pages, top);
     const element = pages[page];
     const ratio = element.offsetHeight > 0 ? (top - element.offsetTop) / element.offsetHeight : 0;
-    return { page, ratio };
+    return { page, ratio, width: pagesWidth(current) };
 }
 
-function restoreAnchor(current) {
+// Returns true when the width changed since the anchor was read, after putting its page back on screen.
+function restoreAnchorIfResized(current) {
+    const width = pagesWidth(current);
+    if (width === current.anchor.width) {
+        return false;
+    }
     const element = pagesOf(current)[current.anchor.page];
     if (element) {
         current.scroller.scrollTop = element.offsetTop + current.anchor.ratio * element.offsetHeight;
     }
+    current.anchor = { ...current.anchor, width };
+    return true;
 }
