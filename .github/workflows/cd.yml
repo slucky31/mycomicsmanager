@@ -104,6 +104,7 @@ jobs:
           /o:"slucky31-1"
           /v:"${{ steps.version.outputs.version }}"
           /d:sonar.cs.cobertura.reportsPaths="**/*.cobertura.xml"
+          /d:sonar.coverage.exclusions="**/wwwroot/js/**"
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Tests

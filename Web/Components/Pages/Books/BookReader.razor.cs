@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Web.Infrastructure;
+using Web.Models;
 using Web.Services;
 
 namespace Web.Components.Pages.Books;
@@ -43,10 +44,11 @@ public sealed partial class BookReader : IAsyncDisposable
     private bool _isExtractingIsbn;
     private IReadOnlyList<string> _isbnCandidates = [];
     private IReadOnlyList<int> _quickPages = [];
+    private ReaderPageWindow _pages = new(0);
+    private bool _canUseFullscreen;
     private string? _scanProgress;
 
-    private ElementReference _surface;
-    private ElementReference _pageImage;
+    private ElementReference _scroller;
     private IJSObjectReference? _jsModule;
     private IJSObjectReference? _ocrModule;
     private DotNetObjectReference<BookReader>? _dotNetObjectRef;
@@ -72,6 +74,8 @@ public sealed partial class BookReader : IAsyncDisposable
                 _savedPage = _info.LastReadPage;
                 _currentPage = IsIsbnSearch ? 0 : _info.LastReadPage;
                 _quickPages = IsIsbnSearch ? IsbnScanPages.GetPagesInReadingOrder(_info.PageCount) : [];
+                _pages = new ReaderPageWindow(_info.PageCount);
+                _pages.RequestAround(_currentPage);
             }
             else if (result.IsFailure)
             {
@@ -101,13 +105,15 @@ public sealed partial class BookReader : IAsyncDisposable
         {
             _dotNetObjectRef ??= DotNetObjectReference.Create(this);
             var module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", AppVersion.Versioned("./js/bookReader.js"));
-            await module.InvokeVoidAsync("attach", _surface, _dotNetObjectRef);
+            var canUseFullscreen = await module.InvokeAsync<bool>("attach", _scroller, _dotNetObjectRef, _currentPage);
             _jsModule = module;
+            _canUseFullscreen = canUseFullscreen;
+            StateHasChanged();
         }
         catch (JSException ex)
         {
-            // Keyboard and swipe are a convenience: the on-screen controls still work.
-            Logger.LogWarning(ex, "Unable to attach the reader keyboard and swipe navigation");
+            // The pages can still be scrolled with the finger, but taps and shortcuts do nothing.
+            Logger.LogWarning(ex, "Unable to attach the reader taps, keyboard and page tracking");
         }
     }
 
@@ -120,6 +126,27 @@ public sealed partial class BookReader : IAsyncDisposable
         _ => Task.CompletedTask,
     };
 
+    // The reader scrolled to another page: the counter and the saved progress follow it.
+    [JSInvokable]
+    public Task OnVisiblePageChanged(int pageIndex) => InvokeAsync(() =>
+    {
+        if (_info is not null && pageIndex >= 0 && pageIndex < _info.PageCount && pageIndex != _currentPage)
+        {
+            SetCurrentPage(pageIndex);
+        }
+    });
+
+    // The reader reached the bottom of the last page.
+    [JSInvokable]
+    public Task OnReachedEnd() => InvokeAsync(ShowFinish);
+
+    [JSInvokable]
+    public Task OnCenterTap() => InvokeAsync(() =>
+    {
+        ToggleControls();
+        StateHasChanged();
+    });
+
     private string PageUrl(int pageIndex) => $"/api/books/{_bookGuid}/pages/{pageIndex}";
 
     private Task PreviousPageAsync() => GoToPageAsync(_currentPage - 1);
@@ -128,37 +155,74 @@ public sealed partial class BookReader : IAsyncDisposable
     {
         if (_info is not null && _currentPage >= _info.PageCount - 1)
         {
-            // Looking for the ISBN on the back cover is not finishing the book.
-            _showFinish = !IsIsbnSearch;
-            StateHasChanged();
+            ShowFinish();
             return Task.CompletedTask;
         }
 
         return GoToPageAsync(_currentPage + 1);
     }
 
+    private void ShowFinish()
+    {
+        // Looking for the ISBN on the back cover is not finishing the book.
+        _showFinish = !IsIsbnSearch;
+        StateHasChanged();
+    }
+
     private Task OnSliderChangedAsync(int pageNumber) => GoToPageAsync(pageNumber - 1);
 
-    private Task GoToPageAsync(int pageIndex)
+    private async Task GoToPageAsync(int pageIndex)
     {
-        if (_info is null || pageIndex < 0 || pageIndex >= _info.PageCount || pageIndex == _currentPage)
+        if (_info is null || _jsModule is null || pageIndex < 0 || pageIndex >= _info.PageCount || pageIndex == _currentPage)
         {
-            return Task.CompletedTask;
+            return;
         }
 
+        try
+        {
+            await _jsModule.InvokeVoidAsync("scrollToPage", CancellationToken.None, pageIndex);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogWarning(ex, "Unable to scroll to page {PageIndex} of book {BookId}", pageIndex, BookId);
+            return;
+        }
+
+        SetCurrentPage(pageIndex);
+    }
+
+    private void SetCurrentPage(int pageIndex)
+    {
         _currentPage = pageIndex;
+        _pages.RequestAround(pageIndex);
         StateHasChanged();
         ScheduleProgressSave();
-        return Task.CompletedTask;
     }
 
     private void ToggleControls() => _showControls = !_showControls;
+
+    private async Task ToggleFullscreenAsync()
+    {
+        if (_jsModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _jsModule.InvokeVoidAsync("toggleFullscreen", CancellationToken.None);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogWarning(ex, "Unable to toggle the full screen mode of the reader");
+        }
+    }
 
     private void CloseFinish() => _showFinish = false;
 
     private void CloseIsbnCandidates() => _isbnCandidates = [];
 
-    // The OCR runs in the browser on the page already displayed: only its text comes back.
+    // The OCR runs in the browser on the page being read (already in its cache): only its text comes back.
     private async Task ExtractIsbnAsync()
     {
         if (_isExtractingIsbn)
@@ -172,7 +236,7 @@ public sealed partial class BookReader : IAsyncDisposable
         try
         {
             var module = await GetOcrModuleAsync();
-            var text = await module.InvokeAsync<string>("recognize", s_isbnOcrTimeout, _pageImage);
+            var text = await module.InvokeAsync<string>("recognizeUrl", s_isbnOcrTimeout, PageUrl(pageIndex));
             if (pageIndex != _currentPage)
             {
                 // The reader turned the page meanwhile: this text belongs to another page.
