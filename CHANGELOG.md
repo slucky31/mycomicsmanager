@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.36.0"></a>
+## [10.36.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.36.0) (2026-10-12)
+
+### ✨ Features
+
+* **ci:** speed up the CI and CD workflows ([#1127](https://www.github.com/slucky31/mycomicsmanager/issues/1127)) ([0872961](https://www.github.com/slucky31/mycomicsmanager/commit/08729613a0187014a2486f52645d66fc962a231a))
+
 <a name="10.35.1"></a>
 ## [10.35.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.35.1) (2026-10-12)
 
