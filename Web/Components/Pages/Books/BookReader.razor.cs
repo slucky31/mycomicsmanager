@@ -1,5 +1,6 @@
 using Application.Books.Read;
 using Application.Helpers;
+using Domain.Books;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -18,6 +19,25 @@ public sealed partial class BookReader : IAsyncDisposable
 
     // The first OCR also downloads the engine and its language data.
     private static readonly TimeSpan s_isbnOcrTimeout = TimeSpan.FromMinutes(2);
+
+    private static readonly DisplayOption<ReaderLayout>[] s_layoutOptions =
+    [
+        new(ReaderLayout.FitWidth, "Fit width", Icons.Material.Filled.WidthFull),
+        new(ReaderLayout.SinglePage, "Single page", Icons.Material.Filled.CropPortrait),
+        new(ReaderLayout.TwoPages, "Two pages", Icons.Material.Filled.MenuBook),
+    ];
+
+    private static readonly DisplayOption<ReaderScrolling>[] s_scrollingOptions =
+    [
+        new(ReaderScrolling.Continuous, "Continuous", Icons.Material.Filled.SwapVert),
+        new(ReaderScrolling.PageByPage, "Page by page", Icons.Material.Filled.AutoStories),
+    ];
+
+    private static readonly DisplayOption<ReadingDirection>[] s_directionOptions =
+    [
+        new(ReadingDirection.LeftToRight, "Left to right", Icons.Material.Filled.East),
+        new(ReadingDirection.RightToLeft, "Right to left", Icons.Material.Filled.West),
+    ];
 
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBookReaderService BookReaderService { get; set; } = default!;
@@ -45,7 +65,16 @@ public sealed partial class BookReader : IAsyncDisposable
     private IReadOnlyList<string> _isbnCandidates = [];
     private IReadOnlyList<int> _quickPages = [];
     private ReaderPageWindow _pages = new(0);
+    private ReaderSettings _settings = ReaderSettings.Default;
+    private ReaderSpreads? _spreads;
+    private int _currentRow;
     private bool _canUseFullscreen;
+    private bool _showDisplayPanel;
+    private bool _showGestureHelp;
+    // The rows were rendered again for new settings: the script must be told before it measures them.
+    private bool _pendingConfigure;
+    // Page by page, a new page was rendered: the script shows its top.
+    private bool _pendingScroll;
     private string? _scanProgress;
 
     private ElementReference _scroller;
@@ -56,6 +85,43 @@ public sealed partial class BookReader : IAsyncDisposable
     private CancellationTokenSource? _scanCts;
 
     private bool IsIsbnSearch => string.Equals(Mode, IsbnSearchMode, StringComparison.OrdinalIgnoreCase);
+
+    private bool IsPaged => _settings.Scrolling == ReaderScrolling.PageByPage;
+
+    private bool IsRightToLeft => _settings.Direction == ReadingDirection.RightToLeft;
+
+    private bool IsFirstRow => _currentRow == 0;
+
+    private bool IsLastRow => _spreads is null || _currentRow >= _spreads.Count - 1;
+
+    private ReaderScriptOptions ScriptOptions => new(IsPaged, IsRightToLeft, _settings.Layout == ReaderLayout.FitWidth);
+
+    private string ScrollerClass
+    {
+        get
+        {
+            var layout = _settings.Layout switch
+            {
+                ReaderLayout.SinglePage => "reader-layout-single",
+                ReaderLayout.TwoPages => "reader-layout-two",
+                _ => "reader-layout-fit",
+            };
+            // Continuously scrolled pages that fill the screen snap into place.
+            var snap = !IsPaged && _settings.Layout != ReaderLayout.FitWidth ? " reader-snap" : string.Empty;
+            return $"reader-scroll {layout}{snap}";
+        }
+    }
+
+    // Page by page, only the current row is in the document.
+    private IEnumerable<int> DisplayedRows => _spreads is null
+        ? []
+        : IsPaged ? [_currentRow] : Enumerable.Range(0, _spreads.Count);
+
+    private IEnumerable<int> PreloadedPages => IsPaged && _spreads is not null && !IsLastRow
+        ? _spreads.PagesOf(_currentRow + 1)
+        : [];
+
+    private static string OptionClass(bool selected) => selected ? "reader-option reader-option-selected" : "reader-option";
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,10 +138,11 @@ public sealed partial class BookReader : IAsyncDisposable
             {
                 _info = result.Value;
                 _savedPage = _info.LastReadPage;
-                _currentPage = IsIsbnSearch ? 0 : _info.LastReadPage;
                 _quickPages = IsIsbnSearch ? IsbnScanPages.GetPagesInReadingOrder(_info.PageCount) : [];
                 _pages = new ReaderPageWindow(_info.PageCount);
-                _pages.RequestAround(_currentPage);
+                _settings = _info.Settings;
+                _spreads = ReaderSpreads.Build(_info.PageCount, _settings);
+                ShowRow(_spreads.RowOf(IsIsbnSearch ? 0 : _info.LastReadPage));
             }
             else if (result.IsFailure)
             {
@@ -96,18 +163,37 @@ public sealed partial class BookReader : IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_info is null || _jsModule is not null)
+        if (_info is null)
         {
             return;
         }
 
+        if (_jsModule is null)
+        {
+            await AttachScriptAsync();
+        }
+        else if (_pendingConfigure)
+        {
+            await ConfigureScriptAsync();
+        }
+        else if (_pendingScroll)
+        {
+            await ScrollToCurrentRowAsync();
+        }
+    }
+
+    private async Task AttachScriptAsync()
+    {
         try
         {
             _dotNetObjectRef ??= DotNetObjectReference.Create(this);
             var module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", AppVersion.Versioned("./js/bookReader.js"));
-            var canUseFullscreen = await module.InvokeAsync<bool>("attach", _scroller, _dotNetObjectRef, _currentPage);
+            var clientState = await module.InvokeAsync<ReaderClientState?>("attach", _scroller, _dotNetObjectRef, _currentRow, ScriptOptions);
             _jsModule = module;
-            _canUseFullscreen = canUseFullscreen;
+            _pendingConfigure = false;
+            _pendingScroll = false;
+            _canUseFullscreen = clientState?.CanUseFullscreen ?? false;
+            _showGestureHelp = clientState is { GestureHelpSeen: false };
             StateHasChanged();
         }
         catch (JSException ex)
@@ -117,24 +203,55 @@ public sealed partial class BookReader : IAsyncDisposable
         }
     }
 
+    private async Task ConfigureScriptAsync()
+    {
+        try
+        {
+            await _jsModule!.InvokeVoidAsync("configure", CancellationToken.None, ScriptOptions, _currentRow);
+            _pendingConfigure = false;
+            _pendingScroll = false;
+        }
+        catch (JSException ex)
+        {
+            Logger.LogWarning(ex, "Unable to apply the display settings of book {BookId} to the reader", BookId);
+        }
+    }
+
+    private async Task ScrollToCurrentRowAsync()
+    {
+        try
+        {
+            await _jsModule!.InvokeVoidAsync("scrollToRow", CancellationToken.None, _currentRow);
+            _pendingScroll = false;
+        }
+        catch (JSException ex)
+        {
+            Logger.LogWarning(ex, "Unable to show page {PageIndex} of book {BookId}", _currentPage, BookId);
+        }
+    }
+
     [JSInvokable]
     public Task OnNavigationKey(string key) => key switch
     {
-        "ArrowLeft" => InvokeAsync(PreviousPageAsync),
-        "ArrowRight" => InvokeAsync(NextPageAsync),
+        "ArrowLeft" => InvokeAsync(LeftArrowAsync),
+        "ArrowRight" => InvokeAsync(RightArrowAsync),
         "Escape" => InvokeAsync(CloseAsync),
         _ => Task.CompletedTask,
     };
 
-    // The reader scrolled to another page: the counter and the saved progress follow it.
+    // The reader scrolled to another row: the counter and the saved progress follow it.
     [JSInvokable]
-    public Task OnVisiblePageChanged(int pageIndex) => InvokeAsync(() =>
+    public Task OnVisibleRowChanged(int row) => InvokeAsync(() =>
     {
-        if (_info is not null && pageIndex >= 0 && pageIndex < _info.PageCount && pageIndex != _currentPage)
+        if (_spreads is not null && row >= 0 && row < _spreads.Count && row != _currentRow)
         {
-            SetCurrentPage(pageIndex);
+            SetCurrentRow(row);
         }
     });
+
+    // Page by page: a tap, a swipe or the space bar went past the page shown.
+    [JSInvokable]
+    public Task OnTurnPage(int direction) => InvokeAsync(direction > 0 ? NextPageAsync : PreviousPageAsync);
 
     // The reader reached the bottom of the last page.
     [JSInvokable]
@@ -149,17 +266,22 @@ public sealed partial class BookReader : IAsyncDisposable
 
     private string PageUrl(int pageIndex) => $"/api/books/{_bookGuid}/pages/{pageIndex}";
 
-    private Task PreviousPageAsync() => GoToPageAsync(_currentPage - 1);
+    // Mangas are read from right to left: the arrow pointing left goes to the next page.
+    private Task LeftArrowAsync() => IsRightToLeft ? NextPageAsync() : PreviousPageAsync();
+
+    private Task RightArrowAsync() => IsRightToLeft ? PreviousPageAsync() : NextPageAsync();
+
+    private Task PreviousPageAsync() => GoToRowAsync(_currentRow - 1);
 
     private Task NextPageAsync()
     {
-        if (_info is not null && _currentPage >= _info.PageCount - 1)
+        if (IsLastRow)
         {
             ShowFinish();
             return Task.CompletedTask;
         }
 
-        return GoToPageAsync(_currentPage + 1);
+        return GoToRowAsync(_currentRow + 1);
     }
 
     private void ShowFinish()
@@ -171,32 +293,115 @@ public sealed partial class BookReader : IAsyncDisposable
 
     private Task OnSliderChangedAsync(int pageNumber) => GoToPageAsync(pageNumber - 1);
 
-    private async Task GoToPageAsync(int pageIndex)
+    private Task GoToPageAsync(int pageIndex) =>
+        _info is null || pageIndex < 0 || pageIndex >= _info.PageCount
+            ? Task.CompletedTask
+            : GoToRowAsync(_spreads!.RowOf(pageIndex));
+
+    private async Task GoToRowAsync(int row)
     {
-        if (_info is null || _jsModule is null || pageIndex < 0 || pageIndex >= _info.PageCount || pageIndex == _currentPage)
+        if (_spreads is null || row < 0 || row >= _spreads.Count || row == _currentRow)
+        {
+            return;
+        }
+
+        if (IsPaged)
+        {
+            // The new page is rendered first, then shown from its top.
+            _pendingScroll = true;
+            SetCurrentRow(row);
+            return;
+        }
+
+        if (_jsModule is null)
         {
             return;
         }
 
         try
         {
-            await _jsModule.InvokeVoidAsync("scrollToPage", CancellationToken.None, pageIndex);
+            await _jsModule.InvokeVoidAsync("scrollToRow", CancellationToken.None, row);
         }
         catch (JSException ex)
         {
-            Logger.LogWarning(ex, "Unable to scroll to page {PageIndex} of book {BookId}", pageIndex, BookId);
+            Logger.LogWarning(ex, "Unable to scroll to page {PageIndex} of book {BookId}", _spreads.FirstPageOf(row), BookId);
             return;
         }
 
-        SetCurrentPage(pageIndex);
+        SetCurrentRow(row);
     }
 
-    private void SetCurrentPage(int pageIndex)
+    private void SetCurrentRow(int row)
     {
-        _currentPage = pageIndex;
-        _pages.RequestAround(pageIndex);
+        ShowRow(row);
         StateHasChanged();
         ScheduleProgressSave();
+    }
+
+    // The progress points at the first page of the row; the pages around it are loaded.
+    private void ShowRow(int row)
+    {
+        _currentRow = row;
+        _currentPage = _spreads!.FirstPageOf(row);
+        _pages.RequestAround(_currentPage);
+        _pages.RequestAround(_spreads.LastPageOf(row));
+    }
+
+    private void OpenDisplayPanel() => _showDisplayPanel = true;
+
+    private void CloseDisplayPanel() => _showDisplayPanel = false;
+
+    private Task ChangeLayoutAsync(ReaderLayout layout) => ApplySettingsAsync(_settings with { Layout = layout });
+
+    private Task ChangeScrollingAsync(ReaderScrolling scrolling) => ApplySettingsAsync(_settings with { Scrolling = scrolling });
+
+    private Task ChangeDirectionAsync(ReadingDirection direction) => ApplySettingsAsync(_settings with { Direction = direction });
+
+    // The new layout shows the same page, and is kept for the next opening of this book.
+    private async Task ApplySettingsAsync(ReaderSettings settings)
+    {
+        if (_info is null || settings == _settings)
+        {
+            return;
+        }
+
+        _settings = settings;
+        _spreads = ReaderSpreads.Build(_info.PageCount, settings);
+        ShowRow(_spreads.RowOf(_currentPage));
+        _pendingConfigure = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await BookReaderService.SaveSettingsAsync(_bookGuid, settings, CancellationToken.None);
+            if (result.IsFailure)
+            {
+                Snackbar.Add("Unable to save the display settings", Severity.Warning);
+                Logger.LogWarning("Unable to save the display settings of book {BookId}: {Error}", BookId, result.Error?.Code);
+            }
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Snackbar.Add("Unable to save the display settings", Severity.Warning);
+            Logger.LogWarning(ex, "Unable to save the display settings of book {BookId}", BookId);
+        }
+    }
+
+    private async Task DismissGestureHelpAsync()
+    {
+        if (_jsModule is not null)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("markGestureHelpSeen", CancellationToken.None);
+            }
+            catch (JSException ex)
+            {
+                Logger.LogWarning(ex, "Unable to remember that the reader gesture help was seen");
+            }
+        }
+
+        _showGestureHelp = false;
     }
 
     private void ToggleControls() => _showControls = !_showControls;
@@ -480,3 +685,5 @@ public sealed partial class BookReader : IAsyncDisposable
         }
     }
 }
+
+internal sealed record DisplayOption<T>(T Value, string Label, string Icon);

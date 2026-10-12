@@ -1,32 +1,36 @@
-// Continuous vertical reader: taps, keyboard, visible page tracking and fullscreen.
+// Book reader: taps, swipes, keyboard, visible row tracking, fullscreen and the gesture help.
+// A row ([data-row]) is one page, or two pages side by side in the "Two pages" layout.
 const TAP_ZONE = 0.3;
 // A tap moves one screen minus this overlap, so the end of the previous screen stays visible.
 const PHONE_MAX_HEIGHT = 500;
 const PHONE_OVERLAP = 40;
 const TABLET_OVERLAP = 80;
-// Unloaded pages use this height / width ratio (see .reader-page in BookReader.razor.css).
+// Unloaded pages use this height / width ratio (see .reader-page-pending in BookReader.razor.css).
 const PLACEHOLDER_RATIO = 1.5;
-// The visible page is the one at this height of the screen.
-const VISIBLE_PAGE_PROBE = 1 / 3;
+// The visible row is the one at this height of the screen.
+const VISIBLE_ROW_PROBE = 1 / 3;
 const END_TOLERANCE = 2;
+const SWIPE_MIN_DISTANCE = 50;
+const GESTURE_HELP_KEY = "mcm.reader.gestureHelpSeen";
 
 let state = null;
 
-export function attach(scroller, dotNetObjectRef, initialPage) {
+// options: { paged, rightToLeft, fitWidth }
+export function attach(scroller, dotNetObjectRef, initialRow, options) {
     detach();
 
     const current = {
         scroller,
         dotNetObjectRef,
-        visiblePage: initialPage,
+        options,
+        visibleRow: initialRow,
         atEnd: false,
         frame: 0,
-        anchor: { page: initialPage, ratio: 0, width: 0 },
+        touchStart: null,
+        anchor: { row: initialRow, ratio: 0, width: 0 },
     };
 
-    scrollToPageOf(current, initialPage);
-    current.atEnd = isAtEnd(scroller);
-    current.anchor = readAnchor(current);
+    resetPosition(current, initialRow);
 
     current.onScroll = () => {
         if (current.frame === 0) {
@@ -39,26 +43,27 @@ export function attach(scroller, dotNetObjectRef, initialPage) {
 
     current.onClick = (event) => {
         const position = event.clientX / window.innerWidth;
-        if (position < TAP_ZONE) {
-            scrollScreen(current, -1);
-        } else if (position > 1 - TAP_ZONE) {
-            scrollScreen(current, 1);
-        } else {
+        if (position > TAP_ZONE && position < 1 - TAP_ZONE) {
             dotNetObjectRef.invokeMethodAsync("OnCenterTap");
+            return;
         }
+        // Mangas are read from right to left: the next page is on the left.
+        const onRight = position >= 1 - TAP_ZONE;
+        const forward = current.options.rightToLeft ? !onRight : onRight;
+        scrollScreen(current, forward ? 1 : -1);
     };
 
     // A page loading above the screen grows or shrinks from its placeholder: the scroll position
-    // follows, so the page being read does not move.
+    // follows, so the page being read does not move. Only pages fitted to the width change height.
     current.onImageLoad = (event) => {
         const image = event.target;
-        if (!(image instanceof HTMLImageElement)) {
+        if (!(image instanceof HTMLImageElement) || !current.options.fitWidth) {
             return;
         }
-        const page = image.closest("[data-page]");
-        const placeholderHeight = page.clientWidth * PLACEHOLDER_RATIO;
-        if (page.offsetTop + placeholderHeight <= scroller.scrollTop) {
-            scroller.scrollTop += page.offsetHeight - placeholderHeight;
+        const row = image.closest("[data-row]");
+        const placeholderHeight = row.clientWidth * PLACEHOLDER_RATIO;
+        if (row.offsetTop + placeholderHeight <= scroller.scrollTop) {
+            scroller.scrollTop += row.offsetHeight - placeholderHeight;
         }
     };
 
@@ -84,19 +89,57 @@ export function attach(scroller, dotNetObjectRef, initialPage) {
         }
     };
 
+    // Page by page, a horizontal swipe turns the page (towards the left for mangas).
+    current.onTouchStart = (event) => {
+        current.touchStart = { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
+    };
+    current.onTouchEnd = (event) => {
+        const start = current.touchStart;
+        current.touchStart = null;
+        if (!start || !current.options.paged) {
+            return;
+        }
+        const deltaX = event.changedTouches[0].clientX - start.x;
+        const deltaY = event.changedTouches[0].clientY - start.y;
+        if (Math.abs(deltaX) < SWIPE_MIN_DISTANCE || Math.abs(deltaX) <= Math.abs(deltaY)) {
+            return;
+        }
+        const towardsLeft = deltaX < 0;
+        const forward = current.options.rightToLeft ? !towardsLeft : towardsLeft;
+        dotNetObjectRef.invokeMethodAsync("OnTurnPage", forward ? 1 : -1);
+    };
+
     scroller.addEventListener("scroll", current.onScroll, { passive: true });
     scroller.addEventListener("click", current.onClick);
     scroller.addEventListener("load", current.onImageLoad, true);
+    scroller.addEventListener("touchstart", current.onTouchStart, { passive: true });
+    scroller.addEventListener("touchend", current.onTouchEnd, { passive: true });
     document.addEventListener("keydown", current.onKey);
     window.addEventListener("resize", current.onResize);
     state = current;
 
-    return document.fullscreenEnabled === true;
+    return { canUseFullscreen: document.fullscreenEnabled === true, gestureHelpSeen: isGestureHelpSeen() };
 }
 
-export function scrollToPage(pageIndex) {
+// The display settings changed and the rows were rendered again: shows the given row.
+export function configure(options, row) {
     if (state) {
-        scrollToPageOf(state, pageIndex);
+        state.options = options;
+        resetPosition(state, row);
+    }
+}
+
+export function scrollToRow(row) {
+    if (state) {
+        scrollToRowOf(state, row);
+    }
+}
+
+export function markGestureHelpSeen() {
+    try {
+        localStorage.setItem(GESTURE_HELP_KEY, "true");
+    } catch {
+        // Storage disabled (private browsing): the help shows again next time.
     }
 }
 
@@ -122,6 +165,8 @@ export function detach() {
     current.scroller.removeEventListener("scroll", current.onScroll);
     current.scroller.removeEventListener("click", current.onClick);
     current.scroller.removeEventListener("load", current.onImageLoad, true);
+    current.scroller.removeEventListener("touchstart", current.onTouchStart);
+    current.scroller.removeEventListener("touchend", current.onTouchEnd);
     document.removeEventListener("keydown", current.onKey);
     window.removeEventListener("resize", current.onResize);
     if (document.fullscreenElement) {
@@ -129,32 +174,89 @@ export function detach() {
     }
 }
 
+function isGestureHelpSeen() {
+    try {
+        return localStorage.getItem(GESTURE_HELP_KEY) === "true";
+    } catch {
+        // Without storage the help would show at every opening: better not to show it at all.
+        return true;
+    }
+}
+
+function resetPosition(current, row) {
+    scrollToRowOf(current, row);
+    current.visibleRow = row;
+    current.atEnd = isAtEnd(current.scroller);
+    current.anchor = readAnchor(current);
+}
+
 // The height of the pages follows their width: a new width means the scroll offsets changed.
 function pagesWidth(current) {
     return current.scroller.firstElementChild?.clientWidth ?? current.scroller.clientWidth;
 }
 
-// The page elements are read again at each use: Blazor may replace an element when it re-renders the pages.
-function pagesOf(current) {
-    return current.scroller.querySelectorAll("[data-page]");
+// The rows are read again at each use: Blazor may replace an element when it renders the rows again.
+function rowsOf(current) {
+    return current.scroller.querySelectorAll("[data-row]");
 }
 
-function scrollToPageOf(current, pageIndex) {
-    const page = pagesOf(current)[pageIndex];
-    if (page) {
-        current.scroller.scrollTop = page.offsetTop;
+function rowElement(current, row) {
+    return current.scroller.querySelector(`[data-row="${row}"]`);
+}
+
+function rowOf(element) {
+    return Number(element.dataset.row);
+}
+
+function scrollToRowOf(current, row, behavior = "auto") {
+    const element = rowElement(current, row);
+    if (element) {
+        current.scroller.scrollTo({ top: element.offsetTop, behavior });
     }
 }
 
 function scrollScreen(current, direction) {
     const scroller = current.scroller;
+    const { paged, fitWidth } = current.options;
+
+    if (!paged && !fitWidth) {
+        // Each row fills the screen: a tap shows the next or previous one.
+        scrollRow(current, direction);
+        return;
+    }
     if (direction > 0 && isAtEnd(scroller)) {
-        // Going further than the bottom of the last page finishes the book.
-        current.dotNetObjectRef.invokeMethodAsync("OnReachedEnd");
+        // Past the bottom of the last page the book is finished; page by page, the next page shows.
+        notifyEnd(current);
+        return;
+    }
+    if (direction < 0 && scroller.scrollTop <= 0) {
+        if (paged) {
+            current.dotNetObjectRef.invokeMethodAsync("OnTurnPage", -1);
+        }
         return;
     }
     const overlap = scroller.clientHeight <= PHONE_MAX_HEIGHT ? PHONE_OVERLAP : TABLET_OVERLAP;
     scroller.scrollBy({ top: direction * (scroller.clientHeight - overlap), behavior: "smooth" });
+}
+
+function scrollRow(current, direction) {
+    const target = current.visibleRow + direction;
+    if (target < 0) {
+        return;
+    }
+    if (target >= rowsOf(current).length) {
+        current.dotNetObjectRef.invokeMethodAsync("OnReachedEnd");
+        return;
+    }
+    scrollToRowOf(current, target, "smooth");
+}
+
+function notifyEnd(current) {
+    if (current.options.paged) {
+        current.dotNetObjectRef.invokeMethodAsync("OnTurnPage", 1);
+    } else {
+        current.dotNetObjectRef.invokeMethodAsync("OnReachedEnd");
+    }
 }
 
 function isAtEnd(scroller) {
@@ -169,10 +271,15 @@ function reportPosition(current) {
     }
     current.anchor = readAnchor(current);
 
-    const visiblePage = findVisiblePage(current);
-    if (visiblePage !== current.visiblePage) {
-        current.visiblePage = visiblePage;
-        current.dotNetObjectRef.invokeMethodAsync("OnVisiblePageChanged", visiblePage);
+    // Page by page, the reader turns the pages itself: scrolling stays within the page shown.
+    if (current.options.paged) {
+        return;
+    }
+
+    const visibleRow = findVisibleRow(current);
+    if (visibleRow !== current.visibleRow) {
+        current.visibleRow = visibleRow;
+        current.dotNetObjectRef.invokeMethodAsync("OnVisibleRowChanged", visibleRow);
     }
 
     const atEnd = isAtEnd(current.scroller);
@@ -182,24 +289,23 @@ function reportPosition(current) {
     current.atEnd = atEnd;
 }
 
-// The pages are in order: the last one starting above the probe line is the visible one.
-// At the bottom of the book, a short last page may never reach that line: it is still the one read.
-function findVisiblePage(current) {
-    const pages = pagesOf(current);
+// At the bottom of the book, a short last row may never reach the probe line: it is still the one read.
+function findVisibleRow(current) {
+    const rows = rowsOf(current);
     if (isAtEnd(current.scroller)) {
-        return pages.length - 1;
+        return rowOf(rows[rows.length - 1]);
     }
-    const probe = current.scroller.scrollTop + current.scroller.clientHeight * VISIBLE_PAGE_PROBE;
-    return pageAt(pages, probe);
+    const probe = current.scroller.scrollTop + current.scroller.clientHeight * VISIBLE_ROW_PROBE;
+    return rowOf(rows[rowIndexAt(rows, probe)]);
 }
 
-// The pages are in order: the last one starting above the line y.
-function pageAt(pages, y) {
+// The rows are in order: the last one starting above the line y.
+function rowIndexAt(rows, y) {
     let low = 0;
-    let high = pages.length - 1;
+    let high = rows.length - 1;
     while (low < high) {
         const middle = Math.ceil((low + high) / 2);
-        if (pages[middle].offsetTop <= y) {
+        if (rows[middle].offsetTop <= y) {
             low = middle;
         } else {
             high = middle - 1;
@@ -208,26 +314,25 @@ function pageAt(pages, y) {
     return low;
 }
 
-// The page at the top of the screen, and how far into it the screen starts (0 = its top, 1 = its bottom).
+// The row at the top of the screen, and how far into it the screen starts (0 = its top, 1 = its bottom).
 function readAnchor(current) {
-    const pages = pagesOf(current);
-    if (pages.length === 0) {
+    const rows = rowsOf(current);
+    if (rows.length === 0) {
         return current.anchor;
     }
     const top = current.scroller.scrollTop;
-    const page = pageAt(pages, top);
-    const element = pages[page];
+    const element = rows[rowIndexAt(rows, top)];
     const ratio = element.offsetHeight > 0 ? (top - element.offsetTop) / element.offsetHeight : 0;
-    return { page, ratio, width: pagesWidth(current) };
+    return { row: rowOf(element), ratio, width: pagesWidth(current) };
 }
 
-// Returns true when the width changed since the anchor was read, after putting its page back on screen.
+// Returns true when the width changed since the anchor was read, after putting its row back on screen.
 function restoreAnchorIfResized(current) {
     const width = pagesWidth(current);
     if (width === current.anchor.width) {
         return false;
     }
-    const element = pagesOf(current)[current.anchor.page];
+    const element = rowElement(current, current.anchor.row);
     if (element) {
         current.scroller.scrollTop = element.offsetTop + current.anchor.ratio * element.offsetHeight;
     }

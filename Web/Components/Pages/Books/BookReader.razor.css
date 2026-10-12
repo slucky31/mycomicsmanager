@@ -28,23 +28,79 @@
 }
 
 .reader-pages {
-    max-width: 1100px;
-    margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
+.reader-row {
+    display: flex;
+    justify-content: center;
+}
+
+/* Fit width: one page at the full width (at most 1100 px on large screens), scrolled vertically. */
+.reader-layout-fit .reader-pages {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.reader-layout-fit .reader-page {
+    width: 100%;
+}
+
 /* Until its image is loaded, a page keeps the usual comic page ratio (PLACEHOLDER_RATIO in bookReader.js). */
-.reader-page-pending {
+.reader-layout-fit .reader-page-pending {
     aspect-ratio: 2 / 3;
 }
 
-.reader-page-image {
+.reader-layout-fit .reader-page-image {
     display: block;
     width: 100%;
     height: auto;
     aspect-ratio: auto 2 / 3;
+}
+
+/* Single page and two pages: each row fills the height of the screen. */
+.reader-layout-single .reader-row,
+.reader-layout-two .reader-row {
+    height: 100dvh;
+}
+
+.reader-layout-single .reader-page,
+.reader-layout-two .reader-page {
+    height: 100%;
+    display: flex;
+    min-width: 0;
+}
+
+.reader-layout-single .reader-page-pending,
+.reader-layout-two .reader-page-pending {
+    aspect-ratio: 2 / 3;
+}
+
+.reader-layout-two .reader-page {
+    max-width: 50%;
+}
+
+.reader-layout-single .reader-page-image,
+.reader-layout-two .reader-page-image {
+    display: block;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.reader-snap {
+    scroll-snap-type: y proximity;
+}
+
+.reader-snap .reader-row {
+    scroll-snap-align: start;
+}
+
+.reader-preload {
+    display: none;
 }
 
 .reader-toolbar {
@@ -101,8 +157,9 @@
     text-align: center;
 }
 
-::deep .reader-slider {
+.reader-slider {
     flex: 1;
+    min-width: 0;
 }
 
 .reader-overlay {
@@ -147,4 +204,128 @@
 .reader-quick-gap {
     color: #fff;
     padding: 0 4px;
+}
+
+.reader-panel-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 3;
+}
+
+/* Anchored under the top bar on tablets and large screens, a bottom sheet on phones. */
+.reader-panel {
+    position: fixed;
+    top: calc(64px + env(safe-area-inset-top));
+    right: 12px;
+    width: 340px;
+    max-width: calc(100vw - 24px);
+    padding: 12px 16px 16px;
+    border-radius: 12px;
+    background: #fff;
+    color: #1B1D24;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    z-index: 4;
+}
+
+@media (max-width: 599.98px) {
+    .reader-panel {
+        top: auto;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        width: auto;
+        max-width: none;
+        border-radius: 16px 16px 0 0;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    }
+}
+
+.reader-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+::deep .reader-panel-label {
+    display: block;
+    margin-top: 8px;
+    color: #5C6070;
+}
+
+.reader-options {
+    display: flex;
+    gap: 8px;
+}
+
+.reader-option {
+    flex: 1;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 4px;
+    border: 1px solid #E2E3EA;
+    border-radius: 8px;
+    background: #fff;
+    color: #1B1D24;
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+}
+
+.reader-option-selected {
+    border-color: #594AE2;
+    background: rgba(89, 74, 226, 0.1);
+    color: #594AE2;
+    font-weight: 500;
+}
+
+::deep .reader-panel-note {
+    display: block;
+    margin-top: 12px;
+    color: #5C6070;
+}
+
+/* First opening: the three tap zones (30 / 40 / 30 %) over the page. */
+.reader-help {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 5;
+}
+
+.reader-help-zones {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 30% 40% 30%;
+}
+
+.reader-help-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.5);
+    text-align: center;
+}
+
+.reader-help-zone-center {
+    background: rgba(89, 74, 226, 0.2);
+}
+
+.reader-help-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    text-align: center;
 }

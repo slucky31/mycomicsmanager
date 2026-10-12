@@ -24,22 +24,32 @@
     }
     else
     {
-        <div class="reader-scroll" @ref="_scroller">
+        <div class="@ScrollerClass" @ref="_scroller">
             <div class="reader-pages">
-                @for (var i = 0; i < _info.PageCount; i++)
+                @foreach (var row in DisplayedRows)
                 {
-                    var pageIndex = i;
-                    var isRequested = _pages.IsRequested(pageIndex);
-                    @* One element per page, kept across renders: only its image is added, so the scroll position holds. *@
-                    <div class="@(isRequested ? "reader-page" : "reader-page reader-page-pending")" data-page="@pageIndex">
-                        @if (isRequested)
+                    @* One element per row and page, kept across renders: only the images are added, so the scroll position holds. *@
+                    <div class="reader-row" data-row="@row">
+                        @foreach (var pageIndex in _spreads!.PagesOf(row))
                         {
-                            <img src="@PageUrl(pageIndex)" alt="@($"Page {pageIndex + 1}")" class="reader-page-image" />
+                            var isRequested = _pages.IsRequested(pageIndex);
+                            <div class="@(isRequested ? "reader-page" : "reader-page reader-page-pending")" data-page="@pageIndex">
+                                @if (isRequested)
+                                {
+                                    <img src="@PageUrl(pageIndex)" alt="@($"Page {pageIndex + 1}")" class="reader-page-image" />
+                                }
+                            </div>
                         }
                     </div>
                 }
             </div>
         </div>
+
+        @* Page by page, only the page shown is in the document: the next ones are loaded in advance. *@
+        @foreach (var pageIndex in PreloadedPages)
+        {
+            <img src="@PageUrl(pageIndex)" alt="" class="reader-preload" aria-hidden="true" />
+        }
 
         @if (_showControls)
         {
@@ -49,6 +59,10 @@
                 @if (IsIsbnSearch)
                 {
                     <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="reader-mode">ISBN search · progress not saved</MudChip>
+                }
+                @if (IsRightToLeft)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="reader-mode reader-direction">Right to left</MudChip>
                 }
                 <MudSpacer />
                 @if (_isExtractingIsbn)
@@ -64,6 +78,8 @@
                     <MudIconButton Icon="@Icons.Material.Filled.ManageSearch" Color="Color.Inherit" OnClick="ScanIsbnPagesAsync"
                                    aria-label="Scan the first and last pages" title="Scan the first and last pages" />
                 }
+                <MudIconButton Icon="@Icons.Material.Filled.ChromeReaderMode" Color="Color.Inherit" OnClick="OpenDisplayPanel"
+                               aria-label="Display" title="Display" />
                 @if (_canUseFullscreen)
                 {
                     <MudIconButton Icon="@Icons.Material.Filled.Fullscreen" Color="Color.Inherit" OnClick="ToggleFullscreenAsync"
@@ -98,19 +114,96 @@
             }
 
             <footer class="reader-toolbar reader-toolbar-bottom">
+                @* Mangas: the next page is on the left, and the slider fills from the right. *@
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Color="Color.Inherit"
-                               Disabled="@(_currentPage == 0)" OnClick="PreviousPageAsync" aria-label="Previous page" />
-                <MudSlider T="int" Min="1" Max="@_info.PageCount" Value="@(_currentPage + 1)"
-                           ValueChanged="OnSliderChangedAsync" Immediate="false" Color="Color.Primary" Class="reader-slider" />
-                <MudText Typo="Typo.body2" Class="reader-counter">@(_currentPage + 1) / @_info.PageCount</MudText>
+                               Disabled="@(!IsRightToLeft && IsFirstRow)" OnClick="LeftArrowAsync"
+                               aria-label="@(IsRightToLeft ? "Next page" : "Previous page")" />
+                <div class="reader-slider" dir="@(IsRightToLeft ? "rtl" : "ltr")">
+                    <MudSlider T="int" Min="1" Max="@_info.PageCount" Value="@(_currentPage + 1)"
+                               ValueChanged="OnSliderChangedAsync" Immediate="false" Color="Color.Primary" />
+                </div>
+                <MudText Typo="Typo.body2" Class="reader-counter">@_spreads!.Counter(_currentRow)</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Color="Color.Inherit"
-                               OnClick="NextPageAsync" aria-label="Next page" />
+                               Disabled="@(IsRightToLeft && IsFirstRow)" OnClick="RightArrowAsync"
+                               aria-label="@(IsRightToLeft ? "Previous page" : "Next page")" />
             </footer>
         }
         else
         {
             <div class="reader-progress" aria-hidden="true">
                 <div class="reader-progress-value" style="width: @ReaderDisplay.ProgressWidth(_currentPage, _info.PageCount)"></div>
+            </div>
+        }
+
+        @if (_showDisplayPanel)
+        {
+            <div class="reader-panel-backdrop" @onclick="CloseDisplayPanel"></div>
+            <section class="reader-panel" aria-label="Display">
+                <div class="reader-panel-header">
+                    <MudText Typo="Typo.h6">Display</MudText>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="CloseDisplayPanel" aria-label="Close the display settings" />
+                </div>
+                <MudText Typo="Typo.overline" Class="reader-panel-label">Layout</MudText>
+                <div class="reader-options" role="group" aria-label="Layout">
+                    @foreach (var option in s_layoutOptions)
+                    {
+                        var selected = option.Value == _settings.Layout;
+                        <button type="button" class="@OptionClass(selected)" aria-pressed="@(selected ? "true" : "false")"
+                                @onclick="() => ChangeLayoutAsync(option.Value)">
+                            <MudIcon Icon="@option.Icon" Size="Size.Small" />
+                            <span>@option.Label</span>
+                        </button>
+                    }
+                </div>
+                <MudText Typo="Typo.overline" Class="reader-panel-label">Scrolling</MudText>
+                <div class="reader-options" role="group" aria-label="Scrolling">
+                    @foreach (var option in s_scrollingOptions)
+                    {
+                        var selected = option.Value == _settings.Scrolling;
+                        <button type="button" class="@OptionClass(selected)" aria-pressed="@(selected ? "true" : "false")"
+                                @onclick="() => ChangeScrollingAsync(option.Value)">
+                            <MudIcon Icon="@option.Icon" Size="Size.Small" />
+                            <span>@option.Label</span>
+                        </button>
+                    }
+                </div>
+                <MudText Typo="Typo.overline" Class="reader-panel-label">Reading direction</MudText>
+                <div class="reader-options" role="group" aria-label="Reading direction">
+                    @foreach (var option in s_directionOptions)
+                    {
+                        var selected = option.Value == _settings.Direction;
+                        <button type="button" class="@OptionClass(selected)" aria-pressed="@(selected ? "true" : "false")"
+                                @onclick="() => ChangeDirectionAsync(option.Value)">
+                            <MudIcon Icon="@option.Icon" Size="Size.Small" />
+                            <span>@option.Label</span>
+                        </button>
+                    }
+                </div>
+                <MudText Typo="Typo.caption" Class="reader-panel-note">Saved for this book.</MudText>
+            </section>
+        }
+
+        @if (_showGestureHelp)
+        {
+            <div class="reader-help" role="dialog" aria-modal="true" aria-label="How to read">
+                <div class="reader-help-zones">
+                    <div class="reader-help-zone">
+                        <MudIcon Icon="@Icons.Material.Filled.TouchApp" />
+                        <span>@(IsRightToLeft ? "Next" : "Previous")</span>
+                    </div>
+                    <div class="reader-help-zone reader-help-zone-center">
+                        <MudIcon Icon="@Icons.Material.Filled.TouchApp" />
+                        <span>Show or hide the controls</span>
+                    </div>
+                    <div class="reader-help-zone">
+                        <MudIcon Icon="@Icons.Material.Filled.TouchApp" />
+                        <span>@(IsRightToLeft ? "Previous" : "Next")</span>
+                    </div>
+                </div>
+                <div class="reader-help-footer">
+                    <MudText Typo="Typo.body1">@(IsPaged ? "Swipe sideways to turn the page." : "You can also scroll freely with your finger.")</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="DismissGestureHelpAsync">Got it</MudButton>
+                </div>
             </div>
         }
 

@@ -1,3 +1,5 @@
+using Domain.Books;
+
 namespace Application.Books.Read;
 
 public sealed record BookReaderInfoDto(
@@ -6,4 +8,5 @@ public sealed record BookReaderInfoDto(
     string Title,
     int VolumeNumber,
     int PageCount,
-    int LastReadPage);
+    int LastReadPage,
+    ReaderSettings Settings);
