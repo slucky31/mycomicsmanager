@@ -272,4 +272,27 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         summaries.Single(s => s.Id == _lib1.Id).BookCount.Should().Be(0);
         summaries.Single(s => s.Id == _lib2.Id).Should().BeEquivalentTo(new { Name = "2-comics", Color = "#5C6BC0", Icon = "Bookmark", BookType = LibraryBookType.Physical });
     }
+
+    [Fact]
+    public async Task GetSummariesAsync_Should_ReturnTheLatestCoversOfEachLibrary_NewestFirst()
+    {
+        // Arrange
+        await CreateLibraries();
+        string[] titles = ["Tome 1", "Tome 2", "Sans couverture", "Tome 3", "Tome 4"];
+        for (var i = 0; i < titles.Length; i++)
+        {
+            var imageLink = titles[i] == "Sans couverture" ? "" : $"/covers/{i + 1}.webp";
+            Context.Books.Add(PhysicalBook.Create(new BookMetadata("Blacksad", titles[i], $"978100009999{i}", i + 1, imageLink), _lib2.Id).Value!);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+            // Ids are time-ordered to the millisecond: one book per millisecond at least.
+            await Task.Delay(2, TestContext.Current.CancellationToken);
+        }
+
+        // Act
+        var summaries = await LibraryReadService.GetSummariesAsync(s_userId, TestContext.Current.CancellationToken);
+
+        // Assert
+        summaries.Single(s => s.Id == _lib2.Id).Covers.Should().Equal("/covers/5.webp", "/covers/4.webp", "/covers/2.webp");
+        summaries.Single(s => s.Id == _lib1.Id).Covers.Should().BeEmpty();
+    }
 }
