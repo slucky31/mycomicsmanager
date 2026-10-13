@@ -6,6 +6,12 @@
     padding-right: env(safe-area-inset-right);
 }
 
+/* After a navigation Blazor moves the focus to the page title (FocusOnNavigate) for screen readers;
+   the title is not a control, so the focus is not drawn around it (iOS Safari draws it). */
+.page-body ::deep h1[tabindex="-1"]:focus {
+    outline: none;
+}
+
 /* Phone: room for the fixed bottom bar (64 px + home indicator); full-height pages subtract the same */
 @media (max-width: 959.98px) {
     .page-body.with-nav {
