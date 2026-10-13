@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.39.0"></a>
+## [10.39.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.39.0) (2026-10-13)
+
+### ✨ Features
+
+* **libraries:** cards with the latest covers, book count and actions in a sheet or a menu ([#1134](https://www.github.com/slucky31/mycomicsmanager/issues/1134)) ([4cd712a](https://www.github.com/slucky31/mycomicsmanager/commit/4cd712a89a8588ed5ead03e9d4f9bff34960790e))
+
 <a name="10.38.0"></a>
 ## [10.38.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.38.0) (2026-10-13)
 
