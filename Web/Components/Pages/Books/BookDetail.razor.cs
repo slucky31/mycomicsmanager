@@ -110,7 +110,7 @@ public sealed partial class BookDetail : IDisposable
         _isAddingReading = true;
         try
         {
-            var result = await BooksService.AddReadingDate(BookId, _newRating);
+            var result = await BooksService.AddReadingDate(BookId, _newRating, _disposalCts.Token);
             if (result.IsSuccess)
             {
                 _showAddReading = false;
@@ -229,7 +229,7 @@ public sealed partial class BookDetail : IDisposable
 
             if (confirmed)
             {
-                var res = await BooksService.Delete(BookId);
+                var res = await BooksService.Delete(BookId, _disposalCts.Token);
 
                 if (res.IsSuccess)
                 {
@@ -259,7 +259,7 @@ public sealed partial class BookDetail : IDisposable
         _isMoving = true;
         try
         {
-            if (await BookMoveWorkflow.ChooseAndMoveAsync(_book.Id))
+            if (await BookMoveWorkflow.ChooseAndMoveAsync(_book.Id, _disposalCts.Token))
             {
                 await LoadBookAsync();
             }
