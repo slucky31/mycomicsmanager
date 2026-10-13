@@ -65,7 +65,15 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
                 l.Color,
                 l.Icon,
                 l.BookType,
-                context.Books.Count(b => b.LibraryId == l.Id)))
+                context.Books.Count(b => b.LibraryId == l.Id))
+            {
+                Covers = context.Books
+                    .Where(b => b.LibraryId == l.Id && b.ImageLink != "")
+                    .OrderByDescending(b => b.Id)
+                    .Select(b => b.ImageLink)
+                    .Take(LibrarySummary.MaxCovers)
+                    .ToList()
+            })
             .ToListAsync(cancellationToken);
     }
 

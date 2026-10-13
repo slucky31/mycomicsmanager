@@ -1,1 +1,340 @@
-/* library card styles */
+.libraries-page {
+    /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
+    min-height: 100dvh;
+    background: #F4F4F6;
+    color: #1B1D24;
+}
+
+@media (max-width: 959.98px) {
+    .libraries-page {
+        min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* ── Bar: title, "New library" (+ on a phone, a labelled button from the tablet on) ── */
+.libraries-bar {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: env(safe-area-inset-top) 4px 0 16px;
+}
+
+.libraries-bar-title {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.libraries-bar-title h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+/* The number of libraries and books is shown on a large screen only. */
+.libraries-bar-subtitle {
+    display: none;
+    margin-top: 2px;
+    font-size: 15px;
+    color: #5C6070;
+}
+
+::deep .libraries-bar-new {
+    display: none;
+}
+
+/* ── Grid of cards ─────────────────────────────────────── */
+.libraries-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 0 16px 16px;
+}
+
+/* A card shows bigger covers as soon as it is wide enough for them. */
+.library-cell {
+    container-type: inline-size;
+    min-width: 0;
+}
+
+.library-card {
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid #E2E3EA;
+    border-radius: 16px;
+}
+
+.library-card-link {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: #1B1D24;
+    text-decoration: none;
+}
+
+/* The three latest covers, fanned out. */
+.library-covers {
+    position: relative;
+    flex-shrink: 0;
+    width: 112px;
+    height: 104px;
+}
+
+.library-cover {
+    position: absolute;
+    width: 64px;
+    height: 96px;
+    box-sizing: border-box;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.library-cover-0 {
+    left: 0;
+    top: 8px;
+}
+
+.library-cover-1 {
+    left: 24px;
+    top: 4px;
+}
+
+.library-cover-2 {
+    left: 48px;
+    top: 0;
+}
+
+/* No books yet: a dashed slot. */
+.library-cover-empty {
+    top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #D0D2DB;
+    box-shadow: none;
+    color: #5C6070;
+}
+
+/* Books without a cover: the library icon on its tint. */
+.library-cover-none {
+    top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--library-color) 10%, #ffffff);
+    border: 1px solid #E2E3EA;
+    box-shadow: none;
+    color: var(--library-color);
+}
+
+.library-card-text {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.library-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.library-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--library-color) 10%, #ffffff);
+    color: var(--library-color);
+}
+
+.library-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.library-card-details {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.library-type {
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 10px;
+    box-sizing: border-box;
+    border: 1px solid var(--library-color);
+    border-radius: 12px;
+    color: var(--library-color);
+    font-size: 12px;
+}
+
+.library-count {
+    font-size: 14px;
+    color: #5C6070;
+}
+
+::deep .library-card-actions {
+    align-self: flex-start;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    margin: -6px -6px 0 -8px;
+    color: #5C6070;
+}
+
+@container (min-width: 420px) {
+    .library-card,
+    .library-card-link {
+        gap: 20px;
+    }
+
+    .library-card {
+        padding: 20px;
+    }
+
+    .library-covers {
+        width: 168px;
+        height: 152px;
+    }
+
+    .library-cover {
+        width: 96px;
+        height: 144px;
+    }
+
+    .library-cover-1 {
+        left: 36px;
+    }
+
+    .library-cover-2 {
+        left: 72px;
+    }
+
+    .library-name {
+        font-size: 22px;
+    }
+}
+
+/* ── Actions: the library above its actions ─────────────── */
+.library-actions-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 20px 12px;
+    border-bottom: 1px solid #E2E3EA;
+}
+
+.library-actions-heading {
+    min-width: 0;
+}
+
+.library-actions-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.library-actions-details {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+/* ── No library yet ──────────────────────────────────── */
+.libraries-empty {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+}
+
+::deep .libraries-empty-hint {
+    margin-bottom: 16px;
+    color: #5C6070;
+}
+
+/* ── Tablet: 80 px bar, "New library" with its label, two columns from 840 px ── */
+@media (min-width: 600px) {
+    .libraries-bar {
+        min-height: 80px;
+        padding: 0 28px;
+    }
+
+    .libraries-bar-title h1 {
+        font-size: 30px;
+    }
+
+    ::deep .libraries-bar-add {
+        display: none;
+    }
+
+    ::deep .libraries-bar-new {
+        display: inline-flex;
+        height: 44px;
+        padding: 0 18px 0 14px;
+        border-radius: 22px;
+        text-transform: none;
+        font-size: 15px;
+    }
+
+    .libraries-grid {
+        gap: 20px;
+        padding: 0 28px 24px;
+    }
+}
+
+@media (min-width: 840px) {
+    .libraries-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ── Large screen: 96 px bar with the totals, three columns when there is room ── */
+@media (min-width: 1440px) {
+    .libraries-bar {
+        min-height: 96px;
+        padding: 0 48px;
+    }
+
+    .libraries-bar-title h1 {
+        font-size: 32px;
+    }
+
+    .libraries-bar-subtitle {
+        display: block;
+    }
+
+    .libraries-grid {
+        gap: 24px;
+        padding: 0 48px 32px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .libraries-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}

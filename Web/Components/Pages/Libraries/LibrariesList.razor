@@ -1,54 +1,113 @@
-@using Domain.Libraries
 @using Web.Components.SharedComponents
-@using Web.Enums
+@using Web.Models
 
 @rendermode InteractiveServer
 
 @page "/"
 @page "/libraries/list"
 
-<PageWithAction Title="Libraries"
-                Icon="@Icons.Material.Filled.CollectionsBookmark"
-                ActionName="New library"
-                ActionIcon="@Icons.Material.Filled.Add"
-                OnActionClick="@(e => NavigationManager.NavigateTo("/libraries/add"))">
+<PageTitle>Libraries — MyComicsManager</PageTitle>
 
-    <MudGrid Spacing="4" Justify="Justify.FlexStart">
-        @foreach (var lib in Libraries)
-        {
-            <MudItem @key="lib.Id" xs="12" sm="6" md="3">
-                <MudCard Outlined="true"
-                         Style="@($"border-left: 4px solid {lib.Color}; height: 100%; cursor: pointer;")"
-                         @onclick="@(() => NavigationManager.NavigateTo($"/libraries/{lib.Id}"))">
-                    <MudCardHeader>
-                        <CardHeaderAvatar>
-                            <MudIcon Icon="@IconPicker.Resolve(lib.Icon)"
-                                     Style="@($"color: {lib.Color};")"
-                                     Size="Size.Medium" />
-                        </CardHeaderAvatar>
-                        <CardHeaderContent>
-                            <MudText Typo="Typo.h6">@lib.Name</MudText>
-                            <MudChip T="string"
-                                     Size="Size.Small"
-                                     Variant="Variant.Outlined"
-                                     Style="@($"border-color: {lib.Color}; color: {lib.Color};")">
-                                @lib.BookType.ToString()
-                            </MudChip>
-                        </CardHeaderContent>
-                        <CardHeaderActions>
-                            <div @onclick:stopPropagation="true">
-                                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                                         AriaLabel="Actions">
-                                    <MudMenuItem Label="Edit"
-                                                 OnClick="@(e => NavigationManager.NavigateTo($"/libraries/{lib.Id}/edit"))" />
-                                    <MudMenuItem Label="Delete"
-                                                 OnClick="@(e => OnClickDeleteAsync(lib.Id))" />
-                                </MudMenu>
-                            </div>
-                        </CardHeaderActions>
-                    </MudCardHeader>
-                </MudCard>
-            </MudItem>
-        }
-    </MudGrid>
-</PageWithAction>
+<div class="libraries-page">
+    <header class="libraries-bar">
+        <div class="libraries-bar-title">
+            <h1>Libraries</h1>
+            @if (_libraries.Count > 0)
+            {
+                <div class="libraries-bar-subtitle">@LibraryCardViewModel.Subtitle(_libraries)</div>
+            }
+        </div>
+        <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Href="/libraries/add" aria-label="New library" Class="libraries-bar-add" />
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Href="/libraries/add" Class="libraries-bar-new">New library</MudButton>
+    </header>
+
+    @if (_isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
+    }
+    else if (_libraries.Count == 0)
+    {
+        <div class="libraries-empty">
+            <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" Style="font-size: 80px; opacity: 0.4;" />
+            <MudText Typo="Typo.h6" Class="mt-4">No libraries yet</MudText>
+            <MudText Typo="Typo.body2" Class="libraries-empty-hint">Create a library to start adding your books</MudText>
+            <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Href="/libraries/add">New library</MudButton>
+        </div>
+    }
+    else
+    {
+        <div class="libraries-grid">
+            @foreach (var library in _libraries)
+            {
+                <div @key="library.Id" class="library-cell">
+                <article class="library-card" style="@($"--library-color: {library.Color};")">
+                    <a class="library-card-link" href="@library.Href">
+                        <span class="library-covers" aria-hidden="true">
+                            @if (library.Covers.Count > 0)
+                            {
+                                @* The newest cover is drawn last, in front and on the left. *@
+                                @for (var i = library.Covers.Count - 1; i >= 0; i--)
+                                {
+                                    <img class="@($"library-cover library-cover-{i}")" src="@library.Covers[i]" alt="" loading="lazy" />
+                                }
+                            }
+                            else if (library.BookCount == 0)
+                            {
+                                <span class="library-cover library-cover-0 library-cover-empty">
+                                    <MudIcon Icon="@Icons.Material.Filled.Add" />
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="library-cover library-cover-0 library-cover-none">
+                                    <MudIcon Icon="@IconPicker.Resolve(library.Icon)" />
+                                </span>
+                            }
+                        </span>
+                        <span class="library-card-text">
+                            <span class="library-card-heading">
+                                <span class="library-icon">
+                                    <MudIcon Icon="@IconPicker.Resolve(library.Icon)" />
+                                </span>
+                                <span class="library-name">@library.Name</span>
+                            </span>
+                            <span class="library-card-details">
+                                <span class="library-type">@library.TypeLabel</span>
+                                <span class="library-count">@library.CountLabel</span>
+                            </span>
+                        </span>
+                    </a>
+                    <MudIconButton id="@library.ActionsButtonId" Icon="@Icons.Material.Filled.MoreVert" OnClick="() => OpenActionsAsync(library)"
+                                   aria-label="@library.ActionsLabel" Class="library-card-actions" />
+                </article>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (_actionsLibrary is { } current)
+{
+    <ActionSheet Open="true" AriaLabel="@($"Actions for {current.Name}")" Anchor="@_sheetAnchor" AlignEnd="true" OnClose="CloseActions">
+        <Header>
+            <div class="library-actions-header" style="@($"--library-color: {current.Color};")">
+                <span class="library-icon">
+                    <MudIcon Icon="@IconPicker.Resolve(current.Icon)" />
+                </span>
+                <div class="library-actions-heading">
+                    <div class="library-actions-name">@current.Name</div>
+                    <div class="library-actions-details">@current.Details</div>
+                </div>
+            </div>
+        </Header>
+        <ChildContent>
+            <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit name, icon and color" Href="@current.EditHref" />
+            @if (current.IsDigital)
+            {
+                <ActionSheetItem Icon="@Icons.Material.Filled.Upload" Text="Import books" Href="@current.ImportHref" />
+            }
+            <div class="action-sheet-divider"></div>
+            <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete library" Danger="true" OnClick="() => DeleteAsync(current)" />
+        </ChildContent>
+    </ActionSheet>
+}

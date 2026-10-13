@@ -21,7 +21,7 @@ public interface ILibraryReadService
         Guid userId,
         CancellationToken cancellationToken = default);
 
-    // Every library of the user, ordered by name, with its book count.
+    // Every library of the user, ordered by name, with its book count and its latest covers.
     Task<IReadOnlyList<LibrarySummary>> GetSummariesAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
