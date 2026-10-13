@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.38.0"></a>
+## [10.38.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.38.0) (2026-10-13)
+
+### ✨ Features
+
+* **library:** single bar, Covers and List views, sort and actions in a sheet or a menu ([#1132](https://www.github.com/slucky31/mycomicsmanager/issues/1132)) ([3a9f12a](https://www.github.com/slucky31/mycomicsmanager/commit/3a9f12a9b262ece0f0d81f21ce69d70236972dc1))
+
 <a name="10.37.0"></a>
 ## [10.37.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.37.0) (2026-10-12)
 
