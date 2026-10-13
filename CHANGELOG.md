@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.39.1"></a>
+## [10.39.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.39.1) (2026-10-13)
+
+### 🐛 Bug Fixes
+
+* **layout:** no focus frame around the page title after a navigation ([#1136](https://www.github.com/slucky31/mycomicsmanager/issues/1136)) ([6854e2e](https://www.github.com/slucky31/mycomicsmanager/commit/6854e2e350074a6f3626fb52d66fb486931e4503))
+
 <a name="10.39.0"></a>
 ## [10.39.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.39.0) (2026-10-13)
 
