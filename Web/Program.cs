@@ -243,6 +243,7 @@ builder.Services.AddScoped<ProcessImportJobExternalServices>();
 builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();
+builder.Services.AddScoped<PopupAnchorLocator>();
 builder.Services.AddScoped<IImportOrchestrator, ImportOrchestrator>();
 builder.Services.AddSingleton<IImportJobEnqueuer, HangfireImportJobEnqueuer>();
 builder.Services.AddScoped<IIsbnScanOrchestrator, IsbnScanOrchestrator>();

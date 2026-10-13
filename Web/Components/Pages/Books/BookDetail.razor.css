@@ -1,42 +1,655 @@
-::deep .book-detail-page {
-    min-height: 100vh;
-    background: var(--mud-palette-background);
+.book-page {
+    /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
+    min-height: 100dvh;
+    padding-bottom: 24px;
+    background: #F4F4F6;
+    color: #1B1D24;
 }
 
-::deep .book-detail-content {
-    padding: 24px;
-    max-width: 800px;
-    margin: 0 auto;
+@media (max-width: 959.98px) {
+    .book-page {
+        min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
 }
 
-::deep .book-detail-cover {
-    width: 200px;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-}
-
-::deep .book-detail-cover-placeholder {
-    width: 200px;
-    height: 300px;
+/* ── Bar: back, library (breadcrumb on a large screen), Edit, ⋮ ── */
+.book-bar {
+    min-height: 52px;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: env(safe-area-inset-top) 2px 0;
+}
+
+.book-bar-trail {
+    flex-grow: 1;
+    min-width: 0;
+    padding-left: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 15px;
+    color: #5C6070;
+}
+
+.book-bar-trail a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.book-bar-trail a:hover {
+    text-decoration: underline;
+}
+
+.book-bar-trail-current {
+    display: none;
+    color: #1B1D24;
+}
+
+::deep .book-bar-edit {
+    display: none;
+}
+
+/* ── Content: cover and title side by side, then the actions and the panels ── */
+.book-body {
+    display: grid;
+    grid-template-columns: 124px minmax(0, 1fr);
+    grid-template-areas:
+        "cover heading"
+        "primary primary"
+        "actions actions"
+        "panels panels";
+    column-gap: 16px;
+    padding: 4px 16px 0;
+}
+
+/* On a phone the two columns of the tablet are taken apart in the grid. */
+.book-side,
+.book-main {
+    display: contents;
+}
+
+.book-cover {
+    grid-area: cover;
+    display: block;
+    width: 124px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.book-cover-none {
+    display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
-    border-radius: 12px;
-    color: white;
+    background: linear-gradient(135deg, #3B2FB0 0%, #594AE2 100%);
+    color: #ffffff;
 }
 
-::deep .book-detail-info-item {
+.book-heading {
+    grid-area: heading;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding-top: 2px;
+}
+
+.book-heading h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 28px;
+    overflow-wrap: anywhere;
+}
+
+.book-serie {
+    font-size: 15px;
+    font-weight: 500;
+    color: #594AE2;
+}
+
+.book-authors {
+    font-size: 14px;
+    color: #5C6070;
+}
+
+.book-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.book-status:empty {
+    display: none;
+}
+
+.book-format {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border: 1px solid #4A3BC4;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #4A3BC4;
+}
+
+.book-read {
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+    border-radius: 11px;
+    background: #E6F4EA;
+    font-size: 12px;
+    font-weight: 500;
+    color: #2E7D32;
+}
+
+.book-read ::deep .mud-icon-root {
+    font-size: 14px;
+}
+
+.book-stars {
+    display: inline-flex;
+    gap: 1px;
+}
+
+.book-stars ::deep .book-star {
+    font-size: 18px;
+    color: #C9CBD6;
+}
+
+.book-stars ::deep .book-star-on {
+    color: #E8A317;
+}
+
+/* ── Main action: read a digital book, add a reading of a paper one ── */
+.book-primary {
+    grid-area: primary;
+    padding-top: 16px;
+}
+
+.book-primary-button {
+    width: 100%;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 26px;
+    background: #594AE2;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.book-primary-outlined {
+    border: 1px solid #E2E3EA;
+    background: #ffffff;
+    color: #1B1D24;
+}
+
+.book-primary-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 19px;
+}
+
+.book-primary-progress {
+    font-size: 13px;
+    font-weight: 400;
+    opacity: 0.85;
+}
+
+.book-progress {
+    height: 4px;
+    margin: 10px 4px 0;
+    border-radius: 2px;
+    background: #E2E1F5;
+}
+
+.book-progress > div {
+    height: 4px;
+    border-radius: 2px;
+    background: #594AE2;
+}
+
+/* ── Other actions, with a label; they scroll sideways on a narrow phone ── */
+.book-actions {
+    grid-area: actions;
+    display: flex;
+    gap: 8px;
+    margin: 0 -16px;
+    padding: 12px 16px 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.book-actions::-webkit-scrollbar {
+    display: none;
+}
+
+.book-action {
+    flex-shrink: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    border: 1px solid #E2E3EA;
+    border-radius: 22px;
+    background: #ffffff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1B1D24;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.book-action:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.book-action ::deep .mud-icon-root {
+    font-size: 20px;
+}
+
+/* ── Panels: details and reading history ── */
+.book-panels {
+    grid-area: panels;
+    display: grid;
+    gap: 16px;
+    padding-top: 12px;
+}
+
+.book-panel {
+    container-type: inline-size;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #E2E3EA;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.book-panel h2 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5C6070;
+}
+
+.book-details dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+}
+
+@container (min-width: 400px) {
+    .book-details dl {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.book-details dl > div {
+    min-width: 0;
+}
+
+.book-details dt {
+    margin-bottom: 2px;
+    font-size: 12px;
+    color: #5C6070;
+}
+
+.book-details dd {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+}
+
+.book-details dd > span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Room for the badge of the ISBN icon while the book has none. */
+.book-details .book-isbn-value {
+    padding-top: 10px;
+}
+
+.book-isbn {
+    font-variant-numeric: tabular-nums;
+}
+
+.book-history ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.book-history li {
+    min-height: 40px;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--mud-palette-lines-default);
 }
 
-::deep .book-detail-info-item:last-child {
-    border-bottom: none;
+.book-history-date {
+    flex-grow: 1;
+    font-size: 15px;
+}
+
+.book-history-empty {
+    font-size: 15px;
+    color: #5C6070;
+}
+
+.book-history-add {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 0 4px;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    color: #594AE2;
+    cursor: pointer;
+}
+
+/* Adding a reading in place: 5 stars of 44px, Cancel and Save. */
+.book-reading-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #F1EFFD;
+}
+
+.book-reading-form-title {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.book-reading-stars {
+    display: flex;
+    justify-content: space-between;
+    max-width: 300px;
+}
+
+.book-star-button {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 22px;
+    background: none;
+    color: #C9CBD6;
+    cursor: pointer;
+}
+
+.book-star-button.book-star-on {
+    color: #E8A317;
+}
+
+.book-star-button ::deep .mud-icon-root {
+    font-size: 30px;
+}
+
+.book-reading-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.book-reading-buttons button {
+    flex: 1 1 0;
+    height: 44px;
+    border: 1px solid #E2E3EA;
+    border-radius: 22px;
+    background: #ffffff;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1B1D24;
+    cursor: pointer;
+}
+
+.book-reading-buttons .book-reading-save {
+    border-color: #594AE2;
+    background: #594AE2;
+    color: #ffffff;
+}
+
+.book-reading-buttons .book-reading-save:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.book-not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 32px;
+    text-align: center;
+}
+
+.book-not-found h1 {
+    margin: 16px 0 4px;
+    font-size: 22px;
+}
+
+.book-not-found p {
+    margin: 0 0 16px;
+    color: #5C6070;
+}
+
+/* ── Actions sheet: the book above its actions ── */
+.book-sheet-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 20px 12px;
+    border-bottom: 1px solid #E2E3EA;
+}
+
+.book-sheet-header img {
+    width: 40px;
+    height: 60px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.book-sheet-heading {
+    min-width: 0;
+}
+
+.book-sheet-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.book-sheet-details {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+/* ── Tablet: the cover and the main action on the left, the rest on the right ── */
+@media (min-width: 600px) {
+    .book-bar {
+        min-height: 64px;
+        padding: 0 16px 0 12px;
+    }
+
+    ::deep .book-bar-edit-icon {
+        display: none;
+    }
+
+    ::deep .book-bar-edit {
+        display: inline-flex;
+        height: 44px;
+        border: 1px solid #E2E3EA;
+        border-radius: 22px;
+        background: #ffffff;
+        text-transform: none;
+        font-size: 15px;
+    }
+
+    .book-body {
+        display: flex;
+        align-items: flex-start;
+        gap: 32px;
+        padding: 8px 28px 0;
+    }
+
+    .book-side {
+        width: 220px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .book-main {
+        flex-grow: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        container-type: inline-size;
+    }
+
+    .book-cover {
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .book-primary {
+        padding-top: 0;
+    }
+
+    .book-heading {
+        gap: 10px;
+        padding-top: 0;
+    }
+
+    .book-heading h1 {
+        font-size: 34px;
+        line-height: 40px;
+    }
+
+    .book-serie {
+        font-size: 18px;
+    }
+
+    .book-authors {
+        font-size: 16px;
+    }
+
+    .book-format {
+        height: 26px;
+        padding: 0 12px;
+        border-radius: 13px;
+        font-size: 13px;
+    }
+
+    .book-actions {
+        flex-wrap: wrap;
+        margin: 0;
+        padding: 4px 0 0;
+        overflow: visible;
+    }
+
+    .book-panels {
+        padding-top: 8px;
+    }
+
+    .book-panel {
+        padding: 18px;
+    }
+
+    .book-details dt {
+        font-size: 13px;
+    }
+
+    .book-details dd {
+        font-size: 16px;
+    }
+}
+
+/* Details and reading history side by side when the right column is wide enough. */
+@container (min-width: 700px) {
+    .book-panels {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        align-items: start;
+    }
+}
+
+@media (min-width: 960px) {
+    .book-body {
+        gap: 40px;
+        padding: 8px 40px 0;
+    }
+
+    .book-side {
+        width: 300px;
+    }
+}
+
+/* ── Large screen: breadcrumb, larger cover and title ── */
+@media (min-width: 1440px) {
+    .book-bar {
+        min-height: 80px;
+        gap: 8px;
+        padding: 0 48px 0 36px;
+    }
+
+    .book-bar-trail-current {
+        display: inline;
+    }
+
+    .book-body {
+        max-width: 1500px;
+        padding: 8px 48px 0;
+    }
+
+    .book-side {
+        width: 380px;
+    }
+
+    .book-heading h1 {
+        font-size: 40px;
+    }
 }

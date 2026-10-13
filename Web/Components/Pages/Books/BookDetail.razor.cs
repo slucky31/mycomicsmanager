@@ -8,87 +8,123 @@ using Web.Services;
 
 namespace Web.Components.Pages.Books;
 
-public partial class BookDetail
+public sealed partial class BookDetail : IDisposable
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBooksService BooksService { get; set; } = default!;
+    [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IBookMoveWorkflow BookMoveWorkflow { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private PopupAnchorLocator PopupAnchorLocator { get; set; } = default!;
     [Inject] private ILogger<BookDetail> Logger { get; set; } = default!;
     [Inject] private IIsbnScanService IsbnScanService { get; set; } = default!;
+
+    public static readonly string Msg_LoadFailed = "Unable to load the book";
+
+    private const string ActionsButtonId = "book-actions";
 
     [Parameter]
     public string BookId { get; set; } = string.Empty;
 
+    private readonly CancellationTokenSource _disposalCts = new();
     private Book? _book;
+    private BookDetailViewModel? _view;
+    private string? _libraryName;
     private bool _isLoading = true;
-    private bool _loadError;
     private bool _showAddReading;
-    private int _newRating = 1;
+    private int _newRating;
     private bool _isAddingReading;
     private bool _isMoving;
     private bool _isScanningIsbn;
+    private bool _actionsOpen;
+    private PopupAnchor? _sheetAnchor;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadBookAsync();
+        _isLoading = false;
     }
 
+    // On a failure the book already shown stays (after an action), or "Book not found" is shown.
     private async Task LoadBookAsync()
     {
-        _isLoading = true;
-        _loadError = false;
-        StateHasChanged();
-
         try
         {
             var result = await BooksService.GetById(BookId);
-
             if (result.IsSuccess && result.Value is not null)
             {
+                var libraryChanged = _book?.LibraryId != result.Value.LibraryId;
                 _book = result.Value;
+                _view = BookDetailViewModel.From(result.Value);
+                if (libraryChanged)
+                {
+                    await LoadLibraryNameAsync(result.Value.LibraryId);
+                }
             }
-            else
+            else if (result.IsFailure)
             {
-                _loadError = true;
+                Logger.LogError("Unable to load the book {BookId}: {Error}", BookId, result.Error?.Description);
+                Snackbar.Add(Msg_LoadFailed, Severity.Error);
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
-            _loadError = true;
-            Logger.LogError(ex, "Unexpected error while loading book");
-        }
-        finally
-        {
-            _isLoading = false;
+            Logger.LogError(ex, "Unexpected error while loading book {BookId}", BookId);
+            Snackbar.Add(Msg_LoadFailed, Severity.Error);
         }
     }
 
+    // The name of the library in the bar; "Library" when it cannot be loaded.
+    private async Task LoadLibraryNameAsync(Guid libraryId)
+    {
+        var result = await LibrariesService.GetById(libraryId.ToString());
+        if (result.IsSuccess && result.Value is not null)
+        {
+            _libraryName = result.Value.Name;
+        }
+        else
+        {
+            _libraryName = null;
+            Logger.LogWarning("Unable to load the library {LibraryId} of book {BookId}: {Error}", libraryId, BookId, result.Error?.Description);
+        }
+    }
+
+    // ── Reading history ────────────────────────────────────────────────
+
+    private void ShowAddReading()
+    {
+        _newRating = 0;
+        _showAddReading = true;
+    }
+
+    private void CancelAddReading() => _showAddReading = false;
+
     private async Task AddReadingDateAsync()
     {
-        _isAddingReading = true;
-        StateHasChanged();
+        if (_newRating == 0 || _isAddingReading)
+        {
+            return;
+        }
 
+        _isAddingReading = true;
         try
         {
             var result = await BooksService.AddReadingDate(BookId, _newRating);
-
             if (result.IsSuccess)
             {
                 _showAddReading = false;
-                _newRating = 1;
                 await LoadBookAsync();
             }
             else
             {
-                Snackbar.Add($"Unexpected error while adding reading date", Severity.Error);
-                Logger.LogError("Unexpected error while adding reading date");
+                Snackbar.Add("Unexpected error while adding reading date", Severity.Error);
+                Logger.LogError("Unexpected error while adding reading date: {Error}", result.Error?.Description);
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
-            Snackbar.Add($"Unexpected error while adding reading date", Severity.Error);
+            Snackbar.Add("Unexpected error while adding reading date", Severity.Error);
             Logger.LogError(ex, "Unexpected error while adding reading date");
         }
         finally
@@ -97,19 +133,7 @@ public partial class BookDetail
         }
     }
 
-    private void FindDetails() => NavigationManager.NavigateTo($"/books/{BookId}/find-details");
-
-    private void EditBook() => NavigationManager.NavigateTo($"/books/{BookId}/edit");
-
-    private void ReadBook() => NavigationManager.NavigateTo($"/books/{BookId}/read");
-
-    private IsbnScanState IsbnScanState => _book is DigitalBook digitalBook ? digitalBook.GetIsbnScanState() : IsbnScanState.HasIsbn;
-
-    private int IsbnCandidateCount => _book is DigitalBook digitalBook ? digitalBook.IsbnCandidates.Count : 0;
-
-    // Books imported before their size was recorded have none (0): nothing is shown for them.
-    private string? FileSizeDisplay =>
-        _book is DigitalBook { FileSize: > 0 } digitalBook ? FileSizeFormatter.Format(digitalBook.FileSize) : null;
+    // ── ISBN ───────────────────────────────────────────────────────────
 
     // Reads the pages on the server right away (a few seconds), then shows what they gave.
     private async Task ScanIsbnAsync()
@@ -171,13 +195,36 @@ public partial class BookDetail
 
     private void FindIsbn() => NavigationManager.NavigateTo($"/books/{BookId}/read?mode={BookReader.IsbnSearchMode}");
 
+    // ── Actions ────────────────────────────────────────────────────────
+
+    private async Task OpenActionsAsync()
+    {
+        var anchor = await PopupAnchorLocator.AnchorOfAsync(ActionsButtonId, _disposalCts.Token);
+        _sheetAnchor = anchor;
+        _actionsOpen = true;
+    }
+
+    private void CloseActions() => _actionsOpen = false;
+
+    private Task MoveFromActionsAsync()
+    {
+        CloseActions();
+        return MoveBookAsync();
+    }
+
+    private Task DeleteFromActionsAsync()
+    {
+        CloseActions();
+        return DeleteBookAsync();
+    }
+
     private async Task DeleteBookAsync()
     {
         try
         {
             var confirmed = await DialogService.ShowConfirmationAsync(
-                "Confirm Delete",
-                "Do you really want to delete this book? This process cannot be undone.",
+                "Delete book",
+                $"Do you really want to delete “{_view?.Title}”? This process cannot be undone.",
                 "Delete");
 
             if (confirmed)
@@ -186,7 +233,7 @@ public partial class BookDetail
 
                 if (res.IsSuccess)
                 {
-                    NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
+                    GoBack();
                 }
                 else
                 {
@@ -226,5 +273,11 @@ public partial class BookDetail
     private void GoBack()
     {
         NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
+    }
+
+    public void Dispose()
+    {
+        _disposalCts.Cancel();
+        _disposalCts.Dispose();
     }
 }

@@ -1,19 +1,17 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using MudBlazor;
 using Web.Components.Pages.Dialogs;
-using Web.Infrastructure;
 using Web.Models;
 using Web.Services;
 
 namespace Web.Components.Pages.Libraries;
 
-public partial class LibrariesList : IAsyncDisposable
+public sealed partial class LibrariesList : IDisposable
 {
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private IJSRuntime JS { get; set; } = default!;
+    [Inject] private PopupAnchorLocator PopupAnchorLocator { get; set; } = default!;
     [Inject] private ILogger<LibrariesList> Logger { get; set; } = default!;
 
     public static readonly string Msg_LibCorrectlyDeleted = "The library was correctly deleted";
@@ -25,30 +23,11 @@ public partial class LibrariesList : IAsyncDisposable
     private bool _isLoading = true;
     private LibraryCardViewModel? _actionsLibrary;
     private PopupAnchor? _sheetAnchor;
-    private IJSObjectReference? _module;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadLibrariesAsync();
         _isLoading = false;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            return;
-        }
-
-        try
-        {
-            _module = await JS.InvokeAsync<IJSObjectReference?>("import", _disposalCts.Token, AppVersion.Versioned("./js/popupAnchor.js"));
-        }
-        catch (JSException ex)
-        {
-            // Without the script the menus are centered on a tablet.
-            Logger.LogWarning(ex, "Unable to load the popup anchor script");
-        }
     }
 
     private async Task LoadLibrariesAsync()
@@ -67,30 +46,12 @@ public partial class LibrariesList : IAsyncDisposable
 
     private async Task OpenActionsAsync(LibraryCardViewModel library)
     {
-        var anchor = await AnchorOfAsync(library.ActionsButtonId);
+        var anchor = await PopupAnchorLocator.AnchorOfAsync(library.ActionsButtonId, _disposalCts.Token);
         _sheetAnchor = anchor;
         _actionsLibrary = library;
     }
 
     private void CloseActions() => _actionsLibrary = null;
-
-    private async Task<PopupAnchor?> AnchorOfAsync(string elementId)
-    {
-        if (_module is null)
-        {
-            return null;
-        }
-
-        try
-        {
-            return await _module.InvokeAsync<PopupAnchor?>("anchorOf", _disposalCts.Token, elementId);
-        }
-        catch (JSException ex)
-        {
-            Logger.LogWarning(ex, "Unable to find the position of {ElementId}", elementId);
-            return null;
-        }
-    }
 
     private async Task DeleteAsync(LibraryCardViewModel library)
     {
@@ -128,21 +89,9 @@ public partial class LibrariesList : IAsyncDisposable
         await LoadLibrariesAsync();
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        await _disposalCts.CancelAsync();
+        _disposalCts.Cancel();
         _disposalCts.Dispose();
-        try
-        {
-            if (_module is not null)
-            {
-                await _module.DisposeAsync();
-            }
-        }
-        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
-        {
-            // JS interop can fail when the Blazor circuit is disconnected; intentionally ignored.
-        }
     }
 }

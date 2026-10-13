@@ -40,6 +40,7 @@ public sealed class LibrariesListTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_librariesService);
         _ctx.Services.AddSingleton(_dialogService);
         _ctx.Services.AddSingleton(_snackbar);
+        _ctx.Services.AddScoped<PopupAnchorLocator>();
     }
 
     public async ValueTask DisposeAsync()
