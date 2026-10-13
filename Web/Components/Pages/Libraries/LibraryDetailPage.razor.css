@@ -3,6 +3,8 @@
     flex-direction: column;
     /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
     height: 100dvh;
+    background: #F4F4F6;
+    color: #1B1D24;
 }
 
 @media (max-width: 959.98px) {
@@ -11,75 +13,253 @@
     }
 }
 
-/* ── Header ───────────────────────────────────────────── */
-.library-detail-header {
-    min-height: 64px;
-    padding: 0 20px;
-    color: white;
-    position: relative;
-    overflow: hidden;
+/* ── Bar: back, name and subtitle, search, sort and view, add or ⋯ ── */
+.library-bar {
+    flex-shrink: 0;
+    min-height: 56px;
     display: flex;
     align-items: center;
+    padding: env(safe-area-inset-top) 2px 0;
+}
+
+.library-bar-title {
+    flex-grow: 1;
+    min-width: 0;
+    padding-left: 4px;
+}
+
+.library-bar-title h1 {
+    margin: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 24px;
+}
+
+.library-bar-subtitle {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+/* The view is in the subtitle from the tablet on. */
+.library-bar-view {
+    display: none;
+}
+
+/* Phone: the search opens in place of the bar. */
+.library-search {
+    display: none;
+    flex-grow: 1;
+    min-width: 0;
+    align-items: center;
+    gap: 4px;
+}
+
+@media (max-width: 599.98px) {
+    .library-bar-searching .library-search {
+        display: flex;
+        padding-right: 8px;
+    }
+
+    .library-bar-searching ::deep .library-bar-back,
+    .library-bar-searching .library-bar-title,
+    .library-bar-searching ::deep .library-bar-search,
+    .library-bar-searching ::deep .library-bar-action,
+    .library-bar-searching ::deep .library-bar-add {
+        display: none;
+    }
+}
+
+.library-search-field {
+    flex-grow: 1;
+    min-width: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px 0 12px;
+    border-radius: 22px;
+    background: #ffffff;
+    border: 2px solid #594AE2;
+    color: #5C6070;
+}
+
+.library-search-field input {
+    flex-grow: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    /* 16px: iOS does not zoom on the field */
+    font-size: 16px;
+    color: #1B1D24;
+}
+
+.library-search-field input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+}
+
+::deep .library-bar-new-book {
+    display: none;
+}
+
+.library-search-results {
     flex-shrink: 0;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-}
-
-.library-color-blob {
-    position: absolute;
-    width: 320px;
-    height: 200px;
-    border-radius: 50%;
-    opacity: 0.7;
-    filter: blur(65px);
-    top: -80px;
-    left: -60px;
-    pointer-events: none;
-}
-
-.library-detail-header-content {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-}
-
-/* ── Search bar ───────────────────────────────────────── */
-.library-search-wrapper {
-    background: var(--mud-palette-background);
-    padding: 12px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    flex-shrink: 0;
+    padding: 4px 16px 8px;
+    font-size: 13px;
+    color: #5C6070;
 }
 
 /* ── Scrollable content ───────────────────────────────── */
 .library-detail-content {
     flex: 1;
-    overflow-y: auto;
     min-height: 0;
-    padding: 16px 24px 24px;
+    overflow-y: auto;
 }
 
-/* ── FAB (mobile only, always viewport-fixed) ─────────── */
-.fab-add-book {
-    position: fixed;
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 16px);
-    right: 20px;
-    z-index: 1200;
+.library-empty {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
 }
 
-/* ── Mobile ───────────────────────────────────────────── */
-@media (max-width: 599px) {
-    .library-detail-header {
-        padding: 0 12px;
+::deep .library-empty-hint {
+    margin-bottom: 16px;
+    color: #5C6070;
+}
+
+/* ── Book actions: the book above its actions ─────────── */
+.book-actions-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 20px 12px;
+    border-bottom: 1px solid #E2E3EA;
+}
+
+.book-actions-header img {
+    flex-shrink: 0;
+    width: 40px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.book-actions-heading {
+    min-width: 0;
+}
+
+.book-actions-title {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.book-actions-serie {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+/* ── Tablet: 72 px bar, search always shown, "New book" with its label ── */
+@media (min-width: 600px) {
+    .library-bar {
+        min-height: 72px;
+        gap: 4px;
+        padding: 0 16px 0 12px;
     }
 
-    .library-search-wrapper {
-        padding: 8px 12px;
+    .library-bar-title h1 {
+        font-size: 24px;
+        line-height: 28px;
     }
 
-    .library-detail-content {
-        padding: 12px;
-        /* clearance so last item isn't behind FAB */
-        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    .library-bar-subtitle {
+        font-size: 14px;
+    }
+
+    .library-bar-view {
+        display: inline;
+    }
+
+    .library-search {
+        display: flex;
+        flex-grow: 0;
+        width: 320px;
+        padding-right: 4px;
+    }
+
+    ::deep .library-search-close,
+    ::deep .library-bar-search,
+    ::deep .library-bar-add {
+        display: none;
+    }
+
+    .library-search-field {
+        border: 1px solid #E2E3EA;
+    }
+
+    .library-search-field:focus-within {
+        border-color: #594AE2;
+    }
+
+    .library-search-field input {
+        font-size: 15px;
+    }
+
+    ::deep .library-bar-new-book {
+        display: inline-flex;
+        height: 44px;
+        margin-left: 8px;
+        border-radius: 22px;
+        text-transform: none;
+    }
+
+    .library-search-results {
+        padding: 0 28px 8px;
+    }
+}
+
+/* ── Large screen: the side bar lists the libraries, no back button ── */
+@media (min-width: 1440px) {
+    .library-bar {
+        min-height: 96px;
+        gap: 12px;
+        padding: 0 48px;
+    }
+
+    ::deep .library-bar-back {
+        display: none;
+    }
+
+    .library-bar-title {
+        padding-left: 0;
+    }
+
+    .library-bar-title h1 {
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 38px;
+    }
+
+    .library-bar-subtitle {
+        margin-top: 2px;
+        font-size: 15px;
+    }
+
+    .library-search {
+        width: 360px;
+    }
+
+    .library-search-results {
+        padding: 0 48px 8px;
     }
 }

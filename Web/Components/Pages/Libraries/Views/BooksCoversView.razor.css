@@ -1,80 +1,179 @@
-::deep .book-cover-card {
+.covers-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 12px;
+    padding: 8px 16px 16px;
+}
+
+.cover-item {
     position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    aspect-ratio: 2/3;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+    /* A long press opens the actions: no text selection nor iOS link preview. */
+    -webkit-touch-callout: none;
+    user-select: none;
 }
 
-::deep .book-cover-card:hover {
-    transform: scale(1.03);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-}
-
-::deep .book-cover-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-::deep .book-cover-placeholder {
-    width: 100%;
-    height: 100%;
+.cover-link {
     display: flex;
     flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    color: #1B1D24;
+    text-decoration: none;
+}
+
+.cover-frame {
+    position: relative;
+    display: block;
+}
+
+.cover-image,
+.cover-placeholder {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.cover-image {
+    object-fit: cover;
+    -webkit-user-drag: none;
+}
+
+.cover-placeholder {
+    box-sizing: border-box;
+    padding: 8px;
+    overflow: hidden;
+    background: #594AE2;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.cover-volume {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    height: 20px;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+    background: #131B2C;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.cover-isbn-state {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 30px;
+    height: 30px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
-    color: white;
-    padding: 16px;
-    text-align: center;
-}
-
-::deep .book-cover-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
-    padding: 60px 16px 16px 16px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-::deep .book-cover-card:hover .book-cover-overlay {
-    opacity: 1;
-}
-
-::deep .book-cover-actions {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-::deep .book-cover-card:hover .book-cover-actions {
-    opacity: 1;
-}
-
-::deep .book-cover-badge {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    border-radius: 20px;
-    padding: 4px 10px;
-}
-
-::deep .book-cover-isbn-state {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    display: flex;
-    padding: 4px;
-    color: white;
-    background: rgba(0, 0, 0, 0.7);
     border-radius: 50%;
+    background: #131B2C;
+    color: #D0D2DB;
+}
+
+.cover-title {
+    height: 32px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 16px;
+}
+
+.cover-serie {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    color: #5C6070;
+}
+
+.cover-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: #131B2C;
+    color: #ffffff;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.cover-actions:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (hover: hover) {
+    .cover-item:hover .cover-actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+@media (min-width: 600px) {
+    .covers-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 24px 20px;
+        padding: 8px 28px 24px;
+    }
+
+    .cover-link {
+        gap: 6px;
+    }
+
+    .cover-volume {
+        left: 8px;
+        bottom: 8px;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: 11px;
+        font-size: 12px;
+    }
+
+    .cover-isbn-state {
+        right: 8px;
+        bottom: 8px;
+    }
+
+    .cover-title {
+        height: 36px;
+        font-size: 14px;
+        line-height: 18px;
+    }
+
+    .cover-serie {
+        font-size: 12px;
+    }
+}
+
+@media (min-width: 840px) {
+    .covers-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1440px) {
+    .covers-grid {
+        gap: 32px 28px;
+        padding: 0 48px 24px;
+    }
 }

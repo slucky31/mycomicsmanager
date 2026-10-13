@@ -1,0 +1,88 @@
+/* Phone: a bottom sheet over a dimmed page. Tablet and large screen: a menu next to its anchor (PopupPlacement). */
+.action-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1350;
+    background: rgba(19, 27, 44, 0.45);
+}
+
+.action-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1351;
+    max-height: 85dvh;
+    overflow-y: auto;
+    padding: 8px 0 calc(16px + env(safe-area-inset-bottom));
+    border-radius: 20px 20px 0 0;
+    background: #ffffff;
+    color: #1B1D24;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
+    outline: none;
+}
+
+.action-sheet-handle {
+    width: 36px;
+    height: 4px;
+    margin: 0 auto 8px;
+    border-radius: 2px;
+    background: #C9CBD6;
+}
+
+.action-sheet-title-row {
+    display: flex;
+    align-items: center;
+    padding: 0 8px 0 20px;
+}
+
+.action-sheet-title {
+    flex-grow: 1;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+::deep .action-sheet-section {
+    padding: 8px 20px 4px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5C6070;
+}
+
+::deep .action-sheet-divider {
+    height: 1px;
+    margin: 4px 0;
+    background: #E2E3EA;
+}
+
+@media (min-width: 600px) {
+    .action-sheet-backdrop {
+        background: transparent;
+    }
+
+    .action-sheet {
+        right: auto;
+        bottom: var(--popup-bottom, auto);
+        top: var(--popup-top, auto);
+        left: var(--popup-left, auto);
+        width: 300px;
+        max-height: var(--popup-max-height, calc(100dvh - 16px));
+        padding: 8px 0;
+        border-radius: 16px;
+        box-shadow: 0 12px 32px rgba(19, 27, 44, 0.25);
+    }
+
+    .action-sheet-centered {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .action-sheet-handle,
+    .action-sheet-title-row {
+        display: none;
+    }
+}
