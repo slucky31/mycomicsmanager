@@ -98,10 +98,10 @@
                 <section class="book-form-section" aria-labelledby="book-form-book">
                     <h2 id="book-form-book">Book</h2>
                     <div class="book-form-grid">
-                        @TextField("book-title", "Title", nameof(BookUiDto.Title), _model.Title, v => _model.Title = v, Required)
-                        @TextField("book-serie", "Series", nameof(BookUiDto.Serie), _model.Serie, v => _model.Serie = v, Required)
+                        @TextField("book-title", "Title", nameof(BookUiDto.Title), _model.Title, v => _model.Title = v, RequiredField)
+                        @TextField("book-serie", "Series", nameof(BookUiDto.Serie), _model.Serie, v => _model.Serie = v, RequiredField)
                         <div class="book-form-pair">
-                            @TextField("book-isbn", "ISBN", nameof(BookUiDto.ISBN), _model.ISBN, v => _model.ISBN = v, Required with { InputMode = "numeric" })
+                            @TextField("book-isbn", "ISBN", nameof(BookUiDto.ISBN), _model.ISBN, v => _model.ISBN = v, RequiredField with { InputMode = "numeric" })
                             <FormField Id="book-volume" Label="Volume" Error="@_errors.For(nameof(BookUiDto.VolumeNumber))">
                                 <input id="book-volume" type="number" inputmode="numeric" min="1" @bind="_model.VolumeNumber" @bind:after="Revalidate"
                                        aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.VolumeNumber))" aria-describedby="@Describe("book-volume", nameof(BookUiDto.VolumeNumber))" />
@@ -150,7 +150,7 @@
         public string? InputMode { get; init; }
     }
 
-    private static readonly FieldOptions Required = new() { Required = true };
+    private static readonly FieldOptions RequiredField = new() { Required = true };
 
     private RenderFragment TextField(string id, string label, string property, string? value, Action<string> setValue, FieldOptions? options = null) => __builder =>
     {
