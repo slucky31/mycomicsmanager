@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MudBlazor;
+using Web.Models;
 
 namespace Web.Components.Pages;
 
@@ -16,7 +17,8 @@ public partial class UserSettings
     private string _email = string.Empty;
     private string _picture = string.Empty;
 
-    private HealthReport? _healthReport;
+    private SystemHealthViewModel _health = SystemHealthViewModel.Unavailable;
+    private bool _showHealthDetail;
     private bool _isLoadingHealth = true;
 
     [CascadingParameter]
@@ -55,7 +57,7 @@ public partial class UserSettings
         _isLoadingHealth = true;
         try
         {
-            _healthReport = await HealthCheckService.CheckHealthAsync();
+            _health = SystemHealthViewModel.From(await HealthCheckService.CheckHealthAsync());
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -68,17 +70,5 @@ public partial class UserSettings
         }
     }
 
-    private static Color HealthColor(HealthStatus status) => status switch
-    {
-        HealthStatus.Healthy => Color.Success,
-        HealthStatus.Degraded => Color.Warning,
-        _ => Color.Error
-    };
-
-    private static string HealthIcon(HealthStatus status) => status switch
-    {
-        HealthStatus.Healthy => Icons.Material.Filled.CheckCircle,
-        HealthStatus.Degraded => Icons.Material.Filled.Warning,
-        _ => Icons.Material.Filled.Error
-    };
+    private void ToggleHealthDetail() => _showHealthDetail = !_showHealthDetail;
 }

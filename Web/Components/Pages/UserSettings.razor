@@ -1,102 +1,92 @@
 @page "/settings"
 
 @using Web.Infrastructure
+@using Web.Models
 
-<PageLayout Title="Settings" Icon="@Icons.Material.Filled.Settings">
-    <MudGrid Spacing="4" >
-        <MudItem xs="12">
-            <MudPaper Class="pa-4">
-                <MudText Typo="Typo.h6" Class="mb-4"><strong>My Account</strong></MudText>
-                <div class="d-flex align-center gap-4">
-                    @if (!string.IsNullOrEmpty(_picture))
-                    {
-                        <MudAvatar Size="Size.Large">
-                            <img src="@_picture" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" alt="avatar" />
-                        </MudAvatar>
-                    }
-                    else
-                    {
-                        <MudAvatar Size="Size.Large">
-                            <MudIcon Icon="@Icons.Material.Filled.Person" />
-                        </MudAvatar>
-                    }
-                    <div>
-                        <MudText Typo="Typo.subtitle1"><strong>@_username</strong></MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_email</MudText>
-                    </div>
-                </div>
-                <div class="d-flex justify-end mt-4">
-                    <MudButton Href="/Account/Logout"
-                               Variant="Variant.Outlined"
-                               Color="Color.Error"
-                               StartIcon="@Icons.Material.Filled.Logout">
-                        Sign out
-                    </MudButton>
-                </div>
-            </MudPaper>
-        </MudItem>
-        <MudItem Class="mud-width-full" xs="12" sm="12" md="8">
-            <MudPaper Class="pa-4">
-                <MudText Typo="Typo.h6"><strong>System Health</strong></MudText>
-                <MudText Typo="Typo.body1" Class="mb-4">Status of the services the application depends on</MudText>
+<PageTitle>Settings — MyComicsManager</PageTitle>
+
+<div class="settings-page">
+    <header class="settings-bar">
+        <h1>Settings</h1>
+    </header>
+
+    <div class="settings-content">
+        <section class="settings-card settings-account" aria-label="Account">
+            @if (!string.IsNullOrEmpty(_picture))
+            {
+                <img class="settings-avatar" src="@_picture" alt="" />
+            }
+            else
+            {
+                <span class="settings-avatar" aria-hidden="true">@AccountViewModel.Initials(_username, _email)</span>
+            }
+            <div class="settings-account-text">
+                <div class="settings-account-name">@_username</div>
+                <div class="settings-account-email">@_email</div>
+            </div>
+        </section>
+
+        <section class="settings-card settings-list">
+            <button type="button" class="settings-row" aria-expanded="@(_showHealthDetail ? "true" : "false")" aria-controls="settings-health-detail"
+                    @onclick="ToggleHealthDetail">
+                <MudIcon Icon="@Icons.Material.Outlined.MonitorHeart" Class="settings-row-icon" />
+                <span class="settings-row-text">System health</span>
                 @if (_isLoadingHealth)
                 {
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-                }
-                else if (_healthReport is not null)
-                {
-                    <MudList T="string" Dense="true">
-                        @foreach (var entry in _healthReport.Entries.OrderBy(e => e.Key, StringComparer.Ordinal))
-                        {
-                            <MudListItem T="string" Icon="@HealthIcon(entry.Value.Status)" IconColor="@HealthColor(entry.Value.Status)">
-                                <div class="d-flex align-center justify-space-between">
-                                    <MudText>@entry.Key</MudText>
-                                    <MudChip T="string" Color="@HealthColor(entry.Value.Status)" Size="Size.Small">@entry.Value.Status</MudChip>
-                                </div>
-                            </MudListItem>
-                        }
-                    </MudList>
+                    <span class="settings-health-chip">Checking…</span>
                 }
                 else
                 {
-                    <MudText Color="Color.Secondary">Health status unavailable</MudText>
+                    <span class="@($"settings-health-chip {SystemHealthViewModel.CssClass(_health.Tone)}")">
+                        <MudIcon Icon="@(_health.Tone == HealthTone.Healthy ? Icons.Material.Filled.Check : Icons.Material.Filled.PriorityHigh)" />
+                        @_health.Summary
+                    </span>
                 }
-            </MudPaper>
-        </MudItem>
-        <MudItem Class="mud-width-full" xs="12" sm="12" md="4">
-            <MudPaper Class="pa-4">
-                <MudText Typo="Typo.h6"><strong>About</strong></MudText>
-                <MudText Class="mb-4" Typo="Typo.body1">Application information</MudText>
-                <MudText Typo="Typo.body1"><strong>MyComicsManager</strong></MudText>
-                <MudText Typo="Typo.body1" Class="app-version">V@(AppVersion.Current)</MudText>
-            </MudPaper>
-        </MudItem>
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="@($"settings-row-end settings-health-chevron{(_showHealthDetail ? " expanded" : "")}")" />
+            </button>
+            @if (_showHealthDetail)
+            {
+                <ul id="settings-health-detail" class="settings-health-detail">
+                    @if (_health.Checks.Count == 0)
+                    {
+                        <li class="settings-health-empty">Health status unavailable</li>
+                    }
+                    @foreach (var check in _health.Checks)
+                    {
+                        <li class="settings-health-check">
+                            <span class="settings-health-name">@check.Name</span>
+                            <span class="@($"settings-health-chip {SystemHealthViewModel.CssClass(check.Tone)}")">@check.Status</span>
+                        </li>
+                    }
+                </ul>
+            }
+            <div class="settings-row">
+                <MudIcon Icon="@Icons.Material.Outlined.Info" Class="settings-row-icon" />
+                <span class="settings-row-text">Version</span>
+                <span class="settings-row-value app-version">@AppVersion.Current</span>
+            </div>
+            <a class="settings-row settings-sign-out" href="/Account/Logout">
+                <MudIcon Icon="@Icons.Material.Filled.Logout" Class="settings-row-icon" />
+                <span class="settings-row-text">Sign out</span>
+            </a>
+        </section>
+
         <AuthorizeView Roles="Admin">
-            <MudItem xs="12">
-                <MudPaper Class="pa-4 administration">
-                    <MudText Typo="Typo.h6"><strong>Administration</strong></MudText>
-                    <MudText Class="mb-4" Typo="Typo.body1">Tools reserved to administrators</MudText>
-                    <div class="d-flex flex-wrap gap-4">
-                        <MudButton Href="/admin/log-levels"
-                                   Variant="Variant.Outlined"
-                                   Color="Color.Primary"
-                                   StartIcon="@Icons.Material.Filled.Tune">
-                            Log levels
-                        </MudButton>
-                        @* Hangfire is served outside Blazor: open it as a regular page, not through the Blazor router *@
-                        <MudButton Href="/hangfire"
-                                   Target="_blank"
-                                   Rel="noopener"
-                                   Variant="Variant.Outlined"
-                                   Color="Color.Primary"
-                                   StartIcon="@Icons.Material.Filled.Schedule"
-                                   EndIcon="@Icons.Material.Filled.OpenInNew">
-                            Hangfire
-                        </MudButton>
-                    </div>
-                    <Web.Components.Pages.Admin.FeatureTogglesCard />
-                </MudPaper>
-            </MudItem>
+            <section class="settings-card administration">
+                <h2 class="settings-section-title">Administration</h2>
+                <a class="settings-row" href="/admin/log-levels">
+                    <MudIcon Icon="@Icons.Material.Filled.Tune" Class="settings-row-icon" />
+                    <span class="settings-row-text">Log levels</span>
+                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="settings-row-end" />
+                </a>
+                @* Hangfire is served outside Blazor: open it as a regular page, not through the Blazor router *@
+                <a class="settings-row" href="/hangfire" target="_blank" rel="noopener" aria-label="Hangfire (opens in a new tab)">
+                    <MudIcon Icon="@Icons.Material.Outlined.Schedule" Class="settings-row-icon" />
+                    <span class="settings-row-text">Hangfire</span>
+                    <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Class="settings-row-end" />
+                </a>
+                <Web.Components.Pages.Admin.FeatureTogglesCard />
+            </section>
         </AuthorizeView>
-    </MudGrid>
-</PageLayout>
+    </div>
+</div>

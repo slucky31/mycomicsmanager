@@ -1,0 +1,109 @@
+.feature-toggles-title {
+    margin: 16px 0 4px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5C6070;
+}
+
+.feature-toggles-hint {
+    margin: 0 0 4px;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.feature-toggle {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #E2E3EA;
+    cursor: pointer;
+}
+
+.feature-toggle:last-child {
+    border-bottom: 0;
+}
+
+.feature-toggle-text {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.feature-toggle-label {
+    display: block;
+    font-size: 16px;
+}
+
+.feature-toggle-description {
+    display: block;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.feature-toggle-configuration {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 12px;
+    color: #5C6070;
+}
+
+.feature-toggle-overridden {
+    padding: 0 8px;
+    border: 1px solid #8A5300;
+    border-radius: 10px;
+    color: #8A5300;
+    line-height: 18px;
+}
+
+/* The native checkbox stays focusable and is drawn as a switch. */
+.feature-toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+.feature-toggle-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 51px;
+    height: 31px;
+    border-radius: 16px;
+    background: #C9CAD3;
+    transition: background 0.15s ease;
+}
+
+.feature-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease;
+}
+
+.feature-toggle-input:checked + .feature-toggle-switch {
+    background: #594AE2;
+}
+
+.feature-toggle-input:checked + .feature-toggle-switch .feature-toggle-thumb {
+    transform: translateX(20px);
+}
+
+.feature-toggle-input:focus-visible + .feature-toggle-switch {
+    outline: 2px solid #594AE2;
+    outline-offset: 2px;
+}
+
+.feature-toggle-input:disabled + .feature-toggle-switch {
+    opacity: 0.5;
+}
