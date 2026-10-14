@@ -8,7 +8,7 @@ using Web.Services;
 
 namespace Web.Components.Pages;
 
-public partial class FeedImports : IAsyncDisposable
+public partial class FeedImportsPage : IAsyncDisposable
 {
     private const int PageSize = 20;
 
@@ -16,7 +16,7 @@ public partial class FeedImports : IAsyncDisposable
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private FeedImportNotifier Notifier { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private ILogger<FeedImports> Logger { get; set; } = default!;
+    [Inject] private ILogger<FeedImportsPage> Logger { get; set; } = default!;
 
     private readonly CancellationTokenSource _disposeCts = new();
     private FeedImportFilter _filter = FeedImportFilter.All;
@@ -195,11 +195,11 @@ public partial class FeedImports : IAsyncDisposable
 
     internal Task ResolveAsync(Guid decisionId, FeedImportArbitrationAction action, int? candidateIndex) =>
         RunDecisionActionAsync(decisionId, action.ToString(),
-            () => FeedImportService.ResolveArbitrationAsync(decisionId, action, candidateIndex));
+            () => FeedImportService.ResolveArbitrationAsync(decisionId, action, candidateIndex, _disposeCts.Token));
 
     internal Task ApplyActionAsync(Guid decisionId, FeedImportDecisionAction action) =>
         RunDecisionActionAsync(decisionId, action.ToString(),
-            () => FeedImportService.ApplyActionAsync(decisionId, action));
+            () => FeedImportService.ApplyActionAsync(decisionId, action, _disposeCts.Token));
 
     private bool IsEditing(Guid decisionId) => _correction?.DecisionId == decisionId;
 
@@ -219,7 +219,7 @@ public partial class FeedImports : IAsyncDisposable
         }
 
         var succeeded = await RunDecisionActionAsync(decisionId, "Correct",
-            () => FeedImportService.CorrectAsync(decisionId, correction.Serie, correction.Title, correction.Volume));
+            () => FeedImportService.CorrectAsync(decisionId, correction.Serie, correction.Title, correction.Volume, _disposeCts.Token));
         if (succeeded)
         {
             _correction = null;
@@ -296,7 +296,7 @@ public partial class FeedImports : IAsyncDisposable
         _isDeleting = true;
         try
         {
-            var result = await FeedImportService.DeleteAsync(decisionIds);
+            var result = await FeedImportService.DeleteAsync(decisionIds, _disposeCts.Token);
             if (result.IsFailure)
             {
                 Snackbar.Add(result.Error?.Description ?? "Unable to delete the decisions.", Severity.Error);
@@ -347,7 +347,7 @@ public partial class FeedImports : IAsyncDisposable
         _isDeleting = true;
         try
         {
-            var result = await FeedImportService.DeleteDownloadedAsync();
+            var result = await FeedImportService.DeleteDownloadedAsync(_disposeCts.Token);
             if (result.IsFailure)
             {
                 Snackbar.Add(result.Error?.Description ?? "Unable to delete the downloaded decisions.", Severity.Error);

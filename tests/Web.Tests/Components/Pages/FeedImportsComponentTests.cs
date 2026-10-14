@@ -28,7 +28,7 @@ public sealed class FeedImportsComponentTests
         return new FeedImportDecisionPageViewModel(items, items.Count);
     }
 
-    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImports> Cut, ISnackbar Snackbar)> RenderAsync(
+    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImportsPage> Cut, ISnackbar Snackbar)> RenderAsync(
         IFeedImportService service, IDialogService? dialogService = null)
     {
         var snackbar = Substitute.For<ISnackbar>();
@@ -44,7 +44,7 @@ public sealed class FeedImportsComponentTests
         }
 
         ctx.Render<MudPopoverProvider>();
-        var cut = ctx.Render<FeedImports>();
+        var cut = ctx.Render<FeedImportsPage>();
         await Task.Yield();
 
         return (ctx, cut, snackbar);
@@ -207,7 +207,7 @@ public sealed class FeedImportsComponentTests
         snackbar.Received(1).Add(FeedImportError.InvalidStatusTransition.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 
-    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImports> Cut, ISnackbar Snackbar)> RenderExpandedAsync(
+    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImportsPage> Cut, ISnackbar Snackbar)> RenderExpandedAsync(
         IFeedImportService service, FeedImportDecisionViewModel decision)
     {
         service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
@@ -219,13 +219,13 @@ public sealed class FeedImportsComponentTests
     }
 
     // Opens the first decision and deletes it from the detail panel.
-    private static async Task DeleteFirstAsync(IRenderedComponent<FeedImports> cut)
+    private static async Task DeleteFirstAsync(IRenderedComponent<FeedImportsPage> cut)
     {
         await cut.FindAll(".feed-card-main")[0].ClickAsync(new());
         await cut.Find("button[aria-label='Delete this item']").ClickAsync(new());
     }
 
-    private static AngleSharp.Dom.IElement Button(IRenderedComponent<FeedImports> cut, string text) =>
+    private static AngleSharp.Dom.IElement Button(IRenderedComponent<FeedImportsPage> cut, string text) =>
         cut.FindAll("button").First(b => b.TextContent.Contains(text, StringComparison.Ordinal));
 
     [Fact]
