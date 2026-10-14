@@ -107,17 +107,14 @@ public sealed record ReadingsChartViewModel(
     /// <summary>The smallest step of 1, 2 or 5 × 10ⁿ such that two steps reach the peak.</summary>
     internal static int AxisStep(int peak)
     {
-        for (var magnitude = 1; ; magnitude *= 10)
+        // The smallest power of ten for which two steps of 5 × 10ⁿ reach the peak.
+        var magnitude = 1;
+        while (10 * magnitude < peak)
         {
-            foreach (var multiplier in s_stepMultipliers)
-            {
-                var step = multiplier * magnitude;
-                if (2 * step >= peak)
-                {
-                    return step;
-                }
-            }
+            magnitude *= 10;
         }
+
+        return s_stepMultipliers.Select(multiplier => multiplier * magnitude).First(step => 2 * step >= peak);
     }
 
     private static int LastIndexOf(IReadOnlyList<MonthlyReadingCountDto> months, int count)
