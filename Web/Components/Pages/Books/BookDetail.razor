@@ -1,359 +1,265 @@
 @page "/books/{BookId}"
 @rendermode InteractiveServer
 
-@using Application.Helpers
 @using Domain.Books
-@using Microsoft.AspNetCore.Components
-@using Web.Components.Pages.Dialogs
 @using Web.Components.SharedComponents
-@using Web.Services
+@using Web.Models
 
-<div class="book-detail-page">
-    @* Header *@
-    <PageHeader Title="Book Details" OnBack="GoBack">
-        <SubtitleContent>
-            @if (_isLoading)
+<PageTitle>@(_view?.Title ?? "Book") — MyComicsManager</PageTitle>
+
+<div class="book-page">
+    <header class="book-bar">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" aria-label="Back to library" Class="book-bar-back" />
+        <nav class="book-bar-trail" aria-label="Breadcrumb">
+            @if (_view is not null)
             {
-                <text>Loading...</text>
+                <a href="@_view.LibraryHref">@(_libraryName ?? "Library")</a><span class="book-bar-trail-current"> / <span aria-current="page">@_view.Title</span></span>
             }
-            else if (_book is not null)
-            {
-                @_book.Title
-            }
-        </SubtitleContent>
-        <Actions>
-            @if (_book is not null)
-            {
-                @* Desktop: icon buttons *@
-                @if (_book is DigitalBook)
+        </nav>
+        @if (_view is not null)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@_view.EditHref" aria-label="Edit book" Class="book-bar-edit-icon" />
+            <MudButton StartIcon="@Icons.Material.Filled.Edit" Href="@_view.EditHref" Variant="Variant.Outlined" Class="book-bar-edit">Edit</MudButton>
+            <MudIconButton id="@ActionsButtonId" Icon="@Icons.Material.Filled.MoreVert" OnClick="OpenActionsAsync" aria-label="More actions" Class="book-bar-more" />
+        }
+    </header>
+
+    @if (_isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
+    }
+    else if (_view is null)
+    {
+        <div class="book-not-found">
+            <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" Size="Size.Large" />
+            <h1>Book not found</h1>
+            <p>The book you're looking for doesn't exist.</p>
+            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled" Color="Color.Primary" OnClick="GoBack">Back to Books</MudButton>
+        </div>
+    }
+    else
+    {
+        var view = _view;
+        <div class="book-body">
+            <div class="book-side">
+                @if (!string.IsNullOrEmpty(view.ImageLink))
                 {
-                    <MudIconButton Icon="@Icons.Material.Filled.MenuBook"
-                                   Color="Color.Inherit"
-                                   OnClick="ReadBook"
-                                   aria-label="Read book"
-                                   Class="d-none d-sm-flex" />
-                    <MudIconButton Icon="@Icons.Material.Filled.DocumentScanner"
-                                   Color="Color.Inherit"
-                                   OnClick="FindIsbn"
-                                   aria-label="Find the ISBN in the pages"
-                                   Class="d-none d-sm-flex" />
+                    <img class="book-cover" src="@view.ImageLink" alt="@view.CoverAlt" />
                 }
-                <MudIconButton Icon="@Icons.Material.Filled.ManageSearch"
-                               Color="Color.Inherit"
-                               OnClick="FindDetails"
-                               aria-label="Find book details"
-                               Class="d-none d-sm-flex" />
-                <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                               Color="Color.Inherit"
-                               OnClick="EditBook"
-                               aria-label="Edit book"
-                               Class="d-none d-sm-flex" />
-                <MudIconButton Icon="@Icons.Material.Filled.DriveFileMove"
-                               Color="Color.Inherit"
-                               OnClick="MoveBookAsync"
-                               Disabled="_isMoving"
-                               aria-label="Move book to another library"
-                               Class="d-none d-sm-flex" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                               Color="Color.Inherit"
-                               OnClick="DeleteBookAsync"
-                               aria-label="Delete book"
-                               Class="d-none d-sm-flex" />
+                else
+                {
+                    <div class="book-cover book-cover-none" role="img" aria-label="No cover">
+                        <MudIcon Icon="@Icons.Material.Filled.MenuBook" />
+                    </div>
+                }
 
-                @* Mobile: 3-dots menu *@
-                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                         Color="Color.Inherit"
-                         Dense="true"
-                         AriaLabel="More actions"
-                         Class="d-flex d-sm-none">
-                    @if (_book is DigitalBook)
+                <div class="book-primary">
+                    @if (view.IsDigital)
                     {
-                        <MudMenuItem Icon="@Icons.Material.Filled.MenuBook"
-                                     OnClick="ReadBook">Read</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.DocumentScanner"
-                                     OnClick="FindIsbn">Find ISBN</MudMenuItem>
-                    }
-                    <MudMenuItem Icon="@Icons.Material.Filled.ManageSearch"
-                                 OnClick="FindDetails">Find book details</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Filled.Edit"
-                                 OnClick="EditBook">Edit</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Filled.DriveFileMove"
-                                 Disabled="_isMoving"
-                                 OnClick="MoveBookAsync">Move to…</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Filled.Delete"
-                                 IconColor="Color.Error"
-                                 OnClick="DeleteBookAsync">Delete</MudMenuItem>
-                </MudMenu>
-            }
-        </Actions>
-    </PageHeader>
-
-    @* Content *@
-    <div class="book-detail-content">
-        @if (_isLoading)
-        {
-            <div class="d-flex flex-column align-center justify-center pa-8">
-                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">
-                    Loading book information...
-                </MudText>
-            </div>
-        }
-        else if (_loadError || _book is null)
-        {
-            <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Elevation="0">
-                <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Error" Style="font-size: 80px; opacity: 0.5;" />
-                <MudText Typo="Typo.h6" Color="Color.Error" Class="mt-4">Book not found</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">The book you're looking for doesn't exist.</MudText>
-                <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled" Color="Color.Primary" OnClick="GoBack">
-                    Back to Books
-                </MudButton>
-            </MudPaper>
-        }
-        else
-        {
-            <MudPaper Class="pa-6 rounded-lg" Elevation="2">
-                <MudGrid Spacing="4">
-                    @* Cover column *@
-                    <MudItem xs="12" sm="4">
-                        <div class="d-flex flex-column align-center gap-4">
-                            @if (!string.IsNullOrEmpty(_book.ImageLink))
-                            {
-                                <MudImage Src="@_book.ImageLink" Alt="@_book.Title" Class="book-detail-cover" />
-                            }
-                            else
-                            {
-                                <div class="book-detail-cover-placeholder">
-                                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Style="opacity: 0.8; font-size: 48px;" />
-                                    <MudText Typo="Typo.body1" Class="mt-2" Style="opacity: 0.8;">No cover</MudText>
-                                </div>
-                            }
-
-                            @* Latest rating *@
-                            @{
-                                var latestRating = _book.ReadingDates.MaxBy(rd => rd.Date)?.Rating ?? 0;
-                            }
-                            @if (latestRating > 0)
-                            {
-                                <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: var(--mud-palette-background-gray);">
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1 text-center">Your Rating</MudText>
-                                    <MudRating SelectedValue="@latestRating" MaxValue="5" ReadOnly="true" Size="Size.Medium" />
-                                </MudPaper>
-                            }
-                        </div>
-                    </MudItem>
-
-                    @* Details column *@
-                    <MudItem xs="12" sm="8">
-                        <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">@_book.Title</MudText>
-                        @if (!string.IsNullOrEmpty(_book.Serie))
+                        <a class="book-primary-button" href="@view.ReadHref">
+                            <MudIcon Icon="@Icons.Material.Filled.PlayArrow" />
+                            <span class="book-primary-text">
+                                @view.ReadLabel
+                                @if (view.ReadProgressLabel is not null)
+                                {
+                                    <span class="book-primary-progress">@view.ReadProgressLabel</span>
+                                }
+                            </span>
+                        </a>
+                        @if (view.ReadProgressPercent is { } percent)
                         {
-                            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-4">@_book.Serie</MudText>
+                            <div class="book-progress" aria-hidden="true"><div style="@($"width: {percent}%;")"></div></div>
                         }
+                    }
+                    else
+                    {
+                        <button type="button" class="book-primary-button book-primary-outlined" @onclick="ShowAddReading">
+                            <MudIcon Icon="@Icons.Material.Filled.Add" />
+                            <span class="book-primary-text">Add a reading</span>
+                        </button>
+                    }
+                </div>
+            </div>
 
-                        <div class="mt-4">
-                            @* ISBN *@
-                            <div class="book-detail-info-item">
-                                <IsbnScanStateIcon State="@IsbnScanState" CandidateCount="@IsbnCandidateCount" Isbn="@_book.ISBN" Size="Size.Medium" />
-                                <div>
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">ISBN</MudText>
-                                    <MudText Typo="Typo.body1" Style="font-family: monospace;">@_book.ISBN</MudText>
-                                </div>
+            <div class="book-main">
+                <div class="book-heading">
+                    <h1>@view.Title</h1>
+                    @if (view.SerieAndVolume is not null)
+                    {
+                        <div class="book-serie">@view.SerieAndVolume</div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(view.Authors))
+                    {
+                        <div class="book-authors">@view.Authors</div>
+                    }
+                    <div class="book-status">
+                        @if (view.FormatLabel is not null)
+                        {
+                            <span class="book-format">@view.FormatLabel</span>
+                        }
+                        @if (view.LatestRating > 0)
+                        {
+                            @Stars(view.LatestRating, view.LatestRatingLabel)
+                        }
+                        @if (view.HasBeenRead)
+                        {
+                            <span class="book-read"><MudIcon Icon="@Icons.Material.Filled.Check" />Read</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="book-actions">
+                    <a class="book-action" href="@view.FindDetailsHref"><MudIcon Icon="@Icons.Material.Filled.CloudDownload" />Import info</a>
+                    @if (view.IsDigital)
+                    {
+                        <button type="button" class="book-action" @onclick="FindIsbn"><MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" />Find ISBN</button>
+                        <a class="book-action" href="@view.DownloadHref" download><MudIcon Icon="@Icons.Material.Filled.Download" />CBZ</a>
+                    }
+                    <button type="button" class="book-action" disabled="@_isMoving" @onclick="MoveBookAsync"><MudIcon Icon="@Icons.Material.Filled.DriveFileMove" />Move</button>
+                </div>
+
+                <div class="book-panels">
+                    <section class="book-panel book-details" aria-labelledby="book-details-title">
+                        <h2 id="book-details-title">Details</h2>
+                        <dl>
+                            <div>
+                                <dt>ISBN</dt>
+                                <dd class="book-isbn-value">
+                                    <IsbnScanStateIcon State="@view.IsbnScanState" CandidateCount="@view.IsbnCandidates.Count" Isbn="@view.Isbn" HideWhenKnown="@(view.Isbn is null)" Size="Size.Small" />
+                                    <span class="book-isbn">@(view.Isbn ?? "None")</span>
+                                </dd>
                             </div>
-
-                            @* Search of the ISBN printed on the pages, while the book has none *@
-                            @if (_book is DigitalBook digitalBook)
+                            @foreach (var field in view.Details)
                             {
-                                var isbnScanState = digitalBook.GetIsbnScanState();
-                                @if (isbnScanState == IsbnScanState.Candidates)
-                                {
-                                    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
-                                        <MudText Typo="Typo.body2">Several ISBNs are printed in this book. Pick its own to fetch its information:</MudText>
-                                        <div class="d-flex flex-wrap gap-2 mt-2">
-                                            @foreach (var isbn in digitalBook.IsbnCandidates)
-                                            {
-                                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
-                                                           StartIcon="@Icons.Material.Filled.TravelExplore" Style="font-family: monospace;"
-                                                           OnClick="@(() => UseIsbnCandidate(isbn))">
-                                                    @isbn
-                                                </MudButton>
-                                            }
-                                        </div>
-                                    </MudAlert>
-                                }
-                                else if (isbnScanState != IsbnScanState.HasIsbn)
-                                {
-                                    <MudAlert Severity="Severity.Normal" Dense="true" Icon="@IsbnScanStateDisplay.Icon(isbnScanState)" Class="mb-3 book-detail-isbn-scan">
-                                        <MudText Typo="Typo.body2">
-                                            @(isbnScanState == IsbnScanState.NotFound
-                                                ? $"No ISBN found in the pages (scanned on {digitalBook.IsbnScannedAt!.Value.ToString(PublishDateHelper.DisplayFormat)})."
-                                                : "The pages were not scanned for an ISBN yet.")
-                                        </MudText>
-                                        <div class="d-flex flex-wrap gap-2 mt-2">
-                                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
-                                                       StartIcon="@Icons.Material.Filled.DocumentScanner"
-                                                       Disabled="_isScanningIsbn" OnClick="ScanIsbnAsync">
-                                                @if (_isScanningIsbn)
-                                                {
-                                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                                                }
-                                                @(isbnScanState == IsbnScanState.NotFound ? "Scan again" : "Scan the pages")
-                                            </MudButton>
-                                            <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
-                                                       StartIcon="@Icons.Material.Filled.MenuBook" OnClick="FindIsbn">
-                                                Look in the reader
-                                            </MudButton>
-                                        </div>
-                                    </MudAlert>
-                                }
-                            }
-
-                            @* Volume *@
-                            <div class="book-detail-info-item">
-                                <MudIcon Icon="@Icons.Material.Filled.Numbers" Color="Color.Secondary" />
                                 <div>
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Volume</MudText>
-                                    <MudText Typo="Typo.body1">Volume @_book.VolumeNumber</MudText>
-                                </div>
-                            </div>
-
-                            @* Authors *@
-                            @if (!string.IsNullOrEmpty(_book.Authors))
-                            {
-                                <div class="book-detail-info-item">
-                                    <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Secondary" />
-                                    <div>
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Authors</MudText>
-                                        <MudText Typo="Typo.body1">@_book.Authors</MudText>
-                                    </div>
+                                    <dt>@field.Label</dt>
+                                    <dd><span>@field.Value</span></dd>
                                 </div>
                             }
+                        </dl>
 
-                            @* Publishers *@
-                            @if (!string.IsNullOrEmpty(_book.Publishers))
-                            {
-                                <div class="book-detail-info-item">
-                                    <MudIcon Icon="@Icons.Material.Filled.Business" Color="Color.Secondary" />
-                                    <div>
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Publishers</MudText>
-                                        <MudText Typo="Typo.body1">@_book.Publishers</MudText>
-                                    </div>
-                                </div>
-                            }
-
-                            @* Publish Date *@
-                            @if (_book.PublishDate.HasValue)
-                            {
-                                <div class="book-detail-info-item">
-                                    <MudIcon Icon="@Icons.Material.Filled.Event" Color="Color.Secondary" />
-                                    <div>
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Publish Date</MudText>
-                                        <MudText Typo="Typo.body1">@_book.PublishDate.Value.ToString(PublishDateHelper.DisplayFormat)</MudText>
-                                    </div>
-                                </div>
-                            }
-
-                            @* Number of Pages *@
-                            @if (_book.NumberOfPages.HasValue)
-                            {
-                                <div class="book-detail-info-item">
-                                    <MudIcon Icon="@Icons.Material.Filled.Description" Color="Color.Secondary" />
-                                    <div>
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Number of Pages</MudText>
-                                        <MudText Typo="Typo.body1">@_book.NumberOfPages pages</MudText>
-                                    </div>
-                                </div>
-                            }
-
-                            @* File size of the digital book, read-only *@
-                            @if (FileSizeDisplay is { } fileSize)
-                            {
-                                <div class="book-detail-info-item">
-                                    <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Secondary" />
-                                    <div>
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">File Size</MudText>
-                                        <MudText Typo="Typo.body1">@fileSize</MudText>
-                                    </div>
-                                </div>
-                            }
-
-                            @* Reading history *@
-                            <div class="book-detail-info-item">
-                                <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" />
-                                <div style="flex: 1;">
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Historique de lectures</MudText>
-                                    @if (_book.ReadingDates.Any())
+                        @* Search of the ISBN printed on the pages, while the book has none *@
+                        @if (view.IsbnScanState == IsbnScanState.Candidates)
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Class="mt-4">
+                                <MudText Typo="Typo.body2">Several ISBNs are printed in this book. Pick its own to fetch its information:</MudText>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    @foreach (var isbn in view.IsbnCandidates)
                                     {
-                                        @foreach (var rd in _book.ReadingDates.OrderByDescending(r => r.Date))
-                                        {
-                                            <div class="d-flex align-center gap-2 mt-1">
-                                                <MudRating SelectedValue="@rd.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" />
-                                                <MudText Typo="Typo.body2">@rd.Date.ToString(PublishDateHelper.DisplayFormat)</MudText>
-                                            </div>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <MudText Typo="Typo.body1">Non lu</MudText>
-                                    }
-                                    @* Add new reading *@
-                                    @if (_showAddReading)
-                                    {
-                                        <div class="d-flex align-center gap-2 mt-2">
-                                            <MudRating @bind-SelectedValue="_newRating" MaxValue="5" Size="Size.Small" />
-                                            <MudButton Variant="Variant.Filled"
-                                                       Color="Color.Primary"
-                                                       Size="Size.Small"
-                                                       OnClick="AddReadingDateAsync"
-                                                       Disabled="_isAddingReading">
-                                                Ajouter
-                                            </MudButton>
-                                            <MudButton Variant="Variant.Text"
-                                                       Size="Size.Small"
-                                                       OnClick="@(() => _showAddReading = false)">
-                                                Annuler
-                                            </MudButton>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <MudButton StartIcon="@Icons.Material.Filled.Add"
-                                                   Variant="Variant.Text"
-                                                   Color="Color.Primary"
-                                                   Size="Size.Small"
-                                                   Class="mt-2"
-                                                   OnClick="@(() => _showAddReading = true)">
-                                            Ajouter une lecture
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                                   StartIcon="@Icons.Material.Filled.TravelExplore" Style="font-family: monospace;"
+                                                   OnClick="@(() => UseIsbnCandidate(isbn))">
+                                            @isbn
                                         </MudButton>
                                     }
                                 </div>
-                            </div>
+                            </MudAlert>
+                        }
+                        else if (view.IsbnScanNotice is not null)
+                        {
+                            <MudAlert Severity="Severity.Normal" Dense="true" Icon="@IsbnScanStateDisplay.Icon(view.IsbnScanState)" Class="mt-4 book-isbn-scan">
+                                <MudText Typo="Typo.body2">@view.IsbnScanNotice</MudText>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                               StartIcon="@Icons.Material.Filled.DocumentScanner"
+                                               Disabled="_isScanningIsbn" OnClick="ScanIsbnAsync">
+                                        @if (_isScanningIsbn)
+                                        {
+                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                        }
+                                        @view.ScanIsbnLabel
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                                               StartIcon="@Icons.Material.Filled.MenuBook" OnClick="FindIsbn">
+                                        Look in the reader
+                                    </MudButton>
+                                </div>
+                            </MudAlert>
+                        }
+                    </section>
 
-                            @* Created date *@
-                            <div class="book-detail-info-item">
-                                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" />
-                                <div>
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Added to Collection</MudText>
-                                    <MudText Typo="Typo.body1">@_book.CreatedOnUtc.ToString(PublishDateHelper.DisplayFormat)</MudText>
+                    <section class="book-panel book-history" aria-labelledby="book-history-title">
+                        <h2 id="book-history-title">Reading history</h2>
+                        @if (view.Readings.Count > 0)
+                        {
+                            <ul>
+                                @foreach (var reading in view.Readings)
+                                {
+                                    <li>
+                                        <span class="book-history-date">@reading.Date</span>
+                                        @Stars(reading.Rating, reading.RatingLabel)
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <div class="book-history-empty">Not read yet</div>
+                        }
+
+                        @if (_showAddReading)
+                        {
+                            <div class="book-reading-form" role="group" aria-labelledby="book-reading-form-title">
+                                <div id="book-reading-form-title" class="book-reading-form-title">Add a reading · today</div>
+                                <div class="book-reading-stars">
+                                    @for (var rating = 1; rating <= 5; rating++)
+                                    {
+                                        var value = rating;
+                                        <button type="button" class="@(value <= _newRating ? "book-star-button book-star-on" : "book-star-button")"
+                                                aria-label="@(value == 1 ? "1 star" : $"{value} stars")" aria-pressed="@(value == _newRating ? "true" : "false")"
+                                                @onclick="() => _newRating = value">
+                                            <MudIcon Icon="@(value <= _newRating ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" />
+                                        </button>
+                                    }
+                                </div>
+                                <div class="book-reading-buttons">
+                                    <button type="button" class="book-reading-cancel" @onclick="CancelAddReading">Cancel</button>
+                                    <button type="button" class="book-reading-save" disabled="@(_newRating == 0 || _isAddingReading)" @onclick="AddReadingDateAsync">Save</button>
                                 </div>
                             </div>
+                        }
+                        else
+                        {
+                            <button type="button" class="book-history-add" @onclick="ShowAddReading"><MudIcon Icon="@Icons.Material.Filled.Add" />Add a reading</button>
+                        }
+                    </section>
+                </div>
+            </div>
+        </div>
 
-                            @* Modified date *@
-                            @if (_book.ModifiedOnUtc.HasValue)
-                            {
-                                <div class="book-detail-info-item">
-                                    <MudIcon Icon="@Icons.Material.Filled.EditCalendar" Color="Color.Secondary" />
-                                    <div>
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Last Modified</MudText>
-                                        <MudText Typo="Typo.body1">@_book.ModifiedOnUtc.Value.ToString(PublishDateHelper.DisplayFormat)</MudText>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
-        }
-    </div>
+        <ActionSheet Open="_actionsOpen" AriaLabel="@view.ActionsLabel" Anchor="@_sheetAnchor" AlignEnd="true" OnClose="CloseActions">
+            <Header>
+                <div class="book-sheet-header">
+                    @if (!string.IsNullOrEmpty(view.ImageLink))
+                    {
+                        <img src="@view.ImageLink" alt="" />
+                    }
+                    <div class="book-sheet-heading">
+                        <div class="book-sheet-title">@view.Title</div>
+                        <div class="book-sheet-details">@view.ActionsDetails</div>
+                    </div>
+                </div>
+            </Header>
+            <ChildContent>
+                <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit" Href="@view.EditHref" />
+                <ActionSheetItem Icon="@Icons.Material.Filled.CloudDownload" Text="Import info from the web" Href="@view.FindDetailsHref" />
+                <ActionSheetItem Icon="@Icons.Material.Filled.DriveFileMove" Text="Move to another library" Disabled="_isMoving" OnClick="MoveFromActionsAsync" />
+                <div class="action-sheet-divider"></div>
+                <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete" Danger="true" OnClick="DeleteFromActionsAsync" />
+            </ChildContent>
+        </ActionSheet>
+    }
 </div>
+
+@code {
+    // Five stars, read only: the rating of a reading.
+    private static RenderFragment Stars(int rating, string label) => __builder =>
+    {
+        <span class="book-stars" role="img" aria-label="@label">
+            @for (var star = 1; star <= 5; star++)
+            {
+                <MudIcon Icon="@(star <= rating ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" Class="@(star <= rating ? "book-star book-star-on" : "book-star")" />
+            }
+        </span>
+    };
+}
