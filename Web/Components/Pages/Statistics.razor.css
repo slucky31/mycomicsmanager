@@ -1,46 +1,354 @@
-/* Mobile first: compact cards and a chart that fits a 360px wide screen */
-::deep .stats-card {
+.stats-page {
+    /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
+    min-height: 100dvh;
+    background: #F4F4F6;
+    color: #1B1D24;
+}
+
+@media (max-width: 959.98px) {
+    .stats-page {
+        min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* ── Bar: title, then the library on a phone; side by side from the tablet on ── */
+.stats-bar {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 2px;
+    gap: 12px;
+    padding: calc(env(safe-area-inset-top) + 12px) 16px 12px;
+}
+
+.stats-bar h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.stats-library {
+    position: relative;
+    height: 40px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px 0 14px;
+    border: 1px solid #E2E3EA;
+    border-radius: 20px;
+    background: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.stats-library:focus-within {
+    border-color: #594AE2;
+    box-shadow: 0 0 0 1px #594AE2;
+}
+
+.stats-library-label {
+    color: #5C6070;
+}
+
+.stats-library select {
+    -webkit-appearance: none;
+    appearance: none;
+    max-width: 220px;
+    padding: 0 22px 0 0;
+    border: 0;
+    background: transparent;
+    color: #1B1D24;
+    font: inherit;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    outline: none;
+    cursor: pointer;
+}
+
+::deep .stats-library-chevron {
+    position: absolute;
+    right: 10px;
+    font-size: 18px;
+    color: #5C6070;
+    pointer-events: none;
+}
+
+::deep .stats-loading {
+    margin: 0 16px 12px;
+    width: auto;
+}
+
+/* ── Content: headline, chart and tiles stacked on a phone ── */
+.stats-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 0 16px 16px;
+}
+
+.stats-card {
+    background: #ffffff;
+    border: 1px solid #E2E3EA;
+    border-radius: 16px;
+}
+
+.stats-headline {
+    padding: 16px;
+}
+
+.stats-headline-total {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 16px;
+    color: #5C6070;
+}
+
+.stats-headline-number {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+    color: #1B1D24;
+}
+
+.stats-headline-read {
+    margin-top: 8px;
+    font-size: 15px;
+}
+
+.stats-headline-read strong {
+    font-weight: 500;
+}
+
+.stats-progress {
+    height: 8px;
+    margin-top: 10px;
+    border-radius: 4px;
+    background: #E7E7EE;
+}
+
+.stats-progress-value {
     height: 100%;
+    border-radius: 4px;
+    background: #594AE2;
+}
+
+.stats-headline-percent {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+/* The tiles come before the chart on a phone (S4) and below it from the tablet on (T10). */
+.stats-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.stats-tile {
     min-width: 0;
+    padding: 12px;
+    border-radius: 14px;
 }
 
-::deep .stats-card-value {
-    font-size: 1.25rem;
-    line-height: 1.3;
+.stats-tile-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #5C6070;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
 }
 
-::deep .stats-card-label {
-    color: var(--mud-palette-text-secondary);
+.stats-tile-label ::deep svg {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.stats-tile-value {
+    margin-top: 4px;
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+}
+
+/* "/ 5" is shown when the tile is wide enough (tablet). */
+.stats-tile-suffix {
+    display: none;
+}
+
+/* ── Chart ── */
+.stats-chart-card {
+    padding: 14px;
+}
+
+.stats-section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.stats-section-head h2 {
+    flex-grow: 1;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5C6070;
+}
+
+.stats-section-head span {
+    font-size: 13px;
+    color: #5C6070;
 }
 
 .stats-chart {
-    width: 100%;
-    height: 220px;
-    overflow: hidden;
+    --chart-height: 120px;
+    padding: 18px 0 0 36px;
 }
 
-@media (min-width: 600px) {
-    ::deep .stats-library-select {
-        max-width: 360px;
+.stats-chart-plot {
+    position: relative;
+    height: var(--chart-height);
+}
+
+.stats-chart-grid {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px solid #E7E7EE;
+}
+
+.stats-chart-grid span {
+    position: absolute;
+    right: calc(100% + 8px);
+    top: -8px;
+    font-size: 11px;
+    color: #5C6070;
+}
+
+.stats-chart-bars,
+.stats-chart-months {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.stats-chart-bars {
+    position: absolute;
+    inset: 0;
+    align-items: end;
+}
+
+.stats-chart-column {
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.stats-chart-bar {
+    position: relative;
+    width: 50%;
+    max-width: 28px;
+    min-height: 4px;
+    border-radius: 4px 4px 0 0;
+    background: #594AE2;
+}
+
+.stats-chart-peak {
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: 500;
+    color: #1B1D24;
+}
+
+.stats-chart-months {
+    margin-top: 4px;
+    font-size: 11px;
+    text-align: center;
+    color: #5C6070;
+}
+
+/* ── Tablet and large screen (T10): library in the bar, headline and chart side by side, 6 tiles ── */
+@media (min-width: 840px) {
+    .stats-bar {
+        flex-direction: row;
+        align-items: center;
+        min-height: 72px;
+        padding: env(safe-area-inset-top) 28px 0;
     }
 
-    ::deep .stats-card-value {
-        font-size: 1.5rem;
+    .stats-bar h1 {
+        flex-grow: 1;
+        font-size: 28px;
+    }
+
+    ::deep .stats-loading {
+        margin: 0 28px 12px;
+    }
+
+    .stats-content {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        gap: 16px;
+        padding: 0 28px 24px;
+    }
+
+    .stats-headline,
+    .stats-chart-card {
+        padding: 20px;
+    }
+
+    .stats-headline-total {
+        font-size: 18px;
+    }
+
+    .stats-headline-number {
+        font-size: 52px;
+    }
+
+    .stats-headline-read {
+        margin-top: 10px;
+        font-size: 16px;
+    }
+
+    .stats-progress {
+        height: 10px;
+        margin-top: 12px;
+        border-radius: 5px;
+    }
+
+    .stats-headline-percent {
+        margin-top: 8px;
+        font-size: 14px;
     }
 
     .stats-chart {
-        height: 300px;
+        --chart-height: 160px;
+    }
+
+    .stats-chart-card {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .stats-tiles {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .stats-tile-suffix {
+        display: inline;
     }
 }

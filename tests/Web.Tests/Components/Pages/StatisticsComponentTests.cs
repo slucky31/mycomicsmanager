@@ -110,8 +110,7 @@ public sealed class StatisticsComponentTests
         await using var _ = ctx;
         cut.WaitForAssertion(() => cut.FindAll(".stats-card").Should().NotBeEmpty());
 
-        var select = cut.FindComponent<MudSelect<Guid>>();
-        await cut.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(s_library.Id));
+        await cut.Find("#stats-library").ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = s_library.Id.ToString() });
 
         await statisticsService.Received(1).Get(s_library.Id, Arg.Any<CancellationToken>());
         cut.WaitForAssertion(() => cut.Markup.Should().NotContain(">Libraries<"));

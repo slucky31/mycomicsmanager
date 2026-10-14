@@ -15,18 +15,9 @@ public partial class Statistics : IAsyncDisposable
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private ILogger<Statistics> Logger { get; set; } = default!;
 
-    private readonly BarChartOptions _chartOptions = new()
-    {
-        ShowLegend = false,
-        YAxisFormat = "0",
-        MaxNumYAxisTicks = 5,
-        XAxisLabelRotation = 45
-    };
-
     private List<LibraryUiDto> _libraries = [];
     private Guid _selectedLibraryId = Guid.Empty;
     private StatisticsViewModel? _statistics;
-    private string[] _monthLabels = [];
     private bool _isLoading;
     private CancellationTokenSource _loadCts = new();
 
@@ -36,8 +27,13 @@ public partial class Statistics : IAsyncDisposable
         await LoadStatisticsAsync();
     }
 
-    private async Task OnLibraryChangedAsync(Guid libraryId)
+    private async Task OnLibraryChangedAsync(ChangeEventArgs args)
     {
+        if (!Guid.TryParse(args.Value?.ToString(), out var libraryId))
+        {
+            return;
+        }
+
         _selectedLibraryId = libraryId;
         await LoadStatisticsAsync();
     }
@@ -78,7 +74,6 @@ public partial class Statistics : IAsyncDisposable
             if (result.IsSuccess && result.Value is not null)
             {
                 _statistics = StatisticsViewModel.From(result.Value, allLibraries: libraryId == Guid.Empty);
-                _monthLabels = [.. _statistics.MonthLabels];
             }
             else if (result.IsFailure)
             {
