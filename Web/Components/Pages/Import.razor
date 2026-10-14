@@ -2,105 +2,95 @@
 
 @page "/import"
 
-@using Domain.Libraries
+@using Web.Components.Pages.Books
 @using Web.Components.SharedComponents
 @using Web.Models
 
 <PageTitle>Import — MyComicsManager</PageTitle>
 
-<PageLayout Title="Import" Icon="@Icons.Material.Filled.Upload">
+<div class="import-page">
+    <header class="import-bar">
+        <h1>Import</h1>
+        <div class="import-bar-subtitle">Comic files into a digital library</div>
+    </header>
 
-    @if (_loadError is not null)
-    {
-        <MudAlert Severity="Severity.Error" Class="mb-4">@_loadError</MudAlert>
-    }
-
-    <MudSelect T="Guid"
-               Label="Select a Digital library"
-               Value="_selectedLibraryId"
-               ValueChanged="OnLibraryChangedAsync"
-               Variant="Variant.Outlined"
-               Disabled="@(_digitalLibraries.Count == 0 || _isUploading)"
-               HelperText="@(_digitalLibraries.Count == 0 ? "No Digital library available" : null)"
-               Class="mb-4">
-        @foreach (var lib in _digitalLibraries)
+    <div class="import-content">
+        @if (_loadError is not null)
         {
-            <MudSelectItem T="Guid" Value="@lib.Id">@lib.Name</MudSelectItem>
+            <div class="import-card import-error" role="alert">@_loadError</div>
         }
-    </MudSelect>
-
-    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
-                   Accept=".cbz,.cbr,.zip,.rar,.pdf"
-                   FilesChanged="OnFilesSelectedAsync"
-                   Disabled="@(_selectedLibraryId == Guid.Empty || _isUploading)"
-                   MaximumFileCount="10"
-                   DragAndDrop="true"
-                   Class="mb-1">
-        <SelectedTemplate Context="_">
-        </SelectedTemplate>
-    </MudFileUpload>
-
-    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-4 d-block mud-text-align-center">
-        @if (_isUploading)
+        else if (_digitalLibraries.Count == 0)
         {
-            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-1" />
-            <span>Uploading...</span>
-        }
-        else if (_selectedLibraryId == Guid.Empty)
-        {
-            <span>Select a library to enable the import</span>
+            <div class="import-card import-empty">
+                <span>No digital library yet. Create one to import comic files.</span>
+                <a class="import-link" href="/libraries/add">New library</a>
+            </div>
         }
         else
         {
-            <span>CBZ, CBR, ZIP, RAR, PDF · Max. 10 files</span>
-        }
-    </MudText>
+            <LibrarySelect Id="import-library" Libraries="_digitalLibraries" Value="_selectedLibraryId" ValueChanged="OnLibraryChangedAsync" />
 
-    @if (_uploadErrors.Count > 0)
-    {
-        <div class="mb-4">
+            @* No drag and drop: a phone has nothing to drop, the button works everywhere. *@
+            <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                           Accept=".cbz,.cbr,.zip,.rar,.pdf"
+                           FilesChanged="OnFilesSelectedAsync"
+                           Disabled="@(_selectedLibraryId == Guid.Empty || _isUploading)"
+                           MaximumFileCount="10"
+                           Class="import-upload">
+                <CustomContent Context="upload">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@(_isUploading ? null : Icons.Material.Filled.Upload)"
+                               Disabled="@(_selectedLibraryId == Guid.Empty || _isUploading)"
+                               Class="import-choose"
+                               OnClick="@upload.OpenFilePickerAsync">
+                        @if (_isUploading)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            <span>Uploading…</span>
+                        }
+                        else
+                        {
+                            <span>Choose files</span>
+                        }
+                    </MudButton>
+                </CustomContent>
+            </MudFileUpload>
+            <div class="import-hint">CBZ, CBR, ZIP, RAR, PDF · up to 10 files</div>
+
             @foreach (var error in _uploadErrors)
             {
-                <MudAlert Severity="Severity.Error" Dense="true" Class="mb-1">@error</MudAlert>
+                <div class="import-card import-error" role="alert">@error</div>
             }
-        </div>
-    }
 
-    @if (_isLoadingJobs)
-    {
-        <div class="d-flex justify-center pa-8">
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-        </div>
-    }
-    else if (_jobs.Count > 0)
-    {
-        <div class="d-flex align-center justify-space-between mb-2">
-            <MudText Typo="Typo.h6">Import jobs</MudText>
-            <MudTooltip Text="Delete completed and failed jobs">
-                <MudIconButton Icon="@Icons.Material.Filled.DeleteSweep"
-                               Color="Color.Error"
-                               Size="Size.Small"
-                               Disabled="@(_isDeletingTerminal || !_jobs.Any(j => j.IsTerminal))"
-                               OnClick="DeleteTerminalJobsAsync"
-                               aria-label="Delete completed and failed jobs" />
-            </MudTooltip>
-        </div>
-        <MudGrid>
-            @foreach (var job in _jobs)
+            @if (_isLoadingJobs)
             {
-                <MudItem xs="12" sm="6" md="4">
-                    <ImportJobCard Job="@job" OnDelete="DeleteJobAsync" OnForceFail="ForceFailJobAsync" />
-                </MudItem>
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
             }
-        </MudGrid>
-    }
-    else if (_selectedLibraryId != Guid.Empty)
-    {
-        <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Elevation="0">
-            <MudIcon Icon="@Icons.Material.Filled.Inbox" Style="font-size: 64px; opacity: 0.3;" />
-            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2">No import for this library</MudText>            
-        </MudPaper>
-    }
-
-</PageLayout>
-
+            else if (_jobs.Count > 0)
+            {
+                <div class="import-section-head">
+                    <h2>In progress and recent</h2>
+                    <span>@(_jobs.Count == 1 ? "1 file" : $"{_jobs.Count} files")</span>
+                    <MudTooltip Text="Clear finished imports">
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep"
+                                       Size="Size.Small"
+                                       Disabled="@(_isDeletingTerminal || !_jobs.Any(j => j.IsTerminal))"
+                                       OnClick="DeleteTerminalJobsAsync"
+                                       aria-label="Clear finished imports" />
+                    </MudTooltip>
+                </div>
+                <div class="import-jobs">
+                    @foreach (var job in _jobs)
+                    {
+                        <ImportJobCard @key="job.Id" Job="@job" OnDelete="DeleteJobAsync" OnForceFail="ForceFailJobAsync" />
+                    }
+                </div>
+            }
+            else if (_selectedLibraryId != Guid.Empty)
+            {
+                <div class="import-none">No import in this library yet.</div>
+            }
+        }
+    </div>
+</div>

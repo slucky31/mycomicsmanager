@@ -1,5 +1,155 @@
-/* Make the default drag zone taller and match app styling */
-::deep .mud-file-upload-dragarea {
-    min-height: 160px;
-    border-color: var(--mud-palette-divider);
+.import-page {
+    /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
+    min-height: 100dvh;
+    background: #F4F4F6;
+    color: #1B1D24;
+}
+
+@media (max-width: 959.98px) {
+    .import-page {
+        min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+.import-bar {
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: env(safe-area-inset-top) 16px 0;
+}
+
+.import-bar h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.import-bar-subtitle {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.import-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 960px;
+    padding: 4px 16px 16px;
+}
+
+.import-card {
+    padding: 12px 14px;
+    border: 1px solid #E2E3EA;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 14px;
+}
+
+.import-error {
+    border-color: #F4C7C3;
+    background: #FDECEC;
+    color: #B3261E;
+}
+
+.import-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.import-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: #594AE2;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+/* "Choose files": a large button over the whole width on a phone */
+::deep .import-upload {
+    width: 100%;
+}
+
+::deep .import-choose {
+    width: 100%;
+    height: 52px;
+    border-radius: 26px;
+    font-size: 16px;
+    text-transform: none;
+}
+
+.import-hint {
+    margin-top: -4px;
+    font-size: 13px;
+    text-align: center;
+    color: #5C6070;
+}
+
+.import-section-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.import-section-head h2 {
+    flex-grow: 1;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5C6070;
+}
+
+.import-section-head span {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.import-jobs {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+.import-none {
+    padding: 24px 0;
+    font-size: 14px;
+    text-align: center;
+    color: #5C6070;
+}
+
+@media (min-width: 840px) {
+    .import-bar {
+        min-height: 72px;
+        padding: env(safe-area-inset-top) 28px 0;
+    }
+
+    .import-bar h1 {
+        font-size: 28px;
+    }
+
+    .import-content {
+        padding: 4px 28px 24px;
+    }
+
+    /* The library and the button side by side; the files in two columns */
+    ::deep .import-choose {
+        align-self: flex-start;
+        width: auto;
+        min-width: 220px;
+    }
+
+    .import-hint {
+        margin-top: -8px;
+        text-align: left;
+    }
+
+    .import-jobs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }

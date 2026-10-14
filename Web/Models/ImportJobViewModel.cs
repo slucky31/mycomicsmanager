@@ -1,5 +1,4 @@
 using Domain.ImportJobs;
-using MudBlazor;
 
 namespace Web.Models;
 
@@ -9,7 +8,6 @@ public record ImportJobViewModel(
     long OriginalFileSize,
     string Status,
     string StatusDisplay,
-    Color StatusColor,
     int ProgressPercent,
     DateTime CreatedAt,
     DateTime? CompletedAt,
@@ -24,14 +22,41 @@ public record ImportJobViewModel(
         OriginalFileSize: job.OriginalFileSize,
         Status: job.Status.ToString(),
         StatusDisplay: GetStatusDisplay(job.Status),
-        StatusColor: GetStatusColor(job.Status),
         ProgressPercent: GetProgressPercent(job.Status, job.ConvertedImagesCount, job.TotalImagesToConvert),
         CreatedAt: job.CreatedAt,
         CompletedAt: job.CompletedAt,
         ErrorMessage: job.ErrorMessage,
         ErrorStep: job.ErrorStep,
         ConvertedImagesCount: job.ConvertedImagesCount,
-        TotalImagesToConvert: job.TotalImagesToConvert);
+        TotalImagesToConvert: job.TotalImagesToConvert)
+    {
+        DigitalBookId = job.DigitalBookId,
+    };
+
+    // The steps of an import in progress, from waiting to building the book (Completed and Failed are not steps).
+    public const int StepCount = 6;
+
+    // The book created by the import, once it is completed.
+    public Guid? DigitalBookId { get; init; }
+
+    public string? BookHref => Status == nameof(ImportJobStatus.Completed) && DigitalBookId is { } bookId
+        ? $"/books/{bookId}"
+        : null;
+
+    // "Step 3 of 6 · 42%" while the import runs.
+    public string? StepDisplay => Enum.TryParse<ImportJobStatus>(Status, out var status) && StepOf(status) is { } step
+        ? $"Step {step} of {StepCount} · {ProgressPercent}%"
+        : null;
+
+    // The reason of a failure, readable as is.
+    public string? FailureDisplay => Status == nameof(ImportJobStatus.Failed)
+        ? string.IsNullOrWhiteSpace(ErrorMessage) ? "The import failed." : ErrorMessage
+        : null;
+
+    // "Failed while: Extracting pages"; a step that is not a status (e.g. "Init") is shown as is.
+    public string? FailedStepDisplay => Status == nameof(ImportJobStatus.Failed) && !string.IsNullOrWhiteSpace(ErrorStep)
+        ? $"Failed while: {(Enum.TryParse<ImportJobStatus>(ErrorStep, out var step) ? GetStatusDisplay(step) : ErrorStep)}"
+        : null;
 
     public bool IsTerminal => Status is "Completed" or "Failed";
 
@@ -76,28 +101,26 @@ public record ImportJobViewModel(
 
     private static string GetStatusDisplay(ImportJobStatus status) => status switch
     {
-        ImportJobStatus.Pending => "Pending",
-        ImportJobStatus.Extracting => "Extracting...",
-        ImportJobStatus.Converting => "Converting images...",
-        ImportJobStatus.SearchingMetadata => "Searching metadata...",
-        ImportJobStatus.UploadingCover => "Uploading cover...",
-        ImportJobStatus.BuildingArchive => "Building archive...",
-        ImportJobStatus.Completed => "Completed",
+        ImportJobStatus.Pending => "Waiting",
+        ImportJobStatus.Extracting => "Extracting pages",
+        ImportJobStatus.Converting => "Converting pages",
+        ImportJobStatus.SearchingMetadata => "Searching details",
+        ImportJobStatus.UploadingCover => "Uploading cover",
+        ImportJobStatus.BuildingArchive => "Building the book",
+        ImportJobStatus.Completed => "Imported",
         ImportJobStatus.Failed => "Failed",
         _ => status.ToString()
     };
 
-    private static Color GetStatusColor(ImportJobStatus status) => status switch
+    private static int? StepOf(ImportJobStatus status) => status switch
     {
-        ImportJobStatus.Pending => Color.Default,
-        ImportJobStatus.Extracting => Color.Info,
-        ImportJobStatus.Converting => Color.Info,
-        ImportJobStatus.SearchingMetadata => Color.Info,
-        ImportJobStatus.UploadingCover => Color.Info,
-        ImportJobStatus.BuildingArchive => Color.Info,
-        ImportJobStatus.Completed => Color.Success,
-        ImportJobStatus.Failed => Color.Error,
-        _ => Color.Default
+        ImportJobStatus.Pending => 1,
+        ImportJobStatus.Extracting => 2,
+        ImportJobStatus.Converting => 3,
+        ImportJobStatus.SearchingMetadata => 4,
+        ImportJobStatus.UploadingCover => 5,
+        ImportJobStatus.BuildingArchive => 6,
+        _ => null
     };
 
     private static int GetProgressPercent(ImportJobStatus status, int converted, int total) => status switch
