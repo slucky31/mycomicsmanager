@@ -14,6 +14,7 @@ public partial class FeatureTogglesCard
 
     private IReadOnlyList<FeatureToggleViewModel> _toggles = [];
     private bool _isSaving;
+    private int _version;
 
     protected override void OnInitialized() => _toggles = FeatureToggleService.GetToggles();
 
@@ -42,6 +43,7 @@ public partial class FeatureTogglesCard
         {
             // Read back the actual state: on failure, the switch goes back to its previous value.
             _toggles = FeatureToggleService.GetToggles();
+            _version++;
             _isSaving = false;
         }
     }

@@ -56,8 +56,13 @@ public sealed class UserSettingsComponentTests
         var (ctx, cut, _) = await RenderAsync(healthCheckService);
         await using var _ = ctx;
 
-        cut.Markup.Should().Contain("cloudinary");
-        cut.Markup.Should().Contain("Healthy");
+        cut.Find(".settings-health-chip").TextContent.Should().Contain("1 of 1 healthy");
+        cut.FindAll(".settings-health-detail").Should().BeEmpty();
+
+        await cut.Find("button[aria-controls='settings-health-detail']").ClickAsync(new());
+
+        cut.Find("button[aria-controls='settings-health-detail']").GetAttribute("aria-expanded").Should().Be("true");
+        cut.Find(".settings-health-check").TextContent.Should().Contain("cloudinary").And.Contain("Healthy");
     }
 
     [Fact]
@@ -72,7 +77,7 @@ public sealed class UserSettingsComponentTests
         await using var _ = ctx;
 
         var expected = typeof(AppVersion).Assembly.GetName().Version!.ToString(3);
-        cut.Find(".app-version").TextContent.Should().Be($"V{expected}");
+        cut.Find(".app-version").TextContent.Should().Be(expected);
     }
 
     [Fact]
@@ -86,7 +91,7 @@ public sealed class UserSettingsComponentTests
         var (ctx, cut, _) = await RenderAsync(healthCheckService);
         await using var _ = ctx;
 
-        cut.Markup.Should().Contain("Unhealthy");
+        cut.Find(".settings-health-chip.health-unhealthy").TextContent.Should().Contain("0 of 1 healthy");
     }
 
     [Theory]
@@ -115,8 +120,10 @@ public sealed class UserSettingsComponentTests
             .CheckHealthAsync(Arg.Any<Func<HealthCheckRegistration, bool>?>(), Arg.Any<CancellationToken>())
             .Returns<Task<HealthReport>>(_ => throw new InvalidOperationException("boom"));
 
-        var (ctx, _, snackbar) = await RenderAsync(healthCheckService);
+        var (ctx, cut, snackbar) = await RenderAsync(healthCheckService);
         await using var _ = ctx;
+
+        cut.Find(".settings-health-chip").TextContent.Should().Contain("Unavailable");
 
         snackbar.Received().Add("Failed to load system health", Severity.Error,
             Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
