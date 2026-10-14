@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.43.0"></a>
+## [10.43.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.43.0) (2026-10-14)
+
+### ✨ Features
+
+* **settings:** redesign the settings screen (ADR-0021) ([#1141](https://www.github.com/slucky31/mycomicsmanager/issues/1141)) ([09b0424](https://www.github.com/slucky31/mycomicsmanager/commit/09b04246efc0606726e0dc34d522d789863a1519))
+
 <a name="10.42.0"></a>
 ## [10.42.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.42.0) (2026-10-14)
 
