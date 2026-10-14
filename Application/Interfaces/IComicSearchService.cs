@@ -12,7 +12,11 @@ public record ComicSearchResult(
     DateOnly? PublishDate,
     int? NumberOfPages,
     bool Found
-);
+)
+{
+    // The catalogue that knew the book ("BnF", "Google Books"...), null when it was not found.
+    public string? Source { get; init; }
+}
 #pragma warning restore CA1054, CA1056
 
 public interface IComicSearchService

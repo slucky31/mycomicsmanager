@@ -109,28 +109,28 @@ public partial class ComicSearchService : IComicSearchService
         if (bnfResult.Found)
         {
             _logger.LogInformation("Book found via the BnF catalogue for ISBN {Isbn}", isbn);
-            return new ProviderMatch(MapBookResultSync(bnfResult, isbn, string.Empty), await FindCoverAsync(isbn, cancellationToken));
+            return new ProviderMatch(MapBookResultSync(bnfResult, isbn, string.Empty) with { Source = "BnF" }, await FindCoverAsync(isbn, cancellationToken));
         }
 
         var googleResult = await _googleBooksService.SearchByIsbnAsync(isbn, cancellationToken);
         if (googleResult.Found)
         {
             _logger.LogInformation("Book found via Google Books for ISBN {Isbn}", isbn);
-            return new ProviderMatch(MapBookResultSync(googleResult, isbn, string.Empty), googleResult.CoverUrl);
+            return new ProviderMatch(MapBookResultSync(googleResult, isbn, string.Empty) with { Source = "Google Books" }, googleResult.CoverUrl);
         }
 
         var olResult = await _openLibraryService.SearchByIsbnAsync(isbn, cancellationToken);
         if (olResult.Found)
         {
             _logger.LogInformation("Book found via OpenLibrary for ISBN {Isbn}", isbn);
-            return new ProviderMatch(MapBookResultSync(olResult, isbn, string.Empty), olResult.CoverUrl);
+            return new ProviderMatch(MapBookResultSync(olResult, isbn, string.Empty) with { Source = "Open Library" }, olResult.CoverUrl);
         }
 
         var bedethequeResult = await _bedethequeService.SearchByIsbnAsync(isbn, cancellationToken);
         if (bedethequeResult.Found)
         {
             _logger.LogInformation("Book found via Bedetheque for ISBN {Isbn}", isbn);
-            return new ProviderMatch(MapBedethequeResultSync(bedethequeResult, isbn, string.Empty), bedethequeResult.CoverUrl);
+            return new ProviderMatch(MapBedethequeResultSync(bedethequeResult, isbn, string.Empty) with { Source = "Bedetheque" }, bedethequeResult.CoverUrl);
         }
 
         _logger.LogWarning("No data found for ISBN {Isbn} in any provider", isbn);

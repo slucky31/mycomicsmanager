@@ -1,61 +1,58 @@
-using Application.Helpers;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
+using Web.Models;
+using Web.Services;
 
 namespace Web.Components.Pages.Books;
 
+// The ISBN typed by hand, when the barcode won't scan (A4).
 public partial class AddBookManual
 {
+    private const string InputId = "isbn";
+
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
+    [Inject] private ILogger<AddBookManual> Logger { get; set; } = default!;
 
     [SupplyParameterFromQuery]
     public string? LibraryId { get; set; }
 
+    private ElementReference _input;
+    private Guid? _libraryId;
+    private string? _libraryName;
     private string _isbn = string.Empty;
-    private bool _hasError;
-    private string _errorMessage = string.Empty;
+    private string? _error;
 
-    private void HandleKeyDown(KeyboardEventArgs e)
+    protected override async Task OnInitializedAsync()
     {
-        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_isbn))
+        _libraryId = AddBookLinks.ParseLibraryId(LibraryId);
+        _libraryName = await LibrariesService.NameOfAsync(_libraryId);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
-            SearchByIsbn();
+            try
+            {
+                await _input.FocusAsync();
+            }
+            catch (JSException ex)
+            {
+                Logger.LogDebug(ex, "Unable to focus the ISBN field");
+            }
         }
     }
 
-    private void SearchByIsbn()
+    private void ClearError() => _error = null;
+
+    private void LookUp()
     {
-        _hasError = false;
-        _errorMessage = string.Empty;
-
-        var normalizedIsbn = IsbnHelper.NormalizeIsbn(_isbn);
-
-        if (string.IsNullOrWhiteSpace(normalizedIsbn))
+        var (isbn, error) = IsbnEntry.Check(_isbn);
+        _error = error;
+        if (isbn is not null)
         {
-            _hasError = true;
-            _errorMessage = "Please enter an ISBN number.";
-            return;
+            NavigationManager.NavigateTo(AddBookLinks.LookUp(isbn, _libraryId));
         }
-
-        if (!IsbnHelper.IsValidISBN(normalizedIsbn))
-        {
-            _hasError = true;
-            _errorMessage = "Invalid ISBN format. Please enter a valid 10 or 13 digit ISBN.";
-            return;
-        }
-
-        var url = $"/books/add/form?isbn={Uri.EscapeDataString(normalizedIsbn)}";
-        if (!string.IsNullOrEmpty(LibraryId))
-        {
-            url += $"&libraryId={LibraryId}";
-        }
-
-        NavigationManager.NavigateTo(url);
-    }
-
-    private void GoBack()
-    {
-        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add" : $"/books/add?libraryId={LibraryId}";
-        NavigationManager.NavigateTo(url);
     }
 }

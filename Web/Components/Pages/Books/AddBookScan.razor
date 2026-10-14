@@ -2,75 +2,66 @@
 @layout ScannerLayout
 @rendermode InteractiveServer
 
-@using Microsoft.AspNetCore.Components
-@using Microsoft.JSInterop
+@using Web.Models
 
-@implements IAsyncDisposable
+<PageTitle>Scan the barcode — MyComicsManager</PageTitle>
 
-<div class="add-book-scan-page">
-    @* Video container *@
-    <div class="scanner-video-container">
-        <video id="@_videoElementId"
-               class="scanner-video"
-               autoplay
-               playsinline>
-        </video>
-    </div>
+<div class="scan-page">
+    <video id="@_videoElementId" class="scan-video" autoplay playsinline muted></video>
 
-    @* Overlay *@
-    <div class="scanner-overlay">
-        @* Header *@
-        <div class="scanner-header">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                           Color="Color.Inherit"
-                           Style="color: white;"
-                           OnClick="GoBackAsync" />
-            <div>
-                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Style="color: white;">
-                    Scan Barcode
-                </MudText>
-                <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.8);">
-                    @if (_isScanning)
-                    {
-                        <text>Position the barcode within the frame</text>
-                    }
-                    else if (!string.IsNullOrEmpty(_errorMessage))
-                    {
-                        @_errorMessage
-                    }
-                    else
-                    {
-                        <text>Starting camera...</text>
-                    }
-                </MudText>
+    @if (_cameraUnavailable)
+    {
+        <div class="scan-error" role="alert">
+            <div class="scan-error-icon"><MudIcon Icon="@Icons.Material.Filled.NoPhotography" /></div>
+            <h2>Camera not available</h2>
+            <p>Allow camera access for MyComicsManager in your browser settings, or type the ISBN instead.</p>
+            <div class="scan-error-buttons">
+                <a class="scan-button scan-button-primary" href="@AddBookLinks.TypeIsbn(_libraryId)"><MudIcon Icon="@Icons.Material.Filled.Keyboard" />Type the ISBN</a>
+                <button type="button" class="scan-button" @onclick="RetryAsync"><MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" />Try again</button>
             </div>
         </div>
-
-        @* Scanner guide *@
-        <div class="scanner-guide @(_isbnDetected ? "detected" : "")">
-            <div class="scanner-guide-corner top-left"></div>
-            <div class="scanner-guide-corner top-right"></div>
-            <div class="scanner-guide-corner bottom-left"></div>
-            <div class="scanner-guide-corner bottom-right"></div>
-            <div class="scanner-line"></div>
+    }
+    else
+    {
+        <div class="@(_isbnDetected ? "scan-frame scan-frame-detected" : "scan-frame")" aria-hidden="true">
+            <span class="scan-corner scan-corner-top-left"></span>
+            <span class="scan-corner scan-corner-top-right"></span>
+            <span class="scan-corner scan-corner-bottom-left"></span>
+            <span class="scan-corner scan-corner-bottom-right"></span>
+            <span class="scan-line"></span>
         </div>
 
-        @* Footer *@
-        <div class="scanner-footer">
-            @if (!string.IsNullOrEmpty(_errorMessage))
+        <p class="scan-hint" role="status">
+            @if (_isScanning)
             {
-                <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3" Style="text-align: left;">
-                    @_errorMessage
-                </MudAlert>
+                <text>Point the camera at the ISBN barcode,<br />usually on the back cover.</text>
             }
+            else
+            {
+                <text>Starting the camera…</text>
+            }
+        </p>
 
-            <MudButton Variant="Variant.Text"
-                       Color="Color.Inherit"
-                       Style="color: white;"
-                       StartIcon="@Icons.Material.Filled.Keyboard"
-                       OnClick="GoToManualInputAsync">
-                Enter ISBN manually
-            </MudButton>
+        <div class="scan-footer">
+            @if (_libraryName is not null)
+            {
+                <div class="scan-target">Adding to <strong>@_libraryName</strong></div>
+            }
+            <a class="scan-button" href="@AddBookLinks.TypeIsbn(_libraryId)"><MudIcon Icon="@Icons.Material.Filled.Keyboard" />Type the ISBN instead</a>
         </div>
-    </div>
+    }
+
+    <header class="scan-bar">
+        <a class="scan-icon-button" href="@AddBookLinks.Exit(_libraryId)" aria-label="Close scanner" title="Close scanner"><MudIcon Icon="@Icons.Material.Filled.Close" /></a>
+        <h1 class="scan-title">Scan the barcode</h1>
+        @if (_hasTorch && !_cameraUnavailable)
+        {
+            <button type="button" class="scan-icon-button" aria-pressed="@(_torchOn ? "true" : "false")"
+                    aria-label="@(_torchOn ? "Turn off the flashlight" : "Turn on the flashlight")"
+                    title="@(_torchOn ? "Turn off the flashlight" : "Turn on the flashlight")"
+                    @onclick="ToggleTorchAsync">
+                <MudIcon Icon="@(_torchOn ? Icons.Material.Filled.FlashlightOff : Icons.Material.Filled.FlashlightOn)" />
+            </button>
+        }
+    </header>
 </div>

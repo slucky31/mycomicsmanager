@@ -71,7 +71,7 @@ public sealed record BookDetailViewModel
 
         var digitalBook = book as DigitalBook;
         var latestReading = book.ReadingDates.MaxBy(rd => rd.Date);
-        var volume = book.VolumeNumber > 0 ? $"Volume {book.VolumeNumber}" : null;
+        var volume = BookText.VolumeLabel(book.VolumeNumber);
         var (readLabel, progressLabel, progressPercent) = ReadingProgress(digitalBook);
         var isbnScanState = digitalBook?.GetIsbnScanState() ?? IsbnScanState.HasIsbn;
 
@@ -83,9 +83,9 @@ public sealed record BookDetailViewModel
             ImageLink = book.ImageLink,
             Authors = book.Authors,
             IsDigital = digitalBook is not null,
-            SerieAndVolume = JoinParts(IsSerieShown(book) ? book.Serie : null, volume),
-            FormatLabel = digitalBook is null ? null : JoinParts("Digital", PagesLabel(book.NumberOfPages)),
-            ActionsDetails = JoinParts(volume, digitalBook is null ? "Paper" : "Digital")!,
+            SerieAndVolume = BookText.SerieAndVolume(book.Serie, book.Title, book.VolumeNumber),
+            FormatLabel = digitalBook is null ? null : BookText.Join("Digital", BookText.PagesLabel(book.NumberOfPages)),
+            ActionsDetails = BookText.Join(volume, digitalBook is null ? "Paper" : "Digital")!,
             LatestRating = latestReading?.Rating ?? 0,
             HasBeenRead = latestReading is not null,
             ReadLabel = readLabel,
@@ -102,18 +102,6 @@ public sealed record BookDetailViewModel
                 .Select(rd => new BookReadingEntry(rd.Date.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture), rd.Rating))],
         };
     }
-
-    // A one-shot whose series is its title shows the title only.
-    private static bool IsSerieShown(Book book) =>
-        !string.IsNullOrWhiteSpace(book.Serie)
-        && !string.Equals(book.Serie.Trim(), book.Title.Trim(), StringComparison.OrdinalIgnoreCase);
-
-    private static string? PagesLabel(int? numberOfPages) => numberOfPages switch
-    {
-        1 => "1 page",
-        > 1 => $"{numberOfPages} pages",
-        _ => null,
-    };
 
     // The reader records the last page shown (zero-based): "Page 68 of 188" from the second page on.
     private static (string Label, string? Progress, int? Percent) ReadingProgress(DigitalBook? book)
@@ -161,11 +149,5 @@ public sealed record BookDetailViewModel
         {
             fields.Add(new BookDetailField(label, value));
         }
-    }
-
-    private static string? JoinParts(params string?[] parts)
-    {
-        var shown = parts.Where(part => !string.IsNullOrWhiteSpace(part)).ToArray();
-        return shown.Length == 0 ? null : string.Join(" · ", shown);
     }
 }

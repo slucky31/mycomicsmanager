@@ -1,0 +1,73 @@
+.library-select {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid #E2E3EA;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.library-select:focus-within {
+    border-color: #594AE2;
+    box-shadow: 0 0 0 1px #594AE2;
+}
+
+.library-select-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+}
+
+.library-select-icon ::deep svg {
+    font-size: 18px;
+}
+
+.library-select-text {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.library-select-label {
+    font-size: 12px;
+    color: #5C6070;
+}
+
+.library-select select {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    padding: 0 24px 0 0;
+    border: 0;
+    background: transparent;
+    color: #1B1D24;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+}
+
+::deep .library-select-chevron {
+    position: absolute;
+    right: 12px;
+    pointer-events: none;
+    color: #5C6070;
+}
+
+.library-select-error {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: #C62828;
+}

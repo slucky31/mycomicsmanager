@@ -1,16 +1,392 @@
-::deep .add-book-page {
-    min-height: 100vh;
-    background: var(--mud-palette-background);
+/* Book found (A5, T7) and the form of a book (A6, T8). */
+.add-page {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: #F4F4F6;
+    color: #1B1D24;
 }
 
-::deep .add-book-header {
-    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
-    padding: 16px 24px;
-    color: white;
+.add-loading {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px 16px;
+    color: #5C6070;
+    text-align: center;
 }
 
-::deep .add-book-content {
-    padding: 24px;
-    max-width: 800px;
-    margin: 0 auto;
+/* Buttons */
+.add-button {
+    box-sizing: border-box;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 26px;
+    background: none;
+    color: #1B1D24;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.add-button:focus-visible {
+    outline: 2px solid #1B1D24;
+    outline-offset: 2px;
+}
+
+.add-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.add-button-primary {
+    background: #594AE2;
+    color: #ffffff;
+}
+
+.add-button-primary:hover:not(:disabled) {
+    background: #4A3BC4;
+}
+
+.add-button-outlined {
+    border: 1px solid #E2E3EA;
+    background: #ffffff;
+}
+
+.add-button-text {
+    height: 44px;
+    color: #594AE2;
+    font-size: 15px;
+}
+
+/* Book found */
+.found-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 16px 0;
+}
+
+.found-card {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.found-book {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid #E2E3EA;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.found-cover {
+    width: 104px;
+    height: 156px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.found-cover-none {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #E2E3EA;
+    color: #5C6070;
+    box-shadow: none;
+}
+
+.found-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.found-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.found-serie {
+    font-size: 14px;
+    font-weight: 500;
+    color: #594AE2;
+}
+
+.found-line {
+    font-size: 14px;
+    color: #5C6070;
+}
+
+.found-source {
+    margin-top: auto;
+    align-self: flex-start;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background: #E6F4EA;
+    color: #2E7D32;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.found-source ::deep svg {
+    font-size: 14px;
+}
+
+.found-rating {
+    padding: 14px 16px;
+    border: 1px solid #E2E3EA;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.found-rating-title {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.found-rating-hint {
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+/* The actions stay at the bottom of the screen of a phone. */
+.found-actions,
+.book-form-footer {
+    position: sticky;
+    bottom: 0;
+    margin: auto -16px 0;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+    border-top: 1px solid #E2E3EA;
+    background: #F4F4F6;
+}
+
+.found-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Form */
+.book-form {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 4px 16px 0;
+}
+
+.book-form-side {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.book-form-cover {
+    display: none;
+}
+
+.book-form-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+.book-form-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #FDECEC;
+    color: #C62828;
+    font-size: 14px;
+}
+
+.book-form-section h2 {
+    margin: 0 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5C6070;
+}
+
+.book-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.book-form-pair {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 12px;
+}
+
+.book-form-footer {
+    display: flex;
+    gap: 10px;
+}
+
+.book-form-footer .add-button {
+    flex: 1 1 0;
+    padding: 0 12px;
+}
+
+.book-form-footer .add-button-primary {
+    flex-grow: 2;
+}
+
+@media (min-width: 600px) {
+    .add-button {
+        height: 48px;
+        padding: 0 22px 0 18px;
+        font-size: 15px;
+    }
+
+    .add-button-outlined {
+        padding: 0 20px;
+    }
+
+    /* T7: the book found in a card in the middle of the screen. */
+    .found-body {
+        justify-content: center;
+        padding: 8px 28px 24px;
+    }
+
+    .found-card {
+        flex-grow: 0;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+        gap: 18px;
+        padding: 28px;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 16px 40px rgba(19, 27, 44, 0.12);
+    }
+
+    .found-book {
+        gap: 20px;
+        padding: 0;
+        border: 0;
+    }
+
+    .found-cover {
+        width: 140px;
+        height: 210px;
+        border-radius: 8px;
+    }
+
+    .found-title {
+        font-size: 24px;
+    }
+
+    .found-serie,
+    .found-line {
+        font-size: 15px;
+    }
+
+    .found-actions {
+        position: static;
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+    }
+
+    .book-form {
+        padding: 8px 28px 24px;
+    }
+
+    .book-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px 20px;
+        align-content: start;
+    }
+
+    .book-form-pair {
+        display: contents;
+    }
+
+    .book-form-wide {
+        grid-column: 1 / -1;
+    }
+
+    /* The buttons are in the bar on a tablet. */
+    .book-form-footer {
+        display: none;
+    }
+}
+
+/* T8: the cover preview and the library beside the fields. */
+@media (min-width: 840px) {
+    .book-form {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 32px;
+    }
+
+    .book-form-side {
+        width: 220px;
+        flex-shrink: 0;
+    }
+
+    .book-form-cover {
+        display: block;
+        box-sizing: border-box;
+        width: 220px;
+        height: 330px;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .book-form-cover-none {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 16px;
+        border: 2px dashed #E2E3EA;
+        color: #5C6070;
+        font-size: 14px;
+        text-align: center;
+        box-shadow: none;
+    }
+
+    .book-form-main {
+        flex-grow: 1;
+    }
 }

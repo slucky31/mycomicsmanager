@@ -1,27 +1,56 @@
-::deep .add-book-manual-page {
-    min-height: 100vh;
-    background: var(--mud-palette-background);
+.add-page {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: #F4F4F6;
+    color: #1B1D24;
 }
 
-::deep .add-book-manual-content {
-    padding: 24px;
-    max-width: 500px;
-    margin: 0 auto;
+.isbn-form {
+    width: 100%;
+    max-width: 480px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px;
 }
 
-::deep .isbn-input-card {
-    padding: 32px;
-    border-radius: 16px;
-    text-align: center;
+.isbn-form ::deep .isbn-input {
+    height: 56px;
+    border-radius: 12px;
+    font-size: 22px;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
 }
 
-::deep .isbn-icon-container {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
+.isbn-look-up {
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 24px;
-    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    gap: 10px;
+    border: 0;
+    border-radius: 26px;
+    background: #594AE2;
+    color: #ffffff;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.isbn-look-up:hover {
+    background: #4A3BC4;
+}
+
+.isbn-look-up:focus-visible {
+    outline: 2px solid #1B1D24;
+    outline-offset: 2px;
+}
+
+@media (min-width: 600px) {
+    .isbn-form {
+        padding: 16px 28px;
+    }
 }

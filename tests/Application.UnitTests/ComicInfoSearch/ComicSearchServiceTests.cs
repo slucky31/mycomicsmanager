@@ -114,6 +114,7 @@ public sealed class ComicSearchServiceTests
         result.Title.Should().BeEmpty();
         result.Serie.Should().BeEmpty();
         result.VolumeNumber.Should().Be(1);
+        result.Source.Should().BeNull();
         await _googleBooksService.Received(1).SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
     }
 
@@ -162,6 +163,7 @@ public sealed class ComicSearchServiceTests
         result.NumberOfPages.Should().Be(48);
         result.ImageUrl.Should().Be("https://res.cloudinary.com/test/image/upload/v1/test-covers/9781234567890.jpg");
         result.PublishDate.Should().Be(new DateOnly(1987, 1, 1));
+        result.Source.Should().Be("Open Library");
     }
 
     [Fact]
@@ -858,6 +860,7 @@ public sealed class ComicSearchServiceTests
         result.Publishers.Should().Be("Dupuis");
         result.NumberOfPages.Should().Be(48);
         result.PublishDate.Should().Be(new DateOnly(1987, 1, 1));
+        result.Source.Should().Be("Google Books");
     }
 
     [Fact]
@@ -884,6 +887,7 @@ public sealed class ComicSearchServiceTests
 
         // Assert
         result.Serie.Should().Be("Biguden");
+        result.Source.Should().Be("Bedetheque");
         Received.InOrder(() =>
         {
             _bnfService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
@@ -915,6 +919,7 @@ public sealed class ComicSearchServiceTests
         result.Authors.Should().Be("Céline Wagner");
         result.NumberOfPages.Should().Be(82);
         result.ImageUrl.Should().Be("https://res.cloudinary.com/test/tangente.jpg");
+        result.Source.Should().Be("BnF");
         await _bedethequeService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
