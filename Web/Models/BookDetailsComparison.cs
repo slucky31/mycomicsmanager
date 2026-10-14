@@ -96,8 +96,17 @@ public sealed record BookFieldComparison(BookFieldDefinition Field, IReadOnlyLis
             }
         }
 
-        var match = options.Count > 1 ? BookFieldMatch.Differs : matches ? BookFieldMatch.Matches : BookFieldMatch.Unknown;
-        return new BookFieldComparison(field, options.Select(o => new BookFieldOption(o.Value, o.Sources)).ToList(), match);
+        return new BookFieldComparison(field, options.Select(o => new BookFieldOption(o.Value, o.Sources)).ToList(), MatchOf(options.Count, matches));
+    }
+
+    private static BookFieldMatch MatchOf(int optionCount, bool matches)
+    {
+        if (optionCount > 1)
+        {
+            return BookFieldMatch.Differs;
+        }
+
+        return matches ? BookFieldMatch.Matches : BookFieldMatch.Unknown;
     }
 
     private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
