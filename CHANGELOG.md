@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.41.0"></a>
+## [10.41.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.41.0) (2026-10-14)
+
+### ✨ Features
+
+* **books:** redesign adding a book (ADR-0021) ([#1139](https://www.github.com/slucky31/mycomicsmanager/issues/1139)) ([c0e36e2](https://www.github.com/slucky31/mycomicsmanager/commit/c0e36e23bd160b7bb108239d593c311f4c4cbc10))
+
 <a name="10.40.0"></a>
 ## [10.40.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.40.0) (2026-10-14)
 
