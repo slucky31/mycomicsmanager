@@ -442,4 +442,139 @@ public sealed class FeedImportsComponentTests
             snackbar.Received().Add("Unable to count the import decisions.", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
         cut.FindAll(".feeds-chip").Select(c => c.TextContent.Trim()).Should().Equal("All", "To decide", "Failed", "Downloaded");
     }
+
+    [Fact]
+    public async Task OnSearchChangedAsync_Should_ReloadWithTheTerm_WhenUserTypesInTheOpenedSearch()
+    {
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+        cut.FindAll(".feeds-search.open").Should().BeEmpty();
+
+        await cut.Find("button[aria-label='Search']").ClickAsync(new());
+        await cut.Find(".feeds-search.open input").InputAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = "  largo " });
+
+        await cut.WaitForAssertionAsync(async () =>
+            await service.Received(1).GetDecisionsAsync(null, "largo", 1, 20, Arg.Any<CancellationToken>()), TimeSpan.FromSeconds(3));
+    }
+
+    [Fact]
+    public async Task SyncNowAsync_Should_ShowError_WhenSyncCannotStart()
+    {
+        var service = CreateService();
+        service.TriggerSync().Returns(Result.Failure(FeedImportError.BadRequest));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.Find("button[aria-label='Sync now']").ClickAsync(new());
+
+        snackbar.Received(1).Add(FeedImportError.BadRequest.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task SelectFilterAsync_Should_CloseTheDetail_WhenTheDecisionIsNoLongerListed()
+    {
+        var service = CreateService();
+        service.GetDecisionsAsync(FeedImportDecisionStatus.Failed, Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Thorgal T1")));
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.FindAll(".feed-card-main")[0].ClickAsync(new());
+        cut.FindAll(".feeds-panel .feed-detail").Should().ContainSingle();
+
+        await cut.InvokeAsync(() => cut.Instance.SelectFilterAsync(FeedImportFilter.All));
+        await cut.FindAll(".feeds-chip").Single(c => c.TextContent.Contains("Failed", StringComparison.Ordinal)).ClickAsync(new());
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Thorgal T1"));
+        cut.FindAll(".feeds-panel .feed-detail").Should().BeEmpty();
+        cut.Markup.Should().Contain("Select an article to see its details.");
+        await service.Received(1).GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteSelectedAsync_Should_ReportTheDecisionsNotDeleted_AndLeaveTheSelection()
+    {
+        var service = CreateService();
+        service.DeleteAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service, CreateDialogService(confirmed: true));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.InvokeAsync(() => cut.Instance.StartSelecting());
+        cut.Render();
+        await cut.FindAll(".feed-card-check")[0].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = true });
+        await cut.FindAll(".feed-card-check")[1].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = true });
+        await cut.FindAll(".feeds-selection button").First(b => b.TextContent.Contains("Delete", StringComparison.Ordinal)).ClickAsync(new());
+
+        await service.Received(1).DeleteAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 2), Arg.Any<CancellationToken>());
+        snackbar.Received(1).Add("1 decision(s) deleted, 1 not deleted (download or import in progress).", Severity.Warning, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        cut.FindAll(".feeds-selection").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task StopSelecting_Should_HideTheCheckboxes_WhenSelectionIsCancelled()
+    {
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.InvokeAsync(() => cut.Instance.StartSelecting());
+        cut.Render();
+        await cut.FindAll(".feed-card-check")[0].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = true });
+        await cut.FindAll(".feed-card-check")[0].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = false });
+        cut.Find(".feeds-selection").TextContent.Should().Contain("0 selected");
+
+        await cut.FindAll(".feeds-selection button").First(b => b.TextContent.Contains("Cancel", StringComparison.Ordinal)).ClickAsync(new());
+
+        cut.FindAll(".feed-card-check").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task CancelCorrection_Should_CloseTheForm()
+    {
+        var decision = CreateProbableDuplicate();
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderExpandedAsync(service, decision);
+        await using var _ = ctx;
+        await Button(cut, "Fix series / volume").ClickAsync(new());
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Fix the title parsing"));
+
+        await cut.FindAll(".feed-correction button").First(b => b.TextContent.Contains("Cancel", StringComparison.Ordinal)).ClickAsync(new());
+
+        cut.Markup.Should().NotContain("Fix the title parsing");
+        await service.DidNotReceiveWithAnyArgs().CorrectAsync(default, default!, default, default, Xunit.TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_KeepTheChosenLink_WhenLinksAreAmbiguous()
+    {
+        var entry = FeedImportDecision.Create(Guid.CreateVersion7(), 98, "Blacksad - Tome 3", "https://planete-bd.org/98", null).Value!;
+        var candidate = new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", 52_428_800, [new DownloadMirror("https://1fichier.com/?a", "1fichier.com")]);
+        entry.RequestArbitration(FeedImportArbitrationKind.AmbiguousLinks, [candidate, candidate with { Label = "Autre" }],
+            new ParsedComicTitle("Blacksad", null, 3), null, "Ambigu", FeedImportDecidedBy.Auto);
+        var decision = FeedImportDecisionViewModel.From(entry);
+        var service = CreateService();
+        service.ResolveArbitrationAsync(decision.Id, Arg.Any<FeedImportArbitrationAction>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(new FeedImportDecisionPageViewModel([decision], 1)));
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad - Tome 3"));
+        await Button(cut, "Choose the file").ClickAsync(new());
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Keep this link"));
+
+        await cut.FindAll("button").Where(b => b.TextContent.Contains("Keep this link", StringComparison.Ordinal)).ElementAt(1).ClickAsync(new());
+
+        await service.Received(1).ResolveArbitrationAsync(decision.Id, FeedImportArbitrationAction.KeepCandidate, 1, Arg.Any<CancellationToken>());
+    }
 }
