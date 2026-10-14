@@ -46,15 +46,10 @@ public partial class FindBookDetails
     private bool _loadError;
     private bool _isSaving;
 
-    // Per-field selected source
-    private BookSource _selectedTitle = BookSource.Current;
-    private BookSource _selectedSerie = BookSource.Current;
-    private BookSource _selectedVolumeNumber = BookSource.Current;
-    private BookSource _selectedAuthors = BookSource.Current;
-    private BookSource _selectedPublishers = BookSource.Current;
-    private BookSource _selectedPublishDate = BookSource.Current;
-    private BookSource _selectedNumberOfPages = BookSource.Current;
-    private BookSource _selectedCover = BookSource.Current;
+    // The source picked for each field; a field left out keeps its current value.
+    private readonly Dictionary<string, BookSource> _selected = new(StringComparer.Ordinal);
+    private BookDetailsComparison _comparison = new([]);
+    private int _changeCount;
 
     private sealed record ParsedTitleInfo(string Title, string Serie, int VolumeNumber);
 
@@ -90,6 +85,7 @@ public partial class FindBookDetails
 
             _currentBook = BookUiDto.Convert(result.Value);
             ResolveIsbn(_currentBook.ISBN);
+            RefreshComparison();
             _isLoading = false;
             StateHasChanged();
             await FetchWebServicesAsync();
@@ -180,6 +176,7 @@ public partial class FindBookDetails
         }
 
         _searchStates[source] = apply(result);
+        RefreshComparison();
         StateHasChanged();
     }
 
@@ -191,14 +188,35 @@ public partial class FindBookDetails
 
     private int SearchesDone => _searchStates.Values.Count(state => state != ProviderSearchState.Searching);
 
-    private static string SourceName(BookSource source) => source switch
+    // Every source answered and none of them knows the book.
+    private bool NoSourceFound => _searchStates.Count > 0 && !IsSearching && !_searchStates.ContainsValue(ProviderSearchState.Found);
+
+    private void RefreshComparison()
     {
-        BookSource.Bnf => "BNF",
-        BookSource.Bedetheque => "BEDETHEQUE",
-        BookSource.OpenLibrary => "OPENLIBRARY",
-        BookSource.Google => "GOOGLE BOOKS",
-        _ => "CURRENT",
-    };
+        _comparison = new BookDetailsComparison(BookFieldDefinition.All
+            .Select(field => BookFieldComparison.Compare(
+                field,
+                Comparable(field.Key, GetCurrentValue(field.Key)),
+                WebSources().Select(source => (source, Comparable(field.Key, GetSourceValue(source, field.Key))))))
+            .ToList());
+        CountChanges();
+    }
+
+    // Volume 0 means the volume is not known.
+    private static string? Comparable(string field, string? value) =>
+        field == BookFieldKeys.VolumeNumber && value == "0" ? null : value;
+
+    private void Select(string field, BookSource source)
+    {
+        _selected[field] = source;
+        CountChanges();
+    }
+
+    // The ISBN read on the page is saved too: it counts as a change.
+    private void CountChanges() => _changeCount = _comparison.CountChanges(_selected) + (_isbnFromPage ? 1 : 0);
+
+    private bool IsSelected(string field, BookFieldOption option) =>
+        option.Sources.Contains(_selected.GetValueOrDefault(field, BookSource.Current));
 
     private async Task<T?> AwaitProviderAsync<T>(Task<T> task, string provider) where T : class
     {
@@ -274,30 +292,17 @@ public partial class FindBookDetails
 
     private string? GetGoogleValue(string field) => GetBookResultValue(_googleResult, _googleParsed, field);
 
-    private string? GetResolvedValue(string field)
-    {
-        var source = field switch
-        {
-            BookFieldKeys.Title => _selectedTitle,
-            BookFieldKeys.Serie => _selectedSerie,
-            BookFieldKeys.VolumeNumber => _selectedVolumeNumber,
-            BookFieldKeys.Authors => _selectedAuthors,
-            BookFieldKeys.Publishers => _selectedPublishers,
-            BookFieldKeys.PublishDate => _selectedPublishDate,
-            BookFieldKeys.NumberOfPages => _selectedNumberOfPages,
-            BookFieldKeys.Cover => _selectedCover,
-            _ => BookSource.Current
-        };
+    private string? GetResolvedValue(string field) =>
+        GetSourceValue(_selected.GetValueOrDefault(field, BookSource.Current), field);
 
-        return source switch
-        {
-            BookSource.Bnf => GetBnfValue(field),
-            BookSource.Bedetheque => GetBedethequeValue(field),
-            BookSource.OpenLibrary => GetOlValue(field),
-            BookSource.Google => GetGoogleValue(field),
-            _ => GetCurrentValue(field)
-        };
-    }
+    private string? GetSourceValue(BookSource source, string field) => source switch
+    {
+        BookSource.Bnf => GetBnfValue(field),
+        BookSource.Bedetheque => GetBedethequeValue(field),
+        BookSource.OpenLibrary => GetOlValue(field),
+        BookSource.Google => GetGoogleValue(field),
+        _ => GetCurrentValue(field)
+    };
 
     private string? GetCurrentValue(string field) => field switch
     {
@@ -394,13 +399,4 @@ public partial class FindBookDetails
     }
 
     private void Cancel() => NavigationManager.NavigateTo($"/books/{BookId}");
-}
-
-public enum BookSource
-{
-    Current,
-    Bnf,
-    Bedetheque,
-    OpenLibrary,
-    Google
 }
