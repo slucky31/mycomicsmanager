@@ -1,0 +1,31 @@
+@using Web.Components.SharedComponents
+@using Web.Validators
+
+@* The library the book is added to, with its color and icon (A5, T8). *@
+<div class="library-select">
+    @if (Selected is { } library)
+    {
+        <span class="library-select-icon" style="@($"color: {library.Color}; background: color-mix(in srgb, {library.Color} 10%, transparent);")">
+            <MudIcon Icon="@IconPicker.Resolve(library.Icon)" />
+        </span>
+    }
+    <span class="library-select-text">
+        <label for="@Id" class="library-select-label">Library</label>
+        <select id="@Id" value="@Value" aria-invalid="@(string.IsNullOrEmpty(Error) ? null : "true")"
+                aria-describedby="@(string.IsNullOrEmpty(Error) ? null : $"{Id}-error")" @onchange="OnChangeAsync">
+            @if (Selected is null)
+            {
+                <option value="@Guid.Empty">Choose a library</option>
+            }
+            @foreach (var option in Libraries)
+            {
+                <option value="@option.Id">@option.Name</option>
+            }
+        </select>
+    </span>
+    <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Class="library-select-chevron" />
+</div>
+@if (!string.IsNullOrEmpty(Error))
+{
+    <span id="@($"{Id}-error")" class="library-select-error">@Error</span>
+}

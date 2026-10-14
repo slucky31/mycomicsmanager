@@ -2,7 +2,13 @@
 {
     <a class="@CssClass" href="@Href">
         <MudIcon Icon="@Icon" Class="action-sheet-item-icon" />
-        <span class="action-sheet-item-text">@Text</span>
+        <span class="action-sheet-item-text">
+            @Text
+            @if (!string.IsNullOrEmpty(Description))
+            {
+                <span class="action-sheet-item-description">@Description</span>
+            }
+        </span>
     </a>
 }
 else

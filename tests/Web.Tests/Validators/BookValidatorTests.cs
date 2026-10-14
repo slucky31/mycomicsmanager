@@ -34,7 +34,7 @@ public sealed class BookValidatorTests
         // Assert
         result.IsValid.Should().BeFalse();
         result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Title));
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Title is required.");
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Enter a title");
     }
 
     [Fact]
@@ -121,8 +121,8 @@ public sealed class BookValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(BookUiDto.ISBN) && e.ErrorMessage == "ISBN is required.");
-        result.Errors.Should().Contain(e => e.PropertyName == nameof(BookUiDto.ISBN) && e.ErrorMessage == "ISBN must be a valid 10 or 13 digit number.");
+        result.Errors.Should().Contain(e => e.PropertyName == nameof(BookUiDto.ISBN) && e.ErrorMessage == "Enter the ISBN");
+        result.Errors.Should().Contain(e => e.PropertyName == nameof(BookUiDto.ISBN) && e.ErrorMessage == "Enter a valid ISBN: 10 or 13 digits");
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public sealed class BookValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.ISBN) && e.ErrorMessage == "ISBN must be a valid 10 or 13 digit number.");
+        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.ISBN) && e.ErrorMessage == "Enter a valid ISBN: 10 or 13 digits");
     }
 
     [Fact]
@@ -270,7 +270,7 @@ public sealed class BookValidatorTests
         // Assert
         result.IsValid.Should().BeFalse();
         result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Serie));
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Serie is required.");
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Enter a series");
     }
 
     [Fact]
@@ -631,7 +631,7 @@ public sealed class BookValidatorTests
 
         // Assert
         result.Should().ContainSingle();
-        result.Should().Contain("Title is required.");
+        result.Should().Contain("Enter a title");
     }
 
     [Fact]
@@ -652,7 +652,7 @@ public sealed class BookValidatorTests
 
         // Assert
         result.Should().NotBeEmpty();
-        result.Should().Contain("ISBN must be a valid 10 or 13 digit number.");
+        result.Should().Contain("Enter a valid ISBN: 10 or 13 digits");
     }
 
     [Fact]
@@ -673,7 +673,7 @@ public sealed class BookValidatorTests
 
         // Assert
         result.Should().ContainSingle();
-        result.Should().Contain("Serie is required.");
+        result.Should().Contain("Enter a series");
     }
 
     [Fact]
@@ -1109,7 +1109,7 @@ public sealed class BookValidatorTests
     #region Rating Validation Tests
 
     [Fact]
-    public void Validate_ShouldReturnError_WhenRatingIsZero()
+    public void Validate_ShouldPass_WhenRatingIsZero()
     {
         // Arrange
         var dto = new BookUiDto
@@ -1125,9 +1125,7 @@ public sealed class BookValidatorTests
         var result = _validator.Validate(dto);
 
         // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Rating));
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "La note est obligatoire (1 à 5 étoiles).");
+        result.IsValid.Should().BeTrue();
     }
 
     [Fact]
@@ -1149,7 +1147,7 @@ public sealed class BookValidatorTests
         // Assert
         result.IsValid.Should().BeFalse();
         result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Rating));
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "La note est obligatoire (1 à 5 étoiles).");
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "The rating must be between 1 and 5 stars.");
     }
 
     [Fact]
@@ -1171,7 +1169,7 @@ public sealed class BookValidatorTests
         // Assert
         result.IsValid.Should().BeFalse();
         result.Errors.Should().ContainSingle(e => e.PropertyName == nameof(BookUiDto.Rating));
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "La note est obligatoire (1 à 5 étoiles).");
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "The rating must be between 1 and 5 stars.");
     }
 
     [Fact]

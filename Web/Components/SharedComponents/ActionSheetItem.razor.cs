@@ -11,7 +11,7 @@ public partial class ActionSheetItem
     [Parameter, EditorRequired]
     public string Text { get; set; } = string.Empty;
 
-    // Under the text of an option (a link has none).
+    // Under the text: what an option or a link is for.
     [Parameter]
     public string? Description { get; set; }
 

@@ -1,0 +1,15 @@
+@using Web.Models
+
+@* A label above its field, the error then the help under it (A6). The field sets its id, aria-invalid and aria-describedby. *@
+<div class="@(string.IsNullOrEmpty(Error) ? "form-field" : "form-field form-field-invalid")">
+    <label class="form-field-label" for="@Id">@Label@(Required ? " *" : "")</label>
+    @ChildContent
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <span id="@FormFieldIds.ErrorOf(Id)" class="form-field-error"><MudIcon Icon="@Icons.Material.Outlined.Info" />@Error</span>
+    }
+    @if (!string.IsNullOrEmpty(Help))
+    {
+        <span id="@FormFieldIds.HelpOf(Id)" class="form-field-help">@Help</span>
+    }
+</div>

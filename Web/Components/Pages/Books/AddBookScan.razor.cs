@@ -3,14 +3,19 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Web.Infrastructure;
+using Web.Models;
+using Web.Services;
 
 namespace Web.Components.Pages.Books;
 
+// Full screen barcode scanner (A2); one clear message when the camera cannot be used (A3).
 public sealed partial class AddBookScan : IAsyncDisposable
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
+    [Inject] private ILogger<AddBookScan> Logger { get; set; } = default!;
 
     [SupplyParameterFromQuery]
     public string? LibraryId { get; set; }
@@ -19,9 +24,19 @@ public sealed partial class AddBookScan : IAsyncDisposable
     private DotNetObjectReference<AddBookScan>? _dotNetObjectRef;
     private readonly string _videoElementId = $"video-scanner-{Guid.NewGuid():N}";
 
+    private Guid? _libraryId;
+    private string? _libraryName;
     private bool _isScanning;
     private bool _isbnDetected;
-    private string _errorMessage = string.Empty;
+    private bool _cameraUnavailable;
+    private bool _hasTorch;
+    private bool _torchOn;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _libraryId = AddBookLinks.ParseLibraryId(LibraryId);
+        _libraryName = await LibrariesService.NameOfAsync(_libraryId);
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -35,22 +50,45 @@ public sealed partial class AddBookScan : IAsyncDisposable
     {
         try
         {
-            _dotNetObjectRef = DotNetObjectReference.Create(this);
-            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", AppVersion.Versioned("./js/isbnScanner.js"));
+            _dotNetObjectRef ??= DotNetObjectReference.Create(this);
+            _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", AppVersion.Versioned("./js/isbnScanner.js"));
 
-            if (_jsModule != null)
-            {
-                await _jsModule.InvokeVoidAsync("startScan", _videoElementId, _dotNetObjectRef);
-                _isScanning = true;
-                _errorMessage = string.Empty;
-                StateHasChanged();
-            }
+            await _jsModule.InvokeVoidAsync("startScan", _videoElementId, _dotNetObjectRef);
+            _isScanning = true;
+            _cameraUnavailable = false;
+            _hasTorch = await _jsModule.InvokeAsync<bool>("hasTorch");
         }
         catch (JSException ex)
         {
-            _errorMessage = $"Camera error: {ex.Message}";
+            Logger.LogWarning(ex, "Unable to start the barcode scanner");
             _isScanning = false;
-            StateHasChanged();
+            _cameraUnavailable = true;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task RetryAsync()
+    {
+        _cameraUnavailable = false;
+        await StartScanningAsync();
+    }
+
+    private async Task ToggleTorchAsync()
+    {
+        if (_jsModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _torchOn = await _jsModule.InvokeAsync<bool>("setTorch", !_torchOn);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogWarning(ex, "Unable to switch the flashlight");
+            _hasTorch = false;
         }
     }
 
@@ -72,6 +110,7 @@ public sealed partial class AddBookScan : IAsyncDisposable
             }
         }
         _isScanning = false;
+        _torchOn = false;
     }
 
     [JSInvokable]
@@ -98,20 +137,16 @@ public sealed partial class AddBookScan : IAsyncDisposable
             return;
         }
 
-        var url = $"/books/add/form?isbn={Uri.EscapeDataString(isbn)}";
-        if (!string.IsNullOrEmpty(LibraryId))
-        {
-            url += $"&libraryId={LibraryId}";
-        }
-
-        NavigationManager.NavigateTo(url);
+        NavigationManager.NavigateTo(AddBookLinks.LookUp(isbn, _libraryId));
     }
 
+    // The technical reason goes to the log; the page shows a single message (A3).
     [JSInvokable]
     public void OnScanErrorFromJs(string error)
     {
-        _errorMessage = error;
+        Logger.LogWarning("Barcode scanner error: {Error}", error);
         _isScanning = false;
+        _cameraUnavailable = true;
         StateHasChanged();
     }
 
@@ -121,38 +156,13 @@ public sealed partial class AddBookScan : IAsyncDisposable
         return IsbnHelper.IsValidISBN(isbn);
     }
 
-    private async Task GoBackAsync()
-    {
-        await StopScanningAsync();
-        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add" : $"/books/add?libraryId={LibraryId}";
-        NavigationManager.NavigateTo(url);
-    }
-
-    private async Task GoToManualInputAsync()
-    {
-        await StopScanningAsync();
-        var url = string.IsNullOrEmpty(LibraryId) ? "/books/add/manual" : $"/books/add/manual?libraryId={LibraryId}";
-        NavigationManager.NavigateTo(url);
-    }
-
     public async ValueTask DisposeAsync()
     {
         if (_jsModule != null)
         {
             if (_isScanning)
             {
-                try
-                {
-                    await _jsModule.InvokeVoidAsync("stopScan");
-                }
-                catch (JSDisconnectedException)
-                {
-                    // Ignore
-                }
-                catch (JSException)
-                {
-                    // Ignore
-                }
+                await StopScanningAsync();
             }
 
             try

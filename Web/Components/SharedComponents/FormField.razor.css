@@ -1,0 +1,63 @@
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.form-field-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1B1D24;
+}
+
+.form-field-invalid .form-field-label {
+    color: #C62828;
+}
+
+.form-field ::deep input,
+.form-field ::deep select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid #E2E3EA;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #1B1D24;
+    font: inherit;
+    font-size: 16px;
+    outline: none;
+}
+
+.form-field ::deep input:focus {
+    border: 2px solid #594AE2;
+    padding: 0 13px;
+}
+
+.form-field ::deep input[aria-invalid="true"] {
+    border: 2px solid #C62828;
+    padding: 0 13px;
+}
+
+.form-field ::deep input::placeholder {
+    color: #8A8E9C;
+}
+
+.form-field-error {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #C62828;
+}
+
+.form-field-error ::deep svg {
+    font-size: 16px;
+}
+
+.form-field-help {
+    font-size: 13px;
+    color: #5C6070;
+}

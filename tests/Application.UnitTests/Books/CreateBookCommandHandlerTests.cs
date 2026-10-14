@@ -276,7 +276,7 @@ public class CreateBookCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnInvalidRating_WhenRatingIsZero()
+    public async Task Handle_Should_AddNoReadingDate_WhenRatingIsZero()
     {
         // Arrange
         var commandWithoutRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", s_libraryId, s_userId, 1, "", 0);
@@ -288,10 +288,41 @@ public class CreateBookCommandHandlerTests
         var result = await _handler.Handle(commandWithoutRating, TestContext.Current.CancellationToken);
 
         // Assert
+        result.IsSuccess.Should().BeTrue();
+        Guard.Against.Null(result.Value);
+        result.Value.ReadingDates.Should().BeEmpty();
+        _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnInvalidRating_WhenRatingIsNegative()
+    {
+        // Arrange
+        var commandWithNegativeRating = new CreateBookCommand("Serie", "Title", "978-3-16-148410-0", s_libraryId, s_userId, 1, "", -1);
+
+        // Act
+        var result = await _handler.Handle(commandWithNegativeRating, TestContext.Current.CancellationToken);
+
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(BooksError.InvalidRating);
-        _bookRepositoryMock.Received(0).Add(Arg.Any<Book>());
-        await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _bookRepositoryMock.DidNotReceive().GetByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenLibraryIdIsEmpty()
+    {
+        // Arrange
+        var commandWithoutLibrary = s_validCommand with { LibraryId = Guid.Empty };
+
+        // Act
+        var result = await _handler.Handle(commandWithoutLibrary, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.BadRequest);
+        await _bookRepositoryMock.DidNotReceive().GetByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _libraryRepositoryMock.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
     }
 
     [Fact]

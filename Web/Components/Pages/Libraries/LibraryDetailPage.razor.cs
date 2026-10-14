@@ -30,13 +30,16 @@ public partial class LibraryDetailPage : IAsyncDisposable
     internal const int PageSize = 24;
     private const string SortAndViewButtonId = "library-sort-and-view";
     private const string MoreActionsButtonId = "library-more-actions";
+    private const string AddBookButtonId = "library-add-book";
+    private const string AddBookIconId = "library-add-book-icon";
 
     private enum LibrarySheet
     {
         None,
         SortAndView,
         MoreActions,
-        BookActions
+        BookActions,
+        AddBook
     }
 
     private LibraryUiDto? _library;
@@ -478,7 +481,19 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     private void GoBack() => NavigationManager.NavigateTo("/libraries/list");
 
-    private void AddBook() => NavigationManager.NavigateTo($"/books/add?libraryId={LibraryId}");
+    // The labelled button on a tablet, the + on a phone (the other one is hidden, without a size).
+    private async Task OpenAddBookAsync()
+    {
+        var anchor = await AnchorOfAsync(AddBookButtonId);
+        if (anchor is null || anchor.Right <= anchor.Left)
+        {
+            anchor = await AnchorOfAsync(AddBookIconId);
+        }
+
+        _sheetAnchor = anchor;
+        _sheetAlignEnd = true;
+        _openSheet = LibrarySheet.AddBook;
+    }
 
     private void NavigateToImport() => NavigationManager.NavigateTo($"/import?libraryId={LibraryId}");
 

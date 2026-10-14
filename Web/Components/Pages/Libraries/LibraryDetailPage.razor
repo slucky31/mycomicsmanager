@@ -41,8 +41,8 @@
             }
             else
             {
-                <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddBook" aria-label="New book" Class="library-bar-add" />
-                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBook" Class="library-bar-new-book">New book</MudButton>
+                <MudIconButton id="@AddBookIconId" Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="OpenAddBookAsync" aria-label="New book" aria-haspopup="dialog" Class="library-bar-add" />
+                <MudButton id="@AddBookButtonId" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddBookAsync" aria-haspopup="dialog" Class="library-bar-new-book">New book</MudButton>
             }
         </header>
 
@@ -70,7 +70,7 @@
                 else
                 {
                     <MudText Typo="Typo.body2" Class="library-empty-hint">Start by adding your first book</MudText>
-                    <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBook">Add your first book</MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddBookAsync">Add your first book</MudButton>
                 }
             </div>
         }
@@ -118,6 +118,25 @@
                      Selected="@(_currentViewMode == ViewMode.Covers)" OnClick="() => ChooseViewMode(ViewMode.Covers)" />
     <ActionSheetItem Icon="@Icons.Material.Filled.ViewList" Text="List" Description="Title, series, authors, rating"
                      Selected="@(_currentViewMode == ViewMode.List)" OnClick="() => ChooseViewMode(ViewMode.List)" />
+</ActionSheet>
+
+<ActionSheet Open="@(_openSheet == LibrarySheet.AddBook)" AriaLabel="Add a book" Anchor="@_sheetAnchor" AlignEnd="true" OnClose="CloseSheet">
+    <Header>
+        <div class="add-book-sheet-heading">
+            <h2>Add a book</h2>
+            @if (_library is not null)
+            {
+                <div class="add-book-sheet-target">to @_library.Name</div>
+            }
+        </div>
+        <div class="add-book-sheet-primary">
+            <a href="@AddBookLinks.Scan(_libraryGuid)"><MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" />Scan the barcode</a>
+        </div>
+    </Header>
+    <ChildContent>
+        <ActionSheetItem Icon="@Icons.Material.Filled.Keyboard" Text="Type the ISBN" Description="When the barcode won’t scan" Href="@AddBookLinks.TypeIsbn(_libraryGuid)" />
+        <ActionSheetItem Icon="@Icons.Material.Filled.EditNote" Text="Enter details manually" Description="No ISBN, or not found online" Href="@AddBookLinks.EnterDetails(_libraryGuid)" />
+    </ChildContent>
 </ActionSheet>
 
 <ActionSheet Open="@(_openSheet == LibrarySheet.MoreActions)" AriaLabel="More actions"

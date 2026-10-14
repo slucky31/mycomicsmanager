@@ -1,91 +1,152 @@
 @page "/books/add/form"
 @rendermode InteractiveServer
 
-@using Application.ComicInfoSearch
-@using Application.Helpers
-@using Application.Interfaces
-@using Microsoft.AspNetCore.Components
 @using Web.Components.SharedComponents
-@using Web.Services
+@using Web.Models
 @using Web.Validators
 
-<div class="add-book-page">
-    @* Header *@
-    <div class="add-book-header">
-        <div class="d-flex align-center gap-3">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                           Color="Color.Inherit"
-                           OnClick="GoBack" />
-            <div>
-                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="color: white;">
-                    Add New Book
-                </MudText>
-                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
-                    @if (_isLoading)
+<PageTitle>@PageTitleText — MyComicsManager</PageTitle>
+
+<div class="add-page">
+    @if (_isLoading)
+    {
+        <AddBookHeader Title="Looking up the book" Subtitle="@($"ISBN {Isbn}")" BackHref="@ExitHref" />
+        <div class="add-loading" role="status">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <span>Looking for this ISBN in the catalogues…</span>
+        </div>
+    }
+    else if (_step == AddBookStep.Found && _found is not null)
+    {
+        var found = _found;
+        <AddBookHeader Title="Book found" Subtitle="@found.IsbnLabel" BackHref="@ExitHref" />
+        <div class="found-body">
+            <div class="found-card">
+                <div class="found-book">
+                    @if (!string.IsNullOrEmpty(found.ImageLink))
                     {
-                        <text>Searching for book information...</text>
-                    }
-                    else if (_searchResult?.Found == true)
-                    {
-                        <text>Book found - verify details and save</text>
-                    }
-                    else if (!string.IsNullOrEmpty(Isbn))
-                    {
-                        <text>Book not found - please fill in the details</text>
+                        <img class="found-cover" src="@found.ImageLink" alt="@found.CoverAlt" />
                     }
                     else
                     {
-                        <text>Fill in the book details</text>
+                        <div class="found-cover found-cover-none" role="img" aria-label="No cover"><MudIcon Icon="@Icons.Material.Filled.MenuBook" /></div>
                     }
-                </MudText>
+                    <div class="found-info">
+                        <h2 class="found-title">@found.Title</h2>
+                        @if (found.SerieAndVolume is not null)
+                        {
+                            <div class="found-serie">@found.SerieAndVolume</div>
+                        }
+                        @if (found.Authors is not null)
+                        {
+                            <div class="found-line">@found.Authors</div>
+                        }
+                        @if (found.Publication is not null)
+                        {
+                            <div class="found-line">@found.Publication</div>
+                        }
+                        @if (found.SourceLabel is not null)
+                        {
+                            <div class="found-source"><MudIcon Icon="@Icons.Material.Outlined.Info" />@found.SourceLabel</div>
+                        }
+                    </div>
+                </div>
+
+                <LibrarySelect Libraries="_libraries" Value="_model.LibraryId" ValueChanged="ChooseLibrary" Error="@_errors.For(nameof(BookUiDto.LibraryId))" />
+
+                <div class="found-rating">
+                    <div id="found-rating-title" class="found-rating-title">Already read it?</div>
+                    <div class="found-rating-hint">Rate it to add a reading date (optional).</div>
+                    <StarRating Value="_model.Rating" ValueChanged="ChooseRating" LabelledBy="found-rating-title" />
+                </div>
+
+                <div class="found-actions">
+                    <button type="button" class="add-button add-button-primary" disabled="@_isSaving" @onclick="SaveAsync">
+                        <MudIcon Icon="@Icons.Material.Filled.Add" />@AddToLabel
+                    </button>
+                    <button type="button" class="add-button add-button-text" @onclick="EditDetails">Edit details before adding</button>
+                </div>
             </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <AddBookHeader Title="Add a book" Subtitle="@FormSubtitle" BackHref="@ExitHref" OnBack="@(_found is null ? default : EventCallback.Factory.Create(this, ShowFound))">
+            <a class="add-button add-button-outlined" href="@ExitHref">Cancel</a>
+            <button type="submit" form="add-book-form" class="add-button add-button-primary" disabled="@_isSaving"><MudIcon Icon="@Icons.Material.Filled.Add" />Add book</button>
+        </AddBookHeader>
 
-    @* Content *@
-    <div class="add-book-content">
-        @if (_isLoading)
-        {
-            <div class="d-flex flex-column align-center justify-center pa-8">
-                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">
-                    Searching for book information...
-                </MudText>
+        <form id="add-book-form" class="book-form" novalidate @onsubmit="SaveAsync">
+            <div class="book-form-side">
+                @if (!string.IsNullOrWhiteSpace(_model.ImageLink))
+                {
+                    <img class="book-form-cover" src="@_model.ImageLink" alt="Cover preview" />
+                }
+                else
+                {
+                    <div class="book-form-cover book-form-cover-none"><MudIcon Icon="@Icons.Material.Filled.Add" /><span>Cover preview appears when you paste an image URL</span></div>
+                }
+                <LibrarySelect Libraries="_libraries" Value="_model.LibraryId" ValueChanged="ChooseLibrary" Error="@_errors.For(nameof(BookUiDto.LibraryId))" />
             </div>
-        }
-        else
-        {
-            <MudPaper Class="pa-6 rounded-lg" Elevation="2">
-                <BookForm @ref="_bookForm"
-                          Model="_bookModel"
-                          Libraries="_libraries"
-                          ShowRating="true"
-                          IsbnReadOnly="@(!string.IsNullOrWhiteSpace(Isbn))" />
 
-                @* Action buttons *@
-                <div class="d-flex justify-end gap-2 mt-6">
-                    <MudButton Variant="Variant.Text"
-                               Color="Color.Default"
-                               OnClick="GoBack">
-                        Cancel
-                    </MudButton>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.Add"
-                               OnClick="SaveBookAsync"
-                               Disabled="_isSaving">
-                        @if (_isSaving)
-                        {
-                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                            <text>Saving...</text>
-                        }
-                        else
-                        {
-                            <text>Add Book</text>
-                        }
-                    </MudButton>
-                </div>
-            </MudPaper>
-        }
-    </div>
+            <div class="book-form-main">
+                @if (_errors.Any)
+                {
+                    <div class="book-form-summary" role="alert"><MudIcon Icon="@Icons.Material.Outlined.Info" /><span>@_errors.Summary</span></div>
+                }
+
+                <section class="book-form-section" aria-labelledby="book-form-book">
+                    <h2 id="book-form-book">Book</h2>
+                    <div class="book-form-grid">
+                        @TextField("book-title", "Title", nameof(BookUiDto.Title), _model.Title, v => _model.Title = v, required: true)
+                        @TextField("book-serie", "Series", nameof(BookUiDto.Serie), _model.Serie, v => _model.Serie = v, required: true)
+                        <div class="book-form-pair">
+                            @TextField("book-isbn", "ISBN", nameof(BookUiDto.ISBN), _model.ISBN, v => _model.ISBN = v, required: true, inputMode: "numeric")
+                            <FormField Id="book-volume" Label="Volume" Error="@_errors.For(nameof(BookUiDto.VolumeNumber))">
+                                <input id="book-volume" type="number" inputmode="numeric" min="1" @bind="_model.VolumeNumber" @bind:after="Revalidate"
+                                       aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.VolumeNumber))" aria-describedby="@Describe("book-volume", nameof(BookUiDto.VolumeNumber))" />
+                            </FormField>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="book-form-section" aria-labelledby="book-form-details">
+                    <h2 id="book-form-details">Details</h2>
+                    <div class="book-form-grid">
+                        @TextField("book-authors", "Authors", nameof(BookUiDto.Authors), _model.Authors, v => _model.Authors = v, placeholder: "e.g. Daniel Warren Johnson", help: "Separate several names with commas")
+                        @TextField("book-publishers", "Publisher", nameof(BookUiDto.Publishers), _model.Publishers, v => _model.Publishers = v, placeholder: "e.g. Delcourt")
+                        <FormField Id="book-published" Label="Publish date" Error="@_errors.For(nameof(BookUiDto.PublishDate))">
+                            <input id="book-published" type="date" @bind="_model.PublishDate" @bind:after="Revalidate"
+                                   aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.PublishDate))" aria-describedby="@Describe("book-published", nameof(BookUiDto.PublishDate))" />
+                        </FormField>
+                        <FormField Id="book-pages" Label="Pages" Error="@_errors.For(nameof(BookUiDto.NumberOfPages))">
+                            <input id="book-pages" type="number" inputmode="numeric" min="1" placeholder="e.g. 271" @bind="_model.NumberOfPages" @bind:after="Revalidate"
+                                   aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.NumberOfPages))" aria-describedby="@Describe("book-pages", nameof(BookUiDto.NumberOfPages))" />
+                        </FormField>
+                        <div class="book-form-wide">
+                            @TextField("book-cover", "Cover image URL", nameof(BookUiDto.ImageLink), _model.ImageLink, v => _model.ImageLink = v, placeholder: "https://…", type: "url")
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="book-form-footer">
+                <a class="add-button add-button-outlined" href="@ExitHref">Cancel</a>
+                <button type="submit" class="add-button add-button-primary" disabled="@_isSaving"><MudIcon Icon="@Icons.Material.Filled.Add" />Add book</button>
+            </div>
+        </form>
+    }
 </div>
+
+@code {
+    // A text field of the form: its label above, its error and help under it.
+    private RenderFragment TextField(string id, string label, string property, string? value, Action<string> setValue,
+        bool required = false, string? placeholder = null, string? help = null, string type = "text", string? inputMode = null) => __builder =>
+    {
+        <FormField Id="@id" Label="@label" Required="@required" Error="@_errors.For(property)" Help="@help">
+            <input id="@id" type="@type" inputmode="@inputMode" placeholder="@placeholder" value="@value"
+                   @oninput="args => OnInput(setValue, args)"
+                   aria-invalid="@_errors.AriaInvalid(property)" aria-describedby="@FormFieldIds.DescribedBy(id, _errors.For(property), help)" />
+        </FormField>
+    };
+}

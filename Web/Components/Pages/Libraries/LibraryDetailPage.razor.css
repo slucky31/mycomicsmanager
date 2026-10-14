@@ -263,3 +263,47 @@
         padding: 0 48px 8px;
     }
 }
+
+/* The + of the library: how to add a book (A1). */
+.add-book-sheet-heading {
+    padding: 0 20px 4px;
+}
+
+.add-book-sheet-heading h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.add-book-sheet-target {
+    margin-top: 2px;
+    font-size: 14px;
+    color: #5C6070;
+}
+
+.add-book-sheet-primary {
+    padding: 12px 16px 8px;
+}
+
+.add-book-sheet-primary a {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 26px;
+    background: #594AE2;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.add-book-sheet-primary a:hover {
+    background: #4A3BC4;
+}
+
+.add-book-sheet-primary a:focus-visible {
+    outline: 2px solid #1B1D24;
+    outline-offset: 2px;
+}

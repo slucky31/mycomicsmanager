@@ -3,6 +3,7 @@ var script_url = "https://unpkg.com/@zxing/library@" + version + "/umd/index.min
 
 var codeReader = null;
 var video = null;
+var videoTrack = null;
 var scanning = false;
 
 // Helper functions defined first
@@ -58,6 +59,7 @@ async function ensureZXingLoaded() {
 
 export function stopScan() {
     scanning = false;
+    videoTrack = null;
     if (codeReader) {
         codeReader.reset();
         codeReader = null;
@@ -114,7 +116,7 @@ export async function startScan(videoElementId, dotNetObjectRef) {
         await video.play();
 
         // Enable autofocus on video track if supported
-        var videoTrack = stream.getVideoTracks()[0];
+        videoTrack = stream.getVideoTracks()[0];
         var capabilities = videoTrack.getCapabilities();
         
         if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
@@ -157,6 +159,18 @@ export async function startScan(videoElementId, dotNetObjectRef) {
     }
 }
 
+// Whether the camera has a flashlight that the page can turn on (Chrome on Android; not Safari on iOS).
+export function hasTorch() {
+    if (!videoTrack || typeof videoTrack.getCapabilities !== 'function') {
+        return false;
+    }
+    return videoTrack.getCapabilities().torch === true;
+}
 
-
-
+export async function setTorch(on) {
+    if (!videoTrack) {
+        return false;
+    }
+    await videoTrack.applyConstraints({ advanced: [{ torch: on }] });
+    return on;
+}

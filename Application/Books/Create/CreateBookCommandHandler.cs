@@ -15,7 +15,8 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         Guard.Against.Null(request);
 
         // Check if parameters are not null or empty
-        if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.ISBN) || string.IsNullOrWhiteSpace(request.Serie))
+        if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.ISBN) || string.IsNullOrWhiteSpace(request.Serie)
+            || request.LibraryId == Guid.Empty)
         {
             return BooksError.BadRequest;
         }
@@ -26,8 +27,8 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
             return BooksError.InvalidISBN;
         }
 
-        // Validate rating range
-        if (request.Rating is < 1 or > 5)
+        // Validate rating range: 0 when the book was not rated (not read yet)
+        if (request.Rating is < 0 or > 5)
         {
             return BooksError.InvalidRating;
         }
@@ -73,8 +74,11 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
             return canContainResult.Error!;
         }
 
-        // Always add a reading date with the provided rating
-        book.AddReadingDate(DateTime.UtcNow, request.Rating);
+        // A rated book was read: its reading is dated today
+        if (request.Rating > 0)
+        {
+            book.AddReadingDate(DateTime.UtcNow, request.Rating);
+        }
 
         bookRepository.Add(book);
         var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);

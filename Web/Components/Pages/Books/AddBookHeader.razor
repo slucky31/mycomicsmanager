@@ -1,0 +1,22 @@
+@* The bar of the add book steps: back, the step and what it is about, and the actions of the step on a tablet. *@
+<header class="add-bar">
+    @if (OnBack.HasDelegate)
+    {
+        <button type="button" class="add-bar-back" aria-label="Back" title="Back" @onclick="OnBack"><MudIcon Icon="@Icons.Material.Filled.ArrowBack" /></button>
+    }
+    else
+    {
+        <a class="add-bar-back" href="@BackHref" aria-label="Back" title="Back"><MudIcon Icon="@Icons.Material.Filled.ArrowBack" /></a>
+    }
+    <div class="add-bar-heading">
+        <h1>@Title</h1>
+        @if (!string.IsNullOrEmpty(Subtitle))
+        {
+            <div class="add-bar-subtitle">@Subtitle</div>
+        }
+    </div>
+    @if (ChildContent is not null)
+    {
+        <div class="add-bar-actions">@ChildContent</div>
+    }
+</header>

@@ -1,0 +1,31 @@
+.star-rating {
+    display: flex;
+    gap: 4px;
+}
+
+.star-rating-button {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 22px;
+    background: none;
+    color: #B5B8C4;
+    cursor: pointer;
+}
+
+.star-rating-button ::deep svg {
+    font-size: 28px;
+}
+
+.star-rating-on {
+    color: #E8A317;
+}
+
+.star-rating-button:focus-visible {
+    outline: 2px solid #594AE2;
+    outline-offset: 2px;
+}

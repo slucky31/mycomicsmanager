@@ -1,61 +1,20 @@
 @page "/books/add/manual"
 @rendermode InteractiveServer
 
-@using Application.Helpers
-@using Microsoft.AspNetCore.Components
 @using Web.Components.SharedComponents
+@using Web.Models
 
-<div class="add-book-manual-page">
-    @* Header *@
-    <PageHeader Title="Enter ISBN"
-                Subtitle="Type the ISBN number manually"
-                OnBack="GoBack" />
+<PageTitle>Type the ISBN — MyComicsManager</PageTitle>
 
-    @* Content *@
-    <div class="add-book-manual-content">
-        <MudPaper Class="isbn-input-card" Elevation="2">
-            <div class="isbn-icon-container">
-                <MudIcon Icon="@Icons.Material.Filled.QrCode" Size="Size.Large" Style="color: white; font-size: 40px;" />
-            </div>
+<div class="add-page">
+    <AddBookHeader Title="Type the ISBN" Subtitle="@(_libraryName is null ? null : $"Adding to {_libraryName}")" BackHref="@AddBookLinks.Exit(_libraryId)" />
 
-            <MudText Typo="Typo.h6" Class="mb-2">Enter the ISBN</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
-                Enter the 10 or 13 digit ISBN number from your book
-            </MudText>
-
-            <MudTextField @bind-Value="_isbn"
-                          Label="ISBN"
-                          Variant="Variant.Outlined"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Numbers"
-                          Placeholder="978-..."
-                          Immediate="true"
-                          AutoFocus="true"
-                          Error="@_hasError"
-                          ErrorText="@_errorMessage"
-                          OnKeyDown="HandleKeyDown"
-                          Class="mb-6" />
-
-            <div class="d-flex gap-2">
-                <MudButton Variant="Variant.Text"
-                           Color="Color.Default"
-                           FullWidth="true"
-                           OnClick="GoBack">
-                    Back
-                </MudButton>
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           FullWidth="true"
-                           StartIcon="@Icons.Material.Filled.Search"
-                           Disabled="@string.IsNullOrWhiteSpace(_isbn)"
-                           OnClick="SearchByIsbn">
-                    Search
-                </MudButton>
-            </div>
-        </MudPaper>
-
-        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-4 text-center">
-            The ISBN is usually found on the back cover near the barcode, or on the copyright page.
-        </MudText>
-    </div>
+    <form class="isbn-form" novalidate @onsubmit="LookUp">
+        <FormField Id="@InputId" Label="ISBN" Error="@_error" Help="@IsbnEntry.Help">
+            <input @ref="_input" id="@InputId" class="isbn-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                   placeholder="978-2-413-01540-6" @bind="_isbn" @bind:event="oninput" @bind:after="ClearError"
+                   aria-invalid="@(_error is null ? null : "true")" aria-describedby="@FormFieldIds.DescribedBy(InputId, _error, IsbnEntry.Help)" />
+        </FormField>
+        <button type="submit" class="isbn-look-up"><MudIcon Icon="@Icons.Material.Filled.Search" />Look up</button>
+    </form>
 </div>

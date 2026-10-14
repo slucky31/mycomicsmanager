@@ -9,18 +9,18 @@ public class BookValidator : AbstractValidator<BookUiDto>
     public BookValidator()
     {
         RuleFor(x => x.Title)
-            .NotEmpty().WithMessage("Title is required.")
+            .NotEmpty().WithMessage("Enter a title")
             .MaximumLength(BookConstants.MaxTitleLength).WithMessage($"Title must not exceed {BookConstants.MaxTitleLength} characters.");
 
         RuleFor(x => x.ISBN)
-            .NotEmpty().WithMessage("ISBN is required.").When(x => x.IsPhysical, ApplyConditionTo.CurrentValidator)
+            .NotEmpty().WithMessage("Enter the ISBN").When(x => x.IsPhysical, ApplyConditionTo.CurrentValidator)
             .MaximumLength(BookConstants.MaxIsbnLength).WithMessage($"ISBN must not exceed {BookConstants.MaxIsbnLength} characters.")
             // A blank ISBN is only exempt from format validation on a digital book (see BookUiDto.IsPhysical).
-            .Must(BeValidISBN).WithMessage("ISBN must be a valid 10 or 13 digit number.")
+            .Must(BeValidISBN).WithMessage("Enter a valid ISBN: 10 or 13 digits")
                 .When(x => x.IsPhysical || !string.IsNullOrWhiteSpace(x.ISBN), ApplyConditionTo.CurrentValidator);
 
         RuleFor(x => x.Serie)
-            .NotEmpty().WithMessage("Serie is required.")
+            .NotEmpty().WithMessage("Enter a series")
             .MaximumLength(BookConstants.MaxSerieLength).WithMessage($"Serie must not exceed {BookConstants.MaxSerieLength} characters.");
 
         RuleFor(x => x.VolumeNumber)
@@ -29,9 +29,9 @@ public class BookValidator : AbstractValidator<BookUiDto>
         RuleFor(x => x.ImageLink)
             .MaximumLength(BookConstants.MaxImageLinkLength).WithMessage($"Image link must not exceed {BookConstants.MaxImageLinkLength} characters.");
 
+        // 0 when the book was not rated: it is added without a reading.
         RuleFor(x => x.Rating)
-            .GreaterThanOrEqualTo(1).WithMessage("La note est obligatoire (1 à 5 étoiles).")
-            .LessThanOrEqualTo(5).WithMessage("La note est obligatoire (1 à 5 étoiles).");
+            .InclusiveBetween(0, 5).WithMessage("The rating must be between 1 and 5 stars.");
 
         RuleFor(x => x.Authors)
             .MaximumLength(BookConstants.MaxAuthorsLength).WithMessage($"Authors must not exceed {BookConstants.MaxAuthorsLength} characters.");

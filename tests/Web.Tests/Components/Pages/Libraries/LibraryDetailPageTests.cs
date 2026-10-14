@@ -115,6 +115,22 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task OpenAddBookAsync_Should_OfferTheThreeWaysToAddABook_ToThisLibrary()
+    {
+        var cut = await RenderAsync();
+
+        await cut.Find("button[aria-label='New book']").ClickAsync(new());
+
+        var sheet = cut.Find("[role=dialog][aria-label='Add a book']");
+        sheet.QuerySelector(".add-book-sheet-target")!.TextContent.Should().Be("to Read Books");
+        sheet.QuerySelector(".add-book-sheet-primary a")!.GetAttribute("href").Should().Be($"/books/add/scan?libraryId={_library.Id}");
+        sheet.QuerySelectorAll("a.action-sheet-item").Select(a => a.GetAttribute("href")).Should().Equal(
+            $"/books/add/manual?libraryId={_library.Id}",
+            $"/books/add/form?libraryId={_library.Id}");
+        sheet.TextContent.Should().Contain("When the barcode won’t scan");
+    }
+
+    [Fact]
     public async Task ChooseSortOrderAsync_Should_SaveTheSort_AndReloadTheBooksInThatOrder()
     {
         var cut = await RenderAsync();
