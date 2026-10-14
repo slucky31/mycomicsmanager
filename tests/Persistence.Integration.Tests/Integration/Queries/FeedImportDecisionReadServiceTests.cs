@@ -102,4 +102,25 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
         failed.Should().Be(2);
         pending.Should().Be(1);
     }
+
+    [Fact]
+    public async Task CountPerStatusAsync_Should_CountUserDecisionsOfEachStatus()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var decisions = await SeedAsync(userId, "A", "B", "C");
+        decisions[0].Fail("Source", "Domaine source non autorisé.");
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await SeedAsync(Guid.CreateVersion7(), "Other user");
+
+        // Act
+        var counts = await FeedImportDecisionReadService.CountPerStatusAsync(userId, TestContext.Current.CancellationToken);
+
+        // Assert
+        counts.Should().BeEquivalentTo(new Dictionary<FeedImportDecisionStatus, int>
+        {
+            [FeedImportDecisionStatus.Failed] = 1,
+            [FeedImportDecisionStatus.Pending] = 2,
+        });
+    }
 }

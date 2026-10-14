@@ -1,6 +1,5 @@
 using System.Globalization;
 using Domain.FeedImports;
-using MudBlazor;
 
 namespace Web.Models;
 
@@ -42,7 +41,7 @@ public sealed record FeedImportDecisionViewModel(
     DateTime CreatedAt,
     FeedImportDecisionStatus Status,
     string StatusDisplay,
-    Color StatusColor,
+    string StatusCssClass,
     string Reason,
     string DecidedByDisplay,
     string? ParsedDisplay,
@@ -60,6 +59,12 @@ public sealed record FeedImportDecisionViewModel(
     public string CreatedAtDisplay => FormatDate(CreatedAt);
 
     public FeedImportDecisionActions ManualActions => Actions ?? FeedImportDecisionActions.None;
+
+    // "Book 2 of the article · Catwoman Selina Kyle · T2"
+    public string? SubtitleDisplay => BookText.Join(ItemDisplay, ParsedDisplay);
+
+    // The line under the status: what went wrong, else why the decision was taken.
+    public string SummaryDisplay => ErrorDisplay ?? Reason;
 
     public string PublishedAtDisplay => PublishedAt.HasValue ? FormatDate(PublishedAt.Value) : "-";
 
@@ -87,7 +92,7 @@ public sealed record FeedImportDecisionViewModel(
             CreatedAt: decision.CreatedAt,
             Status: decision.Status,
             StatusDisplay: GetStatusDisplay(decision.Status),
-            StatusColor: GetStatusColor(decision.Status),
+            StatusCssClass: GetStatusCssClass(decision.Status),
             Reason: decision.Reason,
             DecidedByDisplay: GetDecidedByDisplay(decision.DecidedBy),
             ParsedDisplay: GetParsedDisplay(decision.ParsedSerie, decision.ParsedTitle, decision.ParsedVolume),
@@ -151,7 +156,7 @@ public sealed record FeedImportDecisionViewModel(
     {
         FeedImportDecisionStatus.Pending => "Pending",
         FeedImportDecisionStatus.LinksExtracted => "Links extracted",
-        FeedImportDecisionStatus.AwaitingArbitration => "Awaiting arbitration",
+        FeedImportDecisionStatus.AwaitingArbitration => "To decide",
         FeedImportDecisionStatus.SkippedDuplicate => "Duplicate",
         FeedImportDecisionStatus.Downloading => "Downloading...",
         FeedImportDecisionStatus.Downloaded => "Downloaded",
@@ -161,13 +166,13 @@ public sealed record FeedImportDecisionViewModel(
         _ => status.ToString()
     };
 
-    private static Color GetStatusColor(FeedImportDecisionStatus status) => status switch
+    private static string GetStatusCssClass(FeedImportDecisionStatus status) => status switch
     {
-        FeedImportDecisionStatus.AwaitingArbitration => Color.Warning,
-        FeedImportDecisionStatus.LinksExtracted or FeedImportDecisionStatus.Downloading => Color.Info,
-        FeedImportDecisionStatus.Downloaded or FeedImportDecisionStatus.Imported => Color.Success,
-        FeedImportDecisionStatus.Failed => Color.Error,
-        _ => Color.Default
+        FeedImportDecisionStatus.AwaitingArbitration => "feed-status-decide",
+        FeedImportDecisionStatus.LinksExtracted or FeedImportDecisionStatus.Downloading => "feed-status-running",
+        FeedImportDecisionStatus.Downloaded or FeedImportDecisionStatus.Imported => "feed-status-done",
+        FeedImportDecisionStatus.Failed => "feed-status-failed",
+        _ => "feed-status-neutral"
     };
 
     private static string GetDecidedByDisplay(FeedImportDecidedBy decidedBy) => decidedBy switch

@@ -1,6 +1,5 @@
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Manage;
-using Domain.FeedImports;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Web.Extensions;
@@ -9,9 +8,9 @@ using Web.Services;
 
 namespace Web.Components.Pages;
 
-public partial class FeedImports
+public partial class FeedImports : IAsyncDisposable
 {
-    private static readonly int[] s_pageSizeOptions = [20, 50, 100];
+    private const int PageSize = 20;
 
     [Inject] private IFeedImportService FeedImportService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -19,77 +18,152 @@ public partial class FeedImports
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ILogger<FeedImports> Logger { get; set; } = default!;
 
-    private MudTable<FeedImportDecisionViewModel>? _table;
-    private FeedImportDecisionStatus? _statusFilter;
+    private readonly CancellationTokenSource _disposeCts = new();
+    private FeedImportFilter _filter = FeedImportFilter.All;
     private string? _searchTerm;
+    private bool _showSearch;
     private bool _isSyncRequested;
-    private readonly HashSet<Guid> _expandedIds = [];
     private Guid? _busyDecisionId;
     private CorrectionForm? _correction;
-    private HashSet<FeedImportDecisionViewModel> _selectedDecisions = [];
     private bool _isDeleting;
-    private TableData<FeedImportDecisionViewModel> _lastData = new() { Items = [], TotalItems = 0 };
 
-    internal async Task<TableData<FeedImportDecisionViewModel>> LoadServerDataAsync(TableState state, CancellationToken cancellationToken)
+    // The decisions loaded so far (pages appended by "Show more"), in the order of the query.
+    private readonly List<FeedImportDecisionViewModel> _items = [];
+    private int _totalCount;
+    private int _page;
+    private bool _isLoading;
+    private int _loadVersion;
+    private FeedImportStatusCounts _counts = FeedImportStatusCounts.Empty;
+
+    // The decision shown in detail: under its card on a phone, in the side panel from the tablet on.
+    private Guid? _selectedId;
+
+    // "Select several" (menu ⋯): the decisions checked for deletion.
+    private bool _selecting;
+    private readonly HashSet<Guid> _checkedIds = [];
+
+    private bool HasMore => _items.Count < _totalCount;
+
+    private FeedImportDecisionViewModel? SelectedDecision => _items.Find(d => d.Id == _selectedId);
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    // Reloads the first page and the counts of the filters.
+    private async Task ReloadAsync()
     {
-        var status = _statusFilter;
+        await Task.WhenAll(LoadPageAsync(1), LoadCountsAsync());
+    }
+
+    private Task LoadMoreAsync() => LoadPageAsync(_page + 1);
+
+    internal async Task LoadPageAsync(int page)
+    {
+        // A first page replaces the list: any load still running for the previous filters becomes stale.
+        var version = page == 1 ? ++_loadVersion : _loadVersion;
+        var status = FeedImportFilters.StatusOf(_filter);
         var searchTerm = _searchTerm;
 
-        // MudTable pages are 0-based; the service is 1-based.
-        var result = await FeedImportService.GetDecisionsAsync(status, searchTerm, state.Page + 1, state.PageSize, cancellationToken);
-
-        // MudTable cancels the token when a newer load starts; also ignore results for outdated filters.
-        if (cancellationToken.IsCancellationRequested || status != _statusFilter || searchTerm != _searchTerm)
+        _isLoading = true;
+        try
         {
-            return _lastData;
+            var result = await FeedImportService.GetDecisionsAsync(status, searchTerm, page, PageSize, _disposeCts.Token);
+
+            if (version != _loadVersion || status != FeedImportFilters.StatusOf(_filter) || searchTerm != _searchTerm)
+            {
+                return;
+            }
+
+            if (result.IsSuccess)
+            {
+                ApplyPage(page, result.Value!);
+            }
+            else if (result.IsFailure)
+            {
+                Snackbar.Add("Unable to load the import decisions.", Severity.Error);
+                Logger.LogError("FeedImports: failed to load decisions: {ErrorDescription}", result.Error!.Description);
+            }
+        }
+        catch (OperationCanceledException) when (_disposeCts.IsCancellationRequested)
+        {
+            // The page was left while loading.
+        }
+        finally
+        {
+            if (version == _loadVersion)
+            {
+                _isLoading = false;
+            }
+        }
+    }
+
+    private void ApplyPage(int page, FeedImportDecisionPageViewModel decisions)
+    {
+        if (page == 1)
+        {
+            _items.Clear();
+            _checkedIds.Clear();
         }
 
+        // A decision created meanwhile shifts the pages: skip the ones already shown.
+        var shown = _items.Select(d => d.Id).ToHashSet();
+        _items.AddRange(decisions.Items.Where(d => !shown.Contains(d.Id)));
+        _totalCount = decisions.TotalCount;
+        _page = page;
+
+        if (_selectedId is { } selectedId && !_items.Exists(d => d.Id == selectedId))
+        {
+            _selectedId = null;
+        }
+    }
+
+    private async Task LoadCountsAsync()
+    {
+        var result = await FeedImportService.GetStatusCountsAsync(_disposeCts.Token);
         if (result.IsSuccess)
         {
-            // The rows are new instances: a selection kept across loads would point to rows no longer displayed.
-            _selectedDecisions = [];
-            _lastData = new TableData<FeedImportDecisionViewModel>
-            {
-                Items = result.Value!.Items,
-                TotalItems = result.Value.TotalCount
-            };
+            _counts = result.Value!;
         }
         else if (result.IsFailure)
         {
-            Snackbar.Add("Unable to load the import decisions.", Severity.Error);
-            Logger.LogError("FeedImports: failed to load decisions: {ErrorDescription}", result.Error!.Description);
+            Snackbar.Add("Unable to count the import decisions.", Severity.Error);
+            Logger.LogError("FeedImports: failed to count decisions: {ErrorDescription}", result.Error!.Description);
         }
-
-        return _lastData;
     }
 
-    private async Task OnStatusChangedAsync(FeedImportDecisionStatus? status)
+    internal async Task SelectFilterAsync(FeedImportFilter filter)
     {
-        _statusFilter = status;
-        await ReloadAsync();
+        if (filter == _filter)
+        {
+            return;
+        }
+
+        _filter = filter;
+        await LoadPageAsync(1);
     }
 
     private async Task OnSearchChangedAsync(string? searchTerm)
     {
         _searchTerm = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm.Trim();
-        await ReloadAsync();
+        await LoadPageAsync(1);
     }
 
-    private async Task ReloadAsync()
+    private void ToggleSearch() => _showSearch = !_showSearch;
+
+    private void ToggleDetail(Guid id) => _selectedId = _selectedId == id ? null : id;
+
+    internal void StartSelecting() => _selecting = true;
+
+    private void StopSelecting()
     {
-        if (_table is not null)
-        {
-            await _table.ReloadServerData();
-        }
+        _selecting = false;
+        _checkedIds.Clear();
     }
 
-    private bool IsExpanded(Guid id) => _expandedIds.Contains(id);
-
-    private void ToggleDetail(Guid id)
+    private void ToggleChecked(Guid id)
     {
-        if (!_expandedIds.Remove(id))
+        if (!_checkedIds.Remove(id))
         {
-            _expandedIds.Add(id);
+            _checkedIds.Add(id);
         }
     }
 
@@ -189,8 +263,8 @@ public partial class FeedImports
 
     internal Task DeleteSelectedAsync()
     {
-        var ids = _selectedDecisions.Where(d => d.CanDelete).Select(d => d.Id).ToList();
-        var skipped = _selectedDecisions.Count - ids.Count;
+        var ids = _items.Where(d => d.CanDelete && _checkedIds.Contains(d.Id)).Select(d => d.Id).ToList();
+        var skipped = _checkedIds.Count - ids.Count;
         if (ids.Count == 0)
         {
             Snackbar.Add("The selected decisions are being downloaded.", Severity.Info);
@@ -228,6 +302,11 @@ public partial class FeedImports
                 Snackbar.Add(result.Error?.Description ?? "Unable to delete the decisions.", Severity.Error);
                 Logger.LogError("FeedImports: failed to delete decisions: {ErrorDescription}", result.Error!.Description);
                 return;
+            }
+
+            if (decisionIds.Count > 1)
+            {
+                StopSelecting();
             }
 
             var notDeleted = decisionIds.Count - result.Value;
@@ -293,6 +372,13 @@ public partial class FeedImports
         {
             _isDeleting = false;
         }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
+    public async ValueTask DisposeAsync()
+    {
+        await _disposeCts.CancelAsync();
+        _disposeCts.Dispose();
     }
 
     private sealed class CorrectionForm(Guid decisionId)

@@ -68,4 +68,12 @@ public class FeedImportDecisionReadService(ApplicationDbContext context) : IFeed
         => await context.FeedImportDecisions
             .AsNoTracking()
             .CountAsync(d => d.UserId == userId && d.Status == status, cancellationToken);
+
+    public async Task<IReadOnlyDictionary<FeedImportDecisionStatus, int>> CountPerStatusAsync(Guid userId, CancellationToken cancellationToken = default)
+        => await context.FeedImportDecisions
+            .AsNoTracking()
+            .Where(d => d.UserId == userId)
+            .GroupBy(d => d.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.Status, g => g.Count, cancellationToken);
 }
