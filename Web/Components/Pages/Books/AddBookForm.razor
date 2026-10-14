@@ -98,10 +98,10 @@
                 <section class="book-form-section" aria-labelledby="book-form-book">
                     <h2 id="book-form-book">Book</h2>
                     <div class="book-form-grid">
-                        @TextField("book-title", "Title", nameof(BookUiDto.Title), _model.Title, v => _model.Title = v, required: true)
-                        @TextField("book-serie", "Series", nameof(BookUiDto.Serie), _model.Serie, v => _model.Serie = v, required: true)
+                        @TextField("book-title", "Title", nameof(BookUiDto.Title), _model.Title, v => _model.Title = v, Required)
+                        @TextField("book-serie", "Series", nameof(BookUiDto.Serie), _model.Serie, v => _model.Serie = v, Required)
                         <div class="book-form-pair">
-                            @TextField("book-isbn", "ISBN", nameof(BookUiDto.ISBN), _model.ISBN, v => _model.ISBN = v, required: true, inputMode: "numeric")
+                            @TextField("book-isbn", "ISBN", nameof(BookUiDto.ISBN), _model.ISBN, v => _model.ISBN = v, Required with { InputMode = "numeric" })
                             <FormField Id="book-volume" Label="Volume" Error="@_errors.For(nameof(BookUiDto.VolumeNumber))">
                                 <input id="book-volume" type="number" inputmode="numeric" min="1" @bind="_model.VolumeNumber" @bind:after="Revalidate"
                                        aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.VolumeNumber))" aria-describedby="@Describe("book-volume", nameof(BookUiDto.VolumeNumber))" />
@@ -113,8 +113,8 @@
                 <section class="book-form-section" aria-labelledby="book-form-details">
                     <h2 id="book-form-details">Details</h2>
                     <div class="book-form-grid">
-                        @TextField("book-authors", "Authors", nameof(BookUiDto.Authors), _model.Authors, v => _model.Authors = v, placeholder: "e.g. Daniel Warren Johnson", help: "Separate several names with commas")
-                        @TextField("book-publishers", "Publisher", nameof(BookUiDto.Publishers), _model.Publishers, v => _model.Publishers = v, placeholder: "e.g. Delcourt")
+                        @TextField("book-authors", "Authors", nameof(BookUiDto.Authors), _model.Authors, v => _model.Authors = v, new() { Placeholder = "e.g. Daniel Warren Johnson", Help = "Separate several names with commas" })
+                        @TextField("book-publishers", "Publisher", nameof(BookUiDto.Publishers), _model.Publishers, v => _model.Publishers = v, new() { Placeholder = "e.g. Delcourt" })
                         <FormField Id="book-published" Label="Publish date" Error="@_errors.For(nameof(BookUiDto.PublishDate))">
                             <input id="book-published" type="date" @bind="_model.PublishDate" @bind:after="Revalidate"
                                    aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.PublishDate))" aria-describedby="@Describe("book-published", nameof(BookUiDto.PublishDate))" />
@@ -124,7 +124,7 @@
                                    aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.NumberOfPages))" aria-describedby="@Describe("book-pages", nameof(BookUiDto.NumberOfPages))" />
                         </FormField>
                         <div class="book-form-wide">
-                            @TextField("book-cover", "Cover image URL", nameof(BookUiDto.ImageLink), _model.ImageLink, v => _model.ImageLink = v, placeholder: "https://…", type: "url")
+                            @TextField("book-cover", "Cover image URL", nameof(BookUiDto.ImageLink), _model.ImageLink, v => _model.ImageLink = v, new() { Placeholder = "https://…", Type = "url" })
                         </div>
                     </div>
                 </section>
@@ -140,13 +140,25 @@
 
 @code {
     // A text field of the form: its label above, its error and help under it.
-    private RenderFragment TextField(string id, string label, string property, string? value, Action<string> setValue,
-        bool required = false, string? placeholder = null, string? help = null, string type = "text", string? inputMode = null) => __builder =>
+    // How a text field looks and what it accepts.
+    private sealed record FieldOptions
     {
-        <FormField Id="@id" Label="@label" Required="@required" Error="@_errors.For(property)" Help="@help">
-            <input id="@id" type="@type" inputmode="@inputMode" placeholder="@placeholder" value="@value"
+        public bool Required { get; init; }
+        public string? Placeholder { get; init; }
+        public string? Help { get; init; }
+        public string Type { get; init; } = "text";
+        public string? InputMode { get; init; }
+    }
+
+    private static readonly FieldOptions Required = new() { Required = true };
+
+    private RenderFragment TextField(string id, string label, string property, string? value, Action<string> setValue, FieldOptions? options = null) => __builder =>
+    {
+        var field = options ?? new FieldOptions();
+        <FormField Id="@id" Label="@label" Required="@field.Required" Error="@_errors.For(property)" Help="@field.Help">
+            <input id="@id" type="@field.Type" inputmode="@field.InputMode" placeholder="@field.Placeholder" value="@value"
                    @oninput="args => OnInput(setValue, args)"
-                   aria-invalid="@_errors.AriaInvalid(property)" aria-describedby="@FormFieldIds.DescribedBy(id, _errors.For(property), help)" />
+                   aria-invalid="@_errors.AriaInvalid(property)" aria-describedby="@FormFieldIds.DescribedBy(id, _errors.For(property), field.Help)" />
         </FormField>
     };
 }
