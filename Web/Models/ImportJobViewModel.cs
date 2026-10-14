@@ -49,14 +49,26 @@ public record ImportJobViewModel(
         : null;
 
     // The reason of a failure, readable as is.
-    public string? FailureDisplay => Status == nameof(ImportJobStatus.Failed)
-        ? string.IsNullOrWhiteSpace(ErrorMessage) ? "The import failed." : ErrorMessage
-        : null;
+    public string? FailureDisplay
+    {
+        get
+        {
+            if (Status != nameof(ImportJobStatus.Failed))
+            {
+                return null;
+            }
+
+            return string.IsNullOrWhiteSpace(ErrorMessage) ? "The import failed." : ErrorMessage;
+        }
+    }
 
     // "Failed while: Extracting pages"; a step that is not a status (e.g. "Init") is shown as is.
     public string? FailedStepDisplay => Status == nameof(ImportJobStatus.Failed) && !string.IsNullOrWhiteSpace(ErrorStep)
-        ? $"Failed while: {(Enum.TryParse<ImportJobStatus>(ErrorStep, out var step) ? GetStatusDisplay(step) : ErrorStep)}"
+        ? $"Failed while: {StepName(ErrorStep)}"
         : null;
+
+    private static string StepName(string step) =>
+        Enum.TryParse<ImportJobStatus>(step, out var status) ? GetStatusDisplay(status) : step;
 
     public bool IsTerminal => Status is "Completed" or "Failed";
 
