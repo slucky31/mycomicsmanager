@@ -1,66 +1,93 @@
 @page "/statistics"
 
-<PageLayout Title="Statistics" Icon="@Icons.Material.Filled.BarChart">
+<PageTitle>Statistics — MyComicsManager</PageTitle>
 
-    <MudSelect T="Guid"
-               Label="Library"
-               Value="_selectedLibraryId"
-               ValueChanged="OnLibraryChangedAsync"
-               Variant="Variant.Outlined"
-               Margin="Margin.Dense"
-               FullWidth="true"
-               AnchorOrigin="Origin.BottomCenter"
-               Class="stats-library-select mb-4">
-        <MudSelectItem T="Guid" Value="@Guid.Empty">All libraries</MudSelectItem>
-        @foreach (var library in _libraries)
-        {
-            <MudSelectItem T="Guid" Value="@library.Id">@library.Name</MudSelectItem>
-        }
-    </MudSelect>
+<div class="stats-page">
+    <header class="stats-bar">
+        <h1>Statistics</h1>
+        <label class="stats-library">
+            <span class="stats-library-label">Library</span>
+            <select id="stats-library" value="@_selectedLibraryId" @onchange="OnLibraryChangedAsync">
+                <option value="@Guid.Empty">All libraries</option>
+                @foreach (var library in _libraries)
+                {
+                    <option value="@library.Id">@library.Name</option>
+                }
+            </select>
+            <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Class="stats-library-chevron" />
+        </label>
+    </header>
 
     @if (_isLoading)
     {
-        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="stats-loading" />
     }
 
-    @if (_statistics is not null)
+    @if (_statistics is { } stats)
     {
-        @if (!_statistics.HasBooks)
-        {
-            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
-                No books yet. Add books to a library to see your statistics.
-            </MudAlert>
-        }
+        <div class="stats-content">
+            <section class="stats-card stats-headline">
+                @if (stats.HasBooks)
+                {
+                    <div class="stats-headline-total"><span class="stats-headline-number">@stats.TotalBooks</span> <span>@stats.BooksUnit</span></div>
+                    <div class="stats-headline-read"><strong>@stats.ReadBooks read</strong> · @stats.UnreadBooks unread</div>
+                    <div class="stats-progress" aria-hidden="true"><div class="stats-progress-value" style="@($"width: {stats.ReadPercent}%;")"></div></div>
+                    <div class="stats-headline-percent">@stats.ReadPercent% of your collection is read</div>
+                }
+                else
+                {
+                    <div class="stats-headline-total"><span class="stats-headline-number">0</span> <span>books</span></div>
+                    <div class="stats-headline-percent">No books yet. Add books to a library to see your statistics.</div>
+                }
+            </section>
 
-        <MudGrid Spacing="2" Class="stats-key-figures">
-            @foreach (var card in _statistics.KeyFigures)
-            {
-                <MudItem xs="6" sm="4" md="3">
-                    <MudPaper Class="stats-card pa-3" Elevation="1">
-                        <MudIcon Icon="@card.Icon" Color="Color.Primary" Size="Size.Small" />
-                        <MudText Typo="Typo.h5" Class="stats-card-value"><strong>@card.Value</strong></MudText>
-                        <MudText Typo="Typo.caption" Class="stats-card-label">@card.Label</MudText>
-                    </MudPaper>
-                </MudItem>
-            }
-        </MudGrid>
+            <div class="stats-tiles">
+                @foreach (var tile in stats.Tiles)
+                {
+                    <div class="stats-card stats-tile">
+                        <div class="stats-tile-label"><MudIcon Icon="@tile.Icon" />@tile.Label</div>
+                        <div class="stats-tile-value">@tile.Value<span class="stats-tile-suffix">@tile.Suffix</span></div>
+                    </div>
+                }
+            </div>
+            <section class="stats-card stats-chart-card">
+                <div class="stats-section-head">
+                    <h2>Readings per month</h2>
+                    <span>last @stats.Chart.Bars.Count months · @stats.Chart.Total</span>
+                </div>
+                <div class="stats-chart" role="img" aria-label="@stats.Chart.AriaLabel">
+                    <div class="stats-chart-plot" aria-hidden="true">
+                        @for (var i = stats.Chart.AxisTicks.Count - 1; i >= 0; i--)
+                        {
+                            var tick = stats.Chart.AxisTicks[i];
+                            <div class="stats-chart-grid" style="@($"bottom: {i * 50}%;")"><span>@tick</span></div>
+                        }
+                        <div class="stats-chart-bars">
+                            @foreach (var bar in stats.Chart.Bars)
+                            {
+                                <div class="stats-chart-column" title="@($"{bar.Month}: {bar.Count}")">
+                                    @if (bar.Count > 0)
+                                    {
+                                        <div class="stats-chart-bar" style="@($"height: {bar.HeightPercent.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)}%;")">
+                                            @if (bar.IsPeak)
+                                            {
+                                                <span class="stats-chart-peak">@bar.Count</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="stats-chart-months" aria-hidden="true">
+                        @foreach (var bar in stats.Chart.Bars)
+                        {
+                            <span>@bar.Initial</span>
+                        }
+                    </div>
+                </div>
+            </section>
 
-        <MudPaper Class="stats-chart-card pa-3 mt-4" Elevation="1">
-            <div class="d-flex align-center justify-space-between flex-wrap gap-1">
-                <MudText Typo="Typo.subtitle1"><strong>Readings per month</strong></MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Last 12 months · @_statistics.ReadingsInPeriod readings</MudText>
-            </div>
-            <div class="stats-chart">
-                <MudChart T="double"
-                          ChartType="ChartType.Bar"
-                          ChartSeries="@_statistics.ReadingsSeries"
-                          ChartLabels="@_monthLabels"
-                          ChartOptions="@_chartOptions"
-                          MatchBoundsToSize="true"
-                          Width="100%"
-                          Height="100%" />
-            </div>
-        </MudPaper>
+        </div>
     }
-
-</PageLayout>
+</div>
