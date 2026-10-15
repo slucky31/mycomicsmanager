@@ -126,6 +126,7 @@ public sealed class BookDetailsComparisonTests
     [InlineData(BookSource.Current, "Current")]
     [InlineData(BookSource.Bnf, "BnF")]
     [InlineData(BookSource.Bedetheque, "Bedetheque")]
+    [InlineData(BookSource.Bubble, "Bubble")]
     [InlineData(BookSource.OpenLibrary, "OpenLibrary")]
     [InlineData(BookSource.Google, "Google Books")]
     public void Name_Should_NameEachSource(BookSource source, string expected)

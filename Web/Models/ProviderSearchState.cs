@@ -18,7 +18,7 @@ public static class ProviderSearchStates
     public static ProviderSearchState Of(IBookSearchResult? result) =>
         result is null ? ProviderSearchState.Failed : Of(result.Found, result.Failed);
 
-    public static ProviderSearchState Of(BedethequeBookResult? result) =>
+    public static ProviderSearchState Of(IStructuredBookResult? result) =>
         result is null ? ProviderSearchState.Failed : Of(result.Found, result.Failed);
 
     private static ProviderSearchState Of(bool found, bool failed) => (found, failed) switch

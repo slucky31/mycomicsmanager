@@ -15,6 +15,7 @@ public partial class FindBookDetails
     [Inject] private IBooksService BooksService { get; set; } = default!;
     [Inject] private IBnfCatalogueService BnfCatalogueService { get; set; } = default!;
     [Inject] private IBedethequeService BedethequeService { get; set; } = default!;
+    [Inject] private IBubbleService BubbleService { get; set; } = default!;
     [Inject] private IOpenLibraryService OpenLibraryService { get; set; } = default!;
     [Inject] private IGoogleBooksService GoogleBooksService { get; set; } = default!;
     [Inject] private IComicSearchService ComicSearchService { get; set; } = default!;
@@ -33,6 +34,7 @@ public partial class FindBookDetails
     private bool _isbnFromPage;
     private BnfBookResult? _bnfResult;
     private BedethequeBookResult? _bedethequeResult;
+    private BubbleBookResult? _bubbleResult;
     private OpenLibraryBookResult? _olResult;
     private GoogleBooksBookResult? _googleResult;
     private ParsedTitleInfo? _bnfParsed;
@@ -158,6 +160,15 @@ public partial class FindBookDetails
             }));
         }
 
+        if (BubbleService.IsEnabled)
+        {
+            searches.Add(SearchProviderAsync(BookSource.Bubble, "Bubble", BubbleService.SearchByIsbnAsync(isbn), result =>
+            {
+                _bubbleResult = result;
+                return ProviderSearchStates.Of(result);
+            }));
+        }
+
         StateHasChanged();
         await Task.WhenAll(searches);
     }
@@ -180,9 +191,15 @@ public partial class FindBookDetails
         StateHasChanged();
     }
 
-    private IEnumerable<BookSource> WebSources() => BedethequeService.IsEnabled
-        ? [BookSource.Bnf, BookSource.Bedetheque, BookSource.OpenLibrary, BookSource.Google]
-        : [BookSource.Bnf, BookSource.OpenLibrary, BookSource.Google];
+    // Bedetheque and Bubble can be turned off in the settings.
+    private IEnumerable<BookSource> WebSources() =>
+        new[] { BookSource.Bnf, BookSource.Bedetheque, BookSource.Bubble, BookSource.OpenLibrary, BookSource.Google }
+            .Where(source => source switch
+            {
+                BookSource.Bedetheque => BedethequeService.IsEnabled,
+                BookSource.Bubble => BubbleService.IsEnabled,
+                _ => true,
+            });
 
     private bool IsSearching => _searchStates.ContainsValue(ProviderSearchState.Searching);
 
@@ -244,9 +261,10 @@ public partial class FindBookDetails
         return new ParsedTitleInfo(title, serie, volumeNumber);
     }
 
-    private string? GetBedethequeValue(string field)
+    // Bedetheque and Bubble give the series and the volume apart.
+    private static string? GetStructuredResultValue(IStructuredBookResult? result, string field)
     {
-        if (_bedethequeResult is not { Found: true } r)
+        if (result is not { Found: true } r)
         {
             return null;
         }
@@ -298,7 +316,8 @@ public partial class FindBookDetails
     private string? GetSourceValue(BookSource source, string field) => source switch
     {
         BookSource.Bnf => GetBnfValue(field),
-        BookSource.Bedetheque => GetBedethequeValue(field),
+        BookSource.Bedetheque => GetStructuredResultValue(_bedethequeResult, field),
+        BookSource.Bubble => GetStructuredResultValue(_bubbleResult, field),
         BookSource.OpenLibrary => GetOlValue(field),
         BookSource.Google => GetGoogleValue(field),
         _ => GetCurrentValue(field)

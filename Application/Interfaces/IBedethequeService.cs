@@ -12,7 +12,7 @@ public record BedethequeBookResult(
     bool Found,
     // The source could not be searched (error, timeout, blocked): unlike !Found, it may know the book.
     bool Failed = false
-);
+) : IStructuredBookResult;
 
 public interface IBedethequeService
 {

@@ -6,6 +6,7 @@ public enum BookSource
     Current,
     Bnf,
     Bedetheque,
+    Bubble,
     OpenLibrary,
     Google
 }
@@ -16,6 +17,7 @@ public static class BookSources
     {
         BookSource.Bnf => "BnF",
         BookSource.Bedetheque => "Bedetheque",
+        BookSource.Bubble => "Bubble",
         BookSource.OpenLibrary => "OpenLibrary",
         BookSource.Google => "Google Books",
         _ => "Current",

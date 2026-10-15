@@ -149,6 +149,20 @@ builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.Fr
 builder.Services.AddSingleton<BedethequeCircuit>();
 builder.Services.AddScoped<IBedethequeService, BedethequeService>();
 
+// Config Bubble: its Algolia search by ISBN, then its album pages; turned off without Bubble:ApiKey
+builder.Services.AddOptions<BubbleSettings>()
+    .Bind(configuration.GetSection("Bubble"))
+    .ValidateOnStart();
+builder.Services.AddHttpClient<IBubbleService, BubbleService>(client =>
+{
+    client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, appUserAgent);
+    client.Timeout = TimeSpan.FromSeconds(30);
+})
+    .AddHttpMessageHandler(sp => new SsrfGuardHandler(
+        sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
+        new HashSet<string>(["www.bubblebd.com", "6a891z72zd-dsn.algolia.net"], StringComparer.OrdinalIgnoreCase)))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
+
 // Config feed import (Miniflux starred entries -> FeedImportDecisions)
 builder.Services.AddFeedImport(configuration);
 

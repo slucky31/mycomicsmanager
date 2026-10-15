@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <None Update="FeedImports\Fixtures\*.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ComicInfoSearch\Fixtures\*.*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
