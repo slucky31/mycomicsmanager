@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.46.6"></a>
+## [10.46.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.6) (2026-10-15)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency ubuntu to v26 ([#1130](https://www.github.com/slucky31/mycomicsmanager/issues/1130)) ([9ea6bfa](https://www.github.com/slucky31/mycomicsmanager/commit/9ea6bfa4064e60c6504357b08807786f7e176f02))
+
 <a name="10.46.5"></a>
 ## [10.46.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.5) (2026-10-15)
 
