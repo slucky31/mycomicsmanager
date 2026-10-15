@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.46.4"></a>
+## [10.46.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.4) (2026-10-15)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency htmlagilitypack to 1.13.1 ([#1133](https://www.github.com/slucky31/mycomicsmanager/issues/1133)) ([e7ce9f3](https://www.github.com/slucky31/mycomicsmanager/commit/e7ce9f340421970a36529906f5adcb48a90b88ef))
+
 <a name="10.46.3"></a>
 ## [10.46.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.3) (2026-10-15)
 
