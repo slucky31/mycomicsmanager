@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.401-noble AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.402-noble AS build
 ARG TARGETARCH
 WORKDIR /source
 
@@ -26,7 +26,7 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     dotnet publish "./Web/Web.csproj" -a $TARGETARCH -o /app -p:RunAnalyzers=false
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0.12-noble
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.13-noble
 
 # tesseract-ocr reads the ISBN printed on the pages of the imported books.
 RUN apt-get update \
