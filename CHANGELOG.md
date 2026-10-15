@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.46.7"></a>
+## [10.46.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.7) (2026-10-15)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency java-jdk to v25 ([#1129](https://www.github.com/slucky31/mycomicsmanager/issues/1129)) ([4c71198](https://www.github.com/slucky31/mycomicsmanager/commit/4c71198c13103ee674256d785cacd3abbdf78778))
+
 <a name="10.46.6"></a>
 ## [10.46.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.6) (2026-10-15)
 
