@@ -1,0 +1,26 @@
+/* Sticks to the bottom of the screen; the page content above has a 16px side padding. */
+.form-footer {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    gap: 10px;
+    margin: auto -16px 0;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+    border-top: 1px solid #E2E3EA;
+    background: #F4F4F6;
+}
+
+.form-footer ::deep .form-button {
+    flex: 1 1 0;
+    padding: 0 12px;
+}
+
+.form-footer ::deep .form-button-primary {
+    flex-grow: 2;
+}
+
+@media (min-width: 600px) {
+    .form-footer {
+        display: none;
+    }
+}

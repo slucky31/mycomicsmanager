@@ -7,10 +7,10 @@
 
 <PageTitle>@PageTitleText — MyComicsManager</PageTitle>
 
-<div class="add-page">
+<FormPage>
     @if (_isLoading)
     {
-        <AddBookHeader Title="Looking up the book" Subtitle="@($"ISBN {Isbn}")" BackHref="@ExitHref" />
+        <FormHeader Title="Looking up the book" Subtitle="@($"ISBN {Isbn}")" BackHref="@ExitHref" />
         <div class="add-loading" role="status">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
             <span>Looking for this ISBN in the catalogues…</span>
@@ -19,7 +19,7 @@
     else if (_step == AddBookStep.Found && _found is not null)
     {
         var found = _found;
-        <AddBookHeader Title="Book found" Subtitle="@found.IsbnLabel" BackHref="@ExitHref" />
+        <FormHeader Title="Book found" Subtitle="@found.IsbnLabel" BackHref="@ExitHref" />
         <div class="found-body">
             <div class="found-card">
                 <div class="found-book">
@@ -61,20 +61,18 @@
                 </div>
 
                 <div class="found-actions">
-                    <button type="button" class="add-button add-button-primary" disabled="@_isSaving" @onclick="SaveAsync">
-                        <MudIcon Icon="@Icons.Material.Filled.Add" />@AddToLabel
-                    </button>
-                    <button type="button" class="add-button add-button-text" @onclick="EditDetails">Edit details before adding</button>
+                    <FormButton Icon="@Icons.Material.Filled.Add" Disabled="_isSaving" OnClick="SaveAsync">@AddToLabel</FormButton>
+                    <FormButton Variant="FormButtonVariant.Text" OnClick="EditDetails">Edit details before adding</FormButton>
                 </div>
             </div>
         </div>
     }
     else
     {
-        <AddBookHeader Title="Add a book" Subtitle="@FormSubtitle" BackHref="@ExitHref" OnBack="@(_found is null ? default : EventCallback.Factory.Create(this, ShowFound))">
-            <a class="add-button add-button-outlined" href="@ExitHref">Cancel</a>
-            <button type="submit" form="add-book-form" class="add-button add-button-primary" disabled="@_isSaving"><MudIcon Icon="@Icons.Material.Filled.Add" />Add book</button>
-        </AddBookHeader>
+        <FormHeader Title="Add a book" Subtitle="@FormSubtitle" BackHref="@ExitHref" OnBack="@(_found is null ? default : EventCallback.Factory.Create(this, ShowFound))">
+            <FormButton Variant="FormButtonVariant.Outlined" Href="@ExitHref">Cancel</FormButton>
+            <FormButton Type="submit" Form="add-book-form" Icon="@Icons.Material.Filled.Add" Disabled="_isSaving">Add book</FormButton>
+        </FormHeader>
 
         <form id="add-book-form" class="book-form" novalidate @onsubmit="SaveAsync">
             <div class="book-form-side">
@@ -95,48 +93,42 @@
                     <div class="book-form-summary" role="alert"><MudIcon Icon="@Icons.Material.Outlined.Info" /><span>@_errors.Summary</span></div>
                 }
 
-                <section class="book-form-section" aria-labelledby="book-form-book">
-                    <h2 id="book-form-book">Book</h2>
-                    <div class="book-form-grid">
-                        @TextField("book-title", "Title", nameof(BookUiDto.Title), _model.Title, v => _model.Title = v, RequiredField)
-                        @TextField("book-serie", "Series", nameof(BookUiDto.Serie), _model.Serie, v => _model.Serie = v, RequiredField)
-                        <div class="book-form-pair">
-                            @TextField("book-isbn", "ISBN", nameof(BookUiDto.ISBN), _model.ISBN, v => _model.ISBN = v, RequiredField with { InputMode = "numeric" })
-                            <FormField Id="book-volume" Label="Volume" Error="@_errors.For(nameof(BookUiDto.VolumeNumber))">
-                                <input id="book-volume" type="number" inputmode="numeric" min="1" @bind="_model.VolumeNumber" @bind:after="Revalidate"
-                                       aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.VolumeNumber))" aria-describedby="@Describe("book-volume", nameof(BookUiDto.VolumeNumber))" />
-                            </FormField>
-                        </div>
+                <FormSection Id="book-form-book" Title="Book">
+                    @TextField("book-title", "Title", nameof(BookUiDto.Title), _model.Title, v => _model.Title = v, RequiredField)
+                    @TextField("book-serie", "Series", nameof(BookUiDto.Serie), _model.Serie, v => _model.Serie = v, RequiredField)
+                    <div class="form-pair">
+                        @TextField("book-isbn", "ISBN", nameof(BookUiDto.ISBN), _model.ISBN, v => _model.ISBN = v, RequiredField with { InputMode = "numeric" })
+                        <FormField Id="book-volume" Label="Volume" Error="@_errors.For(nameof(BookUiDto.VolumeNumber))">
+                            <input id="book-volume" type="number" inputmode="numeric" min="1" @bind="_model.VolumeNumber" @bind:after="Revalidate"
+                                   aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.VolumeNumber))" aria-describedby="@Describe("book-volume", nameof(BookUiDto.VolumeNumber))" />
+                        </FormField>
                     </div>
-                </section>
+                </FormSection>
 
-                <section class="book-form-section" aria-labelledby="book-form-details">
-                    <h2 id="book-form-details">Details</h2>
-                    <div class="book-form-grid">
-                        @TextField("book-authors", "Authors", nameof(BookUiDto.Authors), _model.Authors, v => _model.Authors = v, new() { Placeholder = "e.g. Daniel Warren Johnson", Help = "Separate several names with commas" })
-                        @TextField("book-publishers", "Publisher", nameof(BookUiDto.Publishers), _model.Publishers, v => _model.Publishers = v, new() { Placeholder = "e.g. Delcourt" })
-                        <FormField Id="book-published" Label="Publish date" Error="@_errors.For(nameof(BookUiDto.PublishDate))">
-                            <input id="book-published" type="date" @bind="_model.PublishDate" @bind:after="Revalidate"
-                                   aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.PublishDate))" aria-describedby="@Describe("book-published", nameof(BookUiDto.PublishDate))" />
-                        </FormField>
-                        <FormField Id="book-pages" Label="Pages" Error="@_errors.For(nameof(BookUiDto.NumberOfPages))">
-                            <input id="book-pages" type="number" inputmode="numeric" min="1" placeholder="e.g. 271" @bind="_model.NumberOfPages" @bind:after="Revalidate"
-                                   aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.NumberOfPages))" aria-describedby="@Describe("book-pages", nameof(BookUiDto.NumberOfPages))" />
-                        </FormField>
-                        <div class="book-form-wide">
-                            @TextField("book-cover", "Cover image URL", nameof(BookUiDto.ImageLink), _model.ImageLink, v => _model.ImageLink = v, new() { Placeholder = "https://…", Type = "url" })
-                        </div>
+                <FormSection Id="book-form-details" Title="Details">
+                    @TextField("book-authors", "Authors", nameof(BookUiDto.Authors), _model.Authors, v => _model.Authors = v, new() { Placeholder = "e.g. Daniel Warren Johnson", Help = "Separate several names with commas" })
+                    @TextField("book-publishers", "Publisher", nameof(BookUiDto.Publishers), _model.Publishers, v => _model.Publishers = v, new() { Placeholder = "e.g. Delcourt" })
+                    <FormField Id="book-published" Label="Publish date" Error="@_errors.For(nameof(BookUiDto.PublishDate))">
+                        <input id="book-published" type="date" @bind="_model.PublishDate" @bind:after="Revalidate"
+                               aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.PublishDate))" aria-describedby="@Describe("book-published", nameof(BookUiDto.PublishDate))" />
+                    </FormField>
+                    <FormField Id="book-pages" Label="Pages" Error="@_errors.For(nameof(BookUiDto.NumberOfPages))">
+                        <input id="book-pages" type="number" inputmode="numeric" min="1" placeholder="e.g. 271" @bind="_model.NumberOfPages" @bind:after="Revalidate"
+                               aria-invalid="@_errors.AriaInvalid(nameof(BookUiDto.NumberOfPages))" aria-describedby="@Describe("book-pages", nameof(BookUiDto.NumberOfPages))" />
+                    </FormField>
+                    <div class="form-wide">
+                        @TextField("book-cover", "Cover image URL", nameof(BookUiDto.ImageLink), _model.ImageLink, v => _model.ImageLink = v, new() { Placeholder = "https://…", Type = "url" })
                     </div>
-                </section>
+                </FormSection>
             </div>
 
-            <div class="book-form-footer">
-                <a class="add-button add-button-outlined" href="@ExitHref">Cancel</a>
-                <button type="submit" class="add-button add-button-primary" disabled="@_isSaving"><MudIcon Icon="@Icons.Material.Filled.Add" />Add book</button>
-            </div>
+            <FormFooter>
+                <FormButton Variant="FormButtonVariant.Outlined" Href="@ExitHref">Cancel</FormButton>
+                <FormButton Type="submit" Icon="@Icons.Material.Filled.Add" Disabled="_isSaving">Add book</FormButton>
+            </FormFooter>
         </form>
     }
-</div>
+</FormPage>
 
 @code {
     // A text field of the form: its label above, its error and help under it.

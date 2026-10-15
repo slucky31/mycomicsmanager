@@ -1,0 +1,2 @@
+@* The page of a form or of a step of a form (ADR-0021): the whole screen, header, content and footer stacked. *@
+<div class="@(string.IsNullOrWhiteSpace(Class) ? "form-page" : $"form-page {Class}")">@ChildContent</div>

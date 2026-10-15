@@ -1,0 +1,20 @@
+@* A button of a form page (ADR-0021): a link when it has an Href, else a button. *@
+@if (Href is not null)
+{
+    <a class="@CssClass" href="@Href" @attributes="AdditionalAttributes">@Content</a>
+}
+else
+{
+    <button type="@Type" class="@CssClass" form="@Form" disabled="@Disabled" @onclick="OnClick" @attributes="AdditionalAttributes">@Content</button>
+}
+
+@code {
+    private RenderFragment Content => __builder =>
+    {
+        if (Icon is not null)
+        {
+            <MudIcon Icon="@Icon" />
+        }
+        @ChildContent
+    };
+}

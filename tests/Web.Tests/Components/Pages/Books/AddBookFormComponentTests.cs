@@ -79,12 +79,12 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
         var cut = RenderFound();
 
         cut.Find("h1").TextContent.Should().Be("Book found");
-        cut.Find(".add-bar-subtitle").TextContent.Should().Be($"ISBN {Isbn}");
+        cut.Find(".form-bar-subtitle").TextContent.Should().Be($"ISBN {Isbn}");
         cut.Find(".found-title").TextContent.Should().Be("Extremity");
         cut.Find(".found-source").TextContent.Should().Be("Found on BnF");
         cut.Find("#book-library").GetAttribute("value").Should().Be(_readBooks.Id.ToString());
         cut.FindAll("#book-library option").Select(o => o.TextContent).Should().Equal("Read Books", "Wishlist");
-        cut.Find(".found-actions .add-button-primary").TextContent.Should().Be("Add to Read Books");
+        cut.Find(".found-actions .form-button-primary").TextContent.Should().Be("Add to Read Books");
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
         var cut = RenderFound();
         await cut.Find("button[aria-label='4 stars']").ClickAsync(new());
 
-        await cut.Find(".found-actions .add-button-primary").ClickAsync(new());
+        await cut.Find(".found-actions .form-button-primary").ClickAsync(new());
 
         await _booksService.Received(1).Create(
             Arg.Is<CreateBookRequest>(r => r.Title == "Extremity" && r.Isbn == Isbn && r.LibraryId == _readBooks.Id && r.Rating == 4 && r.NumberOfPages == 271),
@@ -108,7 +108,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
         var cut = RenderFound();
 
         await cut.Find("#book-library").ChangeAsync(new() { Value = _wishlist.Id.ToString() });
-        await cut.Find(".found-actions .add-button-primary").ClickAsync(new());
+        await cut.Find(".found-actions .form-button-primary").ClickAsync(new());
 
         await _booksService.Received(1).Create(Arg.Is<CreateBookRequest>(r => r.LibraryId == _wishlist.Id && r.Rating == 0), Arg.Any<CancellationToken>());
         _navigation.Uri.Should().EndWith($"/libraries/{_wishlist.Id}");
@@ -119,7 +119,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
     {
         var cut = RenderFound();
 
-        await cut.Find(".found-actions .add-button-text").ClickAsync(new());
+        await cut.Find(".found-actions .form-button-text").ClickAsync(new());
 
         cut.Find("h1").TextContent.Should().Be("Add a book");
         cut.Find("#book-title").GetAttribute("value").Should().Be("Extremity");
@@ -134,7 +134,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
         _searchService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Extremity with { Found = false, Title = "", Serie = "", Source = null });
         var cut = Render($"?isbn={Isbn}&libraryId={_readBooks.Id}");
-        cut.Find(".add-bar-subtitle").TextContent.Should().Be("Not found online: fill in the details");
+        cut.Find(".form-bar-subtitle").TextContent.Should().Be("Not found online: fill in the details");
 
         await cut.Find("form").SubmitAsync();
 
@@ -154,7 +154,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
     public async Task SaveAsync_Should_AddTheBookTypedByHand()
     {
         var cut = Render($"?libraryId={_readBooks.Id}");
-        cut.Find(".add-bar-subtitle").TextContent.Should().Be("Adding to Read Books");
+        cut.Find(".form-bar-subtitle").TextContent.Should().Be("Adding to Read Books");
 
         await TypeAsync(cut, "book-title", "Tangente");
         await TypeAsync(cut, "book-serie", "Tangente");
@@ -186,11 +186,11 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
         _booksService.Create(Arg.Any<CreateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result<Book>.Failure(BooksError.Duplicate));
         var cut = RenderFound();
 
-        await cut.Find(".found-actions .add-button-primary").ClickAsync(new());
+        await cut.Find(".found-actions .form-button-primary").ClickAsync(new());
 
         _snackbar.Received(1).Add("This book is already in your libraries", Severity.Error);
         cut.Find("h1").TextContent.Should().Be("Book found");
-        cut.Find(".found-actions .add-button-primary").HasAttribute("disabled").Should().BeFalse();
+        cut.Find(".found-actions .form-button-primary").HasAttribute("disabled").Should().BeFalse();
     }
 
     [Fact]

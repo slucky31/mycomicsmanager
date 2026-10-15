@@ -1,0 +1,61 @@
+.form-button {
+    box-sizing: border-box;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 26px;
+    background: none;
+    color: #1B1D24;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.form-button:focus-visible {
+    outline: 2px solid #1B1D24;
+    outline-offset: 2px;
+}
+
+.form-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.form-button-primary {
+    background: #594AE2;
+    color: #ffffff;
+}
+
+.form-button-primary:hover:not(:disabled) {
+    background: #4A3BC4;
+}
+
+.form-button-outlined {
+    border: 1px solid #E2E3EA;
+    background: #ffffff;
+}
+
+.form-button-text {
+    height: 44px;
+    color: #594AE2;
+    font-size: 15px;
+}
+
+@media (min-width: 600px) {
+    .form-button {
+        height: 48px;
+        padding: 0 22px 0 18px;
+        font-size: 15px;
+    }
+
+    .form-button-outlined {
+        padding: 0 20px;
+    }
+}
