@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.46.0"></a>
+## [10.46.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.0) (2026-10-15)
+
+### ✨ Features
+
+* **feeds:** redesign the feeds screen (ADR-0021) ([#1144](https://www.github.com/slucky31/mycomicsmanager/issues/1144)) ([6f0c647](https://www.github.com/slucky31/mycomicsmanager/commit/6f0c647b0f60b0235ffc5699964f1cb6bbc8a65a))
+
 <a name="10.45.0"></a>
 ## [10.45.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.45.0) (2026-10-15)
 
