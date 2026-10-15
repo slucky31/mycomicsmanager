@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.46.8"></a>
+## [10.46.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.8) (2026-10-15)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency fluentvalidation to 12.2.0 ([#1105](https://www.github.com/slucky31/mycomicsmanager/issues/1105)) ([0097913](https://www.github.com/slucky31/mycomicsmanager/commit/0097913753b79d78c8b449955ce518f65ec0c46f))
+
 <a name="10.46.7"></a>
 ## [10.46.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.7) (2026-10-15)
 
