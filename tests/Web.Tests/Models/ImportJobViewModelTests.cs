@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using Domain.ImportJobs;
-using MudBlazor;
 using Web.Models;
 using Xunit;
 
@@ -166,24 +165,87 @@ public sealed class ImportJobViewModelTests
         viewModel.StatusCssClass.Should().Be(expected);
     }
 
-    // ── GetStatusDisplay / GetStatusColor / GetProgressPercent (via From) ────
+    // ── GetStatusDisplay / GetProgressPercent / StepDisplay (via From) ───────
 
     [Theory]
-    [InlineData(ImportJobStatus.Pending, "Pending", Color.Default, 0)]
-    [InlineData(ImportJobStatus.Extracting, "Extracting...", Color.Info, 15)]
-    [InlineData(ImportJobStatus.SearchingMetadata, "Searching metadata...", Color.Info, 55)]
-    [InlineData(ImportJobStatus.UploadingCover, "Uploading cover...", Color.Info, 70)]
-    [InlineData(ImportJobStatus.BuildingArchive, "Building archive...", Color.Info, 85)]
-    [InlineData(ImportJobStatus.Completed, "Completed", Color.Success, 100)]
-    [InlineData(ImportJobStatus.Failed, "Failed", Color.Error, 0)]
-    public void From_Should_MapStatusDisplayColorAndProgress(
-        ImportJobStatus status, string expectedDisplay, Color expectedColor, int expectedProgress)
+    [InlineData(ImportJobStatus.Pending, "Waiting", 0, "Step 1 of 6 · 0%")]
+    [InlineData(ImportJobStatus.Extracting, "Extracting pages", 15, "Step 2 of 6 · 15%")]
+    [InlineData(ImportJobStatus.Converting, "Converting pages", 35, "Step 3 of 6 · 35%")]
+    [InlineData(ImportJobStatus.SearchingMetadata, "Searching details", 55, "Step 4 of 6 · 55%")]
+    [InlineData(ImportJobStatus.UploadingCover, "Uploading cover", 70, "Step 5 of 6 · 70%")]
+    [InlineData(ImportJobStatus.BuildingArchive, "Building the book", 85, "Step 6 of 6 · 85%")]
+    [InlineData(ImportJobStatus.Completed, "Imported", 100, null)]
+    [InlineData(ImportJobStatus.Failed, "Failed", 0, null)]
+    public void From_Should_MapStatusDisplayProgressAndStep(
+        ImportJobStatus status, string expectedDisplay, int expectedProgress, string? expectedStep)
     {
         var viewModel = ViewModelWithStatus(status);
 
         viewModel.StatusDisplay.Should().Be(expectedDisplay);
-        viewModel.StatusColor.Should().Be(expectedColor);
         viewModel.ProgressPercent.Should().Be(expectedProgress);
+        viewModel.StepDisplay.Should().Be(expectedStep);
+    }
+
+    // ── BookHref ──────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void BookHref_Should_LinkTheBook_WhenImportCompleted()
+    {
+        var job = CreateJob();
+        var bookId = Guid.CreateVersion7();
+        foreach (var step in new[] { ImportJobStatus.Extracting, ImportJobStatus.Converting, ImportJobStatus.SearchingMetadata, ImportJobStatus.UploadingCover, ImportJobStatus.BuildingArchive })
+        {
+            job.Advance(step);
+        }
+
+        job.Complete(bookId).IsSuccess.Should().BeTrue();
+
+        var viewModel = ImportJobViewModel.From(job);
+
+        viewModel.DigitalBookId.Should().Be(bookId);
+        viewModel.BookHref.Should().Be($"/books/{bookId}");
+    }
+
+    [Fact]
+    public void BookHref_Should_BeNull_WhenImportIsNotCompleted()
+    {
+        var viewModel = ViewModelWithStatus(ImportJobStatus.Converting) with { DigitalBookId = Guid.CreateVersion7() };
+
+        viewModel.BookHref.Should().BeNull();
+    }
+
+    // ── FailureDisplay / FailedStepDisplay ────────────────────────────────────
+
+    [Theory]
+    [InlineData("Extracting", "The PDF has no readable page.", "The PDF has no readable page.", "Failed while: Extracting pages")]
+    [InlineData("Init", "No space left", "No space left", "Failed while: Init")]
+    [InlineData("SearchingMetadata", " ", "The import failed.", "Failed while: Searching details")]
+    public void FailureDisplay_Should_ExplainTheFailure_WhenImportFailed(string step, string message, string expectedFailure, string expectedStep)
+    {
+        var job = CreateJob();
+        job.Fail(step, message);
+
+        var viewModel = ImportJobViewModel.From(job);
+
+        viewModel.FailureDisplay.Should().Be(expectedFailure);
+        viewModel.FailedStepDisplay.Should().Be(expectedStep);
+    }
+
+    [Fact]
+    public void FailureDisplay_Should_BeNull_WhenImportDidNotFail()
+    {
+        var viewModel = ViewModelWithStatus(ImportJobStatus.Completed) with { ErrorMessage = "old", ErrorStep = "Extracting" };
+
+        viewModel.FailureDisplay.Should().BeNull();
+        viewModel.FailedStepDisplay.Should().BeNull();
+    }
+
+    [Fact]
+    public void FailedStepDisplay_Should_BeNull_WhenFailureHasNoStep()
+    {
+        var viewModel = ViewModelWithStatus(ImportJobStatus.Failed) with { ErrorStep = null };
+
+        viewModel.FailedStepDisplay.Should().BeNull();
     }
 
     [Fact]

@@ -77,7 +77,6 @@ public sealed class ImportComponentTests
         OriginalFileSize: 1024,
         Status: status,
         StatusDisplay: status,
-        StatusColor: Color.Default,
         ProgressPercent: 0,
         CreatedAt: DateTime.UtcNow,
         CompletedAt: null,
@@ -184,9 +183,7 @@ public sealed class ImportComponentTests
     public async Task OnLibraryChangedAsync_Should_ReloadJobs_ForNewLibrary()
     {
         await using var setup = await SetupAsync();
-        var select = setup.Cut.FindComponent<MudSelect<Guid>>();
-
-        await setup.Cut.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(setup.Library.Id));
+        await setup.Cut.Find("#import-library").ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = setup.Library.Id.ToString() });
 
         await setup.ImportService.Received(2).GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>());
     }

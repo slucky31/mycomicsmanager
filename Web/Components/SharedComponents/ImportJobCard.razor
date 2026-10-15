@@ -1,114 +1,52 @@
 @using Web.Models
 
-<MudPaper Class="@($"import-job-card {Job.StatusCssClass} pa-3")" Elevation="1" Style="height: 100%;">
-    <div class="d-flex align-center gap-3">
-        <div class="flex-grow-1" style="min-width: 0;">
+<section class="@($"import-job {Job.StatusCssClass}")">
+    <div class="import-job-head">
+        <MudIcon Icon="@Icons.Material.Outlined.Description" Class="import-job-file-icon" />
+        <div class="import-job-text">
+            <div class="import-job-name" title="@Job.OriginalFileName">@Job.OriginalFileName</div>
+            <div class="import-job-meta">@BookText.Join(Job.FileSizeDisplay, Job.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm"), Job.DurationDisplay)</div>
+        </div>
+        <span class="import-job-status"><MudIcon Icon="@StatusIcon" />@Job.StatusDisplay</span>
+    </div>
 
-            <div class="d-flex align-center justify-space-between mb-1">
-                <div class="d-flex align-center gap-2" style="min-width: 0; overflow: hidden;">
-                    <MudIcon Icon="@Icons.Material.Filled.FolderZip"
-                             Size="Size.Small"
-                             Color="Color.Default"
-                             Style="flex-shrink: 0; opacity: 0.6;" />
-                    <MudText Typo="Typo.body2" Class="font-weight-medium import-job-filename">@Job.OriginalFileName</MudText>
-                    <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="flex-shrink: 0;">@Job.FileSizeDisplay</MudText>
-                </div>
-                <MudChip T="string"
-                         Size="Size.Small"
-                         Color="@Job.StatusColor"
-                         Variant="Variant.Filled"
-                         Class="ml-2"
-                         Style="flex-shrink: 0;">
-                    @Job.StatusDisplay
-                </MudChip>
-            </div>
+    @if (Job.StepDisplay is { } step)
+    {
+        <div class="import-job-progress" aria-hidden="true"><div class="import-job-progress-value" style="@($"width: {Job.ProgressPercent}%;")"></div></div>
+        <div class="import-job-step">@BookText.Join(step, Job.ConversionDetail)</div>
+    }
 
-            @if (Job.Status != "Failed")
+    @if (Job.FailureDisplay is { } failure)
+    {
+        <div class="import-job-error">@failure</div>
+        @if (Job.FailedStepDisplay is { } failedStep)
+        {
+            <div class="import-job-error-step">@failedStep</div>
+        }
+    }
+
+    @if (Job.BookHref is not null || (Job.IsTerminal && OnDelete.HasDelegate) || (IsStuck && OnForceFail.HasDelegate))
+    {
+        <div class="import-job-actions">
+            @if (Job.BookHref is { } href)
             {
-                <MudProgressLinear Value="@Job.ProgressPercent"
-                                   Color="@Job.StatusColor"
-                                   Rounded="true"
-                                   Size="Size.Small"
-                                   Class="mb-1" />
+                <a class="import-job-link" href="@href">Open the book</a>
             }
-            else
+            <span class="import-job-actions-spacer"></span>
+            @if (IsStuck && OnForceFail.HasDelegate)
             {
-                <MudProgressLinear Value="100"
-                                   Color="Color.Error"
-                                   Rounded="true"
-                                   Size="Size.Small"
-                                   Class="mb-1" />
+                <MudTooltip Text="Mark as failed (stuck import)">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Cancel"
+                                   OnClick="@(() => OnForceFail.InvokeAsync(Job.Id))"
+                                   aria-label="Mark this import as failed" />
+                </MudTooltip>
             }
-
-            <div class="d-flex align-center justify-space-between">
-                <div class="d-flex align-center gap-3">
-                    <div class="d-flex align-center gap-1">
-                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday"
-                                 Size="Size.Small"
-                                 Style="font-size: 14px; opacity: 0.5;" />
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            @Job.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                        </MudText>
-                    </div>
-                    @if (Job.DurationDisplay is not null)
-                    {
-                        <div class="d-flex align-center gap-1">
-                            <MudIcon Icon="@Icons.Material.Filled.Timer"
-                                     Size="Size.Small"
-                                     Style="font-size: 14px; opacity: 0.5;" />
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @Job.DurationDisplay
-                            </MudText>
-                        </div>
-                    }
-                </div>
-                <div class="d-flex align-center gap-1">
-                    @if (Job.ConversionDetail is not null)
-                    {
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            @Job.ConversionDetail
-                        </MudText>
-                    }
-                    @if (Job.IsTerminal && OnDelete.HasDelegate)
-                    {
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                       Size="Size.Small"
-                                       Color="Color.Default"
-                                       OnClick="@(() => OnDelete.InvokeAsync(Job.Id))"
-                                       aria-label="Delete this import" />
-                    }
-                    @if (IsStuck && OnForceFail.HasDelegate)
-                    {
-                        <MudTooltip Text="Force the Failed state (stuck job)">
-                            <MudIconButton Icon="@Icons.Material.Filled.Cancel"
-                                           Size="Size.Small"
-                                           Color="Color.Warning"
-                                           OnClick="@(() => OnForceFail.InvokeAsync(Job.Id))"
-                                           aria-label="Force the Failed state" />
-                        </MudTooltip>
-                    }
-                </div>
-            </div>
-
-            @if (Job.Status == "Failed" && (!string.IsNullOrEmpty(Job.ErrorStep) || !string.IsNullOrEmpty(Job.ErrorMessage)))
+            @if (Job.IsTerminal && OnDelete.HasDelegate)
             {
-                <MudExpansionPanels Class="mt-2" Dense="true" Elevation="0">
-                    <MudExpansionPanel Text="Error details" Dense="true">
-                        @if (!string.IsNullOrEmpty(Job.ErrorStep))
-                        {
-                            <MudText Typo="Typo.caption" Color="Color.Error" Class="font-weight-bold">
-                                Step: @Job.ErrorStep
-                            </MudText>
-                        }
-                        @if (!string.IsNullOrEmpty(Job.ErrorMessage))
-                        {
-                            <MudText Typo="Typo.caption" Color="Color.Error" Class="mt-1" Style="word-break: break-word;">
-                                @Job.ErrorMessage
-                            </MudText>
-                        }
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
+                <MudIconButton Icon="@Icons.Material.Outlined.Delete"
+                               OnClick="@(() => OnDelete.InvokeAsync(Job.Id))"
+                               aria-label="Delete this import" />
             }
         </div>
-    </div>
-</MudPaper>
+    }
+</section>

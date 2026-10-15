@@ -1,27 +1,135 @@
-.import-job-card {
-    border-left: 4px solid var(--mud-palette-divider);
-    transition: border-color 0.2s ease;
+/* One imported file (S1): name and size, status in plain words, then its step, its book or its error. */
+.import-job {
+    height: 100%;
+    box-sizing: border-box;
+    padding: 14px;
+    border: 1px solid #E2E3EA;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #1B1D24;
 }
 
-.import-job-card.status-pending {
-    border-left-color: var(--mud-palette-text-disabled);
+.import-job-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
 }
 
-.import-job-card.status-processing {
-    border-left-color: var(--mud-palette-info);
+::deep .import-job-file-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #5C6070;
 }
 
-.import-job-card.status-completed {
-    border-left-color: var(--mud-palette-success);
+.import-job-text {
+    flex-grow: 1;
+    min-width: 0;
 }
 
-.import-job-card.status-failed {
-    border-left-color: var(--mud-palette-error);
-}
-
-.import-job-filename {
+.import-job-name {
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.import-job-meta {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.import-job-status {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background: #EDEDF2;
+    color: #5C6070;
+    font-size: 12px;
+    font-weight: 500;
     white-space: nowrap;
-    max-width: 100%;
+}
+
+.import-job-status ::deep svg {
+    font-size: 14px;
+}
+
+.status-processing .import-job-status {
+    background: #E8EEFD;
+    color: #1D4ED8;
+}
+
+.status-completed .import-job-status {
+    background: #E6F4EA;
+    color: #1E6B24;
+}
+
+.status-failed .import-job-status {
+    background: #FDECEC;
+    color: #B3261E;
+}
+
+.import-job-progress {
+    height: 6px;
+    margin-top: 10px;
+    border-radius: 3px;
+    background: #E7E7EE;
+}
+
+.import-job-progress-value {
+    height: 100%;
+    border-radius: 3px;
+    background: #594AE2;
+    transition: width 0.3s ease;
+}
+
+.import-job-step {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #5C6070;
+}
+
+.import-job-error {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #B3261E;
+    overflow-wrap: anywhere;
+}
+
+.import-job-error-step {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #5C6070;
+}
+
+.import-job-actions {
+    display: flex;
+    align-items: center;
+    margin: 4px -8px -8px 0;
+}
+
+.import-job-actions-spacer {
+    flex-grow: 1;
+}
+
+.import-job-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: #594AE2;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.import-job-link:hover {
+    text-decoration: underline;
+}
+
+.import-job-actions ::deep .mud-icon-button {
+    color: #5C6070;
 }
