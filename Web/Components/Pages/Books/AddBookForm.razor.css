@@ -1,4 +1,4 @@
-/* Book found (A5, T7) and the form of a book (A6, T8). */
+/* Book found (A5, T7); the form itself is BookFormLayout. */
 .add-loading {
     flex-grow: 1;
     display: flex;
@@ -128,43 +128,6 @@
     gap: 10px;
 }
 
-/* Form */
-.book-form {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 4px 16px 0;
-}
-
-.book-form-side {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.book-form-cover {
-    display: none;
-}
-
-.book-form-main {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    min-width: 0;
-}
-
-.book-form-summary {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    background: #FDECEC;
-    color: #C62828;
-    font-size: 14px;
-}
-
 @media (min-width: 600px) {
     /* T7: the book found in a card in the middle of the screen. */
     .found-body {
@@ -214,51 +177,5 @@
         padding: 0;
         border: 0;
         background: none;
-    }
-
-    .book-form {
-        padding: 8px 28px 24px;
-    }
-}
-
-/* T8: the cover preview and the library beside the fields. */
-@media (min-width: 840px) {
-    .book-form {
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 32px;
-    }
-
-    .book-form-side {
-        width: 220px;
-        flex-shrink: 0;
-    }
-
-    .book-form-cover {
-        display: block;
-        box-sizing: border-box;
-        width: 220px;
-        height: 330px;
-        object-fit: cover;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .book-form-cover-none {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 16px;
-        border: 2px dashed #E2E3EA;
-        color: #5C6070;
-        font-size: 14px;
-        text-align: center;
-        box-shadow: none;
-    }
-
-    .book-form-main {
-        flex-grow: 1;
     }
 }

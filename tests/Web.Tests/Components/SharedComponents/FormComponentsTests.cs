@@ -131,6 +131,18 @@ public sealed class FormComponentsTests : IAsyncDisposable
         cut.Find("section").GetAttribute("aria-labelledby").Should().Be("book-form-book");
         cut.Find("h2#book-form-book").TextContent.Should().Be("Book");
         cut.Find(".form-grid #book-title").Should().NotBeNull();
+        cut.FindAll(".form-section-note").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FormSection_Should_ShowItsNote_BesideItsTitle()
+    {
+        var cut = _ctx.Render<FormSection>(p => p
+            .Add(c => c.Id, "book-form-readings")
+            .Add(c => c.Title, "Readings")
+            .Add(c => c.Note, "2 readings"));
+
+        cut.Find(".form-section-head .form-section-note").TextContent.Should().Be("2 readings");
     }
 
     [Fact]

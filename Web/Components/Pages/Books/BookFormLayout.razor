@@ -1,0 +1,26 @@
+@using Web.Models
+
+@* The form of a book (A6, E1, T8, T11): the cover preview beside the fields from 840px, the count of errors above them. *@
+<form id="@FormId" class="book-form" novalidate @onsubmit="OnSubmit">
+    <div class="book-form-side">
+        @if (!string.IsNullOrWhiteSpace(ImageLink))
+        {
+            <img class="book-form-cover" src="@ImageLink" alt="Cover preview" />
+        }
+        else
+        {
+            <div class="book-form-cover book-form-cover-none"><MudIcon Icon="@Icons.Material.Filled.Add" /><span>Cover preview appears when you paste an image URL</span></div>
+        }
+        @Side
+    </div>
+
+    <div class="book-form-main">
+        @if (Errors.Any)
+        {
+            <div class="book-form-summary" role="alert"><MudIcon Icon="@Icons.Material.Outlined.Info" /><span>@Errors.Summary</span></div>
+        }
+        @ChildContent
+    </div>
+
+    @Footer
+</form>
