@@ -50,7 +50,7 @@ jobs:
         with:
           # Temurin 21 is in the runner's tool cache: nothing to download.
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v6
         with:
