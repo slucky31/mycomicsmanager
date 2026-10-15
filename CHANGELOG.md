@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.46.1"></a>
+## [10.46.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.1) (2026-10-15)
+
+### 🐛 Bug Fixes
+
+* **settings:** make the log levels page usable on a phone ([#1145](https://www.github.com/slucky31/mycomicsmanager/issues/1145)) ([47aeb2c](https://www.github.com/slucky31/mycomicsmanager/commit/47aeb2ca6a1f31799c0e244ebbbe67b07b8554a6))
+
 <a name="10.46.0"></a>
 ## [10.46.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.0) (2026-10-15)
 
