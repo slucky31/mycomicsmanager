@@ -7,18 +7,16 @@ namespace Web.Components.Pages.Admin;
 
 public partial class LogLevels
 {
-    private sealed record LevelOption(string Label, LogEventLevel Level, Color Color);
+    private sealed record LevelOption(string Label, LogEventLevel Level, string CssClass);
 
     private static readonly LevelOption[] s_levels =
     [
-        new("Debug", LogEventLevel.Debug, Color.Success),
-        new("Info", LogEventLevel.Information, Color.Info),
-        new("Warning", LogEventLevel.Warning, Color.Warning),
-        new("Error", LogEventLevel.Error, Color.Error),
-        new("None", LogLevelSwitches.Off, Color.Dark),
+        new("Debug", LogEventLevel.Debug, "level-debug"),
+        new("Info", LogEventLevel.Information, "level-info"),
+        new("Warning", LogEventLevel.Warning, "level-warning"),
+        new("Error", LogEventLevel.Error, "level-error"),
+        new("None", LogLevelSwitches.Off, "level-none"),
     ];
-
-    private static readonly int[] s_pageSizeOptions = [25, 50, 100];
 
     [Inject] private LogLevelSwitches LogLevelSwitches { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;

@@ -32,7 +32,7 @@ public sealed class LogLevelsComponentTests
     }
 
     private static IElement LevelButton(IRenderedComponent<LogLevels> cut, string loggerName, string label) =>
-        cut.FindAll("tr")
+        cut.FindAll("li.logger")
             .Single(row => row.QuerySelector(".logger-name")?.TextContent == loggerName)
             .QuerySelectorAll("button")
             .Single(button => button.TextContent.Trim() == label);

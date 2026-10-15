@@ -1,0 +1,244 @@
+/* Log levels (Settings, Administration): a list that fits a phone, one card per logger. */
+.log-levels-page {
+    min-height: 100dvh;
+    background: #F4F4F6;
+    color: #1B1D24;
+}
+
+@media (max-width: 959.98px) {
+    .log-levels-page {
+        min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+.log-levels-bar {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: env(safe-area-inset-top) 16px 0 4px;
+}
+
+.log-levels-bar h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+::deep .log-levels-back {
+    color: #1B1D24;
+}
+
+.log-levels-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 960px;
+    padding: 0 16px 16px;
+}
+
+.log-levels-hint {
+    margin: 0;
+    font-size: 14px;
+    color: #5C6070;
+}
+
+/* ── Filter and reset ── */
+.log-levels-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.log-levels-filter {
+    flex-grow: 1;
+    min-width: 0;
+    height: 44px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid #E2E3EA;
+    border-radius: 22px;
+    background: #ffffff;
+    color: #5C6070;
+}
+
+.log-levels-filter:focus-within {
+    border-color: #594AE2;
+    box-shadow: 0 0 0 1px #594AE2;
+}
+
+.log-levels-filter input {
+    flex-grow: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #1B1D24;
+    font: inherit;
+    font-size: 15px;
+}
+
+::deep .log-levels-reset {
+    flex-shrink: 0;
+    height: 44px;
+    border-radius: 22px;
+    text-transform: none;
+}
+
+.log-levels-count,
+.log-levels-empty {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.log-levels-empty {
+    padding: 24px 0;
+    text-align: center;
+}
+
+/* ── One logger ── */
+.log-levels-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.logger {
+    padding: 12px;
+    border: 1px solid #E2E3EA;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.logger-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 28px;
+}
+
+/* Long namespaces break anywhere rather than overflow the card. */
+.logger-name {
+    flex-grow: 1;
+    min-width: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.logger-inherited {
+    flex-shrink: 0;
+    padding: 0 8px;
+    border-radius: 10px;
+    background: #EDEDF2;
+    color: #5C6070;
+    font-size: 12px;
+    line-height: 20px;
+}
+
+::deep .logger-inherit {
+    flex-shrink: 0;
+    margin: -6px -6px -6px 0;
+}
+
+/* Five levels side by side: a segmented control as wide as the card. */
+.logger-levels {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-top: 8px;
+    border: 1px solid #E2E3EA;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.logger-level {
+    min-height: 36px;
+    padding: 0 2px;
+    border: 0;
+    border-left: 1px solid #E2E3EA;
+    background: #ffffff;
+    color: #1B1D24;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.logger-level:first-child {
+    border-left: 0;
+}
+
+.logger-level:focus-visible {
+    outline: 2px solid #594AE2;
+    outline-offset: -2px;
+}
+
+.logger-level[aria-pressed="true"] {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.level-debug[aria-pressed="true"] {
+    background: #2E7D32;
+}
+
+.level-info[aria-pressed="true"] {
+    background: #1D4ED8;
+}
+
+.level-warning[aria-pressed="true"] {
+    background: #8A5300;
+}
+
+.level-error[aria-pressed="true"] {
+    background: #B3261E;
+}
+
+.level-none[aria-pressed="true"] {
+    background: #1B1D24;
+}
+
+/* From the tablet on: the name and the levels on one line, two columns of loggers on a large screen. */
+@media (min-width: 840px) {
+    .log-levels-bar {
+        min-height: 72px;
+        padding: env(safe-area-inset-top) 28px 0 16px;
+    }
+
+    .log-levels-bar h1 {
+        font-size: 28px;
+    }
+
+    .log-levels-content {
+        padding: 0 28px 24px;
+    }
+
+    .log-levels-filter {
+        flex-grow: 0;
+        width: 360px;
+    }
+
+    .logger {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .logger-head {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .logger-levels {
+        flex: 0 0 340px;
+        margin-top: 0;
+    }
+}
