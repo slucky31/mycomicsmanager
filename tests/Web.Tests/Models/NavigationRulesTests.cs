@@ -36,7 +36,9 @@ public sealed class NavigationRulesTests
     [InlineData("books/add/manual", true)]
     [InlineData("books/01a10db7-5a64-73bc-91be-9aed30dcff5f", false)]
     [InlineData("libraries/list", false)]
-    public void HidesNavigation_Should_HideItOnlyWhileAddingABook(string relativePath, bool expected)
+    [InlineData("books/01a10db7-5a64-73bc-91be-9aed30dcff5f/find-details?isbn=9782800112343", true)]
+    [InlineData("books/01a10db7-5a64-73bc-91be-9aed30dcff5f/find-details/", true)]
+    public void HidesNavigation_Should_HideItOnlyWhileAddingABookOrImportingItsInfo(string relativePath, bool expected)
     {
         NavigationRules.HidesNavigation(relativePath).Should().Be(expected);
     }

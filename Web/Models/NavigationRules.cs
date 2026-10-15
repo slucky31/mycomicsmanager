@@ -8,6 +8,9 @@ public static class NavigationRules
     // Adding a book is a focused task: the navigation is hidden so it cannot be left by mistake.
     private static readonly string[] s_pathsWithoutNavigation = ["books/add"];
 
+    // So is importing a book's info from the web (books/{id}/find-details).
+    private const string FindDetailsSuffix = "/find-details";
+
     public static string StripQueryAndFragment(string relativePath)
     {
         ArgumentNullException.ThrowIfNull(relativePath);
@@ -34,7 +37,8 @@ public static class NavigationRules
     public static bool HidesNavigation(string relativePath)
     {
         var current = StripQueryAndFragment(relativePath);
-        return s_pathsWithoutNavigation.Any(path => IsActive(current, path));
+        return s_pathsWithoutNavigation.Any(path => IsActive(current, path))
+            || current.TrimEnd('/').EndsWith(FindDetailsSuffix, StringComparison.OrdinalIgnoreCase);
     }
 
     // The library shown by the current page (its books, its settings), if any.

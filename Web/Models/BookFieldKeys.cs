@@ -1,4 +1,4 @@
-namespace Web.Components.Pages.Books;
+namespace Web.Models;
 
 internal static class BookFieldKeys
 {

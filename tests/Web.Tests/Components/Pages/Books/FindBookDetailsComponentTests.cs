@@ -100,8 +100,8 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Céline Wagner"));
 
-        // The author radio of the BnF column.
-        await cut.FindAll("input[type=radio]").Single(r => r.ParentElement!.ParentElement!.TextContent.Contains("Céline Wagner", StringComparison.Ordinal))
+        // The author found by the BnF.
+        await cut.FindAll("button[role=radio]").Single(b => b.TextContent.Contains("Céline Wagner", StringComparison.Ordinal))
             .ClickAsync(new());
         await cut.FindAll("button").Single(b => b.TextContent.Contains("Apply", StringComparison.Ordinal)).ClickAsync(new());
 
@@ -112,10 +112,10 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     public async Task OnParametersSetAsync_Should_HideBedetheque_WhenItIsTurnedOff()
     {
         _bedethequeService.IsEnabled.Returns(false);
-        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("BNF"));
+        var cut = await RenderOnceSearchedAsync();
+        cut.Markup.Should().Contain("BnF");
 
-        cut.Markup.Should().NotContain("BEDETHEQUE");
+        cut.Markup.Should().NotContain("Bedetheque");
         await _bedethequeService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -128,12 +128,12 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
 
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Searching the sources… (3/4)"));
-        cut.Markup.Should().Contain("GOOGLE BOOKS: searching…").And.Contain("BNF: book not found");
+        cut.Markup.Should().Contain("Google Books: searching…").And.Contain("BnF: book not found");
 
         google.SetResult(new GoogleBooksBookResult("Âme rouge", null, [], [], null, null, null, null, [], null, Found: true));
 
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Search complete"));
-        cut.Markup.Should().Contain("GOOGLE BOOKS: book found");
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+        cut.Markup.Should().Contain("Google Books: book found");
     }
 
     [Fact]
@@ -146,10 +146,10 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn={PageIsbn}");
         var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
 
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Search complete"));
-        cut.Markup.Should().Contain("BNF: could not be searched")
-            .And.Contain("OPENLIBRARY: could not be searched")
-            .And.Contain("GOOGLE BOOKS: book not found");
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+        cut.Markup.Should().Contain("BnF: could not be searched")
+            .And.Contain("OpenLibrary: could not be searched")
+            .And.Contain("Google Books: book not found");
     }
 
     private const string UploadedCover = "https://res.cloudinary.com/demo/cover.jpg";
@@ -175,31 +175,33 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     {
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn={PageIsbn}");
         var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Search complete"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
         return cut;
     }
 
-    // Picks the given source in every field.
+    // Picks the given source in every field; the options are found again after each click, as it renders the page.
     private static async Task PickSourceAsync(IRenderedComponent<FindBookDetails> cut, string source)
     {
-        var radios = cut.FindAll("label.mud-radio")
-            .Where(label => label.QuerySelector(".find-details-source-label")?.TextContent == source)
-            .Select(label => label.QuerySelector("input[type=radio]")!)
+        List<AngleSharp.Dom.IElement> Options() => cut.FindAll("button[role=radio]")
+            .Where(option => option.QuerySelector(".find-details-option-source")!.TextContent.Contains(source, StringComparison.Ordinal))
             .ToList();
-        radios.Should().HaveCount(8);
-        foreach (var radio in radios)
+
+        Options().Should().HaveCount(8);
+        for (var i = 0; i < 8; i++)
         {
-            await radio.ClickAsync(new());
+            await Options()[i].ClickAsync(new());
         }
+
+        cut.FindAll("button[role=radio][aria-checked=true]").Should().OnlyContain(option => option.TextContent.Contains(source, StringComparison.Ordinal));
     }
 
     private static Task ApplyAsync(IRenderedComponent<FindBookDetails> cut) =>
         cut.FindAll("button").Single(b => b.TextContent.Contains("Apply", StringComparison.Ordinal)).ClickAsync(new());
 
     [Theory]
-    [InlineData("BEDETHEQUE", "Bedetheque title", "Bedetheque serie", 3, "Bedetheque author", 2005, 56)]
-    [InlineData("OPENLIBRARY", "OpenLibrary title", "Parsed serie", 2, "OpenLibrary author", 2006, 57)]
-    [InlineData("GOOGLE BOOKS", "Google title", "Parsed serie", 2, "Google author", 2007, 58)]
+    [InlineData("Bedetheque", "Bedetheque title", "Bedetheque serie", 3, "Bedetheque author", 2005, 56)]
+    [InlineData("OpenLibrary", "OpenLibrary title", "Parsed serie", 2, "OpenLibrary author", 2006, 57)]
+    [InlineData("Google Books", "Google title", "Parsed serie", 2, "Google author", 2007, 58)]
     public async Task ApplyAndSaveAsync_Should_SaveEveryValueOfTheSourcePicked(
         string source, string title, string serie, int volume, string author, int year, int pages)
     {
@@ -223,7 +225,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
             .Returns(Task.FromException<string>(new HttpRequestException("Cloudinary unreachable")));
         var cut = await RenderOnceSearchedAsync();
 
-        await PickSourceAsync(cut, "GOOGLE BOOKS");
+        await PickSourceAsync(cut, "Google Books");
         await ApplyAsync(cut);
 
         await _booksService.Received(1).Update(Arg.Is<UpdateBookRequest>(r => r.ImageLink == "https://books.google.com/cover.jpg"), Arg.Any<CancellationToken>());
@@ -240,6 +242,36 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
 
         _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/find-details?isbn={PageIsbn}");
         cut.FindAll("button").Single(b => b.TextContent.Contains("Apply", StringComparison.Ordinal)).HasAttribute("disabled").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RefreshComparison_Should_ShowOnlyTheDifferences_AndSummariseTheFieldsThatMatch()
+    {
+        _comicSearchService.ParseTitleInfo(Arg.Any<string>(), Arg.Any<string?>()).Returns(call => (call.ArgAt<string>(0), "Blacksad", 0));
+        _bnfService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new BnfBookResult("Âme rouge", null, ["Juan Díaz Canales"], [], null, null, null, Found: true));
+
+        var cut = await RenderOnceSearchedAsync();
+
+        cut.Find(".find-details-status").TextContent.Should().Contain("1 difference found.");
+        cut.FindAll(".find-details-field-label").Select(label => label.TextContent).Should().Equal("Authors");
+        cut.Find(".find-details-match").TextContent.Should().Contain("Title and series already match.");
+        // The ISBN read on the page is the only change until a value is picked.
+        cut.Find(".find-details-apply").TextContent.Should().Contain("Apply 1 change");
+
+        await cut.Find("button[role=radio][aria-checked=false]").ClickAsync(new());
+
+        cut.Find(".find-details-apply").TextContent.Should().Contain("Apply 2 changes");
+    }
+
+    [Fact]
+    public async Task FetchWebServicesAsync_Should_SearchNothing_AndOfferNoChange_WhenTheBookHasNoIsbn()
+    {
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("This book has no ISBN"));
+        cut.Find(".find-details-apply").HasAttribute("disabled").Should().BeTrue();
+        await _bnfService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
