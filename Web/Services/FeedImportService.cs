@@ -174,6 +174,18 @@ public class FeedImportService(
             : await decisionReadService.CountByStatusAsync(userIdResult.Value, FeedImportDecisionStatus.AwaitingArbitration, cancellationToken);
     }
 
+    public async Task<Result<FeedImportStatusCounts>> GetStatusCountsAsync(CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var counts = await decisionReadService.CountPerStatusAsync(userIdResult.Value, cancellationToken);
+        return FeedImportStatusCounts.From(counts);
+    }
+
     private Result StartNextStep(Guid decisionId, Result<FeedImportDecisionStatus> result)
     {
         if (result.IsFailure)

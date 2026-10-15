@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using Domain.FeedImports;
-using MudBlazor;
 using Web.Models;
 using Xunit;
 
@@ -22,7 +21,9 @@ public sealed class FeedImportDecisionViewModelTests
         viewModel.PublishedAt.Should().Be(publishedAt);
         viewModel.Status.Should().Be(FeedImportDecisionStatus.Pending);
         viewModel.StatusDisplay.Should().Be("Pending");
-        viewModel.StatusColor.Should().Be(Color.Default);
+        viewModel.StatusCssClass.Should().Be("feed-status-neutral");
+        viewModel.SubtitleDisplay.Should().BeNull();
+        viewModel.SummaryDisplay.Should().Be(FeedImportDecision.CreatedReason);
         viewModel.Reason.Should().Be(FeedImportDecision.CreatedReason);
         viewModel.DecidedByDisplay.Should().Be("Automatic");
         viewModel.ParsedDisplay.Should().BeNull();
@@ -30,6 +31,29 @@ public sealed class FeedImportDecisionViewModelTests
         var evt = viewModel.Events.Should().ContainSingle().Subject;
         evt.StatusDisplay.Should().Be("Pending");
         evt.Description.Should().Be(FeedImportDecision.CreatedReason);
+    }
+
+    [Fact]
+    public void SummaryDisplay_Should_ShowTheError_WhenDecisionFailed()
+    {
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 12, "Blacksad T3", "https://planete-bd.org/12", null).Value!;
+        decision.Fail("Download", "Host not supported by Debrid-Link.");
+
+        var viewModel = FeedImportDecisionViewModel.From(decision);
+
+        viewModel.StatusCssClass.Should().Be("feed-status-failed");
+        viewModel.SummaryDisplay.Should().Be("Download: Host not supported by Debrid-Link.");
+    }
+
+    [Fact]
+    public void StatusCssClass_Should_BeRunning_WhenLinksAreExtracted()
+    {
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 12, "Blacksad T3", "https://planete-bd.org/12", null).Value!;
+        decision.RecordLinks(
+            [new DownloadCandidate("Blacksad T03", null, null, [new DownloadMirror("https://1fichier.com/?a", "1fichier.com")])],
+            ParsedComicTitle.Empty, "1 lien", FeedImportDecidedBy.Auto);
+
+        FeedImportDecisionViewModel.From(decision).StatusCssClass.Should().Be("feed-status-running");
     }
 
     [Fact]
@@ -54,7 +78,9 @@ public sealed class FeedImportDecisionViewModelTests
 
         viewModel.CanChooseCandidate.Should().BeTrue();
         viewModel.CanResolveDuplicate.Should().BeFalse();
-        viewModel.StatusColor.Should().Be(Color.Warning);
+        viewModel.StatusCssClass.Should().Be("feed-status-decide");
+        viewModel.StatusDisplay.Should().Be("To decide");
+        viewModel.SubtitleDisplay.Should().Be("Blacksad · T3");
         viewModel.ParsedDisplay.Should().Be("Blacksad · T3");
         viewModel.Candidates.Should().HaveCount(2);
         viewModel.Candidates[0].Index.Should().Be(0);
@@ -113,7 +139,7 @@ public sealed class FeedImportDecisionViewModelTests
         var viewModel = FeedImportDecisionViewModel.From(decision, importLibraryId: libraryId);
 
         viewModel.ImportPageUrl.Should().Be($"/import?libraryId={libraryId}");
-        viewModel.StatusColor.Should().Be(Color.Success);
+        viewModel.StatusCssClass.Should().Be("feed-status-done");
         viewModel.Candidates[0].Mirrors.Select(m => m.IsChosen).Should().Equal(false, true);
     }
 

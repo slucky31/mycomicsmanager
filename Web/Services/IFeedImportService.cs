@@ -38,4 +38,7 @@ public interface IFeedImportService
     Task<Result<DeleteDownloadedFeedImportDecisionsResult>> DeleteDownloadedAsync(CancellationToken cancellationToken = default);
 
     Task<int> CountAwaitingArbitrationAsync(CancellationToken cancellationToken = default);
+
+    // The counts shown on the status filters of the Feeds page.
+    Task<Result<FeedImportStatusCounts>> GetStatusCountsAsync(CancellationToken cancellationToken = default);
 }

@@ -19,4 +19,7 @@ public interface IFeedImportDecisionReadService
         CancellationToken cancellationToken = default);
 
     Task<int> CountByStatusAsync(Guid userId, FeedImportDecisionStatus status, CancellationToken cancellationToken = default);
+
+    // The number of decisions of the user in each status; a status without decision is left out.
+    Task<IReadOnlyDictionary<FeedImportDecisionStatus, int>> CountPerStatusAsync(Guid userId, CancellationToken cancellationToken = default);
 }

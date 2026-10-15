@@ -1,0 +1,365 @@
+@page "/feed-imports"
+
+@using Application.FeedImports.Arbitrate
+@using Application.FeedImports.Manage
+@using Web.Models
+
+<PageTitle>Feeds — MyComicsManager</PageTitle>
+
+@{
+    // The detail of a decision: inline under its card on a phone, in the side panel from the tablet on.
+    RenderFragment Detail(FeedImportDecisionViewModel decision, bool inPanel) =>
+    @<div class="feed-detail">
+        @if (inPanel)
+        {
+            <div class="feed-detail-head">
+                <div class="feed-detail-heading">
+                    <h2>@decision.EntryTitle</h2>
+                    @if (decision.SubtitleDisplay is not null)
+                    {
+                        <div class="feed-detail-subtitle">@decision.SubtitleDisplay</div>
+                    }
+                </div>
+                <MudIconButton Icon="@Icons.Material.Outlined.Delete"
+                               Disabled="@(!decision.CanDelete || _isDeleting || IsBusy(decision.Id))"
+                               OnClick="@(() => DeleteAsync(decision))"
+                               aria-label="Delete this item" />
+            </div>
+            <div class="feed-card-status-line">
+                <span class="@($"feed-status {decision.StatusCssClass}")">@decision.StatusDisplay</span>
+                <span class="feed-card-date">@decision.CreatedAtDisplay</span>
+            </div>
+        }
+
+        @if (decision.ErrorDisplay is not null)
+        {
+            <div class="feed-box feed-box-error">@decision.ErrorDisplay</div>
+        }
+        @if (inPanel && decision.CanResolveDuplicate)
+        {
+            <div class="feed-box feed-box-decide">Probable duplicate: a book with the same series and volume is already in your libraries. Check it before continuing.</div>
+            @DuplicateActions(decision)
+        }
+        @if (decision.CanChooseCandidate)
+        {
+            <div class="feed-box feed-box-info">
+                Ambiguous links: keep the right file below, or state that all the links are the same file.
+                @if (decision.Candidates.Count > 1)
+                {
+                    <div class="feed-actions">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="feed-pill"
+                                   Disabled="@IsBusy(decision.Id)"
+                                   OnClick="@(() => ResolveAsync(decision.Id, FeedImportArbitrationAction.MergeAsMirrors, null))">
+                            All these links are the same file
+                        </MudButton>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (decision.ManualActions.Any)
+        {
+            <div class="feed-actions">
+                @if (decision.ManualActions.CanForceDownload)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="feed-pill" StartIcon="@Icons.Material.Filled.Download"
+                               Disabled="@IsBusy(decision.Id)"
+                               OnClick="@(() => ApplyActionAsync(decision.Id, FeedImportDecisionAction.ForceDownload))">
+                        Force download
+                    </MudButton>
+                }
+                @if (decision.ManualActions.CanRetry)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="feed-pill" StartIcon="@Icons.Material.Filled.Replay"
+                               Disabled="@IsBusy(decision.Id)"
+                               OnClick="@(() => ApplyActionAsync(decision.Id, FeedImportDecisionAction.Retry))">
+                        Retry
+                    </MudButton>
+                }
+                @if (decision.ManualActions.CanCorrect)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="feed-pill" StartIcon="@Icons.Material.Filled.Edit"
+                               Disabled="@(IsBusy(decision.Id) || IsEditing(decision.Id))"
+                               OnClick="@(() => StartCorrection(decision))">
+                        Fix series / volume
+                    </MudButton>
+                }
+                @if (decision.ManualActions.CanIgnore)
+                {
+                    <MudButton Variant="Variant.Text" Class="feed-pill" StartIcon="@Icons.Material.Filled.Block"
+                               Disabled="@IsBusy(decision.Id)"
+                               OnClick="@(() => ApplyActionAsync(decision.Id, FeedImportDecisionAction.Ignore))">
+                        Ignore
+                    </MudButton>
+                }
+            </div>
+        }
+        @if (IsEditing(decision.Id))
+        {
+            <div class="feed-correction">
+                <div class="feed-section-title">Fix the title parsing (the duplicate check runs again)</div>
+                <div class="feed-correction-fields">
+                    <MudTextField T="string" Label="Series" @bind-Value="_correction!.Serie" Required="true"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="200" />
+                    <MudNumericField T="int?" Label="Volume" @bind-Value="_correction.Volume" Min="0"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudTextField T="string" Label="Title" @bind-Value="_correction.Title"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="300" />
+                </div>
+                <div class="feed-actions">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="feed-pill"
+                               Disabled="@(IsBusy(decision.Id) || string.IsNullOrWhiteSpace(_correction.Serie))"
+                               OnClick="@(() => SaveCorrectionAsync(decision.Id))">
+                        Save
+                    </MudButton>
+                    <MudButton Variant="Variant.Text" Class="feed-pill" OnClick="CancelCorrection">Cancel</MudButton>
+                </div>
+            </div>
+        }
+
+        <section class="feed-detail-section">
+            <h3 class="feed-section-title">Article</h3>
+            <dl class="feed-facts">
+                <dt>Published on</dt>
+                <dd>@decision.PublishedAtDisplay</dd>
+                <dt>Parsed as</dt>
+                <dd>@(decision.ParsedDisplay ?? "-")</dd>
+                <dt>Decided by</dt>
+                <dd>@decision.DecidedByDisplay</dd>
+            </dl>
+            <div class="feed-links">
+                <a class="feed-link" href="@decision.EntryUrl" target="_blank" rel="noopener noreferrer nofollow">Open the article</a>
+                @if (decision.ImportPageUrl is not null)
+                {
+                    <a class="feed-link" href="@decision.ImportPageUrl">Track the import</a>
+                }
+            </div>
+        </section>
+
+        <section class="feed-detail-section">
+            <h3 class="feed-section-title">Files</h3>
+            @if (decision.Candidates.Count == 0)
+            {
+                <div class="feed-muted">No link extracted yet.</div>
+            }
+            @foreach (var candidate in decision.Candidates)
+            {
+                <div class="feed-file">
+                    <div class="feed-file-head">
+                        <MudIcon Icon="@Icons.Material.Outlined.InsertDriveFile" Size="Size.Small" />
+                        <span class="feed-file-name">@candidate.DisplayName</span>
+                        @if (candidate.SizeDisplay is not null)
+                        {
+                            <span class="feed-muted">@candidate.SizeDisplay</span>
+                        }
+                        @if (decision.CanChooseCandidate)
+                        {
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" Class="feed-pill"
+                                       Disabled="@IsBusy(decision.Id)"
+                                       OnClick="@(() => ResolveAsync(decision.Id, FeedImportArbitrationAction.KeepCandidate, candidate.Index))">
+                                Keep this link
+                            </MudButton>
+                        }
+                    </div>
+                    <div class="feed-mirrors">
+                        @foreach (var mirror in candidate.Mirrors)
+                        {
+                            <a class="@(mirror.IsChosen ? "feed-mirror is-chosen" : "feed-mirror")" href="@mirror.Url"
+                               target="_blank" rel="noopener noreferrer nofollow"
+                               title="@(mirror.IsChosen ? "Mirror used for the download" : null)">
+                                <MudIcon Icon="@(mirror.IsChosen ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.OpenInNew)" Size="Size.Small" />
+                                @mirror.Host
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </section>
+
+        <section class="feed-detail-section">
+            <h3 class="feed-section-title">History</h3>
+            <ol class="feed-timeline">
+                @foreach (var evt in decision.Events)
+                {
+                    <li>
+                        <span class="feed-timeline-date">@evt.OccurredAtDisplay · @evt.DecidedByDisplay</span>
+                        <span class="feed-timeline-status">@evt.StatusDisplay</span>
+                        <span class="feed-timeline-text">@evt.Description</span>
+                    </li>
+                }
+            </ol>
+        </section>
+    </div>;
+
+    RenderFragment DuplicateActions(FeedImportDecisionViewModel decision) =>
+    @<div class="feed-actions">
+        @if (decision.MatchedBookId is not null)
+        {
+            <a class="feed-link" href="@($"/books/{decision.MatchedBookId}")">View the existing book</a>
+        }
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="feed-pill"
+                   Disabled="@IsBusy(decision.Id)"
+                   OnClick="@(() => ResolveAsync(decision.Id, FeedImportArbitrationAction.NotDuplicate, null))">
+            Not a duplicate
+        </MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="feed-pill"
+                   Disabled="@IsBusy(decision.Id)"
+                   OnClick="@(() => ResolveAsync(decision.Id, FeedImportArbitrationAction.ConfirmDuplicate, null))">
+            Confirm duplicate
+        </MudButton>
+    </div>;
+}
+
+<div class="feeds-page">
+    <header class="feeds-bar">
+        <h1>Feeds</h1>
+        <div class="@($"feeds-search{(_showSearch || _searchTerm is not null ? " open" : "")}")">
+            <MudTextField T="string"
+                          Placeholder="Search articles"
+                          Value="_searchTerm"
+                          ValueChanged="OnSearchChangedAsync"
+                          DebounceInterval="400"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Clearable="true"
+                          aria-label="Search articles" />
+        </div>
+        <MudIconButton Icon="@Icons.Material.Filled.Search" Class="feeds-search-toggle" OnClick="ToggleSearch" aria-label="Search" />
+        @if (FeedImportService.IsSyncEnabled)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Sync" Class="feeds-sync-icon" Disabled="_isSyncRequested" OnClick="SyncNowAsync" aria-label="Sync now" />
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Sync" Class="feeds-sync-button feed-pill"
+                       Disabled="_isSyncRequested" OnClick="SyncNowAsync">
+                Sync now
+            </MudButton>
+        }
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="More actions" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+            <MudMenuItem Icon="@Icons.Material.Filled.Checklist" OnClick="StartSelecting">Select several</MudMenuItem>
+            <MudMenuItem Icon="@Icons.Material.Outlined.DeleteSweep" Disabled="_isDeleting" OnClick="DeleteDownloadedAsync">Delete downloaded items</MudMenuItem>
+        </MudMenu>
+    </header>
+
+    <div class="feeds-chips" role="group" aria-label="Filter by status">
+        @foreach (var chip in _counts.Chips)
+        {
+            <button type="button" class="feeds-chip" aria-pressed="@(chip.Filter == _filter ? "true" : "false")"
+                    @onclick="() => SelectFilterAsync(chip.Filter)">
+                @chip.Label
+            </button>
+        }
+    </div>
+
+    @if (!FeedImportService.IsSyncEnabled)
+    {
+        <div class="feeds-note">Miniflux sync is turned off (Settings, Features).</div>
+    }
+
+    @if (_selecting)
+    {
+        <div class="feeds-selection" role="region" aria-label="Selection">
+            <span>@(_checkedIds.Count == 1 ? "1 selected" : $"{_checkedIds.Count} selected")</span>
+            <MudButton Variant="Variant.Filled" Color="Color.Error" Class="feed-pill" StartIcon="@Icons.Material.Outlined.Delete"
+                       Disabled="@(_checkedIds.Count == 0 || _isDeleting)" OnClick="DeleteSelectedAsync">
+                Delete
+            </MudButton>
+            <MudButton Variant="Variant.Text" Class="feed-pill" OnClick="StopSelecting">Cancel</MudButton>
+        </div>
+    }
+
+    <div class="feeds-body">
+        <div class="feeds-list">
+            @if (_isLoading && _items.Count == 0)
+            {
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+            }
+            else if (_items.Count == 0)
+            {
+                <div class="feeds-empty">No import decisions.</div>
+            }
+
+            @foreach (var decision in _items)
+            {
+                var expanded = _selectedId == decision.Id;
+                <article @key="decision.Id" class="@($"feed-card{(expanded ? " selected" : "")}")">
+                    <div class="feed-card-head">
+                        @if (_selecting)
+                        {
+                            <input type="checkbox" class="feed-card-check" checked="@_checkedIds.Contains(decision.Id)" disabled="@(!decision.CanDelete)"
+                                   aria-label="@($"Select {decision.EntryTitle}")" @onchange="() => ToggleChecked(decision.Id)" />
+                        }
+                        <button type="button" class="feed-card-main" aria-expanded="@(expanded ? "true" : "false")" @onclick="() => ToggleDetail(decision.Id)">
+                            <span class="feed-card-title">@decision.EntryTitle</span>
+                            @if (decision.SubtitleDisplay is not null)
+                            {
+                                <span class="feed-card-subtitle">@decision.SubtitleDisplay</span>
+                            }
+                            <span class="feed-card-status-line">
+                                <span class="@($"feed-status {decision.StatusCssClass}")">@decision.StatusDisplay</span>
+                                <span class="feed-card-date">@decision.CreatedAtDisplay</span>
+                            </span>
+                        </button>
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="@($"More actions for {decision.EntryTitle}")"
+                                 AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="feed-card-menu">
+                            <MudMenuItem Icon="@Icons.Material.Filled.OpenInNew" Href="@decision.EntryUrl" Target="_blank">Open the article</MudMenuItem>
+                            @if (decision.ImportPageUrl is not null)
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Filled.Upload" Href="@decision.ImportPageUrl">Track the import</MudMenuItem>
+                            }
+                            @if (decision.ManualActions.CanRetry)
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Filled.Replay" Disabled="@IsBusy(decision.Id)"
+                                             OnClick="@(() => ApplyActionAsync(decision.Id, FeedImportDecisionAction.Retry))">Retry</MudMenuItem>
+                            }
+                            @if (decision.ManualActions.CanIgnore)
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Filled.Block" Disabled="@IsBusy(decision.Id)"
+                                             OnClick="@(() => ApplyActionAsync(decision.Id, FeedImportDecisionAction.Ignore))">Ignore</MudMenuItem>
+                            }
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete" Disabled="@(!decision.CanDelete || _isDeleting || IsBusy(decision.Id))"
+                                         OnClick="@(() => DeleteAsync(decision))">Delete</MudMenuItem>
+                        </MudMenu>
+                    </div>
+                    <div class="feed-card-extra">
+                        <div class="feed-card-summary">@decision.SummaryDisplay</div>
+                        @if (decision.CanResolveDuplicate)
+                        {
+                            @DuplicateActions(decision)
+                        }
+                        else if (decision.CanChooseCandidate && !expanded)
+                        {
+                            <div class="feed-actions">
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="feed-pill" OnClick="() => ToggleDetail(decision.Id)">
+                                    Choose the file
+                                </MudButton>
+                            </div>
+                        }
+                    </div>
+                    @if (expanded)
+                    {
+                        <div class="feed-card-detail">@Detail(decision, false)</div>
+                    }
+                </article>
+            }
+
+            @if (HasMore)
+            {
+                <MudButton Variant="Variant.Outlined" Class="feed-pill feeds-more" Disabled="_isLoading" OnClick="LoadMoreAsync">
+                    @(_isLoading ? "Loading…" : "Show more")
+                </MudButton>
+            }
+        </div>
+
+        <aside class="feeds-panel" aria-label="Details">
+            @if (SelectedDecision is { } selected)
+            {
+                @Detail(selected, true)
+            }
+            else
+            {
+                <div class="feeds-panel-empty">Select an article to see its details.</div>
+            }
+        </aside>
+    </div>
+</div>

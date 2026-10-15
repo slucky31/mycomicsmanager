@@ -18,6 +18,7 @@ using Hangfire.States;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using Web.Models;
 using Web.Services;
 using Xunit;
 
@@ -285,6 +286,31 @@ public sealed class FeedImportServiceTests
 
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
         (await _service.CountAwaitingArbitrationAsync(TestContext.Current.CancellationToken)).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetStatusCountsAsync_Should_CountTheDecisionsOfTheCurrentUser()
+    {
+        _decisionReadService.CountPerStatusAsync(s_userId, Arg.Any<CancellationToken>()).Returns(new Dictionary<FeedImportDecisionStatus, int>
+        {
+            [FeedImportDecisionStatus.Failed] = 2,
+            [FeedImportDecisionStatus.Downloaded] = 1,
+        });
+
+        var result = await _service.GetStatusCountsAsync(TestContext.Current.CancellationToken);
+
+        result.Value.Should().Be(new FeedImportStatusCounts(3, 0, 2, 1));
+    }
+
+    [Fact]
+    public async Task GetStatusCountsAsync_Should_ReturnError_WhenUserNotResolved()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        var result = await _service.GetStatusCountsAsync(TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(UsersError.NotFound);
+        await _decisionReadService.DidNotReceive().CountPerStatusAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

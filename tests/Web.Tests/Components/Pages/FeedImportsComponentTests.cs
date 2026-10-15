@@ -28,7 +28,7 @@ public sealed class FeedImportsComponentTests
         return new FeedImportDecisionPageViewModel(items, items.Count);
     }
 
-    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImports> Cut, ISnackbar Snackbar)> RenderAsync(
+    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImportsPage> Cut, ISnackbar Snackbar)> RenderAsync(
         IFeedImportService service, IDialogService? dialogService = null)
     {
         var snackbar = Substitute.For<ISnackbar>();
@@ -44,7 +44,7 @@ public sealed class FeedImportsComponentTests
         }
 
         ctx.Render<MudPopoverProvider>();
-        var cut = ctx.Render<FeedImports>();
+        var cut = ctx.Render<FeedImportsPage>();
         await Task.Yield();
 
         return (ctx, cut, snackbar);
@@ -56,6 +56,7 @@ public sealed class FeedImportsComponentTests
         service.IsSyncEnabled.Returns(syncEnabled);
         service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Blacksad T3", "Largo Winch T20")));
+        service.GetStatusCountsAsync(Arg.Any<CancellationToken>()).Returns(Result<FeedImportStatusCounts>.Success(new FeedImportStatusCounts(15, 1, 14, 0)));
         return service;
     }
 
@@ -98,10 +99,12 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
-        var select = cut.FindComponent<MudSelect<FeedImportDecisionStatus?>>();
-        await cut.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(FeedImportDecisionStatus.Failed));
+        cut.FindAll(".feeds-chip").Select(c => c.TextContent.Trim()).Should().Equal("All · 15", "To decide · 1", "Failed · 14", "Downloaded");
+
+        await cut.FindAll(".feeds-chip").Single(c => c.TextContent.Contains("Failed", StringComparison.Ordinal)).ClickAsync(new());
 
         await service.Received(1).GetDecisionsAsync(FeedImportDecisionStatus.Failed, null, 1, 20, Arg.Any<CancellationToken>());
+        cut.FindAll(".feeds-chip[aria-pressed='true']").Should().ContainSingle().Which.TextContent.Should().Contain("Failed");
     }
 
     [Fact]
@@ -114,11 +117,15 @@ public sealed class FeedImportsComponentTests
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
         cut.Markup.Should().NotContain("History");
 
-        await cut.FindAll("button[aria-label='Show details']")[0].ClickAsync(new());
+        await cut.FindAll(".feed-card-main")[0].ClickAsync(new());
 
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("History"));
         cut.Markup.Should().Contain(FeedImportDecision.CreatedReason);
-        cut.FindAll("button[aria-label='Hide details']").Should().ContainSingle();
+        cut.FindAll(".feed-card-main[aria-expanded='true']").Should().ContainSingle();
+
+        await cut.FindAll(".feed-card-main")[0].ClickAsync(new());
+
+        cut.Markup.Should().NotContain("History");
     }
 
     [Fact]
@@ -173,9 +180,8 @@ public sealed class FeedImportsComponentTests
         var (ctx, cut, snackbar) = await RenderAsync(service);
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad - Tome 3"));
-        await cut.FindAll("button[aria-label='Show details']")[0].ClickAsync(new());
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Not a duplicate"));
-        cut.Markup.Should().Contain("1fichier.com");
+        // The arbitration is on the card itself, without opening the detail.
+        cut.Markup.Should().Contain("Not a duplicate").And.NotContain("1fichier.com");
 
         var button = cut.FindAll("button").First(b => b.TextContent.Contains("Not a duplicate", StringComparison.Ordinal));
         await button.ClickAsync(new());
@@ -201,18 +207,25 @@ public sealed class FeedImportsComponentTests
         snackbar.Received(1).Add(FeedImportError.InvalidStatusTransition.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 
-    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImports> Cut, ISnackbar Snackbar)> RenderExpandedAsync(
+    private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImportsPage> Cut, ISnackbar Snackbar)> RenderExpandedAsync(
         IFeedImportService service, FeedImportDecisionViewModel decision)
     {
         service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(new FeedImportDecisionPageViewModel([decision], 1)));
         var (ctx, cut, snackbar) = await RenderAsync(service);
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain(decision.EntryTitle));
-        await cut.FindAll("button[aria-label='Show details']")[0].ClickAsync(new());
+        await cut.FindAll(".feed-card-main")[0].ClickAsync(new());
         return (ctx, cut, snackbar);
     }
 
-    private static AngleSharp.Dom.IElement Button(IRenderedComponent<FeedImports> cut, string text) =>
+    // Opens the first decision and deletes it from the detail panel.
+    private static async Task DeleteFirstAsync(IRenderedComponent<FeedImportsPage> cut)
+    {
+        await cut.FindAll(".feed-card-main")[0].ClickAsync(new());
+        await cut.Find("button[aria-label='Delete this item']").ClickAsync(new());
+    }
+
+    private static AngleSharp.Dom.IElement Button(IRenderedComponent<FeedImportsPage> cut, string text) =>
         cut.FindAll("button").First(b => b.TextContent.Contains(text, StringComparison.Ordinal));
 
     [Fact]
@@ -288,7 +301,7 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
-        await cut.FindAll("button[aria-label='Delete decision']")[0].ClickAsync(new());
+        await DeleteFirstAsync(cut);
 
         await service.Received(1).DeleteAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 1), Arg.Any<CancellationToken>());
         snackbar.Received(1).Add("1 decision(s) deleted.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
@@ -304,7 +317,7 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
-        await cut.FindAll("button[aria-label='Delete decision']")[0].ClickAsync(new());
+        await DeleteFirstAsync(cut);
 
         await service.DidNotReceiveWithAnyArgs().DeleteAsync(default!, Xunit.TestContext.Current.CancellationToken);
     }
@@ -320,7 +333,7 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
-        await cut.FindAll("button[aria-label='Delete decision']")[0].ClickAsync(new());
+        await DeleteFirstAsync(cut);
 
         snackbar.Received(1).Add(FeedImportError.DeleteInProgress.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
@@ -335,10 +348,11 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
-        // First checkbox selects every row: take the one of the first row.
-        await cut.FindAll("tbody input[type='checkbox']")[0].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = true });
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Delete selection (1)"));
-        await Button(cut, "Delete selection").ClickAsync(new());
+        await cut.InvokeAsync(() => cut.Instance.StartSelecting());
+        cut.Render();
+        await cut.FindAll(".feed-card-check")[0].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = true });
+        await cut.WaitForAssertionAsync(() => cut.Find(".feeds-selection").TextContent.Should().Contain("1 selected"));
+        await cut.FindAll(".feeds-selection button").First(b => b.TextContent.Contains("Delete", StringComparison.Ordinal)).ClickAsync(new());
 
         await service.Received(1).DeleteAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 1), Arg.Any<CancellationToken>());
         snackbar.Received(1).Add("1 decision(s) deleted.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
@@ -357,7 +371,7 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
-        await Button(cut, "Delete downloaded").ClickAsync(new());
+        await cut.InvokeAsync(() => cut.Instance.DeleteDownloadedAsync());
 
         await service.Received(1).DeleteDownloadedAsync(Arg.Any<CancellationToken>());
         snackbar.Received(1).Add(message, severity, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
@@ -373,7 +387,7 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
-        await Button(cut, "Delete downloaded").ClickAsync(new());
+        await cut.InvokeAsync(() => cut.Instance.DeleteDownloadedAsync());
 
         await service.DidNotReceiveWithAnyArgs().DeleteDownloadedAsync(Xunit.TestContext.Current.CancellationToken);
     }
@@ -389,8 +403,178 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
 
-        await Button(cut, "Delete downloaded").ClickAsync(new());
+        await cut.InvokeAsync(() => cut.Instance.DeleteDownloadedAsync());
 
         snackbar.Received(1).Add(FeedImportError.BadRequest.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task LoadMoreAsync_Should_AppendTheNextPage_WhenMoreDecisionsExist()
+    {
+        var service = CreateService();
+        var first = CreatePage("Blacksad T3");
+        var second = CreatePage("Largo Winch T20");
+        service.GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(first with { TotalCount = 2 }));
+        service.GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(second with { TotalCount = 2 }));
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await Button(cut, "Show more").ClickAsync(new());
+
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".feed-card-title").Select(t => t.TextContent).Should().Equal("Blacksad T3", "Largo Winch T20"));
+        cut.FindAll("button").Should().NotContain(b => b.TextContent.Contains("Show more", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task LoadCountsAsync_Should_ShowSnackbarError_WhenCountFails()
+    {
+        var service = CreateService();
+        service.GetStatusCountsAsync(Arg.Any<CancellationToken>()).Returns(Result<FeedImportStatusCounts>.Failure(new TError("feed:err", "boom")));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service);
+        await using var _ = ctx;
+
+        await cut.WaitForAssertionAsync(() =>
+            snackbar.Received().Add("Unable to count the import decisions.", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
+        cut.FindAll(".feeds-chip").Select(c => c.TextContent.Trim()).Should().Equal("All", "To decide", "Failed", "Downloaded");
+    }
+
+    [Fact]
+    public async Task OnSearchChangedAsync_Should_ReloadWithTheTerm_WhenUserTypesInTheOpenedSearch()
+    {
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+        cut.FindAll(".feeds-search.open").Should().BeEmpty();
+
+        await cut.Find("button[aria-label='Search']").ClickAsync(new());
+        await cut.Find(".feeds-search.open input").InputAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = "  largo " });
+
+        await cut.WaitForAssertionAsync(async () =>
+            await service.Received(1).GetDecisionsAsync(null, "largo", 1, 20, Arg.Any<CancellationToken>()), TimeSpan.FromSeconds(3));
+    }
+
+    [Fact]
+    public async Task SyncNowAsync_Should_ShowError_WhenSyncCannotStart()
+    {
+        var service = CreateService();
+        service.TriggerSync().Returns(Result.Failure(FeedImportError.BadRequest));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.Find("button[aria-label='Sync now']").ClickAsync(new());
+
+        snackbar.Received(1).Add(FeedImportError.BadRequest.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task SelectFilterAsync_Should_CloseTheDetail_WhenTheDecisionIsNoLongerListed()
+    {
+        var service = CreateService();
+        service.GetDecisionsAsync(FeedImportDecisionStatus.Failed, Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Thorgal T1")));
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.FindAll(".feed-card-main")[0].ClickAsync(new());
+        cut.FindAll(".feeds-panel .feed-detail").Should().ContainSingle();
+
+        await cut.InvokeAsync(() => cut.Instance.SelectFilterAsync(FeedImportFilter.All));
+        await cut.FindAll(".feeds-chip").Single(c => c.TextContent.Contains("Failed", StringComparison.Ordinal)).ClickAsync(new());
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Thorgal T1"));
+        cut.FindAll(".feeds-panel .feed-detail").Should().BeEmpty();
+        cut.Markup.Should().Contain("Select an article to see its details.");
+        await service.Received(1).GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteSelectedAsync_Should_ReportTheDecisionsNotDeleted_AndLeaveTheSelection()
+    {
+        var service = CreateService();
+        service.DeleteAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service, CreateDialogService(confirmed: true));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.InvokeAsync(() => cut.Instance.StartSelecting());
+        cut.Render();
+        await cut.FindAll(".feed-card-check")[0].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = true });
+        await cut.FindAll(".feed-card-check")[1].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = true });
+        await cut.FindAll(".feeds-selection button").First(b => b.TextContent.Contains("Delete", StringComparison.Ordinal)).ClickAsync(new());
+
+        await service.Received(1).DeleteAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 2), Arg.Any<CancellationToken>());
+        snackbar.Received(1).Add("1 decision(s) deleted, 1 not deleted (download or import in progress).", Severity.Warning, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        cut.FindAll(".feeds-selection").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task StopSelecting_Should_HideTheCheckboxes_WhenSelectionIsCancelled()
+    {
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.InvokeAsync(() => cut.Instance.StartSelecting());
+        cut.Render();
+        await cut.FindAll(".feed-card-check")[0].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = true });
+        await cut.FindAll(".feed-card-check")[0].ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = false });
+        cut.Find(".feeds-selection").TextContent.Should().Contain("0 selected");
+
+        await cut.FindAll(".feeds-selection button").First(b => b.TextContent.Contains("Cancel", StringComparison.Ordinal)).ClickAsync(new());
+
+        cut.FindAll(".feed-card-check").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task CancelCorrection_Should_CloseTheForm()
+    {
+        var decision = CreateProbableDuplicate();
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderExpandedAsync(service, decision);
+        await using var _ = ctx;
+        await Button(cut, "Fix series / volume").ClickAsync(new());
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Fix the title parsing"));
+
+        await cut.FindAll(".feed-correction button").First(b => b.TextContent.Contains("Cancel", StringComparison.Ordinal)).ClickAsync(new());
+
+        cut.Markup.Should().NotContain("Fix the title parsing");
+        await service.DidNotReceiveWithAnyArgs().CorrectAsync(default, default!, default, default, Xunit.TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_KeepTheChosenLink_WhenLinksAreAmbiguous()
+    {
+        var entry = FeedImportDecision.Create(Guid.CreateVersion7(), 98, "Blacksad - Tome 3", "https://planete-bd.org/98", null).Value!;
+        var candidate = new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", 52_428_800, [new DownloadMirror("https://1fichier.com/?a", "1fichier.com")]);
+        entry.RequestArbitration(FeedImportArbitrationKind.AmbiguousLinks, [candidate, candidate with { Label = "Autre" }],
+            new ParsedComicTitle("Blacksad", null, 3), null, "Ambigu", FeedImportDecidedBy.Auto);
+        var decision = FeedImportDecisionViewModel.From(entry);
+        var service = CreateService();
+        service.ResolveArbitrationAsync(decision.Id, Arg.Any<FeedImportArbitrationAction>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(new FeedImportDecisionPageViewModel([decision], 1)));
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad - Tome 3"));
+        await Button(cut, "Choose the file").ClickAsync(new());
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Keep this link"));
+
+        await cut.FindAll("button").Where(b => b.TextContent.Contains("Keep this link", StringComparison.Ordinal)).ElementAt(1).ClickAsync(new());
+
+        await service.Received(1).ResolveArbitrationAsync(decision.Id, FeedImportArbitrationAction.KeepCandidate, 1, Arg.Any<CancellationToken>());
     }
 }
