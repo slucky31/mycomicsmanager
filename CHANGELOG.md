@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.46.2"></a>
+## [10.46.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.2) (2026-10-15)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dotnet monorepo ([#1137](https://www.github.com/slucky31/mycomicsmanager/issues/1137)) ([72ded22](https://www.github.com/slucky31/mycomicsmanager/commit/72ded22b1d2cf921fc3257900a1ce5a0593a7eb1))
+
 <a name="10.46.1"></a>
 ## [10.46.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.1) (2026-10-15)
 
