@@ -195,7 +195,7 @@ jobs:
     needs: [build, release]
     if: needs.build.outputs.released == 'true' && needs.release.outputs.pushed == 'true'
     # The image targets linux/arm64: a native arm64 runner builds it without QEMU emulation.
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     permissions:
       contents: read
       packages: write
