@@ -12,6 +12,10 @@ public sealed class FeatureToggleViewModelTests
     [InlineData(FeatureToggle.FeedImport, "Feed import", "FeedImport:Enabled")]
     [InlineData(FeatureToggle.IsbnOcr, "ISBN reading (OCR)", "IsbnOcr:Enabled")]
     [InlineData(FeatureToggle.Bedetheque, "Bedetheque search", "Bedetheque:Enabled")]
+    [InlineData(FeatureToggle.Bnf, "BnF catalogue search", "BnfCatalogue:Enabled")]
+    [InlineData(FeatureToggle.GoogleBooks, "Google Books search", "GoogleBooks:Enabled")]
+    [InlineData(FeatureToggle.OpenLibrary, "OpenLibrary search", "OpenLibrary:Enabled")]
+    [InlineData(FeatureToggle.Bubble, "Bubble search", "Bubble:Enabled")]
     [InlineData((FeatureToggle)99, "99", "99:Enabled")]
     public void From_Should_DescribeTheFeature(FeatureToggle toggle, string label, string configurationKey)
     {

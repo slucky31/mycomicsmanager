@@ -9,4 +9,9 @@ public sealed class BubbleSettings
     public required Uri AlgoliaBaseUrl { get; init; }
     public string ApplicationId { get; init; } = string.Empty;
     public string ApiKey { get; init; } = string.Empty;
+
+    // Off: the ISBN searches skip this source (it can also be turned off in Settings → Features).
+    public bool Enabled { get; init; } = true;
+
+    public bool HasApiKey => !string.IsNullOrWhiteSpace(ApplicationId) && !string.IsNullOrWhiteSpace(ApiKey);
 }

@@ -15,7 +15,7 @@ public record BubbleBookResult(
 
 public interface IBubbleService
 {
-    // False when no Algolia key is configured (Bubble:ApiKey).
+    // False when the source is turned off, or when no Algolia key is configured (Bubble:ApiKey).
     bool IsEnabled { get; }
 
     Task<BubbleBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default);

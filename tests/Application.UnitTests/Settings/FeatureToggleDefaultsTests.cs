@@ -10,11 +10,16 @@ public class FeatureToggleDefaultsTests
     public void IsConfiguredOn_Should_ReturnTheConfiguredValueOfEachFeature()
     {
         _data.Bedetheque = FeatureToggleTestData.CreateBedetheque(enabled: false);
+        _data.GoogleBooks = new() { Enabled = false };
         var defaults = _data.CreateDefaults();
 
         defaults.IsConfiguredOn(FeatureToggle.FeedImport).Should().BeFalse();
         defaults.IsConfiguredOn(FeatureToggle.IsbnOcr).Should().BeTrue();
         defaults.IsConfiguredOn(FeatureToggle.Bedetheque).Should().BeFalse();
+        defaults.IsConfiguredOn(FeatureToggle.Bnf).Should().BeTrue();
+        defaults.IsConfiguredOn(FeatureToggle.GoogleBooks).Should().BeFalse();
+        defaults.IsConfiguredOn(FeatureToggle.OpenLibrary).Should().BeTrue();
+        defaults.IsConfiguredOn(FeatureToggle.Bubble).Should().BeTrue();
         defaults.IsConfiguredOn((FeatureToggle)99).Should().BeFalse();
     }
 
@@ -61,6 +66,22 @@ public class FeatureToggleDefaultsTests
         _data.Miniflux.CategoryName = string.Empty;
 
         _data.CreateDefaults().GetMissingConfiguration(FeatureToggle.FeedImport).Should().Be("Miniflux:CategoryName is required.");
+    }
+
+    [Fact]
+    public void IsConfiguredOn_Should_BeOffForBubble_WhenItHasNoApiKey()
+    {
+        _data.Bubble = FeatureToggleTestData.CreateBubble(apiKey: "");
+
+        _data.CreateDefaults().IsConfiguredOn(FeatureToggle.Bubble).Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetMissingConfiguration_Should_RequireTheBubbleApiKey_WhenItIsMissing()
+    {
+        _data.Bubble = FeatureToggleTestData.CreateBubble(apiKey: " ");
+
+        _data.CreateDefaults().GetMissingConfiguration(FeatureToggle.Bubble).Should().Be("Bubble:ApiKey and Bubble:ApplicationId are required.");
     }
 
     [Fact]

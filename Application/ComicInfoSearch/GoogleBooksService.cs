@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application.Helpers;
 using Application.Interfaces;
+using Domain.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -13,20 +14,29 @@ public class GoogleBooksService : IGoogleBooksService
     private readonly HttpClient _httpClient;
     private const string SearchPath = "/volumes?q=isbn:";
     private readonly GoogleBooksSettings _settings;
+    private readonly IFeatureToggles _featureToggles;
     private readonly ILogger<GoogleBooksService> _logger;
 
-    public GoogleBooksService(HttpClient httpClient, IOptions<GoogleBooksSettings> settings, ILogger<GoogleBooksService> logger)
+    public GoogleBooksService(HttpClient httpClient, IOptions<GoogleBooksSettings> settings, IFeatureToggles featureToggles, ILogger<GoogleBooksService> logger)
     {
         _logger = logger;
         _httpClient = httpClient;
         _settings = settings.Value;
+        _featureToggles = featureToggles;
     }
+
+    public bool IsEnabled => _featureToggles.IsEnabled(FeatureToggle.GoogleBooks);
 
     public async Task<GoogleBooksBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
     {
         var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
                                .Replace(" ", "", StringComparison.Ordinal)
                                .Trim();
+
+        if (!IsEnabled)
+        {
+            return CreateNotFoundResult();
+        }
 
         try
         {

@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application.Helpers;
 using Application.Interfaces;
+using Domain.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -13,18 +14,27 @@ public class OpenLibraryService : IOpenLibraryService
 {
     private readonly HttpClient _httpClient;
     private readonly OpenLibrarySettings _settings;
+    private readonly IFeatureToggles _featureToggles;
     private readonly ILogger<OpenLibraryService> _logger;
 
-    public OpenLibraryService(HttpClient httpClient, IOptions<OpenLibrarySettings> settings, ILogger<OpenLibraryService> logger)
+    public OpenLibraryService(HttpClient httpClient, IOptions<OpenLibrarySettings> settings, IFeatureToggles featureToggles, ILogger<OpenLibraryService> logger)
     {
         _logger = logger;
         _httpClient = httpClient;
         _settings = settings.Value;
+        _featureToggles = featureToggles;
     }
+
+    public bool IsEnabled => _featureToggles.IsEnabled(FeatureToggle.OpenLibrary);
 
     public async Task<OpenLibraryBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
     {
         var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
+
+        if (!IsEnabled)
+        {
+            return CreateNotFoundResult();
+        }
 
         try
         {

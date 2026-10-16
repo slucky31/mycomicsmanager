@@ -4,6 +4,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Application.Helpers;
 using Application.Interfaces;
+using Domain.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -20,12 +21,14 @@ public partial class BnfCatalogueService : IBnfCatalogueService
 
     private readonly HttpClient _httpClient;
     private readonly BnfCatalogueSettings _settings;
+    private readonly IFeatureToggles _featureToggles;
     private readonly ILogger<BnfCatalogueService> _logger;
 
-    public BnfCatalogueService(HttpClient httpClient, IOptions<BnfCatalogueSettings> settings, ILogger<BnfCatalogueService> logger)
+    public BnfCatalogueService(HttpClient httpClient, IOptions<BnfCatalogueSettings> settings, IFeatureToggles featureToggles, ILogger<BnfCatalogueService> logger)
     {
         _httpClient = httpClient;
         _settings = settings.Value;
+        _featureToggles = featureToggles;
         _logger = logger;
     }
 
@@ -39,9 +42,16 @@ public partial class BnfCatalogueService : IBnfCatalogueService
     [GeneratedRegex(@"\d{4}")]
     private static partial Regex YearPattern();
 
+    public bool IsEnabled => _featureToggles.IsEnabled(FeatureToggle.Bnf);
+
     public async Task<BnfBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
     {
         var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
+
+        if (!IsEnabled)
+        {
+            return CreateNotFoundResult();
+        }
 
         try
         {

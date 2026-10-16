@@ -111,7 +111,9 @@ Copiez `appsettings.json` en `appsettings.Development.json` et renseignez les va
 
 La recherche par ISBN interroge, dans l'ordre, le catalogue de la BnF (sans clé), Google Books, OpenLibrary, Bubble puis Bedetheque, et garde le premier résultat trouvé. Bedetheque est derrière Cloudflare, qui peut bloquer les requêtes du serveur : `Bedetheque__Enabled=false` le désactive, et après un blocage il est mis en pause `Bedetheque__CloudflarePauseHours` heures (24 par défaut) pour ne pas consommer d'appels SerpApi.
 
-Les fonctionnalités `FeedImport:Enabled`, `IsbnOcr:Enabled` et `Bedetheque:Enabled` peuvent aussi être activées ou désactivées à chaud par un administrateur, dans **Settings → Administration → Features**. Le choix est enregistré en base (table `FeatureToggleOverrides`) et prime sur la configuration ; remis à la valeur configurée, le réglage suit de nouveau la configuration.
+Chaque source de la recherche par ISBN peut être désactivée dans la configuration (`BnfCatalogue:Enabled`, `GoogleBooks:Enabled`, `OpenLibrary:Enabled`, `Bubble:Enabled`, `Bedetheque:Enabled`, toutes à `true` par défaut) : une source désactivée n'est plus interrogée, ni à l'import ni sur la page « Find book details ». Bubble reste éteint tant que `Bubble__ApiKey` est vide.
+
+Les fonctionnalités `FeedImport:Enabled`, `IsbnOcr:Enabled` et les sources de la recherche par ISBN peuvent aussi être activées ou désactivées à chaud par un administrateur, dans **Settings → Administration → Features**. Le choix est enregistré en base (table `FeatureToggleOverrides`) et prime sur la configuration ; remis à la valeur configurée, le réglage suit de nouveau la configuration.
 
 Google Books a besoin d'une clé API (gratuite, 1 000 requêtes par jour) : sans elle, les requêtes partagent le quota anonyme de Google, presque toujours épuisé (réponse `429 Too Many Requests`). Créez une clé « Books API » dans la [console Google Cloud](https://console.cloud.google.com/apis/library/books.googleapis.com) et passez-la avec la variable d'environnement `GoogleBooks__ApiKey`.
 

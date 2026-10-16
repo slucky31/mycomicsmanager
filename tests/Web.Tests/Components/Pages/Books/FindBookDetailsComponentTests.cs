@@ -41,6 +41,9 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
 
         _booksService.GetById(_book.Id.ToString()).Returns(Result<Book>.Success(_book));
         _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Book>.Success(_book));
+        _bnfService.IsEnabled.Returns(true);
+        _openLibraryService.IsEnabled.Returns(true);
+        _googleBooksService.IsEnabled.Returns(true);
         _bedethequeService.IsEnabled.Returns(true);
         _bnfService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new BnfBookResult(string.Empty, null, [], [], null, null, null, Found: false));
@@ -119,6 +122,18 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
 
         cut.Markup.Should().NotContain("Bedetheque");
         await _bedethequeService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task OnParametersSetAsync_Should_HideTheSources_TurnedOffInTheSettings()
+    {
+        _bnfService.IsEnabled.Returns(false);
+        _googleBooksService.IsEnabled.Returns(false);
+        var cut = await RenderOnceSearchedAsync();
+
+        cut.Markup.Should().Contain("OpenLibrary").And.NotContain("BnF").And.NotContain("Google Books");
+        await _bnfService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _googleBooksService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

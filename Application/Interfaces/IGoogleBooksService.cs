@@ -17,5 +17,8 @@ public record GoogleBooksBookResult(
 
 public interface IGoogleBooksService
 {
+    // False when the source is turned off (configuration or Settings → Features).
+    bool IsEnabled { get; }
+
     Task<GoogleBooksBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default);
 }

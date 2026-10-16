@@ -17,14 +17,14 @@ public sealed class BubbleServiceTests
 
     private static readonly string[] UrbanComics = ["Urban Comics"];
 
-    private static BubbleService CreateService(HttpClient client, string apiKey = "search-key") =>
+    private static BubbleService CreateService(HttpClient client, string apiKey = "search-key", bool enabled = true) =>
         new(client, Options.Create(new BubbleSettings
         {
             BaseUrl = new Uri("https://www.bubblebd.com"),
             AlgoliaBaseUrl = new Uri("https://6a891z72zd-dsn.algolia.net"),
             ApplicationId = "6A891Z72ZD",
             ApiKey = apiKey,
-        }), NullLogger<BubbleService>.Instance);
+        }), FeatureTogglesStub.All(enabled), NullLogger<BubbleService>.Instance);
 
     private static HttpResponseMessage Json(string json) =>
         new(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
@@ -121,6 +121,20 @@ public sealed class BubbleServiceTests
         using var handler = new FakeHandler(_ => Json(Tome1Hit));
         using var client = new HttpClient(handler);
         var service = CreateService(client, apiKey: "");
+
+        var result = await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken);
+
+        service.IsEnabled.Should().BeFalse();
+        result.Found.Should().BeFalse();
+        handler.Requests.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_SearchNothing_WhenBubbleIsTurnedOff()
+    {
+        using var handler = new FakeHandler(_ => Json(Tome1Hit));
+        using var client = new HttpClient(handler);
+        var service = CreateService(client, enabled: false);
 
         var result = await service.SearchByIsbnAsync(Isbn, TestContext.Current.CancellationToken);
 
