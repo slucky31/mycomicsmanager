@@ -1,4 +1,4 @@
-.add-bar {
+.form-bar {
     flex-shrink: 0;
     min-height: 56px;
     display: flex;
@@ -7,7 +7,7 @@
     padding: env(safe-area-inset-top) 4px 0;
 }
 
-.add-bar-back {
+.form-bar-back {
     width: 44px;
     height: 44px;
     flex-shrink: 0;
@@ -22,21 +22,21 @@
     cursor: pointer;
 }
 
-.add-bar-back:hover {
+.form-bar-back:hover {
     background: rgba(27, 29, 36, 0.06);
 }
 
-.add-bar-back:focus-visible {
+.form-bar-back:focus-visible {
     outline: 2px solid #594AE2;
     outline-offset: 2px;
 }
 
-.add-bar-heading {
+.form-bar-heading {
     flex-grow: 1;
     min-width: 0;
 }
 
-.add-bar-heading h1 {
+.form-bar-heading h1 {
     margin: 0;
     font-size: 18px;
     font-weight: 500;
@@ -46,7 +46,7 @@
     white-space: nowrap;
 }
 
-.add-bar-subtitle {
+.form-bar-subtitle {
     font-size: 13px;
     color: #5C6070;
     overflow: hidden;
@@ -54,26 +54,26 @@
     white-space: nowrap;
 }
 
-.add-bar-actions {
+.form-bar-actions {
     display: none;
 }
 
 @media (min-width: 600px) {
-    .add-bar {
+    .form-bar {
         min-height: 72px;
         gap: 8px;
         padding: 0 28px 0 12px;
     }
 
-    .add-bar-heading h1 {
+    .form-bar-heading h1 {
         font-size: 22px;
     }
 
-    .add-bar-subtitle {
+    .form-bar-subtitle {
         font-size: 14px;
     }
 
-    .add-bar-actions {
+    .form-bar-actions {
         display: flex;
         gap: 8px;
     }

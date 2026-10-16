@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Web.Components.Pages.Books;
+namespace Web.Components.SharedComponents;
 
-public partial class AddBookHeader
+public partial class FormHeader
 {
     [Parameter, EditorRequired]
     public string Title { get; set; } = string.Empty;
@@ -17,7 +17,7 @@ public partial class AddBookHeader
     [Parameter]
     public EventCallback OnBack { get; set; }
 
-    // Shown on a tablet only.
+    // The actions of the form, shown in the bar from the tablet on (on a phone they are in a FormFooter).
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 }

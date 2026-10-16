@@ -1,11 +1,3 @@
-.add-page {
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    background: #F4F4F6;
-    color: #1B1D24;
-}
-
 .isbn-form {
     width: 100%;
     max-width: 480px;

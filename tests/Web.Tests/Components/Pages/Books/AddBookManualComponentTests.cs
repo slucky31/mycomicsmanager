@@ -36,7 +36,7 @@ public sealed class AddBookManualComponentTests : IAsyncDisposable
     {
         var cut = _ctx.Render<AddBookManual>();
 
-        cut.Find(".add-bar-subtitle").TextContent.Should().Be("Adding to Read Books");
+        cut.Find(".form-bar-subtitle").TextContent.Should().Be("Adding to Read Books");
         cut.Find("a[aria-label='Back']").GetAttribute("href").Should().Be($"/libraries/{_library.Id}");
         cut.Find("label[for=isbn]").TextContent.Should().Be("ISBN");
         cut.Find("#isbn").GetAttribute("aria-describedby").Should().Be("isbn-help");

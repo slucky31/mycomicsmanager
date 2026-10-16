@@ -6,8 +6,8 @@
 
 <PageTitle>Type the ISBN — MyComicsManager</PageTitle>
 
-<div class="add-page">
-    <AddBookHeader Title="Type the ISBN" Subtitle="@(_libraryName is null ? null : $"Adding to {_libraryName}")" BackHref="@AddBookLinks.Exit(_libraryId)" />
+<FormPage>
+    <FormHeader Title="Type the ISBN" Subtitle="@(_libraryName is null ? null : $"Adding to {_libraryName}")" BackHref="@AddBookLinks.Exit(_libraryId)" />
 
     <form class="isbn-form" novalidate @onsubmit="LookUp">
         <FormField Id="@InputId" Label="ISBN" Error="@_error" Help="@IsbnEntry.Help">
@@ -17,4 +17,4 @@
         </FormField>
         <button type="submit" class="isbn-look-up"><MudIcon Icon="@Icons.Material.Filled.Search" />Look up</button>
     </form>
-</div>
+</FormPage>
