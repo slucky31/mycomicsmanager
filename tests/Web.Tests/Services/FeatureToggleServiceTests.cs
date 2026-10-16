@@ -31,7 +31,12 @@ public sealed class FeatureToggleServiceTests
             Options.Create(_feedImportSettings),
             Options.Create(new MinifluxSettings()),
             Options.Create(new IsbnOcrSettings()),
-            Options.Create(new BedethequeSettings { BaseUrl = new Uri("https://www.bedetheque.com"), SerpApiBaseUrl = new Uri("https://serpapi.com") }));
+            new BookSourceOptions(
+                Options.Create(new BnfCatalogueSettings { BaseUrl = new Uri("https://catalogue.bnf.fr") }),
+                Options.Create(new GoogleBooksSettings()),
+                Options.Create(new OpenLibrarySettings { BaseUrl = new Uri("https://openlibrary.org"), CoversBaseUrl = new Uri("https://covers.openlibrary.org") }),
+                Options.Create(new BubbleSettings { BaseUrl = new Uri("https://www.bubblebd.com"), AlgoliaBaseUrl = new Uri("https://6a891z72zd-dsn.algolia.net") }),
+                Options.Create(new BedethequeSettings { BaseUrl = new Uri("https://www.bedetheque.com"), SerpApiBaseUrl = new Uri("https://serpapi.com") })));
         _featureToggles = new FeatureToggles(defaults);
         _service = new FeatureToggleService(_setHandler, _featureToggles, _recurringJobManager, Options.Create(_feedImportSettings),
             NullLogger<FeatureToggleService>.Instance);

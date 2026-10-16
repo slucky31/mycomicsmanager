@@ -34,6 +34,7 @@ public static class ApplicationDependencyInjection
         services.AddSingleton<IDownloadLinkExtractor, GenericDownloadLinkExtractor>();
         services.TryAddSingleton(TimeProvider.System);
 
+        services.AddSingleton<BookSourceOptions>();
         services.AddSingleton<FeatureToggleDefaults>();
         services.AddSingleton<FeatureToggles>();
         services.AddSingleton<IFeatureToggles>(sp => sp.GetRequiredService<FeatureToggles>());

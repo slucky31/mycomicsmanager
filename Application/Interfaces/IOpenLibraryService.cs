@@ -14,5 +14,8 @@ public record OpenLibraryBookResult(
 
 public interface IOpenLibraryService
 {
+    // False when the source is turned off (configuration or Settings → Features).
+    bool IsEnabled { get; }
+
     Task<OpenLibraryBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default);
 }

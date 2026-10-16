@@ -10,8 +10,23 @@ public sealed class GoogleBooksServiceTests
     private const string ValidIsbnWithDashes = "978-2-205-08916-5";
     private static readonly Uri GoogleBooksBaseUrl = new("https://www.googleapis.com/books/v1");
 
-    private static GoogleBooksService CreateService(HttpClient httpClient, string? apiKey = null) =>
-        new(httpClient, Options.Create(new GoogleBooksSettings { BaseUrl = GoogleBooksBaseUrl, ApiKey = apiKey }), NullLogger<GoogleBooksService>.Instance);
+    private static GoogleBooksService CreateService(HttpClient httpClient, string? apiKey = null, bool enabled = true) =>
+        new(httpClient, Options.Create(new GoogleBooksSettings { BaseUrl = GoogleBooksBaseUrl, ApiKey = apiKey }),
+            FeatureTogglesStub.All(enabled), NullLogger<GoogleBooksService>.Instance);
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_SearchNothing_WhenGoogleBooksIsTurnedOff()
+    {
+        using var handler = new MockHttpMessageHandler(new HttpRequestException("Google Books must not be called"));
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient, enabled: false);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        service.IsEnabled.Should().BeFalse();
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeFalse();
+    }
 
     [Fact]
     public async Task SearchByIsbnAsync_Should_SendTheApiKey_WhenOneIsConfigured()

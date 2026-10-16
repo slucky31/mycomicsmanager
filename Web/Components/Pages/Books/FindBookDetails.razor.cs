@@ -129,49 +129,45 @@ public partial class FindBookDetails
             _searchStates[source] = ProviderSearchState.Searching;
         }
 
-        List<Task> searches =
-        [
-            SearchProviderAsync(BookSource.Bnf, "the BnF catalogue", BnfCatalogueService.SearchByIsbnAsync(isbn), result =>
-            {
-                _bnfResult = result;
-                _bnfParsed = ParseTitle(result);
-                return ProviderSearchStates.Of(result);
-            }),
-            SearchProviderAsync(BookSource.OpenLibrary, "OpenLibrary", OpenLibraryService.SearchByIsbnAsync(isbn), result =>
-            {
-                _olResult = result;
-                _olParsed = ParseTitle(result);
-                return ProviderSearchStates.Of(result);
-            }),
-            SearchProviderAsync(BookSource.Google, "Google Books", GoogleBooksService.SearchByIsbnAsync(isbn), result =>
-            {
-                _googleResult = result;
-                _googleParsed = ParseTitle(result);
-                return ProviderSearchStates.Of(result);
-            }),
-        ];
-
-        if (BedethequeService.IsEnabled)
-        {
-            searches.Add(SearchProviderAsync(BookSource.Bedetheque, "Bedetheque", BedethequeService.SearchByIsbnAsync(isbn), result =>
-            {
-                _bedethequeResult = result;
-                return ProviderSearchStates.Of(result);
-            }));
-        }
-
-        if (BubbleService.IsEnabled)
-        {
-            searches.Add(SearchProviderAsync(BookSource.Bubble, "Bubble", BubbleService.SearchByIsbnAsync(isbn), result =>
-            {
-                _bubbleResult = result;
-                return ProviderSearchStates.Of(result);
-            }));
-        }
+        List<Task> searches = [.. WebSources().Select(source => SearchSourceAsync(source, isbn))];
 
         StateHasChanged();
         await Task.WhenAll(searches);
     }
+
+    // Starts the search of one source; its result is applied as soon as it comes.
+    private Task SearchSourceAsync(BookSource source, string isbn) => source switch
+    {
+        BookSource.Bnf => SearchProviderAsync(source, "the BnF catalogue", BnfCatalogueService.SearchByIsbnAsync(isbn), result =>
+        {
+            _bnfResult = result;
+            _bnfParsed = ParseTitle(result);
+            return ProviderSearchStates.Of(result);
+        }),
+        BookSource.OpenLibrary => SearchProviderAsync(source, "OpenLibrary", OpenLibraryService.SearchByIsbnAsync(isbn), result =>
+        {
+            _olResult = result;
+            _olParsed = ParseTitle(result);
+            return ProviderSearchStates.Of(result);
+        }),
+        BookSource.Google => SearchProviderAsync(source, "Google Books", GoogleBooksService.SearchByIsbnAsync(isbn), result =>
+        {
+            _googleResult = result;
+            _googleParsed = ParseTitle(result);
+            return ProviderSearchStates.Of(result);
+        }),
+        BookSource.Bedetheque => SearchProviderAsync(source, "Bedetheque", BedethequeService.SearchByIsbnAsync(isbn), result =>
+        {
+            _bedethequeResult = result;
+            return ProviderSearchStates.Of(result);
+        }),
+        BookSource.Bubble => SearchProviderAsync(source, "Bubble", BubbleService.SearchByIsbnAsync(isbn), result =>
+        {
+            _bubbleResult = result;
+            return ProviderSearchStates.Of(result);
+        }),
+        _ => Task.CompletedTask,
+    };
 
     private async Task SearchProviderAsync<T>(BookSource source, string provider, Task<T> search, Func<T?, ProviderSearchState> apply)
         where T : class
@@ -191,14 +187,17 @@ public partial class FindBookDetails
         StateHasChanged();
     }
 
-    // Bedetheque and Bubble can be turned off in the settings.
+    // Each source can be turned off in Settings → Features.
     private IEnumerable<BookSource> WebSources() =>
         new[] { BookSource.Bnf, BookSource.Bedetheque, BookSource.Bubble, BookSource.OpenLibrary, BookSource.Google }
             .Where(source => source switch
             {
+                BookSource.Bnf => BnfCatalogueService.IsEnabled,
                 BookSource.Bedetheque => BedethequeService.IsEnabled,
                 BookSource.Bubble => BubbleService.IsEnabled,
-                _ => true,
+                BookSource.OpenLibrary => OpenLibraryService.IsEnabled,
+                BookSource.Google => GoogleBooksService.IsEnabled,
+                _ => false,
             });
 
     private bool IsSearching => _searchStates.ContainsValue(ProviderSearchState.Searching);

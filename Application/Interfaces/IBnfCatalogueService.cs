@@ -19,5 +19,8 @@ public record BnfBookResult(
 /// </summary>
 public interface IBnfCatalogueService
 {
+    // False when the source is turned off (configuration or Settings → Features).
+    bool IsEnabled { get; }
+
     Task<BnfBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default);
 }

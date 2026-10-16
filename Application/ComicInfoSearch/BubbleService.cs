@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Application.Helpers;
 using Application.Interfaces;
+using Domain.Settings;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -40,12 +41,14 @@ public partial class BubbleService : IBubbleService
 
     private readonly HttpClient _httpClient;
     private readonly BubbleSettings _settings;
+    private readonly IFeatureToggles _featureToggles;
     private readonly ILogger<BubbleService> _logger;
 
-    public BubbleService(HttpClient httpClient, IOptions<BubbleSettings> settings, ILogger<BubbleService> logger)
+    public BubbleService(HttpClient httpClient, IOptions<BubbleSettings> settings, IFeatureToggles featureToggles, ILogger<BubbleService> logger)
     {
         _httpClient = httpClient;
         _settings = settings.Value;
+        _featureToggles = featureToggles;
         _logger = logger;
     }
 
@@ -57,7 +60,7 @@ public partial class BubbleService : IBubbleService
     [GeneratedRegex("^[A-Za-z0-9-]+$")]
     private static partial Regex UrlSegmentPattern();
 
-    public bool IsEnabled => !string.IsNullOrWhiteSpace(_settings.ApplicationId) && !string.IsNullOrWhiteSpace(_settings.ApiKey);
+    public bool IsEnabled => _featureToggles.IsEnabled(FeatureToggle.Bubble) && _settings.HasApiKey;
 
     public async Task<BubbleBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default)
     {

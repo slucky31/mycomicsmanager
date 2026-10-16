@@ -44,7 +44,7 @@ public sealed class BnfCatalogueServiceTests : IDisposable
         }
     }
 
-    private (BnfCatalogueService Service, StubHandler Handler) CreateService(Func<HttpRequestMessage, HttpResponseMessage> respond)
+    private (BnfCatalogueService Service, StubHandler Handler) CreateService(Func<HttpRequestMessage, HttpResponseMessage> respond, bool enabled = true)
     {
         var handler = new StubHandler(respond);
         var client = new HttpClient(handler);
@@ -53,6 +53,7 @@ public sealed class BnfCatalogueServiceTests : IDisposable
         var service = new BnfCatalogueService(
             client,
             Options.Create(new BnfCatalogueSettings { BaseUrl = new Uri("https://catalogue.bnf.fr") }),
+            FeatureTogglesStub.All(enabled),
             NullLogger<BnfCatalogueService>.Instance);
         return (service, handler);
     }
@@ -71,6 +72,18 @@ public sealed class BnfCatalogueServiceTests : IDisposable
             "Tangente", null, ["Céline Wagner"], ["des Ronds dans l'O"], new DateOnly(2012, 1, 1), 82, null, Found: true));
         handler.LastRequest!.RequestUri!.AbsoluteUri.Should().Contain("bib.fuzzyISBN%20all%20%229782917237359%22")
             .And.Contain("recordSchema=dublincore");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_SearchNothing_WhenTheBnfIsTurnedOff()
+    {
+        var (service, handler) = CreateService(_ => Xml(NoRecordResponse), enabled: false);
+
+        var result = await service.SearchByIsbnAsync("9782917237359", TestContext.Current.CancellationToken);
+
+        service.IsEnabled.Should().BeFalse();
+        result.Found.Should().BeFalse();
+        handler.LastRequest.Should().BeNull();
     }
 
     [Fact]

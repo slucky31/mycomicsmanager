@@ -9,12 +9,26 @@ public class OpenLibraryServiceTests
     private const string ValidIsbn = "9782205089165";
     private const string ValidIsbnWithDashes = "978-2-205-08916-5";
 
-    private static OpenLibraryService CreateService(HttpClient httpClient) =>
+    private static OpenLibraryService CreateService(HttpClient httpClient, bool enabled = true) =>
         new(httpClient, Options.Create(new OpenLibrarySettings
         {
             BaseUrl = new Uri("https://openlibrary.org"),
             CoversBaseUrl = new Uri("https://covers.openlibrary.org")
-        }), NullLogger<OpenLibraryService>.Instance);
+        }), FeatureTogglesStub.All(enabled), NullLogger<OpenLibraryService>.Instance);
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_SearchNothing_WhenOpenLibraryIsTurnedOff()
+    {
+        using var handler = new MockHttpMessageHandler(new HttpRequestException("OpenLibrary must not be called"));
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient, enabled: false);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        service.IsEnabled.Should().BeFalse();
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeFalse();
+    }
 
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnBookResult_WhenBookFound()

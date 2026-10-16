@@ -1,5 +1,4 @@
 using Application.Books.IsbnScan;
-using Application.ComicInfoSearch;
 using Application.FeedImports;
 using Domain.Settings;
 using Microsoft.Extensions.Options;
@@ -13,13 +12,17 @@ public sealed class FeatureToggleDefaults(
     IOptions<FeedImportSettings> feedImport,
     IOptions<MinifluxSettings> miniflux,
     IOptions<IsbnOcrSettings> isbnOcr,
-    IOptions<BedethequeSettings> bedetheque)
+    BookSourceOptions bookSources)
 {
     public bool IsConfiguredOn(FeatureToggle toggle) => toggle switch
     {
         FeatureToggle.FeedImport => feedImport.Value.Enabled,
         FeatureToggle.IsbnOcr => isbnOcr.Value.Enabled,
-        FeatureToggle.Bedetheque => bedetheque.Value.Enabled,
+        FeatureToggle.Bedetheque => bookSources.Bedetheque.Value.Enabled,
+        FeatureToggle.Bnf => bookSources.Bnf.Value.Enabled,
+        FeatureToggle.GoogleBooks => bookSources.GoogleBooks.Value.Enabled,
+        FeatureToggle.OpenLibrary => bookSources.OpenLibrary.Value.Enabled,
+        FeatureToggle.Bubble => bookSources.Bubble.Value.Enabled && bookSources.Bubble.Value.HasApiKey,
         _ => false
     };
 
@@ -28,6 +31,7 @@ public sealed class FeatureToggleDefaults(
     {
         FeatureToggle.FeedImport => GetFeedImportMissingConfiguration(),
         FeatureToggle.IsbnOcr => string.IsNullOrWhiteSpace(isbnOcr.Value.TesseractPath) ? "IsbnOcr:TesseractPath is required." : null,
+        FeatureToggle.Bubble => bookSources.Bubble.Value.HasApiKey ? null : "Bubble:ApiKey and Bubble:ApplicationId are required.",
         _ => null
     };
 

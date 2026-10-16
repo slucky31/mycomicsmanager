@@ -16,6 +16,23 @@ internal sealed class FeatureToggleTestData
 
     public BedethequeSettings Bedetheque { get; set; } = CreateBedetheque(enabled: true);
 
+    public BnfCatalogueSettings Bnf { get; set; } = new() { BaseUrl = new Uri("https://catalogue.bnf.fr") };
+
+    public GoogleBooksSettings GoogleBooks { get; set; } = new() { BaseUrl = new Uri("https://www.googleapis.com/books/v1") };
+
+    public OpenLibrarySettings OpenLibrary { get; set; } = new() { BaseUrl = new Uri("https://openlibrary.org"), CoversBaseUrl = new Uri("https://covers.openlibrary.org") };
+
+    public BubbleSettings Bubble { get; set; } = CreateBubble(apiKey: "search-key");
+
+    public static BubbleSettings CreateBubble(string apiKey, bool enabled = true) => new()
+    {
+        BaseUrl = new Uri("https://www.bubblebd.com"),
+        AlgoliaBaseUrl = new Uri("https://6a891z72zd-dsn.algolia.net"),
+        ApplicationId = "6A891Z72ZD",
+        ApiKey = apiKey,
+        Enabled = enabled
+    };
+
     public static BedethequeSettings CreateBedetheque(bool enabled) => new()
     {
         BaseUrl = new Uri("https://www.bedetheque.com"),
@@ -24,5 +41,6 @@ internal sealed class FeatureToggleTestData
     };
 
     public FeatureToggleDefaults CreateDefaults() => new(
-        Options.Create(FeedImport), Options.Create(Miniflux), Options.Create(IsbnOcr), Options.Create(Bedetheque));
+        Options.Create(FeedImport), Options.Create(Miniflux), Options.Create(IsbnOcr),
+        new BookSourceOptions(Options.Create(Bnf), Options.Create(GoogleBooks), Options.Create(OpenLibrary), Options.Create(Bubble), Options.Create(Bedetheque)));
 }
