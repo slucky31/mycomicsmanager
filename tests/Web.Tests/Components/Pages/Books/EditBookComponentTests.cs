@@ -160,17 +160,12 @@ public sealed class EditBookComponentTests : IAsyncDisposable
         cut.Find("[role=alert]").TextContent.Should().Be("1 field needs your attention.");
     }
 
-    public static TheoryData<TError, string> SaveFailures => new()
-    {
-        { BooksError.Duplicate, "Another book already has this ISBN" },
-        { BooksError.NotFound, "Unable to save the changes" },
-    };
-
     [Theory]
-    [MemberData(nameof(SaveFailures))]
-    public async Task SaveAsync_Should_SayWhyTheChangesWereNotSaved_AndStayOnTheForm(TError error, string message)
+    [InlineData(true, "Another book already has this ISBN")]
+    [InlineData(false, "Unable to save the changes")]
+    public async Task SaveAsync_Should_SayWhyTheChangesWereNotSaved_AndStayOnTheForm(bool duplicate, string message)
     {
-        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result<Book>.Failure(error));
+        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result<Book>.Failure(duplicate ? BooksError.Duplicate : BooksError.NotFound));
         var cut = Render();
 
         await cut.Find("form").SubmitAsync();
