@@ -12,10 +12,9 @@ public partial class MoveBookDialog
     [Parameter]
     public BookMoveChoices Choices { get; set; } = new([], null);
 
-    private readonly string _titleId = $"move-title-{Guid.NewGuid():N}";
     private BookMoveTargetViewModel? _selected;
 
-    private string TitleId => _titleId;
+    private string TitleId { get; } = $"move-title-{Guid.NewGuid():N}";
 
     // The suggested library is chosen when the dialog opens.
     protected override void OnParametersSet()
