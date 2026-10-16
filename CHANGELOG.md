@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.51.0"></a>
+## [10.51.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.51.0) (2026-10-16)
+
+### ✨ Features
+
+* **settings:** turn each ISBN search source on or off ([#1162](https://www.github.com/slucky31/mycomicsmanager/issues/1162)) ([70c8829](https://www.github.com/slucky31/mycomicsmanager/commit/70c882955c986995d4bd3be3efc2e7b4b7345636))
+
 <a name="10.50.0"></a>
 ## [10.50.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.50.0) (2026-10-16)
 
