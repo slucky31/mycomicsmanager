@@ -1,12 +1,17 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Web.Models;
 using Web.Services;
 using Web.Validators;
 
 namespace Web.Components.Pages.Libraries;
 
-public partial class EditLibrary
+// The form to edit a library (T12): its name, color and icon; its type cannot be changed.
+public sealed partial class EditLibrary : IDisposable
 {
+    private const string Msg_LoadFailed = "Unable to load the library";
+    private const string Msg_SaveFailed = "Unable to save the changes";
+
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -14,62 +19,113 @@ public partial class EditLibrary
 
     [Parameter] public string? LibraryId { get; set; }
 
-    private LibraryUiDto? _model;
-    private MudForm? _form;
     private readonly LibraryValidator _validator = new();
+    private readonly CancellationTokenSource _disposalCts = new();
+    private LibraryUiDto? _model;
+    private string? _name;
+    private int _bookCount;
+    private IReadOnlyList<string> _covers = [];
+    private FormErrors _errors = FormErrors.None;
+    private bool _submitted;
     private bool _isLoading = true;
     private bool _isSaving;
 
+    private string LibraryHref => $"/libraries/{LibraryId}";
+
     protected override async Task OnInitializedAsync()
     {
-        var result = await LibrariesService.GetById(LibraryId);
-
-        if (result.IsSuccess)
+        try
         {
-            _model = LibraryUiDto.Convert(result.Value!);
+            await LoadLibraryAsync();
+            if (_model is not null)
+            {
+                await LoadBooksAsync(_model.Id);
+            }
         }
-        else
+        finally
         {
-            Snackbar.Add("Library not found", Severity.Error);
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadLibraryAsync()
+    {
+        try
+        {
+            var result = await LibrariesService.GetById(LibraryId);
+            if (result.IsSuccess && result.Value is not null)
+            {
+                _model = LibraryUiDto.Convert(result.Value);
+                _name = result.Value.Name;
+                return;
+            }
+
+            Logger.LogError("Unable to load the library {LibraryId}: {Error}", LibraryId, result.Error?.Description);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Logger.LogError(ex, "Unexpected error while loading the library {LibraryId}", LibraryId);
         }
 
-        _isLoading = false;
+        Snackbar.Add(Msg_LoadFailed, Severity.Error);
+    }
+
+    // The count of books and latest covers of the preview; the card shows none when they cannot be loaded.
+    private async Task LoadBooksAsync(Guid libraryId)
+    {
+        var result = await LibrariesService.GetSummaries(_disposalCts.Token);
+        var summary = result.IsSuccess ? result.Value?.FirstOrDefault(s => s.Id == libraryId) : null;
+        if (summary is null)
+        {
+            Logger.LogWarning("Unable to load the books of the library {LibraryId}: {Error}", libraryId, result.Error?.Description);
+            return;
+        }
+
+        _bookCount = summary.BookCount;
+        _covers = summary.Covers;
+    }
+
+    // Once the form was submitted, its errors follow what is typed.
+    private void Revalidate()
+    {
+        if (_submitted && _model is not null)
+        {
+            _errors = FormErrors.From(_validator.Validate(_model));
+        }
     }
 
     private async Task SaveAsync()
     {
-        if (_form is null || _model is null)
+        if (_isSaving || _model is null)
         {
             return;
         }
 
-        await _form.ValidateAsync();
-
-        if (!_form.IsValid)
+        _submitted = true;
+        _errors = FormErrors.From(await _validator.ValidateAsync(_model, _disposalCts.Token));
+        if (_errors.Any)
         {
             return;
         }
 
         _isSaving = true;
-
         try
         {
-            var result = await LibrariesService.Update(
-                new UpdateLibraryRequest(_model.Id.ToString(), _model.Name, _model.Color, _model.Icon));
-
+            var result = await LibrariesService.Update(new UpdateLibraryRequest(_model.Id.ToString(), _model.Name, _model.Color, _model.Icon), _disposalCts.Token);
             if (result.IsSuccess)
             {
-                NavigationManager.NavigateTo($"/libraries/{LibraryId}");
+                Snackbar.Add($"{_model.Name} was saved", Severity.Success);
+                NavigationManager.NavigateTo(LibraryHref);
                 return;
             }
 
-            Snackbar.Add("Failed to update library", Severity.Error);
-            Logger.LogError("Failed to update library: {Error}", result.Error);
+            Logger.LogError("Unable to update the library {LibraryId}: {Error}", LibraryId, result.Error?.Description);
+            Snackbar.Add(LibraryDisplay.SaveFailed(result.Error, Msg_SaveFailed), Severity.Error);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
-            Snackbar.Add("Failed to update library", Severity.Error);
-            Logger.LogError(ex, "Failed to update library");
+            Logger.LogError(ex, "Unexpected error while updating the library {LibraryId}", LibraryId);
+            Snackbar.Add(Msg_SaveFailed, Severity.Error);
         }
         finally
         {
@@ -77,15 +133,9 @@ public partial class EditLibrary
         }
     }
 
-    private void GoBack() => NavigationManager.NavigateTo($"/libraries/{LibraryId}");
-
-    private void SelectColor(string hex)
+    public void Dispose()
     {
-        if (_model is null)
-        {
-            return;
-        }
-
-        _model.Color = hex;
+        _disposalCts.Cancel();
+        _disposalCts.Dispose();
     }
 }

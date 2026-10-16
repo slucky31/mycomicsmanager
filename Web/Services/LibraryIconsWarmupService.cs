@@ -1,16 +1,16 @@
-using Web.Components.SharedComponents;
+using Web.Models;
 
 namespace Web.Services;
 
 /// <summary>
-/// Forces the IconPicker static icon dictionary (built via reflection) to initialize
+/// Forces the static icon dictionary of LibraryIcons (built via reflection) to initialize
 /// at application startup rather than on the first user request.
 /// </summary>
-internal sealed class IconPickerWarmupService : IHostedService
+internal sealed class LibraryIconsWarmupService : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        IconPicker.Resolve(string.Empty);
+        LibraryIcons.Resolve(string.Empty);
         return Task.CompletedTask;
     }
 

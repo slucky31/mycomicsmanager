@@ -41,4 +41,12 @@ public sealed class LibraryDisplayTests
     [InlineData(2, "2 books match “hiver”")]
     public void SearchResults_Should_TellHowManyBooksMatch(int count, string expected) =>
         LibraryDisplay.SearchResults(count, "hiver").Should().Be(expected);
+
+    [Fact]
+    public void SaveFailed_Should_SayTheNameIsTaken_WhenAnotherLibraryHasIt() =>
+        LibraryDisplay.SaveFailed(LibrariesError.Duplicate, "Unable to save").Should().Be("Another library already has this name");
+
+    [Fact]
+    public void SaveFailed_Should_GiveTheFallback_ForAnyOtherError() =>
+        LibraryDisplay.SaveFailed(LibrariesError.NotFound, "Unable to save").Should().Be("Unable to save");
 }

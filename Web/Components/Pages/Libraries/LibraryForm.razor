@@ -1,0 +1,111 @@
+@using Domain.Libraries
+@using Web.Validators
+
+@* The form of a library (E3, E4, T12): the preview beside the name, the type (when created), the color and the icon. *@
+<form id="@FormId" class="library-form" novalidate @onsubmit="OnSubmit">
+    <div class="library-form-side">
+        <div class="library-form-caption">Preview</div>
+        <LibraryCard Library="Preview" />
+        @if (!IsNew)
+        {
+            <div class="library-form-note">The type of a library cannot be changed.</div>
+        }
+    </div>
+
+    <div class="library-form-main">
+        @if (Errors.Any)
+        {
+            <div class="library-form-summary" role="alert"><MudIcon Icon="@Icons.Material.Outlined.Info" /><span>@Errors.Summary</span></div>
+        }
+
+        <div class="library-form-name">
+            <FormField Id="library-name" Label="Name" Required="true" Error="@Errors.For(nameof(LibraryUiDto.Name))">
+                <input id="library-name" type="text" placeholder="e.g. Mangas" value="@Model.Name" @oninput="OnNameInputAsync"
+                       aria-invalid="@Errors.AriaInvalid(nameof(LibraryUiDto.Name))" aria-describedby="@Describe("library-name", nameof(LibraryUiDto.Name))" />
+            </FormField>
+        </div>
+
+        @if (IsNew)
+        {
+            <fieldset class="library-fieldset">
+                <legend>Type</legend>
+                <div class="library-types">
+                    @TypeCard(LibraryBookType.Physical, Icons.Material.Outlined.MenuBook, "Physical books", "Paper books, added by ISBN")
+                    @TypeCard(LibraryBookType.Digital, Icons.Material.Outlined.TabletAndroid, "Digital books", "CBZ, CBR and PDF files to read here")
+                </div>
+                <div class="library-form-note">The type cannot be changed later.</div>
+            </fieldset>
+        }
+
+        <fieldset class="library-fieldset" aria-describedby="@Describe("library-color", nameof(LibraryUiDto.Color))">
+            <legend>Color</legend>
+            <div class="library-colors">
+                @foreach (var color in LibraryColors.Palette)
+                {
+                    var selected = LibraryColors.IsSelected(color, Model.Color);
+                    <button @key="color.Hex" type="button" class="@(selected ? "library-color library-color-selected" : "library-color")" style="@($"background: {color.Hex};")"
+                            aria-label="@color.Name" aria-pressed="@(selected ? "true" : "false")" title="@color.Name" @onclick="() => ChooseColorAsync(color)">
+                        @if (selected)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Check" />
+                        }
+                    </button>
+                }
+            </div>
+            @Error("library-color", nameof(LibraryUiDto.Color))
+        </fieldset>
+
+        <fieldset class="library-fieldset" aria-describedby="@Describe("library-icon", nameof(LibraryUiDto.Icon))">
+            <legend>Icon</legend>
+            <button type="button" class="library-icon-row" aria-haspopup="dialog" @onclick="OpenIcons">
+                <LibraryIcon Icon="@Model.Icon" Color="@Model.Color" />
+                <span class="library-icon-row-text">
+                    <span class="library-icon-row-caption">Icon</span>
+                    <span class="library-icon-row-name">@IconLabel</span>
+                </span>
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
+            </button>
+            <div class="library-icons-inline">
+                <IconChooser Value="@Model.Icon" ValueChanged="ChooseIconAsync" />
+            </div>
+            @Error("library-icon", nameof(LibraryUiDto.Icon))
+        </fieldset>
+    </div>
+
+    @Footer
+</form>
+
+<ActionSheet Open="_iconsOpen" AriaLabel="Choose an icon" Title="Choose an icon" OnClose="CloseIcons">
+    <div class="library-icons-sheet">
+        <IconChooser Value="@Model.Icon" ValueChanged="ChooseIconFromSheetAsync" />
+    </div>
+</ActionSheet>
+
+@code {
+    // A radio button drawn as a card: its icon, its name and what it holds.
+    private RenderFragment TypeCard(LibraryBookType type, string icon, string title, string description) => __builder =>
+    {
+        var selected = Model.BookType == type;
+        <label class="@(selected ? "library-type-card library-type-card-selected" : "library-type-card")">
+            <input type="radio" name="library-type" value="@type" checked="@selected" @onchange="() => ChooseTypeAsync(type)" />
+            <span class="library-type-card-icons">
+                <MudIcon Icon="@icon" />
+                @if (selected)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Check" Class="library-type-card-check" />
+                }
+            </span>
+            <span class="library-type-card-title">@title</span>
+            <span class="library-type-card-description">@description</span>
+        </label>
+    };
+
+    private RenderFragment Error(string id, string property) => __builder =>
+    {
+        var error = Errors.For(property);
+        if (!string.IsNullOrEmpty(error))
+        {
+            <span id="@FormFieldIds.ErrorOf(id)" class="library-form-error"><MudIcon Icon="@Icons.Material.Outlined.Info" />@error</span>
+        }
+    };
+}

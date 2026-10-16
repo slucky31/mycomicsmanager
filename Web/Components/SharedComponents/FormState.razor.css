@@ -1,0 +1,27 @@
+.form-state {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px 16px;
+    color: #5C6070;
+    text-align: center;
+}
+
+.form-state h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: #1B1D24;
+}
+
+.form-state p {
+    margin: 0;
+}
+
+.form-state ::deep .form-state-icon {
+    font-size: 64px;
+    color: #B5B8C4;
+}

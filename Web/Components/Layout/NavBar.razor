@@ -19,7 +19,7 @@
             {
                 var isCurrent = library.Id == _currentLibraryId;
                 <a href="@library.Href" class="side-nav-library @ActiveClass(isCurrent)" aria-current="@AriaCurrent(isCurrent)" aria-label="@library.AriaLabel">
-                    <MudIcon Icon="@IconPicker.Resolve(library.Icon)" Style="@($"color: {library.Color};")" Size="Size.Small" />
+                    <MudIcon Icon="@LibraryIcons.Resolve(library.Icon)" Style="@($"color: {library.Color};")" Size="Size.Small" />
                     <span class="side-nav-library-name">@library.Name</span>
                     <span class="side-nav-library-count" aria-hidden="true">@library.CountLabel</span>
                 </a>

@@ -1,9 +1,10 @@
 using Domain.Libraries;
+using Domain.Primitives;
 using Web.Enums;
 
 namespace Web.Models;
 
-// Texts of the library page bar and of its search.
+// Texts of the library pages: the bar, the search and the form.
 public static class LibraryDisplay
 {
     public static string BookCount(int count) => count == 1 ? "1 book" : $"{count} books";
@@ -23,4 +24,8 @@ public static class LibraryDisplay
 
     public static string SearchResults(int count, string searchTerm) =>
         count == 1 ? $"1 book matches “{searchTerm}”" : $"{count} books match “{searchTerm}”";
+
+    // Why a library could not be created or saved: its name is taken, or what the form was doing.
+    public static string SaveFailed(TError? error, string fallback) =>
+        error == LibrariesError.Duplicate ? "Another library already has this name" : fallback;
 }

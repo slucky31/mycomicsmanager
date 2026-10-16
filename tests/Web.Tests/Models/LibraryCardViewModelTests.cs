@@ -80,4 +80,24 @@ public sealed class LibraryCardViewModelTests
 
         act.Should().Throw<ArgumentNullException>();
     }
+
+    [Fact]
+    public void Preview_Should_DescribeTheLibraryBeingEdited()
+    {
+        var id = Guid.CreateVersion7();
+
+        var preview = LibraryCardViewModel.Preview(id, "  Mangas ", "#26A69A", "MenuBook", LibraryBookType.Digital, 38, ["/a.webp"]);
+
+        preview.Should().Be(new LibraryCardViewModel(id, "Mangas", "#26A69A", "MenuBook", true, 38, preview.Covers));
+        preview.Covers.Should().Equal("/a.webp");
+    }
+
+    [Fact]
+    public void Preview_Should_NameANewLibrary_UntilItHasAName()
+    {
+        var preview = LibraryCardViewModel.Preview(Guid.Empty, " ", "#26A69A", "MenuBook", LibraryBookType.Physical, 0, []);
+
+        preview.Name.Should().Be("New library");
+        preview.CountLabel.Should().Be("No books yet");
+    }
 }
