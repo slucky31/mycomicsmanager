@@ -29,3 +29,17 @@
     outline: 2px solid #594AE2;
     outline-offset: 2px;
 }
+
+.star-rating-readonly {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.star-rating-readonly ::deep .star-rating-star {
+    font-size: 18px;
+    color: #C9CBD6;
+}
+
+.star-rating-readonly ::deep .star-rating-on {
+    color: #E8A317;
+}

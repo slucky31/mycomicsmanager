@@ -11,6 +11,10 @@ public partial class FormSection
     [Parameter, EditorRequired]
     public string Title { get; set; } = string.Empty;
 
+    // A short text beside the title, e.g. "2 readings".
+    [Parameter]
+    public string? Note { get; set; }
+
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 }

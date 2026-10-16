@@ -1,10 +1,160 @@
-::deep .edit-book-page {
-    min-height: 100vh;
-    background: var(--mud-palette-background);
+/* Loading and "Book not found" */
+.edit-state {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px 16px;
+    color: #5C6070;
+    text-align: center;
 }
 
-::deep .edit-book-content {
-    padding: 24px;
-    max-width: 800px;
-    margin: 0 auto;
+.edit-state h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: #1B1D24;
+}
+
+.edit-state p {
+    margin: 0;
+}
+
+.edit-state ::deep .edit-state-icon {
+    font-size: 64px;
+    color: #B5B8C4;
+}
+
+/* The library of the book, read only (E1): it is moved from the book's page. */
+.edit-library {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    border: 1px solid #E2E3EA;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.edit-library-cover {
+    width: 56px;
+    height: 84px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.edit-library-text {
+    min-width: 0;
+    flex-grow: 1;
+}
+
+.edit-library-caption,
+.edit-library-hint,
+.edit-readings-hint,
+.edit-readings-empty {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.edit-library-caption {
+    font-size: 12px;
+}
+
+.edit-library-name {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.edit-library-hint {
+    margin-top: 4px;
+}
+
+/* Readings (E2) */
+.edit-readings {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-readings ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-reading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 4px 4px 14px;
+    border: 1px solid #E2E3EA;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.edit-reading-text {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.edit-reading-date {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.edit-reading-delete {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 22px;
+    background: none;
+    color: #5C6070;
+    cursor: pointer;
+}
+
+.edit-reading-delete:hover {
+    background: #FDECEC;
+    color: #C62828;
+}
+
+.edit-reading-delete:focus-visible {
+    outline: 2px solid #594AE2;
+    outline-offset: 2px;
+}
+
+.edit-reading-delete:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.edit-readings-empty {
+    padding: 14px;
+    border: 1px dashed #E2E3EA;
+    border-radius: 14px;
+    text-align: center;
+}
+
+/* T11: the cover is above the library, beside the fields. */
+@media (min-width: 840px) {
+    .edit-library {
+        padding: 0;
+        border: 0;
+        background: none;
+    }
+
+    .edit-library-cover {
+        display: none;
+    }
 }

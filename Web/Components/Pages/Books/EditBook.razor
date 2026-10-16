@@ -1,112 +1,89 @@
 @page "/books/{BookId}/edit"
 @rendermode InteractiveServer
 
-@using Application.Helpers
-@using Domain.Books
-@using Microsoft.AspNetCore.Components
-@using Web.Components.Pages.Dialogs
 @using Web.Components.SharedComponents
-@using Web.Services
-@using Web.Validators
+@using Web.Models
 
-<div class="edit-book-page">
-    @* Header *@
-    <PageHeader Title="Edit Book" OnBack="GoBack">
-        <SubtitleContent>
-            @if (_isLoading)
-            {
-                <text>Loading book information...</text>
-            }
-            else if (_bookModel is not null)
-            {
-                @_bookModel.Title
-            }
-            else
-            {
-                <text>Book not found</text>
-            }
-        </SubtitleContent>
-    </PageHeader>
+<PageTitle>Edit book — MyComicsManager</PageTitle>
 
-    @* Content *@
-    <div class="edit-book-content">
-        @if (_isLoading)
-        {
-            <div class="d-flex flex-column align-center justify-center pa-8">
-                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">
-                    Loading book information...
-                </MudText>
-            </div>
-        }
-        else if (_loadError)
-        {
-            <MudPaper Class="pa-8 d-flex flex-column align-center justify-center" Elevation="0">
-                <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Error" Style="font-size: 80px; opacity: 0.5;" />
-                <MudText Typo="Typo.h6" Color="Color.Error" Class="mt-4">Book not found</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">The book you're looking for doesn't exist.</MudText>
-                <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list"))">
-                    Back to Library
-                </MudButton>
-            </MudPaper>
-        }
-        else if (_bookModel is not null)
-        {
-            <MudPaper Class="pa-6 rounded-lg" Elevation="2">
-                <BookForm @ref="_bookForm" Model="_bookModel" ShowRating="false" />
+<FormPage>
+    @if (_isLoading)
+    {
+        <FormHeader Title="Edit book" Subtitle="Loading…" BackHref="@BookHref" />
+        <div class="edit-state" role="status">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <span>Loading the book…</span>
+        </div>
+    }
+    else if (_view is null || _model is null)
+    {
+        <FormHeader Title="Edit book" BackHref="/libraries/list" />
+        <div class="edit-state">
+            <MudIcon Icon="@Icons.Material.Outlined.MenuBook" Class="edit-state-icon" />
+            <h2>Book not found</h2>
+            <p>This book does not exist or could not be loaded.</p>
+            <FormButton Variant="FormButtonVariant.Outlined" Href="/libraries/list" Icon="@Icons.Material.Filled.ArrowBack">Back to libraries</FormButton>
+        </div>
+    }
+    else
+    {
+        var view = _view;
+        <FormHeader Title="Edit book" Subtitle="@view.Subtitle" BackHref="@view.BookHref">
+            <FormButton Variant="FormButtonVariant.Outlined" Href="@view.BookHref">Cancel</FormButton>
+            <FormButton Type="submit" Form="edit-book-form" Icon="@Icons.Material.Filled.Check" Disabled="_isSaving">Save changes</FormButton>
+        </FormHeader>
 
-                @* Action buttons *@
-                <div class="d-flex justify-end gap-2 mt-6">
-                    <MudButton Variant="Variant.Text"
-                               Color="Color.Default"
-                               OnClick="GoBack">
-                        Cancel
-                    </MudButton>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.Save"
-                               OnClick="SaveBookAsync"
-                               Disabled="_isSaving">
-                        @if (_isSaving)
+        <BookFormLayout FormId="edit-book-form" OnSubmit="SaveAsync" Errors="_errors" ImageLink="@_model.ImageLink">
+            <Side>
+                <div class="edit-library">
+                    @if (!string.IsNullOrWhiteSpace(_model.ImageLink))
+                    {
+                        <img class="edit-library-cover" src="@_model.ImageLink" alt="@view.CoverAlt" />
+                    }
+                    <div class="edit-library-text">
+                        <div class="edit-library-caption">Library</div>
+                        <div class="edit-library-name">@view.LibraryLabel(_libraryName)</div>
+                        <div class="edit-library-hint">To move the book, use “Move to another library” on its page.</div>
+                    </div>
+                </div>
+            </Side>
+            <ChildContent>
+                <BookFields Model="_model" Errors="_errors" OnChanged="Revalidate" />
+
+                <FormSection Id="book-form-readings" Title="Readings" Note="@view.ReadingsCountLabel">
+                    <div class="form-wide edit-readings">
+                        @if (view.Readings.Count > 0)
                         {
-                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                            <text>Saving...</text>
+                            <ul>
+                                @foreach (var reading in view.Readings)
+                                {
+                                    <li @key="reading.Id" class="edit-reading">
+                                        <div class="edit-reading-text">
+                                            <div class="edit-reading-date">@reading.Date</div>
+                                            <StarRating Value="reading.Rating" ReadOnly="true" />
+                                        </div>
+                                        <button type="button" class="edit-reading-delete" aria-label="@reading.DeleteLabel" title="Delete this reading"
+                                                disabled="@(_deletingReadingId is not null)" @onclick="() => DeleteReadingAsync(reading)">
+                                            <MudIcon Icon="@Icons.Material.Outlined.Delete" />
+                                        </button>
+                                    </li>
+                                }
+                            </ul>
                         }
                         else
                         {
-                            <text>Save Changes</text>
+                            <div class="edit-readings-empty">No readings recorded</div>
                         }
-                    </MudButton>
-                </div>
-            </MudPaper>
-
-            @* Reading history section *@
-            @if (_book is not null)
-            {
-                <MudPaper Class="pa-6 rounded-lg mt-4" Elevation="2">
-                    <MudText Typo="Typo.h6" Class="mb-4">Reading History</MudText>
-                    @if (_book.ReadingDates.Any())
-                    {
-                        @foreach (var rd in _book.ReadingDates.OrderByDescending(r => r.Date))
-                        {
-                            <div class="d-flex align-center justify-space-between pa-2 rounded mb-2" style="background: var(--mud-palette-background-gray);">
-                                <div class="d-flex align-center gap-3">
-                                    <MudRating SelectedValue="@rd.Rating" MaxValue="5" ReadOnly="true" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">@rd.Date.ToString(PublishDateHelper.DisplayFormat)</MudText>
-                                </div>
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                               Color="Color.Error"
-                                               Size="Size.Small"
-                                               OnClick="@(() => DeleteReadingDateAsync(rd.Id))" />
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">No readings recorded.</MudText>
-                    }
-                </MudPaper>
-            }
-        }
-    </div>
-</div>
+                        <div class="edit-readings-hint">New readings are added from the book’s page.</div>
+                    </div>
+                </FormSection>
+            </ChildContent>
+            <Footer>
+                <FormFooter>
+                    <FormButton Variant="FormButtonVariant.Outlined" Href="@view.BookHref">Cancel</FormButton>
+                    <FormButton Type="submit" Icon="@Icons.Material.Filled.Check" Disabled="_isSaving">Save changes</FormButton>
+                </FormFooter>
+            </Footer>
+        </BookFormLayout>
+    }
+</FormPage>

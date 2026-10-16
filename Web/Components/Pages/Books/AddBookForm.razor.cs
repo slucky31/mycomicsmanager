@@ -148,12 +148,6 @@ public sealed partial class AddBookForm : IDisposable
         _submitted = false;
     }
 
-    private void OnInput(Action<string> setValue, ChangeEventArgs args)
-    {
-        setValue(args.Value?.ToString() ?? string.Empty);
-        Revalidate();
-    }
-
     // Once the form was submitted, its errors follow what is typed.
     private void Revalidate()
     {
@@ -162,8 +156,6 @@ public sealed partial class AddBookForm : IDisposable
             _errors = FormErrors.From(_validator.Validate(_model));
         }
     }
-
-    private string? Describe(string id, string property) => FormFieldIds.DescribedBy(id, _errors.For(property), null);
 
     private async Task SaveAsync()
     {

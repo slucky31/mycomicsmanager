@@ -1,12 +1,24 @@
-@* Five stars to choose a rating; choosing the same star again clears it (the rating is optional). *@
-<div class="star-rating" role="group" aria-labelledby="@LabelledBy">
-    @for (var star = 1; star <= 5; star++)
-    {
-        var value = star;
-        <button type="button" class="@(value <= Value ? "star-rating-button star-rating-on" : "star-rating-button")"
-                aria-label="@(value == 1 ? "1 star" : $"{value} stars")" aria-pressed="@(value == Value ? "true" : "false")"
-                @onclick="() => ChooseAsync(value)">
-            <MudIcon Icon="@(value <= Value ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" />
-        </button>
-    }
-</div>
+@* Five stars to choose a rating; choosing the same star again clears it (the rating is optional). Read only, the stars show the rating of a reading. *@
+@if (ReadOnly)
+{
+    <span class="star-rating-readonly" role="img" aria-label="@RatingLabel">
+        @for (var star = 1; star <= 5; star++)
+        {
+            <MudIcon Icon="@(star <= Value ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" Class="@(star <= Value ? "star-rating-star star-rating-on" : "star-rating-star")" />
+        }
+    </span>
+}
+else
+{
+    <div class="star-rating" role="group" aria-labelledby="@LabelledBy">
+        @for (var star = 1; star <= 5; star++)
+        {
+            var value = star;
+            <button type="button" class="@(value <= Value ? "star-rating-button star-rating-on" : "star-rating-button")"
+                    aria-label="@(value == 1 ? "1 star" : $"{value} stars")" aria-pressed="@(value == Value ? "true" : "false")"
+                    @onclick="() => ChooseAsync(value)">
+                <MudIcon Icon="@(value <= Value ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" />
+            </button>
+        }
+    </div>
+}
