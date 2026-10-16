@@ -224,8 +224,8 @@ public sealed partial class BookDetail : IDisposable
         {
             var confirmed = await DialogService.ShowConfirmationAsync(
                 "Delete book",
-                $"Do you really want to delete “{_view?.Title}”? This process cannot be undone.",
-                "Delete");
+                $"“{_view?.Title}” will be deleted with its readings. This cannot be undone.",
+                "Delete book");
 
             if (confirmed)
             {

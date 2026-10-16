@@ -2,9 +2,9 @@ using Application.Books;
 using Application.Books.MoveTargets;
 using Application.Interfaces;
 using Application.Libraries;
+using Application.Libraries.Summaries;
 using Domain.Books;
 using Domain.Libraries;
-using Domain.Primitives;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
@@ -26,12 +26,11 @@ public class GetBookMoveTargetsQueryHandlerTests
 
     private static Library Digital(string name) => Library.Create(name, "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
 
+    // Their summaries, each library holding as many books as the length of its name.
     private void GivenLibraries(params Library[] libraries)
     {
-        var page = Substitute.For<IPagedList<Library>>();
-        page.Items.Returns(libraries.ToList());
-        _libraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Ascending, 1, Arg.Any<int>(), s_userId, Arg.Any<CancellationToken>())
-            .Returns(page);
+        IReadOnlyList<LibrarySummary> summaries = [.. libraries.Select(l => new LibrarySummary(l.Id, l.Name, l.Color, l.Icon, l.BookType, l.Name.Length))];
+        _libraryReadService.GetSummariesAsync(s_userId, Arg.Any<CancellationToken>()).Returns(summaries);
     }
 
     private DigitalBook GivenBookIn(Library library, string serie)
@@ -64,7 +63,10 @@ public class GetBookMoveTargetsQueryHandlerTests
 
         result.Value!.Libraries.Select(l => l.Name).Should().Equal("BD", "Mangas");
         result.Value.Libraries.Select(l => l.SameSerieCount).Should().Equal(2, 1);
+        result.Value.Libraries.Select(l => l.BookCount).Should().Equal(2, 6);
         result.Value.SuggestedLibraryId.Should().Be(bd.Id);
+        result.Value.Current.Should().Be(new BookMoveTarget(toSort.Id, "À trier", "#5C6BC0", "Bookmark", 0, 7));
+        result.Value.BookType.Should().Be(LibraryBookType.Digital);
     }
 
     [Fact]
@@ -91,5 +93,18 @@ public class GetBookMoveTargetsQueryHandlerTests
         var result = await _handler.Handle(new GetBookMoveTargetsQuery(book.Id, s_userId), TestContext.Current.CancellationToken);
 
         result.Error.Should().Be(BooksError.NotFound);
+    }
+
+    [Fact]
+    public async Task Handle_Should_GiveTheCurrentLibraryAlone_WhenNoOtherLibraryHasItsType()
+    {
+        var toSort = Digital("À trier");
+        GivenLibraries();
+        var book = GivenBookIn(toSort, "Blacksad");
+
+        var result = await _handler.Handle(new GetBookMoveTargetsQuery(book.Id, s_userId), TestContext.Current.CancellationToken);
+
+        result.Value!.Libraries.Should().BeEmpty();
+        result.Value.Current.Should().Be(new BookMoveTarget(toSort.Id, "À trier", "#5C6BC0", "Bookmark", 0));
     }
 }

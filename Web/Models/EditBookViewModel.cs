@@ -7,6 +7,9 @@ namespace Web.Models;
 public sealed record EditBookReading(Guid Id, string Date, int Rating)
 {
     public string DeleteLabel => $"Delete the reading of {Date}";
+
+    // The question before the reading is deleted (E5).
+    public string DeleteMessage => $"The reading of {Date}, rated {Rating} out of 5, will be removed. This cannot be undone.";
 }
 
 // What the form to edit a book shows besides its fields, computed once from the book (E1, E2, T11).

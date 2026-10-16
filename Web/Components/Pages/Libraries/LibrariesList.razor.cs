@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Web.Components.Pages.Dialogs;
+using Web.Extensions;
 using Web.Models;
 using Web.Services;
 
@@ -57,22 +57,11 @@ public sealed partial class LibrariesList : IDisposable
     {
         CloseActions();
 
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ConfirmationMessage, $"Do you really want to delete the library “{library.Name}” and its {LibraryDisplay.BookCount(library.BookCount)}? This process cannot be undone." },
-            { x => x.ActionText, "Delete" },
-            { x => x.ColorConfirmButton, Color.Error }
-        };
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.ExtraSmall,
-            CloseButton = false
-        };
-
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete library", parameters, options);
-        var confirmation = await dialog.Result;
-        if (confirmation is null || confirmation.Canceled)
+        var confirmed = await DialogService.ShowConfirmationAsync(
+            "Delete library",
+            $"The library “{library.Name}” will be deleted with its {LibraryDisplay.BookCount(library.BookCount)}. This cannot be undone.",
+            "Delete library");
+        if (!confirmed)
         {
             return;
         }

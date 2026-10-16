@@ -52,3 +52,62 @@
         right: 0.75rem;
         top: 0.5rem;
     }
+
+/* ── Dialogs of the redesign (AppDialogs): a sheet at the bottom of a phone (E5, E6) ── */
+.dialog-host {
+    display: contents;
+}
+
+.dialog-host ::deep .mud-dialog-container:has(> .app-dialog) {
+    align-items: flex-end;
+}
+
+.dialog-host ::deep .mud-dialog.app-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: 90dvh;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    background: #ffffff;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
+    color: #1B1D24;
+}
+
+.dialog-host ::deep .app-dialog-content {
+    padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+}
+
+.dialog-host ::deep .app-dialog-handle {
+    width: 36px;
+    height: 4px;
+    margin: 0 auto 12px;
+    border-radius: 2px;
+    background: #C9CBD6;
+}
+
+/* Tablet and desktop: centered (T13, T14). */
+@media (min-width: 600px) {
+    .dialog-host ::deep .mud-dialog-container:has(> .app-dialog) {
+        align-items: center;
+    }
+
+    .dialog-host ::deep .mud-dialog.app-dialog {
+        width: 440px;
+        max-width: calc(100vw - 48px);
+        border-radius: 20px;
+        box-shadow: 0 16px 40px rgba(19, 27, 44, 0.25);
+    }
+
+    .dialog-host ::deep .mud-dialog.app-dialog-wide {
+        width: 480px;
+    }
+
+    .dialog-host ::deep .app-dialog-content {
+        padding: 24px;
+    }
+
+    .dialog-host ::deep .app-dialog-handle {
+        display: none;
+    }
+}

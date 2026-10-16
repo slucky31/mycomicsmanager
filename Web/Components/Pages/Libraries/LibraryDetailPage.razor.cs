@@ -2,9 +2,9 @@ using Domain.Libraries;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
-using Web.Components.Pages.Dialogs;
 using Web.Components.Pages.Libraries.Views;
 using Web.Enums;
+using Web.Extensions;
 using Web.Infrastructure;
 using Web.Models;
 using Web.Services;
@@ -580,24 +580,8 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private async Task DeleteAsync(Guid bookId)
     {
         CloseSheet();
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ConfirmationMessage, "Do you really want to delete this book? This process cannot be undone." },
-            { x => x.ActionText, "Delete" },
-            { x => x.ColorConfirmButton, Color.Error }
-        };
-
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.ExtraSmall,
-            CloseButton = false
-        };
-
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Delete", parameters, options);
-        var result = await dialog.Result;
-
-        if (result is not null && result.Data is not null && !result.Canceled)
+        var confirmed = await DialogService.ShowConfirmationAsync("Delete book", "This book will be deleted with its readings. This cannot be undone.", "Delete book");
+        if (confirmed)
         {
             try
             {

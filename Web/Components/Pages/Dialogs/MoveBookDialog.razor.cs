@@ -10,19 +10,39 @@ public partial class MoveBookDialog
     public required IMudDialogInstance MudDialog { get; set; }
 
     [Parameter]
-    public IReadOnlyList<BookMoveTargetViewModel> Targets { get; set; } = [];
+    public BookMoveChoices Choices { get; set; } = new([], null);
 
-    private Guid _selectedLibraryId;
+    private readonly string _titleId = $"move-title-{Guid.NewGuid():N}";
+    private BookMoveTargetViewModel? _selected;
 
+    private string TitleId => _titleId;
+
+    // The suggested library is chosen when the dialog opens.
     protected override void OnParametersSet()
     {
-        if (_selectedLibraryId == Guid.Empty)
+        if (_selected is null && Choices.Preselected is { } preselected)
         {
-            _selectedLibraryId = Targets.FirstOrDefault(t => t.IsSuggested)?.Id ?? Guid.Empty;
+            Choose(Choices.Libraries.First(l => l.Id == preselected));
         }
+    }
+
+    private void Choose(BookMoveTargetViewModel library)
+    {
+        if (library.IsCurrent)
+        {
+            return;
+        }
+
+        _selected = library;
     }
 
     private void Cancel() => MudDialog.Cancel();
 
-    private void Confirm() => MudDialog.Close(DialogResult.Ok(_selectedLibraryId));
+    private void Confirm()
+    {
+        if (_selected is not null)
+        {
+            MudDialog.Close(DialogResult.Ok(_selected.Id));
+        }
+    }
 }

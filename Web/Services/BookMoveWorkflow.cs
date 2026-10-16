@@ -1,5 +1,6 @@
 using MudBlazor;
 using Web.Components.Pages.Dialogs;
+using Web.Extensions;
 using Web.Models;
 
 namespace Web.Services;
@@ -41,16 +42,15 @@ public class BookMoveWorkflow(
             return null;
         }
 
-        var options = BookMoveTargetViewModel.From(targets.Value!);
-        if (options.Count == 0)
+        var choices = BookMoveChoices.From(targets.Value!);
+        if (!choices.HasTargets)
         {
             snackbar.Add("No other library of the same type", Severity.Info);
             return null;
         }
 
-        var parameters = new DialogParameters<MoveBookDialog> { { x => x.Targets, options } };
-        var dialog = await dialogService.ShowAsync<MoveBookDialog>(
-            "Move to another library", parameters, new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true });
+        var parameters = new DialogParameters<MoveBookDialog> { { x => x.Choices, choices } };
+        var dialog = await dialogService.ShowAsync<MoveBookDialog>("Move to another library", parameters, AppDialogs.Options);
         var choice = await dialog.Result;
         return choice is { Canceled: false, Data: Guid libraryId } ? libraryId : null;
     }

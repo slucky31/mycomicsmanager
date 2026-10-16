@@ -19,14 +19,7 @@ public static class DialogServiceExtensions
             { x => x.ColorConfirmButton, color }
         };
 
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.ExtraSmall,
-            CloseButton = false
-        };
-
-        var dialog = await dialogService.ShowAsync<ConfirmationDialog>(title, parameters, options);
+        var dialog = await dialogService.ShowAsync<ConfirmationDialog>(title, parameters, AppDialogs.Options);
         var result = await dialog.Result;
 
         return result is not null && result.Data is not null && !result.Canceled;

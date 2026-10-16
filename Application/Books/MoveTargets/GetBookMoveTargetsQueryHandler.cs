@@ -15,8 +15,6 @@ public sealed class GetBookMoveTargetsQueryHandler(
     ILibraryReadService libraryReadService,
     IBookReadService bookReadService) : IQueryHandler<GetBookMoveTargetsQuery, BookMoveTargets>
 {
-    private const int MaxLibraries = 500;
-
     public async Task<Result<BookMoveTargets>> Handle(GetBookMoveTargetsQuery request, CancellationToken cancellationToken)
     {
         Guard.Against.Null(request);
@@ -32,19 +30,22 @@ public sealed class GetBookMoveTargetsQueryHandler(
             return BooksError.NotFound;
         }
 
-        var libraries = await libraryReadService.GetLibrariesAsync(
-            null, LibrariesColumn.Name, SortOrder.Ascending, 1, MaxLibraries, request.UserId, cancellationToken);
-        var candidates = (libraries.Items ?? [])
+        // Ordered by name, with their book counts.
+        var libraries = await libraryReadService.GetSummariesAsync(request.UserId, cancellationToken);
+        var current = libraries.FirstOrDefault(l => l.Id == source.Id) is { } summary
+            ? new BookMoveTarget(summary.Id, summary.Name, summary.Color, summary.Icon, 0, summary.BookCount)
+            : new BookMoveTarget(source.Id, source.Name, source.Color, source.Icon, 0);
+        var candidates = libraries
             .Where(l => l.Id != source.Id && l.BookType == source.BookType)
             .ToList();
         if (candidates.Count == 0)
         {
-            return new BookMoveTargets([], null);
+            return new BookMoveTargets([], null) { Current = current, BookType = source.BookType };
         }
 
         var sameSerieCounts = await CountSameSerieByLibraryAsync(book.Serie, request.UserId, cancellationToken);
         var targets = candidates
-            .Select(l => new BookMoveTarget(l.Id, l.Name, l.Color, l.Icon, sameSerieCounts.GetValueOrDefault(l.Id)))
+            .Select(l => new BookMoveTarget(l.Id, l.Name, l.Color, l.Icon, sameSerieCounts.GetValueOrDefault(l.Id), l.BookCount))
             .ToList();
         var suggested = targets
             .Where(t => t.SameSerieCount > 0)
@@ -52,7 +53,7 @@ public sealed class GetBookMoveTargetsQueryHandler(
             .ThenBy(t => t.Name, StringComparer.CurrentCultureIgnoreCase)
             .FirstOrDefault();
 
-        return new BookMoveTargets(targets, suggested?.Id);
+        return new BookMoveTargets(targets, suggested?.Id) { Current = current, BookType = source.BookType };
     }
 
     // Series are compared normalized (case, accents, punctuation and leading article ignored).
