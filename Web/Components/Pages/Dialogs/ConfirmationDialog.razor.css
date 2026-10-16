@@ -1,0 +1,82 @@
+.confirm-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.confirm-heading h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: #1B1D24;
+}
+
+.confirm-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 22px;
+    background: #FDECEC;
+    color: #B3261E;
+}
+
+.confirm-text {
+    margin: 12px 0 0;
+    font-size: 15px;
+    line-height: 1.45;
+    color: #3C4050;
+}
+
+/* On a phone, the action above Cancel, within reach of the thumb; Cancel stays first for the focus. */
+.confirm-actions {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.confirm-button {
+    height: 52px;
+    padding: 0 22px;
+    border-radius: 26px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.confirm-button:focus-visible {
+    outline: 2px solid #594AE2;
+    outline-offset: 2px;
+}
+
+.confirm-cancel {
+    border: 1px solid #E2E3EA;
+    background: #ffffff;
+    color: #1B1D24;
+}
+
+.confirm-action {
+    border: 0;
+    background: #594AE2;
+    color: #ffffff;
+}
+
+.confirm-danger {
+    background: #B3261E;
+}
+
+@media (min-width: 600px) {
+    .confirm-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+
+    .confirm-button {
+        height: 48px;
+        font-size: 15px;
+    }
+}

@@ -4,55 +4,106 @@ using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
 using Web.Components.Pages.Dialogs;
+using Web.Extensions;
 using Web.Models;
 using Xunit;
 
 namespace Web.Tests.Components.Pages.Dialogs;
 
-public sealed class MoveBookDialogTests
+public sealed class MoveBookDialogTests : IAsyncDisposable
 {
-    private static async Task<(BunitContext Ctx, IRenderedComponent<MudDialogProvider> Provider, IDialogReference Dialog)> ShowAsync(
-        IReadOnlyList<BookMoveTargetViewModel> targets)
+    private static readonly Guid s_current = Guid.CreateVersion7();
+    private static readonly Guid s_comics = Guid.CreateVersion7();
+    private static readonly Guid s_mangas = Guid.CreateVersion7();
+
+    private readonly BunitContext _ctx = new();
+    private readonly IRenderedComponent<MudDialogProvider> _provider;
+
+    public MoveBookDialogTests()
     {
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddMudServices();
-        ctx.Render<MudPopoverProvider>();
-        var provider = ctx.Render<MudDialogProvider>();
-        var dialogs = ctx.Services.GetRequiredService<IDialogService>();
-        var parameters = new DialogParameters<MoveBookDialog> { { x => x.Targets, targets } };
+        _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        _ctx.Services.AddMudServices();
+        _provider = _ctx.Render<MudDialogProvider>();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _provider.Dispose();
+        await _ctx.DisposeAsync();
+    }
+
+    private static BookMoveChoices Choices(bool suggested) => new(
+        [
+            new BookMoveTargetViewModel(s_current, "À trier", "#111111", "Archive", "Digital · current library", false, true),
+            new BookMoveTargetViewModel(s_comics, "Comics", "#222222", "Bookmark", "Digital · 112 books", suggested),
+            new BookMoveTargetViewModel(s_mangas, "Mangas", "#333333", "Star", "Digital · 38 books", false),
+        ],
+        "À trier");
+
+    private async Task<IDialogReference> ShowAsync(BookMoveChoices choices)
+    {
+        var parameters = new DialogParameters<MoveBookDialog> { { x => x.Choices, choices } };
         IDialogReference? dialog = null;
-        await provider.InvokeAsync(async () => dialog = await dialogs.ShowAsync<MoveBookDialog>("Move", parameters));
-        return (ctx, provider, dialog!);
+        var dialogs = _ctx.Services.GetRequiredService<IDialogService>();
+        await _provider.InvokeAsync(async () => dialog = await dialogs.ShowAsync<MoveBookDialog>("Move to another library", parameters, AppDialogs.Options));
+        return dialog!;
     }
 
     [Fact]
-    public async Task Confirm_Should_ReturnSuggestedLibrary_WhenUserKeepsThePreselection()
+    public async Task Confirm_Should_MoveToTheSuggestedLibrary_WhenItIsKept()
     {
-        var suggested = Guid.CreateVersion7();
-        var (ctx, provider, dialog) = await ShowAsync(
-        [
-            new BookMoveTargetViewModel(Guid.CreateVersion7(), "Mangas", "#111111", null, false),
-            new BookMoveTargetViewModel(suggested, "BD", "#222222", "2 books of this series", true)
-        ]);
-        await using var _ = ctx;
+        var dialog = await ShowAsync(Choices(suggested: true));
 
-        await provider.Find("button.mud-button-filled").ClickAsync(new());
+        _provider.Find("h2").TextContent.Should().Be("Move to another library");
+        _provider.Find(".move-intro").TextContent.Should().Be("This book is in À trier. Its file is moved too.");
+        _provider.Find("[role=radio][aria-checked=true] .move-library-name").TextContent.Should().Be("Comics");
+        _provider.Find(".move-library-suggested").TextContent.Should().Be("Suggested");
+        _provider.Find("[role=radio]:disabled .move-library-details").TextContent.Should().Be("Digital · current library");
+        _provider.Find(".move-confirm").TextContent.Should().Be("Move to Comics");
+
+        await _provider.Find(".move-confirm").ClickAsync(new());
 
         var result = await dialog.Result;
         result!.Canceled.Should().BeFalse();
-        result.Data.Should().Be(suggested);
+        result.Data.Should().Be(s_comics);
     }
 
     [Fact]
-    public async Task Render_Should_DisableMove_WhenNothingIsSuggested_AndCancelShouldCloseWithoutResult()
+    public async Task Choose_Should_MoveToTheLibraryChosen_ButNotToTheCurrentOne()
     {
-        var (ctx, provider, dialog) = await ShowAsync([new BookMoveTargetViewModel(Guid.CreateVersion7(), "Mangas", "#111111", null, false)]);
-        await using var _ = ctx;
+        var dialog = await ShowAsync(Choices(suggested: false));
+        _provider.Find(".move-confirm").HasAttribute("disabled").Should().BeTrue();
 
-        provider.Find("button.mud-button-filled").HasAttribute("disabled").Should().BeTrue();
-        await provider.FindAll("button").First(b => b.TextContent.Contains("Cancel", StringComparison.Ordinal)).ClickAsync(new());
+        await _provider.FindAll("[role=radio]")[0].ClickAsync(new());
+        _provider.Find(".move-confirm").HasAttribute("disabled").Should().BeTrue();
+
+        await _provider.FindAll("[role=radio]")[2].ClickAsync(new());
+        _provider.Find("[role=radio][aria-checked=true] .move-library-name").TextContent.Should().Be("Mangas");
+        await _provider.Find(".move-confirm").ClickAsync(new());
+
+        (await dialog.Result)!.Data.Should().Be(s_mangas);
+    }
+
+    [Theory]
+    [InlineData(".move-cancel")]
+    [InlineData(".move-close")]
+    public async Task Cancel_Should_CloseWithoutMoving(string button)
+    {
+        var dialog = await ShowAsync(Choices(suggested: true));
+
+        await _provider.Find(button).ClickAsync(new());
 
         (await dialog.Result)!.Canceled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Confirm_Should_DoNothing_WhileNoLibraryIsChosen()
+    {
+        var dialog = await ShowAsync(new BookMoveChoices([new BookMoveTargetViewModel(s_mangas, "Mangas", "#333333", "Star", "Digital · 38 books", false)], null));
+
+        _provider.Find(".move-intro").TextContent.Should().Be("Its file is moved too.");
+        await _provider.Find(".move-confirm").ClickAsync(new());
+
+        dialog.Result.IsCompleted.Should().BeFalse();
     }
 }

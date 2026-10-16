@@ -4,13 +4,16 @@
 <MudSnackbarProvider />
 <MudPopoverProvider />
 
-<MudDialogProvider FullWidth="true"
-                   MaxWidth="MaxWidth.ExtraExtraLarge"
-                   CloseButton="true"
-                   BackdropClick="false"
-                   NoHeader="false"
-                   Position="DialogPosition.Center"
-                   CloseOnEscapeKey="true" />
+@* The dialogs of the redesign (AppDialogs) are styled from here: a sheet at the bottom of a phone, centered from the tablet on. *@
+<div class="dialog-host">
+    <MudDialogProvider FullWidth="true"
+                       MaxWidth="MaxWidth.ExtraExtraLarge"
+                       CloseButton="true"
+                       BackdropClick="false"
+                       NoHeader="false"
+                       Position="DialogPosition.Center"
+                       CloseOnEscapeKey="true" />
+</div>
 
 @if (_showNavigation)
 {

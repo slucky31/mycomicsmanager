@@ -169,7 +169,7 @@ public sealed partial class EditBook : IDisposable
         _deletingReadingId = reading.Id;
         try
         {
-            var confirmed = await DialogService.ShowConfirmationAsync("Delete this reading?", $"The reading of {reading.Date} will be deleted.", "Delete");
+            var confirmed = await DialogService.ShowConfirmationAsync("Delete this reading?", reading.DeleteMessage, "Delete reading");
             if (!confirmed)
             {
                 return;

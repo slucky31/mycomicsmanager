@@ -1,18 +1,208 @@
-.move-book-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.move-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
 }
 
-.move-book-color {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.move-heading-text {
+    flex-grow: 1;
+    min-width: 0;
 }
 
-.move-book-hint {
-  color: var(--mud-palette-text-secondary);
-  font-size: 0.8125rem;
+.move-heading h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: #1B1D24;
+}
+
+.move-intro {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #5C6070;
+}
+
+.move-intro strong {
+    font-weight: 500;
+    color: #1B1D24;
+}
+
+/* Close is only shown from the tablet on: the sheet of a phone closes with Cancel. */
+.move-close {
+    display: none;
+    width: 44px;
+    height: 44px;
+    margin: -10px -10px 0 0;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 22px;
+    background: none;
+    color: #5C6070;
+    cursor: pointer;
+}
+
+.move-libraries {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+}
+
+.move-library {
+    width: 100%;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: #1B1D24;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.move-library:hover:not(:disabled) {
+    background: #F4F4F6;
+}
+
+.move-library:focus-visible,
+.move-button:focus-visible,
+.move-close:focus-visible {
+    outline: 2px solid #594AE2;
+    outline-offset: 2px;
+}
+
+.move-library:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.move-library-selected,
+.move-library-selected:hover:not(:disabled) {
+    background: #F1EFFD;
+}
+
+.move-library-text {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.move-library-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.move-library-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.move-library-suggested {
+    height: 22px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 8px;
+    border-radius: 11px;
+    background: #E6F4EA;
+    color: #1E6B24;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.move-library-details {
+    display: block;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.move-library-radio {
+    width: 22px;
+    height: 22px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #C9CBD6;
+    border-radius: 11px;
+}
+
+.move-library-radio-on {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 12px;
+    background: #594AE2;
+    color: #ffffff;
+}
+
+.move-library-radio-on ::deep svg {
+    font-size: 16px;
+}
+
+.move-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.move-button {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 20px;
+    border-radius: 26px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.move-cancel {
+    flex: 1 1 0;
+    border: 1px solid #E2E3EA;
+    background: #ffffff;
+    color: #1B1D24;
+}
+
+.move-confirm {
+    flex: 2 1 0;
+    min-width: 0;
+    border: 0;
+    background: #594AE2;
+    color: #ffffff;
+}
+
+.move-confirm:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+@media (min-width: 600px) {
+    .move-close {
+        display: flex;
+    }
+
+    .move-actions {
+        justify-content: flex-end;
+    }
+
+    .move-button {
+        flex: 0 0 auto;
+        height: 48px;
+        font-size: 15px;
+    }
 }

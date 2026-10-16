@@ -1,9 +1,18 @@
-<MudDialog>    
+@* A question before an action (E5, T13): what it does, the action named, and Cancel. *@
+<MudDialog Class="app-dialog" ContentClass="app-dialog-content" role="alertdialog" aria-labelledby="@TitleId" aria-describedby="@TextId">
     <DialogContent>
-        <MudText>@ConfirmationMessage</MudText>
+        <div class="app-dialog-handle" aria-hidden="true"></div>
+        <div class="confirm-heading">
+            @if (IsDanger)
+            {
+                <span class="confirm-icon" aria-hidden="true"><MudIcon Icon="@Icons.Material.Outlined.Delete" /></span>
+            }
+            <h2 id="@TitleId">@MudDialog.Title</h2>
+        </div>
+        <p id="@TextId" class="confirm-text">@ConfirmationMessage</p>
+        <div class="confirm-actions">
+            <button type="button" class="confirm-button confirm-cancel" @onclick="Cancel">Cancel</button>
+            <button type="button" class="@(IsDanger ? "confirm-button confirm-action confirm-danger" : "confirm-button confirm-action")" @onclick="Confirm">@ActionText</button>
+        </div>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="@ColorConfirmButton" OnClick="Confirm">@ActionText</MudButton>
-    </DialogActions>
 </MudDialog>

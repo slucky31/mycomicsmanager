@@ -1,32 +1,56 @@
-<MudDialog>
+@* The library to move a book to (E6, T14): a row per library, the current one shown but not chosen, then "Move to …". *@
+<MudDialog Class="app-dialog app-dialog-wide" ContentClass="app-dialog-content" aria-labelledby="@TitleId">
     <DialogContent>
-        <MudText Class="mb-3">Choose the library to move this book to. Its file is moved too.</MudText>
-        <MudSelect T="Guid"
-                   Label="Library"
-                   @bind-Value="_selectedLibraryId"
-                   Variant="Variant.Outlined"
-                   AnchorOrigin="Origin.BottomCenter">
-            @foreach (var target in Targets)
+        <div class="app-dialog-handle" aria-hidden="true"></div>
+        <div class="move-heading">
+            <div class="move-heading-text">
+                <h2 id="@TitleId">@MudDialog.Title</h2>
+                <p class="move-intro">
+                    @if (Choices.CurrentName is { } current)
+                    {
+                        <text>This book is in <strong>@current</strong>. Its file is moved too.</text>
+                    }
+                    else
+                    {
+                        <text>Its file is moved too.</text>
+                    }
+                </p>
+            </div>
+            <button type="button" class="move-close" aria-label="Close" title="Close" @onclick="Cancel"><MudIcon Icon="@Icons.Material.Filled.Close" /></button>
+        </div>
+
+        <div class="move-libraries" role="radiogroup" aria-labelledby="@TitleId">
+            @foreach (var library in Choices.Libraries)
             {
-                <MudSelectItem T="Guid" Value="@target.Id">
-                    <div class="move-book-option">
-                        <span class="move-book-color" style="@($"background-color: {target.Color}")"></span>
-                        <span>@target.Name</span>
-                        @if (target.Hint is not null)
+                var selected = library.Id == _selected?.Id;
+                <button @key="library.Id" type="button" role="radio" aria-checked="@(selected ? "true" : "false")" disabled="@library.IsCurrent"
+                        class="@(selected ? "move-library move-library-selected" : "move-library")" @onclick="() => Choose(library)">
+                    <LibraryIcon Icon="@library.Icon" Color="@library.Color" Large="true" />
+                    <span class="move-library-text">
+                        <span class="move-library-heading">
+                            <span class="move-library-name">@library.Name</span>
+                            @if (library.IsSuggested)
+                            {
+                                <span class="move-library-suggested">Suggested</span>
+                            }
+                        </span>
+                        <span class="move-library-details">@library.Details</span>
+                    </span>
+                    <span class="@(selected ? "move-library-radio move-library-radio-on" : "move-library-radio")" aria-hidden="true">
+                        @if (selected)
                         {
-                            <span class="move-book-hint">@target.Hint</span>
+                            <MudIcon Icon="@Icons.Material.Filled.Check" />
                         }
-                        @if (target.IsSuggested)
-                        {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined">Suggested</MudChip>
-                        }
-                    </div>
-                </MudSelectItem>
+                    </span>
+                </button>
             }
-        </MudSelect>
+        </div>
+
+        <div class="move-actions">
+            <button type="button" class="move-button move-cancel" @onclick="Cancel">Cancel</button>
+            <button type="button" class="move-button move-confirm" disabled="@(_selected is null)" @onclick="Confirm">
+                <MudIcon Icon="@Icons.Material.Filled.DriveFileMove" />@(_selected?.MoveLabel ?? "Move")
+            </button>
+        </div>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_selectedLibraryId == Guid.Empty)" OnClick="Confirm">Move</MudButton>
-    </DialogActions>
 </MudDialog>
