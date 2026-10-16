@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.47.0"></a>
+## [10.47.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.47.0) (2026-10-16)
+
+### ✨ Features
+
+* **web:** share the form page, header, buttons, footer and sections (ADR-0021) ([#1157](https://www.github.com/slucky31/mycomicsmanager/issues/1157)) ([f24fd3d](https://www.github.com/slucky31/mycomicsmanager/commit/f24fd3d6e820290cc5ca5755ab24872209119ea4))
+
 <a name="10.46.8"></a>
 ## [10.46.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.46.8) (2026-10-15)
 
