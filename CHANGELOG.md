@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.48.0"></a>
+## [10.48.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.48.0) (2026-10-16)
+
+### ✨ Features
+
+* **search:** add Bubble as a comic metadata source ([#1158](https://www.github.com/slucky31/mycomicsmanager/issues/1158)) ([017cd2d](https://www.github.com/slucky31/mycomicsmanager/commit/017cd2dc521a3aa143599fee3e9e9b0663fa6302))
+
 <a name="10.47.0"></a>
 ## [10.47.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.47.0) (2026-10-16)
 
