@@ -21,6 +21,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     private readonly IBooksService _booksService = Substitute.For<IBooksService>();
     private readonly IBnfCatalogueService _bnfService = Substitute.For<IBnfCatalogueService>();
     private readonly IBedethequeService _bedethequeService = Substitute.For<IBedethequeService>();
+    private readonly IBubbleService _bubbleService = Substitute.For<IBubbleService>();
     private readonly IOpenLibraryService _openLibraryService = Substitute.For<IOpenLibraryService>();
     private readonly IGoogleBooksService _googleBooksService = Substitute.For<IGoogleBooksService>();
     private readonly IComicSearchService _comicSearchService = Substitute.For<IComicSearchService>();
@@ -33,6 +34,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_booksService);
         _ctx.Services.AddSingleton(_bnfService);
         _ctx.Services.AddSingleton(_bedethequeService);
+        _ctx.Services.AddSingleton(_bubbleService);
         _ctx.Services.AddSingleton(_openLibraryService);
         _ctx.Services.AddSingleton(_googleBooksService);
         _ctx.Services.AddSingleton(_comicSearchService);
@@ -120,6 +122,15 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task OnParametersSetAsync_Should_HideBubble_WhenItHasNoApiKey()
+    {
+        var cut = await RenderOnceSearchedAsync();
+
+        cut.Markup.Should().NotContain("Bubble");
+        await _bubbleService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task FetchWebServicesAsync_Should_ShowTheProgress_UntilEverySourceHasAnswered()
     {
         var google = new TaskCompletionSource<GoogleBooksBookResult>();
@@ -168,6 +179,10 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new GoogleBooksBookResult("Google title", null, ["Google author"], ["Google publisher"],
                 new DateOnly(2007, 5, 3), 58, new Uri("https://books.google.com/cover.jpg"), null, [], null, Found: true));
+        _bubbleService.IsEnabled.Returns(true);
+        _bubbleService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new BubbleBookResult("Bubble title", "Bubble serie", 4, ["Bubble author"], ["Bubble publisher"],
+                new DateOnly(2008, 6, 4), 59, new Uri("https://assets.bubblebd.com/img/1.jpg"), Found: true));
         _comicSearchService.UploadCoverAsync(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(UploadedCover);
     }
 
@@ -200,6 +215,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
 
     [Theory]
     [InlineData("Bedetheque", "Bedetheque title", "Bedetheque serie", 3, "Bedetheque author", 2005, 56)]
+    [InlineData("Bubble", "Bubble title", "Bubble serie", 4, "Bubble author", 2008, 59)]
     [InlineData("OpenLibrary", "OpenLibrary title", "Parsed serie", 2, "OpenLibrary author", 2006, 57)]
     [InlineData("Google Books", "Google title", "Parsed serie", 2, "Google author", 2007, 58)]
     public async Task ApplyAndSaveAsync_Should_SaveEveryValueOfTheSourcePicked(

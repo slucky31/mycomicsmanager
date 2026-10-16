@@ -22,6 +22,7 @@ public static class ApplicationDependencyInjection
             .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<,>)), publicOnly: false).AsImplementedInterfaces().WithScopedLifetime()
         );
 
+        services.AddScoped<BookCatalogues>();
         services.AddScoped<IComicSearchService, ComicSearchService>();
         services.AddScoped<FeedImportDownloadServices>();
         services.AddScoped<FeedImportDepositServices>();

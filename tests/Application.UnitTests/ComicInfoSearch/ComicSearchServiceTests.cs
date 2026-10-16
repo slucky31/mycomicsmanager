@@ -14,6 +14,7 @@ public sealed class ComicSearchServiceTests
     private static readonly string[] SinglePublisherArray = ["Publisher"];
 
     private readonly IBnfCatalogueService _bnfService = BnfNotFoundFactory.Create();
+    private readonly IBubbleService _bubbleService = BubbleNotFoundFactory.Create();
     private readonly IOpenLibraryService _openLibraryService;
     private readonly IGoogleBooksService _googleBooksService;
     private readonly IBedethequeService _bedethequeService;
@@ -67,7 +68,7 @@ public sealed class ComicSearchServiceTests
         _openLibraryService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new OpenLibraryBookResult(string.Empty, null, [], [], null, null, null, Found: false));
 
-        _sut = new ComicSearchService(_bnfService, _openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
+        _sut = new ComicSearchService(new BookCatalogues(_bnfService, _googleBooksService, _openLibraryService, _bubbleService, _bedethequeService), _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
     }
 
     #region SearchByIsbnAsync Tests
@@ -893,8 +894,59 @@ public sealed class ComicSearchServiceTests
             _bnfService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
             _googleBooksService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
             _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
+            _bubbleService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
             _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>());
         });
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_TakeBubbleBeforeBedetheque_WhenTheOtherSourcesDoNotKnowTheBook()
+    {
+        // Arrange
+        const string isbn = "9791026820369";
+        var coverUrl = new Uri("https://assets.bubblebd.com/img/1jvlcxhupm/qhnc4tjxcz.jpg");
+        _bubbleService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(new BubbleBookResult("Entre deux vies", "Catwoman - Selina Kyle", 3, [], ["Urban Comics"], new DateOnly(2021, 5, 7), 200, coverUrl, Found: true));
+        _cloudinaryService.UploadImageFromUrlAsync(coverUrl, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(new Uri("https://res.cloudinary.com/test/catwoman.jpg"), "catwoman", true, null));
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeEquivalentTo(new
+        {
+            Title = "Entre deux vies",
+            Serie = "Catwoman - Selina Kyle",
+            VolumeNumber = 3,
+            Publishers = "Urban Comics",
+            PublishDate = new DateOnly(2021, 5, 7),
+            NumberOfPages = 200,
+            ImageUrl = "https://res.cloudinary.com/test/catwoman.jpg",
+            Source = "Bubble",
+        });
+        await _bedethequeService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_TakeTheBubbleCover_WhenTheBnfKnowsTheBookButGoogleAndOpenLibraryHaveNoCover()
+    {
+        // Arrange
+        const string isbn = "9791026820369";
+        var coverUrl = new Uri("https://assets.bubblebd.com/img/1jvlcxhupm/qhnc4tjxcz.jpg");
+        _bnfService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(new BnfBookResult("Entre deux vies", null, [], [], null, null, null, Found: true));
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(new OpenLibraryBookResult("Entre deux vies", null, [], [], null, null, null, Found: true));
+        _bubbleService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(new BubbleBookResult("Entre deux vies", "Catwoman - Selina Kyle", 3, [], [], null, null, coverUrl, Found: true));
+
+        // Act
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Source.Should().Be("BnF");
+        await _cloudinaryService.Received(1).UploadImageFromUrlAsync(coverUrl, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -1145,6 +1197,7 @@ public sealed class ComicSearchServiceTests
 public sealed class ComicSearchServiceWithLocalCoverTests
 {
     private readonly IBnfCatalogueService _bnfService = BnfNotFoundFactory.Create();
+    private readonly IBubbleService _bubbleService = BubbleNotFoundFactory.Create();
     private readonly IOpenLibraryService _openLibraryService;
     private readonly IGoogleBooksService _googleBooksService;
     private readonly IBedethequeService _bedethequeService;
@@ -1228,7 +1281,7 @@ public sealed class ComicSearchServiceWithLocalCoverTests
             .Returns(new CloudinaryUploadResult(null, null, false, "not configured"));
 
         _sut = new ComicSearchService(
-            _bnfService, _openLibraryService, _googleBooksService, _bedethequeService, _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
+            new BookCatalogues(_bnfService, _googleBooksService, _openLibraryService, _bubbleService, _bedethequeService), _cloudinaryService, _cloudinarySettings, NullLogger<ComicSearchService>.Instance);
     }
 
     [Fact]
@@ -1518,6 +1571,17 @@ public sealed class ComicSearchServiceWithLocalCoverTests
         // Assert: exception is caught, ImageUrl falls back to empty string
         result.Found.Should().BeTrue();
         result.ImageUrl.Should().BeEmpty();
+    }
+}
+
+internal static class BubbleNotFoundFactory
+{
+    public static IBubbleService Create()
+    {
+        var service = Substitute.For<IBubbleService>();
+        service.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new BubbleBookResult(string.Empty, string.Empty, 0, [], [], null, null, null, Found: false));
+        return service;
     }
 }
 
