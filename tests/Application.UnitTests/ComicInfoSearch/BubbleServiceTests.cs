@@ -65,11 +65,11 @@ public sealed class BubbleServiceTests
             Found = true,
             Failed = false,
         });
-        var search = handler.Requests[0];
-        search.Method.Should().Be(HttpMethod.Post);
-        search.Headers.GetValues("X-Algolia-Application-Id").Should().Equal("6A891Z72ZD");
-        search.Headers.GetValues("X-Algolia-API-Key").Should().Equal("search-key");
-        search.Body.Should().Contain($"\"query\":\"{Isbn}\"");
+        var (method, headers, body) = handler.Requests[0];
+        method.Should().Be(HttpMethod.Post);
+        headers.GetValues("X-Algolia-Application-Id").Should().Equal("6A891Z72ZD");
+        headers.GetValues("X-Algolia-API-Key").Should().Equal("search-key");
+        body.Should().Contain($"\"query\":\"{Isbn}\"");
     }
 
     [Fact]

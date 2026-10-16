@@ -20,7 +20,7 @@ namespace Application.ComicInfoSearch;
 public partial class BubbleService : IBubbleService
 {
     private const string AlbumsIndex = "Albums";
-    private const int HitsPerPage = 5;
+    private const int MaxHits = 5;
 
     private static readonly Dictionary<string, int> s_frenchMonths = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -112,7 +112,7 @@ public partial class BubbleService : IBubbleService
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_settings.AlgoliaBaseUrl, $"/1/indexes/{AlbumsIndex}/query"))
         {
-            Content = JsonContent.Create(new AlgoliaQuery(isbn, HitsPerPage)),
+            Content = JsonContent.Create(new AlgoliaQuery(isbn, MaxHits)),
         };
         request.Headers.Add("X-Algolia-Application-Id", _settings.ApplicationId);
         request.Headers.Add("X-Algolia-API-Key", _settings.ApiKey);

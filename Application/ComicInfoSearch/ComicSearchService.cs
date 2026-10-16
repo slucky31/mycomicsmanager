@@ -18,21 +18,17 @@ public partial class ComicSearchService : IComicSearchService
     private readonly ILogger<ComicSearchService> _logger;
 
     public ComicSearchService(
-        IBnfCatalogueService bnfCatalogueService,
-        IOpenLibraryService openLibraryService,
-        IGoogleBooksService googleBooksService,
-        IBedethequeService bedethequeService,
-        IBubbleService bubbleService,
+        BookCatalogues catalogues,
         ICloudinaryService cloudinaryService,
         IOptions<CloudinarySettings> cloudinarySettings,
         ILogger<ComicSearchService> logger)
     {
         _logger = logger;
-        _bnfCatalogueService = bnfCatalogueService;
-        _openLibraryService = openLibraryService;
-        _googleBooksService = googleBooksService;
-        _bedethequeService = bedethequeService;
-        _bubbleService = bubbleService;
+        _bnfCatalogueService = catalogues.Bnf;
+        _openLibraryService = catalogues.OpenLibrary;
+        _googleBooksService = catalogues.GoogleBooks;
+        _bedethequeService = catalogues.Bedetheque;
+        _bubbleService = catalogues.Bubble;
         _cloudinaryService = cloudinaryService;
         _cloudinarySettings = cloudinarySettings.Value;
     }
