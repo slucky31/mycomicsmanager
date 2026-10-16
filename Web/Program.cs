@@ -263,7 +263,7 @@ builder.Services.AddSingleton<IImportJobEnqueuer, HangfireImportJobEnqueuer>();
 builder.Services.AddScoped<IIsbnScanOrchestrator, IsbnScanOrchestrator>();
 builder.Services.AddSingleton<IIsbnScanJobEnqueuer, HangfireIsbnScanJobEnqueuer>();
 builder.Services.AddHostedService<FileWatcherService>();
-builder.Services.AddHostedService<IconPickerWarmupService>();
+builder.Services.AddHostedService<LibraryIconsWarmupService>();
 
 var app = builder.Build();
 

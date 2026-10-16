@@ -1,0 +1,4 @@
+@* The icon of a library on the tint of its color; the color is inherited (--library-color) when it is not given. *@
+<span class="@(Large ? "library-icon library-icon-large" : "library-icon")" style="@(Color is null ? null : $"--library-color: {Color};")" aria-hidden="true">
+    <MudIcon Icon="@LibraryIcons.Resolve(Icon)" />
+</span>

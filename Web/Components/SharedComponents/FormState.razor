@@ -1,0 +1,17 @@
+@* Instead of a form: while it loads, or when what it edits was not found. *@
+@if (Loading)
+{
+    <div class="form-state" role="status">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        <span>@Text</span>
+    </div>
+}
+else
+{
+    <div class="form-state">
+        <MudIcon Icon="@Icon" Class="form-state-icon" />
+        <h2>@Title</h2>
+        <p>@Text</p>
+        @ChildContent
+    </div>
+}

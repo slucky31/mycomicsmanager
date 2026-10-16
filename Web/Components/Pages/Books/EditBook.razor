@@ -10,20 +10,14 @@
     @if (_isLoading)
     {
         <FormHeader Title="Edit book" Subtitle="Loading…" BackHref="@BookHref" />
-        <div class="edit-state" role="status">
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-            <span>Loading the book…</span>
-        </div>
+        <FormState Loading="true" Text="Loading the book…" />
     }
     else if (_view is null || _model is null)
     {
         <FormHeader Title="Edit book" BackHref="/libraries/list" />
-        <div class="edit-state">
-            <MudIcon Icon="@Icons.Material.Outlined.MenuBook" Class="edit-state-icon" />
-            <h2>Book not found</h2>
-            <p>This book does not exist or could not be loaded.</p>
+        <FormState Icon="@Icons.Material.Outlined.MenuBook" Title="Book not found" Text="This book does not exist or could not be loaded.">
             <FormButton Variant="FormButtonVariant.Outlined" Href="/libraries/list" Icon="@Icons.Material.Filled.ArrowBack">Back to libraries</FormButton>
-        </div>
+        </FormState>
     }
     else
     {

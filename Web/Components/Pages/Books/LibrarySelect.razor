@@ -6,7 +6,7 @@
     @if (Selected is { } library)
     {
         <span class="library-select-icon" style="@($"color: {library.Color}; background: color-mix(in srgb, {library.Color} 10%, transparent);")">
-            <MudIcon Icon="@IconPicker.Resolve(library.Icon)" />
+            <MudIcon Icon="@LibraryIcons.Resolve(library.Icon)" />
         </span>
     }
     <span class="library-select-text">

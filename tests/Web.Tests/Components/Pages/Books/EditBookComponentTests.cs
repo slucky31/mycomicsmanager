@@ -86,8 +86,8 @@ public sealed class EditBookComponentTests : IAsyncDisposable
 
         var cut = Render();
 
-        cut.Find(".edit-state h2").TextContent.Should().Be("Book not found");
-        cut.Find(".edit-state a").GetAttribute("href").Should().Be("/libraries/list");
+        cut.Find(".form-state h2").TextContent.Should().Be("Book not found");
+        cut.Find(".form-state a").GetAttribute("href").Should().Be("/libraries/list");
         _snackbar.Received(1).Add("Unable to load the book", Severity.Error);
     }
 

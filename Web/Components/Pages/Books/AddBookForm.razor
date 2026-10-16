@@ -11,10 +11,7 @@
     @if (_isLoading)
     {
         <FormHeader Title="Looking up the book" Subtitle="@($"ISBN {Isbn}")" BackHref="@ExitHref" />
-        <div class="add-loading" role="status">
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-            <span>Looking for this ISBN in the catalogues…</span>
-        </div>
+        <FormState Loading="true" Text="Looking for this ISBN in the catalogues…" />
     }
     else if (_step == AddBookStep.Found && _found is not null)
     {

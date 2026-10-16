@@ -60,7 +60,7 @@
         else if (_displayedBooks.Count == 0 && string.IsNullOrEmpty(_shownSearch))
         {
             <div class="library-empty">
-                <MudIcon Icon="@IconPicker.Resolve(_library?.Icon)" Style="@($"color: {_library?.Color}; font-size: 80px; opacity: 0.4;")" />
+                <MudIcon Icon="@LibraryIcons.Resolve(_library?.Icon)" Style="@($"color: {_library?.Color}; font-size: 80px; opacity: 0.4;")" />
                 <MudText Typo="Typo.h6" Class="mt-4">No books in this library yet</MudText>
                 @if (IsDigital)
                 {

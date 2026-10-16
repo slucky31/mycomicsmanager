@@ -39,48 +39,12 @@
         <div class="libraries-grid">
             @foreach (var library in _libraries)
             {
-                <div @key="library.Id" class="library-cell">
-                <article class="library-card" style="@($"--library-color: {library.Color};")">
-                    <a class="library-card-link" href="@library.Href">
-                        <span class="library-covers" aria-hidden="true">
-                            @if (library.Covers.Count > 0)
-                            {
-                                @* The newest cover is drawn last, in front and on the left. *@
-                                @for (var i = library.Covers.Count - 1; i >= 0; i--)
-                                {
-                                    <img class="@($"library-cover library-cover-{i}")" src="@library.Covers[i]" alt="" loading="lazy" />
-                                }
-                            }
-                            else if (library.BookCount == 0)
-                            {
-                                <span class="library-cover library-cover-0 library-cover-empty">
-                                    <MudIcon Icon="@Icons.Material.Filled.Add" />
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="library-cover library-cover-0 library-cover-none">
-                                    <MudIcon Icon="@IconPicker.Resolve(library.Icon)" />
-                                </span>
-                            }
-                        </span>
-                        <span class="library-card-text">
-                            <span class="library-card-heading">
-                                <span class="library-icon">
-                                    <MudIcon Icon="@IconPicker.Resolve(library.Icon)" />
-                                </span>
-                                <span class="library-name">@library.Name</span>
-                            </span>
-                            <span class="library-card-details">
-                                <span class="library-type">@library.TypeLabel</span>
-                                <span class="library-count">@library.CountLabel</span>
-                            </span>
-                        </span>
-                    </a>
-                    <MudIconButton id="@library.ActionsButtonId" Icon="@Icons.Material.Filled.MoreVert" OnClick="() => OpenActionsAsync(library)"
-                                   aria-label="@library.ActionsLabel" Class="library-card-actions" />
-                </article>
-                </div>
+                <LibraryCard @key="library.Id" Library="library" Href="@library.Href">
+                    <Actions>
+                        <MudIconButton id="@library.ActionsButtonId" Icon="@Icons.Material.Filled.MoreVert" OnClick="() => OpenActionsAsync(library)"
+                                       aria-label="@library.ActionsLabel" Class="library-card-actions" />
+                    </Actions>
+                </LibraryCard>
             }
         </div>
     }
@@ -91,9 +55,7 @@
     <ActionSheet Open="true" AriaLabel="@($"Actions for {current.Name}")" Anchor="@_sheetAnchor" AlignEnd="true" OnClose="CloseActions">
         <Header>
             <div class="library-actions-header" style="@($"--library-color: {current.Color};")">
-                <span class="library-icon">
-                    <MudIcon Icon="@IconPicker.Resolve(current.Icon)" />
-                </span>
+                <LibraryIcon Icon="@current.Icon" />
                 <div class="library-actions-heading">
                     <div class="library-actions-name">@current.Name</div>
                     <div class="library-actions-details">@current.Details</div>

@@ -1,0 +1,52 @@
+@* A library as on the libraries page: its latest covers, icon, name, type and count of books. Without a link, it is the preview of the library form. *@
+<div class="library-cell">
+    <article class="library-card" style="@($"--library-color: {Library.Color};")">
+        @if (Href is null)
+        {
+            <div class="library-card-link">@Body</div>
+        }
+        else
+        {
+            <a class="library-card-link" href="@Href">@Body</a>
+        }
+        @Actions
+    </article>
+</div>
+
+@code {
+    private RenderFragment Body => __builder =>
+    {
+        <span class="library-covers" aria-hidden="true">
+            @if (Library.Covers.Count > 0)
+            {
+                @* The newest cover is drawn last, in front and on the left. *@
+                @for (var i = Library.Covers.Count - 1; i >= 0; i--)
+                {
+                    <img class="@($"library-cover library-cover-{i}")" src="@Library.Covers[i]" alt="" loading="lazy" />
+                }
+            }
+            else if (Library.BookCount == 0)
+            {
+                <span class="library-cover library-cover-0 library-cover-empty">
+                    <MudIcon Icon="@Icons.Material.Filled.Add" />
+                </span>
+            }
+            else
+            {
+                <span class="library-cover library-cover-0 library-cover-none">
+                    <MudIcon Icon="@LibraryIcons.Resolve(Library.Icon)" />
+                </span>
+            }
+        </span>
+        <span class="library-card-text">
+            <span class="library-card-heading">
+                <LibraryIcon Icon="@Library.Icon" />
+                <span class="library-name">@Library.Name</span>
+            </span>
+            <span class="library-card-details">
+                <span class="library-type">@Library.TypeLabel</span>
+                <span class="library-count">@Library.CountLabel</span>
+            </span>
+        </span>
+    };
+}

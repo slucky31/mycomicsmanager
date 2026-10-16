@@ -1,0 +1,26 @@
+@* The icon of a library (E4, T12): suggestions in a grid, and every Material icon by a search. *@
+<div class="icon-chooser">
+    <label class="icon-search">
+        <MudIcon Icon="@Icons.Material.Filled.Search" />
+        <input type="search" placeholder="Search icons, e.g. star" aria-label="Search icons" value="@_query" @oninput="SearchAsync" />
+    </label>
+    <div class="icon-chooser-caption">@_caption</div>
+    @if (_choices.Count == 0)
+    {
+        <div class="icon-chooser-empty">No icon matches your search</div>
+    }
+    else
+    {
+        <div class="icon-grid" role="group" aria-label="Icons">
+            @foreach (var choice in _choices)
+            {
+                var selected = choice.Name == Value;
+                <button @key="choice.Name" type="button" class="@(selected ? "icon-choice icon-choice-selected" : "icon-choice")"
+                        aria-label="@choice.Label" aria-pressed="@(selected ? "true" : "false")" title="@choice.Label"
+                        @onclick="() => ChooseAsync(choice)">
+                    <MudIcon Icon="@choice.Svg" />
+                </button>
+            }
+        </div>
+    }
+</div>

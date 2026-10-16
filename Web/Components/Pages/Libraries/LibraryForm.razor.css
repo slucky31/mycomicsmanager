@@ -1,0 +1,262 @@
+/* The form of a library (E3, T12). */
+.library-form {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 4px 16px 0;
+}
+
+.library-form-side,
+.library-form-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.library-form-side {
+    gap: 10px;
+}
+
+.library-form-main {
+    gap: 20px;
+}
+
+/* On a phone the preview is the card itself, without its caption. */
+.library-form-caption {
+    display: none;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5C6070;
+}
+
+.library-form-note {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.library-form-summary,
+.library-form-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #C62828;
+}
+
+.library-form-summary {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #FDECEC;
+    font-size: 14px;
+}
+
+.library-form-error {
+    margin-top: 6px;
+    gap: 4px;
+    font-size: 13px;
+}
+
+.library-form-error ::deep svg {
+    font-size: 16px;
+}
+
+.library-fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.library-fieldset legend {
+    padding: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.library-fieldset .library-form-note {
+    margin-top: 8px;
+}
+
+/* Type: two radio buttons drawn as cards. */
+.library-types {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.library-type-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 13px;
+    border: 1px solid #E2E3EA;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.library-type-card input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.library-type-card:focus-within {
+    outline: 2px solid #594AE2;
+    outline-offset: 2px;
+}
+
+.library-type-card-selected {
+    padding: 12px;
+    border: 2px solid #594AE2;
+    background: #F1EFFD;
+}
+
+.library-type-card-icons {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #5C6070;
+}
+
+.library-type-card-selected .library-type-card-icons {
+    color: #594AE2;
+}
+
+.library-type-card-title {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.library-type-card-description {
+    font-size: 12px;
+    color: #5C6070;
+}
+
+/* Color: swatches of 44px, the one chosen with a ring and a check. */
+.library-colors {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    justify-items: center;
+}
+
+.library-color {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 22px;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.library-color:focus-visible {
+    outline: 2px solid #594AE2;
+    outline-offset: 4px;
+}
+
+.library-color-selected {
+    box-shadow: 0 0 0 3px #F4F4F6, 0 0 0 5px #1B1D24;
+}
+
+/* Icon: a row opening the icons in a sheet on a phone, the grid in the page from the tablet on. */
+.library-icon-row {
+    width: 100%;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    border: 1px solid #E2E3EA;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #5C6070;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.library-icon-row:focus-visible {
+    outline: 2px solid #594AE2;
+    outline-offset: 2px;
+}
+
+.library-icon-row-text {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.library-icon-row-caption {
+    font-size: 12px;
+}
+
+.library-icon-row-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1B1D24;
+}
+
+.library-icons-inline {
+    display: none;
+}
+
+.library-icons-sheet {
+    padding: 4px 16px 8px;
+}
+
+@media (min-width: 600px) {
+    .library-form {
+        padding: 8px 28px 24px;
+    }
+
+    .library-form-caption {
+        display: block;
+    }
+
+    .library-form-name {
+        max-width: 480px;
+    }
+
+    .library-colors {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .library-icon-row {
+        display: none;
+    }
+
+    .library-icons-inline {
+        display: block;
+    }
+}
+
+/* T12: the preview beside the fields. */
+@media (min-width: 840px) {
+    .library-form {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 32px;
+    }
+
+    .library-form-side {
+        width: 340px;
+        flex-shrink: 0;
+    }
+
+    .library-form-main {
+        flex-grow: 1;
+    }
+}
