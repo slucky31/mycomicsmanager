@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.52.0"></a>
+## [10.52.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.52.0) (2026-10-16)
+
+### ✨ Features
+
+* **web:** restyle the confirmation and move-book dialogs (ADR-0021) ([#1163](https://www.github.com/slucky31/mycomicsmanager/issues/1163)) ([bc764ad](https://www.github.com/slucky31/mycomicsmanager/commit/bc764ad8be8e9ec74796240222a26dc7d4dd24a2))
+
 <a name="10.51.0"></a>
 ## [10.51.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.51.0) (2026-10-16)
 
