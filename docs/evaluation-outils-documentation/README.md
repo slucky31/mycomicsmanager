@@ -29,6 +29,13 @@ Pour relancer chaque test, voir le [mode opératoire](MODE-OPERATOIRE.md). Les p
 Les montants sont des **équivalents API** relevés dans le JSON de fin de `claude -p` (`total_cost_usd`). Avec un
 abonnement, ils ne sont pas facturés, mais ils mesurent la part de quota consommée.
 
+### Exactitude vérifiée
+
+120 affirmations tirées au hasard (20 par outil) ont été contrôlées contre le code : **aucune n'est fausse**.
+Il y a 4 imprécisions : une citation décalée de 3 lignes, une dépendance omise et deux généralisations abusives.
+L'exactitude ne départage donc pas les outils : ce sont la **traçabilité** et le **coût** qui font la différence.
+Détail : [`verification/README.md`](verification/README.md).
+
 ### Recommandation
 
 | Besoin | Outil principal | Complément |
