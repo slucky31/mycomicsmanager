@@ -10,6 +10,7 @@ using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages;
 using Web.Services;
+using Web.Tests.Components.Pages.Books;
 using Xunit;
 
 namespace Web.Tests.Components.Pages;
@@ -45,6 +46,7 @@ public sealed class StatisticsComponentTests
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddMudServices();
+        ctx.AddLibrarySelect();
         ctx.Services.AddSingleton(statisticsService);
         ctx.Services.AddSingleton(CreateLibrariesService());
         ctx.Services.AddSingleton(snackbar);
@@ -110,7 +112,7 @@ public sealed class StatisticsComponentTests
         await using var _ = ctx;
         cut.WaitForAssertion(() => cut.FindAll(".stats-card").Should().NotBeEmpty());
 
-        await cut.Find("#stats-library").ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = s_library.Id.ToString() });
+        await cut.ChooseLibraryAsync("stats-library", "Comics");
 
         await statisticsService.Received(1).Get(s_library.Id, Arg.Any<CancellationToken>());
         cut.WaitForAssertion(() => cut.Markup.Should().NotContain(">Libraries<"));

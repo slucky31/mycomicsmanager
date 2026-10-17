@@ -12,6 +12,7 @@ using Web.Components.Pages;
 using Web.Components.SharedComponents;
 using Web.Models;
 using Web.Services;
+using Web.Tests.Components.Pages.Books;
 using Xunit;
 
 namespace Web.Tests.Components.Pages;
@@ -51,6 +52,7 @@ public sealed class ImportComponentTests
         await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddMudServices();
+        ctx.AddLibrarySelect();
         ctx.Services.AddSingleton(librariesService);
         ctx.Services.AddSingleton(importService);
 
@@ -145,6 +147,7 @@ public sealed class ImportComponentTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton(snackbar);
         ctx.Services.AddMudServices();
+        ctx.AddLibrarySelect();
         ctx.Services.AddSingleton(librariesService);
         ctx.Services.AddSingleton(importService);
 
@@ -197,7 +200,7 @@ public sealed class ImportComponentTests
     public async Task OnLibraryChangedAsync_Should_ReloadJobs_ForNewLibrary()
     {
         await using var setup = await SetupAsync();
-        await setup.Cut.Find("#import-library").ChangeAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = setup.Library.Id.ToString() });
+        await setup.Cut.ChooseLibraryAsync("import-library", setup.Library.Name);
 
         await setup.ImportService.Received(2).GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>());
     }

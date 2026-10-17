@@ -1,31 +1,34 @@
 @using Web.Components.SharedComponents
 @using Web.Validators
 
-@* The library the book is added to, with its color and icon (A5, T8). *@
-<div class="library-select">
+@* The library a book is added to, imported into or counted in (A5, T8): a button showing the chosen library,
+   opening the libraries with their color and icon, as a sheet on a phone and a menu from the tablet on. *@
+<button type="button" id="@Id" class="@CssClass" aria-haspopup="dialog" aria-expanded="@(_open ? "true" : "false")"
+        aria-label="@AriaLabel" aria-invalid="@(string.IsNullOrEmpty(Error) ? null : "true")"
+        aria-describedby="@(string.IsNullOrEmpty(Error) ? null : $"{Id}-error")" @onclick="OpenAsync">
     @if (Selected is { } library)
     {
-        <span class="library-select-icon" style="@($"color: {library.Color}; background: color-mix(in srgb, {library.Color} 10%, transparent);")">
-            <MudIcon Icon="@LibraryIcons.Resolve(library.Icon)" />
-        </span>
+        <LibraryIcon Icon="@library.Icon" Color="@library.Color" />
     }
     <span class="library-select-text">
-        <label for="@Id" class="library-select-label">Library</label>
-        <select id="@Id" value="@Value" aria-invalid="@(string.IsNullOrEmpty(Error) ? null : "true")"
-                aria-describedby="@(string.IsNullOrEmpty(Error) ? null : $"{Id}-error")" @onchange="OnChangeAsync">
-            @if (Selected is null)
-            {
-                <option value="@Guid.Empty">Choose a library</option>
-            }
-            @foreach (var option in Libraries)
-            {
-                <option value="@option.Id">@option.Name</option>
-            }
-        </select>
+        <span class="library-select-label">Library</span>
+        <span class="@(HasChoice ? "library-select-value" : "library-select-value library-select-placeholder")">@ValueText</span>
     </span>
     <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Class="library-select-chevron" />
-</div>
+</button>
 @if (!string.IsNullOrEmpty(Error))
 {
     <span id="@($"{Id}-error")" class="library-select-error">@Error</span>
 }
+
+<ActionSheet Open="_open" AriaLabel="Choose a library" Title="Choose a library" Anchor="_anchor" OnClose="Close">
+    @if (AllLabel is not null)
+    {
+        <ActionSheetItem Icon="@Icons.Material.Filled.CollectionsBookmark" Text="@AllLabel" Selected="@(Value == Guid.Empty)" OnClick="() => ChooseAsync(Guid.Empty)" />
+    }
+    @foreach (var option in Libraries)
+    {
+        <ActionSheetItem Icon="@LibraryIcons.Resolve(option.Icon)" IconColor="@option.Color" Text="@option.Name"
+                         Selected="@(option.Id == Value)" OnClick="() => ChooseAsync(option.Id)" />
+    }
+</ActionSheet>
