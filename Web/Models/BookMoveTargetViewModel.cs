@@ -11,9 +11,14 @@ public sealed record BookMoveTargetViewModel(Guid Id, string Name, string Color,
 }
 
 // The libraries of the dialog, the current one first, and the one chosen when the dialog opens.
-public sealed record BookMoveChoices(IReadOnlyList<BookMoveTargetViewModel> Libraries, string? CurrentName)
+public sealed record BookMoveChoices(IReadOnlyList<BookMoveTargetViewModel> Libraries, string? CurrentName, int BookCount = 1)
 {
     public bool HasTargets => Libraries.Any(l => !l.IsCurrent);
+
+    // "This book is in" Read Books, "These 3 books are in" Read Books.
+    public string Subject => BookCount == 1 ? "This book is in" : $"These {BookCount} books are in";
+
+    public string FileNote => BookCount == 1 ? "Its file is moved too." : "Their files are moved too.";
 
     public Guid? Preselected => Libraries.FirstOrDefault(l => l.IsSuggested)?.Id;
 
@@ -33,16 +38,20 @@ public sealed record BookMoveChoices(IReadOnlyList<BookMoveTargetViewModel> Libr
             l.Name,
             l.Color,
             l.Icon,
-            BookText.Join(type, l.BookCount == 0 ? "No books yet" : LibraryDisplay.BookCount(l.BookCount), SameSerieLabel(l.SameSerieCount))!,
+            BookText.Join(type, l.BookCount == 0 ? "No books yet" : LibraryDisplay.BookCount(l.BookCount), SameSerieLabel(l.SameSerieCount, targets.BookCount))!,
             l.Id == targets.SuggestedLibraryId)));
 
-        return new BookMoveChoices(libraries, targets.Current?.Name);
+        return new BookMoveChoices(libraries, targets.Current?.Name, targets.BookCount);
     }
 
-    private static string? SameSerieLabel(int count) => count switch
+    private static string? SameSerieLabel(int count, int bookCount)
     {
-        0 => null,
-        1 => "1 of this series",
-        _ => string.Create(CultureInfo.InvariantCulture, $"{count} of this series"),
-    };
+        if (count == 0)
+        {
+            return null;
+        }
+
+        var series = bookCount == 1 ? "this series" : "these series";
+        return string.Create(CultureInfo.InvariantCulture, $"{count} of {series}");
+    }
 }

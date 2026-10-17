@@ -107,4 +107,62 @@ public class GetBookMoveTargetsQueryHandlerTests
         result.Value!.Libraries.Should().BeEmpty();
         result.Value.Current.Should().Be(new BookMoveTarget(toSort.Id, "À trier", "#5C6BC0", "Bookmark", 0));
     }
+
+    [Fact]
+    public async Task Handle_Should_CountTheBooksOfEverySerie_WhenSeveralBooksAreMoved()
+    {
+        var toSort = Digital("À trier");
+        var bd = Digital("BD");
+        var mangas = Digital("Mangas");
+        GivenLibraries(toSort, bd, mangas);
+        var blacksad = GivenBookIn(toSort, "Blacksad");
+        var onePiece = GivenBookIn(toSort, "One Piece");
+        _bookReadService.ListSerieLocationsAsync(s_userId, Arg.Any<CancellationToken>()).Returns(
+        [
+            new BookSerieLocationDto(bd.Id, "Blacksad"),
+            new BookSerieLocationDto(mangas.Id, "One Piece"),
+            new BookSerieLocationDto(mangas.Id, "one piece"),
+            new BookSerieLocationDto(mangas.Id, "Naruto")
+        ]);
+
+        var result = await _handler.Handle(new GetBookMoveTargetsQuery([blacksad.Id, onePiece.Id, blacksad.Id], s_userId), TestContext.Current.CancellationToken);
+
+        result.Value!.Libraries.Select(l => l.SameSerieCount).Should().Equal(1, 2);
+        result.Value.SuggestedLibraryId.Should().Be(mangas.Id);
+        result.Value.BookCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenABookIsMissing_OrInAnotherLibrary()
+    {
+        var toSort = Digital("À trier");
+        var bd = Digital("BD");
+        var first = GivenBookIn(toSort, "Blacksad");
+        var elsewhere = GivenBookIn(bd, "Blacksad");
+
+        var missing = await _handler.Handle(new GetBookMoveTargetsQuery([first.Id, Guid.CreateVersion7()], s_userId), TestContext.Current.CancellationToken);
+        var mixed = await _handler.Handle(new GetBookMoveTargetsQuery([first.Id, elsewhere.Id], s_userId), TestContext.Current.CancellationToken);
+
+        missing.Error.Should().Be(BooksError.NotFound);
+        mixed.Error.Should().Be(BooksError.NotFound);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenTheBooksOrTheUserAreNotGiven()
+    {
+        var tooMany = Enumerable.Range(0, GetBookMoveTargetsQueryHandler.MaxBooks + 1).Select(_ => Guid.CreateVersion7()).ToList();
+
+        foreach (var query in new[]
+        {
+            new GetBookMoveTargetsQuery([], s_userId),
+            new GetBookMoveTargetsQuery(tooMany, s_userId),
+            new GetBookMoveTargetsQuery(Guid.Empty, s_userId),
+            new GetBookMoveTargetsQuery(Guid.CreateVersion7(), Guid.Empty),
+        })
+        {
+            (await _handler.Handle(query, TestContext.Current.CancellationToken)).Error.Should().Be(BooksError.BadRequest);
+        }
+
+        await _bookRepository.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+    }
 }

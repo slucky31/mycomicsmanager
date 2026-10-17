@@ -1,3 +1,5 @@
+using Application.Books.MoveTargets;
+using Domain.Primitives;
 using MudBlazor;
 using Web.Components.Pages.Dialogs;
 using Web.Extensions;
@@ -13,7 +15,8 @@ public class BookMoveWorkflow(
 {
     public async Task<bool> ChooseAndMoveAsync(Guid bookId, CancellationToken cancellationToken = default)
     {
-        var targetLibraryId = await ChooseTargetLibraryAsync(bookId, cancellationToken);
+        var targets = await bookMoveService.GetTargetsAsync(bookId, cancellationToken);
+        var targetLibraryId = await ChooseTargetLibraryAsync(targets, "Move to another library", bookId.ToString());
         if (targetLibraryId is null)
         {
             return false;
@@ -31,14 +34,37 @@ public class BookMoveWorkflow(
         return true;
     }
 
-    // Null when there is nowhere to go, the targets could not be loaded or the user cancelled.
-    private async Task<Guid?> ChooseTargetLibraryAsync(Guid bookId, CancellationToken cancellationToken)
+    public async Task<int> ChooseAndMoveAsync(IReadOnlyList<Guid> bookIds, CancellationToken cancellationToken = default)
     {
-        var targets = await bookMoveService.GetTargetsAsync(bookId, cancellationToken);
+        ArgumentNullException.ThrowIfNull(bookIds);
+
+        var targets = await bookMoveService.GetTargetsAsync(bookIds, cancellationToken);
+        var targetLibraryId = await ChooseTargetLibraryAsync(targets, BookMoveText.Title(bookIds.Count), $"{bookIds.Count} books");
+        if (targetLibraryId is null)
+        {
+            return 0;
+        }
+
+        var result = await bookMoveService.MoveAsync(bookIds, targetLibraryId.Value, cancellationToken);
+        if (result.IsFailure)
+        {
+            snackbar.Add(result.Error!.Description ?? "Failed to move the books", Severity.Error);
+            logger.LogError("Failed to move {Count} books: {Description}", bookIds.Count, result.Error.Description);
+            return 0;
+        }
+
+        var moved = result.Value!;
+        snackbar.Add(BookMoveText.Outcome(moved), BookMoveText.Severity(moved));
+        return moved.Moved;
+    }
+
+    // Null when there is nowhere to go, the targets could not be loaded or the user cancelled.
+    private async Task<Guid?> ChooseTargetLibraryAsync(Result<BookMoveTargets> targets, string title, string what)
+    {
         if (targets.IsFailure)
         {
             snackbar.Add("Failed to load libraries", Severity.Error);
-            logger.LogError("Failed to load move targets for book {BookId}: {Description}", bookId, targets.Error!.Description);
+            logger.LogError("Failed to load move targets for {What}: {Description}", what, targets.Error!.Description);
             return null;
         }
 
@@ -50,7 +76,7 @@ public class BookMoveWorkflow(
         }
 
         var parameters = new DialogParameters<MoveBookDialog> { { x => x.Choices, choices } };
-        var dialog = await dialogService.ShowAsync<MoveBookDialog>("Move to another library", parameters, AppDialogs.Options);
+        var dialog = await dialogService.ShowAsync<MoveBookDialog>(title, parameters, AppDialogs.Options);
         var choice = await dialog.Result;
         return choice is { Canceled: false, Data: Guid libraryId } ? libraryId : null;
     }

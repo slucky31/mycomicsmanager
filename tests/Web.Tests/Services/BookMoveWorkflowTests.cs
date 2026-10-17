@@ -1,3 +1,4 @@
+using Application.Books.Move;
 using Application.Books.MoveTargets;
 using AwesomeAssertions;
 using Domain.Books;
@@ -95,5 +96,55 @@ public sealed class BookMoveWorkflowTests
 
         moved.Should().BeFalse();
         _snackbar.Received(1).Add(BooksError.FileAlreadyExists.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    private static readonly IReadOnlyList<Guid> s_bookIds = [Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7()];
+
+    private void SetupTargetsOfSeveralBooksAndDialog(DialogResult dialogResult)
+    {
+        _moveService.GetTargetsAsync(s_bookIds, Arg.Any<CancellationToken>())
+            .Returns(new BookMoveTargets([new BookMoveTarget(s_targetId, "BD", "#111111", "Bookmark", 2)], s_targetId) { BookCount = 3 });
+        var dialog = Substitute.For<IDialogReference>();
+        dialog.Result.Returns(dialogResult);
+        _dialogs.ShowAsync<MoveBookDialog>(Arg.Any<string?>(), Arg.Any<DialogParameters>(), Arg.Any<DialogOptions?>()).Returns(dialog);
+    }
+
+    [Theory]
+    [InlineData(3, 0, "3 books moved")]
+    [InlineData(2, 1, "2 of 3 books moved. A file with the same name already exists in the target library")]
+    public async Task ChooseAndMoveAsync_Should_MoveTheBooksToTheChosenLibrary_AndSayHowManyWereMoved(int moved, int failed, string message)
+    {
+        SetupTargetsOfSeveralBooksAndDialog(DialogResult.Ok(s_targetId));
+        _moveService.MoveAsync(s_bookIds, s_targetId, Arg.Any<CancellationToken>())
+            .Returns(new MoveBooksResult(moved, failed, failed == 0 ? null : BooksError.FileAlreadyExists));
+
+        var result = await _workflow.ChooseAndMoveAsync(s_bookIds, TestContext.Current.CancellationToken);
+
+        result.Should().Be(moved);
+        await _dialogs.Received(1).ShowAsync<MoveBookDialog>("Move 3 books", Arg.Any<DialogParameters>(), Arg.Any<DialogOptions?>());
+        _snackbar.Received(1).Add(message, failed == 0 ? Severity.Success : Severity.Warning, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ChooseAndMoveAsync_Should_MoveNoBook_WhenTheUserCancels()
+    {
+        SetupTargetsOfSeveralBooksAndDialog(DialogResult.Cancel());
+
+        var result = await _workflow.ChooseAndMoveAsync(s_bookIds, TestContext.Current.CancellationToken);
+
+        result.Should().Be(0);
+        await _moveService.DidNotReceive().MoveAsync(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ChooseAndMoveAsync_Should_ShowTheError_WhenTheBooksCannotBeMoved()
+    {
+        SetupTargetsOfSeveralBooksAndDialog(DialogResult.Ok(s_targetId));
+        _moveService.MoveAsync(s_bookIds, s_targetId, Arg.Any<CancellationToken>()).Returns(Result<MoveBooksResult>.Failure(BooksError.BadRequest));
+
+        var result = await _workflow.ChooseAndMoveAsync(s_bookIds, TestContext.Current.CancellationToken);
+
+        result.Should().Be(0);
+        _snackbar.Received(1).Add(BooksError.BadRequest.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 }

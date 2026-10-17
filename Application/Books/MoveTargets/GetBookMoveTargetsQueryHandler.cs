@@ -15,17 +15,21 @@ public sealed class GetBookMoveTargetsQueryHandler(
     ILibraryReadService libraryReadService,
     IBookReadService bookReadService) : IQueryHandler<GetBookMoveTargetsQuery, BookMoveTargets>
 {
+    // A selection of a library holds at most the books loaded on its page.
+    public const int MaxBooks = 500;
+
     public async Task<Result<BookMoveTargets>> Handle(GetBookMoveTargetsQuery request, CancellationToken cancellationToken)
     {
         Guard.Against.Null(request);
-        if (request.BookId == Guid.Empty || request.UserId == Guid.Empty)
+        if (request.BookIds is null || request.BookIds.Count == 0 || request.BookIds.Count > MaxBooks
+            || request.BookIds.Contains(Guid.Empty) || request.UserId == Guid.Empty)
         {
             return BooksError.BadRequest;
         }
 
-        var book = await bookRepository.GetByIdAsync(request.BookId);
-        var source = book is null ? null : await libraryRepository.GetByIdAsync(book.LibraryId);
-        if (book is null || source is null || source.UserId != request.UserId)
+        var books = await LoadBooksAsync(request.BookIds.Distinct().ToList());
+        var source = books is null ? null : await libraryRepository.GetByIdAsync(books[0].LibraryId);
+        if (books is null || source is null || source.UserId != request.UserId)
         {
             return BooksError.NotFound;
         }
@@ -40,10 +44,10 @@ public sealed class GetBookMoveTargetsQueryHandler(
             .ToList();
         if (candidates.Count == 0)
         {
-            return new BookMoveTargets([], null) { Current = current, BookType = source.BookType };
+            return new BookMoveTargets([], null) { Current = current, BookType = source.BookType, BookCount = books.Count };
         }
 
-        var sameSerieCounts = await CountSameSerieByLibraryAsync(book.Serie, request.UserId, cancellationToken);
+        var sameSerieCounts = await CountSameSeriesByLibraryAsync(books, request.UserId, cancellationToken);
         var targets = candidates
             .Select(l => new BookMoveTarget(l.Id, l.Name, l.Color, l.Icon, sameSerieCounts.GetValueOrDefault(l.Id), l.BookCount))
             .ToList();
@@ -53,21 +57,42 @@ public sealed class GetBookMoveTargetsQueryHandler(
             .ThenBy(t => t.Name, StringComparer.CurrentCultureIgnoreCase)
             .FirstOrDefault();
 
-        return new BookMoveTargets(targets, suggested?.Id) { Current = current, BookType = source.BookType };
+        return new BookMoveTargets(targets, suggested?.Id) { Current = current, BookType = source.BookType, BookCount = books.Count };
+    }
+
+    // Null when a book is missing or the books are not in the same library.
+    private async Task<List<Book>?> LoadBooksAsync(List<Guid> bookIds)
+    {
+        List<Book> books = [];
+        foreach (var bookId in bookIds)
+        {
+            var book = await bookRepository.GetByIdAsync(bookId);
+            if (book is null || (books.Count > 0 && book.LibraryId != books[0].LibraryId))
+            {
+                return null;
+            }
+
+            books.Add(book);
+        }
+
+        return books;
     }
 
     // Series are compared normalized (case, accents, punctuation and leading article ignored).
-    private async Task<Dictionary<Guid, int>> CountSameSerieByLibraryAsync(string serie, Guid userId, CancellationToken cancellationToken)
+    private async Task<Dictionary<Guid, int>> CountSameSeriesByLibraryAsync(List<Book> books, Guid userId, CancellationToken cancellationToken)
     {
-        var normalized = SerieMatcher.Normalize(serie);
-        if (string.IsNullOrEmpty(normalized))
+        var series = books
+            .Select(b => SerieMatcher.Normalize(b.Serie))
+            .Where(s => !string.IsNullOrEmpty(s))
+            .ToHashSet(StringComparer.Ordinal);
+        if (series.Count == 0)
         {
             return [];
         }
 
         var locations = await bookReadService.ListSerieLocationsAsync(userId, cancellationToken);
         return locations
-            .Where(l => SerieMatcher.Normalize(l.Serie) == normalized)
+            .Where(l => series.Contains(SerieMatcher.Normalize(l.Serie)))
             .GroupBy(l => l.LibraryId)
             .ToDictionary(g => g.Key, g => g.Count());
     }

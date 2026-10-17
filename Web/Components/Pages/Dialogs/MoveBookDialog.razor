@@ -1,4 +1,4 @@
-@* The library to move a book to (E6, T14): a row per library, the current one shown but not chosen, then "Move to …". *@
+@* The library to move a book, or several books of a library (#1150), to (E6, T14): a row per library, the current one shown but not chosen, then "Move to …". *@
 <MudDialog Class="app-dialog app-dialog-wide" ContentClass="app-dialog-content" aria-labelledby="@TitleId">
     <DialogContent>
         <div class="app-dialog-handle" aria-hidden="true"></div>
@@ -8,11 +8,11 @@
                 <p class="move-intro">
                     @if (Choices.CurrentName is { } current)
                     {
-                        <text>This book is in <strong>@current</strong>. Its file is moved too.</text>
+                        <text>@Choices.Subject <strong>@current</strong>. @Choices.FileNote</text>
                     }
                     else
                     {
-                        <text>Its file is moved too.</text>
+                        <text>@Choices.FileNote</text>
                     }
                 </p>
             </div>
