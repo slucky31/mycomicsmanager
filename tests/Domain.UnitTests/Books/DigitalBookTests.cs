@@ -210,6 +210,19 @@ public class DigitalBookTests
     }
 
     [Fact]
+    public void Relocate_Should_ChangeTheFilePath_ButNotToAnEmptyOne()
+    {
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+
+        book.Relocate(" ").Error.Should().Be(BooksError.BadRequest);
+        book.FilePath.Should().Be(DefaultFilePath);
+
+        book.Relocate("/data/IMPORTED/tome-01.cbz").IsSuccess.Should().BeTrue();
+        book.FilePath.Should().Be("/data/IMPORTED/tome-01.cbz");
+        book.LibraryId.Should().Be(DefaultLibraryId);
+    }
+
+    [Fact]
     public void UpdateReadingProgress_Should_StorePage_WhenIndexIsPositiveOrZero()
     {
         var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;

@@ -6,7 +6,7 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
 
 > État actuel : la chaîne complète est en place — synchronisation Miniflux,
 > analyse des articles, arbitrage, téléchargement via Debrid-Link avec dépôt
-> dans la bibliothèque « À trier », et actions manuelles sur les décisions.
+> dans la bibliothèque « Imported », et actions manuelles sur les décisions.
 
 ## Fonctionnement
 
@@ -37,7 +37,8 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
 6. À la fin de chaque synchronisation, si `DebridLink:ApiKey` est renseignée, chaque décision
    `LinksExtracted` (y compris celles débloquées par un arbitrage) part dans un job Hangfire
    `FeedImportDownloadJob` :
-   - la bibliothèque digitale `FeedImport:TargetLibraryName` (« À trier ») est créée au besoin ;
+   - la bibliothèque digitale « Imported » est créée au besoin ; elle ne peut être ni supprimée ni renommée
+     (l'ancienne « À trier » est renommée « Imported » au démarrage, avec ses dossiers et les chemins de ses livres) ;
    - les miroirs sont essayés dans l'ordre de `DebridLink:HosterPriority`, en sautant les hébergeurs
      que Debrid-Link ne prend pas en charge ; chaque échec de miroir est tracé dans l'historique ;
    - le lien direct renvoyé par Debrid-Link n'est suivi que si son domaine est dans
@@ -48,7 +49,7 @@ d'architecture est documentée dans [ADR-0019](adr/0019-integration-miniflux-deb
      est déposé dans le dossier d'import de la bibliothèque (copie en `.part` puis renommage) →
      `Downloaded` ;
    - `Downloaded` est l'état final côté Feeds : la suite (extraction, conversion, métadonnées) se
-     suit dans la page **Import**, que le bouton « Track import » ouvre sur la bibliothèque « À trier ».
+     suit dans la page **Import**, que le bouton « Track import » ouvre sur la bibliothèque « Imported ».
 7. Une fois le livre importé, le ranger depuis sa fiche avec **Move to…** : MCM propose la bibliothèque
    qui contient déjà le plus de tomes de la même série, et déplace le fichier CBZ avec le livre.
 
@@ -159,7 +160,6 @@ environment:
 | `FeedImport:Enabled` | `false` | Active la synchronisation ; à `false`, le job récurrent est retiré de Hangfire |
 | `FeedImport:UserEmail` | — | Email de l'utilisateur MCM propriétaire des décisions (obligatoire si activé) |
 | `FeedImport:SyncIntervalMinutes` | `30` | Intervalle du job `feed-import-sync` |
-| `FeedImport:TargetLibraryName` | `À trier` | Bibliothèque digitale de dépôt, créée au premier téléchargement |
 | `FeedImport:AllowedSourceHosts` | `planete-bd.org`, `zone-ebook.com` | Domaines des pages d'articles autorisés, sous-domaines compris |
 | `FeedImport:AllowedDownloadHosts` | `dailyuploads.net`, `katfile.biz`, `trbt.cc`, `turbobit.net`, `rapidgator.net`, `1fichier.com` | Domaines des hébergeurs dont les liens sont retenus, sous-domaines compris (relevés sur les deux sites en octobre 2026). `fileq.net` et `frdl.io`, aussi présents sur les sites, sont volontairement exclus : Debrid-Link ne les prend pas en charge (`GET /downloader/domains`) |
 | `Miniflux:BaseUrl` | `http://miniflux:8080` | URL de Miniflux ; seul cet hôte est autorisé par le garde-fou SSRF |
@@ -217,7 +217,7 @@ synchronisation (`Feed import sync done: ...`) ou l'erreur rencontrée
 | Décision « Failed » à l'étape *Download* : clé absente ou invalide | Clé Debrid-Link expirée ou révoquée : en générer une nouvelle |
 | Décision « Failed » : *Download domain not allowed. (xxx)* | Debrid-Link sert le fichier depuis un domaine inconnu : l'ajouter à `DebridLink:DownloadHosts` |
 | Décision « Failed » : *Debrid-Link quota reached.* | Limite journalière du compte : les autres miroirs ne sont pas essayés pour ne pas consommer le quota |
-| Décision « Failed » à l'étape *Library* | Une bibliothèque **physique** porte déjà le nom `FeedImport:TargetLibraryName` |
+| Décision « Failed » à l'étape *Library* | Une bibliothèque **physique** porte déjà le nom « Imported » |
 | Décision « Failed » à l'étape *Import* | Le fichier téléchargé n'a pas pu être remis au pipeline d'import (création de la tâche ou dépôt dans le dossier) |
-| Fichier téléchargé mais livre absent | L'import lui-même a échoué : voir la page **Import** de la bibliothèque « À trier » |
+| Fichier téléchargé mais livre absent | L'import lui-même a échoué : voir la page **Import** de la bibliothèque « Imported » |
 | Décision bloquée en « Downloading... » | Application arrêtée pendant le téléchargement : le bouton « Retry » apparaît une heure après le début du téléchargement |

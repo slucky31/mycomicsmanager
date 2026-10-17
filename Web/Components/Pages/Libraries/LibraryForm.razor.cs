@@ -18,6 +18,12 @@ public partial class LibraryForm
     [Parameter]
     public bool IsNew { get; set; }
 
+    // The Imported library keeps its name: the feed imports deposit their files there.
+    [Parameter]
+    public bool NameLocked { get; set; }
+
+    private string? NameHelp => NameLocked ? "The feed imports add their books here: this library keeps its name." : null;
+
     [Parameter]
     public FormErrors Errors { get; set; } = FormErrors.None;
 

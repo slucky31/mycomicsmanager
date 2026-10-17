@@ -166,6 +166,20 @@ public sealed class ImportComponentTests
         setup.Cut.Markup.Should().Contain("Unable to load the libraries.");
     }
 
+    [Fact]
+    public async Task OnInitializedAsync_Should_ChooseTheImportedLibrary_WhenNoLibraryIsAsked()
+    {
+        var comics = Library.Create("Comics", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Digital, s_userId).Value!;
+        var imported = Library.Create("Imported", "#5C6BC0", "Inbox", LibraryBookType.Digital, s_userId).Value!;
+        var pagedList = Substitute.For<IPagedList<Library>>();
+        pagedList.Items.Returns(new List<Library> { comics, imported });
+
+        await using var setup = await SetupAsync(librariesResult: Result<IPagedList<Library>>.Success(pagedList));
+
+        setup.Cut.Find("#import-library").GetAttribute("value").Should().Be(imported.Id.ToString());
+        await setup.ImportService.Received(1).GetImportJobsAsync(imported.Id, Arg.Any<CancellationToken>());
+    }
+
     // ── LoadJobsAsync ─────────────────────────────────────────────────────────
 
     [Fact]

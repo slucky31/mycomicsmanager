@@ -19,9 +19,9 @@
         }
 
         <div class="library-form-name">
-            <FormField Id="library-name" Label="Name" Required="true" Error="@Errors.For(nameof(LibraryUiDto.Name))">
-                <input id="library-name" type="text" placeholder="e.g. Mangas" value="@Model.Name" @oninput="OnNameInputAsync"
-                       aria-invalid="@Errors.AriaInvalid(nameof(LibraryUiDto.Name))" aria-describedby="@Describe("library-name", nameof(LibraryUiDto.Name))" />
+            <FormField Id="library-name" Label="Name" Required="true" Error="@Errors.For(nameof(LibraryUiDto.Name))" Help="@NameHelp">
+                <input id="library-name" type="text" placeholder="e.g. Mangas" value="@Model.Name" @oninput="OnNameInputAsync" readonly="@NameLocked"
+                       aria-invalid="@Errors.AriaInvalid(nameof(LibraryUiDto.Name))" aria-describedby="@FormFieldIds.DescribedBy("library-name", Errors.For(nameof(LibraryUiDto.Name)), NameHelp)" />
             </FormField>
         </div>
 

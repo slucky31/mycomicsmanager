@@ -23,6 +23,7 @@ public sealed partial class EditLibrary : IDisposable
     private readonly CancellationTokenSource _disposalCts = new();
     private LibraryUiDto? _model;
     private string? _name;
+    private bool _nameLocked;
     private int _bookCount;
     private IReadOnlyList<string> _covers = [];
     private FormErrors _errors = FormErrors.None;
@@ -57,6 +58,7 @@ public sealed partial class EditLibrary : IDisposable
             {
                 _model = LibraryUiDto.Convert(result.Value);
                 _name = result.Value.Name;
+                _nameLocked = result.Value.IsImported;
                 return;
             }
 

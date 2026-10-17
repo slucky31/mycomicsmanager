@@ -1,8 +1,10 @@
 using Application;
+using Application.Abstractions.Messaging;
 using Application.ComicInfoSearch;
 using Application.ImportJobs;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
+using Application.Libraries.RenameLegacyImported;
 using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
 using Hangfire;
@@ -272,6 +274,11 @@ var app = builder.Build();
 using (var migrationScope = app.Services.CreateScope())
 {
     await migrationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
+
+    // The library of the feed imports was called "À trier" before it became "Imported" (#1109).
+    await migrationScope.ServiceProvider
+        .GetRequiredService<ICommandHandler<RenameLegacyImportedLibrariesCommand, int>>()
+        .Handle(new RenameLegacyImportedLibrariesCommand(), CancellationToken.None);
 }
 
 // Ensure import and temp directories exist at startup

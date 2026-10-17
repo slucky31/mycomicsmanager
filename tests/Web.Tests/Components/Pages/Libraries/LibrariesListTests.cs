@@ -156,6 +156,18 @@ public sealed class LibrariesListTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task OpenActionsAsync_Should_NotOfferToDeleteTheImportedLibrary()
+    {
+        var imported = new LibrarySummary(Guid.CreateVersion7(), "Imported", "#4A5BC4", "Inbox", LibraryBookType.Digital, 3);
+        var cut = Render(_readBooks, imported);
+
+        await OpenActionsAsync(cut, imported);
+
+        cut.Find("[role=dialog]").QuerySelectorAll(".action-sheet-item").Select(i => i.TextContent.Trim())
+            .Should().Equal("Edit name, icon and color", "Import books");
+    }
+
+    [Fact]
     public async Task OpenActionsAsync_Should_CenterTheMenu_WhenTheButtonCannotBeLocated()
     {
         _module.Setup<PopupAnchor?>("anchorOf", $"library-actions-{_readBooks.Id}").SetException(new Microsoft.JSInterop.JSException("gone"));
