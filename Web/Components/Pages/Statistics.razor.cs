@@ -27,13 +27,8 @@ public partial class Statistics : IAsyncDisposable
         await LoadStatisticsAsync();
     }
 
-    private async Task OnLibraryChangedAsync(ChangeEventArgs args)
+    private async Task OnLibraryChangedAsync(Guid libraryId)
     {
-        if (!Guid.TryParse(args.Value?.ToString(), out var libraryId))
-        {
-            return;
-        }
-
         _selectedLibraryId = libraryId;
         await LoadStatisticsAsync();
     }

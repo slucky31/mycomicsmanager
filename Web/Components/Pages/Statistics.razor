@@ -1,21 +1,13 @@
 @page "/statistics"
 
+@using Web.Components.Pages.Books
+
 <PageTitle>Statistics — MyComicsManager</PageTitle>
 
 <div class="stats-page">
     <header class="stats-bar">
         <h1>Statistics</h1>
-        <label class="stats-library">
-            <span class="stats-library-label">Library</span>
-            <select id="stats-library" value="@_selectedLibraryId" @onchange="OnLibraryChangedAsync">
-                <option value="@Guid.Empty">All libraries</option>
-                @foreach (var library in _libraries)
-                {
-                    <option value="@library.Id">@library.Name</option>
-                }
-            </select>
-            <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Class="stats-library-chevron" />
-        </label>
+        <LibrarySelect Id="stats-library" Libraries="_libraries" Value="_selectedLibraryId" ValueChanged="OnLibraryChangedAsync" AllLabel="All libraries" Compact="true" />
     </header>
 
     @if (_isLoading)
