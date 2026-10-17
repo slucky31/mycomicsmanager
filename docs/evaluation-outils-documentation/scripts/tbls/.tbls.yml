@@ -1,0 +1,119 @@
+# Configuration tbls pour MyComicsManager (base PostgreSQL issue des migrations EF Core)
+dsn: postgres://postgres@127.0.0.1:55432/mycomics?sslmode=disable
+docPath: doc
+format:
+  adjust: true
+er:
+  format: mermaid
+  distance: 1
+exclude:
+  - __EFMigrationsHistory
+  - DataProtectionKeys
+lint:
+  requireTableComment:
+    enabled: true
+  requireColumnComment:
+    enabled: false
+  unrelatedTable:
+    enabled: true
+comments:
+  - table: public.Libraries
+    tableComment: Bibliothèque d'un utilisateur, qui regroupe uniquement des BD physiques ou uniquement des BD numériques.
+    columnComments:
+      Name: Nom de la bibliothèque (il sert aussi à déterminer son dossier de stockage pour les BD numériques).
+      BookType: "Type de BD contenues : 0 = Physique, 1 = Numérique."
+      UserId: Identifiant de l'utilisateur propriétaire de la bibliothèque.
+      DefaultBookSortOrder: "Tri par défaut des livres : 0 = Plus récents d'abord (Id décroissant), 1 = Plus anciens d'abord (Id croissant), 2 = Série puis tome croissants."
+  - table: public.Users
+    tableComment: Utilisateur de l'application.
+    columnComments:
+      AuthId: Identifiant de l'utilisateur chez le fournisseur d'authentification.
+  - table: public.Books
+    tableComment: Données communes à tous les livres (BD). Chaque ligne est spécialisée par une ligne de PhysicalBooks ou de DigitalBooks de même Id.
+    columnComments:
+      Serie: Nom de la série à laquelle appartient la BD.
+      ISBN: ISBN du livre. Peut être vide pour une BD numérique dont l'ISBN n'est pas encore connu ; obligatoire pour une BD physique.
+      VolumeNumber: Numéro du tome dans la série (1 par défaut).
+      ImageLink: Lien de l'image de couverture.
+      Authors: Auteurs de la BD.
+      Publishers: Éditeurs de la BD.
+      PublishDate: Date de publication.
+      NumberOfPages: Nombre de pages (facultatif).
+      LibraryId: Bibliothèque qui contient le livre.
+  - table: public.ReadingDates
+    tableComment: Lecture d'un livre par l'utilisateur, avec la note donnée à cette occasion.
+    columnComments:
+      Date: Date de la lecture.
+      BookId: Livre lu.
+      Rating: Note donnée lors de cette lecture, de 1 à 5.
+  - table: public.DigitalBooks
+    tableComment: Spécialisation d'un livre numérique (fichier dans une bibliothèque numérique) ; même Id que la ligne de Books.
+    columnComments:
+      FilePath: Chemin du fichier de la BD dans le stockage de la bibliothèque.
+      FileSize: Taille du fichier, en octets.
+      LastReadPage: Index (à partir de 0) de la dernière page affichée dans le lecteur.
+      IsbnCandidates: ISBN lus sur les pages du livre quand plusieurs ont été trouvés et qu'aucun n'a pu être attribué automatiquement ; l'utilisateur choisit le bon. Vidé dès que le livre a un ISBN.
+      IsbnScannedAt: Date de la dernière recherche d'ISBN dans les pages du livre ; vide si elle n'a jamais été faite.
+      ReaderLayout: "Disposition des pages dans le lecteur : 0 = Pleine largeur (défilement vertical), 1 = Page seule en pleine hauteur, 2 = Deux pages côte à côte en pleine hauteur."
+      ReaderScrolling: "Défilement du lecteur : 0 = Continu (un seul défilement vertical), 1 = Page par page (tape, balayage ou flèches)."
+      ReadingDirection: "Sens de lecture : 0 = De gauche à droite, 1 = De droite à gauche (mangas : la page suivante est à gauche)."
+  - table: public.PhysicalBooks
+    tableComment: Spécialisation d'un livre physique (possédé sur papier) ; même Id que la ligne de Books, sans colonne propre.
+  - table: public.IsbnBedethequeUrls
+    tableComment: Cache de l'URL de la fiche Bedetheque associée à un ISBN.
+    columnComments:
+      ISBN: ISBN recherché (unique).
+      Url: URL de la fiche Bedetheque correspondante.
+  - table: public.ImportJobs
+    tableComment: Traitement d'import d'un fichier de BD numérique déposé, suivi étape par étape jusqu'à la création du livre numérique.
+    columnComments:
+      OriginalFileName: Nom du fichier déposé.
+      OriginalFilePath: Chemin du fichier déposé ; unique tant que l'import n'est ni terminé ni en échec.
+      OriginalFileSize: Taille du fichier déposé, en octets.
+      LibraryId: Bibliothèque de destination de l'import.
+      DigitalBookId: Livre numérique créé par l'import ; renseigné une fois l'import terminé.
+      Status: "Étape de l'import : 0 = En attente, 1 = Extraction des images de l'archive/PDF, 2 = Conversion des images en WebP, 3 = Recherche de métadonnées (Bedetheque) et mise à jour de ComicInfo.xml, 4 = Envoi de la couverture sur Cloudinary, 5 = Construction de l'archive CBZ finale, 6 = Terminé, 7 = Échec."
+      CreatedAt: Date de création de l'import.
+      CompletedAt: Date de fin de l'import réussi.
+      ErrorMessage: Message d'erreur en cas d'échec.
+      ErrorStep: Étape à laquelle l'import a échoué.
+      ConvertedImagesCount: Nombre d'images déjà converties (progression de la conversion).
+      TotalImagesToConvert: Nombre total d'images à convertir.
+  - table: public.FeedImportDecisions
+    tableComment: Décision d'import automatique issue d'un article d'un flux Miniflux (un article peut contenir plusieurs livres, donc plusieurs décisions) ; suit l'analyse, l'arbitrage éventuel et le téléchargement.
+    columnComments:
+      UserId: Utilisateur pour lequel l'article a été enregistré.
+      MinifluxEntryId: Identifiant de l'article dans Miniflux.
+      EntryTitle: Titre de l'article (tronqué si besoin ; l'URL à défaut de titre).
+      EntryUrl: URL de l'article.
+      PublishedAt: Date de publication de l'article.
+      ParsedSerie: Série déduite du titre de l'article.
+      ParsedTitle: Titre du livre déduit du titre de l'article.
+      ParsedVolume: Numéro de tome déduit du titre de l'article.
+      Links: Liste JSON des candidats de téléchargement trouvés dans l'article, chacun avec ses miroirs (URL et hôte).
+      ChosenMirror: Miroir utilisé pour le téléchargement.
+      MatchedBookId: Livre existant détecté comme doublon (certain ou probable).
+      ImportJobId: Import créé lorsque le fichier téléchargé a été déposé.
+      Status: "État de la décision : 0 = En attente d'analyse, 1 = Liens extraits, 2 = En attente d'arbitrage, 3 = Doublon ignoré (BD déjà présente), 4 = Téléchargement en cours, 5 = Téléchargé (fichier déposé ; l'import se suit ensuite via ImportJobs), 6 = Importé (valeur non utilisée, conservée pour ne pas décaler les valeurs), 7 = Ignoré par l'utilisateur, 8 = Échec."
+      ArbitrationKind: "Raison de l'arbitrage demandé à l'utilisateur : 0 = Aucun, 1 = Liens ambigus (regroupement en miroirs/livres incertain), 2 = Doublon probable (correspondance proche mais non certaine dans une bibliothèque)."
+      Reason: Raison de l'état courant de la décision.
+      DecidedBy: "Auteur de la dernière décision : 0 = Automatique, 1 = Utilisateur."
+      ErrorMessage: Message d'erreur en cas d'échec.
+      ErrorStep: Étape à laquelle la décision a échoué.
+      CreatedAt: Date d'enregistrement de l'article (identique pour les livres d'un même article).
+      UpdatedAt: Date du dernier changement d'état.
+      ItemIndex: Rang du livre dans l'article, 0 pour la décision créée depuis l'entrée Miniflux, 1 à n pour les autres livres du même article.
+  - table: public.FeedImportDecisionEvents
+    tableComment: Historique des changements d'état d'une décision d'import de flux.
+    columnComments:
+      FeedImportDecisionId: Décision concernée.
+      OccurredAt: Date de l'événement.
+      PreviousStatus: "État précédent (mêmes valeurs que FeedImportDecisions.Status) ; vide pour l'événement de création."
+      Status: "Nouvel état (mêmes valeurs que FeedImportDecisions.Status : 0 = En attente d'analyse, 1 = Liens extraits, 2 = En attente d'arbitrage, 3 = Doublon ignoré, 4 = Téléchargement en cours, 5 = Téléchargé, 6 = Importé (non utilisé), 7 = Ignoré, 8 = Échec)."
+      DecidedBy: "Auteur de l'événement : 0 = Automatique, 1 = Utilisateur."
+      Description: Raison ou description de l'événement.
+  - table: public.FeatureToggleOverrides
+    tableComment: Valeurs d'activation de fonctionnalités choisies dans la page Paramètres ; elles remplacent la valeur de la configuration (appsettings / variables d'environnement) tant qu'elles existent.
+    columnComments:
+      Toggle: "Fonctionnalité concernée, stockée par son nom : FeedImport (synchronisation Miniflux et téléchargements automatiques), IsbnOcr (lecture de l'ISBN sur les pages des livres importés), Bedetheque (recherche Bedetheque via SerpApi), Bnf (recherche catalogue BnF), GoogleBooks (recherche Google Books), OpenLibrary (recherche OpenLibrary), Bubble (recherche Bubble)."
+      Enabled: Vrai si la fonctionnalité est activée, faux si elle est désactivée.

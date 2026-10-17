@@ -1,0 +1,1592 @@
+{
+ "component": "Base de donn\u00e9es et mod\u00e8le de domaine",
+ "paths": [
+  "Domain/",
+  "Persistence/ApplicationDbContext.cs",
+  "Persistence/Migrations/"
+ ],
+ "commit": "631720b92a58d61a0eb09343f7cbfc2f14a5f1ce",
+ "objects": [],
+ "procedures_called": [],
+ "definitions": [],
+ "orm_maps": [
+  {
+   "entity": "Library",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:15"
+  },
+  {
+   "entity": "User",
+   "table": "Users",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:17"
+  },
+  {
+   "entity": "Book",
+   "table": "Books",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:19"
+  },
+  {
+   "entity": "PhysicalBook",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:21"
+  },
+  {
+   "entity": "DigitalBook",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:23"
+  },
+  {
+   "entity": "ReadingDate",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:25"
+  },
+  {
+   "entity": "IsbnBedethequeUrl",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:27"
+  },
+  {
+   "entity": "ImportJob",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:29"
+  },
+  {
+   "entity": "FeedImportDecision",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:31"
+  },
+  {
+   "entity": "FeedImportDecisionEvent",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:33"
+  },
+  {
+   "entity": "FeatureToggleOverride",
+   "table": "FeatureToggleOverrides",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:35"
+  },
+  {
+   "entity": "DataProtectionKey",
+   "table": "DataProtectionKeys",
+   "schema": "",
+   "kind": "EF DbSet",
+   "source": "Persistence/ApplicationDbContext.cs:38"
+  },
+  {
+   "entity": "Library",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:45"
+  },
+  {
+   "entity": "User",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:51"
+  },
+  {
+   "entity": "Book",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:53"
+  },
+  {
+   "entity": "PhysicalBook",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:73"
+  },
+  {
+   "entity": "DigitalBook",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:74"
+  },
+  {
+   "entity": "ImportJob",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:80"
+  },
+  {
+   "entity": "ReadingDate",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:99"
+  },
+  {
+   "entity": "IsbnBedethequeUrl",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:101"
+  },
+  {
+   "entity": "FeatureToggleOverride",
+   "table": "FeatureToggleOverrides",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:106"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:115"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/ApplicationDbContext.cs:138"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20250531191428_InitialCreate.Designer.cs:46"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20250531191428_InitialCreate.Designer.cs:71"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260914214155_AddImportJobConcurrencyAndUniqueFilePath.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260914214155_AddImportJobConcurrencyAndUniqueFilePath.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260914214155_AddImportJobConcurrencyAndUniqueFilePath.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260914214155_AddImportJobConcurrencyAndUniqueFilePath.Designer.cs:218"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260914214155_AddImportJobConcurrencyAndUniqueFilePath.Designer.cs:259"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260914214155_AddImportJobConcurrencyAndUniqueFilePath.Designer.cs:284"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260914214155_AddImportJobConcurrencyAndUniqueFilePath.Designer.cs:299"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260914214155_AddImportJobConcurrencyAndUniqueFilePath.Designer.cs:306"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301152834_AddLibraryForeignKeyToBooks.Designer.cs:86"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301152834_AddLibraryForeignKeyToBooks.Designer.cs:116"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301152834_AddLibraryForeignKeyToBooks.Designer.cs:154"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301152834_AddLibraryForeignKeyToBooks.Designer.cs:179"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301152834_AddLibraryForeignKeyToBooks.Designer.cs:186"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301152834_AddLibraryForeignKeyToBooks.Designer.cs:193"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227102924_RemoveIsDefaultFromLibraries.Designer.cs:84"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227102924_RemoveIsDefaultFromLibraries.Designer.cs:114"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227102924_RemoveIsDefaultFromLibraries.Designer.cs:152"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227102924_RemoveIsDefaultFromLibraries.Designer.cs:177"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227102924_RemoveIsDefaultFromLibraries.Designer.cs:184"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227102924_RemoveIsDefaultFromLibraries.Designer.cs:191"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:247"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:285"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:358"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:399"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:424"
+  },
+  {
+   "entity": "",
+   "table": "DataProtectionKeys",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:443"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:468"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010125019_AddDataProtectionKeys.Designer.cs:475"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227082728_AddLibrariesAndBookTypes.Designer.cs:84"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227082728_AddLibrariesAndBookTypes.Designer.cs:114"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227082728_AddLibrariesAndBookTypes.Designer.cs:155"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227082728_AddLibrariesAndBookTypes.Designer.cs:180"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227082728_AddLibrariesAndBookTypes.Designer.cs:187"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260227082728_AddLibrariesAndBookTypes.Designer.cs:194"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260412195057_AddConversionProgressToImportJob.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260412195057_AddConversionProgressToImportJob.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260412195057_AddConversionProgressToImportJob.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260412195057_AddConversionProgressToImportJob.Designer.cs:208"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260412195057_AddConversionProgressToImportJob.Designer.cs:249"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260412195057_AddConversionProgressToImportJob.Designer.cs:274"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260412195057_AddConversionProgressToImportJob.Designer.cs:289"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260412195057_AddConversionProgressToImportJob.Designer.cs:296"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260201111729_RemoveNoteFromReadingDate.Designer.cs:64"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260201111729_RemoveNoteFromReadingDate.Designer.cs:89"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260201111729_RemoveNoteFromReadingDate.Designer.cs:110"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260201111729_RemoveNoteFromReadingDate.Designer.cs:135"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:250"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:288"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:361"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:402"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:427"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:442"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261003171656_FeedImportDecisionEventIdNotGenerated.Designer.cs:449"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260322203047_AddIsbnBedethequeCacheTable.Designer.cs:86"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260322203047_AddIsbnBedethequeCacheTable.Designer.cs:118"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260322203047_AddIsbnBedethequeCacheTable.Designer.cs:146"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260322203047_AddIsbnBedethequeCacheTable.Designer.cs:187"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260322203047_AddIsbnBedethequeCacheTable.Designer.cs:212"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260322203047_AddIsbnBedethequeCacheTable.Designer.cs:219"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260322203047_AddIsbnBedethequeCacheTable.Designer.cs:226"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:82"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:114"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:142"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:244"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:282"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:355"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:396"
+  },
+  {
+   "entity": "",
+   "table": "FeatureToggleOverrides",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:424"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:449"
+  },
+  {
+   "entity": "",
+   "table": "DataProtectionKeys",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:468"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:502"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:509"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:250"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:289"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:362"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:403"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:428"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:443"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261002195323_AddFeedImportItemsAndArbitration.Designer.cs:450"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20250922194526_AddBook.Designer.cs:61"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20250922194526_AddBook.Designer.cs:90"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20250922194526_AddBook.Designer.cs:111"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20250922194526_AddBook.Designer.cs:136"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260308201803_AddDefaultBookSortOrderToLibrary.Designer.cs:86"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260308201803_AddDefaultBookSortOrderToLibrary.Designer.cs:116"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260308201803_AddDefaultBookSortOrderToLibrary.Designer.cs:157"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260308201803_AddDefaultBookSortOrderToLibrary.Designer.cs:182"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260308201803_AddDefaultBookSortOrderToLibrary.Designer.cs:189"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260308201803_AddDefaultBookSortOrderToLibrary.Designer.cs:196"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:247"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:285"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:358"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:399"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:424"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:449"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010074455_AddDigitalBookIsbnScan.Designer.cs:456"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:247"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:285"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:358"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:399"
+  },
+  {
+   "entity": "",
+   "table": "FeatureToggleOverrides",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:427"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:452"
+  },
+  {
+   "entity": "",
+   "table": "DataProtectionKeys",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:471"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:505"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261012173235_AddDigitalBookReaderSettings.Designer.cs:512"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301161511_RemoveLibraryIdDefault.Designer.cs:86"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301161511_RemoveLibraryIdDefault.Designer.cs:116"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301161511_RemoveLibraryIdDefault.Designer.cs:154"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301161511_RemoveLibraryIdDefault.Designer.cs:179"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301161511_RemoveLibraryIdDefault.Designer.cs:186"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260301161511_RemoveLibraryIdDefault.Designer.cs:193"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411212340_MakeIsbnNullable.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411212340_MakeIsbnNullable.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411212340_MakeIsbnNullable.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411212340_MakeIsbnNullable.Designer.cs:202"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411212340_MakeIsbnNullable.Designer.cs:243"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411212340_MakeIsbnNullable.Designer.cs:268"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411212340_MakeIsbnNullable.Designer.cs:283"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411212340_MakeIsbnNullable.Designer.cs:290"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260207181318_AddBookStringMaxLengths.Designer.cs:84"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260207181318_AddBookStringMaxLengths.Designer.cs:109"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260207181318_AddBookStringMaxLengths.Designer.cs:130"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260207181318_AddBookStringMaxLengths.Designer.cs:155"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411144336_AddDigitalBookFieldsAndImportJobs.Designer.cs:86"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411144336_AddDigitalBookFieldsAndImportJobs.Designer.cs:118"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411144336_AddDigitalBookFieldsAndImportJobs.Designer.cs:146"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411144336_AddDigitalBookFieldsAndImportJobs.Designer.cs:203"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411144336_AddDigitalBookFieldsAndImportJobs.Designer.cs:244"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411144336_AddDigitalBookFieldsAndImportJobs.Designer.cs:269"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411144336_AddDigitalBookFieldsAndImportJobs.Designer.cs:284"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260411144336_AddDigitalBookFieldsAndImportJobs.Designer.cs:291"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:247"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:285"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:358"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:399"
+  },
+  {
+   "entity": "",
+   "table": "FeatureToggleOverrides",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:427"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:452"
+  },
+  {
+   "entity": "",
+   "table": "DataProtectionKeys",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:471"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:496"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261010140938_AddFeatureToggleOverrides.Designer.cs:503"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260222214022_MoveRatingToReadingDate.Designer.cs:81"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260222214022_MoveRatingToReadingDate.Designer.cs:109"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260222214022_MoveRatingToReadingDate.Designer.cs:130"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260222214022_MoveRatingToReadingDate.Designer.cs:155"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:247"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:285"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:358"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:399"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:424"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:439"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261004093116_RemoveFeedImportDecisionDigitalBookId.Designer.cs:446"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:247"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:285"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:358"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:399"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:424"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:442"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261009054139_AddDigitalBookLastReadPage.Designer.cs:449"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260131102359_AddRatingToBooks.Designer.cs:64"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260131102359_AddRatingToBooks.Designer.cs:93"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260131102359_AddRatingToBooks.Designer.cs:114"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260131102359_AddRatingToBooks.Designer.cs:139"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:85"
+  },
+  {
+   "entity": "",
+   "table": "IsbnBedethequeUrls",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:117"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:145"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisions",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:244"
+  },
+  {
+   "entity": "",
+   "table": "FeedImportDecisionEvents",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:283"
+  },
+  {
+   "entity": "",
+   "table": "ImportJobs",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:356"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:397"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:422"
+  },
+  {
+   "entity": "",
+   "table": "DigitalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:437"
+  },
+  {
+   "entity": "",
+   "table": "PhysicalBooks",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20261001205519_AddFeedImportDecisions.Designer.cs:444"
+  },
+  {
+   "entity": "",
+   "table": "Books",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260207133302_AddBookMetadata.Designer.cs:78"
+  },
+  {
+   "entity": "",
+   "table": "ReadingDates",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260207133302_AddBookMetadata.Designer.cs:103"
+  },
+  {
+   "entity": "",
+   "table": "Libraries",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260207133302_AddBookMetadata.Designer.cs:124"
+  },
+  {
+   "entity": "",
+   "table": "Users",
+   "schema": "",
+   "kind": "mapping",
+   "source": "Persistence/Migrations/20260207133302_AddBookMetadata.Designer.cs:149"
+  }
+ ],
+ "databases": [],
+ "dynamic_sql": [],
+ "cross_db": []
+}
