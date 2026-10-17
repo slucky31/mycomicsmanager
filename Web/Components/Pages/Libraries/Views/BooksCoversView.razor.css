@@ -177,3 +177,53 @@
         padding: 0 48px 24px;
     }
 }
+
+/* ── Books being chosen (#1150): a tap checks the book ── */
+button.cover-link {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+button.cover-link:focus-visible {
+    outline: 2px solid #594AE2;
+    outline-offset: 4px;
+    border-radius: 8px;
+}
+
+.cover-check {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    box-sizing: border-box;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background: rgba(19, 27, 44, 0.35);
+    color: transparent;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.cover-check ::deep svg {
+    font-size: 16px;
+}
+
+.cover-item-checked .cover-check {
+    border-color: #594AE2;
+    background: #594AE2;
+    color: #ffffff;
+}
+
+.cover-item-checked .cover-image,
+.cover-item-checked .cover-placeholder {
+    outline: 3px solid #594AE2;
+    outline-offset: 2px;
+}

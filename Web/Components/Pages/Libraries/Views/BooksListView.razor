@@ -1,51 +1,71 @@
 @using Web.Components.SharedComponents
+@using Web.Models
 
 <div class="list-grid">
     @foreach (var book in Books)
     {
-        <div @key="book.Id" class="list-item" data-book-id="@book.Id">
-            <a class="list-link" href="@($"/books/{book.Id}")">
-                @if (!string.IsNullOrEmpty(book.ImageLink))
-                {
-                    <img class="list-thumb" src="@book.ImageLink" alt="" loading="lazy" />
-                }
-                else
-                {
-                    <span class="list-thumb list-thumb-empty" aria-hidden="true"></span>
-                }
-                <span class="list-text">
-                    <span class="list-title">@book.Title</span>
-                    @if (!string.IsNullOrEmpty(book.SerieAndVolume))
-                    {
-                        <span class="list-meta">@book.SerieAndVolume</span>
-                    }
-                    @if (!string.IsNullOrEmpty(book.Authors))
-                    {
-                        <span class="list-meta">@book.Authors</span>
-                    }
-                    <span class="list-spacer"></span>
-                    <span class="list-badges">
-                        <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount" Isbn="@book.ISBN" />
-                        @if (book.LastRating is { } rating)
-                        {
-                            <span class="list-rating" role="img" aria-label="@($"Rated {rating} out of 5")">
-                                @for (var star = 1; star <= 5; star++)
-                                {
-                                    <MudIcon Icon="@(star <= rating ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" Class="list-star" />
-                                }
-                            </span>
-                        }
-                        @if (book.HasBeenRead)
-                        {
-                            <span class="list-read"><MudIcon Icon="@Icons.Material.Filled.Check" Class="list-read-icon" />Read</span>
-                        }
-                    </span>
-                </span>
-            </a>
-            <button type="button" id="@BookActionsIds.Of(book.Id)" class="list-actions"
-                    aria-label="@($"More actions for {book.Title}")" @onclick="() => OnActions.InvokeAsync(book)">
-                <MudIcon Icon="@Icons.Material.Filled.MoreVert" />
-            </button>
+        <div @key="book.Id" class="@(Selection.IsChecked(book) ? "list-item list-item-checked" : "list-item")" data-book-id="@book.Id">
+            @if (Selection.IsActive)
+            {
+                @* While books are chosen (#1150), a tap checks a book instead of opening it. *@
+                <button type="button" class="list-link" role="checkbox" aria-checked="@Selection.AriaChecked(book)" aria-label="@book.Title"
+                        @onclick="() => OnToggle.InvokeAsync(book)">
+                    <span class="list-check" aria-hidden="true"><MudIcon Icon="@Icons.Material.Filled.Check" /></span>
+                    @Row(book)
+                </button>
+            }
+            else
+            {
+                <a class="list-link" href="@($"/books/{book.Id}")">
+                    @Row(book)
+                </a>
+                <button type="button" id="@BookActionsIds.Of(book.Id)" class="list-actions"
+                        aria-label="@($"More actions for {book.Title}")" @onclick="() => OnActions.InvokeAsync(book)">
+                    <MudIcon Icon="@Icons.Material.Filled.MoreVert" />
+                </button>
+            }
         </div>
     }
 </div>
+
+@code {
+    private RenderFragment Row(BookListItemViewModel book) => __builder =>
+    {
+        if (!string.IsNullOrEmpty(book.ImageLink))
+        {
+            <img class="list-thumb" src="@book.ImageLink" alt="" loading="lazy" />
+        }
+        else
+        {
+            <span class="list-thumb list-thumb-empty" aria-hidden="true"></span>
+        }
+        <span class="list-text">
+            <span class="list-title">@book.Title</span>
+            @if (!string.IsNullOrEmpty(book.SerieAndVolume))
+            {
+                <span class="list-meta">@book.SerieAndVolume</span>
+            }
+            @if (!string.IsNullOrEmpty(book.Authors))
+            {
+                <span class="list-meta">@book.Authors</span>
+            }
+            <span class="list-spacer"></span>
+            <span class="list-badges">
+                <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount" Isbn="@book.ISBN" />
+                @if (book.LastRating is { } rating)
+                {
+                    <span class="list-rating" role="img" aria-label="@($"Rated {rating} out of 5")">
+                        @for (var star = 1; star <= 5; star++)
+                        {
+                            <MudIcon Icon="@(star <= rating ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" Class="list-star" />
+                        }
+                    </span>
+                }
+                @if (book.HasBeenRead)
+                {
+                    <span class="list-read"><MudIcon Icon="@Icons.Material.Filled.Check" Class="list-read-icon" />Read</span>
+                }
+            </span>
+        </span>
+    };
+}
