@@ -29,7 +29,7 @@
 </div>
 
 @code {
-    private RenderFragment Row(BookListItemViewModel book) => __builder =>
+    private static RenderFragment Row(BookListItemViewModel book) => __builder =>
     {
         if (!string.IsNullOrEmpty(book.ImageLink))
         {
@@ -50,22 +50,28 @@
                 <span class="list-meta">@book.Authors</span>
             }
             <span class="list-spacer"></span>
-            <span class="list-badges">
-                <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount" Isbn="@book.ISBN" />
-                @if (book.LastRating is { } rating)
-                {
-                    <span class="list-rating" role="img" aria-label="@($"Rated {rating} out of 5")">
-                        @for (var star = 1; star <= 5; star++)
-                        {
-                            <MudIcon Icon="@(star <= rating ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" Class="list-star" />
-                        }
-                    </span>
-                }
-                @if (book.HasBeenRead)
-                {
-                    <span class="list-read"><MudIcon Icon="@Icons.Material.Filled.Check" Class="list-read-icon" />Read</span>
-                }
-            </span>
+            @Badges(book)
+        </span>
+    };
+
+    // The ISBN state, the rating and "Read" at the bottom of a row.
+    private static RenderFragment Badges(BookListItemViewModel book) => __builder =>
+    {
+        <span class="list-badges">
+            <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount" Isbn="@book.ISBN" />
+            @if (book.LastRating is { } rating)
+            {
+                <span class="list-rating" role="img" aria-label="@($"Rated {rating} out of 5")">
+                    @for (var star = 1; star <= 5; star++)
+                    {
+                        <MudIcon Icon="@(star <= rating ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" Class="list-star" />
+                    }
+                </span>
+            }
+            @if (book.HasBeenRead)
+            {
+                <span class="list-read"><MudIcon Icon="@Icons.Material.Filled.Check" Class="list-read-icon" />Read</span>
+            }
         </span>
     };
 }
