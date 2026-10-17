@@ -170,3 +170,47 @@
         padding: 0 48px 24px;
     }
 }
+
+/* ── Books being chosen (#1150): a tap checks the book ── */
+button.list-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+button.list-link:focus-visible {
+    outline: 2px solid #594AE2;
+    outline-offset: 4px;
+    border-radius: 8px;
+}
+
+.list-check {
+    flex-shrink: 0;
+    align-self: center;
+    box-sizing: border-box;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #8A8E9C;
+    border-radius: 50%;
+    color: transparent;
+}
+
+.list-check ::deep svg {
+    font-size: 16px;
+}
+
+.list-item-checked {
+    background: #F1EFFD;
+}
+
+.list-item-checked .list-check {
+    border-color: #594AE2;
+    background: #594AE2;
+    color: #ffffff;
+}

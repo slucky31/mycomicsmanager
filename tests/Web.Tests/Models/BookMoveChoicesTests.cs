@@ -39,6 +39,18 @@ public sealed class BookMoveChoicesTests
         choices.HasTargets.Should().BeTrue();
         choices.Preselected.Should().Be(s_bd);
         choices.Libraries[1].MoveLabel.Should().Be("Move to BD");
+        (choices.Subject, choices.FileNote).Should().Be(("This book is in", "Its file is moved too."));
+    }
+
+    [Fact]
+    public void From_Should_SpeakOfTheBooks_AndOfTheirSeries_WhenSeveralBooksAreMoved()
+    {
+        var targets = new BookMoveTargets([new BookMoveTarget(s_bd, "BD", "#111111", "Bookmark", 4, 112)], s_bd) { BookType = LibraryBookType.Digital, BookCount = 3 };
+
+        var choices = BookMoveChoices.From(targets);
+
+        choices.Libraries.Should().ContainSingle().Which.Details.Should().Be("Digital · 112 books · 4 of these series");
+        (choices.Subject, choices.FileNote).Should().Be(("These 3 books are in", "Their files are moved too."));
     }
 
     [Fact]

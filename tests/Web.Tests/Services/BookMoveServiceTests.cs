@@ -18,13 +18,14 @@ public sealed class BookMoveServiceTests
 
     private readonly IQueryHandler<GetBookMoveTargetsQuery, BookMoveTargets> _targetsHandler = Substitute.For<IQueryHandler<GetBookMoveTargetsQuery, BookMoveTargets>>();
     private readonly ICommandHandler<MoveBookCommand, Book> _moveHandler = Substitute.For<ICommandHandler<MoveBookCommand, Book>>();
+    private readonly ICommandHandler<MoveBooksCommand, MoveBooksResult> _moveBooksHandler = Substitute.For<ICommandHandler<MoveBooksCommand, MoveBooksResult>>();
     private readonly ICurrentUserService _currentUserService = Substitute.For<ICurrentUserService>();
     private readonly BookMoveService _service;
 
     public BookMoveServiceTests()
     {
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
-        _service = new BookMoveService(_targetsHandler, _moveHandler, _currentUserService);
+        _service = new BookMoveService(_targetsHandler, _moveHandler, _moveBooksHandler, _currentUserService);
     }
 
     [Fact]
@@ -32,7 +33,7 @@ public sealed class BookMoveServiceTests
     {
         var bookId = Guid.CreateVersion7();
         var targets = new BookMoveTargets([], null);
-        _targetsHandler.Handle(new GetBookMoveTargetsQuery(bookId, s_userId), Arg.Any<CancellationToken>()).Returns(targets);
+        _targetsHandler.Handle(Arg.Is<GetBookMoveTargetsQuery>(q => q.BookIds.SequenceEqual(new[] { bookId }) && q.UserId == s_userId), Arg.Any<CancellationToken>()).Returns(targets);
 
         var result = await _service.GetTargetsAsync(bookId, TestContext.Current.CancellationToken);
 
@@ -59,6 +60,21 @@ public sealed class BookMoveServiceTests
 
         (await _service.GetTargetsAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken)).Error.Should().Be(UsersError.NotFound);
         (await _service.MoveAsync(Guid.CreateVersion7(), Guid.CreateVersion7(), TestContext.Current.CancellationToken)).Error.Should().Be(UsersError.NotFound);
+        (await _service.MoveAsync([Guid.CreateVersion7()], Guid.CreateVersion7(), TestContext.Current.CancellationToken)).Error.Should().Be(UsersError.NotFound);
         await _moveHandler.DidNotReceive().Handle(Arg.Any<MoveBookCommand>(), Arg.Any<CancellationToken>());
+        await _moveBooksHandler.DidNotReceive().Handle(Arg.Any<MoveBooksCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task MoveAsync_Should_MoveSeveralBooksForCurrentUser()
+    {
+        IReadOnlyList<Guid> bookIds = [Guid.CreateVersion7(), Guid.CreateVersion7()];
+        var libraryId = Guid.CreateVersion7();
+        _moveBooksHandler.Handle(Arg.Any<MoveBooksCommand>(), Arg.Any<CancellationToken>()).Returns(new MoveBooksResult(2, 0));
+
+        var result = await _service.MoveAsync(bookIds, libraryId, TestContext.Current.CancellationToken);
+
+        result.Value.Should().Be(new MoveBooksResult(2, 0));
+        await _moveBooksHandler.Received(1).Handle(new MoveBooksCommand(bookIds, libraryId, s_userId), Arg.Any<CancellationToken>());
     }
 }

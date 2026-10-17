@@ -301,7 +301,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         sheet.GetAttribute("style").Should().Be(PopupPlacement.Style(anchor, alignEnd: true));
         sheet.QuerySelector(".book-actions-serie")!.TextContent.Should().Be("Blacksad · #4");
         sheet.QuerySelectorAll(".action-sheet-item").Select(i => i.TextContent.Trim())
-            .Should().Equal("Edit", "Import info from the web", "Move to another library", "Delete");
+            .Should().Equal("Edit", "Import info from the web", "Move to another library", "Select several books", "Delete");
     }
 
     [Fact]
@@ -314,7 +314,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         var sheet = cut.Find("[role=dialog]");
         sheet.GetAttribute("aria-label").Should().Be("Actions for Hiver nucléaire");
         sheet.QuerySelectorAll(".action-sheet-item").Select(i => i.TextContent.Trim())
-            .Should().Equal("Read", "Edit", "Import info from the web", "Find ISBN", "Download CBZ", "Move to another library", "Delete");
+            .Should().Equal("Read", "Edit", "Import info from the web", "Find ISBN", "Download CBZ", "Move to another library", "Select several books", "Delete");
     }
 
     [Fact]
@@ -376,5 +376,73 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         await loadMore;
 
         cut.FindAll(".cover-item").Should().HaveCount(2);
+    }
+
+    // ── Several books (#1150) ──────────────────────────────────────────
+
+    private static string Heading(IRenderedComponent<LibraryDetailPage> cut) => cut.Find("h1").TextContent;
+
+    private static Task CheckAsync(IRenderedComponent<LibraryDetailPage> cut, string title) =>
+        cut.Find($"button[role=checkbox][aria-label='{title}']").ClickAsync(new());
+
+    [Fact]
+    public async Task MoveCheckedBooksAsync_Should_MoveTheCheckedBooksAtOnce_ThenShowTheBooksLeft()
+    {
+        var cut = await RenderAsync();
+        _workflow.ChooseAndMoveAsync(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>()).Returns(2);
+
+        await cut.Find("button[aria-label='Select books']").ClickAsync(new());
+        Heading(cut).Should().Be("Choose books");
+        cut.Find(".library-bar-move").HasAttribute("disabled").Should().BeTrue();
+        cut.FindAll("a.cover-link").Should().BeEmpty();
+        await CheckAsync(cut, "Âme rouge");
+        Heading(cut).Should().Be("1 selected");
+        cut.Find("button[role=checkbox][aria-label='Âme rouge']").GetAttribute("aria-checked").Should().Be("true");
+        await cut.Find(".library-bar-select-all").ClickAsync(new());
+        Heading(cut).Should().Be("2 selected");
+        await cut.Find(".library-bar-move").ClickAsync(new());
+
+        await _workflow.Received(1).ChooseAndMoveAsync(
+            Arg.Is<IReadOnlyList<Guid>>(ids => ids.Count == 2 && ids.Contains(_blacksad.Id) && ids.Contains(_hiver.Id)), Arg.Any<CancellationToken>());
+        Heading(cut).Should().Be("Read Books");
+        cut.FindAll("a.cover-link").Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task MoveCheckedBooksAsync_Should_KeepTheBooksChecked_WhenNoBookWasMoved()
+    {
+        var cut = await RenderAsync();
+        _workflow.ChooseAndMoveAsync(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>()).Returns(0);
+        await cut.Find("button[aria-label='Select books']").ClickAsync(new());
+        await CheckAsync(cut, "Hiver nucléaire");
+
+        await cut.Find(".library-bar-move").ClickAsync(new());
+
+        Heading(cut).Should().Be("1 selected");
+        await cut.InvokeAsync(cut.Instance.MoveCheckedBooksAsync);
+        await _workflow.Received(2).ChooseAndMoveAsync(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task StartSelecting_Should_CheckTheBookOfItsActions_AndALongPressShouldCheckOthers()
+    {
+        var cut = await RenderAsync();
+        await ChooseAsync(cut, "Sort and view", "List");
+        await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(_hiver.Id.ToString(), PopupAnchor.At(1, 1, 1024, 768)));
+
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Select several books')").ClickAsync(new());
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
+        Heading(cut).Should().Be("1 selected");
+        cut.Find(".list-item-checked .list-title").TextContent.Should().Be("Hiver nucléaire");
+
+        await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(_blacksad.Id.ToString(), PopupAnchor.At(1, 1, 1024, 768)));
+        Heading(cut).Should().Be("2 selected");
+        await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(_blacksad.Id.ToString(), PopupAnchor.At(1, 1, 1024, 768)));
+        Heading(cut).Should().Be("1 selected");
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
+
+        await cut.Find("button[aria-label='Stop choosing books']").ClickAsync(new());
+        Heading(cut).Should().Be("Read Books");
+        cut.FindAll("button[role=checkbox]").Should().BeEmpty();
     }
 }

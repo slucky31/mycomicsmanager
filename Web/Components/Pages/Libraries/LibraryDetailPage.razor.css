@@ -109,6 +109,23 @@
     display: none;
 }
 
+/* Books being chosen (#1150): the bar is tinted, and offers the move. */
+.library-bar-selecting {
+    background: #F1EFFD;
+}
+
+::deep .library-bar-select-all,
+::deep .library-bar-move {
+    flex-shrink: 0;
+    height: 40px;
+    border-radius: 20px;
+    text-transform: none;
+}
+
+::deep .library-bar-move {
+    margin: 0 8px 0 4px;
+}
+
 .library-search-results {
     flex-shrink: 0;
     padding: 4px 16px 8px;

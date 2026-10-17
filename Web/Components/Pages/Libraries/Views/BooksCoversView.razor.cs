@@ -11,4 +11,11 @@ public partial class BooksCoversView
 
     [Parameter, EditorRequired]
     public EventCallback<BookListItemViewModel> OnActions { get; set; }
+
+    // The books being chosen, to move them at once (#1150).
+    [Parameter]
+    public BookSelection Selection { get; set; } = BookSelection.None;
+
+    [Parameter]
+    public EventCallback<BookListItemViewModel> OnToggle { get; set; }
 }
