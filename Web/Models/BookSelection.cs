@@ -28,8 +28,8 @@ public sealed class BookSelection
     public string Label => Count switch
     {
         0 => "Choose books",
-        1 => "1 book selected",
-        _ => $"{Count} books selected",
+        1 => "1 selected",
+        _ => $"{Count} selected",
     };
 
     public bool IsChecked(BookListItemViewModel book) => book is not null && _ids.Contains(book.Id);

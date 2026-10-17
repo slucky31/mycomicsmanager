@@ -11,7 +11,21 @@
 <PageTitle>@(_library?.Name ?? "Library") — MyComicsManager</PageTitle>
 
 <div class="library-detail-page">
-    @if (_library is not null)
+    @if (_library is not null && _selection.IsActive)
+    {
+        @* Books being chosen to move them at once (#1150): the bar says how many and offers the move. *@
+        <header class="library-bar library-bar-selecting">
+            <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="StopSelecting" aria-label="Stop choosing books" Class="library-bar-back" />
+            <div class="library-bar-title">
+                <h1 aria-live="polite">@_selection.Label</h1>
+                <div class="library-bar-subtitle">in @_library.Name</div>
+            </div>
+            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="CheckEveryShownBook" Class="library-bar-select-all">Select all</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.DriveFileMove"
+                       Disabled="@(_selection.Count == 0 || _isMoving)" OnClick="MoveCheckedBooksAsync" Class="library-bar-move">Move</MudButton>
+        </header>
+    }
+    else if (_library is not null)
     {
         <header class="@(_isSearchOpen ? "library-bar library-bar-searching" : "library-bar")">
             <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" aria-label="Back to libraries" Class="library-bar-back" />
@@ -34,6 +48,10 @@
                 </label>
             </div>
             <MudIconButton Icon="@Icons.Material.Filled.Search" OnClick="OpenSearch" aria-label="Search" Class="library-bar-search" />
+            @if (_displayedBooks.Count > 0)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Checklist" OnClick="() => StartSelecting()" aria-label="Select books" Class="library-bar-action" />
+            }
             <MudIconButton id="@SortAndViewButtonId" Icon="@Icons.Material.Filled.Tune" OnClick="OpenSortAndViewAsync" aria-label="Sort and view" Class="library-bar-action" />
             @if (IsDigital)
             {
@@ -86,11 +104,11 @@
         {
             @if (_currentViewMode == ViewMode.List)
             {
-                <BooksListView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" />
+                <BooksListView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" />
             }
             else
             {
-                <BooksCoversView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" />
+                <BooksCoversView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" />
             }
             @if (_isLoadingMore)
             {
@@ -175,6 +193,7 @@
                 <ActionSheetItem Icon="@Icons.Material.Filled.Download" Text="Download CBZ" OnClick="() => DownloadBookAsync(book.Id)" />
             }
             <ActionSheetItem Icon="@Icons.Material.Filled.DriveFileMove" Text="Move to another library" OnClick="() => MoveAsync(book.Id)" />
+            <ActionSheetItem Icon="@Icons.Material.Filled.Checklist" Text="Select several books" OnClick="() => StartSelecting(book.Id)" />
             <div class="action-sheet-divider"></div>
             <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete" Danger="true" OnClick="() => DeleteAsync(book.Id)" />
         </ChildContent>

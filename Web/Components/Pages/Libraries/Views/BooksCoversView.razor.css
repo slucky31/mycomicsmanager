@@ -181,6 +181,7 @@
 /* ── Books being chosen (#1150): a tap checks the book ── */
 button.cover-link {
     width: 100%;
+    align-items: stretch;
     padding: 0;
     border: 0;
     background: none;
@@ -198,7 +199,7 @@ button.cover-link:focus-visible {
 .cover-check {
     position: absolute;
     top: 6px;
-    left: 6px;
+    right: 6px;
     box-sizing: border-box;
     width: 26px;
     height: 26px;

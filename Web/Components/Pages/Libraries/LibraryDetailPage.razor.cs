@@ -70,6 +70,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private PopupAnchor? _sheetAnchor;
     private bool _sheetAlignEnd;
     private BookListItemViewModel? _actionsBook;
+    private BookSelection _selection = BookSelection.None;
 
     private ElementReference _content;
     private ElementReference _searchInput;
@@ -152,6 +153,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         _observerInitialized = false;
         _openSheet = LibrarySheet.None;
         _actionsBook = null;
+        _selection = BookSelection.None;
         await ScrollToTopAsync();
     }
 
@@ -508,11 +510,21 @@ public partial class LibraryDetailPage : IAsyncDisposable
     public void OpenBookActionsAt(string bookId, PopupAnchor anchor)
     {
         var book = Guid.TryParse(bookId, out var id) ? _displayedBooks.Find(b => b.Id == id) : null;
-        if (book is not null)
+        if (book is null)
+        {
+            return;
+        }
+
+        // While books are chosen, a long press checks the book like a tap.
+        if (_selection.IsActive)
+        {
+            ToggleBook(book);
+        }
+        else
         {
             ShowBookActions(book, anchor, alignEnd: false);
-            StateHasChanged();
         }
+        StateHasChanged();
     }
 
     private void ShowBookActions(BookListItemViewModel book, PopupAnchor? anchor, bool alignEnd)
@@ -635,13 +647,59 @@ public partial class LibraryDetailPage : IAsyncDisposable
     }
 
     // A book left the library (moved or deleted): one book less, counted again by a load without search.
-    private async Task ReloadBooksAsync()
+    private Task ReloadBooksAsync() => ReloadBooksAsync(1);
+
+    private async Task ReloadBooksAsync(int booksGone)
     {
-        if (_libraryBookCount is > 0)
+        if (_libraryBookCount is { } count)
         {
-            _libraryBookCount--;
+            _libraryBookCount = Math.Max(count - booksGone, 0);
         }
         await LoadFirstPageAsync(_disposalCts.Token);
+    }
+
+    // ── Several books (#1150) ──────────────────────────────────────────
+
+    // From the bar, or from the actions of a book, which is then the first one checked.
+    private void StartSelecting(Guid? bookId = null)
+    {
+        CloseSheet();
+        _selection = BookSelection.Start(bookId);
+    }
+
+    private void StopSelecting() => _selection = BookSelection.None;
+
+    private void ToggleBook(BookListItemViewModel book) => _selection = _selection.Toggle(book.Id);
+
+    // The books loaded so far: those further down are loaded by scrolling.
+    private void CheckEveryShownBook() => _selection = _selection.With(_displayedBooks.Select(b => b.Id));
+
+    internal async Task MoveCheckedBooksAsync()
+    {
+        if (_isMoving || _selection.Count == 0)
+        {
+            return;
+        }
+
+        _isMoving = true;
+        try
+        {
+            var moved = await BookMoveWorkflow.ChooseAndMoveAsync(_selection.BookIds, _disposalCts.Token);
+            if (moved > 0)
+            {
+                // The books have left this library: the ones left are shown, none checked.
+                _selection = BookSelection.None;
+                await ReloadBooksAsync(moved);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed while moving; nothing to update.
+        }
+        finally
+        {
+            _isMoving = false;
+        }
     }
 
     private async Task DeleteAsync(Guid bookId)

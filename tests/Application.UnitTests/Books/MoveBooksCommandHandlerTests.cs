@@ -2,7 +2,6 @@ using Application.Abstractions.Messaging;
 using Application.Books.Move;
 using Application.Books.MoveTargets;
 using Domain.Books;
-using Domain.Libraries;
 using Domain.Primitives;
 using NSubstitute;
 
