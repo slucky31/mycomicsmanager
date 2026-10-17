@@ -165,4 +165,18 @@ public class GetBookMoveTargetsQueryHandlerTests
 
         await _bookRepository.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
     }
+
+    [Fact]
+    public async Task Handle_Should_SuggestNothing_WhenTheSeriesHaveNoLetter()
+    {
+        var toSort = Digital("À trier");
+        var bd = Digital("BD");
+        GivenLibraries(toSort, bd);
+        var book = GivenBookIn(toSort, "!!!");
+
+        var result = await _handler.Handle(new GetBookMoveTargetsQuery(book.Id, s_userId), TestContext.Current.CancellationToken);
+
+        result.Value!.SuggestedLibraryId.Should().BeNull();
+        await _bookReadService.DidNotReceive().ListSerieLocationsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
 }
