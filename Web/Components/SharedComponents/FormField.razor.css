@@ -31,6 +31,22 @@
     outline: none;
 }
 
+/* iOS Safari gives a date field the width of its native look and ignores width: 100%,
+   so the field went past the edge of the form (#1160). Without that look it follows the column. */
+@supports (-webkit-touch-callout: none) {
+    .form-field ::deep input[type="date"] {
+        -webkit-appearance: none;
+        appearance: none;
+        display: block;
+        line-height: 46px;
+    }
+
+    .form-field ::deep input[type="date"]::-webkit-date-and-time-value {
+        margin: 0;
+        text-align: left;
+    }
+}
+
 .form-field ::deep input:focus {
     border: 2px solid #594AE2;
     padding: 0 13px;

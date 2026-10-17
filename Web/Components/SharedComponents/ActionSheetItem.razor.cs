@@ -11,6 +11,10 @@ public partial class ActionSheetItem
     [Parameter, EditorRequired]
     public string Text { get; set; } = string.Empty;
 
+    // The color of a library; the icon takes the color of the text without one.
+    [Parameter]
+    public string? IconColor { get; set; }
+
     // Under the text: what an option or a link is for.
     [Parameter]
     public string? Description { get; set; }
@@ -32,6 +36,8 @@ public partial class ActionSheetItem
 
     [Parameter]
     public bool Disabled { get; set; }
+
+    private string? IconStyle => IconColor is null ? null : $"color: {IconColor};";
 
     private string? AriaPressed => Selected switch
     {

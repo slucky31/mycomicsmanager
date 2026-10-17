@@ -1,7 +1,7 @@
 @if (Href is not null)
 {
     <a class="@CssClass" href="@Href">
-        <MudIcon Icon="@Icon" Class="action-sheet-item-icon" />
+        <MudIcon Icon="@Icon" Class="action-sheet-item-icon" Style="@IconStyle" />
         <span class="action-sheet-item-text">
             @Text
             @if (!string.IsNullOrEmpty(Description))
@@ -14,7 +14,7 @@
 else
 {
     <button type="button" class="@CssClass" aria-pressed="@AriaPressed" disabled="@Disabled" @onclick="OnClick">
-        <MudIcon Icon="@Icon" Class="action-sheet-item-icon" />
+        <MudIcon Icon="@Icon" Class="action-sheet-item-icon" Style="@IconStyle" />
         <span class="action-sheet-item-text">
             @Text
             @if (!string.IsNullOrEmpty(Description))

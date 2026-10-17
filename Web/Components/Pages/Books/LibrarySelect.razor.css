@@ -1,5 +1,4 @@
 .library-select {
-    position: relative;
     box-sizing: border-box;
     width: 100%;
     min-height: 56px;
@@ -10,25 +9,27 @@
     border: 1px solid #E2E3EA;
     border-radius: 12px;
     background: #ffffff;
+    color: #1B1D24;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
 }
 
-.library-select:focus-within {
+.library-select:hover {
+    border-color: #C9CAD3;
+}
+
+.library-select:focus-visible,
+.library-select[aria-expanded="true"] {
+    outline: none;
     border-color: #594AE2;
     box-shadow: 0 0 0 1px #594AE2;
 }
 
-.library-select-icon {
-    width: 36px;
-    height: 36px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-}
-
-.library-select-icon ::deep svg {
-    font-size: 18px;
+.library-select-invalid,
+.library-select-invalid:hover {
+    border: 2px solid #C62828;
+    padding: 0 11px;
 }
 
 .library-select-text {
@@ -43,26 +44,61 @@
     color: #5C6070;
 }
 
-.library-select select {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    padding: 0 24px 0 0;
-    border: 0;
-    background: transparent;
-    color: #1B1D24;
-    font: inherit;
+.library-select-value {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     font-size: 15px;
     font-weight: 500;
-    outline: none;
-    cursor: pointer;
+}
+
+.library-select-placeholder {
+    font-weight: 400;
+    color: #8A8E9C;
 }
 
 ::deep .library-select-chevron {
-    position: absolute;
-    right: 12px;
-    pointer-events: none;
+    flex-shrink: 0;
     color: #5C6070;
+    transition: transform 150ms ease;
+}
+
+.library-select[aria-expanded="true"] ::deep .library-select-chevron {
+    transform: rotate(180deg);
+}
+
+/* In the bar of a page: "Library  All libraries" on one line, as a pill. */
+.library-select-compact {
+    width: auto;
+    max-width: 100%;
+    min-height: 40px;
+    gap: 6px;
+    padding: 0 10px 0 14px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.library-select-compact ::deep .library-icon {
+    display: none;
+}
+
+.library-select-compact .library-select-text {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.library-select-compact .library-select-label {
+    font-size: 14px;
+}
+
+.library-select-compact .library-select-value {
+    max-width: 220px;
+    font-size: 14px;
+}
+
+.library-select-compact ::deep .library-select-chevron {
+    font-size: 18px;
 }
 
 .library-select-error {

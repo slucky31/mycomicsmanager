@@ -49,6 +49,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
 
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
+        _ctx.AddLibrarySelect();
         _ctx.Services.AddSingleton(_librariesService);
         _ctx.Services.AddSingleton(_booksService);
         _ctx.Services.AddSingleton(_searchService);
@@ -82,8 +83,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
         cut.Find(".form-bar-subtitle").TextContent.Should().Be($"ISBN {Isbn}");
         cut.Find(".found-title").TextContent.Should().Be("Extremity");
         cut.Find(".found-source").TextContent.Should().Be("Found on BnF");
-        cut.Find("#book-library").GetAttribute("value").Should().Be(_readBooks.Id.ToString());
-        cut.FindAll("#book-library option").Select(o => o.TextContent).Should().Equal("Read Books", "Wishlist");
+        cut.Find("#book-library .library-select-value").TextContent.Should().Be("Read Books");
         cut.Find(".found-actions .form-button-primary").TextContent.Should().Be("Add to Read Books");
     }
 
@@ -107,7 +107,9 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
     {
         var cut = RenderFound();
 
-        await cut.Find("#book-library").ChangeAsync(new() { Value = _wishlist.Id.ToString() });
+        await cut.Find("#book-library").ClickAsync(new());
+        cut.FindAll("[role=dialog] .action-sheet-item").Select(i => i.TextContent.Trim()).Should().Equal("Read Books", "Wishlist");
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Wishlist')").ClickAsync(new());
         await cut.Find(".found-actions .form-button-primary").ClickAsync(new());
 
         await _booksService.Received(1).Create(Arg.Is<CreateBookRequest>(r => r.LibraryId == _wishlist.Id && r.Rating == 0), Arg.Any<CancellationToken>());
@@ -172,7 +174,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
     public async Task SaveAsync_Should_AskForALibrary_WhenNoneIsChosen()
     {
         var cut = Render(string.Empty);
-        cut.Find("#book-library option").TextContent.Should().Be("Choose a library");
+        cut.Find("#book-library .library-select-placeholder").TextContent.Should().Be("Choose a library");
 
         await cut.Find("form").SubmitAsync();
 
