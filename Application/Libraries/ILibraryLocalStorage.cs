@@ -11,4 +11,7 @@ public interface ILibraryLocalStorage
 
     // Moves a book file into the folder of another library and returns its new absolute path.
     Result<string> MoveFile(string sourceFilePath, string destinationFolderName);
+
+    // Where a file of a library folder is once that folder is moved (Move); null for a file outside of it.
+    string? PathAfterMove(string filePath, string originFolderName, string destinationFolderName);
 }

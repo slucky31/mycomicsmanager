@@ -26,6 +26,11 @@ public interface ILibraryReadService
         Guid userId,
         CancellationToken cancellationToken = default);
 
+    // The libraries of every user with this name (case-insensitive), for a change made at startup.
+    Task<IReadOnlyList<Library>> ListByNameAsync(
+        string name,
+        CancellationToken cancellationToken = default);
+
     Task<bool> ExistsByNameAsync(
         string name,
         Guid userId,

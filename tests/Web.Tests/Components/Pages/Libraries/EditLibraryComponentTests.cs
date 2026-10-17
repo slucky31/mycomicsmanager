@@ -66,6 +66,22 @@ public sealed class EditLibraryComponentTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task EditLibrary_Should_KeepTheNameOfTheImportedLibrary_AndSaveItsColor()
+    {
+        var imported = Library.Create("Imported", "#5C6BC0", "Inbox", LibraryBookType.Digital, Guid.CreateVersion7()).Value!;
+        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result<Library>.Success(imported));
+        var cut = Render();
+
+        var name = cut.Find("#library-name");
+        name.HasAttribute("readonly").Should().BeTrue();
+        cut.Find(".form-field-help").TextContent.Should().Be("The feed imports add their books here: this library keeps its name.");
+        name.GetAttribute("aria-describedby").Should().Contain("library-name-help");
+        await cut.Find("form").SubmitAsync();
+
+        await _librariesService.Received(1).Update(Arg.Is<UpdateLibraryRequest>(r => r.Name == "Imported"), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public void EditLibrary_Should_ShowTheLibrary_WithItsBooksInThePreview_AndWithoutItsType()
     {
         var cut = Render();

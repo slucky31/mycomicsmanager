@@ -237,6 +237,22 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
     }
 
     [Fact]
+    public async Task ListByNameAsync_Should_ReturnTheLibrariesOfEveryUser_WithThisNameIgnoringCase()
+    {
+        // Arrange
+        await CreateLibraries();
+        var otherUsers = Library.Create("2-COMICS", "#5C6BC0", "Bookmark", LibraryBookType.Digital, Guid.CreateVersion7()).Value!;
+        LibraryRepository.Add(otherUsers);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var libraries = await LibraryReadService.ListByNameAsync(" 2-Comics ", TestContext.Current.CancellationToken);
+
+        // Assert
+        libraries.Select(l => l.Id).Should().Equal(_lib2.Id, otherUsers.Id);
+    }
+
+    [Fact]
     public async Task GetByNameAsync_Should_ReturnLibraryIgnoringCase_WhenItBelongsToUser()
     {
         // Arrange

@@ -24,7 +24,7 @@
             <FormButton Type="submit" Form="library-form" Icon="@Icons.Material.Filled.Check" Disabled="_isSaving">Save changes</FormButton>
         </FormHeader>
 
-        <LibraryForm FormId="library-form" Model="_model" Errors="_errors" OnChanged="Revalidate" OnSubmit="SaveAsync" BookCount="_bookCount" Covers="_covers">
+        <LibraryForm FormId="library-form" Model="_model" Errors="_errors" OnChanged="Revalidate" OnSubmit="SaveAsync" BookCount="_bookCount" Covers="_covers" NameLocked="_nameLocked">
             <Footer>
                 <FormFooter>
                     <FormButton Variant="FormButtonVariant.Outlined" Href="@LibraryHref">Cancel</FormButton>

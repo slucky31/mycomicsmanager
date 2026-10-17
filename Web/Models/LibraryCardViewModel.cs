@@ -30,6 +30,9 @@ public sealed record LibraryCardViewModel(
 
     public string ActionsButtonId => $"library-actions-{Id}";
 
+    // The feed imports deposit their files in the Imported library.
+    public bool CanDelete => !Library.IsImportedName(Name);
+
     public static LibraryCardViewModel From(LibrarySummary summary)
     {
         ArgumentNullException.ThrowIfNull(summary);

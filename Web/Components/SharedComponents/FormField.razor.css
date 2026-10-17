@@ -57,6 +57,12 @@
     padding: 0 13px;
 }
 
+/* A value that cannot be changed: shown, not offered for editing. */
+.form-field ::deep input[readonly] {
+    background: #F4F4F6;
+    color: #5C6070;
+}
+
 .form-field ::deep input::placeholder {
     color: #8A8E9C;
 }

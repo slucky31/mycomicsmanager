@@ -37,7 +37,6 @@ public class DownloadFeedImportDecisionCommandHandlerTests
     private readonly IImportJobEnqueuer _enqueuer = Substitute.For<IImportJobEnqueuer>();
     private readonly FeedImportSettings _feedImportSettings = new()
     {
-        TargetLibraryName = "À trier",
         AllowedDownloadHosts = ["1fichier.com", "rapidgator.net"]
     };
     private readonly DebridLinkSettings _debridLinkSettings = new()
@@ -47,7 +46,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
         DownloadHosts = ["debrid.link"]
     };
     private readonly ImportSettings _importSettings = new() { MaxFileSizeMb = 10 };
-    private readonly Library _library = Library.Create("À trier", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Digital, s_userId).Value!;
+    private readonly Library _library = Library.Create("Imported", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Digital, s_userId).Value!;
     private readonly ImportJob _importJob;
     private readonly DownloadFeedImportDecisionCommandHandler _handler;
 
@@ -61,7 +60,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
             .Returns(Result<DebridLinkFile>.Success(new DebridLinkFile("Blacksad T03.cbz", 1_000, s_downloadUrl)));
         _downloader.DownloadAsync(Arg.Any<Uri>(), Arg.Any<long>(), Arg.Any<CancellationToken>())
             .Returns(Result<DownloadedFile>.Success(new DownloadedFile(TempPath, 1_000)));
-        _libraryReadService.GetByNameAsync("À trier", s_userId, Arg.Any<CancellationToken>()).Returns(_library);
+        _libraryReadService.GetByNameAsync("Imported", s_userId, Arg.Any<CancellationToken>()).Returns(_library);
         _storage.EnsureExists(Arg.Any<string>()).Returns(Result.Success());
         _storage.GetAvailableFilePath(_library.ImportDirectoryName, "Blacksad T03.cbz").Returns(Result<string>.Success(TargetPath));
         _storage.DepositFile(TempPath, TargetPath).Returns(Result.Success());
@@ -153,14 +152,14 @@ public class DownloadFeedImportDecisionCommandHandlerTests
     [Fact]
     public async Task Handle_Should_CreateDigitalTargetLibrary_WhenItDoesNotExist()
     {
-        _libraryReadService.GetByNameAsync("À trier", s_userId, Arg.Any<CancellationToken>()).Returns((Library?)null);
+        _libraryReadService.GetByNameAsync("Imported", s_userId, Arg.Any<CancellationToken>()).Returns((Library?)null);
         _createLibrary.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>()).Returns(_library);
         var decision = GivenDecision();
 
         await HandleAsync(decision);
 
         await _createLibrary.Received(1).Handle(
-            Arg.Is<CreateLibraryCommand>(c => c.Name == "À trier" && c.BookType == LibraryBookType.Digital && c.UserId == s_userId),
+            Arg.Is<CreateLibraryCommand>(c => c.Name == "Imported" && c.BookType == LibraryBookType.Digital && c.UserId == s_userId),
             Arg.Any<CancellationToken>());
         decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
     }
@@ -168,8 +167,8 @@ public class DownloadFeedImportDecisionCommandHandlerTests
     [Fact]
     public async Task Handle_Should_FailBeforeDownloading_WhenTargetLibraryIsPhysical()
     {
-        var physical = Library.Create("À trier", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Physical, s_userId).Value!;
-        _libraryReadService.GetByNameAsync("À trier", s_userId, Arg.Any<CancellationToken>()).Returns(physical);
+        var physical = Library.Create("Imported", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Physical, s_userId).Value!;
+        _libraryReadService.GetByNameAsync("Imported", s_userId, Arg.Any<CancellationToken>()).Returns(physical);
         var decision = GivenDecision();
 
         var result = await HandleAsync(decision);

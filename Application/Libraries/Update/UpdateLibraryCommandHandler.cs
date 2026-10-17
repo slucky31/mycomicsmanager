@@ -1,12 +1,13 @@
 using Application.Abstractions.Messaging;
 using Application.ImportJobs;
 using Application.Interfaces;
+using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
 
 namespace Application.Libraries.Update;
 
-public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage, IImportDirectoryStorage importDirectoryStorage) : ICommandHandler<UpdateLibraryCommand, Library>
+public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libraryRepository, IUnitOfWork unitOfWork, ILibraryReadService libraryReadService, ILibraryLocalStorage libraryLocalStorage, IImportDirectoryStorage importDirectoryStorage, IBookRepository bookRepository) : ICommandHandler<UpdateLibraryCommand, Library>
 {
     public async Task<Result<Library>> Handle(UpdateLibraryCommand request, CancellationToken cancellationToken)
     {
@@ -61,6 +62,17 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
 
     private async Task<Result> ApplyNameUpdateAsync(Library library, Guid libraryId, string name, Guid userId, CancellationToken cancellationToken)
     {
+        // The edit form always sends the name: unchanged, nothing is renamed or moved.
+        if (string.Equals(name, library.Name, StringComparison.Ordinal))
+        {
+            return Result.Success();
+        }
+
+        if (library.IsImported)
+        {
+            return LibrariesError.ImportedLibraryProtected;
+        }
+
         if (await libraryReadService.ExistsByNameAsync(name, userId, libraryId, cancellationToken))
         {
             return LibrariesError.Duplicate;
@@ -75,20 +87,50 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             return updateNameResult.Error!;
         }
 
-        // Move folders only for digital libraries
-        if (library.BookType == LibraryBookType.Digital)
+        // Move folders only for digital libraries whose folder name changes (not for a change of case or accents)
+        if (library.BookType != LibraryBookType.Digital || originPath == library.RelativePath)
         {
-            var moveResult = libraryLocalStorage.Move(originPath, library.RelativePath);
-            if (moveResult.IsFailure)
+            return Result.Success();
+        }
+
+        // The files keep their place in the folder: their new paths are set before the folder is moved.
+        var relocated = await RelocateBooksAsync(library, originPath, cancellationToken);
+        if (relocated.IsFailure)
+        {
+            return relocated;
+        }
+
+        var moveResult = libraryLocalStorage.Move(originPath, library.RelativePath);
+        if (moveResult.IsFailure)
+        {
+            return LibrariesError.FolderNotMoved;
+        }
+
+        var importMoveResult = importDirectoryStorage.Move(originImportDirName, library.ImportDirectoryName);
+        if (importMoveResult.IsFailure)
+        {
+            libraryLocalStorage.Move(library.RelativePath, originPath);
+            return LibrariesError.FolderNotMoved;
+        }
+
+        return Result.Success();
+    }
+
+    private async Task<Result> RelocateBooksAsync(Library library, string originPath, CancellationToken cancellationToken)
+    {
+        var books = await bookRepository.ListByLibraryIdAsync(library.Id, cancellationToken);
+        foreach (var book in books.OfType<DigitalBook>())
+        {
+            var filePath = libraryLocalStorage.PathAfterMove(book.FilePath, originPath, library.RelativePath);
+            if (filePath is null)
             {
-                return LibrariesError.FolderNotMoved;
+                continue;
             }
 
-            var importMoveResult = importDirectoryStorage.Move(originImportDirName, library.ImportDirectoryName);
-            if (importMoveResult.IsFailure)
+            var relocated = book.Relocate(filePath);
+            if (relocated.IsFailure)
             {
-                libraryLocalStorage.Move(library.RelativePath, originPath);
-                return LibrariesError.FolderNotMoved;
+                return relocated;
             }
         }
 

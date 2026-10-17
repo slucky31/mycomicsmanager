@@ -6,6 +6,7 @@ using Application.FeedImports.Manage;
 using Application.Interfaces;
 using Application.Libraries;
 using Domain.FeedImports;
+using Domain.Libraries;
 using Domain.Primitives;
 using Domain.Settings;
 using Hangfire;
@@ -21,7 +22,6 @@ public class FeedImportService(
     ILibraryReadService libraryReadService,
     IFeedImportDecisionReadService decisionReadService,
     IBackgroundJobClient backgroundJobClient,
-    IOptions<FeedImportSettings> feedImportSettings,
     IFeatureToggles featureToggles,
     IOptions<DebridLinkSettings> debridLinkSettings,
     ILogger<FeedImportService> logger) : IFeedImportService
@@ -55,7 +55,7 @@ public class FeedImportService(
         Guid? importLibraryId = null;
         if (decisions.Any(d => d.Status == FeedImportDecisionStatus.Downloaded))
         {
-            var library = await libraryReadService.GetByNameAsync(feedImportSettings.Value.TargetLibraryName, userIdResult.Value, cancellationToken);
+            var library = await libraryReadService.GetByNameAsync(LibraryConstants.ImportedName, userIdResult.Value, cancellationToken);
             importLibraryId = library?.Id;
         }
 

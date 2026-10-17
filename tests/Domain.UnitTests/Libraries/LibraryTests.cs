@@ -11,6 +11,24 @@ public class LibraryTests
     // Create
     // -------------------------------------------------------
 
+    [Theory]
+    [InlineData("Imported", true)]
+    [InlineData(" imported ", true)]
+    [InlineData("Imported books", false)]
+    [InlineData("À trier", false)]
+    [InlineData(null, false)]
+    public void IsImportedName_Should_RecognizeTheLibraryOfTheFeedImports(string? name, bool expected)
+    {
+        Library.IsImportedName(name).Should().Be(expected);
+    }
+
+    [Fact]
+    public void IsImported_Should_BeTrue_ForTheLibraryNamedImported()
+    {
+        Library.Create("Imported", "#5C6BC0", "Inbox", LibraryBookType.Digital, DefaultUserId).Value!.IsImported.Should().BeTrue();
+        Library.Create("Comics", "#5C6BC0", "Inbox", LibraryBookType.Digital, DefaultUserId).Value!.IsImported.Should().BeFalse();
+    }
+
     [Fact]
     public void Create_Should_CreateLibrary_WhenAllParametersValid()
     {

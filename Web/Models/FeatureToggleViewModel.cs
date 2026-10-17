@@ -26,7 +26,7 @@ public sealed record FeatureToggleViewModel(
         FeatureToggle.FeedImport => ("Feed import", "Miniflux sync and automatic downloads through Debrid-Link.", "FeedImport:Enabled"),
         FeatureToggle.IsbnOcr => ("ISBN reading (OCR)", "Reads the ISBN printed on the pages of the imported digital books.", "IsbnOcr:Enabled"),
         FeatureToggle.Bedetheque => ("Bedetheque search", "Searches Bedetheque (through SerpApi) when looking up an ISBN.", "Bedetheque:Enabled"),
-        FeatureToggle.Bnf => ("BnF catalogue search", "Searches the catalogue of the Bibliothèque nationale de France when looking up an ISBN.", "BnfCatalogue:Enabled"),
+        FeatureToggle.Bnf => ("BnF catalogue search", "Searches the catalogue of the French national library (BnF) when looking up an ISBN.", "BnfCatalogue:Enabled"),
         FeatureToggle.GoogleBooks => ("Google Books search", "Searches Google Books when looking up an ISBN.", "GoogleBooks:Enabled"),
         FeatureToggle.OpenLibrary => ("OpenLibrary search", "Searches OpenLibrary when looking up an ISBN.", "OpenLibrary:Enabled"),
         FeatureToggle.Bubble => ("Bubble search", "Searches Bubble (bubblebd.com) when looking up an ISBN; needs Bubble:ApiKey.", "Bubble:Enabled"),

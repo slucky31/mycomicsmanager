@@ -100,7 +100,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
 
     private async Task<Result<Library>> GetOrCreateTargetLibraryAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var name = options.FeedImport.Value.TargetLibraryName;
+        const string name = LibraryConstants.ImportedName;
         var library = await depositServices.LibraryReadService.GetByNameAsync(name, userId, cancellationToken);
         if (library is null)
         {
