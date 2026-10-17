@@ -110,6 +110,9 @@ codewiki generate -o ../resultats/codewiki --github-pages --language fr \
   --doc-type architecture
 ```
 
+> **Reprise :** si la sortie existe déjà, CodeWiki demande « Overwrite? [Y/n] » et échoue en mode non interactif.
+> Préfixer la commande par `yes Y |`. Les modules déjà générés sont conservés.
+
 Le résultat est un dossier Markdown, une page par module avec des diagrammes Mermaid, plus un `index.html`
 (visionneuse) grâce à `--github-pages`. `codewiki generate --update` met ensuite à jour uniquement les modules modifiés.
 

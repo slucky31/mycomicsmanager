@@ -20,7 +20,7 @@ Pour relancer chaque test, voir le [mode opératoire](MODE-OPERATOIRE.md). Les p
 |---|---|---|---|---|---|---|
 | 1 | **tbls** | Schéma de base | 4,4k ⭐ | 0,1 s | 0 $ | ✅ Indispensable, déterministe, intégrable en CI |
 | 1b | **tbls + Claude** (commentaires métier) | Schéma de base | – | 1,5 min | 0,48 $ | ✅ Excellent rapport qualité/coût |
-| 2 | **CodeWiki** | Wiki technique | 1,8k ⭐ (ACL 2026) | voir § 2 | voir § 2 | voir § 2 |
+| 2 | **CodeWiki** | Wiki technique | 1,8k ⭐ (ACL 2026) | ≈ 35 min de calcul (3 passages) | **10,6 $** | ⚠️ Bon contenu, mais le plus cher et fragile |
 | 3 | **Plugin `c4-architecture`** (wshobson/agents) | C4 complet | 41k ⭐ (catalogue) | ≈ 19 min | **6,95 $** | ⚠️ Très complet, mais très gourmand |
 | 4 | **Skill `c4-codebase-architecture`** (lmammino) | C4 (3 vues) | 21 ⭐ | 2 min | 0,48 $ | ✅ Meilleur rapport qualité/coût pour le C4 |
 | 5 | **Kit `code-business-reverse`** | Règles métier | 0 ⭐ | ≈ 45 min | **13,4 $** | ✅ Le plus abouti pour les règles métier |
@@ -36,7 +36,7 @@ abonnement, ils ne sont pas facturés, mais ils mesurent la part de quota consom
 | Documentation de la base | **tbls** en CI, commentaires métier générés une fois par Claude puis relus | – |
 | Architecture C4 (contexte, conteneurs, composants) | **Skill lmammino** : rapide, sobre, et il pose des questions | **Plugin wshobson** si l'on veut aussi le niveau code (une fiche par dossier) |
 | Spécification métier (écrans, parcours, règles) | **Kit code-business-reverse** : citations à la ligne, vérification indépendante, export Word | **Agents DEFRA** pour les règles des handlers CQRS et de la base |
-| Wiki technique navigable | CodeWiki (voir § 2) | – |
+| Wiki technique navigable | CodeWiki, seulement si le besoin d'un wiki justifie le coût ; sinon le C4 wshobson couvre l'essentiel | – |
 
 ---
 
@@ -44,6 +44,9 @@ abonnement, ils ne sont pas facturés, mais ils mesurent la part de quota consom
 
 Les quatre premiers tests ont été lancés **en parallèle**. En 12 minutes, ils ont consommé l'équivalent de 13 $ et
 épuisé la limite de session de l'abonnement. Tout s'est arrêté, avec 4 heures d'attente avant la réinitialisation.
+La limite a été atteinte une seconde fois après la reprise, alors que les outils tournaient un par un
+(≈ 20 $ en une heure : kit règles métier 11,3 $, dont 5,8 $ pour la seule vérification, et CodeWiki 5,7 $).
+La session interactive qui pilote les tests consomme elle aussi ce quota.
 
 | Comportement à la limite | Outil |
 |---|---|
@@ -64,6 +67,7 @@ Répartition de la consommation par modèle :
 |---|---|---|
 | wshobson | 4,12 $ (138k tokens produits) | **2,83 $ (767k tokens produits)** : un sous-agent par répertoire |
 | code-business-reverse | 13,4 $ | – |
+| CodeWiki | 10,6 $ (43 appels) | – |
 | DEFRA | 2,52 $ | négligeable |
 | lmammino, tbls + Claude | 0,48 $ chacun | négligeable |
 
@@ -91,7 +95,29 @@ et des diagrammes entité-relation Mermaid. Configuration dans [`scripts/tbls/.t
 
 ## 2. CodeWiki : wiki technique
 
-<!-- CODEWIKI -->
+**Résultat :** [`resultats/codewiki/`](resultats/codewiki/overview.md), soit 40 pages Markdown en français organisées
+en 11 modules (modèle de domaine, cas d'usage livres et bibliothèques, pipeline d'import de fichiers, import par flux,
+stockage et traitement des médias, couche Blazor…), une vue d'ensemble et une visionneuse HTML (`index.html`,
+option `--github-pages`).
+
+- **Points forts :**
+  - Le découpage en modules est calculé à partir du graphe de dépendances, pas à partir des dossiers. Il retrouve
+    des ensembles fonctionnels cohérents, comme « File Import Pipeline », qui traverse Application, Persistence et Web.
+  - La vue d'ensemble est juste : Clean Architecture, CQRS, `Result<T>`, rôle de chaque couche.
+  - Le mode abonnement Claude Code fonctionne réellement, sans clé API.
+  - `--update` permet ensuite de ne régénérer que les modules modifiés.
+- **Points faibles :**
+  - **C'est le plus coûteux** (10,6 $), et il lui a fallu trois passages à cause des limites de quota.
+  - Le journal signale des **erreurs de syntaxe Mermaid** dans 29 contrôles : des diagrammes sont à corriger à la
+    main ou à relancer.
+  - Une question interactive (« Overwrite? [Y/n] ») bloque l'exécution non interactive à la reprise : il faut
+    répondre par `yes Y |`.
+  - Au démarrage, il télécharge un fichier `tiktoken` depuis un domaine souvent bloqué en entreprise (contournement
+    dans le mode opératoire).
+  - Les noms de modules restent en anglais, seul le contenu est traduit.
+  - C'est de la documentation technique : elle décrit le code, pas les règles métier.
+- **À retenir :** c'est utile pour l'onboarding d'un développeur sur un gros dépôt. Sur MyComicsManager, le C4
+  wshobson et le skill lmammino donnent une information comparable pour moins cher.
 
 ## 3. Plugin `c4-architecture` (wshobson/agents)
 
