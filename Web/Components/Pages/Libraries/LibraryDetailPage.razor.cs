@@ -100,9 +100,76 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     private bool IsDigital => _library?.BookType == LibraryBookType.Digital;
 
-    protected override async Task OnInitializedAsync()
+    // The library on screen: the side bar links to the other libraries, which are shown in this same page.
+    private string? _shownLibraryId;
+
+    protected override async Task OnParametersSetAsync()
     {
+        if (_shownLibraryId == LibraryId)
+        {
+            return;
+        }
+
+        if (_shownLibraryId is not null)
+        {
+            await LeaveLibraryAsync();
+        }
+
+        _shownLibraryId = LibraryId;
         await LoadDataAsync();
+    }
+
+    // Keeps the search and the view of the library left, then forgets everything shown of it.
+    private async Task LeaveLibraryAsync()
+    {
+        LibraryStateService.Save(_libraryGuid, new LibraryPageState(SearchTerm, _currentViewMode));
+
+        if (_searchCts is not null)
+        {
+            await _searchCts.CancelAsync();
+            _searchCts.Dispose();
+            _searchCts = null;
+        }
+        if (_sortCts is not null)
+        {
+            await _sortCts.CancelAsync();
+            _sortCts.Dispose();
+            _sortCts = null;
+        }
+
+        // A page of the library left that is still loading is dropped.
+        _loadVersion++;
+        _library = null;
+        _displayedBooks.Clear();
+        _currentPage = 1;
+        _hasNextPage = false;
+        _libraryBookCount = null;
+        _resultCount = 0;
+        _shownSearch = string.Empty;
+        _searchTermValue = string.Empty;
+        _isSearchOpen = false;
+        _currentViewMode = ViewMode.Covers;
+        _observerInitialized = false;
+        _openSheet = LibrarySheet.None;
+        _actionsBook = null;
+        await ScrollToTopAsync();
+    }
+
+    private async Task ScrollToTopAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.InvokeVoidAsync("scrollToTop", _disposalCts.Token, _content);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogWarning(ex, "Unable to scroll library {LibraryId} back to the top", _libraryGuid);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

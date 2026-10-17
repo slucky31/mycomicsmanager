@@ -114,6 +114,13 @@ export function attach(container, dotNetRef) {
     handlers.set(container, { listeners, cancel });
 }
 
+// Another library is shown in the same page (side bar): its books start at the top.
+export function scrollToTop(container) {
+    if (container) {
+        container.scrollTop = 0;
+    }
+}
+
 export function detach(container) {
     const state = container && handlers.get(container);
     if (!state) {
