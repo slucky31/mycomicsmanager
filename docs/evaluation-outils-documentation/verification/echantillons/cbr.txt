@@ -1,0 +1,276 @@
+### cbr-01
+### BR-UI-036 — Les catalogues en ligne sont interrogés en parallèle et indépendamment
+
+- **Énoncé :** « Import info from the web » interroge en même temps les catalogues activés (BnF, Bédéthèque, Bubble, OpenLibrary, Google Books) pour l'ISBN du livre ; chacun s'affiche dès sa réponse, et l'échec de l'un n'empêche ni les autres ni l'enregistrement avec les valeurs actuelles (« Could not fetch data from …. You can still save with current values. »).
+- **Conditions / exceptions :** Chaque source peut être désactivée dans « Settings → Features ». Sans ISBN, aucune recherche.
+- **Résultat en cas de violation :** Avertissement par source.
+- **Source :**
+  - `Web/Components/Pages/Books/FindBookDetails.razor.cs:116-136` — recherches simultanées
+  - `Web/Components/Pages/Books/FindBookDetails.razor.cs:190-201` — sources actives
+  - `Web/Components/Pages/Books/FindBookDetails.razor.cs:237-248` — message d'échec par source
+- **Confiance :** Élevée
+- **Note technique :** Intégrations INT-003 à INT-008.
+
+### cbr-02
+### BR-UI-004 — Une pastille signale les arbitrages d'import par flux en attente
+
+- **Énoncé :** Dans la navigation, l'entrée « Feeds » affiche le nombre de décisions d'import qui attendent un arbitrage de l'utilisateur, dès qu'il est supérieur à zéro.
+- **Conditions / exceptions :** L'entrée « Feeds » est affichée même si l'import par flux est désactivé (voir Q-UI-005).
+- **Résultat en cas de violation :** n/a
+- **Source :**
+  - `Web/Components/Layout/NavBar.razor:38-48` — entrée « Feeds » et pastille
+  - `Web/Components/Layout/NavBar.razor.cs:76` — comptage des décisions en attente d'arbitrage
+- **Confiance :** Moyenne. Le calcul exact du compte est dans le service d'import par flux (non relu ici).
+- **Note technique :** Mise à jour par l'événement `DecisionsChanged` (`Web/Components/Layout/NavBar.razor.cs:24`).
+
+### cbr-03
+### BR-UI-057 — Des liens ambigus demandent un choix de l'utilisateur
+
+- **Énoncé :** Quand plusieurs liens de téléchargement sont possibles, l'utilisateur garde le bon fichier (« Keep this link ») ou indique que tous les liens désignent le même fichier (« All these links are the same file », proposé s'il y a plusieurs fichiers).
+- **Conditions / exceptions :** Les liens sont ouverts dans un nouvel onglet sans transmission de la page d'origine.
+- **Résultat en cas de violation :** « Unable to update the decision. »
+- **Source :** `Web/Components/Pages/FeedImportsPage.razor:43-58,155-162,330-337`
+- **Confiance :** Élevée
+- **Note technique :** —
+
+### cbr-04
+### BR-UI-024 — Le tome et le nombre de pages doivent être supérieurs à zéro
+
+- **Énoncé :** Le numéro de tome doit être supérieur à 0 (1 par défaut) ; le nombre de pages, s'il est renseigné, doit être supérieur à 0.
+- **Conditions / exceptions :** Les champs numériques du formulaire ont aussi un minimum de 1.
+- **Résultat en cas de violation :** « Volume number must be greater than 0. », « Number of pages must be greater than 0. »
+- **Source :**
+  - `Web/Validators/BookValidator.cs:26-27,42-44` — règles
+  - `Web/Components/Pages/Books/BookFields.razor:12,26` — minimum de saisie
+- **Confiance :** Moyenne. Aucun contrôle équivalent n'a été retrouvé côté serveur.
+- **Note technique :** Voir D-UI-003 : l'import d'informations depuis le web enregistre un tome sans passer par ce contrôle, et traite le tome 0 comme « inconnu » (`Web/Components/Pages/Books/FindBookDetails.razor.cs:221-223`).
+
+### cbr-05
+### BR-UI-016 — Les actions d'une bibliothèque dépendent de son type
+
+- **Énoncé :** Dans une bibliothèque numérique, la barre propose « More actions » (Import, recherche des ISBN manquants) et chaque livre propose Lire, Chercher l'ISBN et Télécharger ; dans une bibliothèque physique, la barre propose « New book » (ajout par scan, ISBN saisi ou saisie manuelle) et ces actions sont absentes. Une bibliothèque vide propose « Import » (numérique) ou « Add your first book » (physique).
+- **Conditions / exceptions :** Actions communes : modifier, importer l'information depuis le web, déplacer, supprimer.
+- **Résultat en cas de violation :** n/a
+- **Source :**
+  - `Web/Components/Pages/Libraries/LibraryDetailPage.razor:38-46,62-75,166-179` — actions selon le type
+  - `Web/Components/Pages/Libraries/LibrariesList.razor:67-70` — « Import books » seulement pour une bibliothèque numérique
+- **Confiance :** Élevée
+- **Note technique :** Test `IsDigital` sur le type de la bibliothèque (`LibraryDetailPage.razor.cs:101`).
+
+### cbr-06
+### BR-UI-063 — Les statistiques portent sur toutes les bibliothèques ou sur une seule
+
+- **Énoncé :** L'écran des statistiques montre, pour toutes les bibliothèques par défaut ou pour celle choisie, le nombre de livres, la part lue, des indicateurs et un graphique des lectures par mois ; sans livre, il affiche « No books yet. Add books to a library to see your statistics. ».
+- **Conditions / exceptions :** Un changement de bibliothèque annule le chargement précédent. 200 bibliothèques au plus listées.
+- **Résultat en cas de violation :** « Failed to load statistics ».
+- **Source :**
+  - `Web/Components/Pages/Statistics.razor.cs:50-90` — chargement et annulation
+  - `Web/Components/Pages/Statistics.razor:22-33,47-50` — synthèse, vide, graphique
+- **Confiance :** Élevée
+- **Note technique :** Définition des indicateurs : composant Statistiques (STA).
+
+### cbr-07
+### BR-DB-002 — Modifications concurrentes d'une tâche d'import détectées
+
+- **Énoncé :** Si deux traitements modifient en même temps la même tâche d'import, le second enregistrement est refusé au lieu d'écraser silencieusement le premier.
+- **Justification (déduite) :** Éviter qu'une relance de la file de tâches et une action manuelle (« marquer comme échouée ») se contredisent.
+- **Conditions / exceptions :** Appliqué par le jeton de version de ligne du système de base de données.
+- **Résultat en cas de violation :** Enregistrement refusé ; erreur « DB_UPDATE_ERROR ».
+- **Source :**
+  - `Persistence/ApplicationDbContext.cs:91-95` — colonne de version de ligne utilisée comme jeton de concurrence
+  - `Persistence/UnitOfWork.cs:18-21` — toute erreur de mise à jour est convertie en erreur technique
+- **Confiance :** Moyenne. Le comportement de refus est celui du composant d'accès aux données ; aucun test ne le vérifie ici.
+- **Note technique :** Colonne système `xmin` de PostgreSQL.
+
+### cbr-08
+### BR-DB-008 — La suppression d'un livre supprime ses dates de lecture
+
+- **Énoncé :** Quand un livre est supprimé, toutes ses lectures datées et notées sont supprimées.
+- **Justification (déduite) :** Une lecture n'a de sens que rattachée à son livre.
+- **Conditions / exceptions :** Aucune.
+- **Résultat en cas de violation :** Sans objet.
+- **Source :**
+  - `Persistence/ApplicationDbContext.cs:60-64`
+- **Confiance :** Élevée
+- **Note technique :** Cascade de clé étrangère.
+
+### cbr-09
+### BR-DB-001 — Un seul import non terminé par fichier source
+
+- **Énoncé :** Tant qu'une tâche d'import n'est ni terminée ni échouée pour un fichier donné, aucune autre tâche ne peut être créée pour le même chemin de fichier ; une fois la tâche terminée ou échouée, le même fichier peut être importé à nouveau.
+- **Justification (déduite) :** Empêche d'importer deux fois la même archive, par exemple lorsque la surveillance de dossier détecte le fichier plusieurs fois.
+- **Conditions / exceptions :** S'applique aux statuts autres que Terminée et Échouée.
+- **Résultat en cas de violation :** Enregistrement refusé par la base ; l'erreur technique « DB_UPDATE_ERROR » est renvoyée.
+- **Source :**
+  - `Persistence/ApplicationDbContext.cs:87-90` — index unique filtré sur le chemin du fichier d'origine
+  - `Persistence/Migrations/ApplicationDbContextModelSnapshot.cs:349-351` — même index dans le modèle migré
+  - `Persistence/UnitOfWork.cs:18-21` — erreur renvoyée en cas de refus
+- **Confiance :** Élevée
+- **Note technique :** Le filtre repose sur les valeurs numériques 6 (Terminée) et 7 (Échouée) ; à mettre à jour si l'énumération est réordonnée (commentaire du code, `Persistence/ApplicationDbContext.cs:87`). Voir D-DOM-004.
+
+### cbr-10
+### BR-DB-005 — Une seule surcharge par fonctionnalité
+
+- **Énoncé :** Une fonctionnalité activable a au plus une valeur choisie par l'administrateur.
+- **Justification (déduite) :** La valeur choisie remplace sans ambiguïté celle de la configuration.
+- **Conditions / exceptions :** Choisir la valeur de la configuration supprime la surcharge au lieu de la stocker.
+- **Résultat en cas de violation :** Enregistrement refusé par la base.
+- **Source :**
+  - `Persistence/ApplicationDbContext.cs:108` — index unique sur la fonctionnalité
+  - `Application/Settings/SetFeatureToggle/SetFeatureToggleCommandHandler.cs:30-49` — ajout, mise à jour ou suppression
+- **Confiance :** Élevée
+- **Note technique :** La fonctionnalité est enregistrée sous forme de texte (`Persistence/ApplicationDbContext.cs:107`).
+
+### cbr-11
+### BR-UI-043 — En fin de livre, l'utilisateur peut le marquer comme lu avec une note
+
+- **Énoncé :** En atteignant la fin d'un livre, le lecteur propose une note de 1 à 5 (3 par défaut) ; « Mark as read » ajoute une lecture à la date du jour, remet la progression à la première page et retourne à la fiche ; « Keep reading » ferme la proposition.
+- **Conditions / exceptions :** Non proposé en mode recherche d'ISBN. Le bouton est désactivé pendant l'enregistrement.
+- **Résultat en cas de violation :** Échec : « Unexpected error while adding reading date ».
+- **Source :**
+  - `Web/Components/Pages/Books/BookReader.razor:223-239` — fenêtre de fin de livre
+  - `Web/Components/Pages/Books/BookReader.razor.cs:62,299-304,633-662` — note par défaut, mode ISBN exclu, enregistrement
+- **Confiance :** Élevée
+- **Note technique :** Les deux appels (ajout de lecture, remise à zéro) ne sont pas dans une même transaction : D-UI-005.
+
+### cbr-12
+### BR-UI-023 — L'ISBN d'un livre physique est obligatoire et doit être valide
+
+- **Énoncé :** Pour un livre papier, l'ISBN est obligatoire et doit être un ISBN valide de 10 ou 13 chiffres (20 caractères au plus) ; pour un livre numérique l'ISBN peut rester vide, mais s'il est renseigné il doit être valide.
+- **Conditions / exceptions :** Le champ n'est marqué « obligatoire » que pour un livre papier.
+- **Résultat en cas de violation :** « Enter the ISBN », « Enter a valid ISBN: 10 or 13 digits », « ISBN must not exceed 20 characters. »
+- **Source :**
+  - `Web/Validators/BookValidator.cs:15-20` — règles
+  - `Web/Validators/BookUiDto.cs:42-44` — indicateur « livre physique »
+  - `Web/Components/Pages/Books/BookFields.razor:47-48` — champ marqué obligatoire seulement pour un livre physique
+  - `Application/Books/Update/UpdateBookCommandHandler.cs:25-33` — validité contrôlée côté serveur si renseigné
+  - `Application/Books/Create/CreateBookCommandHandler.cs:25-28` — idem à la création
+- **Confiance :** Élevée
+- **Note technique :** L'obligation de l'ISBN pour un livre physique est portée par le domaine (`Domain/Books/PhysicalBook.cs:15,40`).
+
+### cbr-13
+### BR-UI-062 — La purge des décisions téléchargées demande une confirmation
+
+- **Énoncé :** « Delete downloaded items » supprime, après confirmation, toutes les décisions téléchargées avec succès et leur historique ; les décisions dont l'import est en cours ou échoué sont conservées.
+- **Conditions / exceptions :** Aucune.
+- **Résultat en cas de violation :** « Unable to delete the downloaded decisions. »
+- **Source :** `Web/Components/Pages/FeedImportsPage.razor.cs:331-375`
+- **Confiance :** Élevée
+- **Note technique :** —
+
+### cbr-14
+### BR-UI-066 — Un administrateur règle les niveaux de journalisation jusqu'au redémarrage
+
+- **Énoncé :** Un administrateur règle le niveau de détail des journaux par composant (Debug, Info, Warning, Error, None) ou le laisse hérité du parent ; le changement est immédiat et dure jusqu'au prochain redémarrage ; « Reset » remet tous les niveaux à leur valeur configurée.
+- **Conditions / exceptions :** Rôle `Admin`.
+- **Résultat en cas de violation :** n/a
+- **Source :**
+  - `Web/Components/Pages/Admin/LogLevels.razor:2,14-17,25-27`
+  - `Web/Components/Pages/Admin/LogLevels.razor.cs:34-47`
+- **Confiance :** Élevée
+- **Note technique :** —
+# Base de données et modèle de domaine — Règles métier
+
+**Composant :** `Domain/`, `Persistence/` · **Préfixe :** `DB` · **Capacité :** [capability.md](capability.md)
+
+## Résumé
+
+| ID | Titre | Confiance | Statut |
+|---|---|---|---|
+| BR-DB-001 | Un seul import non terminé par fichier source | Élevée | Brouillon |
+| BR-DB-002 | Modifications concurrentes d'une tâche d'import détectées | Moyenne | Brouillon |
+| BR-DB-003 | Une seule décision par livre d'un article et par utilisateur | Élevée | Brouillon |
+| BR-DB-004 | Modifications concurrentes d'une décision d'import détectées | Moyenne | Brouillon |
+| BR-DB-005 | Une seule surcharge par fonctionnalité | Élevée | Brouillon |
+| BR-DB-006 | Une seule URL Bédéthèque mémorisée par ISBN | Élevée | Brouillon |
+| BR-DB-007 | La suppression d'une bibliothèque supprime ses livres | Élevée | Brouillon |
+| BR-DB-008 | La suppression d'un livre supprime ses dates de lecture | Élevée | Brouillon |
+| BR-DB-009 | La suppression d'une décision d'import supprime son historique | Élevée | Brouillon |
+| BR-DB-010 | Longueurs maximales de la fiche d'un livre | Élevée | Brouillon |
+| BR-DB-011 | Longueurs maximales d'une bibliothèque et d'une tâche d'import | Élevée | Brouillon |
+| BR-DB-012 | Les dates de création et de modification sont horodatées à l'enregistrement | Élevée | Brouillon |
+| BR-DB-013 | Un livre est physique ou numérique, jamais les deux | Moyenne | Brouillon |
+| BR-DB-014 | Les clés de protection des sessions survivent à un redéploiement | Moyenne | Brouillon |
+
+Aucune procédure stockée, fonction, vue ni déclencheur n'existe dans le dépôt : toute la logique résidant en base se limite aux contraintes ci-dessous (`Persistence/Migrations/`, voir [capability.md](capability.md)). Numéros de point d'entrée (EP) : voir [capability.md](capability.md).
+
+---
+
+### cbr-15
+### BR-UI-051 — Le suivi des imports se rafraîchit tant qu'un import n'est pas terminé
+
+- **Énoncé :** La liste des imports de la bibliothèque (du plus récent au plus ancien) se rafraîchit toutes les 3 secondes tant qu'au moins un import n'est ni terminé ni échoué, puis s'arrête.
+- **Conditions / exceptions :** Terminé = Completed ou Failed ; un import terminé propose un lien vers le livre créé.
+- **Résultat en cas de violation :** n/a
+- **Source :**
+  - `Web/Components/Pages/Import.razor.cs:172-226` — interrogation toutes les 3 s
+  - `Web/Models/ImportJobViewModel.cs:42,73` — lien vers le livre, import terminé
+- **Confiance :** Élevée
+- **Note technique :** —
+
+### cbr-16
+### BR-UI-012 — Le tri choisi devient le tri par défaut de la bibliothèque
+
+- **Énoncé :** Quand l'utilisateur choisit un tri (plus récents d'abord, plus anciens d'abord, série puis tome) dans une bibliothèque, ce choix est enregistré sur la bibliothèque et réutilisé à sa prochaine ouverture ; le tri initial d'une bibliothèque est « plus récents d'abord ».
+- **Conditions / exceptions :** Un choix identique au tri actuel ne fait rien. Un nouveau choix annule le précédent s'il est encore en cours.
+- **Résultat en cas de violation :** Échec : message « Failed to save sort order » et le tri affiché ne change pas.
+- **Source :**
+  - `Web/Components/Pages/Libraries/LibraryDetailPage.razor:108-114` — trois choix de tri
+  - `Web/Components/Pages/Libraries/LibraryDetailPage.razor.cs:360-410` — enregistrement puis rechargement
+  - `Web/Components/Pages/Libraries/LibraryDetailPage.razor.cs:212` — tri initial = tri par défaut de la bibliothèque
+  - `Web/Validators/LibraryUiDto.cs:25` — valeur par défaut « plus récents d'abord »
+- **Confiance :** Élevée
+- **Note technique :** Enregistré via la mise à jour de la bibliothèque, sans changer son nom.
+
+### cbr-17
+### BR-DB-003 — Une seule décision par livre d'un article et par utilisateur
+
+- **Énoncé :** Pour un utilisateur, un livre d'un article Miniflux (repéré par le numéro d'entrée et le rang dans l'article) ne peut avoir qu'une seule décision d'import.
+- **Justification (déduite) :** Empêche de traiter deux fois le même article lors de synchronisations répétées.
+- **Conditions / exceptions :** La synchronisation vérifie d'abord l'existence de la décision de rang 0 (`Persistence/Repositories/FeedImportDecisionRepository.cs:18`).
+- **Résultat en cas de violation :** Enregistrement refusé par la base.
+- **Source :**
+  - `Persistence/ApplicationDbContext.cs:125` — index unique utilisateur + entrée + rang
+  - `Application/FeedImports/Sync/SyncFeedImportsCommandHandler.cs:81-95` — « déjà connue » avant création
+- **Confiance :** Élevée
+- **Note technique :** Le commentaire de la synchronisation parle d'une unicité sur l'entrée seule (`Application/FeedImports/Sync/SyncFeedImportsCommandHandler.cs:82`) ; l'index réel inclut le rang.
+
+### cbr-18
+### BR-UI-046 — Le mode recherche d'ISBN ne sauvegarde pas la progression
+
+- **Énoncé :** Quand le lecteur est ouvert pour chercher l'ISBN, il ne retient ni la page ni la fin de lecture : il affiche « ISBN search · progress not saved » et ne propose pas de marquer le livre comme lu.
+- **Conditions / exceptions :** Mode demandé depuis la bibliothèque, la fiche ou le bouton « Look in the reader ».
+- **Résultat en cas de violation :** n/a
+- **Source :**
+  - `Web/Components/Pages/Books/BookReader.razor.cs:15,89,299-304,582-587,610`
+  - `Web/Components/Pages/Books/BookReader.razor:59-62` — pastille d'information
+- **Confiance :** Élevée
+- **Note technique :** —
+
+### cbr-19
+### BR-UI-065 — Un administrateur active ou désactive les fonctionnalités sans redéploiement
+
+- **Énoncé :** Un administrateur active ou désactive une fonctionnalité (par exemple import par flux, catalogues en ligne) ; le changement s'applique tout de suite et survit à un redémarrage ; remettre la valeur de la configuration supprime la surcharge, et activer une fonctionnalité dont la configuration est incomplète est refusé.
+- **Conditions / exceptions :** Rôle `Admin`. Un seul changement à la fois ; en cas d'échec, l'interrupteur revient à son état réel.
+- **Résultat en cas de violation :** Message d'erreur de la règle serveur ; « Unable to change the feature. »
+- **Source :**
+  - `Web/Components/Pages/Admin/FeatureTogglesCard.razor:1-5,22` — texte d'aide et interrupteur
+  - `Web/Components/Pages/Admin/FeatureTogglesCard.razor.cs:21-49` — enregistrement et relecture
+  - `Application/Settings/SetFeatureToggle/SetFeatureToggleCommandHandler.cs:25-28,30-48` — refus si configuration manquante, retrait de la surcharge
+- **Confiance :** Élevée
+- **Note technique :** Pour l'import par flux, la tâche récurrente est ajoutée ou retirée immédiatement (`Web/Services/FeatureToggleService.cs:34-37`). Pas de contrôle de rôle côté serveur : D-UI-001.
+
+### cbr-20
+### BR-UI-011 — La suppression d'une bibliothèque demande une confirmation
+
+- **Énoncé :** Avant de supprimer une bibliothèque, l'utilisateur doit confirmer par un message qui rappelle que la bibliothèque est supprimée avec ses livres et que l'opération est irréversible ; le bouton de confirmation est rouge et il existe un bouton « Cancel ».
+- **Conditions / exceptions :** Aucune exception ; pas de saisie du nom à retaper.
+- **Résultat en cas de violation :** Sans confirmation, rien n'est supprimé.
+- **Source :**
+  - `Web/Components/Pages/Libraries/LibrariesList.razor.cs:60-67` — message « The library “…” will be deleted with its … This cannot be undone. »
+  - `Web/Extensions/DialogServiceExtensions.cs:13` — couleur d'erreur par défaut
+  - `Web/Components/Pages/Dialogs/ConfirmationDialog.razor:12-13` — bouton « Cancel » et bouton d'action
+  - `Web/Components/Pages/Libraries/LibrariesList.razor:72` — action marquée « Danger »
+- **Confiance :** Élevée
+- **Note technique :** Pas de verrou contre un double clic pendant la suppression elle-même (la boîte de dialogue se ferme avant l'appel). Effets côté serveur : BR-DB-007, D-DOM-006, D-DOM-007.
+

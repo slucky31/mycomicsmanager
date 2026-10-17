@@ -1,0 +1,60 @@
+### defra-01
+| BR-017 | Réglages du lecteur | Les trois énumérations doivent être des valeurs définies ; défaut = `FitWidth`, `Continuous`, `LeftToRight` | Peripheral | `Domain/Books/ReaderSettings.cs` |
+
+### defra-02
+| BR-021 | Extensions d'import | `.cbz .cbr .zip .rar .pdf` pour la création d'une tâche d'import ; bibliothèque obligatoirement numérique ; taille > 0 | Core | `CreateImportJobCommandHandler.cs`, `ImportSettings.cs` |
+
+### defra-03
+| BR-058 | Configuration de flux requise | Si `FeedImport:Enabled` : e-mail utilisateur, URL Miniflux http(s) absolue, clé API et catégorie Miniflux obligatoires | Supporting | `FeedImportConfiguration.cs`, `FeatureToggleDefaults.cs` |
+
+### defra-04
+| BR-029 | Nom du CBZ final | `{ISBN normalisé}.cbz` si l'ISBN est valide, sinon `{id de tâche}.cbz` | Supporting | `ProcessImportJobCommandHandler.cs` |
+
+### defra-05
+| BR-049 | Analyse de titre | Extraction série/volume/titre par motifs (« Tome 3 », « T03 », « Vol. 105 », « #40 », « n°12 », « Série - 20 - Titre ») ; plages de tomes (« Tomes 1 à 5 ») sans volume ; extensions de fichier retirées ; groupes entre crochets/parenthèses conservés seulement s'ils portent un volume | Supporting | `ComicTitleParser.cs` |
+
+### defra-06
+| BR-037 | État du scan ISBN | `HasIsbn` si ISBN ; sinon `Candidates` si candidats ; sinon `NotScanned` si jamais scanné, `NotFound` autrement | Supporting | `Domain/Books/IsbnScanState.cs` |
+
+### defra-07
+| BR-009 | Compatibilité livre/bibliothèque | Une bibliothèque `Physical` ne contient que des `PhysicalBook`, une `Digital` que des `DigitalBook` (`LIB505`) | Core | `Domain/Libraries/Library.cs` |
+
+### defra-08
+| BR-046 | Détection de doublon certain | Même ISBN, ou même série normalisée (similarité 1) et même volume | Core | `DuplicateBookFinder.cs` |
+
+### defra-09
+| BR-055 | Priorité des hébergeurs | Les miroirs sont triés selon `DebridLink:HosterPriority` (tri stable), puis filtrés par les domaines pris en charge par Debrid-Link (si la liste est indisponible, tous sont essayés) | Supporting | `DownloadFeedImportDecisionCommandHandler.cs` |
+
+### defra-10
+| BR-001 | Isolation par utilisateur | Une bibliothèque, un livre, une tâche d'import ou une décision n'est accessible qu'à son propriétaire ; sinon la ressource est signalée « non trouvée » pour ne pas révéler son existence | Core | `Application/**/*Handler.cs` |
+
+### defra-11
+| BR-062 | Cache HTTP des pages | Pages servies en cache privé 24 h, ETag lié à la date de modification de l'archive | Peripheral | `BooksEndpoints.cs` |
+
+### defra-12
+| BR-012 | Dossiers des bibliothèques numériques | Chemin = nom sans diacritiques en majuscules ; dossier d'import = `{CHEMIN}_{Id}` ; création, renommage (avec retour arrière si le second déplacement échoue) et suppression uniquement pour le type numérique | Core | `Library.cs`, `Create/Update/DeleteLibraryCommandHandler.cs` |
+
+### defra-13
+| BR-054 | Arrêt sur erreur globale | Clé Debrid-Link invalide, quota atteint, fichier trop gros ou type non pris en charge arrêtent l'essai des miroirs suivants ; les autres échecs sont tracés et le miroir suivant est essayé | Supporting | `DownloadFeedImportDecisionCommandHandler.cs` |
+
+### defra-14
+| BR-036 | Affectation d'un ISBN scanné | Un seul ISBN inutilisé par un autre livre est affecté ; sinon candidats ; scan interdit si le livre a déjà un ISBN ; une fois un ISBN posé, les candidats sont effacés | Core | `BookIsbnScan.cs`, `ScanBookIsbnCommandHandler.cs`, `DigitalBook.cs` |
+
+### defra-15
+| BR-006 | Longueurs maximales des livres | Série 200, titre 200, ISBN 20, lien image 500, auteurs 200, éditeurs 200, chemin de fichier 500 | Supporting | `Domain/Books/BookConstants.cs` |
+
+### defra-16
+| BR-024 | Suppression d'une tâche | Réservée aux tâches terminées ou échouées (`IMP412`) | Supporting | `DeleteImportJobCommandHandler.cs` |
+
+### defra-17
+| BR-053 | Téléchargement périmé | Un téléchargement `Downloading` depuis plus d'1 h est considéré interrompu (réessai et suppression possibles) ; un téléchargement en cours ne peut ni être supprimé ni relancé | Supporting | `FeedImportConstants.cs`, `FeedImportDecision.cs` |
+
+### defra-18
+| BR-025 | Espace disque d'import | Espace libre requis = 3 × taille du fichier d'origine | Supporting | `ProcessImportJobCommandHandler.cs` |
+
+### defra-19
+| BR-033 | Lecture de l'ISBN dans un nom de fichier | Motifs : `ISBN-…`, `(…)`, `[…]`, 13 chiffres commençant par 978/979, 10 chiffres ; seul un ISBN valide est retenu | Supporting | `FileNameIsbnExtractor.cs` |
+
+### defra-20
+| BR-022 | Unicité des tâches actives | Une seule tâche non terminale (statuts autres que `Completed`/`Failed`) par chemin de fichier d'origine (`IMP409B`) | Core | `CreateImportJobCommandHandler.cs`, `ApplicationDbContext.cs` |
+
