@@ -179,7 +179,7 @@ public sealed class ImportComponentTests
 
         await using var setup = await SetupAsync(librariesResult: Result<IPagedList<Library>>.Success(pagedList));
 
-        setup.Cut.Find("#import-library").GetAttribute("value").Should().Be(imported.Id.ToString());
+        setup.Cut.Find("#import-library .library-select-value").TextContent.Should().Be("Imported");
         await setup.ImportService.Received(1).GetImportJobsAsync(imported.Id, Arg.Any<CancellationToken>());
     }
 
