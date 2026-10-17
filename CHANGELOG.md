@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.52.2"></a>
+## [10.52.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.52.2) (2026-10-17)
+
+### 🐛 Bug Fixes
+
+* **web:** show the chosen library when the side bar switches library ([#1164](https://www.github.com/slucky31/mycomicsmanager/issues/1164)) ([371b8a7](https://www.github.com/slucky31/mycomicsmanager/commit/371b8a7fed0ddc1a628a40f5ebc6e10ee2d8a063))
+
 <a name="10.52.1"></a>
 ## [10.52.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.52.1) (2026-10-17)
 
