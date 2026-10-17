@@ -43,7 +43,8 @@ public partial class Import : IAsyncDisposable
         }
         else if (_digitalLibraries.Count > 0)
         {
-            _selectedLibraryId = _digitalLibraries[0].Id;
+            // The files to sort usually go to the Imported library, where the feed imports add theirs.
+            _selectedLibraryId = (_digitalLibraries.Find(l => Library.IsImportedName(l.Name)) ?? _digitalLibraries[0]).Id;
         }
 
         if (_selectedLibraryId != Guid.Empty)

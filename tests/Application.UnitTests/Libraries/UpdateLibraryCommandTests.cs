@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Update;
 using Ardalis.GuardClauses;
+using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
 using NSubstitute;
@@ -21,6 +22,7 @@ public class UpdateLibraryCommandTests
     private readonly ILibraryReadService _libraryReadServiceMock;
     private readonly ILibraryLocalStorage _libraryLocalStorage;
     private readonly IImportDirectoryStorage _importDirectoryStorageMock;
+    private readonly IBookRepository _bookRepository = Substitute.For<IBookRepository>();
 
     public UpdateLibraryCommandTests()
     {
@@ -31,8 +33,9 @@ public class UpdateLibraryCommandTests
         _libraryLocalStorage = Substitute.For<ILibraryLocalStorage>();
         _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();
         _importDirectoryStorageMock.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
+        _bookRepository.ListByLibraryIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
 
-        _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorage, _importDirectoryStorageMock);
+        _handler = new UpdateLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryReadServiceMock, _libraryLocalStorage, _importDirectoryStorageMock, _bookRepository);
     }
 
     [Fact]
@@ -137,11 +140,12 @@ public class UpdateLibraryCommandTests
     public async Task Handle_ShouldReturnDuplicate_WhenALibraryWithSameNameAlreadyExist()
     {
         // Arrange
-        _libraryReadServiceMock.ExistsByNameAsync(s_command.Name!, s_command.UserId, s_command.Id, Arg.Any<CancellationToken>()).Returns(true);
+        var renameCommand = s_command with { Name = "Comics" };
+        _libraryReadServiceMock.ExistsByNameAsync("Comics", s_command.UserId, s_command.Id, Arg.Any<CancellationToken>()).Returns(true);
         _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
 
         // Act
-        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
+        var result = await _handler.Handle(renameCommand, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -254,5 +258,89 @@ public class UpdateLibraryCommandTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.FolderNotMoved);
+    }
+
+    private static DigitalBook DigitalBook(Library library, string filePath) =>
+        Domain.Books.DigitalBook.Create(new BookMetadata("Serie", "Title", null), library.Id, filePath, 10).Value!;
+
+    [Theory]
+    [InlineData("digital-library")]
+    [InlineData("Digital-Library")]
+    public async Task Handle_Should_KeepTheFoldersOfADigitalLibrary_WhenItsFolderNameDoesNotChange(string name)
+    {
+        // Arrange
+        var library = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(library);
+
+        // Act
+        var result = await _handler.Handle(s_command with { Name = name, Color = "#FF0000" }, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Name.Should().Be(name);
+        result.Value.Color.Should().Be("#FF0000");
+        _libraryLocalStorage.DidNotReceive().Move(Arg.Any<string>(), Arg.Any<string>());
+        await _bookRepository.DidNotReceive().ListByLibraryIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_RefuseToRenameTheImportedLibrary_ButKeepItEditable()
+    {
+        // Arrange
+        var imported = Library.Create("Imported", "#5C6BC0", "Inbox", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(imported);
+
+        // Act
+        var renamed = await _handler.Handle(s_command with { Name = "Comics" }, TestContext.Current.CancellationToken);
+        var recolored = await _handler.Handle(s_command with { Name = "Imported", Color = "#FF0000" }, TestContext.Current.CancellationToken);
+
+        // Assert
+        renamed.Error.Should().Be(LibrariesError.ImportedLibraryProtected);
+        recolored.IsSuccess.Should().BeTrue();
+        recolored.Value!.Color.Should().Be("#FF0000");
+        _libraryLocalStorage.DidNotReceive().Move(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepThePathsOfTheBookFiles_WhenADigitalLibraryIsRenamed()
+    {
+        // Arrange
+        var library = Library.Create("À trier", "#5C6BC0", "Inbox", LibraryBookType.Digital, s_userId).Value!;
+        var inFolder = DigitalBook(library, "/data/A TRIER/blacksad.cbz");
+        var elsewhere = DigitalBook(library, "/elsewhere/hiver.cbz");
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(library);
+        _bookRepository.ListByLibraryIdAsync(library.Id, Arg.Any<CancellationToken>()).Returns([inFolder, elsewhere]);
+        _libraryLocalStorage.PathAfterMove("/data/A TRIER/blacksad.cbz", "A TRIER", "IMPORTED").Returns("/data/IMPORTED/blacksad.cbz");
+        _libraryLocalStorage.PathAfterMove("/elsewhere/hiver.cbz", "A TRIER", "IMPORTED").Returns((string?)null);
+        _libraryLocalStorage.Move(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
+
+        // Act
+        var result = await _handler.Handle(s_command with { Name = "Imported" }, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _libraryLocalStorage.Received(1).Move("A TRIER", "IMPORTED");
+        _importDirectoryStorageMock.Received(1).Move($"A TRIER_{library.Id}", $"IMPORTED_{library.Id}");
+        inFolder.FilePath.Should().Be("/data/IMPORTED/blacksad.cbz");
+        elsewhere.FilePath.Should().Be("/elsewhere/hiver.cbz");
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepTheFolders_WhenTheNewPathOfABookFileIsInvalid()
+    {
+        // Arrange
+        var library = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(library);
+        _bookRepository.ListByLibraryIdAsync(library.Id, Arg.Any<CancellationToken>()).Returns([DigitalBook(library, "/data/DIGITAL-LIBRARY/a.cbz")]);
+        _libraryLocalStorage.PathAfterMove(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(" ");
+
+        // Act
+        var result = await _handler.Handle(s_command with { Name = "Comics" }, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Error.Should().Be(BooksError.BadRequest);
+        _libraryLocalStorage.DidNotReceive().Move(Arg.Any<string>(), Arg.Any<string>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

@@ -42,7 +42,6 @@ public sealed class FeedImportServiceTests
         Substitute.For<ICommandHandler<DeleteFeedImportDecisionCommand>>();
     private readonly ICommandHandler<DeleteDownloadedFeedImportDecisionsCommand, DeleteDownloadedFeedImportDecisionsResult> _deleteDownloadedHandler =
         Substitute.For<ICommandHandler<DeleteDownloadedFeedImportDecisionsCommand, DeleteDownloadedFeedImportDecisionsResult>>();
-    private readonly FeedImportSettings _settings = new();
     private readonly IFeatureToggles _featureToggles = Substitute.For<IFeatureToggles>();
     private readonly DebridLinkSettings _debridLinkSettings = new() { ApiKey = "key" };
     private readonly FeedImportService _service;
@@ -58,7 +57,7 @@ public sealed class FeedImportServiceTests
         _service = new FeedImportService(
             new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler, _deleteHandler, _deleteDownloadedHandler),
             _currentUserService, _libraryReadService, _decisionReadService, _backgroundJobClient,
-            Options.Create(_settings), _featureToggles, Options.Create(_debridLinkSettings), NullLogger<FeedImportService>.Instance);
+            _featureToggles, Options.Create(_debridLinkSettings), NullLogger<FeedImportService>.Instance);
     }
 
     [Fact]
@@ -108,7 +107,7 @@ public sealed class FeedImportServiceTests
         _handler.Handle(Arg.Any<GetPagedFeedImportDecisionsQuery>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPage>.Success(new FeedImportDecisionPage(pagedList, new HashSet<long>())));
         var library = Library.Create("À trier", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Digital, s_userId).Value!;
-        _libraryReadService.GetByNameAsync(_settings.TargetLibraryName, s_userId, Arg.Any<CancellationToken>()).Returns(library);
+        _libraryReadService.GetByNameAsync(LibraryConstants.ImportedName, s_userId, Arg.Any<CancellationToken>()).Returns(library);
 
         var result = await _service.GetDecisionsAsync(null, null, 1, 20, TestContext.Current.CancellationToken);
 

@@ -90,7 +90,7 @@ internal sealed class FeedImportFileDownloader(HttpClient httpClient, IOptions<I
 
         if (total == 0)
         {
-            return new TError(FeedImportError.DownloadFailed.Code, $"{FeedImportError.DownloadFailed.Description} (fichier vide)");
+            return new TError(FeedImportError.DownloadFailed.Code, $"{FeedImportError.DownloadFailed.Description} (empty file)");
         }
 
         return new DownloadedFile(tempPath, total);

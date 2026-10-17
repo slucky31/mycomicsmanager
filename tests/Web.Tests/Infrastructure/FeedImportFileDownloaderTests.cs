@@ -69,6 +69,15 @@ public sealed class FeedImportFileDownloaderTests : IDisposable
     }
 
     [Fact]
+    public async Task DownloadAsync_Should_ReturnDownloadFailed_WhenTheFileIsEmpty()
+    {
+        var result = await DownloadAsync(() => new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent([]) });
+
+        result.Error!.Code.Should().Be(FeedImportError.DownloadFailed.Code);
+        result.Error.Description.Should().EndWith("(empty file)");
+    }
+
+    [Fact]
     public async Task DownloadAsync_Should_ReturnDownloadFailed_WhenTransportFails()
     {
         var result = await DownloadAsync(() => throw new HttpRequestException("reset"));

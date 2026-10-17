@@ -107,6 +107,24 @@ public class LibraryLocalStorage : ILibraryLocalStorage
         return Result.Success();
     }
 
+    public string? PathAfterMove(string filePath, string originFolderName, string destinationFolderName)
+    {
+        if (string.IsNullOrEmpty(rootPath) || string.IsNullOrEmpty(filePath) || string.IsNullOrEmpty(originFolderName) || string.IsNullOrEmpty(destinationFolderName))
+        {
+            return null;
+        }
+
+        var root = rootPath.TrimEnd(_charsToTrim);
+        var originDirectory = Path.Combine(root, originFolderName.RemoveDiacritics());
+        if (!PathContainment.IsWithin(originDirectory, filePath, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var pathInFolder = Path.GetRelativePath(Path.GetFullPath(originDirectory), Path.GetFullPath(filePath));
+        return Path.Combine(root, destinationFolderName.RemoveDiacritics(), pathInFolder);
+    }
+
     public Result<string> MoveFile(string sourceFilePath, string destinationFolderName)
     {
         if (string.IsNullOrEmpty(rootPath) || string.IsNullOrEmpty(sourceFilePath) || string.IsNullOrEmpty(destinationFolderName))

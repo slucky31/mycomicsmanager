@@ -77,6 +77,18 @@ public sealed class DigitalBook : Book
         return Result.Success();
     }
 
+    // The folder of its library was renamed: the file is still in it, under a new path.
+    public Result Relocate(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return BooksError.BadRequest;
+        }
+
+        FilePath = filePath;
+        return Result.Success();
+    }
+
     // The file has already been moved into the folder of the target library.
     public Result MoveToLibrary(Guid libraryId, string filePath)
     {

@@ -419,4 +419,24 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         LibraryLocalStorage.MoveFile(Path.Combine(Path.GetTempPath(), "outside.cbz"), "BD").Error.Should().Be(LibraryLocalStorageError.InvalidPath);
         LibraryLocalStorage.MoveFile(Path.Combine(LibraryLocalStorage.rootPath, "x.cbz"), "../outside").Error.Should().Be(LibraryLocalStorageError.InvalidPath);
     }
+
+    [Fact]
+    public void PathAfterMove_Should_GiveThePathOfAFileOfTheFolder_OnceTheFolderIsMoved()
+    {
+        var root = LibraryLocalStorage.rootPath;
+
+        LibraryLocalStorage.PathAfterMove(Path.Combine(root, "A TRIER", "Blacksad", "T03.cbz"), "A TRIER", "IMPORTED")
+            .Should().Be(Path.Combine(root.TrimEnd('/', '\\'), "IMPORTED", "Blacksad", "T03.cbz"));
+    }
+
+    [Fact]
+    public void PathAfterMove_Should_GiveNoPath_ForAFileOutsideTheFolder_OrWithoutRoot()
+    {
+        var root = LibraryLocalStorage.rootPath;
+
+        LibraryLocalStorage.PathAfterMove(Path.Combine(root, "A TRIER2", "T03.cbz"), "A TRIER", "IMPORTED").Should().BeNull();
+        LibraryLocalStorage.PathAfterMove(Path.Combine(Path.GetTempPath(), "T03.cbz"), "A TRIER", "IMPORTED").Should().BeNull();
+        LibraryLocalStorage.PathAfterMove("", "A TRIER", "IMPORTED").Should().BeNull();
+        _libraryLocalStorageWithEmptyRootPath.PathAfterMove("/data/A TRIER/T03.cbz", "A TRIER", "IMPORTED").Should().BeNull();
+    }
 }

@@ -68,8 +68,11 @@
             {
                 <ActionSheetItem Icon="@Icons.Material.Filled.Upload" Text="Import books" Href="@current.ImportHref" />
             }
-            <div class="action-sheet-divider"></div>
-            <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete library" Danger="true" OnClick="() => DeleteAsync(current)" />
+            @if (current.CanDelete)
+            {
+                <div class="action-sheet-divider"></div>
+                <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete library" Danger="true" OnClick="() => DeleteAsync(current)" />
+            }
         </ChildContent>
     </ActionSheet>
 }

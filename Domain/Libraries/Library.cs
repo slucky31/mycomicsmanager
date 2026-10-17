@@ -22,6 +22,12 @@ public class Library : Entity<Guid>
 
     public string ImportDirectoryName => $"{RelativePath}_{Id}";
 
+    // The library of the feed imports (LibraryConstants.ImportedName).
+    public bool IsImported => IsImportedName(Name);
+
+    public static bool IsImportedName(string? name) =>
+        string.Equals(name?.Trim(), LibraryConstants.ImportedName, StringComparison.OrdinalIgnoreCase);
+
     private readonly List<Book> _books = [];
     public IReadOnlyList<Book> Books => _books.AsReadOnly();
 

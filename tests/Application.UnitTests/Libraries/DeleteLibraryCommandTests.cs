@@ -126,4 +126,20 @@ public class DeleteLibraryCommandTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.FolderNotDeleted);
     }
+
+    [Fact]
+    public async Task Handle_Should_RefuseToDeleteTheImportedLibrary()
+    {
+        // Arrange
+        var imported = Library.Create("Imported", "#5C6BC0", "Inbox", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(imported);
+
+        // Act
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Error.Should().Be(LibrariesError.ImportedLibraryProtected);
+        _libraryLocalStorageMock.DidNotReceive().Delete(Arg.Any<string>());
+        _librayRepositoryMock.DidNotReceive().Remove(Arg.Any<Library>());
+    }
 }

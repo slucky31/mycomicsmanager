@@ -22,6 +22,12 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
             return LibrariesError.NotFound;
         }
 
+        // The feed imports deposit their files there.
+        if (library.IsImported)
+        {
+            return LibrariesError.ImportedLibraryProtected;
+        }
+
         // Delete folders only for digital libraries
         if (library.BookType == LibraryBookType.Digital)
         {
