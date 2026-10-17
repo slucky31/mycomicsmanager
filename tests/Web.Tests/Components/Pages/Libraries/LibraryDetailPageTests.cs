@@ -103,6 +103,29 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         _module.VerifyInvoke("attach");
     }
 
+    [Fact]
+    public async Task OnParametersSetAsync_Should_ShowTheOtherLibrary_WhenTheSideBarSwitchesLibrary()
+    {
+        var cut = await RenderAsync();
+        var first = _library;
+        await TypeSearchAsync(cut, "Blacksad");
+        await cut.Find("button[aria-label='Sort and view']").ClickAsync(new());
+        var other = Library.Create("Comics", "#2E7D32", "Star", LibraryBookType.Digital, Guid.CreateVersion7()).Value!;
+        _librariesService.GetById(other.Id.ToString()).Returns(Result<Library>.Success(other));
+        var otherPage = Page(1, false, _hiver);
+        _booksService.GetPagedByLibrary(other.Id, 1, LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
+            .Returns(Result<IPagedList<BookSummaryDto>>.Success(otherPage));
+
+        cut.Render(p => p.Add(c => c.LibraryId, other.Id.ToString()));
+
+        await cut.WaitForAssertionAsync(() => cut.Find("h1").TextContent.Should().Be("Comics"));
+        cut.FindAll(".cover-item").Should().ContainSingle();
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
+        cut.Find("input[type=search]").GetAttribute("value").Should().BeNullOrEmpty();
+        _stateService.Load(first.Id)!.Search.Should().Be("Blacksad");
+        _module.VerifyInvoke("scrollToTop");
+    }
+
     [Theory]
     [InlineData(LibraryBookType.Physical, true)]
     [InlineData(LibraryBookType.Digital, false)]
