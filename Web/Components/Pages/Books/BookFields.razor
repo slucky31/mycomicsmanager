@@ -5,11 +5,18 @@
 @* The fields of a book, in its "Book" and "Details" sections (A6, E1, T8, T11): to add a book and to edit one. *@
 <FormSection Id="book-form-book" Title="Book">
     @TextField("book-title", "Title", nameof(BookUiDto.Title), Model.Title, v => Model.Title = v, RequiredField)
-    @TextField("book-serie", "Series", nameof(BookUiDto.Serie), Model.Serie, v => Model.Serie = v, RequiredField)
+    <label class="form-wide book-one-shot" for="book-one-shot">
+        <input id="book-one-shot" type="checkbox" checked="@Model.IsOneShot" @onchange="OnOneShotChangedAsync" aria-describedby="book-one-shot-help" />
+        <span class="book-one-shot-text">
+            <span class="book-one-shot-label">One shot</span>
+            <span id="book-one-shot-help" class="book-one-shot-help">Not part of a series: the series is “One Shot” and the volume 1</span>
+        </span>
+    </label>
+    @TextField("book-serie", "Series", nameof(BookUiDto.Serie), Model.Serie, v => Model.Serie = v, SerieField)
     <div class="form-pair">
         @TextField("book-isbn", "ISBN", nameof(BookUiDto.ISBN), Model.ISBN, v => Model.ISBN = v, IsbnField)
         <FormField Id="book-volume" Label="Volume" Error="@Errors.For(nameof(BookUiDto.VolumeNumber))">
-            <input id="book-volume" type="number" inputmode="numeric" min="1" @bind="Model.VolumeNumber" @bind:after="NotifyChangedAsync"
+            <input id="book-volume" type="number" inputmode="numeric" min="1" @bind="Model.VolumeNumber" @bind:after="NotifyChangedAsync" readonly="@Model.IsOneShot"
                    aria-invalid="@Errors.AriaInvalid(nameof(BookUiDto.VolumeNumber))" aria-describedby="@Describe("book-volume", nameof(BookUiDto.VolumeNumber))" />
         </FormField>
     </div>
@@ -40,6 +47,7 @@
         public string? Help { get; init; }
         public string Type { get; init; } = "text";
         public string? InputMode { get; init; }
+        public bool ReadOnly { get; init; }
     }
 
     private static readonly FieldOptions RequiredField = new() { Required = true };
@@ -47,12 +55,15 @@
     // A digital book may have no ISBN.
     private FieldOptions IsbnField => new() { Required = Model.IsPhysical, InputMode = "numeric" };
 
+    // The series of a one-shot is set, not typed.
+    private FieldOptions SerieField => new() { Required = true, ReadOnly = Model.IsOneShot };
+
     // A text field of the form: its label above, its error and help under it.
     private RenderFragment TextField(string id, string label, string property, string? value, Action<string> setValue, FieldOptions? options = null) => __builder =>
     {
         var field = options ?? new FieldOptions();
         <FormField Id="@id" Label="@label" Required="@field.Required" Error="@Errors.For(property)" Help="@field.Help">
-            <input id="@id" type="@field.Type" inputmode="@field.InputMode" placeholder="@field.Placeholder" value="@value"
+            <input id="@id" type="@field.Type" inputmode="@field.InputMode" placeholder="@field.Placeholder" value="@value" readonly="@field.ReadOnly"
                    @oninput="args => OnInputAsync(setValue, args)"
                    aria-invalid="@Errors.AriaInvalid(property)" aria-describedby="@FormFieldIds.DescribedBy(id, Errors.For(property), field.Help)" />
         </FormField>

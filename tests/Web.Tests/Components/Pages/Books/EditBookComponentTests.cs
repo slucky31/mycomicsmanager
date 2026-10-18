@@ -142,6 +142,39 @@ public sealed class EditBookComponentTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_Should_SaveAOneShot_WithItsSerieAndVolumeSet()
+    {
+        var cut = Render();
+        cut.Find("#book-one-shot").HasAttribute("checked").Should().BeFalse();
+
+        await cut.Find("#book-one-shot").ChangeAsync(new() { Value = true });
+
+        cut.Find("#book-serie").GetAttribute("value").Should().Be("One Shot");
+        cut.Find("#book-serie").HasAttribute("readonly").Should().BeTrue();
+        cut.Find("#book-volume").HasAttribute("readonly").Should().BeTrue();
+
+        await cut.Find("form").SubmitAsync();
+
+        await _booksService.Received(1).Update(
+            Arg.Is<UpdateBookRequest>(r => r.Series == "One Shot" && r.VolumeNumber == 1),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task EditBook_Should_ShowAOneShotChecked_AndLetItsSerieBeTypedOnceUnchecked()
+    {
+        var oneShot = PhysicalBook.Create(new BookMetadata("One Shot", "Extremity", Isbn, 1, "", "", "", null, null), _library.Id).Value!;
+        _booksService.GetById(Arg.Any<string?>()).Returns(_ => Result<Book>.Success(oneShot));
+        var cut = Render();
+        cut.Find("#book-one-shot").HasAttribute("checked").Should().BeTrue();
+
+        await cut.Find("#book-one-shot").ChangeAsync(new() { Value = false });
+
+        cut.Find("#book-serie").HasAttribute("readonly").Should().BeFalse();
+        cut.Find("#book-volume").HasAttribute("readonly").Should().BeFalse();
+    }
+
+    [Fact]
     public async Task SaveAsync_Should_ShowTheErrorsUnderTheFields_AndFollowWhatIsTyped()
     {
         var cut = Render();
