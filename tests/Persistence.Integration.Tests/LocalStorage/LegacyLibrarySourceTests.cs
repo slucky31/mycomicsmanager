@@ -1,6 +1,4 @@
-using Application.ImportJobs;
 using Domain.Errors;
-using Microsoft.Extensions.Options;
 using Persistence.LocalStorage;
 
 namespace Persistence.Tests.LocalStorage;
@@ -17,16 +15,7 @@ public sealed class LegacyLibrarySourceTests : IDisposable
         }
     }
 
-    private static LegacyLibrarySource CreateSut(string directory) =>
-        new(Options.Create(new ImportSettings { LegacyLibraryDirectory = directory }));
-
-    [Fact]
-    public void GetFirstFiles_Should_ReturnNotConfigured_WhenTheFolderIsNotSet()
-    {
-        var result = CreateSut(string.Empty).GetFirstFiles(20);
-
-        result.Error.Should().Be(LegacyMigrationError.NotConfigured);
-    }
+    private static LegacyLibrarySource CreateSut(string directory) => new(directory);
 
     [Fact]
     public void GetFirstFiles_Should_ReturnSourceNotFound_WhenTheFolderDoesNotExist()

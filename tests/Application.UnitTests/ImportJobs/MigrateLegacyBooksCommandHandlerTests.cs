@@ -74,11 +74,11 @@ public sealed class MigrateLegacyBooksCommandHandlerTests
     [Fact]
     public async Task Handle_Should_ReturnTheSourceError_WhenTheOldLibraryCannotBeRead()
     {
-        _source.GetFirstFiles(20).Returns(LegacyMigrationError.NotConfigured);
+        _source.GetFirstFiles(20).Returns(LegacyMigrationError.SourceNotFound);
 
         var result = await _handler.Handle(new MigrateLegacyBooksCommand(20, s_userId), TestContext.Current.CancellationToken);
 
-        result.Error.Should().Be(LegacyMigrationError.NotConfigured);
+        result.Error.Should().Be(LegacyMigrationError.SourceNotFound);
         _storage.DidNotReceive().EnsureExists(Arg.Any<string>());
     }
 

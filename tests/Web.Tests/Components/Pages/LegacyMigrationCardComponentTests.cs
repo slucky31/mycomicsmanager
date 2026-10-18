@@ -42,12 +42,12 @@ public sealed class LegacyMigrationCardComponentTests
     public async Task MigrateAsync_Should_ShowTheError_WhenTheMigrationFails()
     {
         var service = Substitute.For<ILegacyMigrationService>();
-        service.MigrateAsync(20, Arg.Any<CancellationToken>()).Returns(LegacyMigrationError.NotConfigured);
+        service.MigrateAsync(20, Arg.Any<CancellationToken>()).Returns(LegacyMigrationError.SourceNotFound);
         var (ctx, cut, snackbar) = Render(service);
         await using var _ = ctx;
 
         await cut.Find(".legacy-migration-button").ClickAsync(new());
 
-        snackbar.Received(1).Add(LegacyMigrationError.NotConfigured.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        snackbar.Received(1).Add(LegacyMigrationError.SourceNotFound.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 }
