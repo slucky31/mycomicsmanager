@@ -1,0 +1,15 @@
+@using Application.ImportJobs.MigrateLegacy
+
+<h2 class="legacy-migration-title">Old library</h2>
+<p class="legacy-migration-hint">
+    Moves the first books of the old library folder into the import folder of the "Imported" library, where they are imported.
+</p>
+
+<div class="legacy-migration">
+    <label class="legacy-migration-label" for="legacy-migration-count">Books to move</label>
+    <input id="legacy-migration-count" type="number" class="legacy-migration-count" min="1" max="@MigrateLegacyBooksCommandHandler.MaxCount"
+           @bind="_count" disabled="@_isMoving" />
+    <button type="button" class="legacy-migration-button" disabled="@_isMoving" @onclick="MigrateAsync">
+        @(_isMoving ? "Moving…" : "Move to import")
+    </button>
+</div>
