@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.54.2"></a>
+## [10.54.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.54.2) (2026-10-18)
+
+### 🐛 Bug Fixes
+
+* **imports:** keep narrow pages at their size and parse ComicInfo numbers leniently ([#1175](https://www.github.com/slucky31/mycomicsmanager/issues/1175)) ([748254f](https://www.github.com/slucky31/mycomicsmanager/commit/748254f25f78def4b8181e0bf10293d778a91a2e))
+
 <a name="10.54.1"></a>
 ## [10.54.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.54.1) (2026-10-18)
 
