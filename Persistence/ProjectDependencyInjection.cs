@@ -51,6 +51,7 @@ public static class ProjectDependencyInjection
 
         services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
         services.AddScoped<IImportDirectoryStorage, ImportDirectoryStorage>();
+        services.AddScoped<ILegacyLibrarySource>(_ => new LegacyLibrarySource(LegacyLibrarySource.LegacyDirectory));
         services.AddScoped<ITempWorkspace, TempWorkspace>();
 
         services.AddScoped<IIsbnBedethequeCacheRepository, IsbnBedethequeCacheRepository>();

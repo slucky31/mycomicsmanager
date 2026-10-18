@@ -250,6 +250,7 @@ builder.Services.AddScoped<IBookMoveService, BookMoveService>();
 builder.Services.AddScoped<IBookMoveWorkflow, BookMoveWorkflow>();
 builder.Services.AddScoped<IBookReaderService, BookReaderService>();
 builder.Services.AddScoped<IFeatureToggleService, FeatureToggleService>();
+builder.Services.AddScoped<ILegacyMigrationService, LegacyMigrationService>();
 builder.Services.AddScoped<IIsbnScanService, IsbnScanService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<ImportJobHandlers>();

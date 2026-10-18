@@ -1,0 +1,49 @@
+.legacy-migration-title {
+    margin: 16px 0 4px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5C6070;
+}
+
+.legacy-migration-hint {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.legacy-migration {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0 10px;
+}
+
+.legacy-migration-label {
+    font-size: 16px;
+}
+
+.legacy-migration-count {
+    width: 80px;
+    padding: 6px 8px;
+    border: 1px solid #C5C7D2;
+    border-radius: 8px;
+    font: inherit;
+}
+
+.legacy-migration-button {
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #5C6BC0;
+    color: #FFFFFF;
+    font: inherit;
+    cursor: pointer;
+}
+
+.legacy-migration-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
