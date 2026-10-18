@@ -1,3 +1,4 @@
+﻿using System.Globalization;
 using System.Xml;
 using System.Xml.Serialization;
 using Application.Interfaces;
@@ -66,19 +67,18 @@ public class ComicInfoXmlService(ILogger<ComicInfoXmlService> logger) : IComicIn
         }
     }
 
+    // The numeric fields are read as text: the ComicInfo schema types Number as a string ("1.5", "HS"...) and
+    // taggers write free text in the others, so a value that is not an integer becomes null instead of failing the file.
     [XmlRoot("ComicInfo")]
     public class ComicInfoDocument
     {
         public string? Title { get; set; }
         public string? Series { get; set; }
-        public int? Number { get; set; }
+        public string? Number { get; set; }
         public string? Summary { get; set; }
-        public int Year { get; set; }
-        public bool ShouldSerializeYear() => Year != 0;
-        public int Month { get; set; }
-        public bool ShouldSerializeMonth() => Month != 0;
-        public int Day { get; set; }
-        public bool ShouldSerializeDay() => Day != 0;
+        public string? Year { get; set; }
+        public string? Month { get; set; }
+        public string? Day { get; set; }
         public string? Writer { get; set; }
         public string? Penciller { get; set; }
         public string? Publisher { get; set; }
@@ -86,38 +86,45 @@ public class ComicInfoXmlService(ILogger<ComicInfoXmlService> logger) : IComicIn
         [XmlElement("ISBN")]
         public string? Isbn { get; set; }
 
-        public int PageCount { get; set; }
-        public bool ShouldSerializePageCount() => PageCount != 0;
+        public string? PageCount { get; set; }
 
         public ComicInfoData ToComicInfoData() => new(
             Title: Title,
             Series: Series,
-            Number: Number,
+            Number: ParseInt(Number),
             Summary: Summary,
-            Year: Year == 0 ? null : Year,
-            Month: Month == 0 ? null : Month,
-            Day: Day == 0 ? null : Day,
+            Year: ParsePositiveInt(Year),
+            Month: ParsePositiveInt(Month),
+            Day: ParsePositiveInt(Day),
             Writer: Writer,
             Penciller: Penciller,
             Publisher: Publisher,
             Isbn: Isbn,
-            PageCount: PageCount == 0 ? null : PageCount
+            PageCount: ParsePositiveInt(PageCount)
         );
 
         public static ComicInfoDocument FromComicInfoData(ComicInfoData data) => new()
         {
             Title = data.Title,
             Series = data.Series,
-            Number = data.Number,
+            Number = FormatInt(data.Number),
             Summary = data.Summary,
-            Year = data.Year ?? 0,
-            Month = data.Month ?? 0,
-            Day = data.Day ?? 0,
+            Year = FormatInt(data.Year),
+            Month = FormatInt(data.Month),
+            Day = FormatInt(data.Day),
             Writer = data.Writer,
             Penciller = data.Penciller,
             Publisher = data.Publisher,
             Isbn = data.Isbn,
-            PageCount = data.PageCount ?? 0
+            PageCount = FormatInt(data.PageCount)
         };
+
+        private static int? ParseInt(string? value) =>
+            int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) ? number : null;
+
+        // Year, Month, Day and PageCount use 0 or -1 for "unknown" in the ComicInfo schema.
+        private static int? ParsePositiveInt(string? value) => ParseInt(value) is > 0 and var number ? number : null;
+
+        private static string? FormatInt(int? value) => value?.ToString(CultureInfo.InvariantCulture);
     }
 }
