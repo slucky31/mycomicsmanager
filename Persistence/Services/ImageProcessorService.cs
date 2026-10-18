@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;
 using Microsoft.Extensions.Logging;
@@ -12,7 +12,9 @@ namespace Persistence.Services;
 //   used: they blur and alias line art far more than a resize does;
 // - the remaining reduction is done in halving steps while the ratio exceeds 2×, then one high-quality resize;
 // - every page is encoded as lossy WebP, PNG sources included.
-// Pages are named page-001.webp... in file name order; WebP pages already at the target width are copied as is.
+// - a page narrower than the target is never enlarged: upscaling adds no detail, and a narrow strip (a spine)
+//   would exceed the 16383px limit of WebP once scaled to the target width.
+// Pages are named page-001.webp... in file name order; WebP pages already at their final width are copied as is.
 public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IImageProcessor
 {
     // Same quality as the former ImageSharp converter: measured equivalent on a real album, with smaller files.
@@ -106,6 +108,7 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
+                    logger.LogWarning(ex, "Could not convert image {FilePath}", imageFiles[i]);
                     return FileProcessingError.InvalidImageContent(Path.GetFileName(imageFiles[i]));
                 }
             }
@@ -153,7 +156,8 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
         }
     }
 
-    private static int EffectiveWidth(ImageSize size, int targetWidth) => size.IsDoublePage ? targetWidth * 2 : targetWidth;
+    private static int EffectiveWidth(ImageSize size, int targetWidth) =>
+        Math.Min(size.Width, size.IsDoublePage ? targetWidth * 2 : targetWidth);
 
     private static void EnsureSupportedDimensions(ImageSize size)
     {

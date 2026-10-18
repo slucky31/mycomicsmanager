@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Domain.Errors;
 using Persistence.Services;
 using SkiaSharp;
@@ -147,10 +147,10 @@ public sealed class ImageProcessorServiceTests : IDisposable
     [Fact]
     public async Task ProcessImagesAsync_Should_PreserveAspectRatio()
     {
-        // Arrange — portrait 100x150 → target width 140, expected height 210
+        // Arrange — portrait 200x300 → target width 140, expected height 210
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
-        await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"), width: 100, height: 150);
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"), width: 200, height: 300);
 
         // Act
         await Service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 140, null, TestContext.Current.CancellationToken);
@@ -292,10 +292,10 @@ public sealed class ImageProcessorServiceTests : IDisposable
     [Fact]
     public async Task ProcessImagesAsync_Should_ReconvertWebp_WhenWidthDoesNotMatchTarget()
     {
-        // Arrange — WebP at 80px, but target is 140px → must be re-converted
+        // Arrange — WebP at 200px, but target is 140px → must be re-converted
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
-        await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 80, height: 120);
+        await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 200, height: 300);
 
         // Act
         var result = await Service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 140, onProgressAsync: null, TestContext.Current.CancellationToken);
@@ -336,6 +336,42 @@ public sealed class ImageProcessorServiceTests : IDisposable
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
         await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 280, height: 210);
+
+        // Act
+        var result = await Service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 140, onProgressAsync: null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.SkippedCount.Should().Be(1);
+        result.Value.ProcessedCount.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(45, 1407)] // a spine: scaled to the target it would exceed the 16383px limit of WebP
+    [InlineData(100, 150)]
+    [InlineData(200, 150)] // double page narrower than the doubled target
+    public async Task ProcessImagesAsync_Should_KeepOriginalSize_WhenImageIsNarrowerThanTarget(int width, int height)
+    {
+        // Arrange
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"), width, height);
+
+        // Act
+        var result = await Service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 1400, onProgressAsync: null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        ReadSize(Path.Combine(destDir, "page-001.webp")).Should().Be(new PixelSize(width, height));
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_CopyWebp_WhenNarrowerThanTarget()
+    {
+        // Arrange — a WebP narrower than the target is already at its final width
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateWebpAsync(Path.Combine(sourceDir, "page-001.webp"), width: 80, height: 120);
 
         // Act
         var result = await Service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 140, onProgressAsync: null, TestContext.Current.CancellationToken);

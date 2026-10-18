@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Domain.Errors;
 using Persistence.Services;
 
@@ -115,6 +115,38 @@ public sealed class ComicInfoXmlServiceTests : IDisposable
         result.Value.Number.Should().BeNull();
         result.Value.Year.Should().BeNull();
         result.Value.Month.Should().BeNull();
+        result.Value.PageCount.Should().BeNull();
+    }
+
+    [Fact]
+    public void Read_Should_IgnoreNumericFields_WhenValueIsNotAnInteger()
+    {
+        // Arrange — Number is a string in the ComicInfo schema; the other fields may hold free text or -1
+        var xmlPath = Path.Combine(_tempDir, "ComicInfo.xml");
+        File.WriteAllText(xmlPath, """
+            <?xml version="1.0" encoding="utf-8"?>
+            <ComicInfo>
+              <Title>Test Title</Title>
+              <Series>Test Series</Series>
+              <Number>Sec</Number>
+              <Year>-1</Year>
+              <Month>mars</Month>
+              <Day></Day>
+              <PageCount>0</PageCount>
+            </ComicInfo>
+            """);
+
+        // Act
+        var result = _service.Read(xmlPath);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Title.Should().Be("Test Title");
+        result.Value.Series.Should().Be("Test Series");
+        result.Value.Number.Should().BeNull();
+        result.Value.Year.Should().BeNull();
+        result.Value.Month.Should().BeNull();
+        result.Value.Day.Should().BeNull();
         result.Value.PageCount.Should().BeNull();
     }
 
