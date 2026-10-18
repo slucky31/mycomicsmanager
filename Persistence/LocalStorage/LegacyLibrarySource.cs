@@ -6,8 +6,9 @@ namespace Persistence.LocalStorage;
 
 internal sealed class LegacyLibrarySource(string directory) : ILegacyLibrarySource
 {
-    // The old library, moved on the host into the folder mounted as /data (one-off migration, #1174).
-    public const string LegacyDirectory = "/data/legacy";
+    // The old library, moved on the host into the "legacy" folder of the temp volume (one-off migration, #1174).
+    // Not the import volume: the watcher would import every sub-folder of it.
+    public const string LegacyFolderName = "legacy";
 
     public Result<LegacyLibraryBatch> GetFirstFiles(int count)
     {
