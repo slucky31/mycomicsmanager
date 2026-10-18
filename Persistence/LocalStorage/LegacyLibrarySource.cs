@@ -6,8 +6,8 @@ namespace Persistence.LocalStorage;
 
 internal sealed class LegacyLibrarySource(string directory) : ILegacyLibrarySource
 {
-    // The old library, mounted at the same path in the container (one-off migration, #1174).
-    public const string LegacyDirectory = "/mnt/usb/BD_unifie/cbz";
+    // The old library, moved on the host into the folder mounted as /data (one-off migration, #1174).
+    public const string LegacyDirectory = "/data/legacy";
 
     public Result<LegacyLibraryBatch> GetFirstFiles(int count)
     {
