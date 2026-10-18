@@ -444,6 +444,25 @@ public sealed class FeedImportsComponentTests
     }
 
     [Fact]
+    public async Task ReloadAsync_Should_LoadCountsAfterThePage_WhenPageIsStillLoading()
+    {
+        var service = CreateService();
+        var pendingPage = new TaskCompletionSource<Result<FeedImportDecisionPageViewModel>>();
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(pendingPage.Task);
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+
+        await service.DidNotReceive().GetStatusCountsAsync(Arg.Any<CancellationToken>());
+
+        await cut.InvokeAsync(() => pendingPage.SetResult(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Blacksad T3"))));
+
+        await cut.WaitForAssertionAsync(() => service.Received(1).GetStatusCountsAsync(Arg.Any<CancellationToken>()));
+        cut.Markup.Should().Contain("Blacksad T3");
+    }
+
+    [Fact]
     public async Task OnSearchChangedAsync_Should_ReloadWithTheTerm_WhenUserTypesInTheOpenedSearch()
     {
         var service = CreateService();

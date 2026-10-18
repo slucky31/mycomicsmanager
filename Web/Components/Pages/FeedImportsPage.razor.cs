@@ -48,10 +48,12 @@ public partial class FeedImportsPage : IAsyncDisposable
 
     protected override Task OnInitializedAsync() => ReloadAsync();
 
-    // Reloads the first page and the counts of the filters.
+    // Reloads the first page, then the counts of the filters: both queries share the circuit's DbContext,
+    // which does not support concurrent operations.
     private async Task ReloadAsync()
     {
-        await Task.WhenAll(LoadPageAsync(1), LoadCountsAsync());
+        await LoadPageAsync(1);
+        await LoadCountsAsync();
     }
 
     private Task LoadMoreAsync() => LoadPageAsync(_page + 1);
