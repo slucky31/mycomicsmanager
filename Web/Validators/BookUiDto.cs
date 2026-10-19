@@ -43,6 +43,33 @@ public class BookUiDto : Entity<Guid>
     // without a metadata match may not have one. Defaults to true for the manual "add book" flow.
     public bool IsPhysical { get; set; } = true;
 
+    // A one-shot is not part of a series: its series is "One Shot" and its volume 1, neither can be changed (#1171).
+    public bool IsOneShot { get; private set; }
+
+    // What was typed before the book was made a one-shot, given back when it is no longer one.
+    private (string Serie, int VolumeNumber)? _beforeOneShot;
+
+    public void SetOneShot(bool isOneShot)
+    {
+        if (isOneShot == IsOneShot)
+        {
+            return;
+        }
+
+        IsOneShot = isOneShot;
+        if (isOneShot)
+        {
+            _beforeOneShot = (Serie, VolumeNumber);
+            Serie = BookConstants.OneShotSerie;
+            VolumeNumber = 1;
+        }
+        else if (_beforeOneShot is { } before)
+        {
+            (Serie, VolumeNumber) = before;
+            _beforeOneShot = null;
+        }
+    }
+
     public static BookUiDto Convert(Book book)
     {
         return new BookUiDto
@@ -52,6 +79,7 @@ public class BookUiDto : Entity<Guid>
             Title = book.Title,
             ISBN = book.ISBN,
             IsPhysical = book is PhysicalBook,
+            IsOneShot = IsOneShotBook(book),
             VolumeNumber = book.VolumeNumber,
             ImageLink = book.ImageLink,
             Rating = 0,
@@ -64,4 +92,7 @@ public class BookUiDto : Entity<Guid>
             ModifiedOnUtc = book.ModifiedOnUtc
         };
     }
+
+    private static bool IsOneShotBook(Book book) =>
+        book.VolumeNumber == 1 && string.Equals(book.Serie, BookConstants.OneShotSerie, StringComparison.OrdinalIgnoreCase);
 }

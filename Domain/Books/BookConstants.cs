@@ -9,4 +9,7 @@ public static class BookConstants
     public const int MaxAuthorsLength = 200;
     public const int MaxPublishersLength = 200;
     public const int MaxFilePathLength = 500;
+
+    // The series of a book that is not part of one (#1171).
+    public const string OneShotSerie = "One Shot";
 }

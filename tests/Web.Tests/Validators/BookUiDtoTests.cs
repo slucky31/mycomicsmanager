@@ -463,4 +463,51 @@ public sealed class BookUiDtoTests
     }
 
     #endregion
+
+    #region One-shot Tests
+
+    [Theory]
+    [InlineData("One Shot", 1, true)]
+    [InlineData("one shot", 1, true)]
+    [InlineData("One Shot", 2, false)]
+    [InlineData("Saga", 1, false)]
+    public void Convert_Should_SayTheBookIsAOneShot_WhenItsSerieIsOneShotAndItsVolume1(string serie, int volumeNumber, bool expected)
+    {
+        var dto = BookUiDto.Convert(CreateBook(serie, "Title", "978-1-60706-601-9", volumeNumber));
+
+        dto.IsOneShot.Should().Be(expected);
+    }
+
+    [Fact]
+    public void SetOneShot_Should_SetTheSerieAndTheVolume_AndGiveBackWhatWasTyped_WhenUnchecked()
+    {
+        var dto = new BookUiDto { Serie = "Saga", VolumeNumber = 3 };
+
+        dto.SetOneShot(true);
+        dto.SetOneShot(true);
+
+        dto.IsOneShot.Should().BeTrue();
+        dto.Serie.Should().Be("One Shot");
+        dto.VolumeNumber.Should().Be(1);
+
+        dto.SetOneShot(false);
+
+        dto.IsOneShot.Should().BeFalse();
+        dto.Serie.Should().Be("Saga");
+        dto.VolumeNumber.Should().Be(3);
+    }
+
+    [Fact]
+    public void SetOneShot_Should_KeepTheSerieAndTheVolume_WhenALoadedOneShotIsUnchecked()
+    {
+        var dto = BookUiDto.Convert(CreateBook("One Shot", "Title", "978-1-60706-601-9"));
+
+        dto.SetOneShot(false);
+
+        dto.IsOneShot.Should().BeFalse();
+        dto.Serie.Should().Be("One Shot");
+        dto.VolumeNumber.Should().Be(1);
+    }
+
+    #endregion
 }

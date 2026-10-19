@@ -23,6 +23,12 @@ public partial class BookFields
         return NotifyChangedAsync();
     }
 
+    private Task OnOneShotChangedAsync(ChangeEventArgs args)
+    {
+        Model.SetOneShot(args.Value is true);
+        return NotifyChangedAsync();
+    }
+
     private Task NotifyChangedAsync() => OnChanged.InvokeAsync();
 
     private string? Describe(string id, string property) => FormFieldIds.DescribedBy(id, Errors.For(property), null);
