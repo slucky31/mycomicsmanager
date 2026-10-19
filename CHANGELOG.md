@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.56.0"></a>
+## [10.56.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.56.0) (2026-10-19)
+
+### ✨ Features
+
+* **books:** add a One Shot box to the book form ([#1179](https://www.github.com/slucky31/mycomicsmanager/issues/1179)) ([9904474](https://www.github.com/slucky31/mycomicsmanager/commit/9904474832ad1d2b3e84c325b3f1a4bf31077eb2))
+
 <a name="10.55.3"></a>
 ## [10.55.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.55.3) (2026-10-19)
 
