@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Persistence.LocalStorage;
 using Persistence.Queries;
 using Persistence.Repositories;
@@ -52,8 +51,7 @@ public static class ProjectDependencyInjection
 
         services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
         services.AddScoped<IImportDirectoryStorage, ImportDirectoryStorage>();
-        services.AddScoped<ILegacyLibrarySource>(provider => new LegacyLibrarySource(
-            Path.Combine(provider.GetRequiredService<IOptions<ImportSettings>>().Value.TempDirectory, LegacyLibrarySource.LegacyFolderName)));
+        services.AddScoped<ILegacyLibrarySource>(_ => new LegacyLibrarySource(LegacyLibrarySource.LegacyDirectory));
         services.AddScoped<ITempWorkspace, TempWorkspace>();
 
         services.AddScoped<IIsbnBedethequeCacheRepository, IsbnBedethequeCacheRepository>();
