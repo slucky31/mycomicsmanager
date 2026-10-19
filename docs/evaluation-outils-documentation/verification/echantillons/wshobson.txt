@@ -1,0 +1,60 @@
+### wshobson-01
+[c4-wshobson/c4-code-Web-Components-Pages.md] - `OnLibraryChangedAsync(Guid)` (l. 30) : change la bibliothèque (Guid vide = toutes)
+
+### wshobson-02
+[c4-wshobson/c4-component-application-socle.md] - **Microsoft.Extensions.DependencyInjection / Options** : `IServiceCollection`, `IOptions<T>`.
+
+### wshobson-03
+[c4-wshobson/c4-component-application-bibliotheques.md] - [c4-code-Application-Libraries-Create.md](./c4-code-Application-Libraries-Create.md) : `CreateLibraryCommand` et son handler.
+
+### wshobson-04
+[c4-wshobson/c4-code-Application-Books-DeleteReadingDate.md] - L'existence de `ReadingDateId` n'est pas vérifiée dans le handler : le comportement en cas d'identifiant inconnu dépend de `Book.RemoveReadingDate` (domaine, hors périmètre).
+
+### wshobson-05
+[c4-wshobson/c4-code-Persistence.md] - `public async Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken)` (lignes 10-22) : appelle `UpdateAuditableEntities()`, puis `dbContext.SaveChangesAsync`. Retourne le nombre de lignes modifiées, ou `new TError("DB_UPDATE_ERROR", ex.Message)` si une `DbUpdateException` est levée.
+
+### wshobson-06
+[c4-wshobson/c4-code-Web-Components-Pages-Books.md] | `Error` | `string?` | — | Message d'erreur affiché sous le bouton. |
+
+### wshobson-07
+[c4-wshobson/c4-code-Application-Interfaces.md] Ce service est déclaré dans `Application/Users` et non dans `Application/Interfaces` : voir [c4-code-Application-Users.md](c4-code-Application-Users.md).
+
+### wshobson-08
+[c4-wshobson/c4-component-web-interface-blazor.md] - `StarRating` : `Value`, `ValueChanged`, `LabelledBy`, `ReadOnly`.
+
+### wshobson-09
+[c4-wshobson/c4-code-Application-ImportJobs.md] - **Dépendances** : `Domain.Primitives` (`Result`, `Result<T>`)
+
+### wshobson-10
+[c4-wshobson/c4-code-Application-FeedImports-Manage.md] - Description : valide l'identifiant, la série (non vide, longueur max `FeedImportConstants.MaxParsedSerieLength`), le titre (longueur max `MaxParsedTitleLength`) et le tome (≥ 0), sinon `BadRequest`. Charge la décision et vérifie le propriétaire. Construit un `ParsedComicTitle` avec les valeurs rognées, appelle `decision.Correct(parsed)` (qui repasse en `Pending`), recharge les livres et appelle `FeedImportAnalysisRules.Reapply`. Enregistre et renvoie le nouveau statut.
+
+### wshobson-11
+[c4-wshobson/c4-code-Application-Books-List.md] - `Domain.Libraries` : `Library`, `BookSortOrder`, `LibrariesError`.
+
+### wshobson-12
+[c4-wshobson/c4-component-domaine.md] Le composant regroupe l'ensemble du projet `Domain/`. Il garantit les invariants métier (livres, bibliothèques, imports de fichiers, décisions d'import depuis les flux Miniflux, utilisateurs, surcharges de fonctionnalités) et fournit à toutes les couches un socle commun fondé sur le pattern `Result<T>` plutôt que sur les exceptions pour les cas connus. Il n'a aucune dépendance externe métier : les couches Application, Persistance et Web dépendent de lui, jamais l'inverse (règle vérifiée par `Arc
+
+### wshobson-13
+[c4-wshobson/c4-component-web-interface-blazor.md] - **MudBlazor** : `MudThemeProvider`, `MudDialogProvider`, `ISnackbar`, `IDialogService`, composants de mise en page et de saisie.
+
+### wshobson-14
+[c4-wshobson/c4-code-Application-Books-Update.md] 2. Série ou titre vides : `BooksError.BadRequest` (lignes 20-23).
+
+### wshobson-15
+[c4-wshobson/c4-code-Web-Components-Pages.md] - **Objectif** : Offrir les écrans transverses de l'application (hors gestion des bibliothèques et des livres) et orchestrer, pour chacun, les appels vers la couche Application via les services `Web.Services`.
+
+### wshobson-16
+[c4-wshobson/c4-code-Application-ComicInfoSearch.md] - **Description** : Interroge `volumes?q=isbn:` puis charge le détail du premier volume via son `selfLink` (le titre de la recherche est parfois tronqué). Choisit la plus grande image disponible, force HTTPS et retire le paramètre `edge`. La clé API, si elle est configurée, est ajoutée à l'URL.
+
+### wshobson-17
+[c4-wshobson/c4-code-Domain-Errors.md] - `InvalidFileName` = `("ImportDir.InvalidFileName", "The file name is empty or invalid.")` (l.12)
+
+### wshobson-18
+[c4-wshobson/c4-code-Web-Configuration.md] - `GetRequestLevel` : niveau des journaux de requêtes. `Error` si exception ou statut 5xx ; `Verbose` pour `/health` ; `Information` sinon.
+
+### wshobson-19
+[c4-wshobson/c4-code-Application-ComicInfoSearch.md] - **Description** : Interroge l'index Algolia `Albums` du site Bubble avec l'ISBN. Ne garde que le premier résultat dont les EAN contiennent l'ISBN exact. Puis lit la page de l'album : données schema.org `Book` (éditeur, pages, image), auteurs et « Date de parution » dans les caractéristiques. Une page illisible conserve le résultat de recherche. Une date seule est convertie au 1er du mois, ou au 1er janvier si seule l'année est donnée.
+
+### wshobson-20
+[c4-wshobson/c4-component-persistance.md] - `ILibraryLocalStorage.Create`, `Move`, `MoveFile`, `Delete` et la propriété `rootPath`.
+
