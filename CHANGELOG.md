@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.56.3"></a>
+## [10.56.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.56.3) (2026-10-20)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency mockqueryable.nsubstitute to 10.0.13 ([#1182](https://www.github.com/slucky31/mycomicsmanager/issues/1182)) ([9758818](https://www.github.com/slucky31/mycomicsmanager/commit/9758818ba54c1ec07fe85ec5806399f2ebf3e6f7))
+
 <a name="10.56.2"></a>
 ## [10.56.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.56.2) (2026-10-20)
 
