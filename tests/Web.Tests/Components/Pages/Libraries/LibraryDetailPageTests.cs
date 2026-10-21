@@ -1,4 +1,4 @@
-using Application.Books.List;
+﻿using Application.Books.List;
 using Application.Interfaces;
 using AwesomeAssertions;
 using Bunit;
@@ -444,5 +444,17 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         await cut.Find("button[aria-label='Stop choosing books']").ClickAsync(new());
         Heading(cut).Should().Be("Read Books");
         cut.FindAll("button[role=checkbox]").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task StartSelecting_Should_KeepTheStopButtonShown_WhenTheScreenIsLarge()
+    {
+        // The back button is hidden from 1440px on (#1172): the stop of the selection must not share its class.
+        var cut = await RenderAsync();
+
+        await cut.Find("button[aria-label='Select books']").ClickAsync(new());
+
+        var stop = cut.Find("button[aria-label='Stop choosing books']");
+        stop.ClassList.Should().Contain("library-bar-close").And.NotContain("library-bar-back");
     }
 }

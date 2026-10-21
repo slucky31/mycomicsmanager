@@ -15,7 +15,7 @@
     {
         @* Books being chosen to move them at once (#1150): the bar says how many and offers the move. *@
         <header class="library-bar library-bar-selecting">
-            <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="StopSelecting" aria-label="Stop choosing books" Class="library-bar-back" />
+            <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="StopSelecting" aria-label="Stop choosing books" Class="library-bar-close" />
             <div class="library-bar-title">
                 <h1 aria-live="polite">@_selection.Label</h1>
                 <div class="library-bar-subtitle">in @_library.Name</div>
