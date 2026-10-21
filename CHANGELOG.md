@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.56.5"></a>
+## [10.56.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.56.5) (2026-10-21)
+
+### 🐛 Bug Fixes
+
+* **libraries:** keep the stop button of the selection on large screens ([#1187](https://www.github.com/slucky31/mycomicsmanager/issues/1187)) ([08e175c](https://www.github.com/slucky31/mycomicsmanager/commit/08e175c03a76c7c644b922efbb155e679cede1d0))
+
 <a name="10.56.4"></a>
 ## [10.56.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.56.4) (2026-10-21)
 
