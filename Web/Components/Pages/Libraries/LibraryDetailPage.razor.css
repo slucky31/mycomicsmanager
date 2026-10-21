@@ -245,7 +245,7 @@
     }
 }
 
-/* ── Large screen: the side bar lists the libraries, no back button ── */
+/* ── Large screen: the side bar lists the libraries, no back button (the close of the selection stays, #1172) ── */
 @media (min-width: 1440px) {
     .library-bar {
         min-height: 96px;
