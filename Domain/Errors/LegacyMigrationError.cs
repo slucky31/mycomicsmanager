@@ -6,5 +6,6 @@ public static class LegacyMigrationError
 {
     public static readonly TError BadRequest = new("LegacyMigration.BadRequest", "The number of books to move is invalid.");
     public static readonly TError SourceNotFound = new("LegacyMigration.SourceNotFound", "The old library folder (/home/app/mcm/legacy) does not exist.");
+    public static readonly TError SourceEmpty = new("LegacyMigration.SourceEmpty", "The old library folder (/home/app/mcm/legacy) has no file at its top level: check the volume mounted there.");
     public static readonly TError ImportedLibraryNotFound = new("LegacyMigration.ImportedLibraryNotFound", "The digital library \"Imported\" does not exist.");
 }

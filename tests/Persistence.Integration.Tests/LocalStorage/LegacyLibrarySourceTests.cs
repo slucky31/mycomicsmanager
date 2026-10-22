@@ -41,4 +41,15 @@ public sealed class LegacyLibrarySourceTests : IDisposable
         result.Value!.Files.Select(Path.GetFileName).Should().Equal("B.cbz", "a.cbz");
         result.Value.TotalCount.Should().Be(3);
     }
+
+    [Fact]
+    public void GetFirstFiles_Should_ReturnSourceEmpty_WhenTheFolderHasNoTopLevelFile()
+    {
+        Directory.CreateDirectory(Path.Combine(_root, "sub"));
+        File.WriteAllText(Path.Combine(_root, "sub", "0.cbz"), "x");
+
+        var result = CreateSut(_root).GetFirstFiles(20);
+
+        result.Error.Should().Be(LegacyMigrationError.SourceEmpty);
+    }
 }
