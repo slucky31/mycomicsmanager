@@ -1,4 +1,4 @@
-using Application.Abstractions.Messaging;
+﻿using Application.Abstractions.Messaging;
 using Application.Helpers;
 using Application.Interfaces;
 using Domain.Books;
@@ -256,11 +256,13 @@ public sealed class ProcessImportJobCommandHandler(
         }
 
         var (isbn, isbnScan) = await ResolveIsbnAsync(importJob, comicInfo, pages, ct);
-        var serie = comicInfo?.Series ?? Path.GetFileNameWithoutExtension(importJob.OriginalFileName);
-        var title = comicInfo?.Title ?? serie;
-        var authors = comicInfo?.Writer ?? string.Empty;
-        var publishers = comicInfo?.Publisher ?? string.Empty;
-        var volumeNumber = comicInfo?.Number ?? 1;
+        // The ComicInfo.xml shipped with the file wins: the catalogue only fills the fields it leaves empty,
+        // since a catalogue title it cannot split into serie and volume comes back as both serie and title.
+        var serie = TextOrNull(comicInfo?.Series);
+        var title = TextOrNull(comicInfo?.Title);
+        var authors = TextOrNull(comicInfo?.Writer);
+        var publishers = TextOrNull(comicInfo?.Publisher);
+        var volumeNumber = comicInfo?.Number;
         // Convention: year-only dates (Month/Day absent in XML) are stored as Jan 1 of that year.
         DateOnly? publishDate = comicInfo?.Year is not null
             ? new DateOnly(comicInfo.Year.Value, comicInfo.Month ?? 1, comicInfo.Day ?? 1)
@@ -271,18 +273,24 @@ public sealed class ProcessImportJobCommandHandler(
             var searchResult = await externalServices.ComicSearch.SearchByIsbnAsync(isbn, ct);
             if (searchResult.Found)
             {
-                serie = searchResult.Serie;
-                title = searchResult.Title;
-                authors = searchResult.Authors;
-                publishers = searchResult.Publishers;
-                publishDate = searchResult.PublishDate;
-                volumeNumber = searchResult.VolumeNumber;
+                serie ??= TextOrNull(searchResult.Serie);
+                title ??= TextOrNull(searchResult.Title);
+                authors ??= TextOrNull(searchResult.Authors);
+                publishers ??= TextOrNull(searchResult.Publishers);
+                publishDate ??= searchResult.PublishDate;
+                volumeNumber ??= searchResult.VolumeNumber;
             }
         }
 
+        serie ??= Path.GetFileNameWithoutExtension(importJob.OriginalFileName);
+        title ??= serie;
+        authors ??= string.Empty;
+        publishers ??= string.Empty;
+        var volume = volumeNumber ?? 1;
+
         var pageCount = conversion.ProcessedCount + conversion.SkippedCount;
         var updatedComicInfo = new ComicInfoData(
-            Title: title, Series: serie, Number: volumeNumber, Summary: null,
+            Title: title, Series: serie, Number: volume, Summary: null,
             Year: publishDate?.Year, Month: publishDate?.Month, Day: publishDate?.Day,
             Writer: authors, Penciller: null, Publisher: publishers,
             Isbn: isbn, PageCount: pageCount > 0 ? pageCount : null);
@@ -293,11 +301,13 @@ public sealed class ProcessImportJobCommandHandler(
             return await FailJobAsync(importJob, "SearchingMetadata", writeResult.Error!, ct);
         }
 
-        var metadata = new BookMetadata(serie, title, isbn, volumeNumber,
+        var metadata = new BookMetadata(serie, title, isbn, volume,
             NumberOfPages: pageCount > 0 ? pageCount : null,
             Authors: authors, Publishers: publishers, PublishDate: publishDate);
         return (metadata, isbnScan);
     }
+
+    private static string? TextOrNull(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
 
     // The file name and ComicInfo.xml come first: the pages are only read (OCR) when neither has an ISBN.
     private async Task<(string? Isbn, IsbnScanResult? Scan)> ResolveIsbnAsync(

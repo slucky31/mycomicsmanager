@@ -1,4 +1,4 @@
-using Application.ImportJobs;
+﻿using Application.ImportJobs;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
 using Domain.Books;
@@ -979,6 +979,62 @@ public class ProcessImportJobCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.Serie.Should().Be("Existing Serie");
         result.Value.Title.Should().Be("Existing Title");
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepComicInfoSerieAndTitle_WhenTheCatalogueAlsoFindsTheIsbn()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, [], comicInfoPath: "/tmp/ComicInfo.xml");
+        _comicInfoXmlService.Read(Arg.Any<string>())
+            .Returns(Result<ComicInfoData>.Success(new ComicInfoData(
+                Title: "Existing Title", Series: "Existing Serie", Number: null, Summary: null,
+                Year: null, Month: null, Day: null, Writer: null, Penciller: null, Publisher: " ",
+                Isbn: "9782075162869", PageCount: null)));
+        _comicSearchService.SearchByIsbnAsync("9782075162869", Arg.Any<CancellationToken>())
+            .Returns(new ComicSearchResult("Catalogue Title", "Catalogue Title", "9782075162869", 4, "",
+                "Catalogue Author", "Catalogue Publisher", new DateOnly(2021, 3, 5), null, true));
+        SetupImageProcessor();
+        SetupComicInfoXml();
+        SetupCloudinary();
+        SetupArchiveBuilder();
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Serie.Should().Be("Existing Serie");
+        result.Value.Title.Should().Be("Existing Title");
+        _comicInfoXmlService.Received(1).Write(Arg.Any<string>(), Arg.Is<ComicInfoData>(d =>
+            d.Series == "Existing Serie" && d.Title == "Existing Title" && d.Number == 4
+            && d.Writer == "Catalogue Author" && d.Publisher == "Catalogue Publisher" && d.Year == 2021));
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepComicInfoVolume_WhenTheCatalogueFindsAnotherOne()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, [], comicInfoPath: "/tmp/ComicInfo.xml");
+        _comicInfoXmlService.Read(Arg.Any<string>())
+            .Returns(Result<ComicInfoData>.Success(new ComicInfoData(
+                Title: "Existing Title", Series: "Existing Serie", Number: 7, Summary: null,
+                Year: null, Month: null, Day: null, Writer: null, Penciller: null, Publisher: null,
+                Isbn: "9782075162869", PageCount: null)));
+        _comicSearchService.SearchByIsbnAsync("9782075162869", Arg.Any<CancellationToken>())
+            .Returns(new ComicSearchResult("Catalogue Title", "Catalogue Title", "9782075162869", 1, "",
+                "", "", null, null, true));
+        SetupImageProcessor();
+        SetupComicInfoXml();
+        SetupCloudinary();
+        SetupArchiveBuilder();
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.VolumeNumber.Should().Be(7);
     }
 
     // ── Conversion progress reporting ─────────────────────────────────────────
