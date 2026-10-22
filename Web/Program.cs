@@ -146,6 +146,12 @@ builder.Services.AddHttpClient("SerpApi", client => client.Timeout = TimeSpan.Fr
         sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
         new HashSet<string>(["serpapi.com"], StringComparer.OrdinalIgnoreCase)))
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
+// Cloudflare Browser Run loads Bedetheque pages in a browser (45 s navigation timeout, plus a rate-limit retry)
+builder.Services.AddHttpClient("BrowserRun", client => client.Timeout = TimeSpan.FromSeconds(90))
+    .AddHttpMessageHandler(sp => new SsrfGuardHandler(
+        sp.GetRequiredService<ILogger<SsrfGuardHandler>>(),
+        new HashSet<string>(["api.cloudflare.com"], StringComparer.OrdinalIgnoreCase)))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
 // Config Bedetheque service
 builder.Services.AddSingleton<BedethequeCircuit>();

@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,6 +15,16 @@ namespace Application.ComicInfoSearch;
 
 public partial class BedethequeService : IBedethequeService
 {
+    // Bedetheque shows every album of a serie on this page instead of 10 per page.
+    private const string AllAlbumsSuffix = "__10000.html";
+
+    // Browser Run free plan accepts one request every 10 seconds: a serie page then its album page wait once.
+    private static readonly TimeSpan MaxBrowserRunRetryDelay = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan DefaultBrowserRunRetryDelay = TimeSpan.FromSeconds(10);
+
+    // The album data is text: the browser does not need to load what makes the page look nice.
+    private static readonly string[] BrowserRunRejectedResources = ["image", "media", "font", "stylesheet"];
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IIsbnBedethequeCacheRepository _cacheRepository;
     private readonly BedethequeSettings _settings;
@@ -181,8 +193,10 @@ public partial class BedethequeService : IBedethequeService
 
     private async Task<string?> ResolveSeriePageAsync(string serieUrl, string isbn, CancellationToken ct)
     {
-        _logger.LogInformation("Parsing serie page for ISBN {Isbn}: {SerieUrl}", isbn, serieUrl);
-        var html = await FetchPageAsync(serieUrl, ct);
+        // The first page of a serie only lists 10 albums: later volumes, HS and integrals are on the next ones.
+        var allAlbumsUrl = SeriePageSuffixRegex().Replace(serieUrl, AllAlbumsSuffix);
+        _logger.LogInformation("Parsing serie page for ISBN {Isbn}: {SerieUrl}", isbn, allAlbumsUrl);
+        var html = await FetchPageAsync(allAlbumsUrl, ct);
         if (html is null)
         {
             return null;
@@ -192,38 +206,57 @@ public partial class BedethequeService : IBedethequeService
         doc.LoadHtml(html);
 
         // Bedetheque has used both http:// and https:// schema.org types.
-        var items = doc.DocumentNode.SelectNodes(
-            "//li[@itemscope and contains(@itemtype, 'schema.org/Book')]");
+        var items = doc.DocumentNode.SelectNodes("//*[@itemscope and contains(@itemtype, 'schema.org/Book')]");
         if (items is null)
         {
-            _logger.LogWarning("No album list found in serie page {SerieUrl} for ISBN {Isbn}", serieUrl, isbn);
+            _logger.LogWarning("No album list found in serie page {SerieUrl} for ISBN {Isbn}", allAlbumsUrl, isbn);
             return null;
         }
 
-        foreach (var item in items)
+        var href = FindAlbumUrl(items, isbn);
+        if (href is null)
         {
-            var isbnSpan = item.SelectSingleNode(".//span[@itemprop='isbn']");
-            if (isbnSpan is null)
-            {
-                continue;
-            }
-            var pageIsbn = IsbnHelper.NormalizeIsbn(HtmlEntity.DeEntitize(isbnSpan.InnerText.Trim()));
-            if (!pageIsbn.Equals(isbn, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            var anchor = item.SelectSingleNode(".//a[@itemprop='url' and contains(@class,'titre')]");
-            var href = anchor?.GetAttributeValue("href", string.Empty);
-            if (!string.IsNullOrEmpty(href))
-            {
-                _logger.LogInformation("Found album URL via serie page for ISBN {Isbn}: {Href}", isbn, href);
-                return href;
-            }
+            _logger.LogWarning("ISBN {Isbn} not found in serie page {SerieUrl}", isbn, allAlbumsUrl);
+            return null;
         }
 
-        _logger.LogWarning("ISBN {Isbn} not found in serie page {SerieUrl}", isbn, serieUrl);
-        return null;
+        _logger.LogInformation("Found album URL via serie page for ISBN {Isbn}: {Href}", isbn, href);
+        return href;
+    }
+
+    // A deluxe printing (TL1) may share its ISBN with the regular volume (1): the regular volume wins.
+    private static string? FindAlbumUrl(HtmlNodeCollection items, string isbn)
+    {
+        string? firstMatch = null;
+        foreach (var item in items)
+        {
+            var isbnNode = item.SelectSingleNode(".//*[@itemprop='isbn']");
+            if (isbnNode is null ||
+                !IsbnHelper.NormalizeIsbn(HtmlEntity.DeEntitize(isbnNode.InnerText.Trim())).Equals(isbn, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var href = item.SelectSingleNode(".//a[@itemprop='url']")?.GetAttributeValue("href", string.Empty);
+            if (string.IsNullOrEmpty(href))
+            {
+                continue;
+            }
+
+            if (IsRegularVolume(item))
+            {
+                return href;
+            }
+            firstMatch ??= href;
+        }
+        return firstMatch;
+    }
+
+    // The name of an album in a serie page starts with its volume: "1. Title", "HS. Title", "TL1. Title".
+    private static bool IsRegularVolume(HtmlNode item)
+    {
+        var name = item.SelectSingleNode(".//*[@itemprop='name']");
+        return name is not null && RegularVolumeRegex().IsMatch(HtmlEntity.DeEntitize(name.InnerText));
     }
 
     private string BuildSerpApiUrl(string isbn)
@@ -232,18 +265,18 @@ public partial class BedethequeService : IBedethequeService
         return $"{_settings.SerpApiBaseUrl}/search.json?engine=google&q={query}&location=France&google_domain=google.fr&hl=fr&gl=fr&api_key={_settings.SerpApiKey}";
     }
 
-    private async Task<string?> FetchPageAsync(string url, CancellationToken ct)
+    private Task<string?> FetchPageAsync(string url, CancellationToken ct) =>
+        _settings.UseBrowserRun ? FetchThroughBrowserRunAsync(url, ct) : FetchDirectlyAsync(url, ct);
+
+    private async Task<string?> FetchDirectlyAsync(string url, CancellationToken ct)
     {
         var client = _httpClientFactory.CreateClient("Bedetheque");
         var response = await client.GetAsync(new Uri(url), ct);
 
         var html = await response.Content.ReadAsStringAsync(ct);
-        if (IsCloudflareChallenge(response, html))
+        if (response.Headers.Contains("cf-mitigated") || IsCloudflareChallenge(html))
         {
-            var until = _circuit.Pause(TimeSpan.FromHours(_settings.CloudflarePauseHours));
-            _logger.LogWarning(
-                "Bedetheque answered with a Cloudflare challenge instead of the page {Url}: the server's requests are blocked, Bedetheque is paused until {PausedUntil}",
-                url, until);
+            PauseAfterChallenge(url);
             return null;
         }
 
@@ -256,24 +289,91 @@ public partial class BedethequeService : IBedethequeService
         return html;
     }
 
+    private async Task<string?> FetchThroughBrowserRunAsync(string url, CancellationToken ct)
+    {
+        var response = await SendBrowserRunRequestAsync(url, ct);
+        if (response.StatusCode == HttpStatusCode.TooManyRequests)
+        {
+            var delay = GetRetryDelay(response);
+            _logger.LogInformation("Browser Run rate limit reached, retrying {Url} in {Delay}", url, delay);
+            await Task.Delay(delay, ct);
+            response.Dispose();
+            response = await SendBrowserRunRequestAsync(url, ct);
+        }
+
+        using var _ = response;
+        var content = await response.Content.ReadFromJsonAsync<BrowserRunResponse>(JsonOptions, ct);
+        if (!response.IsSuccessStatusCode || content is not { Success: true, Result: { } html })
+        {
+            var errors = string.Join("; ", content?.Errors?.Select(e => $"{e.Code} {e.Message}") ?? []);
+            _logger.LogWarning("Browser Run returned {StatusCode} for {Url}: {Errors}", response.StatusCode, url, errors);
+            return null;
+        }
+
+        // Bedetheque may one day challenge the browser too: Browser Run cannot pass it either.
+        if (IsCloudflareChallenge(html))
+        {
+            PauseAfterChallenge(url);
+            return null;
+        }
+
+        _logger.LogInformation("Fetched {Url} through Browser Run ({BrowserMs} ms of browser time)",
+            url, response.Headers.TryGetValues("X-Browser-Ms-Used", out var used) ? used.FirstOrDefault() : "?");
+        return html;
+    }
+
+    private async Task<HttpResponseMessage> SendBrowserRunRequestAsync(string url, CancellationToken ct)
+    {
+        var endpoint = new Uri(
+            $"{_settings.BrowserRunBaseUrl.ToString().TrimEnd('/')}/accounts/{Uri.EscapeDataString(_settings.CloudflareAccountId)}/browser-run/content");
+        // Waiting for the network to be idle never ends with the ads: the album data is in the HTML sent by the server.
+        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+        {
+            Content = JsonContent.Create(new
+            {
+                url,
+                gotoOptions = new { waitUntil = "domcontentloaded", timeout = 45000 },
+                rejectResourceTypes = BrowserRunRejectedResources
+            })
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _settings.CloudflareApiToken);
+
+        var client = _httpClientFactory.CreateClient("BrowserRun");
+        return await client.SendAsync(request, ct);
+    }
+
+    private static TimeSpan GetRetryDelay(HttpResponseMessage response)
+    {
+        var delay = response.Headers.RetryAfter?.Delta ?? DefaultBrowserRunRetryDelay;
+        return delay > MaxBrowserRunRetryDelay ? MaxBrowserRunRetryDelay : delay;
+    }
+
+    private void PauseAfterChallenge(string url)
+    {
+        var until = _circuit.Pause(TimeSpan.FromHours(_settings.CloudflarePauseHours));
+        _logger.LogWarning(
+            "Bedetheque answered with a Cloudflare challenge instead of the page {Url}: the server's requests are blocked, Bedetheque is paused until {PausedUntil}",
+            url, until);
+    }
+
     // The "Just a moment..." page asks the browser to run a script: no album can be read from it.
-    private static bool IsCloudflareChallenge(HttpResponseMessage response, string html) =>
-        response.Headers.Contains("cf-mitigated")
-        || (html.Contains("Just a moment", StringComparison.OrdinalIgnoreCase)
-            && html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase));
+    private static bool IsCloudflareChallenge(string html) =>
+        html.Contains("Just a moment", StringComparison.OrdinalIgnoreCase)
+        && html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase);
 
     private BedethequeBookResult ParsePage(string html, string pageUrl, string coversBaseUrl)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
+        var sheet = ReadAlbumSheet(doc);
 
-        var title = ParseTitle(doc);
-        var serie = ParseSerie(doc);
-        var volumeNumber = ParseVolumeNumber(doc);
-        var authors = ParseAuthors(doc);
-        var publishers = ParsePublishers(doc);
-        var publishDate = ParsePublishDate(doc);
-        var numberOfPages = ParseNumberOfPages(doc);
+        var title = GetSheetText(sheet, "Titre") ?? string.Empty;
+        var serie = GetSheetText(sheet, "Série") ?? string.Empty;
+        var volumeNumber = ParseVolumeNumber(sheet);
+        var authors = ParseAuthors(sheet);
+        var publisher = GetSheetText(sheet, "diteur");
+        var publishDate = ParsePublishDate(sheet);
+        var numberOfPages = int.TryParse(GetSheetText(sheet, "Planches"), out var pages) ? pages : (int?)null;
         var coverUrl = BuildCoverUrl(pageUrl, coversBaseUrl);
 
         _logger.LogInformation("Parsed Bedetheque page: {Serie} T{Volume} - {Title}", serie, volumeNumber, title);
@@ -283,7 +383,7 @@ public partial class BedethequeService : IBedethequeService
             Serie: serie,
             VolumeNumber: volumeNumber,
             Authors: authors,
-            Publishers: publishers,
+            Publishers: string.IsNullOrWhiteSpace(publisher) ? [] : [publisher],
             PublishDate: publishDate,
             NumberOfPages: numberOfPages,
             CoverUrl: coverUrl,
@@ -291,154 +391,105 @@ public partial class BedethequeService : IBedethequeService
         );
     }
 
-    // Returns the first non-empty text node inside a <li> from infos-albums whose <label> contains the given text.
-    private static string? GetInfoAlbumFieldText(HtmlDocument doc, string labelContains)
+    // The album sheet ("Informations sur l'album") lists its fields as <dt>label</dt><dd>value</dd>; a <dt> left
+    // empty continues the previous field (a second colorist). The editions of the album have compact sheets.
+    private static List<(string Label, HtmlNode Value)> ReadAlbumSheet(HtmlDocument doc)
     {
-        var li = doc.DocumentNode.SelectSingleNode(
-            $"//ul[contains(@class,'infos-albums')]//li[label[contains(.,'{labelContains}')]]");
-
-        return li?.SelectNodes("text()")
-            ?.Select(n => HtmlEntity.DeEntitize(n.InnerText.Trim()))
-            .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t));
-    }
-
-    private static string ParseTitle(HtmlDocument doc) =>
-        GetInfoAlbumFieldText(doc, "Titre") ?? string.Empty;
-
-    private static string ParseSerie(HtmlDocument doc) =>
-        GetInfoAlbumFieldText(doc, "Série") ?? string.Empty;
-
-    private static int ParseVolumeNumber(HtmlDocument doc)
-    {
-        var text = GetInfoAlbumFieldText(doc, "Tome");
-        return text is not null && int.TryParse(text, out var vol) ? vol : 1;
-    }
-
-    private static List<string> ParseAuthors(HtmlDocument doc)
-    {
-        var authors = new List<string>();
-
-        var scenarioLi = doc.DocumentNode.SelectSingleNode(
-            "//ul[contains(@class,'infos-albums')]//li[label[contains(.,'Scénario')]]");
-        var scenarioAnchors = scenarioLi?.SelectNodes(".//a");
-        if (scenarioAnchors != null)
+        var fields = new List<(string Label, HtmlNode Value)>();
+        var sheet = doc.DocumentNode.SelectSingleNode(
+            "//dl[contains(concat(' ', normalize-space(@class), ' '), ' bdt-sheet ') and not(contains(@class, 'bdt-sheet--compact'))]");
+        if (sheet is null)
         {
-            foreach (var anchor in scenarioAnchors)
+            return fields;
+        }
+
+        var label = string.Empty;
+        foreach (var node in sheet.ChildNodes.Where(n => n.Name is "dt" or "dd"))
+        {
+            if (node.Name == "dt")
             {
-                var name = HtmlEntity.DeEntitize(anchor.InnerText.Trim());
-                if (!string.IsNullOrWhiteSpace(name) && !authors.Contains(name))
-                {
-                    authors.Add(name);
-                }
+                var text = CleanText(node);
+                label = text.Length > 0 ? text : label;
+            }
+            else
+            {
+                fields.Add((label, node));
             }
         }
-
-        var dessinLi = doc.DocumentNode.SelectSingleNode(
-            "//ul[contains(@class,'infos-albums')]//li[label[contains(.,'Dessin')]]");
-        var dessinAnchors = dessinLi?.SelectNodes(".//a");
-        if (dessinAnchors != null)
-        {
-            foreach (var anchor in dessinAnchors)
-            {
-                var name = HtmlEntity.DeEntitize(anchor.InnerText.Trim());
-                if (!string.IsNullOrWhiteSpace(name) && !authors.Contains(name))
-                {
-                    authors.Add(name);
-                }
-            }
-        }
-
-        return authors;
+        return fields;
     }
 
-    private static IReadOnlyList<string> ParsePublishers(HtmlDocument doc)
-    {
-        var li = doc.DocumentNode.SelectSingleNode(
-            "//ul[contains(@class,'infos-albums')]//li[label[contains(.,'diteur')]]");
-        if (li is null)
-        {
-            return [];
-        }
+    private static IEnumerable<HtmlNode> GetSheetValues(List<(string Label, HtmlNode Value)> sheet, string labelContains) =>
+        sheet.Where(f => f.Label.Contains(labelContains, StringComparison.OrdinalIgnoreCase)).Select(f => f.Value);
 
-        // Publisher is wrapped in a <span> or as a direct text node
-        var span = li.SelectSingleNode(".//span");
-        var text = span is not null
-            ? HtmlEntity.DeEntitize(span.InnerText.Trim())
-            : GetInfoAlbumFieldText(doc, "diteur");
+    private static string? GetSheetText(List<(string Label, HtmlNode Value)> sheet, string labelContains) =>
+        GetSheetValues(sheet, labelContains).Select(CleanText).FirstOrDefault(t => t.Length > 0);
 
-        return string.IsNullOrWhiteSpace(text) ? [] : [text];
-    }
+    private static string CleanText(HtmlNode node) =>
+        WhitespaceRegex().Replace(HtmlEntity.DeEntitize(node.InnerText), " ").Trim();
 
-    // Matches "Parution le DD/MM/YYYY" (inside the grise span on the Dépot légal line)
-    [GeneratedRegex(@"Parution\s+le\s+(\d{2}/\d{2}/\d{4})", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    private static int ParseVolumeNumber(List<(string Label, HtmlNode Value)> sheet) =>
+        int.TryParse(GetSheetText(sheet, "Tome"), out var volume) ? volume : 1;
+
+    private static List<string> ParseAuthors(List<(string Label, HtmlNode Value)> sheet) =>
+        GetSheetValues(sheet, "Scénario").Concat(GetSheetValues(sheet, "Dessin"))
+            .SelectMany(dd => dd.SelectNodes(".//a") ?? Enumerable.Empty<HtmlNode>())
+            .Select(CleanText)
+            .Where(name => name.Length > 0)
+            .Distinct()
+            .ToList();
+
+    // Matches "parution 03/01/2007" (new pages) and "Parution le 03/01/2007" (older ones)
+    [GeneratedRegex(@"parution\s+(?:le\s+)?(\d{2}/\d{2}/\d{4})", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
     private static partial Regex ParutionDateRegex();
 
-    // Matches "MM/YYYY" for the Dépot légal field text node
+    // Matches "MM/YYYY" for the Dépôt légal field
     [GeneratedRegex(@"(\d{2})/(\d{4})", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex MonthYearRegex();
 
-    private DateOnly? ParsePublishDate(HtmlDocument doc)
+    private DateOnly? ParsePublishDate(List<(string Label, HtmlNode Value)> sheet)
     {
-        // The Dépot/Dépôt légal <li> — "légal" is common to both spelling variants
-        var li = doc.DocumentNode.SelectSingleNode(
-            "//ul[contains(@class,'infos-albums')]//li[label[contains(.,'gal')]]");
-        if (li is null)
+        // The Dépôt/Dépot légal field — "légal" is common to both spelling variants
+        var text = GetSheetText(sheet, "gal");
+        if (text is null)
         {
             return null;
         }
 
-        // Strategy 1: "Parution le DD/MM/YYYY" from the <span class="grise">
-        var griseSpan = li.SelectSingleNode(".//span[contains(@class,'grise')]");
-        if (griseSpan is not null)
+        // Strategy 1: the release day, "01/2007 · parution 03/01/2007"
+        var parutionMatch = ParutionDateRegex().Match(text);
+        if (parutionMatch.Success &&
+            PublishDateHelper.ParsePublishDate(parutionMatch.Groups[1].Value, _logger) is { } parution)
         {
-            var parutionMatch = ParutionDateRegex().Match(griseSpan.InnerText);
-            if (parutionMatch.Success)
-            {
-                var parsed = PublishDateHelper.ParsePublishDate(parutionMatch.Groups[1].Value, _logger);
-                if (parsed is not null)
-                {
-                    return parsed;
-                }
-            }
+            return parution;
         }
 
-        // Strategy 2: "MM/YYYY" from the direct text node (e.g. "08/2014")
-        var textNode = li.SelectNodes("text()")
-            ?.Select(n => n.InnerText.Trim())
-            .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t));
-
-        if (textNode is not null)
+        // Strategy 2: the month of the legal deposit, "08/2014"
+        var mmYyyy = MonthYearRegex().Match(text);
+        if (mmYyyy.Success &&
+            int.TryParse(mmYyyy.Groups[1].Value, out var month) &&
+            int.TryParse(mmYyyy.Groups[2].Value, out var year) &&
+            month is >= 1 and <= 12 &&
+            year is >= 1900 and <= 2100)
         {
-            var mmYyyy = MonthYearRegex().Match(textNode);
-            if (mmYyyy.Success &&
-                int.TryParse(mmYyyy.Groups[1].Value, out var month) &&
-                int.TryParse(mmYyyy.Groups[2].Value, out var year) &&
-                month is >= 1 and <= 12 &&
-                year is >= 1900 and <= 2100)
-            {
-                return new DateOnly(year, month, 1);
-            }
+            return new DateOnly(year, month, 1);
         }
 
         return null;
     }
 
-    private static int? ParseNumberOfPages(HtmlDocument doc)
-    {
-        var li = doc.DocumentNode.SelectSingleNode(
-            "//ul[contains(@class,'infos-albums')]//li[label[contains(.,'Planches')]]");
-        if (li is null)
-        {
-            return null;
-        }
-
-        var span = li.SelectSingleNode(".//span");
-        var text = span?.InnerText.Trim() ?? GetInfoAlbumFieldText(doc, "Planches");
-        return text is not null && int.TryParse(text, out var pages) ? pages : null;
-    }
-
     [GeneratedRegex(@"-(\d+)\.html$", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex PageIdRegex();
+
+    // "serie-10529-BD-Okko.html" or one of its pages, "serie-10529-BD-Okko__1.html"
+    [GeneratedRegex(@"(__\d+)?\.html$", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex SeriePageSuffixRegex();
+
+    [GeneratedRegex(@"^\s*\d+\s*\.", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex RegularVolumeRegex();
+
+    [GeneratedRegex(@"\s+", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex WhitespaceRegex();
 
     private static Uri? BuildCoverUrl(string pageUrl, string coversBaseUrl)
     {
@@ -479,4 +530,9 @@ public partial class BedethequeService : IBedethequeService
     private sealed record SerpApiOrganicResult(
         [property: JsonPropertyName("link")] string? Link
     );
+
+    // Browser Run /content answer: the HTML of the page once loaded, or the errors
+    private sealed record BrowserRunResponse(bool Success, string? Result, IReadOnlyList<BrowserRunError>? Errors);
+
+    private sealed record BrowserRunError(int Code, string? Message);
 }

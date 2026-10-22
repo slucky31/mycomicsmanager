@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Application.ComicInfoSearch;
 using Application.Interfaces;
 using Domain.Settings;
@@ -14,6 +15,25 @@ public sealed class BedethequeServiceTests : IDisposable
     private const string PageUrl = "https://www.bedetheque.com/BD-Biguden-Tome-1-LAnkou-224335.html";
     private const string ExpectedCoverUrl = "https://www.bedetheque.com/media/Couvertures/Couv_224335.jpg";
 
+    // Fixtures are extracts of real pages fetched through Cloudflare Browser Run, saved in ComicInfoSearch/Fixtures.
+    private const string OkkoIsbn = "2847891641";
+    private const string OkkoAlbumUrl = "https://www.bedetheque.com/BD-Okko-Tome-1-Le-cycle-de-l-eau-I-41693.html";
+    private const string OkkoSerieUrl = "https://www.bedetheque.com/serie-10529-BD-Okko.html";
+    private const string OkkoAllAlbumsUrl = "https://www.bedetheque.com/serie-10529-BD-Okko__10000.html";
+    private const string BrowserRunContentUrl = "https://api.cloudflare.com/client/v4/accounts/account-id/browser-run/content";
+
+    private static readonly BedethequeSettings BrowserRunSettings = new()
+    {
+        SerpApiKey = "test-key",
+        SerpApiBaseUrl = new Uri("https://serpapi.com"),
+        BaseUrl = new Uri("https://www.bedetheque.com"),
+        CloudflareAccountId = "account-id",
+        CloudflareApiToken = "api-token"
+    };
+
+    private static string Fixture(string name) =>
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "ComicInfoSearch", "Fixtures", name));
+
     private static readonly BedethequeSettings DefaultSettings = new()
     {
         SerpApiKey = "test-key",
@@ -21,19 +41,19 @@ public sealed class BedethequeServiceTests : IDisposable
         BaseUrl = new Uri("https://www.bedetheque.com")
     };
 
-    // Minimal full-featured HTML matching the real Bedetheque infos-albums structure
+    // Minimal album sheet matching the real Bedetheque structure ("Informations sur l'album")
     private const string FullAlbumHtml = """
         <html><body>
-        <ul class="infos-albums">
-          <li><label>Série : </label>Biguden</li>
-          <li><label>Titre : </label>L'Ankou</li>
-          <li><label>Tome : </label>1</li>
-          <li><label>Scénario :</label><a href="/auteur-1">Silas, Stan</a></li>
-          <li><label>Dessin :</label><a href="/auteur-2">Dupont, Jean</a></li>
-          <li><label>Dépot légal : </label>08/2014<span class="grise"> (Parution le 27/08/2014)</span></li>
-          <li><label>Editeur : </label><span>EP Media</span></li>
-          <li><label>Planches :</label><span>62</span></li>
-        </ul>
+        <dl class="bdt-sheet">
+          <dt>Série</dt><dd>Biguden</dd>
+          <dt>Titre</dt><dd>L'Ankou</dd>
+          <dt>Tome</dt><dd>1</dd>
+          <dt>Scénario</dt><dd><a href="/auteur-1">Silas, Stan</a></dd>
+          <dt>Dessin</dt><dd><a href="/auteur-2">Dupont, Jean</a></dd>
+          <dt>Dépot légal</dt><dd>08/2014 <span class="bdt-dim">· parution 27/08/2014</span></dd>
+          <dt>Editeur</dt><dd>EP Media</dd>
+          <dt>Planches</dt><dd>62</dd>
+        </dl>
         </body></html>
         """;
 
@@ -91,7 +111,8 @@ public sealed class BedethequeServiceTests : IDisposable
 
     private IHttpClientFactory FactoryWith(
         HttpMessageHandler? serpHandler = null,
-        HttpMessageHandler? bedeHandler = null)
+        HttpMessageHandler? bedeHandler = null,
+        HttpMessageHandler? browserRunHandler = null)
     {
         var factory = Substitute.For<IHttpClientFactory>();
         if (serpHandler != null)
@@ -102,8 +123,15 @@ public sealed class BedethequeServiceTests : IDisposable
         {
             factory.CreateClient("Bedetheque").Returns(Track(new HttpClient(bedeHandler)));
         }
+        if (browserRunHandler != null)
+        {
+            factory.CreateClient("BrowserRun").Returns(Track(new HttpClient(browserRunHandler)));
+        }
         return factory;
     }
+
+    private static HttpResponseMessage BrowserRunResponse(string html) =>
+        JsonResponse(JsonSerializer.Serialize(new { success = true, result = html, errors = Array.Empty<object>() }));
 
     // Factory that serves a page directly (used with CacheWithUrl)
     private IHttpClientFactory PageFactory(string html = FullAlbumHtml) =>
@@ -344,7 +372,7 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnEmptyTitle_WhenTitreFieldMissing()
     {
-        var html = """<html><body><ul class="infos-albums"><li><label>Série : </label>OnlySerie</li></ul></body></html>""";
+        var html = """<html><body><dl class="bdt-sheet"><dt>Série</dt><dd>OnlySerie</dd></dl></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
@@ -372,7 +400,7 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_DefaultVolumeNumberToOne_WhenTomeFieldMissing()
     {
-        var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
+        var html = """<html><body><dl class="bdt-sheet"><dt>Titre</dt><dd>Album</dd></dl></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
@@ -394,11 +422,11 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_DeduplicateAuthors_WhenScenarioAndDessinAreSamePerson()
     {
         var html = """
-            <html><body><ul class="infos-albums">
-              <li><label>Titre : </label>Album</li>
-              <li><label>Scénario :</label><a href="/auteur-1">Silas, Stan</a></li>
-              <li><label>Dessin :</label><a href="/auteur-1">Silas, Stan</a></li>
-            </ul></body></html>
+            <html><body><dl class="bdt-sheet">
+              <dt>Titre</dt><dd>Album</dd>
+              <dt>Scénario</dt><dd><a href="/auteur-1">Silas, Stan</a></dd>
+              <dt>Dessin</dt><dd><a href="/auteur-1">Silas, Stan</a></dd>
+            </dl></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -410,10 +438,10 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParseMultipleAuthors_WhenMultipleAnchorsUnderScenarioLabel()
     {
         var html = """
-            <html><body><ul class="infos-albums">
-              <li><label>Titre : </label>Album</li>
-              <li><label>Scénario :</label><a href="/auteur-1">Alpha, Jean</a><a href="/auteur-2">Beta, Marie</a></li>
-            </ul></body></html>
+            <html><body><dl class="bdt-sheet">
+              <dt>Titre</dt><dd>Album</dd>
+              <dt>Scénario</dt><dd><a href="/auteur-1">Alpha, Jean</a><a href="/auteur-2">Beta, Marie</a></dd>
+            </dl></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -427,10 +455,10 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParseMultipleAuthors_WhenMultipleAnchorsUnderDessinLabel()
     {
         var html = """
-            <html><body><ul class="infos-albums">
-              <li><label>Titre : </label>Album</li>
-              <li><label>Dessin :</label><a href="/auteur-1">Alpha, Jean</a><a href="/auteur-2">Beta, Marie</a></li>
-            </ul></body></html>
+            <html><body><dl class="bdt-sheet">
+              <dt>Titre</dt><dd>Album</dd>
+              <dt>Dessin</dt><dd><a href="/auteur-1">Alpha, Jean</a><a href="/auteur-2">Beta, Marie</a></dd>
+            </dl></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -443,7 +471,7 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnEmptyAuthors_WhenNoAuthorFields()
     {
-        var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
+        var html = """<html><body><dl class="bdt-sheet"><dt>Titre</dt><dd>Album</dd></dl></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
@@ -462,7 +490,7 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnEmptyPublishers_WhenNoEditeurField()
     {
-        var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
+        var html = """<html><body><dl class="bdt-sheet"><dt>Titre</dt><dd>Album</dd></dl></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
@@ -482,10 +510,10 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParsePublishDate_FromMonthYearFallback()
     {
         var html = """
-            <html><body><ul class="infos-albums">
-              <li><label>Titre : </label>Album</li>
-              <li><label>Dépot légal : </label>11/2025</li>
-            </ul></body></html>
+            <html><body><dl class="bdt-sheet">
+              <dt>Titre</dt><dd>Album</dd>
+              <dt>Dépot légal</dt><dd>11/2025</dd>
+            </dl></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -496,7 +524,7 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnNullPublishDate_WhenNoDateField()
     {
-        var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
+        var html = """<html><body><dl class="bdt-sheet"><dt>Titre</dt><dd>Album</dd></dl></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
@@ -515,7 +543,7 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnNullNumberOfPages_WhenPlanchesMissing()
     {
-        var html = """<html><body><ul class="infos-albums"><li><label>Titre : </label>Album</li></ul></body></html>""";
+        var html = """<html><body><dl class="bdt-sheet"><dt>Titre</dt><dd>Album</dd></dl></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
@@ -553,7 +581,7 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnFoundTrue_WhenOnlySeriePresent()
     {
-        var html = """<html><body><ul class="infos-albums"><li><label>Série : </label>OnlySerie</li></ul></body></html>""";
+        var html = """<html><body><dl class="bdt-sheet"><dt>Série</dt><dd>OnlySerie</dd></dl></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
@@ -565,7 +593,7 @@ public sealed class BedethequeServiceTests : IDisposable
     [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnFoundFalse_WhenBothTitleAndSerieEmpty()
     {
-        var html = """<html><body><ul class="infos-albums"></ul></body></html>""";
+        var html = """<html><body><dl class="bdt-sheet"></dl></body></html>""";
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
@@ -787,21 +815,46 @@ public sealed class BedethequeServiceTests : IDisposable
         result.Found.Should().BeFalse();
     }
 
-    // ── SearchByIsbnAsync — publisher from text node ─────────────────
+    // ── SearchByIsbnAsync — real album page ──────────────────────────
 
     [Fact]
-    public async Task SearchByIsbnAsync_Should_ParsePublisher_WhenEditeurHasNoSpan()
+    public async Task SearchByIsbnAsync_Should_ReadTheAlbumSheet_WhenPageIsARealBedethequeAlbum()
+    {
+        var cache = CacheWithUrl(OkkoIsbn, OkkoAlbumUrl);
+        var service = CreateService(PageFactory(Fixture("bedetheque-album-41693.html")), cache);
+
+        var result = await service.SearchByIsbnAsync(OkkoIsbn, TestContext.Current.CancellationToken);
+
+        // The page also holds the reviews (schema.org author, datePublished) and the other editions
+        // (compact sheets): only the album sheet is read, and the colorists are not authors.
+        result.Should().BeEquivalentTo(new BedethequeBookResult(
+            Title: "Le cycle de l'eau I",
+            Serie: "Okko",
+            VolumeNumber: 1,
+            Authors: ["Hub"],
+            Publishers: ["Delcourt"],
+            PublishDate: new DateOnly(2005, 1, 1),
+            NumberOfPages: 46,
+            CoverUrl: new Uri("https://www.bedetheque.com/media/Couvertures/Couv_41693.jpg"),
+            Found: true));
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReadEveryAuthor_WhenAFieldContinuesOnAnUnlabelledLine()
     {
         var html = """
-            <html><body><ul class="infos-albums">
-              <li><label>Titre : </label>Album</li>
-              <li><label>Editeur : </label>Publisher Without Span</li>
-            </ul></body></html>
+            <html><body><dl class="bdt-sheet">
+              <dt>Titre</dt><dd>Album</dd>
+              <dt>Scénario</dt><dd><a href="/auteur-1">Alpha, Jean</a></dd>
+              <dt></dt><dd><a href="/auteur-2">Beta, Marie</a></dd>
+              <dt>Couleurs</dt><dd><a href="/auteur-3">Gamma, Paul</a></dd>
+              <dt></dt><dd><a href="/auteur-4">Delta, Anne</a></dd>
+            </dl></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
-        result.Publishers.Should().ContainSingle().Which.Should().Be("Publisher Without Span");
+        result.Authors.Should().Equal("Alpha, Jean", "Beta, Marie");
     }
 
     // ── SearchByIsbnAsync — publish date fallback ────────────────────
@@ -810,10 +863,10 @@ public sealed class BedethequeServiceTests : IDisposable
     public async Task SearchByIsbnAsync_Should_ParsePublishDate_FromMonthYear_WhenParutionDateIsInvalid()
     {
         var html = """
-            <html><body><ul class="infos-albums">
-              <li><label>Titre : </label>Album</li>
-              <li><label>Dépot légal : </label>06/2020<span class="grise"> (Parution le 00/00/0000)</span></li>
-            </ul></body></html>
+            <html><body><dl class="bdt-sheet">
+              <dt>Titre</dt><dd>Album</dd>
+              <dt>Dépot légal</dt><dd>06/2020 <span class="bdt-dim">· parution 00/00/0000</span></dd>
+            </dl></body></html>
             """;
         var cache = CacheWithUrl(ValidIsbn, PageUrl);
         var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
@@ -821,22 +874,6 @@ public sealed class BedethequeServiceTests : IDisposable
         result.PublishDate.Should().Be(new DateOnly(2020, 6, 1));
     }
 
-    // ── SearchByIsbnAsync — pages from text node ─────────────────────
-
-    [Fact]
-    public async Task SearchByIsbnAsync_Should_ParseNumberOfPages_WhenPlanchesHasNoSpan()
-    {
-        var html = """
-            <html><body><ul class="infos-albums">
-              <li><label>Titre : </label>Album</li>
-              <li><label>Planches :</label>48</li>
-            </ul></body></html>
-            """;
-        var cache = CacheWithUrl(ValidIsbn, PageUrl);
-        var result = await CreateService(PageFactory(html), cache).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
-
-        result.NumberOfPages.Should().Be(48);
-    }
 
     // ── SearchByIsbnAsync — multiple ISBN format fallback ────────────
 
@@ -880,6 +917,150 @@ public sealed class BedethequeServiceTests : IDisposable
         var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
 
         result.Found.Should().BeTrue();
+    }
+
+    // ── SearchByIsbnAsync — real serie page ──────────────────────────
+
+    [Theory]
+    [InlineData(OkkoSerieUrl)]
+    [InlineData("https://www.bedetheque.com/serie-10529-BD-Okko__1.html")]
+    public async Task SearchByIsbnAsync_Should_FindTheAlbumInThePageOfAllAlbums_WhenSerpApiFindsASeriePage(string serieLink)
+    {
+        var requested = new List<string>();
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(SerpApiJson(serieLink)))),
+            Track(new FakeHttpMessageHandler(req =>
+            {
+                requested.Add(req.RequestUri!.ToString());
+                return HtmlResponse(req.RequestUri.ToString() == OkkoAllAlbumsUrl
+                    ? Fixture("bedetheque-serie-10529-tout.html")
+                    : Fixture("bedetheque-album-41693.html"));
+            })));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(OkkoIsbn, TestContext.Current.CancellationToken);
+
+        // The deluxe printing TL1 shares the ISBN of the volume 1: the regular volume is the album found.
+        requested.Should().Equal(OkkoAllAlbumsUrl, OkkoAlbumUrl);
+        result.Found.Should().BeTrue();
+        result.Title.Should().Be("Le cycle de l'eau I");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_PreferTheRegularVolume_WhenADeluxePrintingSharingItsIsbnIsListedFirst()
+    {
+        var serieHtml = $"""
+            <html><body>
+              <article itemscope itemtype="https://schema.org/Book">
+                <a itemprop="url" href="https://www.bedetheque.com/BD-Biguden-TL1-1.html"><span itemprop="name">TL1. Coffret</span></a>
+                <span itemprop="isbn">{ValidIsbn}</span>
+              </article>
+              <article itemscope itemtype="https://schema.org/Book">
+                <a itemprop="url" href="{PageUrl}"><span itemprop="name">1<span class="bdt-numa"></span>. L'Ankou</span></a>
+                <span itemprop="isbn">{ValidIsbn}</span>
+              </article>
+            </body></html>
+            """;
+        var requested = new List<string>();
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(SerpApiJson("https://www.bedetheque.com/serie-123-BD-Biguden.html")))),
+            Track(new FakeHttpMessageHandler(req =>
+            {
+                requested.Add(req.RequestUri!.ToString());
+                return HtmlResponse(req.RequestUri.ToString().Contains("serie-", StringComparison.Ordinal) ? serieHtml : FullAlbumHtml);
+            })));
+        var service = CreateService(factory);
+
+        await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        requested.Should().EndWith(PageUrl);
+    }
+
+    // ── SearchByIsbnAsync — Cloudflare Browser Run ───────────────────
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_LoadThePageThroughBrowserRun_WhenCloudflareAccountAndTokenAreSet()
+    {
+        HttpRequestMessage? sent = null;
+        string? sentBody = null;
+        var directRequests = 0;
+        var factory = FactoryWith(
+            bedeHandler: Track(new FakeHttpMessageHandler(_ => { directRequests++; return HtmlResponse(FullAlbumHtml); })),
+            browserRunHandler: Track(new FakeHttpMessageHandler(req =>
+            {
+                sent = req;
+                sentBody = req.Content!.ReadAsStringAsync(TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+                return BrowserRunResponse(FullAlbumHtml);
+            })));
+        var service = CreateService(factory, CacheWithUrl(ValidIsbn, PageUrl), BrowserRunSettings);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeTrue();
+        result.Title.Should().Be("L'Ankou");
+        directRequests.Should().Be(0);
+        sent!.Method.Should().Be(HttpMethod.Post);
+        sent.RequestUri.Should().Be(new Uri(BrowserRunContentUrl));
+        sent.Headers.Authorization!.ToString().Should().Be("Bearer api-token");
+        using var body = JsonDocument.Parse(sentBody!);
+        body.RootElement.GetProperty("url").GetString().Should().Be(PageUrl);
+        body.RootElement.GetProperty("gotoOptions").GetProperty("waitUntil").GetString().Should().Be("domcontentloaded");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenBrowserRunAnswersWithAnError()
+    {
+        var factory = FactoryWith(browserRunHandler: Track(new FakeHttpMessageHandler(_ =>
+        {
+            var response = JsonResponse("""{"success":false,"errors":[{"code":6002,"message":"A timeout was reached."}]}""");
+            response.StatusCode = HttpStatusCode.BadRequest;
+            return response;
+        })));
+        var circuit = new BedethequeCircuit(TimeProvider.System);
+        var service = CreateService(factory, CacheWithUrl(ValidIsbn, PageUrl), BrowserRunSettings, circuit);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+        circuit.PausedUntil.Should().BeNull("a Browser Run error is not a Cloudflare challenge of Bedetheque");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_RetryOnce_WhenBrowserRunRateLimitIsReached()
+    {
+        var calls = 0;
+        var factory = FactoryWith(browserRunHandler: Track(new FakeHttpMessageHandler(_ =>
+        {
+            calls++;
+            if (calls > 1)
+            {
+                return BrowserRunResponse(FullAlbumHtml);
+            }
+            var tooMany = JsonResponse("""{"success":false,"errors":[{"code":2001,"message":"Rate limit exceeded"}]}""");
+            tooMany.StatusCode = HttpStatusCode.TooManyRequests;
+            tooMany.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.Zero);
+            return tooMany;
+        })));
+        var service = CreateService(factory, CacheWithUrl(ValidIsbn, PageUrl), BrowserRunSettings);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        calls.Should().Be(2);
+        result.Found.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_PauseBedetheque_WhenBrowserRunGetsACloudflareChallenge()
+    {
+        var challenge = "<html><head><title>Just a moment...</title></head><body>Checking your browser - cloudflare</body></html>";
+        var factory = FactoryWith(browserRunHandler: Track(new FakeHttpMessageHandler(_ => BrowserRunResponse(challenge))));
+        var circuit = new BedethequeCircuit(TimeProvider.System);
+        var service = CreateService(factory, CacheWithUrl(ValidIsbn, PageUrl), BrowserRunSettings, circuit);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+        circuit.PausedUntil.Should().NotBeNull();
     }
 
     // ── Handler ──────────────────────────────────────────────────────
