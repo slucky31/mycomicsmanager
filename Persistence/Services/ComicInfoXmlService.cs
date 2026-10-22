@@ -92,8 +92,8 @@ public class ComicInfoXmlService(ILogger<ComicInfoXmlService> logger) : IComicIn
         public ComicInfoData ToComicInfoData() => new(
             Title: Title,
             Series: Series,
-            // Some taggers leave Number empty and put the tome in Volume.
-            Number: ParseVolume(Number) ?? ParsePositiveInt(Volume),
+            // The tome is read from Volume; Number, which some taggers use instead, is the fallback.
+            Number: ParsePositiveInt(Volume) ?? ParseVolume(Number),
             Summary: Summary,
             Year: ParsePositiveInt(Year),
             Month: ParsePositiveInt(Month),
@@ -110,6 +110,7 @@ public class ComicInfoXmlService(ILogger<ComicInfoXmlService> logger) : IComicIn
             Title = data.Title,
             Series = data.Series,
             Number = FormatInt(data.Number),
+            Volume = FormatInt(data.Number),
             Summary = data.Summary,
             Year = FormatInt(data.Year),
             Month = FormatInt(data.Month),

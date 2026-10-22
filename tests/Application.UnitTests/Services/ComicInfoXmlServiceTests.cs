@@ -142,11 +142,11 @@ public sealed class ComicInfoXmlServiceTests : IDisposable
     }
 
     [Theory]
-    [InlineData("", "4", 4)]
+    [InlineData("2", "4", 4)]
     [InlineData("HS", "4", 4)]
-    [InlineData("2", "4", 2)]
-    [InlineData("", "-1", null)]
-    public void Read_Should_ReadTheVolumeFromVolume_WhenNumberHasNone(string number, string volume, int? expected)
+    [InlineData("2", "-1", 2)]
+    [InlineData("", "", null)]
+    public void Read_Should_ReadTheVolumeFromVolume_ThenFromNumber(string number, string volume, int? expected)
     {
         // Arrange
         var xmlPath = Path.Combine(_tempDir, "ComicInfo.xml");
@@ -244,6 +244,8 @@ public sealed class ComicInfoXmlServiceTests : IDisposable
         var content = File.ReadAllText(xmlPath);
         content.Should().Contain("<ComicInfo");
         content.Should().Contain("<Title>My Title</Title>");
+        content.Should().Contain("<Number>1</Number>");
+        content.Should().Contain("<Volume>1</Volume>");
     }
 
     [Fact]
@@ -299,6 +301,7 @@ public sealed class ComicInfoXmlServiceTests : IDisposable
         content.Should().Contain("<Title>Title Only</Title>");
         content.Should().NotContain("<Series>");
         content.Should().NotContain("<Number>");
+        content.Should().NotContain("<Volume>");
         content.Should().NotContain("<Year>");
         content.Should().NotContain("<PageCount>");
     }
