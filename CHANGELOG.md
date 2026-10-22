@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.57.1"></a>
+## [10.57.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.57.1) (2026-10-22)
+
+### 🐛 Bug Fixes
+
+* **import:** keep ComicInfo.xml serie and title over catalogue results ([#1190](https://www.github.com/slucky31/mycomicsmanager/issues/1190)) ([dbe6133](https://www.github.com/slucky31/mycomicsmanager/commit/dbe61330dd8178a82f9208fe8cdf7b4961a6d56f))
+
 <a name="10.57.0"></a>
 ## [10.57.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.57.0) (2026-10-22)
 
