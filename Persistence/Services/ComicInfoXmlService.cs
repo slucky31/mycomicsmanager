@@ -91,7 +91,7 @@ public class ComicInfoXmlService(ILogger<ComicInfoXmlService> logger) : IComicIn
         public ComicInfoData ToComicInfoData() => new(
             Title: Title,
             Series: Series,
-            Number: ParseInt(Number),
+            Number: ParseVolume(Number),
             Summary: Summary,
             Year: ParsePositiveInt(Year),
             Month: ParsePositiveInt(Month),
@@ -121,6 +121,13 @@ public class ComicInfoXmlService(ILogger<ComicInfoXmlService> logger) : IComicIn
 
         private static int? ParseInt(string? value) =>
             int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) ? number : null;
+
+        // Taggers write the volume as "3" or "3.0": a whole decimal is kept, "1.5" or "HS" is not a volume.
+        private static int? ParseVolume(string? value) =>
+            decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var number)
+            && number == decimal.Truncate(number) && number is >= int.MinValue and <= int.MaxValue
+                ? (int)number
+                : null;
 
         // Year, Month, Day and PageCount use 0 or -1 for "unknown" in the ComicInfo schema.
         private static int? ParsePositiveInt(string? value) => ParseInt(value) is > 0 and var number ? number : null;

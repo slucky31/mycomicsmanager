@@ -118,6 +118,29 @@ public sealed class ComicInfoXmlServiceTests : IDisposable
         result.Value.PageCount.Should().BeNull();
     }
 
+    [Theory]
+    [InlineData("3.0", 3)]
+    [InlineData("03", 3)]
+    [InlineData("1.5", null)]
+    public void Read_Should_ReadTheVolume_WhenNumberIsAWholeDecimal(string number, int? expected)
+    {
+        // Arrange
+        var xmlPath = Path.Combine(_tempDir, "ComicInfo.xml");
+        File.WriteAllText(xmlPath, $"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <ComicInfo>
+              <Number>{number}</Number>
+            </ComicInfo>
+            """);
+
+        // Act
+        var result = _service.Read(xmlPath);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Number.Should().Be(expected);
+    }
+
     [Fact]
     public void Read_Should_IgnoreNumericFields_WhenValueIsNotAnInteger()
     {
