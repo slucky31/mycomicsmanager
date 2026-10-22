@@ -75,6 +75,7 @@ public class ComicInfoXmlService(ILogger<ComicInfoXmlService> logger) : IComicIn
         public string? Title { get; set; }
         public string? Series { get; set; }
         public string? Number { get; set; }
+        public string? Volume { get; set; }
         public string? Summary { get; set; }
         public string? Year { get; set; }
         public string? Month { get; set; }
@@ -91,7 +92,8 @@ public class ComicInfoXmlService(ILogger<ComicInfoXmlService> logger) : IComicIn
         public ComicInfoData ToComicInfoData() => new(
             Title: Title,
             Series: Series,
-            Number: ParseVolume(Number),
+            // Some taggers leave Number empty and put the tome in Volume.
+            Number: ParseVolume(Number) ?? ParsePositiveInt(Volume),
             Summary: Summary,
             Year: ParsePositiveInt(Year),
             Month: ParsePositiveInt(Month),
