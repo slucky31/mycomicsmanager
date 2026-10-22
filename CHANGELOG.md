@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.57.0"></a>
+## [10.57.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.57.0) (2026-10-22)
+
+### ✨ Features
+
+* **bedetheque:** load pages through Cloudflare Browser Run and read the new page layout ([#1188](https://www.github.com/slucky31/mycomicsmanager/issues/1188)) ([6cf5297](https://www.github.com/slucky31/mycomicsmanager/commit/6cf52973b34adb0e70187ae78c8d976d970dd4ce))
+
 <a name="10.56.5"></a>
 ## [10.56.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.56.5) (2026-10-21)
 
