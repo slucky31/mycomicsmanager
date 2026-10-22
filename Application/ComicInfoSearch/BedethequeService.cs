@@ -173,9 +173,13 @@ public partial class BedethequeService : IBedethequeService
             return bdLinks[0];
         }
 
+        // Google finds several pages of a serie ("__1.html", "__10000.html"): they all lead to the page of all albums,
+        // where the first page of a serie only lists 10 albums (later volumes, HS and integrals are on the next ones).
         var serieLinks = links
             .Where(l => l.StartsWith(_serieUrlPrefix, StringComparison.OrdinalIgnoreCase) &&
                         !l.StartsWith(_serieBdUrlPrefix, StringComparison.OrdinalIgnoreCase))
+            .Select(l => SeriePageSuffixRegex().Replace(l, AllAlbumsSuffix))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
         if (serieLinks.Count == 1)
         {
@@ -191,10 +195,8 @@ public partial class BedethequeService : IBedethequeService
         return null;
     }
 
-    private async Task<string?> ResolveSeriePageAsync(string serieUrl, string isbn, CancellationToken ct)
+    private async Task<string?> ResolveSeriePageAsync(string allAlbumsUrl, string isbn, CancellationToken ct)
     {
-        // The first page of a serie only lists 10 albums: later volumes, HS and integrals are on the next ones.
-        var allAlbumsUrl = SeriePageSuffixRegex().Replace(serieUrl, AllAlbumsSuffix);
         _logger.LogInformation("Parsing serie page for ISBN {Isbn}: {SerieUrl}", isbn, allAlbumsUrl);
         var html = await FetchPageAsync(allAlbumsUrl, ct);
         if (html is null)

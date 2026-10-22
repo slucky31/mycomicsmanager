@@ -921,14 +921,12 @@ public sealed class BedethequeServiceTests : IDisposable
 
     // ── SearchByIsbnAsync — real serie page ──────────────────────────
 
-    [Theory]
-    [InlineData(OkkoSerieUrl)]
-    [InlineData("https://www.bedetheque.com/serie-10529-BD-Okko__1.html")]
-    public async Task SearchByIsbnAsync_Should_FindTheAlbumInThePageOfAllAlbums_WhenSerpApiFindsASeriePage(string serieLink)
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_FindTheAlbumInThePageOfAllAlbums_WhenSerpApiFindsASeriePage()
     {
         var requested = new List<string>();
         var factory = FactoryWith(
-            Track(new FakeHttpMessageHandler(_ => JsonResponse(SerpApiJson(serieLink)))),
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(SerpApiJson(OkkoSerieUrl)))),
             Track(new FakeHttpMessageHandler(req =>
             {
                 requested.Add(req.RequestUri!.ToString());
@@ -944,6 +942,34 @@ public sealed class BedethequeServiceTests : IDisposable
         requested.Should().Equal(OkkoAllAlbumsUrl, OkkoAlbumUrl);
         result.Found.Should().BeTrue();
         result.Title.Should().Be("Le cycle de l'eau I");
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_ReadThePageOfAllAlbumsOnce_WhenSerpApiFindsSeveralAlbumsAndPagesOfTheSameSerie()
+    {
+        // The real SerpApi answer for Okko T1: three album pages (the volume and its deluxe printing) and two serie pages.
+        var serpJson = SerpApiJson(
+            "https://www.bedetheque.com/serie-10529-BD-Okko__1.html",
+            OkkoAllAlbumsUrl,
+            OkkoAlbumUrl,
+            "https://www.bedetheque.com/BD-Okko-Le-cycle-de-l-eau-I-II-53637.html",
+            "https://www.bedetheque.com/BD-Okko-TL1-Le-cycle-de-l-eau-I-II-53637.html");
+        var requested = new List<string>();
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(serpJson))),
+            Track(new FakeHttpMessageHandler(req =>
+            {
+                requested.Add(req.RequestUri!.ToString());
+                return HtmlResponse(req.RequestUri.ToString() == OkkoAllAlbumsUrl
+                    ? Fixture("bedetheque-serie-10529-tout.html")
+                    : Fixture("bedetheque-album-41693.html"));
+            })));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByIsbnAsync(OkkoIsbn, TestContext.Current.CancellationToken);
+
+        requested.Should().Equal(OkkoAllAlbumsUrl, OkkoAlbumUrl);
+        result.Found.Should().BeTrue();
     }
 
     [Fact]
