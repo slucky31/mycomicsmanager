@@ -109,7 +109,7 @@ Copiez `appsettings.json` en `appsettings.Development.json` et renseignez les va
 }
 ```
 
-La recherche par ISBN interroge, dans l'ordre, le catalogue de la BnF (sans clé), Google Books, OpenLibrary, Bubble puis Bedetheque, et garde le premier résultat trouvé. Bedetheque est derrière Cloudflare, qui peut bloquer les requêtes du serveur : `Bedetheque__Enabled=false` le désactive, et après un blocage il est mis en pause `Bedetheque__CloudflarePauseHours` heures (24 par défaut) pour ne pas consommer d'appels SerpApi.
+La recherche par ISBN interroge, dans l'ordre, le catalogue de la BnF (sans clé), Google Books, OpenLibrary, Bubble puis Bedetheque, et garde le premier résultat trouvé. Bedetheque est derrière Cloudflare, qui peut bloquer les requêtes du serveur : `Bedetheque__Enabled=false` le désactive, et après un blocage il est mis en pause `Bedetheque__CloudflarePauseHours` heures (24 par défaut) pour ne pas consommer d'appels SerpApi. Pour passer ce blocage, les pages peuvent être chargées par [Cloudflare Browser Run](https://developers.cloudflare.com/browser-run/) : renseigner `Bedetheque__CloudflareAccountId` et `Bedetheque__CloudflareApiToken` (token avec la permission `Browser Run - Edit`). Le plan Workers Free suffit (10 min de navigateur par jour, environ 1,3 s par page).
 
 Chaque source de la recherche par ISBN peut être désactivée dans la configuration (`BnfCatalogue:Enabled`, `GoogleBooks:Enabled`, `OpenLibrary:Enabled`, `Bubble:Enabled`, `Bedetheque:Enabled`, toutes à `true` par défaut) : une source désactivée n'est plus interrogée, ni à l'import ni sur la page « Find book details ». Bubble reste éteint tant que `Bubble__ApiKey` est vide.
 
