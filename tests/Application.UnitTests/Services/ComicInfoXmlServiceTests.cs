@@ -141,6 +141,31 @@ public sealed class ComicInfoXmlServiceTests : IDisposable
         result.Value!.Number.Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData("", "4", 4)]
+    [InlineData("HS", "4", 4)]
+    [InlineData("2", "4", 2)]
+    [InlineData("", "-1", null)]
+    public void Read_Should_ReadTheVolumeFromVolume_WhenNumberHasNone(string number, string volume, int? expected)
+    {
+        // Arrange
+        var xmlPath = Path.Combine(_tempDir, "ComicInfo.xml");
+        File.WriteAllText(xmlPath, $"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <ComicInfo>
+              <Number>{number}</Number>
+              <Volume>{volume}</Volume>
+            </ComicInfo>
+            """);
+
+        // Act
+        var result = _service.Read(xmlPath);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Number.Should().Be(expected);
+    }
+
     [Fact]
     public void Read_Should_IgnoreNumericFields_WhenValueIsNotAnInteger()
     {
