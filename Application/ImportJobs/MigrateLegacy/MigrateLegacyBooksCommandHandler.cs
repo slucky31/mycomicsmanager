@@ -1,8 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.Libraries;
 using Ardalis.GuardClauses;
-using Domain.Errors;
-using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.Extensions.Logging;
 
@@ -16,28 +14,18 @@ public sealed class MigrateLegacyBooksCommandHandler(
     IImportDirectoryStorage importDirectoryStorage,
     ILogger<MigrateLegacyBooksCommandHandler> logger) : ICommandHandler<MigrateLegacyBooksCommand, MigrateLegacyBooksResult>
 {
-    public const int MaxCount = 200;
+    public const int MaxCount = LegacyMigrationPlan.MaxCount;
 
     public async Task<Result<MigrateLegacyBooksResult>> Handle(MigrateLegacyBooksCommand command, CancellationToken cancellationToken)
     {
         Guard.Against.Null(command);
-        if (command.Count is < 1 or > MaxCount || command.UserId == Guid.Empty)
+        var plan = await LegacyMigrationPlan.CreateAsync(command.Count, command.UserId, libraryReadService, legacyLibrarySource, cancellationToken);
+        if (plan.IsFailure)
         {
-            return LegacyMigrationError.BadRequest;
+            return plan.Error!;
         }
 
-        var library = await libraryReadService.GetByNameAsync(LibraryConstants.ImportedName, command.UserId, cancellationToken);
-        if (library is null || library.BookType != LibraryBookType.Digital)
-        {
-            return LegacyMigrationError.ImportedLibraryNotFound;
-        }
-
-        var batch = legacyLibrarySource.GetFirstFiles(command.Count);
-        if (batch.IsFailure)
-        {
-            return batch.Error!;
-        }
-
+        var (library, batch) = plan.Value!;
         var ensured = importDirectoryStorage.EnsureExists(library.ImportDirectoryName);
         if (ensured.IsFailure)
         {
@@ -45,7 +33,7 @@ public sealed class MigrateLegacyBooksCommandHandler(
         }
 
         int moved = 0, skipped = 0, failed = 0;
-        foreach (var file in batch.Value!.Files)
+        foreach (var file in batch.Files)
         {
             switch (Deposit(library.ImportDirectoryName, file))
             {
@@ -62,7 +50,7 @@ public sealed class MigrateLegacyBooksCommandHandler(
         }
 
         logger.LogInformation("Legacy migration: {Moved} file(s) moved, {Skipped} skipped, {Failed} failed", moved, skipped, failed);
-        return new MigrateLegacyBooksResult(moved, skipped, failed, batch.Value.TotalCount - moved);
+        return new MigrateLegacyBooksResult(moved, skipped, failed, batch.TotalCount - moved);
     }
 
     private DepositOutcome Deposit(string importDirectoryName, string file)

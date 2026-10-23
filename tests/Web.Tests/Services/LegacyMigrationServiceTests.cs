@@ -13,7 +13,7 @@ public sealed class LegacyMigrationServiceTests
 {
     private static readonly Guid s_userId = Guid.CreateVersion7();
 
-    private readonly ICommandHandler<MigrateLegacyBooksCommand, MigrateLegacyBooksResult> _handler = Substitute.For<ICommandHandler<MigrateLegacyBooksCommand, MigrateLegacyBooksResult>>();
+    private readonly ICommandHandler<StartLegacyMigrationCommand, int> _handler = Substitute.For<ICommandHandler<StartLegacyMigrationCommand, int>>();
     private readonly ICurrentUserService _currentUserService = Substitute.For<ICurrentUserService>();
     private readonly LegacyMigrationService _service;
 
@@ -23,25 +23,24 @@ public sealed class LegacyMigrationServiceTests
     }
 
     [Fact]
-    public async Task MigrateAsync_Should_MigrateForTheCurrentUser()
+    public async Task StartAsync_Should_StartTheMigrationForTheCurrentUser()
     {
-        var moved = new MigrateLegacyBooksResult(20, 0, 0, 80);
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
-        _handler.Handle(new MigrateLegacyBooksCommand(20, s_userId), Arg.Any<CancellationToken>()).Returns(moved);
+        _handler.Handle(new StartLegacyMigrationCommand(20, s_userId), Arg.Any<CancellationToken>()).Returns(20);
 
-        var result = await _service.MigrateAsync(20, TestContext.Current.CancellationToken);
+        var result = await _service.StartAsync(20, TestContext.Current.CancellationToken);
 
-        result.Value.Should().Be(moved);
+        result.Value.Should().Be(20);
     }
 
     [Fact]
-    public async Task MigrateAsync_Should_ReturnTheError_WhenTheUserIsUnknown()
+    public async Task StartAsync_Should_ReturnTheError_WhenTheUserIsUnknown()
     {
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(UsersError.NotFound);
 
-        var result = await _service.MigrateAsync(20, TestContext.Current.CancellationToken);
+        var result = await _service.StartAsync(20, TestContext.Current.CancellationToken);
 
         result.Error.Should().Be(UsersError.NotFound);
-        await _handler.DidNotReceive().Handle(Arg.Any<MigrateLegacyBooksCommand>(), Arg.Any<CancellationToken>());
+        await _handler.DidNotReceive().Handle(Arg.Any<StartLegacyMigrationCommand>(), Arg.Any<CancellationToken>());
     }
 }

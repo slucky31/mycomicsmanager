@@ -11,19 +11,19 @@ public partial class LegacyMigrationCard
     [Inject] private ILogger<LegacyMigrationCard> Logger { get; set; } = default!;
 
     private int _count = 20;
-    private bool _isMoving;
+    private bool _isStarting;
 
     internal async Task MigrateAsync()
     {
-        if (_isMoving)
+        if (_isStarting)
         {
             return;
         }
 
-        _isMoving = true;
+        _isStarting = true;
         try
         {
-            var result = await LegacyMigrationService.MigrateAsync(_count);
+            var result = await LegacyMigrationService.StartAsync(_count);
             if (result.IsFailure)
             {
                 Snackbar.Add(result.Error?.Description ?? "Unable to move the books.", Severity.Error);
@@ -31,14 +31,12 @@ public partial class LegacyMigrationCard
             }
             else
             {
-                var moved = result.Value!;
-                Snackbar.Add($"{moved.Moved} book(s) moved, {moved.Skipped} skipped, {moved.Failed} failed. {moved.Remaining} left.",
-                    moved.Failed > 0 ? Severity.Warning : Severity.Success);
+                Snackbar.Add($"{result.Value} book(s) will be moved to the import folder in the background.", Severity.Success);
             }
         }
         finally
         {
-            _isMoving = false;
+            _isStarting = false;
         }
     }
 }

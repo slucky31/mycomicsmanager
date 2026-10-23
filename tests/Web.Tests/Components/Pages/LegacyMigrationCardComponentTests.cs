@@ -1,4 +1,3 @@
-using Application.ImportJobs.MigrateLegacy;
 using Bunit;
 using Domain.Errors;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,24 +24,24 @@ public sealed class LegacyMigrationCardComponentTests
     }
 
     [Fact]
-    public async Task MigrateAsync_Should_MoveTheChosenNumberOfBooks_AndShowTheOutcome()
+    public async Task MigrateAsync_Should_StartTheMoveOfTheChosenNumberOfBooks_InTheBackground()
     {
         var service = Substitute.For<ILegacyMigrationService>();
-        service.MigrateAsync(5, Arg.Any<CancellationToken>()).Returns(new MigrateLegacyBooksResult(5, 0, 0, 95));
+        service.StartAsync(5, Arg.Any<CancellationToken>()).Returns(5);
         var (ctx, cut, snackbar) = Render(service);
         await using var _ = ctx;
 
         await cut.Find(".legacy-migration-count").ChangeAsync(new() { Value = "5" });
         await cut.Find(".legacy-migration-button").ClickAsync(new());
 
-        snackbar.Received(1).Add("5 book(s) moved, 0 skipped, 0 failed. 95 left.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        snackbar.Received(1).Add("5 book(s) will be moved to the import folder in the background.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 
     [Fact]
     public async Task MigrateAsync_Should_ShowTheError_WhenTheMigrationFails()
     {
         var service = Substitute.For<ILegacyMigrationService>();
-        service.MigrateAsync(20, Arg.Any<CancellationToken>()).Returns(LegacyMigrationError.SourceNotFound);
+        service.StartAsync(20, Arg.Any<CancellationToken>()).Returns(LegacyMigrationError.SourceNotFound);
         var (ctx, cut, snackbar) = Render(service);
         await using var _ = ctx;
 

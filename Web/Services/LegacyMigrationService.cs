@@ -6,10 +6,10 @@ using Domain.Primitives;
 namespace Web.Services;
 
 public class LegacyMigrationService(
-    ICommandHandler<MigrateLegacyBooksCommand, MigrateLegacyBooksResult> migrateHandler,
+    ICommandHandler<StartLegacyMigrationCommand, int> startMigrationHandler,
     ICurrentUserService currentUserService) : ILegacyMigrationService
 {
-    public async Task<Result<MigrateLegacyBooksResult>> MigrateAsync(int count, CancellationToken cancellationToken = default)
+    public async Task<Result<int>> StartAsync(int count, CancellationToken cancellationToken = default)
     {
         var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
@@ -17,6 +17,6 @@ public class LegacyMigrationService(
             return userIdResult.Error!;
         }
 
-        return await migrateHandler.Handle(new MigrateLegacyBooksCommand(count, userIdResult.Value), cancellationToken);
+        return await startMigrationHandler.Handle(new StartLegacyMigrationCommand(count, userIdResult.Value), cancellationToken);
     }
 }

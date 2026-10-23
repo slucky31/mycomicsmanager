@@ -2,14 +2,14 @@
 
 <h2 class="legacy-migration-title">Old library</h2>
 <p class="legacy-migration-hint">
-    Moves the first books of the old library folder into the import folder of the "Imported" library, where they are imported.
+    Moves the first books of the old library folder into the import folder of the "Imported" library, where they are imported. The files are moved in the background.
 </p>
 
 <div class="legacy-migration">
     <label class="legacy-migration-label" for="legacy-migration-count">Books to move</label>
     <input id="legacy-migration-count" type="number" class="legacy-migration-count" min="1" max="@MigrateLegacyBooksCommandHandler.MaxCount"
-           @bind="_count" disabled="@_isMoving" />
-    <button type="button" class="legacy-migration-button" disabled="@_isMoving" @onclick="MigrateAsync">
-        @(_isMoving ? "Moving…" : "Move to import")
+           @bind="_count" disabled="@_isStarting" />
+    <button type="button" class="legacy-migration-button" disabled="@_isStarting" @onclick="MigrateAsync">
+        @(_isStarting ? "Starting…" : "Move to import")
     </button>
 </div>
