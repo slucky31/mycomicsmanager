@@ -59,10 +59,23 @@ public partial class ComicSearchService : IComicSearchService
         }
     }
 
-    public (string Title, string Serie, int VolumeNumber) ParseTitleInfo(string rawTitle, string? subtitle)
+    public (string Title, string Serie, int? VolumeNumber) ParseTitleInfo(IBookSearchResult result)
     {
-        var (serie, volumeNumber) = ParseVolumeAndSerie(rawTitle);
-        var title = string.IsNullOrEmpty(subtitle) ? serie : subtitle;
+        ArgumentNullException.ThrowIfNull(result);
+
+        // The source gives the series apart: the title is the one of the volume.
+        if (!string.IsNullOrWhiteSpace(result.Serie))
+        {
+            return (result.Title, result.Serie, result.VolumeNumber);
+        }
+
+        var (serie, volumeNumber) = ParseVolumeAndSerie(result.Title);
+        if (volumeNumber is null && NumberedTitlePattern().Match(result.Title) is { Success: true } numbered)
+        {
+            return (numbered.Groups["title"].Value.Trim(), numbered.Groups["serie"].Value.Trim(), SeriesHelper.ParseVolumeNumber(numbered.Groups["volume"].Value));
+        }
+
+        var title = string.IsNullOrEmpty(result.Subtitle) ? serie : result.Subtitle;
         return (title, serie, volumeNumber);
     }
 
@@ -185,7 +198,9 @@ public partial class ComicSearchService : IComicSearchService
 
     private ComicSearchResult MapBookResultSync(IBookSearchResult bookResult, string isbn, string imageUrl)
     {
-        var (title, serie, volumeNumber) = ParseTitleInfo(bookResult.Title, bookResult.Subtitle);
+        var (title, serie, parsedVolume) = ParseTitleInfo(bookResult);
+        // A book whose volume is not known is stored as the first one.
+        var volumeNumber = parsedVolume ?? 1;
         _logger.LogInformation("Found book: {Title} - {Serie} Vol.{Volume}", title, serie, volumeNumber);
         return new ComicSearchResult(
             Title: title,
@@ -313,14 +328,19 @@ public partial class ComicSearchService : IComicSearchService
     [GeneratedRegex(@"^(.+?)\s*#(\d+)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
     private static partial Regex HashPattern();
 
-    private static (string Serie, int VolumeNumber) ParseVolumeAndSerie(string fullTitle)
+    // "Les Schtroumpfs. 12, Le schtroumpfissime"
+    [GeneratedRegex(@"^(?<serie>.+?)\.\s+(?<volume>\d+)\s*,\s*(?<title>.+)$", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex NumberedTitlePattern();
+
+    // The volume is null when the title names none.
+    private static (string Serie, int? VolumeNumber) ParseVolumeAndSerie(string fullTitle)
     {
         if (string.IsNullOrWhiteSpace(fullTitle))
         {
-            return (string.Empty, 1);
+            return (string.Empty, null);
         }
 
-        var volumeNumber = 1;
+        int? volumeNumber = null;
         var serie = string.Empty;
 
         // Try each pattern in order until one matches

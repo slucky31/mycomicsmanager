@@ -11,13 +11,16 @@ using Microsoft.Extensions.Options;
 namespace Application.ComicInfoSearch;
 
 /// <summary>
-/// Searches the BnF catalogue through its SRU API and reads the Dublin Core record, e.g.
-/// title "Tangente / Céline Wagner", creator "Wagner, Céline (1975-....). Auteur du texte",
-/// publisher "des Ronds dans l'O (Vincennes)", format "1 vol. (82 p.) : ill.".
+/// Searches the BnF catalogue through its SRU API and reads the UNIMARC record: title (200),
+/// publisher and date (210/214), pages (215), series and volume (461, else 225) and authors (70x/71x).
 /// </summary>
 public partial class BnfCatalogueService : IBnfCatalogueService
 {
-    private static readonly XNamespace s_dc = "http://purl.org/dc/elements/1.1/";
+    private static readonly XNamespace s_marc = "info:lc/xmlns/marcxchange-v2";
+
+    // Authors in the order of their responsibility: main, joint, then secondary.
+    private static readonly string[] s_personTags = ["700", "701", "702"];
+    private static readonly string[] s_collectivityTags = ["710", "711", "712"];
 
     private readonly HttpClient _httpClient;
     private readonly BnfCatalogueSettings _settings;
@@ -31,10 +34,6 @@ public partial class BnfCatalogueService : IBnfCatalogueService
         _featureToggles = featureToggles;
         _logger = logger;
     }
-
-    // "Wagner, Céline (1975-....). Auteur du texte": the family name, the given names, then dates and role.
-    [GeneratedRegex(@"^(?<family>[^,(]+),\s*(?<given>[^(]+?)\s*(?:\(|\.\s|$)")]
-    private static partial Regex PersonPattern();
 
     [GeneratedRegex(@"(?<pages>\d+)\s*p\.")]
     private static partial Regex PagesPattern();
@@ -57,7 +56,7 @@ public partial class BnfCatalogueService : IBnfCatalogueService
         {
             var query = Uri.EscapeDataString($"bib.fuzzyISBN all \"{cleanIsbn}\"");
             var url = new Uri(_settings.BaseUrl,
-                $"/api/SRU?version=1.2&operation=searchRetrieve&query={query}&recordSchema=dublincore&maximumRecords=1");
+                $"/api/SRU?version=1.2&operation=searchRetrieve&query={query}&recordSchema=unimarcXchange&maximumRecords=1");
 
             _logger.LogInformation("Searching the BnF catalogue for ISBN: {Isbn}", cleanIsbn);
 
@@ -69,7 +68,7 @@ public partial class BnfCatalogueService : IBnfCatalogueService
             }
 
             var xml = await response.Content.ReadAsStringAsync(cancellationToken);
-            var record = XDocument.Parse(xml).Descendants(s_dc + "title").FirstOrDefault()?.Parent;
+            var record = XDocument.Parse(xml).Descendants(s_marc + "record").FirstOrDefault();
             if (record is null)
             {
                 _logger.LogWarning("No record found in the BnF catalogue for ISBN: {Isbn}", cleanIsbn);
@@ -97,49 +96,70 @@ public partial class BnfCatalogueService : IBnfCatalogueService
 
     private static BnfBookResult ParseRecord(XElement record)
     {
-        var (title, subtitle) = ParseTitle(Values(record, "title").FirstOrDefault() ?? string.Empty);
+        var titleField = Fields(record, "200").FirstOrDefault();
+        var title = FirstSubfield(titleField, "a") ?? string.Empty;
+        var (serie, volumeNumber) = ParseSerie(record);
+
+        // An old record names the volume in the title: "Les Schtroumpfs" $h "12" $i "Le schtroumpfissime".
+        var partName = FirstSubfield(titleField, "i");
+        if (partName is not null)
+        {
+            serie ??= title;
+            volumeNumber ??= SeriesHelper.ParseVolumeNumber(FirstSubfield(titleField, "h"));
+            title = partName;
+        }
+
+        var publication = Fields(record, "210").Concat(Fields(record, "214")).ToList();
 
         return new BnfBookResult(
             Title: title,
-            Subtitle: subtitle,
-            Authors: [.. Values(record, "creator").Concat(Values(record, "contributor")).Select(ToPersonName).Distinct(StringComparer.Ordinal)],
-            Publishers: [.. Values(record, "publisher").Select(StripTrailingPlace).Distinct(StringComparer.Ordinal)],
-            PublishDate: ParseYear(Values(record, "date").FirstOrDefault()),
-            NumberOfPages: ParsePages(Values(record, "format").FirstOrDefault()),
+            Subtitle: FirstSubfield(titleField, "e"),
+            Authors: [.. ParseAuthors(record)],
+            Publishers: [.. publication.SelectMany(field => Subfields(field, "c")).Distinct(StringComparer.Ordinal)],
+            PublishDate: ParseYear(publication.SelectMany(field => Subfields(field, "d")).FirstOrDefault()),
+            NumberOfPages: ParsePages(Fields(record, "215").Select(field => FirstSubfield(field, "a")).FirstOrDefault()),
             CoverUrl: null,
-            Found: !string.IsNullOrWhiteSpace(title));
+            Found: !string.IsNullOrWhiteSpace(title),
+            Serie: serie,
+            VolumeNumber: volumeNumber);
     }
 
-    private static IEnumerable<string> Values(XElement record, string name) =>
-        record.Elements(s_dc + name).Select(e => e.Value.Trim()).Where(v => v.Length > 0);
-
-    // "Tangente / Céline Wagner" → "Tangente"; "Titre : sous-titre / Auteur" → ("Titre", "sous-titre").
-    internal static (string Title, string? Subtitle) ParseTitle(string value)
+    // The series the book belongs to (461), else the series statement (225), with its volume ("[6]").
+    private static (string? Serie, int? VolumeNumber) ParseSerie(XElement record)
     {
-        var withoutResponsibility = value.Split(" / ", 2)[0].Trim();
-        var parts = withoutResponsibility.Split(" : ", 2);
-        return parts.Length == 2 ? (parts[0].Trim(), parts[1].Trim()) : (withoutResponsibility, null);
+        var link = Fields(record, "461").FirstOrDefault();
+        var field = link ?? Fields(record, "225").FirstOrDefault();
+        var serie = FirstSubfield(field, link is null ? "a" : "t");
+        return serie is null ? (null, null) : (serie, SeriesHelper.ParseVolumeNumber(FirstSubfield(field, "v")));
     }
 
-    // "Wagner, Céline (1975-....). Auteur du texte" → "Céline Wagner"; a collectivity is kept as written.
-    internal static string ToPersonName(string value)
+    // "Tardi" $b "Jacques" → "Jacques Tardi"; a collectivity is kept as written.
+    private static IEnumerable<string> ParseAuthors(XElement record)
     {
-        var match = PersonPattern().Match(value);
-        if (match.Success)
+        var persons = s_personTags.SelectMany(tag => Fields(record, tag)).Select(field =>
         {
-            return $"{match.Groups["given"].Value.Trim()} {match.Groups["family"].Value.Trim()}";
-        }
+            var family = FirstSubfield(field, "a");
+            var given = FirstSubfield(field, "b");
+            return given is null ? family : $"{given} {family}";
+        });
+        var collectivities = s_collectivityTags.SelectMany(tag => Fields(record, tag)).Select(field => FirstSubfield(field, "a"));
 
-        var end = value.IndexOfAny(['(', '.']);
-        return (end > 0 ? value[..end] : value).Trim();
+        return persons.Concat(collectivities).OfType<string>().Distinct(StringComparer.Ordinal);
     }
 
-    // "des Ronds dans l'O (Vincennes)" → "des Ronds dans l'O".
-    internal static string StripTrailingPlace(string value)
-    {
-        var open = value.LastIndexOf(" (", StringComparison.Ordinal);
-        return open > 0 && value.EndsWith(')') ? value[..open].Trim() : value;
-    }
+    private static IEnumerable<XElement> Fields(XElement record, string tag) =>
+        record.Elements(s_marc + "datafield").Where(field => (string?)field.Attribute("tag") == tag);
+
+    // The BnF marks the articles to skip when sorting with control characters ("\u0098Le \u009CNoyé").
+    private static IEnumerable<string> Subfields(XElement? field, string code) =>
+        field is null
+            ? []
+            : field.Elements(s_marc + "subfield")
+                .Where(subfield => (string?)subfield.Attribute("code") == code)
+                .Select(subfield => new string([.. subfield.Value.Where(c => !char.IsControl(c))]).Trim())
+                .Where(value => value.Length > 0);
+
+    private static string? FirstSubfield(XElement? field, string code) => Subfields(field, code).FirstOrDefault();
 
     // Convention of the application: a year alone is stored as January 1st of that year.
     private static DateOnly? ParseYear(string? value)

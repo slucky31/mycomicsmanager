@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Application.Helpers;
@@ -73,15 +74,21 @@ public class OpenLibraryService : IOpenLibraryService
 
             _logger.LogInformation("Found book: {Title} by {Authors}", bookData.Title, string.Join(", ", authors));
 
+            var (serie, volumeNumber) = bookData.Series is { Count: > 0 }
+                ? SeriesHelper.ParseSerie(ToComposedForm(bookData.Series[0]))
+                : (null as string, null as int?);
+
             return new OpenLibraryBookResult(
-                Title: bookData.Title ?? string.Empty,
-                Subtitle: bookData.Subtitle,
+                Title: ToComposedForm(bookData.Title ?? string.Empty),
+                Subtitle: bookData.Subtitle is null ? null : ToComposedForm(bookData.Subtitle),
                 Authors: authors,
-                Publishers: bookData.Publishers ?? [],
+                Publishers: [.. (bookData.Publishers ?? []).Select(ToComposedForm)],
                 PublishDate: PublishDateHelper.ParsePublishDate(bookData.PublishDate, _logger),
                 NumberOfPages: bookData.NumberOfPages,
                 CoverUrl: coverUrl,
-                Found: true
+                Found: true,
+                Serie: serie,
+                VolumeNumber: volumeNumber
             );
         }
         catch (HttpRequestException ex)
@@ -122,7 +129,7 @@ public class OpenLibraryService : IOpenLibraryService
 
                 if (authorData?.Name is not null)
                 {
-                    authorNames.Add(authorData.Name);
+                    authorNames.Add(ToComposedForm(authorData.Name));
                 }
             }
             catch (HttpRequestException ex)
@@ -141,6 +148,10 @@ public class OpenLibraryService : IOpenLibraryService
 
         return authorNames;
     }
+
+    // OpenLibrary may send "é" as "e" followed by a combining accent: it would not match the same
+    // text from another source.
+    private static string ToComposedForm(string value) => value.Normalize(NormalizationForm.FormC);
 
     private static OpenLibraryBookResult CreateFailedResult() => CreateNotFoundResult() with { Failed = true };
 
@@ -169,7 +180,8 @@ public class OpenLibraryService : IOpenLibraryService
         [property: JsonPropertyName("publishers")] IReadOnlyList<string>? Publishers,
         [property: JsonPropertyName("publish_date")] string? PublishDate,
         [property: JsonPropertyName("number_of_pages")] int? NumberOfPages,
-        [property: JsonPropertyName("covers")] IReadOnlyList<long>? Covers
+        [property: JsonPropertyName("covers")] IReadOnlyList<long>? Covers,
+        [property: JsonPropertyName("series")] IReadOnlyList<string>? Series
     );
 
     private sealed record OpenLibraryAuthorRef(

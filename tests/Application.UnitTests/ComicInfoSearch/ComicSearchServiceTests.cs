@@ -194,6 +194,40 @@ public sealed class ComicSearchServiceTests
         result.Title.Should().Be(subtitle);
     }
 
+    private static OpenLibraryBookResult OpenLibraryBook(string title, string? subtitle = null, string? serie = null, int? volumeNumber = null) =>
+        new(title, subtitle, [], [], null, null, null, Found: true, Serie: serie, VolumeNumber: volumeNumber);
+
+    [Fact]
+    public void ParseTitleInfo_Should_KeepTheTitle_WhenTheSourceGivesTheSeriesApart()
+    {
+        var book = OpenLibraryBook("Le Noyé à deux têtes", subtitle: "Un sous-titre", serie: "Les Aventures extraordinaires d'Adèle Blanc-Sec", volumeNumber: 6);
+
+        _sut.ParseTitleInfo(book).Should().Be(("Le Noyé à deux têtes", "Les Aventures extraordinaires d'Adèle Blanc-Sec", (int?)6));
+    }
+
+    [Theory]
+    [InlineData("Les Schtroumpfs. 12, Le schtroumpfissime", "Le schtroumpfissime", "Les Schtroumpfs", 12)]
+    [InlineData("Soda, tome 3", "Soda", "Soda", 3)]
+    [InlineData("Le Noyé à deux têtes", "Le Noyé à deux têtes", "Le Noyé à deux têtes", null)]
+    public void ParseTitleInfo_Should_ReadTheSeriesFromTheTitle_WhenTheSourceGivesNoSeries(string rawTitle, string title, string serie, int? volumeNumber)
+    {
+        _sut.ParseTitleInfo(OpenLibraryBook(rawTitle)).Should().Be((title, serie, volumeNumber));
+    }
+
+    [Fact]
+    public async Task SearchByIsbnAsync_Should_StoreTheBookAsTheFirstVolume_WhenTheSourceGivesASeriesWithoutVolume()
+    {
+        const string isbn = "220330507X";
+        _openLibraryService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>())
+            .Returns(OpenLibraryBook("Le Noyé à deux têtes", serie: "Les Aventures extraordinaires d'Adèle Blanc-Sec"));
+
+        var result = await _sut.SearchByIsbnAsync(isbn, TestContext.Current.CancellationToken);
+
+        result.Serie.Should().Be("Les Aventures extraordinaires d'Adèle Blanc-Sec");
+        result.Title.Should().Be("Le Noyé à deux têtes");
+        result.VolumeNumber.Should().Be(1);
+    }
+
     [Fact]
     public async Task SearchByIsbnAsync_ShouldUploadCoverToCloudinary_WhenCoverUrlIsProvided()
     {

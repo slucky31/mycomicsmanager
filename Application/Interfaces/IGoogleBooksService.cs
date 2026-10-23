@@ -12,7 +12,9 @@ public record GoogleBooksBookResult(
     IReadOnlyList<string> Categories,
     string? Language,
     bool Found,
-    bool Failed = false
+    bool Failed = false,
+    string? Serie = null,
+    int? VolumeNumber = null
 ) : IBookSearchResult;
 
 public interface IGoogleBooksService
