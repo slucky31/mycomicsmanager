@@ -19,8 +19,10 @@ public sealed partial class BookDetail : IDisposable
     [Inject] private PopupAnchorLocator PopupAnchorLocator { get; set; } = default!;
     [Inject] private ILogger<BookDetail> Logger { get; set; } = default!;
     [Inject] private IIsbnScanService IsbnScanService { get; set; } = default!;
+    [Inject] private IBookReaderService BookReaderService { get; set; } = default!;
 
     public static readonly string Msg_LoadFailed = "Unable to load the book";
+    public static readonly string Msg_StartOverFailed = "Unable to reset the reading progress";
 
     private const string ActionsButtonId = "book-actions";
 
@@ -37,6 +39,7 @@ public sealed partial class BookDetail : IDisposable
     private bool _isAddingReading;
     private bool _isMoving;
     private bool _isScanningIsbn;
+    private bool _isStartingOver;
     private bool _actionsOpen;
     private PopupAnchor? _sheetAnchor;
 
@@ -130,6 +133,40 @@ public sealed partial class BookDetail : IDisposable
         finally
         {
             _isAddingReading = false;
+        }
+    }
+
+    // The next reading starts again from the first page; the readings are kept.
+    private async Task StartOverAsync()
+    {
+        if (_book is null || _isStartingOver)
+        {
+            return;
+        }
+
+        _isStartingOver = true;
+        try
+        {
+            var result = await BookReaderService.SaveProgressAsync(_book.Id, 0, _disposalCts.Token);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Reading progress reset", Severity.Success);
+                await LoadBookAsync();
+            }
+            else
+            {
+                Snackbar.Add(Msg_StartOverFailed, Severity.Error);
+                Logger.LogError("Unable to reset the reading progress of book {BookId}: {Error}", BookId, result.Error?.Code);
+            }
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Snackbar.Add(Msg_StartOverFailed, Severity.Error);
+            Logger.LogError(ex, "Unexpected error while resetting the reading progress of book {BookId}", BookId);
+        }
+        finally
+        {
+            _isStartingOver = false;
         }
     }
 

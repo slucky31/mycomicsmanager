@@ -26,6 +26,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
     private readonly IBookMoveWorkflow _moveWorkflow = Substitute.For<IBookMoveWorkflow>();
     private readonly IDialogService _dialogService = Substitute.For<IDialogService>();
     private readonly ISnackbar _snackbar = Substitute.For<ISnackbar>();
+    private readonly IBookReaderService _readerService = Substitute.For<IBookReaderService>();
     private readonly BunitJSModuleInterop _module;
     private readonly Library _library = Library.Create("Read Books", "#2E7D32", "Star", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
 
@@ -40,6 +41,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_dialogService);
         _ctx.Services.AddSingleton(_snackbar);
         _ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
+        _ctx.Services.AddSingleton(_readerService);
         _ctx.Services.AddScoped<PopupAnchorLocator>();
         _librariesService.GetById(Arg.Any<string?>()).Returns(Result<Library>.Success(_library));
     }
@@ -111,6 +113,60 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
         cut.FindAll(".book-action").Select(a => a.TextContent).Should().Equal("Import info", "Find ISBN", "CBZ", "Move");
         cut.Find("a.book-action[download]").GetAttribute("href").Should().Be($"/api/books/{book.Id}/download");
         cut.Find(".book-history-empty").TextContent.Should().Be("Not read yet");
+    }
+
+    [Fact]
+    public async Task LoadBookAsync_Should_NotOfferToStartOver_WhenTheDigitalBookWasNeverOpened()
+    {
+        var cut = await RenderAsync(DigitalBook());
+
+        cut.Find(".book-primary-text").TextContent.Trim().Should().Be("Read");
+        cut.FindAll(".book-start-over").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task StartOverAsync_Should_ResetTheProgressAndReloadTheBook()
+    {
+        var book = DigitalBook();
+        book.UpdateReadingProgress(27);
+        var cut = await RenderAsync(book);
+        _readerService.SaveProgressAsync(book.Id, 0, Arg.Any<CancellationToken>())
+            .Returns(_ => { book.UpdateReadingProgress(0); return Result.Success(); });
+
+        await cut.Find(".book-start-over").ClickAsync(new());
+
+        await _readerService.Received(1).SaveProgressAsync(book.Id, 0, Arg.Any<CancellationToken>());
+        ShouldShow("Reading progress reset", Severity.Success);
+        cut.Find(".book-primary-text").TextContent.Trim().Should().Be("Read");
+        cut.FindAll(".book-start-over").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task StartOverAsync_Should_KeepTheProgressAndShowAnError_WhenSavingFails()
+    {
+        var book = DigitalBook();
+        book.UpdateReadingProgress(27);
+        var cut = await RenderAsync(book);
+        _readerService.SaveProgressAsync(book.Id, 0, Arg.Any<CancellationToken>()).Returns(Result.Failure(BooksError.NotFound));
+
+        await cut.Find(".book-start-over").ClickAsync(new());
+
+        ShouldShow(BookDetail.Msg_StartOverFailed, Severity.Error);
+        await _booksService.Received(1).GetById(book.Id.ToString());
+        cut.Find(".book-start-over").HasAttribute("disabled").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task StartOverAsync_Should_ShowAnError_WhenSavingThrows()
+    {
+        var book = DigitalBook();
+        book.UpdateReadingProgress(27);
+        var cut = await RenderAsync(book);
+        _readerService.SaveProgressAsync(book.Id, 0, Arg.Any<CancellationToken>()).ThrowsAsync(new InvalidOperationException());
+
+        await cut.Find(".book-start-over").ClickAsync(new());
+
+        ShouldShow(BookDetail.Msg_StartOverFailed, Severity.Error);
     }
 
     [Fact]

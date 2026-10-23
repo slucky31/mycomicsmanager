@@ -31,6 +31,7 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_booksService);
         _ctx.Services.AddSingleton(Substitute.For<IBookMoveWorkflow>());
         _ctx.Services.AddSingleton(_isbnScanService);
+        _ctx.Services.AddSingleton(Substitute.For<IBookReaderService>());
         _ctx.Services.AddSingleton(_snackbar);
         var librariesService = Substitute.For<ILibrariesService>();
         librariesService.GetById(Arg.Any<string?>()).Returns(Result<Domain.Libraries.Library>.Failure(Domain.Libraries.LibrariesError.NotFound));

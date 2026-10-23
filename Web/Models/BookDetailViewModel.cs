@@ -43,6 +43,9 @@ public sealed record BookDetailViewModel
     // Width of the progress bar, null when the progress is unknown.
     public int? ReadProgressPercent { get; init; }
 
+    // A started digital book can go back to its first page.
+    public bool CanStartOver => ReadProgressLabel is not null;
+
     public string? Isbn { get; init; }
     public IsbnScanState IsbnScanState { get; init; } = IsbnScanState.HasIsbn;
     public IReadOnlyList<string> IsbnCandidates { get; init; } = [];
