@@ -1,0 +1,11 @@
+<h2 class="comicinfo-sync-title">ComicInfo.xml</h2>
+<p class="comicinfo-sync-hint">
+    Writes the series, title, volume, authors, publisher, date and ISBN of your digital books into the ComicInfo.xml of their archive.
+    The other information of the file is kept.
+</p>
+
+<div class="comicinfo-sync">
+    <button type="button" class="comicinfo-sync-button" disabled="@_isStarting" @onclick="StartAsync">
+        @(_isStarting ? "Starting…" : "Update ComicInfo.xml")
+    </button>
+</div>
