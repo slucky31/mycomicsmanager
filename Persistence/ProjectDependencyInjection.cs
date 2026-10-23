@@ -1,8 +1,9 @@
-using Application.Books.IsbnScan;
+﻿using Application.Books.IsbnScan;
 using Application.ComicInfoSearch;
 using Application.ImportJobs;
 using Application.Interfaces;
 using Application.Libraries;
+using Application.Series;
 using Application.Users;
 using Domain.Books;
 using Domain.Libraries;
@@ -42,12 +43,14 @@ public static class ProjectDependencyInjection
         services.AddScoped<IImportJobRepository, ImportJobRepository>();
         services.AddScoped<IFeedImportDecisionRepository, FeedImportDecisionRepository>();
         services.AddScoped<IFeatureToggleOverrideRepository, FeatureToggleOverrideRepository>();
+        services.AddScoped<ISeriesInfoRepository, SeriesInfoRepository>();
 
         services.AddScoped<ILibraryReadService, LibraryReadService>();
         services.AddScoped<IUserReadService, UserReadService>();
         services.AddScoped<IBookReadService, BookReadService>();
         services.AddScoped<IStatisticsReadService, StatisticsReadService>();
         services.AddScoped<IFeedImportDecisionReadService, FeedImportDecisionReadService>();
+        services.AddScoped<ISeriesReadService, SeriesReadService>();
 
         services.AddScoped<ILibraryLocalStorage>(provider => new LibraryLocalStorage(rootPath));
         services.AddScoped<IImportDirectoryStorage, ImportDirectoryStorage>();

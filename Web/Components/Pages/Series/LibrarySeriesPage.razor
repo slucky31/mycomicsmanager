@@ -1,0 +1,56 @@
+@page "/libraries/{LibraryId:guid}/series"
+
+<PageTitle>@(_libraryName ?? "Series") — MyComicsManager</PageTitle>
+
+<div class="series-page">
+    <PageBar BackHref="@($"/libraries/{LibraryId}")" BackLabel="Back to the books" Title="@_libraryName" Subtitle="@Subtitle">
+        <MudIconButton Icon="@Icons.Material.Filled.PlaylistRemove" Href="@SerieDisplay.MissingVolumesHref" aria-label="Missing volumes" />
+    </PageBar>
+
+    @if (_isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
+    }
+    else if (_series.Count == 0)
+    {
+        <div class="series-empty">
+            <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" Style="font-size: 64px; opacity: 0.4;" />
+            <MudText Typo="Typo.h6" Class="mt-4">No series in this library yet</MudText>
+        </div>
+    }
+    else
+    {
+        <div class="series-filters" role="group" aria-label="Show the series">
+            <FilterChip Text="@($"All · {_series.Count}")" Selected="@(_filter == SeriesFilter.All)" OnClick="() => _filter = SeriesFilter.All" />
+            <FilterChip Text="@($"Incomplete · {CountOf(SeriesFilter.Incomplete)}")" Selected="@(_filter == SeriesFilter.Incomplete)" OnClick="() => _filter = SeriesFilter.Incomplete" />
+            <FilterChip Text="@($"Complete · {CountOf(SeriesFilter.Complete)}")" Selected="@(_filter == SeriesFilter.Complete)" OnClick="() => _filter = SeriesFilter.Complete" />
+        </div>
+
+        <div class="series-grid">
+            @foreach (var serie in _series.Where(s => s.Matches(_filter)))
+            {
+                <a @key="serie.Href" class="serie-card" href="@serie.Href">
+                    <span class="serie-stack">
+                        <span class="serie-stack-back serie-stack-back-far" aria-hidden="true"></span>
+                        <span class="serie-stack-back" aria-hidden="true"></span>
+                        @if (!string.IsNullOrEmpty(serie.Cover))
+                        {
+                            <img class="serie-cover" src="@serie.Cover" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span class="serie-cover serie-cover-placeholder" aria-hidden="true">@serie.Name</span>
+                        }
+                        <span class="serie-count">@serie.CountLabel</span>
+                        @if (serie.Badge is not null)
+                        {
+                            <span class="@(serie.BadgeKind == SerieBadgeKind.Complete ? "serie-badge serie-badge-complete" : "serie-badge serie-badge-missing")">@serie.Badge</span>
+                        }
+                    </span>
+                    <span class="serie-name">@serie.Name</span>
+                    <span class="serie-detail">@serie.Detail</span>
+                </a>
+            }
+        </div>
+    }
+</div>

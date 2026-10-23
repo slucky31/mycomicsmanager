@@ -1,0 +1,138 @@
+.series-page {
+    min-height: 100dvh;
+    background: #F4F4F6;
+    color: #1B1D24;
+}
+
+@media (max-width: 959.98px) {
+    .series-page {
+        min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+.series-filters {
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px 4px;
+    overflow-x: auto;
+}
+
+.series-empty {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+}
+
+/* ── Cards: a stack of covers, then the name and what is owned ── */
+.series-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 14px;
+    padding: 12px 16px 16px;
+}
+
+@media (min-width: 600px) {
+    .series-grid {
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    }
+}
+
+.serie-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    color: #1B1D24;
+    text-decoration: none;
+}
+
+.serie-stack {
+    position: relative;
+    display: block;
+    /* The front cover is 2:3, drawn 12px in from the two covers behind it. */
+    aspect-ratio: 2 / 3;
+    margin: 0 12px 12px 0;
+}
+
+.serie-stack-back {
+    position: absolute;
+    inset: 6px -6px -6px 6px;
+    border-radius: 6px;
+    background: #8D84E8;
+}
+
+.serie-stack-back-far {
+    inset: 12px -12px -12px 12px;
+    background: #C6C1F3;
+}
+
+.serie-cover {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    object-fit: cover;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.serie-cover-placeholder {
+    box-sizing: border-box;
+    padding: 10px;
+    overflow: hidden;
+    background: #594AE2;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.serie-count,
+.serie-badge {
+    position: absolute;
+    height: 22px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    border-radius: 11px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.serie-count {
+    left: 6px;
+    bottom: 6px;
+    background: #131B2C;
+    color: #ffffff;
+}
+
+.serie-badge {
+    right: 6px;
+    top: 6px;
+}
+
+.serie-badge-complete {
+    background: #DCE7FF;
+    color: #1F3F8F;
+}
+
+.serie-badge-missing {
+    background: #FFE2C7;
+    color: #8A3B00;
+}
+
+.serie-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.serie-detail {
+    font-size: 12px;
+    color: #5C6070;
+}

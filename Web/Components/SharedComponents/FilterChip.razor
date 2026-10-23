@@ -1,0 +1,2 @@
+@* A chip of a row of filters: one is chosen at a time (#1205). *@
+<button type="button" class="@(Selected ? "filter-chip filter-chip-selected" : "filter-chip")" aria-pressed="@(Selected ? "true" : "false")" @onclick="OnClick">@Text</button>

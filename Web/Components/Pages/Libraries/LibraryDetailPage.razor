@@ -138,6 +138,8 @@
                      Selected="@(_currentViewMode == ViewMode.Covers)" OnClick="() => ChooseViewMode(ViewMode.Covers)" />
     <ActionSheetItem Icon="@Icons.Material.Filled.ViewList" Text="List" Description="Title, series, authors, rating"
                      Selected="@(_currentViewMode == ViewMode.List)" OnClick="() => ChooseViewMode(ViewMode.List)" />
+    <ActionSheetItem Icon="@Icons.Material.Filled.CollectionsBookmark" Text="Series" Description="One card per series, what is missing"
+                     Href="@SerieDisplay.SeriesHref(_libraryGuid)" />
 </ActionSheet>
 
 <ActionSheet Open="@(_openSheet == LibrarySheet.AddBook)" AriaLabel="Add a book" Anchor="@_sheetAnchor" AlignEnd="true" OnClose="CloseSheet">

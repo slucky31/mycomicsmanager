@@ -1,0 +1,19 @@
+.filter-chip {
+    flex-shrink: 0;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 18px;
+    border: 1px solid #C9CBD6;
+    background: #ffffff;
+    color: #1B1D24;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.filter-chip-selected {
+    border-color: #594AE2;
+    background: #594AE2;
+    color: #ffffff;
+    font-weight: 500;
+}

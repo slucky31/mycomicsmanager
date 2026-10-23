@@ -1,7 +1,8 @@
-using Domain.Books;
+﻿using Domain.Books;
 using Domain.FeedImports;
 using Domain.ImportJobs;
 using Domain.Libraries;
+using Domain.Series;
 using Domain.Settings;
 using Domain.Users;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
@@ -33,6 +34,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<FeedImportDecisionEvent> FeedImportDecisionEvents => Set<FeedImportDecisionEvent>();
 
     public DbSet<FeatureToggleOverride> FeatureToggleOverrides => Set<FeatureToggleOverride>();
+
+    public DbSet<SeriesInfo> SeriesInfos => Set<SeriesInfo>();
 
     // ASP.NET Core Data Protection key ring: kept in the database so the auth cookies survive a redeploy.
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
@@ -106,6 +109,16 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<FeatureToggleOverride>().ToTable("FeatureToggleOverrides");
             modelBuilder.Entity<FeatureToggleOverride>().Property(o => o.Toggle).HasConversion<string>().HasMaxLength(64);
             modelBuilder.Entity<FeatureToggleOverride>().HasIndex(o => o.Toggle).IsUnique();
+
+            modelBuilder.Entity<SeriesInfo>().ToTable("SeriesInfos");
+            modelBuilder.Entity<SeriesInfo>().Property(s => s.Name).HasMaxLength(SeriesConstants.MaxNameLength);
+            modelBuilder.Entity<SeriesInfo>().Property(s => s.NormalizedName).HasMaxLength(SeriesConstants.MaxNameLength);
+            modelBuilder.Entity<SeriesInfo>().HasIndex(s => new { s.LibraryId, s.NormalizedName }).IsUnique();
+            modelBuilder.Entity<SeriesInfo>()
+                .HasOne<Library>()
+                .WithMany()
+                .HasForeignKey(s => s.LibraryId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 

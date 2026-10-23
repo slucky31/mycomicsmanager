@@ -247,6 +247,7 @@ builder.Services.AddScoped<IIsbnScanService, IsbnScanService>();
 builder.Services.AddScoped<IComicInfoSyncService, ComicInfoSyncService>();
 builder.Services.AddScoped<IArchiveRefreshService, ArchiveRefreshService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<ISeriesService, SeriesService>();
 builder.Services.AddScoped<ImportJobHandlers>();
 builder.Services.AddScoped<ProcessImportJobRepositories>();
 builder.Services.AddScoped<ProcessImportJobFileProcessors>();
