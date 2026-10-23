@@ -37,6 +37,6 @@ EXPOSE 8080
 WORKDIR /app
 COPY --from=build /app .
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -fsS http://localhost:8080/health || exit 1
+    CMD curl -fsS http://localhost:8080/health/live || exit 1
 USER $APP_UID
 ENTRYPOINT ["./Web"]

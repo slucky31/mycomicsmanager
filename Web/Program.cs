@@ -9,12 +9,9 @@ using Ardalis.GuardClauses;
 using Auth0.AspNetCore.Authentication;
 using Hangfire;
 using Hangfire.PostgreSql;
-using HealthChecks.ApplicationStatus.DependencyInjection;
-using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -223,18 +220,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStat
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 // Config HealthChecks
-// One singleton cache per check, shared across calls, so third-party APIs (Cloudinary,
-// Debrid-Link, Miniflux) aren't re-pinged on every hit; the checks themselves stay at
-// AddCheck<T>'s default lifetime since they depend on scoped/transient services.
-builder.Services.AddSingleton(typeof(HealthCheckResultCache<>));
-builder.Services
-    .AddHealthChecks()
-    .AddApplicationStatus()
-    .AddNpgSql(connectionString)
-    .AddCheck<ImportDirectoryHealthCheck>("import-directory")
-    .AddCheck<CloudinaryHealthCheck>("cloudinary")
-    .AddCheck<DebridLinkHealthCheck>("debrid-link")
-    .AddCheck<MinifluxHealthCheck>("miniflux");
+builder.Services.AddAppHealthChecks(connectionString);
 
 // Config MudBlazor Services
 builder.Services.AddMudServices(config =>
@@ -363,10 +349,7 @@ app.RegisterAccountEndpoints();
 // Register Books download endpoint
 app.RegisterBooksEndpoints();
 
-app.MapHealthChecks("/health", new HealthCheckOptions
-{
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-});
+app.MapAppHealthChecks();
 
 StartupInfo.Print(app.Services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(StartupInfo)));
 
