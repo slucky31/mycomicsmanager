@@ -20,6 +20,12 @@ internal sealed class LegacyLibrarySource(string directory) : ILegacyLibrarySour
         var files = Directory.EnumerateFiles(directory)
             .Order(StringComparer.Ordinal)
             .ToList();
+        // Docker creates an empty folder when the host path of the volume does not exist.
+        if (files.Count == 0)
+        {
+            return LegacyMigrationError.SourceEmpty;
+        }
+
         return new LegacyLibraryBatch([.. files.Take(Math.Max(count, 0))], files.Count);
     }
 }
