@@ -1,14 +1,16 @@
 /*
  * SyncComicInfo — one-shot tool
  * ------------------------------------
- * Usage:
- *   dotnet run --project scripts/SyncComicInfo -- \
- *       --connection "Host=...;Database=...;Username=...;Password=..." \
- *       --root "/path/to/libraries" \
- *       [--dry-run]
+ * The book file paths are read from the database: the tool must see them as the application does,
+ * so it runs inside the application's container, which already holds the ConnectionStrings__DefaultConnection
+ * and LocalStorage__RootPath env vars (--connection and --root override them):
  *
- * The ConnectionStrings__Default and LocalStorage__RootPath env vars can be used instead of
- * --connection and --root respectively.
+ *   dotnet publish scripts/SyncComicInfo -c Release -r linux-arm64 --self-contained false -o ./sync-comicinfo
+ *     (linux-x64 on an x64 host; without -r the native libraries of every platform make it ~500 MB)
+ *   docker cp ./sync-comicinfo <container>:/tmp/sync-comicinfo
+ *   docker exec <container> dotnet /tmp/sync-comicinfo/SyncComicInfo.dll --dry-run
+ *   docker exec <container> dotnet /tmp/sync-comicinfo/SyncComicInfo.dll
+ *   docker exec <container> rm -rf /tmp/sync-comicinfo
  *
  * The tool writes the metadata of every digital book (as stored in the database) into the
  * ComicInfo.xml of its CBZ, the same way saving a book does since the edit keeps them in sync:
@@ -16,9 +18,6 @@
  *     when the book has no value;
  *   - PageCount is set when the book knows it;
  *   - every other element of the existing ComicInfo.xml (Summary, Penciller, Genre...) is kept.
- *
- * The book file paths are read from the database: the tool must run where those paths exist
- * (the same mount point as the application), and --root must be the application's LocalStorage:RootPath.
  */
 
 using Application;
@@ -58,12 +57,12 @@ var config = new ConfigurationBuilder()
     .AddEnvironmentVariables()
     .Build();
 
-connectionString ??= config.GetConnectionString("Default");
+connectionString ??= config.GetConnectionString("DefaultConnection");
 rootPath ??= config["LocalStorage:RootPath"];
 
 if (string.IsNullOrEmpty(connectionString))
 {
-    await Console.Error.WriteLineAsync("ERROR: --connection or ConnectionStrings__Default env var is required.");
+    await Console.Error.WriteLineAsync("ERROR: --connection or ConnectionStrings__DefaultConnection env var is required.");
     return 1;
 }
 
