@@ -263,6 +263,8 @@ builder.Services.AddScoped<IComicInfoSyncOrchestrator, ComicInfoSyncOrchestrator
 builder.Services.AddSingleton<IComicInfoSyncJobEnqueuer, HangfireComicInfoSyncJobEnqueuer>();
 builder.Services.AddScoped<IArchiveRefreshOrchestrator, ArchiveRefreshOrchestrator>();
 builder.Services.AddSingleton<IArchiveRefreshJobEnqueuer, HangfireArchiveRefreshJobEnqueuer>();
+builder.Services.AddScoped<ILegacyMigrationOrchestrator, LegacyMigrationOrchestrator>();
+builder.Services.AddSingleton<ILegacyMigrationJobEnqueuer, HangfireLegacyMigrationJobEnqueuer>();
 builder.Services.AddHostedService<FileWatcherService>();
 builder.Services.AddHostedService<LibraryIconsWarmupService>();
 
