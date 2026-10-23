@@ -1,4 +1,5 @@
 using System.Reflection;
+using Application.Books;
 using Application.Books.Update;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
@@ -40,8 +41,8 @@ public class UpdateBookCommandHandlerTests
         _comicInfoWriterMock.WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock,
-            _comicInfoWriterMock, NullLogger<UpdateBookCommandHandler>.Instance);
+        _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _libraryRepositoryMock,
+            new BookSaver(_bookRepositoryMock, _unitOfWorkMock, _comicInfoWriterMock, NullLogger<BookSaver>.Instance));
     }
 
     private static readonly Guid s_testLibraryId = s_libraryId;

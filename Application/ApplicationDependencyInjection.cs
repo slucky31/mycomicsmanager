@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.Books;
 using Application.ComicInfoSearch;
 using Application.FeedImports.Analysis;
 using Application.FeedImports.Analysis.Sites;
@@ -22,6 +23,7 @@ public static class ApplicationDependencyInjection
             .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<,>)), publicOnly: false).AsImplementedInterfaces().WithScopedLifetime()
         );
 
+        services.AddScoped<BookSaver>();
         services.AddScoped<BookCatalogues>();
         services.AddScoped<IComicSearchService, ComicSearchService>();
         services.AddScoped<FeedImportDownloadServices>();

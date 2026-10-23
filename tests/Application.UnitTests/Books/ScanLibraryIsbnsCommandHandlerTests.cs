@@ -1,3 +1,4 @@
+using Application.Books;
 using Application.Books.IsbnScan;
 using Application.Interfaces;
 using Domain.Books;
@@ -16,6 +17,7 @@ public sealed class ScanLibraryIsbnsCommandHandlerTests
     private readonly IBookRepository _bookRepository = Substitute.For<IBookRepository>();
     private readonly IIsbnPageScanner _scanner = Substitute.For<IIsbnPageScanner>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IComicInfoArchiveWriter _comicInfoWriter = Substitute.For<IComicInfoArchiveWriter>();
     private readonly TimeProvider _clock = Substitute.For<TimeProvider>();
     private readonly ScanLibraryIsbnsCommandHandler _handler;
 
@@ -23,7 +25,9 @@ public sealed class ScanLibraryIsbnsCommandHandlerTests
     {
         _clock.GetUtcNow().Returns(s_now);
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
-        _handler = new ScanLibraryIsbnsCommandHandler(_bookRepository, _scanner, _unitOfWork, _clock,
+        _comicInfoWriter.WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+        _handler = new ScanLibraryIsbnsCommandHandler(_bookRepository, _scanner,
+            new BookSaver(_bookRepository, _unitOfWork, _comicInfoWriter, NullLogger<BookSaver>.Instance), _clock,
             NullLogger<ScanLibraryIsbnsCommandHandler>.Instance);
     }
 
@@ -55,6 +59,8 @@ public sealed class ScanLibraryIsbnsCommandHandlerTests
         book.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
         _bookRepository.Received(1).Update(book);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _comicInfoWriter.Received(1).WriteAsync(book.FilePath,
+            Arg.Is<ComicInfoData>(d => d.Isbn == Isbn && d.Title == "Arctic Nation"), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -70,6 +76,7 @@ public sealed class ScanLibraryIsbnsCommandHandlerTests
         result.Value.Should().Be(new LibraryIsbnScanSummary(0, 1, 0, 0));
         book.ISBN.Should().BeNull();
         book.IsbnCandidates.Should().Equal(Isbn);
+        await _comicInfoWriter.DidNotReceive().WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
