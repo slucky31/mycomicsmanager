@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.57.6"></a>
+## [10.57.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.57.6) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **health:** keep third-party APIs out of the Docker health check ([#1199](https://www.github.com/slucky31/mycomicsmanager/issues/1199)) ([973f566](https://www.github.com/slucky31/mycomicsmanager/commit/973f566e8b07fe7749f0825b648909c65aa8e738))
+
 <a name="10.57.5"></a>
 ## [10.57.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.57.5) (2026-10-23)
 
