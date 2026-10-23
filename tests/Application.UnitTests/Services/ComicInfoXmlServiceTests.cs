@@ -141,6 +141,31 @@ public sealed class ComicInfoXmlServiceTests : IDisposable
         result.Value!.Number.Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData("2", "4", 4)]
+    [InlineData("HS", "4", 4)]
+    [InlineData("2", "-1", 2)]
+    [InlineData("", "", null)]
+    public void Read_Should_ReadTheVolumeFromVolume_ThenFromNumber(string number, string volume, int? expected)
+    {
+        // Arrange
+        var xmlPath = Path.Combine(_tempDir, "ComicInfo.xml");
+        File.WriteAllText(xmlPath, $"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <ComicInfo>
+              <Number>{number}</Number>
+              <Volume>{volume}</Volume>
+            </ComicInfo>
+            """);
+
+        // Act
+        var result = _service.Read(xmlPath);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Number.Should().Be(expected);
+    }
+
     [Fact]
     public void Read_Should_IgnoreNumericFields_WhenValueIsNotAnInteger()
     {
@@ -219,6 +244,8 @@ public sealed class ComicInfoXmlServiceTests : IDisposable
         var content = File.ReadAllText(xmlPath);
         content.Should().Contain("<ComicInfo");
         content.Should().Contain("<Title>My Title</Title>");
+        content.Should().Contain("<Number>1</Number>");
+        content.Should().Contain("<Volume>1</Volume>");
     }
 
     [Fact]
@@ -274,6 +301,7 @@ public sealed class ComicInfoXmlServiceTests : IDisposable
         content.Should().Contain("<Title>Title Only</Title>");
         content.Should().NotContain("<Series>");
         content.Should().NotContain("<Number>");
+        content.Should().NotContain("<Volume>");
         content.Should().NotContain("<Year>");
         content.Should().NotContain("<PageCount>");
     }
