@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.57.7"></a>
+## [10.57.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.57.7) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **deps:** update docker/login-action action to v4.7.0 ([#1196](https://www.github.com/slucky31/mycomicsmanager/issues/1196)) ([11b71fc](https://www.github.com/slucky31/mycomicsmanager/commit/11b71fce82d6179ad7d0501d0e654c18d2cdb054))
+
 <a name="10.57.6"></a>
 ## [10.57.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.57.6) (2026-10-23)
 
