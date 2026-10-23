@@ -23,8 +23,11 @@ public sealed class SyncComicInfoCommandHandler(
         }
 
         var books = await bookRepository.ListByUserIdAsync(request.UserId, cancellationToken);
+        var digitalBooks = books.OfType<DigitalBook>().ToList();
+        logger.LogInformation("Writing the ComicInfo.xml of {Count} digital book(s) of user {UserId}", digitalBooks.Count, request.UserId);
+
         int updated = 0, failed = 0;
-        foreach (var book in books.OfType<DigitalBook>())
+        foreach (var book in digitalBooks)
         {
             // A book that cannot be written is reported and the others go on.
             var result = await comicInfoWriter.WriteAsync(book.FilePath, BookComicInfo.From(book), cancellationToken);
@@ -35,7 +38,8 @@ public sealed class SyncComicInfoCommandHandler(
             else
             {
                 failed++;
-                logger.LogWarning("ComicInfo.xml of book {BookId} not written: {Error}", book.Id, result.Error?.Description);
+                logger.LogWarning("ComicInfo.xml of book {BookId} not written into {Path}: {Error}",
+                    book.Id, book.FilePath, result.Error?.Description);
             }
         }
 

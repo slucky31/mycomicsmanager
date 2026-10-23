@@ -48,6 +48,7 @@ public sealed class ComicInfoArchiveWriter(string rootPath, ILogger<ComicInfoArc
         {
             await Task.Run(() => CopyWithComicInfo(archivePath, tempPath, data), ct);
             File.Move(tempPath, archivePath, overwrite: true);
+            logger.LogInformation("ComicInfo.xml written into {Path}", archivePath);
             return Result.Success();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or XmlException or ArgumentException)
