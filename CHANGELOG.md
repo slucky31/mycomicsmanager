@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.59.0"></a>
+## [10.59.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.59.0) (2026-10-23)
+
+### ✨ Features
+
+* **books:** delete several books of a library at once ([#1194](https://www.github.com/slucky31/mycomicsmanager/issues/1194)) ([#1201](https://www.github.com/slucky31/mycomicsmanager/issues/1201)) ([d53cd1f](https://www.github.com/slucky31/mycomicsmanager/commit/d53cd1f591dc6b08300c52a40a7b997e2ac0d762))
+
 <a name="10.58.0"></a>
 ## [10.58.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.58.0) (2026-10-23)
 
