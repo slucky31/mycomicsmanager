@@ -11,6 +11,7 @@ public class ComicInfoSyncOrchestrator(IServiceScopeFactory scopeFactory, ILogge
     [DisableConcurrentExecution(timeoutInSeconds: 60)]
     public async Task SyncAsync(Guid userId, CancellationToken ct = default)
     {
+        logger.LogInformation("ComicInfo.xml sync of user {UserId} started", userId);
         await using var scope = scopeFactory.CreateAsyncScope();
         var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<SyncComicInfoCommand, ComicInfoSyncSummary>>();
 
