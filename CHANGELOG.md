@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.57.5"></a>
+## [10.57.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.57.5) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **books:** log the ComicInfo.xml writes and the sync progress ([#1198](https://www.github.com/slucky31/mycomicsmanager/issues/1198)) ([2c5b819](https://www.github.com/slucky31/mycomicsmanager/commit/2c5b8198214c629b30937d49d2fc941cdc9d12ed))
+
 <a name="10.57.4"></a>
 ## [10.57.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.57.4) (2026-10-23)
 
