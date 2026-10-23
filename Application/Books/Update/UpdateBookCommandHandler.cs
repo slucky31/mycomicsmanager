@@ -5,13 +5,16 @@ using Ardalis.GuardClauses;
 using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Books.Update;
 
 public sealed class UpdateBookCommandHandler(
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
-    IRepository<Library, Guid> libraryRepository) : ICommandHandler<UpdateBookCommand, Book>
+    IRepository<Library, Guid> libraryRepository,
+    IComicInfoArchiveWriter comicInfoWriter,
+    ILogger<UpdateBookCommandHandler> logger) : ICommandHandler<UpdateBookCommand, Book>
 {
     public async Task<Result<Book>> Handle(UpdateBookCommand request, CancellationToken cancellationToken)
     {
@@ -52,6 +55,7 @@ public sealed class UpdateBookCommandHandler(
             return BooksError.Duplicate;
         }
 
+        var previousComicInfo = BookComicInfo.From(book);
         var updateResult = book.Update(new BookMetadata(request.Serie, request.Title, normalizedIsbn,
             request.VolumeNumber, request.ImageLink, request.Authors, request.Publishers,
             request.PublishDate, request.NumberOfPages));
@@ -60,13 +64,36 @@ public sealed class UpdateBookCommandHandler(
             return updateResult.Error!;
         }
 
-        bookRepository.Update(book);
-        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
-        if (saveResult.IsFailure)
+        var saveResult = await SaveAsync(book, previousComicInfo, cancellationToken);
+        return saveResult.IsFailure ? saveResult.Error! : book;
+    }
+
+    // The ComicInfo.xml of a digital book is written once every validation has passed, then the book is saved;
+    // if the save fails, the previous ComicInfo.xml is written back so that the file and the database agree.
+    private async Task<Result> SaveAsync(Book book, ComicInfoData previousComicInfo, CancellationToken ct)
+    {
+        var digitalBook = book as DigitalBook;
+        if (digitalBook is not null)
         {
-            return saveResult.Error!;
+            var writeResult = await comicInfoWriter.WriteAsync(digitalBook.FilePath, BookComicInfo.From(book), ct);
+            if (writeResult.IsFailure)
+            {
+                return writeResult.Error!;
+            }
         }
 
-        return book;
+        bookRepository.Update(book);
+        var saveResult = await unitOfWork.SaveChangesAsync(ct);
+        if (saveResult.IsFailure && digitalBook is not null)
+        {
+            var restoreResult = await comicInfoWriter.WriteAsync(digitalBook.FilePath, previousComicInfo, CancellationToken.None);
+            if (restoreResult.IsFailure)
+            {
+                logger.LogError("Book {BookId} not saved and its ComicInfo.xml not restored: {Error}",
+                    book.Id, restoreResult.Error?.Description);
+            }
+        }
+
+        return saveResult.IsFailure ? saveResult.Error! : Result.Success();
     }
 }

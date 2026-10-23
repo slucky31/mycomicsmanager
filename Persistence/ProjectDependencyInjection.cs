@@ -61,6 +61,8 @@ public static class ProjectDependencyInjection
         services.AddScoped<IImageProcessor, ImageProcessorService>();
         services.AddScoped<IComicArchiveBuilder, ComicArchiveBuilderService>();
         services.AddScoped<IComicInfoXmlService, ComicInfoXmlService>();
+        services.AddScoped<IComicInfoArchiveWriter>(provider =>
+            new ComicInfoArchiveWriter(rootPath, provider.GetRequiredService<ILogger<ComicInfoArchiveWriter>>()));
         services.AddScoped<IBookFileService, BookFileService>();
         services.AddScoped<IComicPageReader>(provider =>
             new ComicPageReaderService(rootPath, provider.GetRequiredService<ILogger<ComicPageReaderService>>()));
