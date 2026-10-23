@@ -70,7 +70,7 @@ public partial class SeriePage : IAsyncDisposable
             else if (result.IsFailure)
             {
                 Snackbar.Add("Series not found", Severity.Error);
-                Logger.LogError("Failed to load the series {Serie} of library {LibraryId}: {ErrorDescription}", shown.Name, shown.LibraryId, result.Error!.Description);
+                Logger.LogError("Failed to load a series of library {LibraryId}: {ErrorDescription}", shown.LibraryId, result.Error!.Description);
                 NavigationManager.NavigateTo(SerieDisplay.SeriesHref(shown.LibraryId));
             }
         }
@@ -108,7 +108,7 @@ public partial class SeriePage : IAsyncDisposable
             else if (result.IsFailure)
             {
                 Snackbar.Add(result.Error!.Description ?? "Failed to save the volumes", Severity.Error);
-                Logger.LogError("Failed to save the volumes of the series {Serie} of library {LibraryId}: {ErrorDescription}", _serie.Name, LibraryId, result.Error.Description);
+                Logger.LogError("Failed to save the volumes of a series of library {LibraryId}: {ErrorDescription}", LibraryId, result.Error.Description);
             }
         }
         catch (OperationCanceledException)
