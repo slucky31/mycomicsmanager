@@ -14,7 +14,7 @@ namespace Application.Books.IsbnScan;
 public sealed class ScanLibraryIsbnsCommandHandler(
     IBookRepository bookRepository,
     IIsbnPageScanner scanner,
-    IUnitOfWork unitOfWork,
+    BookSaver bookSaver,
     TimeProvider clock,
     ILogger<ScanLibraryIsbnsCommandHandler> logger) : ICommandHandler<ScanLibraryIsbnsCommand, LibraryIsbnScanSummary>
 {
@@ -49,7 +49,7 @@ public sealed class ScanLibraryIsbnsCommandHandler(
             return IsbnScanOutcome.NotScanned;
         }
 
-        var result = await BookIsbnScan.ScanAndSaveAsync(book, scanner, bookRepository, unitOfWork, clock, ct);
+        var result = await BookIsbnScan.ScanAndSaveAsync(book, scanner, bookRepository, bookSaver, clock, ct);
         if (result.IsFailure)
         {
             logger.LogError("Unable to save the ISBN scan of book {BookId}: {Error}", book.Id, result.Error?.Code);

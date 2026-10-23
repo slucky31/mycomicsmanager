@@ -1,4 +1,5 @@
 using System.Reflection;
+using Application.Books;
 using Application.Books.Update;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
@@ -28,15 +29,20 @@ public class UpdateBookCommandHandlerTests
     private readonly IBookRepository _bookRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly IRepository<Library, Guid> _libraryRepositoryMock;
+    private readonly IComicInfoArchiveWriter _comicInfoWriterMock;
 
     public UpdateBookCommandHandlerTests()
     {
         _bookRepositoryMock = Substitute.For<IBookRepository>();
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
+        _comicInfoWriterMock = Substitute.For<IComicInfoArchiveWriter>();
         _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _comicInfoWriterMock.WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
-        _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock);
+        _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _libraryRepositoryMock,
+            new BookSaver(_bookRepositoryMock, _unitOfWorkMock, _comicInfoWriterMock, NullLogger<BookSaver>.Instance));
     }
 
     private static readonly Guid s_testLibraryId = s_libraryId;
@@ -519,5 +525,81 @@ public class UpdateBookCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         _bookRepositoryMock.Received(1).Update(existingBook);
+    }
+
+    // ── ComicInfo.xml of a digital book ──────────────────────────────────────
+
+    private const string DigitalFilePath = "/library/comics/book.cbz";
+
+    private DigitalBook ArrangeDigitalBook()
+    {
+        var book = DigitalBook.Create(
+            new BookMetadata("Original Serie", "Original Title", "978-3-16-148410-0", 1, Authors: "Original Author"),
+            s_testLibraryId, DigitalFilePath, 1024).Value!;
+        typeof(Book).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance)?.SetValue(book, s_bookId);
+        _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(book);
+        _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Digital, s_userId).Value!);
+        return book;
+    }
+
+    [Fact]
+    public async Task Handle_Should_WriteTheUpdatedComicInfo_WhenBookIsDigital()
+    {
+        ArrangeDigitalBook();
+
+        var result = await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        await _comicInfoWriterMock.Received(1).WriteAsync(DigitalFilePath,
+            Arg.Is<ComicInfoData>(d => d.Series == "Updated Serie" && d.Title == "Updated Title" && d.Number == 2
+                && d.Isbn == "9780306406157" && d.Writer == null),
+            Arg.Any<CancellationToken>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotSaveTheBook_WhenComicInfoCannotBeWritten()
+    {
+        ArrangeDigitalBook();
+        _comicInfoWriterMock.WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(BooksError.FileNotFound));
+
+        var result = await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BooksError.FileNotFound);
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Handle_Should_WriteBackThePreviousComicInfo_WhenTheSaveFails(bool restoreSucceeds)
+    {
+        ArrangeDigitalBook();
+        var saveError = new TError("DB500", "Save failed");
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(saveError));
+        _comicInfoWriterMock.WriteAsync(DigitalFilePath, Arg.Is<ComicInfoData>(d => d.Series == "Original Serie"), Arg.Any<CancellationToken>())
+            .Returns(restoreSucceeds ? Result.Success() : Result.Failure(BooksError.FileNotFound));
+
+        var result = await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(saveError);
+        await _comicInfoWriterMock.Received(1).WriteAsync(DigitalFilePath,
+            Arg.Is<ComicInfoData>(d => d.Series == "Original Serie" && d.Title == "Original Title" && d.Writer == "Original Author"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotWriteAnyComicInfo_WhenBookIsPhysical()
+    {
+        var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
+        _bookRepositoryMock.GetByIdAsync(s_validCommand.Id).Returns(existingBook);
+        _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
+
+        await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
+
+        await _comicInfoWriterMock.DidNotReceive().WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>());
     }
 }

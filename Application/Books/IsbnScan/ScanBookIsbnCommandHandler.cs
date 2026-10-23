@@ -11,7 +11,7 @@ public sealed class ScanBookIsbnCommandHandler(
     IBookRepository bookRepository,
     IRepository<Library, Guid> libraryRepository,
     IIsbnPageScanner scanner,
-    IUnitOfWork unitOfWork,
+    BookSaver bookSaver,
     TimeProvider clock) : ICommandHandler<ScanBookIsbnCommand, IsbnScanOutcome>
 {
     public async Task<Result<IsbnScanOutcome>> Handle(ScanBookIsbnCommand request, CancellationToken cancellationToken)
@@ -33,6 +33,6 @@ public sealed class ScanBookIsbnCommandHandler(
             return BooksError.BadRequest;
         }
 
-        return await BookIsbnScan.ScanAndSaveAsync(book, scanner, bookRepository, unitOfWork, clock, cancellationToken);
+        return await BookIsbnScan.ScanAndSaveAsync(book, scanner, bookRepository, bookSaver, clock, cancellationToken);
     }
 }

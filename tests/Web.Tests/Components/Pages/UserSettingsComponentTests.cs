@@ -32,6 +32,7 @@ public sealed class UserSettingsComponentTests
         ctx.Services.AddSingleton(snackbar);
         ctx.Services.AddSingleton(Substitute.For<IFeatureToggleService>());
         ctx.Services.AddSingleton(Substitute.For<ILegacyMigrationService>());
+        ctx.Services.AddSingleton(Substitute.For<IComicInfoSyncService>());
         var authorization = ctx.AddAuthorization();
         authorization.SetAuthorized("user");
         if (isAdmin)

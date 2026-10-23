@@ -1,3 +1,4 @@
+using Application.Books;
 using Application.Books.IsbnScan;
 using Application.Interfaces;
 using Domain.Books;
@@ -17,6 +18,7 @@ public sealed class ScanBookIsbnCommandHandlerTests
     private readonly IRepository<Library, Guid> _libraryRepository = Substitute.For<IRepository<Library, Guid>>();
     private readonly IIsbnPageScanner _scanner = Substitute.For<IIsbnPageScanner>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IComicInfoArchiveWriter _comicInfoWriter = Substitute.For<IComicInfoArchiveWriter>();
     private readonly TimeProvider _clock = Substitute.For<TimeProvider>();
     private readonly Library _library = Library.Create("Comics", "#000000", "book", LibraryBookType.Digital, s_userId).Value!;
     private readonly ScanBookIsbnCommandHandler _handler;
@@ -26,7 +28,9 @@ public sealed class ScanBookIsbnCommandHandlerTests
         _clock.GetUtcNow().Returns(s_now);
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _libraryRepository.GetByIdAsync(_library.Id).Returns(_library);
-        _handler = new ScanBookIsbnCommandHandler(_bookRepository, _libraryRepository, _scanner, _unitOfWork, _clock);
+        _comicInfoWriter.WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+        _handler = new ScanBookIsbnCommandHandler(_bookRepository, _libraryRepository, _scanner,
+            new BookSaver(_bookRepository, _unitOfWork, _comicInfoWriter, NullLogger<BookSaver>.Instance), _clock);
     }
 
     private DigitalBook AddBook(IsbnScanResult scan, string? isbn = null)

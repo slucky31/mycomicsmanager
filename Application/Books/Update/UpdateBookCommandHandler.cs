@@ -10,8 +10,8 @@ namespace Application.Books.Update;
 
 public sealed class UpdateBookCommandHandler(
     IBookRepository bookRepository,
-    IUnitOfWork unitOfWork,
-    IRepository<Library, Guid> libraryRepository) : ICommandHandler<UpdateBookCommand, Book>
+    IRepository<Library, Guid> libraryRepository,
+    BookSaver bookSaver) : ICommandHandler<UpdateBookCommand, Book>
 {
     public async Task<Result<Book>> Handle(UpdateBookCommand request, CancellationToken cancellationToken)
     {
@@ -52,6 +52,7 @@ public sealed class UpdateBookCommandHandler(
             return BooksError.Duplicate;
         }
 
+        var previousComicInfo = BookComicInfo.From(book);
         var updateResult = book.Update(new BookMetadata(request.Serie, request.Title, normalizedIsbn,
             request.VolumeNumber, request.ImageLink, request.Authors, request.Publishers,
             request.PublishDate, request.NumberOfPages));
@@ -60,13 +61,7 @@ public sealed class UpdateBookCommandHandler(
             return updateResult.Error!;
         }
 
-        bookRepository.Update(book);
-        var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
-        if (saveResult.IsFailure)
-        {
-            return saveResult.Error!;
-        }
-
-        return book;
+        var saveResult = await bookSaver.SaveAsync(book, previousComicInfo, cancellationToken);
+        return saveResult.IsFailure ? saveResult.Error! : book;
     }
 }

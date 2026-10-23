@@ -14,7 +14,7 @@ internal static class BookIsbnScan
         DigitalBook book,
         IIsbnPageScanner scanner,
         IBookRepository bookRepository,
-        IUnitOfWork unitOfWork,
+        BookSaver bookSaver,
         TimeProvider clock,
         CancellationToken ct)
     {
@@ -24,9 +24,10 @@ internal static class BookIsbnScan
             return IsbnScanOutcome.NotScanned;
         }
 
+        // An assigned ISBN is written into the ComicInfo.xml of the archive too.
+        var previousComicInfo = BookComicInfo.From(book);
         var outcome = await ApplyAsync(book, scan.Isbns, bookRepository, clock.GetUtcNow().UtcDateTime, ct);
-        bookRepository.Update(book);
-        var saveResult = await unitOfWork.SaveChangesAsync(ct);
+        var saveResult = await bookSaver.SaveAsync(book, previousComicInfo, ct);
         return saveResult.IsFailure ? saveResult.Error! : outcome;
     }
 
