@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.60.1"></a>
+## [10.60.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.60.1) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **books:** detect the series from the BnF and OpenLibrary ([#1203](https://www.github.com/slucky31/mycomicsmanager/issues/1203)) ([2deff89](https://www.github.com/slucky31/mycomicsmanager/commit/2deff894df243860766cc5538106840aa9390e20))
+
 <a name="10.60.0"></a>
 ## [10.60.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.60.0) (2026-10-23)
 
