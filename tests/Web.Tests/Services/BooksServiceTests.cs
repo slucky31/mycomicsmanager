@@ -27,6 +27,7 @@ public sealed class BooksServiceTests
     private readonly ICommandHandler<CreateBookCommand, Book> _createBookHandler;
     private readonly ICommandHandler<UpdateBookCommand, Book> _updateBookHandler;
     private readonly ICommandHandler<DeleteBookCommand> _deleteBookHandler;
+    private readonly ICommandHandler<DeleteBooksCommand, DeleteBooksResult> _deleteBooksHandler;
     private readonly ICommandHandler<AddReadingDateCommand, ReadingDate> _addReadingDateHandler;
     private readonly ICommandHandler<DeleteReadingDateCommand> _deleteReadingDateHandler;
     private readonly ICurrentUserService _currentUserService;
@@ -43,6 +44,7 @@ public sealed class BooksServiceTests
         _createBookHandler = Substitute.For<ICommandHandler<CreateBookCommand, Book>>();
         _updateBookHandler = Substitute.For<ICommandHandler<UpdateBookCommand, Book>>();
         _deleteBookHandler = Substitute.For<ICommandHandler<DeleteBookCommand>>();
+        _deleteBooksHandler = Substitute.For<ICommandHandler<DeleteBooksCommand, DeleteBooksResult>>();
         _addReadingDateHandler = Substitute.For<ICommandHandler<AddReadingDateCommand, ReadingDate>>();
         _deleteReadingDateHandler = Substitute.For<ICommandHandler<DeleteReadingDateCommand>>();
 
@@ -56,6 +58,7 @@ public sealed class BooksServiceTests
             _createBookHandler,
             _updateBookHandler,
             _deleteBookHandler,
+            _deleteBooksHandler,
             _addReadingDateHandler,
             _deleteReadingDateHandler,
             _currentUserService);
@@ -1012,6 +1015,30 @@ public sealed class BooksServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(expectedError);
+    }
+
+    [Fact]
+    public async Task Delete_Should_DeleteTheBooksOfTheCurrentUser_WhenSeveralBooksAreGiven()
+    {
+        IReadOnlyList<Guid> bookIds = [Guid.CreateVersion7(), Guid.CreateVersion7()];
+        var expected = new DeleteBooksResult(2, 0);
+        _deleteBooksHandler.Handle(Arg.Is<DeleteBooksCommand>(c => c.BookIds == bookIds && c.UserId == DefaultUserId), Arg.Any<CancellationToken>())
+            .Returns(Result<DeleteBooksResult>.Success(expected));
+
+        var result = await _service.Delete(bookIds, TestContext.Current.CancellationToken);
+
+        result.Value.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task Delete_Should_ReturnTheError_WhenSeveralBooksAreGivenAndTheUserIsNotAuthenticated()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        var result = await _service.Delete([Guid.CreateVersion7()], TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(UsersError.NotFound);
+        await _deleteBooksHandler.DidNotReceive().Handle(Arg.Any<DeleteBooksCommand>(), Arg.Any<CancellationToken>());
     }
 
     #endregion

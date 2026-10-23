@@ -12,27 +12,12 @@ public static class BookMoveText
     public static string Outcome(MoveBooksResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
-
-        var total = result.Moved + result.Failed;
-        if (result.Failed == 0)
-        {
-            return total == 1 ? "1 book moved" : $"{total} books moved";
-        }
-
-        var reason = result.FirstError?.Description;
-        var outcome = result.Moved == 0 ? "No book was moved" : $"{result.Moved} of {total} books moved";
-        return string.IsNullOrEmpty(reason) ? outcome : $"{outcome}. {reason}";
+        return SeveralBooksText.Outcome(result.Moved, result.Failed, result.FirstError, "moved");
     }
 
     public static Severity Severity(MoveBooksResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
-
-        if (result.Failed == 0)
-        {
-            return MudBlazor.Severity.Success;
-        }
-
-        return result.Moved == 0 ? MudBlazor.Severity.Error : MudBlazor.Severity.Warning;
+        return SeveralBooksText.Severity(result.Moved, result.Failed);
     }
 }
