@@ -1,0 +1,66 @@
+@page "/missing-volumes"
+
+<PageTitle>Missing volumes — MyComicsManager</PageTitle>
+
+<div class="missing-page">
+    <PageBar BackHref="/libraries/list" BackLabel="Back to libraries" Title="Missing volumes" Subtitle="@_missing?.Subtitle" />
+
+    @if (_isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
+    }
+    else if (_missing is { } missing && missing.Libraries.Count > 0)
+    {
+        @if (missing.Libraries.Count > 1)
+        {
+            <div class="missing-filters" role="group" aria-label="Show the library">
+                <FilterChip Text="All libraries" Selected="@(_libraryId == Guid.Empty)" OnClick="() => _libraryId = Guid.Empty" />
+                @foreach (var library in missing.Libraries)
+                {
+                    <FilterChip @key="library.LibraryId" Text="@library.Name" Selected="@(_libraryId == library.LibraryId)" OnClick="() => _libraryId = library.LibraryId" />
+                }
+            </div>
+        }
+
+        <div class="missing-content">
+            @foreach (var library in missing.In(_libraryId))
+            {
+                <h2 @key="library.LibraryId" class="missing-library">@library.Name</h2>
+                @foreach (var serie in library.Series)
+                {
+                    <a @key="serie.Href" class="missing-serie" href="@serie.Href">
+                        @if (!string.IsNullOrEmpty(serie.Cover))
+                        {
+                            <img class="missing-serie-cover" src="@serie.Cover" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span class="missing-serie-cover missing-serie-placeholder" aria-hidden="true"></span>
+                        }
+                        <span class="missing-serie-body">
+                            <span class="missing-serie-head">
+                                <span class="missing-serie-name">@serie.Name</span>
+                                <span class="missing-serie-owned">@serie.OwnedLabel</span>
+                            </span>
+                            <span class="missing-serie-volumes">
+                                @foreach (var volume in serie.Missing)
+                                {
+                                    <span class="missing-volume">@volume</span>
+                                }
+                            </span>
+                        </span>
+                        <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="missing-serie-chevron" />
+                    </a>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <div class="missing-empty">
+            <MudIcon Icon="@Icons.Material.Filled.TaskAlt" Style="font-size: 64px; opacity: 0.4;" />
+            <MudText Typo="Typo.h6" Class="mt-4">No volume missing</MudText>
+            <MudText Typo="Typo.body2" Class="missing-empty-hint">Every series has all its volumes up to the last one you own.</MudText>
+        </div>
+    }
+</div>

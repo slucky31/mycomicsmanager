@@ -1,0 +1,12 @@
+@* The bar of a page reached from another one: back, title and subtitle, then its actions (#1205). *@
+<header class="page-bar">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="@BackHref" aria-label="@BackLabel" />
+    <div class="page-bar-title">
+        <h1>@Title</h1>
+        @if (!string.IsNullOrEmpty(Subtitle))
+        {
+            <div class="page-bar-subtitle">@Subtitle</div>
+        }
+    </div>
+    @ChildContent
+</header>

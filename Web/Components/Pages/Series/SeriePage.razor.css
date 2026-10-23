@@ -1,0 +1,205 @@
+.serie-page {
+    min-height: 100dvh;
+    background: #F4F4F6;
+    color: #1B1D24;
+}
+
+@media (max-width: 959.98px) {
+    .serie-page {
+        min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* ── Completeness: the bar, then the volumes published ── */
+.serie-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 8px 16px 4px;
+    padding: 14px 16px;
+    background: #ffffff;
+    border: 1px solid #E2E3EA;
+    border-radius: 16px;
+}
+
+.serie-progress-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.serie-progress-label {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.serie-progress-count,
+.serie-progress-published {
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.serie-progress-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: #ECEDF2;
+    overflow: hidden;
+}
+
+.serie-progress-value {
+    height: 100%;
+    background: #594AE2;
+}
+
+.serie-progress-published {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+::deep .serie-progress-edit {
+    text-transform: none;
+}
+
+::deep .serie-total-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.serie-total-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.serie-total-field ::deep input {
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #C9CBD6;
+    border-radius: 8px;
+    font: inherit;
+    /* 16px: iOS does not zoom on the field */
+    font-size: 16px;
+    color: #1B1D24;
+}
+
+.serie-total-finished {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    font-size: 14px;
+}
+
+.serie-total-finished ::deep input {
+    width: 20px;
+    height: 20px;
+}
+
+.serie-total-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* ── Volumes: owned covers, missing ones dashed ── */
+.serie-volumes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 12px;
+    padding: 12px 16px 16px;
+}
+
+@media (min-width: 600px) {
+    .serie-volumes {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+}
+
+.serie-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    color: #1B1D24;
+    text-decoration: none;
+}
+
+.serie-slot-frame {
+    position: relative;
+    display: block;
+}
+
+.serie-slot-cover,
+.serie-slot-missing {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 6px;
+}
+
+.serie-slot-cover {
+    object-fit: cover;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.serie-slot-placeholder {
+    box-sizing: border-box;
+    padding: 8px;
+    overflow: hidden;
+    background: #594AE2;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.serie-slot-badge {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    height: 20px;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+    background: #131B2C;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.serie-slot-missing {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 2px dashed #C08A5A;
+    background: #FFF6EE;
+    color: #8A3B00;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.serie-slot-missing-number {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.serie-slot-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.serie-slot-title-missing {
+    color: #8A3B00;
+}

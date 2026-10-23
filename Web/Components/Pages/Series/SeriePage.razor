@@ -1,0 +1,82 @@
+@page "/libraries/{LibraryId:guid}/serie"
+
+<PageTitle>@(_serie?.Name ?? "Series") — MyComicsManager</PageTitle>
+
+<div class="serie-page">
+    <PageBar BackHref="@SerieDisplay.SeriesHref(LibraryId)" BackLabel="Back to the series" Title="@(_serie?.Name ?? Name)" Subtitle="@_serie?.Subtitle" />
+
+    @if (_isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
+    }
+    else if (_serie is { } serie)
+    {
+        @if (serie.ShowsCompleteness)
+        {
+            <section class="serie-progress" aria-label="Completeness">
+                <div class="serie-progress-head">
+                    <span class="serie-progress-label">@serie.ProgressLabel</span>
+                    <span class="serie-progress-count">@serie.ProgressCount</span>
+                </div>
+                <div class="serie-progress-bar" aria-hidden="true"><div class="serie-progress-value" style="@($"width: {serie.ProgressPercent}%;")"></div></div>
+                @if (_isEditing)
+                {
+                    <EditForm Model="_form" OnValidSubmit="SaveAsync" class="serie-total-form">
+                        <label class="serie-total-field">
+                            <span>Volumes published</span>
+                            <InputNumber @bind-Value="_form.TotalVolumes" min="1" max="@Domain.Series.SeriesConstants.MaxTotalVolumes" placeholder="Unknown" />
+                        </label>
+                        <label class="serie-total-finished">
+                            <InputCheckbox @bind-Value="_form.IsFinished" />
+                            <span>The series is finished</span>
+                        </label>
+                        <div class="serie-total-actions">
+                            <MudButton Variant="Variant.Text" OnClick="CancelEdit" Disabled="_isSaving">Cancel</MudButton>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_isSaving">Save</MudButton>
+                        </div>
+                    </EditForm>
+                }
+                else
+                {
+                    <div class="serie-progress-published">
+                        <span>@serie.PublishedLabel</span>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="StartEdit" Class="serie-progress-edit">Edit</MudButton>
+                    </div>
+                }
+            </section>
+        }
+
+        <div class="serie-volumes">
+            @foreach (var slot in serie.Slots)
+            {
+                @if (slot.IsMissing)
+                {
+                    <div @key="slot.Key" class="serie-slot">
+                        <span class="serie-slot-missing">
+                            <span class="serie-slot-missing-number">@slot.Badge</span>
+                            <span>Missing</span>
+                        </span>
+                        <span class="serie-slot-title serie-slot-title-missing">Not in library</span>
+                    </div>
+                }
+                else
+                {
+                    <a @key="slot.Key" class="serie-slot" href="@slot.Href">
+                        <span class="serie-slot-frame">
+                            @if (!string.IsNullOrEmpty(slot.ImageLink))
+                            {
+                                <img class="serie-slot-cover" src="@slot.ImageLink" alt="@($"Cover of {slot.Title}")" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span class="serie-slot-cover serie-slot-placeholder">@slot.Title</span>
+                            }
+                            <span class="serie-slot-badge">@slot.Badge</span>
+                        </span>
+                        <span class="serie-slot-title">@slot.Title</span>
+                    </a>
+                }
+            }
+        </div>
+    }
+</div>

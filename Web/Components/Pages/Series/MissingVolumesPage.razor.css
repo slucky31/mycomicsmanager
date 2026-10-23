@@ -1,0 +1,126 @@
+.missing-page {
+    min-height: 100dvh;
+    background: #F4F4F6;
+    color: #1B1D24;
+}
+
+@media (max-width: 959.98px) {
+    .missing-page {
+        min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+.missing-filters {
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px 4px;
+    overflow-x: auto;
+}
+
+.missing-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 720px;
+    padding: 4px 16px 16px;
+}
+
+.missing-library {
+    margin: 12px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5C6070;
+}
+
+.missing-serie {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #E2E3EA;
+    border-radius: 12px;
+    color: #1B1D24;
+    text-decoration: none;
+}
+
+.missing-serie-cover {
+    flex-shrink: 0;
+    width: 44px;
+    height: 66px;
+    border-radius: 4px;
+    object-fit: cover;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.missing-serie-placeholder {
+    background: #594AE2;
+}
+
+.missing-serie-body {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.missing-serie-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.missing-serie-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.missing-serie-owned {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #5C6070;
+}
+
+.missing-serie-volumes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.missing-volume {
+    height: 24px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    border-radius: 12px;
+    border: 1px dashed #C08A5A;
+    background: #FFF6EE;
+    color: #8A3B00;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+::deep .missing-serie-chevron {
+    flex-shrink: 0;
+    color: #5C6070;
+}
+
+.missing-empty {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+}
+
+::deep .missing-empty-hint {
+    color: #5C6070;
+}
