@@ -88,7 +88,12 @@ public sealed class RefreshFromArchiveCommandHandler(
         }
 
         var saveResult = await bookSaver.SaveAsync(book, previousComicInfo, ct);
-        return saveResult.IsFailure ? saveResult.Error! : true;
+        if (saveResult.IsFailure)
+        {
+            return saveResult.Error!;
+        }
+
+        return true;
     }
 
     // The first page, uploaded as the import does; null when it cannot be, the current cover is then kept.
