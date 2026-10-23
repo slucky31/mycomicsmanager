@@ -67,24 +67,22 @@ public sealed class ComicInfoArchiveWriter(string rootPath, ILogger<ComicInfoArc
     {
         XDocument? existing = null;
 
-        using (var source = ZipFile.OpenRead(sourcePath))
-        using (var target = ZipFile.Open(targetPath, ZipArchiveMode.Create))
+        using var source = ZipFile.OpenRead(sourcePath);
+        using var target = ZipFile.Open(targetPath, ZipArchiveMode.Create);
+        foreach (var entry in source.Entries)
         {
-            foreach (var entry in source.Entries)
+            if (Path.GetFileName(entry.FullName).Equals(ComicInfoEntryName, StringComparison.OrdinalIgnoreCase))
             {
-                if (Path.GetFileName(entry.FullName).Equals(ComicInfoEntryName, StringComparison.OrdinalIgnoreCase))
-                {
-                    existing ??= Load(entry, sourcePath);
-                    continue;
-                }
-
-                CopyEntry(entry, target);
+                existing ??= Load(entry, sourcePath);
+                continue;
             }
 
-            var comicInfo = target.CreateEntry(ComicInfoEntryName, CompressionLevel.Fastest);
-            using var stream = comicInfo.Open();
-            Save(ComicInfoXmlMerger.Merge(existing, data), stream);
+            CopyEntry(entry, target);
         }
+
+        var comicInfo = target.CreateEntry(ComicInfoEntryName, CompressionLevel.Fastest);
+        using var stream = comicInfo.Open();
+        Save(ComicInfoXmlMerger.Merge(existing, data), stream);
     }
 
     private static void CopyEntry(ZipArchiveEntry entry, ZipArchive target)
