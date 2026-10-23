@@ -66,9 +66,17 @@
                                 }
                             </span>
                         </a>
-                        @if (view.ReadProgressPercent is { } percent)
+                        @if (view.CanStartOver)
                         {
-                            <div class="book-progress" aria-hidden="true"><div style="@($"width: {percent}%;")"></div></div>
+                            <div class="book-progress-row">
+                                @if (view.ReadProgressPercent is { } percent)
+                                {
+                                    <div class="book-progress" aria-hidden="true"><div style="@($"width: {percent}%;")"></div></div>
+                                }
+                                <button type="button" class="book-start-over" disabled="@_isStartingOver" @onclick="StartOverAsync">
+                                    <MudIcon Icon="@Icons.Material.Filled.RestartAlt" />Start over
+                                </button>
+                            </div>
                         }
                     }
                     else

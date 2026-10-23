@@ -226,6 +226,45 @@
     background: #594AE2;
 }
 
+/* The progress bar, then "Start over" at its end */
+.book-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.book-progress-row .book-progress {
+    flex-grow: 1;
+    margin: 0 0 0 4px;
+}
+
+.book-start-over {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    padding: 4px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: #594AE2;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.book-start-over:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.book-start-over ::deep .mud-icon-root {
+    font-size: 16px;
+}
+
 /* ── Other actions, with a label; they scroll sideways on a narrow phone ── */
 .book-actions {
     grid-area: actions;

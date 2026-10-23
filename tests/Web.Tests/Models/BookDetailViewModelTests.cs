@@ -110,6 +110,7 @@ public sealed class BookDetailViewModelTests
         view.ReadLabel.Should().Be("Read");
         view.ReadProgressLabel.Should().BeNull();
         view.ReadProgressPercent.Should().BeNull();
+        view.CanStartOver.Should().BeFalse();
     }
 
     [Theory]
@@ -125,6 +126,7 @@ public sealed class BookDetailViewModelTests
         view.ReadLabel.Should().Be("Continue reading");
         view.ReadProgressLabel.Should().Be(progress);
         view.ReadProgressPercent.Should().Be(percent);
+        view.CanStartOver.Should().BeTrue();
     }
 
     [Fact]
