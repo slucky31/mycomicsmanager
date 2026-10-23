@@ -13,7 +13,7 @@
 <div class="library-detail-page">
     @if (_library is not null && _selection.IsActive)
     {
-        @* Books being chosen to move them at once (#1150): the bar says how many and offers the move. *@
+        @* Books being chosen to move or delete them at once (#1150, #1194): the bar says how many and offers both. *@
         <header class="library-bar library-bar-selecting">
             <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="StopSelecting" aria-label="Stop choosing books" Class="library-bar-close" />
             <div class="library-bar-title">
@@ -21,8 +21,10 @@
                 <div class="library-bar-subtitle">in @_library.Name</div>
             </div>
             <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="CheckEveryShownBook" Class="library-bar-select-all">Select all</MudButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Disabled="@(_selection.Count == 0 || IsChangingBooks)"
+                           OnClick="DeleteCheckedBooksAsync" aria-label="Delete the selected books" Class="library-bar-delete" />
             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.DriveFileMove"
-                       Disabled="@(_selection.Count == 0 || _isMoving)" OnClick="MoveCheckedBooksAsync" Class="library-bar-move">Move</MudButton>
+                       Disabled="@(_selection.Count == 0 || IsChangingBooks)" OnClick="MoveCheckedBooksAsync" Class="library-bar-move">Move</MudButton>
         </header>
     }
     else if (_library is not null)

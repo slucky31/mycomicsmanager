@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Application.Books.Delete;
 using Application.Books.List;
 using Application.Interfaces;
 using Domain.Books;
@@ -19,6 +20,8 @@ public interface IBooksService
     Task<Result<List<Book>>> GetByLibrary(Guid libraryId, CancellationToken cancellationToken = default);
     Task<Result<IPagedList<BookSummaryDto>>> GetPagedByLibrary(Guid libraryId, int page, int pageSize, BookSortOrder sortOrder, string? searchTerm = null, CancellationToken cancellationToken = default);
     Task<Result> Delete(string? id, CancellationToken cancellationToken = default);
+    // Several books of one library (#1194): those that can be deleted are, the result says how many.
+    Task<Result<DeleteBooksResult>> Delete(IReadOnlyList<Guid> bookIds, CancellationToken cancellationToken = default);
     Task<Result<ReadingDate>> AddReadingDate(string bookId, int rating, CancellationToken cancellationToken = default);
     Task<Result> DeleteReadingDate(string bookId, string readingDateId, CancellationToken cancellationToken = default);
 }

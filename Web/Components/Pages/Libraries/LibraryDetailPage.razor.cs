@@ -62,6 +62,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     private bool _isLoading = true;
     private bool _isMoving;
+    private bool _isDeleting;
     private bool _observerInitialized;
     private bool _isSearchOpen;
     private bool _focusSearch;
@@ -100,6 +101,9 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private BookSortOrder _currentSortOrder = BookSortOrder.IdDesc;
 
     private bool IsDigital => _library?.BookType == LibraryBookType.Digital;
+
+    // Checked books being moved or deleted: neither can start again until it is done.
+    private bool IsChangingBooks => _isMoving || _isDeleting;
 
     // The library on screen: the side bar links to the other libraries, which are shown in this same page.
     private string? _shownLibraryId;
@@ -676,7 +680,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     internal async Task MoveCheckedBooksAsync()
     {
-        if (_isMoving || _selection.Count == 0)
+        if (IsChangingBooks || _selection.Count == 0)
         {
             return;
         }
@@ -699,6 +703,51 @@ public partial class LibraryDetailPage : IAsyncDisposable
         finally
         {
             _isMoving = false;
+        }
+    }
+
+    internal async Task DeleteCheckedBooksAsync()
+    {
+        if (IsChangingBooks || _selection.Count == 0)
+        {
+            return;
+        }
+
+        var bookIds = _selection.BookIds;
+        var confirmed = await DialogService.ShowConfirmationAsync(
+            BookDeleteText.Title(bookIds.Count), BookDeleteText.Confirmation(bookIds.Count, IsDigital), BookDeleteText.Title(bookIds.Count));
+        if (!confirmed)
+        {
+            return;
+        }
+
+        _isDeleting = true;
+        try
+        {
+            var result = await BooksService.Delete(bookIds, _disposalCts.Token);
+            if (result.IsFailure)
+            {
+                Snackbar.Add(result.Error!.Description ?? "Failed to delete the books", Severity.Error);
+                Logger.LogError("Failed to delete {Count} books: {Description}", bookIds.Count, result.Error.Description);
+                return;
+            }
+
+            var deleted = result.Value!;
+            Snackbar.Add(BookDeleteText.Outcome(deleted), BookDeleteText.Severity(deleted));
+            if (deleted.Deleted > 0)
+            {
+                // The books are gone: the ones left are shown, none checked.
+                _selection = BookSelection.None;
+                await ReloadBooksAsync(deleted.Deleted);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed while deleting; nothing to update.
+        }
+        finally
+        {
+            _isDeleting = false;
         }
     }
 

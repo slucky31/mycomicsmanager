@@ -1,13 +1,16 @@
+using Application.Books.Delete;
 using Application.Books.List;
 using Application.Interfaces;
 using AwesomeAssertions;
 using Bunit;
+using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
+using Web.Components.Pages.Dialogs;
 using Web.Components.Pages.Libraries;
 using Web.Components.Pages.Libraries.Views;
 using Web.Enums;
@@ -25,6 +28,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     private readonly IBooksService _booksService = Substitute.For<IBooksService>();
     private readonly IBookMoveWorkflow _workflow = Substitute.For<IBookMoveWorkflow>();
     private readonly ISnackbar _snackbar = Substitute.For<ISnackbar>();
+    private readonly IDialogService _dialogService = Substitute.For<IDialogService>();
     private readonly LibraryStateService _stateService = new();
     private readonly BunitJSModuleInterop _module;
     private readonly BookSummaryDto _blacksad = Book("Âme rouge", "Blacksad", 4);
@@ -42,6 +46,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_workflow);
         _ctx.Services.AddSingleton(_stateService);
         _ctx.Services.AddSingleton(_snackbar);
+        _ctx.Services.AddSingleton(_dialogService);
         _ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
     }
 
@@ -456,5 +461,87 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
 
         var stop = cut.Find("button[aria-label='Stop choosing books']");
         stop.ClassList.Should().Contain("library-bar-close").And.NotContain("library-bar-back");
+    }
+
+    // ── Several books deleted (#1194) ──────────────────────────────────
+
+    private void GivenConfirmation(bool confirmed)
+    {
+        var dialog = Substitute.For<IDialogReference>();
+        dialog.Result.Returns(confirmed ? DialogResult.Ok(true) : DialogResult.Cancel());
+        _dialogService.ShowAsync<ConfirmationDialog>(Arg.Any<string>(), Arg.Any<DialogParameters>(), Arg.Any<DialogOptions>()).Returns(dialog);
+    }
+
+    private static async Task CheckEveryBookAsync(IRenderedComponent<LibraryDetailPage> cut)
+    {
+        await cut.Find("button[aria-label='Select books']").ClickAsync(new());
+        await cut.Find(".library-bar-select-all").ClickAsync(new());
+    }
+
+    [Fact]
+    public async Task DeleteCheckedBooksAsync_Should_DeleteTheCheckedBooksAtOnce_ThenShowTheBooksLeft()
+    {
+        var cut = await RenderAsync(LibraryBookType.Digital);
+        GivenConfirmation(confirmed: true);
+        _booksService.Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DeleteBooksResult>.Success(new DeleteBooksResult(2, 0)));
+        await cut.Find("button[aria-label='Select books']").ClickAsync(new());
+        cut.Find(".library-bar-delete").HasAttribute("disabled").Should().BeTrue();
+        await cut.Find(".library-bar-select-all").ClickAsync(new());
+        GivenPage(1, string.Empty, Page(22, false));
+
+        await cut.Find(".library-bar-delete").ClickAsync(new());
+
+        await _dialogService.Received(1).ShowAsync<ConfirmationDialog>("Delete 2 books",
+            Arg.Is<DialogParameters>(p => (string)p[nameof(ConfirmationDialog.ConfirmationMessage)]! == BookDeleteText.Confirmation(2, true)),
+            Arg.Any<DialogOptions>());
+        await _booksService.Received(1).Delete(
+            Arg.Is<IReadOnlyList<Guid>>(ids => ids.Count == 2 && ids.Contains(_blacksad.Id) && ids.Contains(_hiver.Id)), Arg.Any<CancellationToken>());
+        _snackbar.Received(1).Add("2 books deleted", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        Heading(cut).Should().Be("Read Books");
+        cut.WaitForAssertion(() => Subtitle(cut).Should().StartWith("22 books"));
+    }
+
+    [Fact]
+    public async Task DeleteCheckedBooksAsync_Should_KeepTheBooks_WhenTheUserCancels()
+    {
+        var cut = await RenderAsync();
+        GivenConfirmation(confirmed: false);
+        await CheckEveryBookAsync(cut);
+
+        await cut.Find(".library-bar-delete").ClickAsync(new());
+
+        await _booksService.DidNotReceive().Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>());
+        Heading(cut).Should().Be("2 selected");
+    }
+
+    [Fact]
+    public async Task DeleteCheckedBooksAsync_Should_KeepTheBooksChecked_WhenNoBookWasDeleted()
+    {
+        var cut = await RenderAsync();
+        GivenConfirmation(confirmed: true);
+        _booksService.Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DeleteBooksResult>.Success(new DeleteBooksResult(0, 2, BooksError.NotFound)));
+        await CheckEveryBookAsync(cut);
+
+        await cut.Find(".library-bar-delete").ClickAsync(new());
+
+        _snackbar.Received(1).Add($"No book was deleted. {BooksError.NotFound.Description}", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        Heading(cut).Should().Be("2 selected");
+    }
+
+    [Fact]
+    public async Task DeleteCheckedBooksAsync_Should_ReportTheError_WhenTheBooksCannotBeDeleted()
+    {
+        var cut = await RenderAsync();
+        GivenConfirmation(confirmed: true);
+        _booksService.Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DeleteBooksResult>.Failure(BooksError.BadRequest));
+        await CheckEveryBookAsync(cut);
+
+        await cut.Find(".library-bar-delete").ClickAsync(new());
+
+        _snackbar.Received(1).Add(BooksError.BadRequest.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        Heading(cut).Should().Be("2 selected");
     }
 }

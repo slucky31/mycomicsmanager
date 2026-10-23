@@ -20,6 +20,7 @@ public class BooksService(
     ICommandHandler<CreateBookCommand, Book> createBookHandler,
     ICommandHandler<UpdateBookCommand, Book> updateBookHandler,
     ICommandHandler<DeleteBookCommand> deleteBookHandler,
+    ICommandHandler<DeleteBooksCommand, DeleteBooksResult> deleteBooksHandler,
     ICommandHandler<AddReadingDateCommand, ReadingDate> addReadingDateHandler,
     ICommandHandler<DeleteReadingDateCommand> deleteReadingDateHandler,
     ICurrentUserService currentUserService) : IBooksService
@@ -195,5 +196,16 @@ public class BooksService(
         var command = new DeleteBookCommand(guidId, UserId: userIdResult.Value);
 
         return await deleteBookHandler.Handle(command, cancellationToken);
+    }
+
+    public async Task<Result<DeleteBooksResult>> Delete(IReadOnlyList<Guid> bookIds, CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await deleteBooksHandler.Handle(new DeleteBooksCommand(bookIds, userIdResult.Value), cancellationToken);
     }
 }
