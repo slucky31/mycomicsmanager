@@ -209,7 +209,8 @@ public partial class FindBookDetails
 
     private void RefreshComparison()
     {
-        _comparison = new BookDetailsComparison(BookFieldDefinition.All
+        var fields = BookFieldDefinition.For(_currentBook is { IsPhysical: false }, !string.IsNullOrWhiteSpace(_currentBook?.ImageLink));
+        _comparison = new BookDetailsComparison(fields
             .Select(field => BookFieldComparison.Compare(
                 field,
                 Comparable(field.Key, GetCurrentValue(field.Key)),

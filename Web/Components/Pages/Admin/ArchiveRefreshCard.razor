@@ -1,0 +1,11 @@
+<h2 class="archive-refresh-title">Cover and pages</h2>
+<p class="archive-refresh-hint">
+    Reads again the number of pages and the cover of your digital books from their archive: the cover is the first page.
+    Values found on the web replace neither of them.
+</p>
+
+<div class="archive-refresh">
+    <button type="button" class="archive-refresh-button" disabled="@_isStarting" @onclick="StartAsync">
+        @(_isStarting ? "Starting…" : "Refresh cover and pages")
+    </button>
+</div>

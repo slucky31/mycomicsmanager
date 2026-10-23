@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
+using Application.Books;
 using Application.Helpers;
 using Application.Interfaces;
 using Domain.Books;
@@ -267,6 +268,9 @@ public sealed class ProcessImportJobCommandHandler(
         DateOnly? publishDate = comicInfo?.Year is not null
             ? new DateOnly(comicInfo.Year.Value, comicInfo.Month ?? 1, comicInfo.Day ?? 1)
             : null;
+        // The cover and the pages come from the archive (#1193): the catalogue cover is only kept in case
+        // the first page cannot be uploaded.
+        var fallbackCover = string.Empty;
 
         if (!string.IsNullOrWhiteSpace(isbn))
         {
@@ -279,6 +283,7 @@ public sealed class ProcessImportJobCommandHandler(
                 publishers ??= TextOrNull(searchResult.Publishers);
                 publishDate ??= searchResult.PublishDate;
                 volumeNumber ??= searchResult.VolumeNumber;
+                fallbackCover = searchResult.ImageUrl;
             }
         }
 
@@ -302,6 +307,7 @@ public sealed class ProcessImportJobCommandHandler(
         }
 
         var metadata = new BookMetadata(serie, title, isbn, volume,
+            ImageLink: fallbackCover,
             NumberOfPages: pageCount > 0 ? pageCount : null,
             Authors: authors, Publishers: publishers, PublishDate: publishDate);
         return (metadata, isbnScan);
@@ -347,9 +353,8 @@ public sealed class ProcessImportJobCommandHandler(
             return string.Empty;
         }
 
-        var publicId = string.IsNullOrWhiteSpace(isbn) ? $"digital-{importJob.Id}" : isbn;
         var uploadResult = await externalServices.Cloudinary.UploadImageFromFileAsync(
-            coverFiles[0], "digital-covers", publicId, ct);
+            coverFiles[0], DigitalCovers.Folder, DigitalCovers.PublicId(isbn, importJob.Id), ct);
 
         if (uploadResult.Success && uploadResult.Url is not null)
         {
@@ -408,7 +413,12 @@ public sealed class ProcessImportJobCommandHandler(
             ? null
             : IsbnHelper.NormalizeIsbn(meta.ISBN);
 
-        var finalMeta = meta with { ImageLink = imageLink, ISBN = normalizedIsbn };
+        // The catalogue cover stands in for a first page that could not be uploaded.
+        var finalMeta = meta with
+        {
+            ImageLink = string.IsNullOrWhiteSpace(imageLink) ? meta.ImageLink : imageLink,
+            ISBN = normalizedIsbn
+        };
 
         // Domain validation before any file-system side effect.
         if (string.IsNullOrWhiteSpace(finalMeta.Serie) || string.IsNullOrWhiteSpace(finalMeta.Title) || archive.FileSize <= 0)

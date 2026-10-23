@@ -245,6 +245,7 @@ builder.Services.AddScoped<IFeatureToggleService, FeatureToggleService>();
 builder.Services.AddScoped<ILegacyMigrationService, LegacyMigrationService>();
 builder.Services.AddScoped<IIsbnScanService, IsbnScanService>();
 builder.Services.AddScoped<IComicInfoSyncService, ComicInfoSyncService>();
+builder.Services.AddScoped<IArchiveRefreshService, ArchiveRefreshService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<ImportJobHandlers>();
 builder.Services.AddScoped<ProcessImportJobRepositories>();
@@ -260,6 +261,8 @@ builder.Services.AddScoped<IIsbnScanOrchestrator, IsbnScanOrchestrator>();
 builder.Services.AddSingleton<IIsbnScanJobEnqueuer, HangfireIsbnScanJobEnqueuer>();
 builder.Services.AddScoped<IComicInfoSyncOrchestrator, ComicInfoSyncOrchestrator>();
 builder.Services.AddSingleton<IComicInfoSyncJobEnqueuer, HangfireComicInfoSyncJobEnqueuer>();
+builder.Services.AddScoped<IArchiveRefreshOrchestrator, ArchiveRefreshOrchestrator>();
+builder.Services.AddSingleton<IArchiveRefreshJobEnqueuer, HangfireArchiveRefreshJobEnqueuer>();
 builder.Services.AddHostedService<FileWatcherService>();
 builder.Services.AddHostedService<LibraryIconsWarmupService>();
 

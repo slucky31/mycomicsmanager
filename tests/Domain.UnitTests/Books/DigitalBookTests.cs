@@ -358,4 +358,61 @@ public class DigitalBookTests
 
         book.IsbnCandidates.Should().HaveCount(2);
     }
+
+    private const string ArchiveCover = "https://res.cloudinary.com/demo/digital-covers/9782205050196.webp";
+
+    private static DigitalBook CreateBook(string cover, int? pages) =>
+        DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn, ImageLink: cover, NumberOfPages: pages),
+            DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+
+    [Fact]
+    public void Update_Should_KeepTheCoverAndThePagesOfTheArchive()
+    {
+        var book = CreateBook(ArchiveCover, 48);
+
+        var result = book.Update(new BookMetadata(DefaultSerie, "Arctic Nation", DefaultIsbn, ImageLink: "https://books.google.com/cover.jpg", NumberOfPages: 56));
+
+        result.IsSuccess.Should().BeTrue();
+        book.Title.Should().Be("Arctic Nation");
+        book.ImageLink.Should().Be(ArchiveCover);
+        book.NumberOfPages.Should().Be(48);
+    }
+
+    [Fact]
+    public void Update_Should_TakeTheCoverGiven_WhenTheBookHasNone()
+    {
+        var book = CreateBook(string.Empty, 48);
+
+        book.Update(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn, ImageLink: "https://books.google.com/cover.jpg", NumberOfPages: 56));
+
+        book.ImageLink.Should().Be("https://books.google.com/cover.jpg");
+        book.NumberOfPages.Should().Be(48);
+    }
+
+    [Theory]
+    [InlineData(null, "https://books.google.com/cover.jpg")]
+    [InlineData(ArchiveCover, ArchiveCover)]
+    public void RefreshFromArchive_Should_SetThePages_AndTheCoverWhenOneIsGiven(string? cover, string expectedCover)
+    {
+        var book = CreateBook("https://books.google.com/cover.jpg", 56);
+
+        var result = book.RefreshFromArchive(48, cover);
+
+        result.IsSuccess.Should().BeTrue();
+        book.NumberOfPages.Should().Be(48);
+        book.ImageLink.Should().Be(expectedCover);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void RefreshFromArchive_Should_ReturnBadRequest_WhenThePageCountIsNotPositive(int pageCount)
+    {
+        var book = CreateBook(ArchiveCover, 48);
+
+        var result = book.RefreshFromArchive(pageCount, null);
+
+        result.Error.Should().Be(BooksError.BadRequest);
+        book.NumberOfPages.Should().Be(48);
+    }
 }

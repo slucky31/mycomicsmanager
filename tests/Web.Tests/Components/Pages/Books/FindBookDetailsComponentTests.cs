@@ -25,7 +25,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     private readonly IOpenLibraryService _openLibraryService = Substitute.For<IOpenLibraryService>();
     private readonly IGoogleBooksService _googleBooksService = Substitute.For<IGoogleBooksService>();
     private readonly IComicSearchService _comicSearchService = Substitute.For<IComicSearchService>();
-    private readonly Book _book = DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null), Guid.CreateVersion7(), "/data/A/b.cbz", 1).Value!;
+    private Book _book = DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null), Guid.CreateVersion7(), "/data/A/b.cbz", 1).Value!;
 
     public FindBookDetailsComponentTests()
     {
@@ -201,6 +201,13 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         _comicSearchService.UploadCoverAsync(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(UploadedCover);
     }
 
+    // Replaces the digital book of the page.
+    private void UseBook(Book book)
+    {
+        _book = book;
+        _booksService.GetById(_book.Id.ToString()).Returns(Result<Book>.Success(_book));
+    }
+
     private async Task<IRenderedComponent<FindBookDetails>> RenderOnceSearchedAsync()
     {
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn={PageIsbn}");
@@ -210,14 +217,14 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     }
 
     // Picks the given source in every field; the options are found again after each click, as it renders the page.
-    private static async Task PickSourceAsync(IRenderedComponent<FindBookDetails> cut, string source)
+    private static async Task PickSourceAsync(IRenderedComponent<FindBookDetails> cut, string source, int fieldCount = 8)
     {
         List<AngleSharp.Dom.IElement> Options() => cut.FindAll("button[role=radio]")
             .Where(option => option.QuerySelector(".find-details-option-source")!.TextContent.Contains(source, StringComparison.Ordinal))
             .ToList();
 
-        Options().Should().HaveCount(8);
-        for (var i = 0; i < 8; i++)
+        Options().Should().HaveCount(fieldCount);
+        for (var i = 0; i < fieldCount; i++)
         {
             await Options()[i].ClickAsync(new());
         }
@@ -236,6 +243,8 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     public async Task ApplyAndSaveAsync_Should_SaveEveryValueOfTheSourcePicked(
         string source, string title, string serie, int volume, string author, int year, int pages)
     {
+        // A physical book has no file: its pages and its cover are taken from the web too.
+        UseBook(PhysicalBook.Create(new BookMetadata("Blacksad", "Âme rouge", "9782205050196"), Guid.CreateVersion7()).Value!);
         EverySourceFindsTheBook();
         var cut = await RenderOnceSearchedAsync();
 
@@ -256,10 +265,25 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
             .Returns(Task.FromException<string>(new HttpRequestException("Cloudinary unreachable")));
         var cut = await RenderOnceSearchedAsync();
 
-        await PickSourceAsync(cut, "Google Books");
+        // The digital book has no cover: the web cover stands in for it, but not the pages.
+        await PickSourceAsync(cut, "Google Books", fieldCount: 7);
         await ApplyAsync(cut);
 
         await _booksService.Received(1).Update(Arg.Is<UpdateBookRequest>(r => r.ImageLink == "https://books.google.com/cover.jpg"), Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData("", new[] { "Title", "Series", "Volume", "Authors", "Publisher", "Publish date", "Cover" })]
+    [InlineData("https://res.cloudinary.com/demo/digital-covers/1.webp", new[] { "Title", "Series", "Volume", "Authors", "Publisher", "Publish date" })]
+    public async Task RefreshComparison_Should_KeepThePagesAndTheCoverOfTheArchive_WhenTheBookIsDigital(string cover, string[] fields)
+    {
+        UseBook(DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null, ImageLink: cover, NumberOfPages: 48),
+            Guid.CreateVersion7(), "/data/A/b.cbz", 1).Value!);
+        EverySourceFindsTheBook();
+
+        var cut = await RenderOnceSearchedAsync();
+
+        cut.FindAll(".find-details-field-label").Select(label => label.TextContent).Should().Equal(fields);
     }
 
     [Fact]

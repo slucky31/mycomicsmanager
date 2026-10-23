@@ -63,6 +63,7 @@ public abstract class Book : Entity<Guid>
             return validationResult;
         }
 
+        metadata = KeepArchiveMetadata(metadata);
         Serie = metadata.Serie;
         Title = metadata.Title;
         ISBN = metadata.ISBN;
@@ -90,6 +91,9 @@ public abstract class Book : Entity<Guid>
     }
 
     protected virtual Result ValidateMetadataForUpdate(BookMetadata metadata) => Result.Success();
+
+    // The metadata a book reads from its file are not replaced by the ones given.
+    protected virtual BookMetadata KeepArchiveMetadata(BookMetadata metadata) => metadata;
 
     protected virtual void OnIsbnChanged()
     {
