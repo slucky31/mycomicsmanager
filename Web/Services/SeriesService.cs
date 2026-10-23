@@ -1,7 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Application.Series;
-using Application.Series.Get;
+using Application.Series.Detail;
 using Application.Series.List;
 using Application.Series.Missing;
 using Application.Series.SetTotal;

@@ -26,10 +26,6 @@ public static class SerieGrouping
             .ToList();
     }
 
-    // The books of one series, by volume then id so the order is stable.
-    public static IReadOnlyList<SerieBookRow> OrderByVolume(IEnumerable<SerieBookRow> books) =>
-        books.OrderBy(b => b.VolumeNumber).ThenBy(b => b.BookId).ToList();
-
     public static SerieSummary Summarize(IReadOnlyList<SerieBookRow> orderedBooks, SeriesInfo? info)
     {
         ArgumentNullException.ThrowIfNull(orderedBooks);
@@ -54,4 +50,8 @@ public static class SerieGrouping
             info?.IsFinished ?? false,
             completeness);
     }
+
+    // The books of one series, by volume then id so the order is stable.
+    public static IReadOnlyList<SerieBookRow> OrderByVolume(IEnumerable<SerieBookRow> books) =>
+        books.OrderBy(b => b.VolumeNumber).ThenBy(b => b.BookId).ToList();
 }

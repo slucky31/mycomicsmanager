@@ -4,7 +4,7 @@ using Domain.Libraries;
 using Domain.Primitives;
 using Domain.Series;
 
-namespace Application.Series.Get;
+namespace Application.Series.Detail;
 
 // A series of a library, found by its name whatever its case (#1205).
 public sealed class GetSerieQueryHandler(

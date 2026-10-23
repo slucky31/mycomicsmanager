@@ -1,7 +1,6 @@
 using Application.Series;
-using Application.Series.Get;
+using Application.Series.Detail;
 using AwesomeAssertions;
-using Domain.Series;
 using Web.Models;
 using Xunit;
 

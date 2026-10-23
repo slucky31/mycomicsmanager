@@ -1,6 +1,6 @@
 using Application.Interfaces;
 using Application.Series;
-using Application.Series.Get;
+using Application.Series.Detail;
 using Domain.Libraries;
 using Domain.Series;
 using NSubstitute;

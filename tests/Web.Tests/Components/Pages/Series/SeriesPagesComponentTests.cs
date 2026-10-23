@@ -1,5 +1,5 @@
 using Application.Series;
-using Application.Series.Get;
+using Application.Series.Detail;
 using Application.Series.Missing;
 using AwesomeAssertions;
 using Bunit;

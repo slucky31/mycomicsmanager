@@ -1,4 +1,4 @@
-using Application.Series.Get;
+using Application.Series.Detail;
 using Domain.Series;
 
 namespace Web.Models;
@@ -47,7 +47,14 @@ public sealed record SeriePageViewModel(
         _ => "No gap, number of volumes published unknown",
     };
 
-    private static string PublishedText(int? totalVolumes, bool isFinished) => totalVolumes is { } total
-        ? $"Volumes published: {total} · {(isFinished ? "finished" : "ongoing")}"
-        : "Volumes published: unknown";
+    private static string PublishedText(int? totalVolumes, bool isFinished)
+    {
+        if (totalVolumes is not { } total)
+        {
+            return "Volumes published: unknown";
+        }
+
+        var state = isFinished ? "finished" : "ongoing";
+        return $"Volumes published: {total} · {state}";
+    }
 }
