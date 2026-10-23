@@ -13,4 +13,9 @@ public interface IBookSearchResult
 
     // The source could not be searched (error, timeout, blocked): unlike !Found, it may know the book.
     bool Failed { get; }
+
+    // The series and the volume when the source gives them apart from the title, null otherwise.
+    string? Serie { get; }
+
+    int? VolumeNumber { get; }
 }

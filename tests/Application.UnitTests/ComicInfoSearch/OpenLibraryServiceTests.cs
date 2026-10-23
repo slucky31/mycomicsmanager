@@ -309,6 +309,34 @@ public class OpenLibraryServiceTests
     }
 
     [Fact]
+    public async Task SearchByIsbnAsync_Should_ReturnTheSeriesInComposedForm_WhenTheEditionBelongsToASeries()
+    {
+        // OpenLibrary's answer for 220330507X: "é" is an "e" followed by a combining accent.
+        var jsonResponse = """
+        {
+            "title": "Le noye\u0301 a\u0300 deux te\u0302tes",
+            "publishers": ["Caste\u0301rman"],
+            "series": ["Les Aventures extraordinaires d'Ade\u0300le Blanc-Sec"]
+        }
+        """;
+
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://openlibrary.org/isbn/{ValidIsbn}.json"] = CreateJsonResponse(jsonResponse)
+        });
+
+        using var httpClient = new HttpClient(handler);
+        var service = CreateService(httpClient);
+
+        var result = await service.SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        result.Title.Should().Be("Le noy\u00e9 \u00e0 deux t\u00eates");
+        result.Publishers.Should().Equal("Cast\u00e9rman");
+        result.Serie.Should().Be("Les Aventures extraordinaires d'Ad\u00e8le Blanc-Sec");
+        result.VolumeNumber.Should().BeNull();
+    }
+
+    [Fact]
     public async Task SearchByIsbnAsync_Should_ReturnFailed_WhenTimeoutOccurs()
     {
         // Arrange – TaskCanceledException with a token different from the caller's (internal timeout)

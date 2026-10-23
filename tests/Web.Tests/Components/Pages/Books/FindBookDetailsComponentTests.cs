@@ -183,8 +183,8 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     // Every source knows the book, with values of its own.
     private void EverySourceFindsTheBook()
     {
-        _comicSearchService.ParseTitleInfo(Arg.Any<string>(), Arg.Any<string?>())
-            .Returns(call => (call.ArgAt<string>(0), "Parsed serie", 2));
+        _comicSearchService.ParseTitleInfo(Arg.Any<IBookSearchResult>())
+            .Returns(call => (call.ArgAt<IBookSearchResult>(0).Title, "Parsed serie", (int?)2));
         _bedethequeService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new BedethequeBookResult("Bedetheque title", "Bedetheque serie", 3, ["Bedetheque author"], ["Bedetheque publisher"],
                 new DateOnly(2005, 3, 1), 56, new Uri("https://www.bedetheque.com/media/Couvertures/Couv_1.jpg"), Found: true));
@@ -302,7 +302,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     [Fact]
     public async Task RefreshComparison_Should_ShowOnlyTheDifferences_AndSummariseTheFieldsThatMatch()
     {
-        _comicSearchService.ParseTitleInfo(Arg.Any<string>(), Arg.Any<string?>()).Returns(call => (call.ArgAt<string>(0), "Blacksad", 0));
+        _comicSearchService.ParseTitleInfo(Arg.Any<IBookSearchResult>()).Returns(call => (call.ArgAt<IBookSearchResult>(0).Title, "Blacksad", (int?)null));
         _bnfService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new BnfBookResult("Âme rouge", null, ["Juan Díaz Canales"], [], null, null, null, Found: true));
 

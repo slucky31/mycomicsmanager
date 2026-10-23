@@ -53,7 +53,7 @@ public partial class FindBookDetails
     private BookDetailsComparison _comparison = new([]);
     private int _changeCount;
 
-    private sealed record ParsedTitleInfo(string Title, string Serie, int VolumeNumber);
+    private sealed record ParsedTitleInfo(string Title, string Serie, int? VolumeNumber);
 
     // The book and ISBN the page last searched for: each search costs SerpApi and Google quota.
     private (string BookId, string? Isbn)? _searchedFor;
@@ -249,7 +249,7 @@ public partial class FindBookDetails
         }
     }
 
-    // The title of these sources mixes the series, the volume and the title of the book.
+    // The title of these sources may mix the series, the volume and the title of the book.
     private ParsedTitleInfo? ParseTitle(IBookSearchResult? result)
     {
         if (result is not { Found: true })
@@ -257,7 +257,7 @@ public partial class FindBookDetails
             return null;
         }
 
-        var (title, serie, volumeNumber) = ComicSearchService.ParseTitleInfo(result.Title, result.Subtitle);
+        var (title, serie, volumeNumber) = ComicSearchService.ParseTitleInfo(result);
         return new ParsedTitleInfo(title, serie, volumeNumber);
     }
 
@@ -294,7 +294,7 @@ public partial class FindBookDetails
         {
             BookFieldKeys.Title => parsed?.Title,
             BookFieldKeys.Serie => parsed?.Serie,
-            BookFieldKeys.VolumeNumber => parsed?.VolumeNumber.ToString(CultureInfo.InvariantCulture),
+            BookFieldKeys.VolumeNumber => parsed?.VolumeNumber?.ToString(CultureInfo.InvariantCulture),
             BookFieldKeys.Authors => NullIfEmpty(string.Join(", ", result.Authors)),
             BookFieldKeys.Publishers => NullIfEmpty(string.Join(", ", result.Publishers)),
             BookFieldKeys.PublishDate => result.PublishDate?.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture),

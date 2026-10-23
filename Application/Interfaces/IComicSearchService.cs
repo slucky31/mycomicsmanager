@@ -27,6 +27,7 @@ public interface IComicSearchService
         Stream? coverStream,
         string? coverFileName,
         CancellationToken cancellationToken = default);
-    (string Title, string Serie, int VolumeNumber) ParseTitleInfo(string rawTitle, string? subtitle);
+    // The volume is null when the source does not tell it.
+    (string Title, string Serie, int? VolumeNumber) ParseTitleInfo(IBookSearchResult result);
     Task<string> UploadCoverAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken = default);
 }

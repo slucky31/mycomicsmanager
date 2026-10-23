@@ -9,7 +9,9 @@ public record OpenLibraryBookResult(
     int? NumberOfPages,
     Uri? CoverUrl,
     bool Found,
-    bool Failed = false
+    bool Failed = false,
+    string? Serie = null,
+    int? VolumeNumber = null
 ) : IBookSearchResult;
 
 public interface IOpenLibraryService
