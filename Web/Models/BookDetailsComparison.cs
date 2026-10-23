@@ -38,6 +38,11 @@ public sealed record BookFieldDefinition(string Key, string Label, string MatchL
         new(BookFieldKeys.NumberOfPages, "Pages", "pages"),
         new(BookFieldKeys.Cover, "Cover", "cover", IsImage: true),
     ];
+
+    // A digital book takes its pages and its cover from its archive (#1193): the web only gives a cover to a book without one.
+    public static IReadOnlyList<BookFieldDefinition> For(bool isDigital, bool hasCover) => isDigital
+        ? All.Where(f => f.Key != BookFieldKeys.NumberOfPages && (f.Key != BookFieldKeys.Cover || !hasCover)).ToList()
+        : All;
 }
 
 // One value to pick, with every source that gives it (the current value comes first).

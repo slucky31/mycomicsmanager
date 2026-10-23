@@ -29,12 +29,12 @@
         <input id="book-published" type="date" @bind="Model.PublishDate" @bind:after="NotifyChangedAsync"
                aria-invalid="@Errors.AriaInvalid(nameof(BookUiDto.PublishDate))" aria-describedby="@Describe("book-published", nameof(BookUiDto.PublishDate))" />
     </FormField>
-    <FormField Id="book-pages" Label="Pages" Error="@Errors.For(nameof(BookUiDto.NumberOfPages))">
-        <input id="book-pages" type="number" inputmode="numeric" min="1" placeholder="e.g. 271" @bind="Model.NumberOfPages" @bind:after="NotifyChangedAsync"
-               aria-invalid="@Errors.AriaInvalid(nameof(BookUiDto.NumberOfPages))" aria-describedby="@Describe("book-pages", nameof(BookUiDto.NumberOfPages))" />
+    <FormField Id="book-pages" Label="Pages" Error="@Errors.For(nameof(BookUiDto.NumberOfPages))" Help="@PagesHelp">
+        <input id="book-pages" type="number" inputmode="numeric" min="1" placeholder="e.g. 271" @bind="Model.NumberOfPages" @bind:after="NotifyChangedAsync" readonly="@(!Model.IsPhysical)"
+               aria-invalid="@Errors.AriaInvalid(nameof(BookUiDto.NumberOfPages))" aria-describedby="@FormFieldIds.DescribedBy("book-pages", Errors.For(nameof(BookUiDto.NumberOfPages)), PagesHelp)" />
     </FormField>
     <div class="form-wide">
-        @TextField("book-cover", "Cover image URL", nameof(BookUiDto.ImageLink), Model.ImageLink, v => Model.ImageLink = v, new() { Placeholder = "https://…", Type = "url" })
+        @TextField("book-cover", "Cover image URL", nameof(BookUiDto.ImageLink), Model.ImageLink, v => Model.ImageLink = v, CoverField)
     </div>
 </FormSection>
 
@@ -54,6 +54,17 @@
 
     // A digital book may have no ISBN.
     private FieldOptions IsbnField => new() { Required = Model.IsPhysical, InputMode = "numeric" };
+
+    // A digital book takes its pages and its cover from its archive (#1193).
+    private string? PagesHelp => Model.IsPhysical ? null : "Counted from the file";
+
+    private FieldOptions CoverField => new()
+    {
+        Placeholder = "https://…",
+        Type = "url",
+        ReadOnly = Model.HasArchiveCover,
+        Help = Model.HasArchiveCover ? "The first page of the file" : null
+    };
 
     // The series of a one-shot is set, not typed.
     private FieldOptions SerieField => new() { Required = true, ReadOnly = Model.IsOneShot };

@@ -33,6 +33,7 @@ public sealed class UserSettingsComponentTests
         ctx.Services.AddSingleton(Substitute.For<IFeatureToggleService>());
         ctx.Services.AddSingleton(Substitute.For<ILegacyMigrationService>());
         ctx.Services.AddSingleton(Substitute.For<IComicInfoSyncService>());
+        ctx.Services.AddSingleton(Substitute.For<IArchiveRefreshService>());
         var authorization = ctx.AddAuthorization();
         authorization.SetAuthorized("user");
         if (isAdmin)

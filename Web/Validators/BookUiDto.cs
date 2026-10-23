@@ -43,6 +43,9 @@ public class BookUiDto : Entity<Guid>
     // without a metadata match may not have one. Defaults to true for the manual "add book" flow.
     public bool IsPhysical { get; set; } = true;
 
+    // The cover of a digital book is the first page of its archive (#1193): it is only typed when the book has none.
+    public bool HasArchiveCover { get; private set; }
+
     // A one-shot is not part of a series: its series is "One Shot" and its volume 1, neither can be changed (#1171).
     public bool IsOneShot { get; private set; }
 
@@ -79,6 +82,7 @@ public class BookUiDto : Entity<Guid>
             Title = book.Title,
             ISBN = book.ISBN,
             IsPhysical = book is PhysicalBook,
+            HasArchiveCover = book is DigitalBook && !string.IsNullOrWhiteSpace(book.ImageLink),
             IsOneShot = IsOneShotBook(book),
             VolumeNumber = book.VolumeNumber,
             ImageLink = book.ImageLink,

@@ -44,6 +44,31 @@ public sealed class DigitalBook : Book
         return Result.Success();
     }
 
+    // The cover and the number of pages come from the archive (#1193): a cover found elsewhere is only taken
+    // by a book that has none, when its first page could not be uploaded.
+    protected override BookMetadata KeepArchiveMetadata(BookMetadata metadata) => metadata with
+    {
+        ImageLink = string.IsNullOrWhiteSpace(ImageLink) ? metadata.ImageLink : ImageLink,
+        NumberOfPages = NumberOfPages
+    };
+
+    // Read again from the archive; a null cover keeps the current one.
+    public Result RefreshFromArchive(int pageCount, string? coverLink)
+    {
+        if (pageCount <= 0)
+        {
+            return BooksError.BadRequest;
+        }
+
+        NumberOfPages = pageCount;
+        if (!string.IsNullOrWhiteSpace(coverLink))
+        {
+            ImageLink = coverLink;
+        }
+
+        return Result.Success();
+    }
+
     // Once the book has an ISBN, the candidates are no longer needed.
     protected override void OnIsbnChanged()
     {

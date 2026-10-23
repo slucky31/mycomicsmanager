@@ -683,6 +683,48 @@ public class ProcessImportJobCommandHandlerTests
         result.Value!.ImageLink.Should().BeEmpty();
     }
 
+    private const string CatalogueCover = "https://res.cloudinary.com/demo/covers/9782075162869.jpg";
+
+    private ImportJob SetupJobFoundInTheCatalogue()
+    {
+        var job = CreatePendingJob("Serie 9782075162869.cbz", "/srv/Serie 9782075162869.cbz");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+        SetupImageProcessor(processedCount: 46, skippedCount: 2);
+        SetupComicInfoXml();
+        SetupArchiveBuilder();
+        _comicSearchService.SearchByIsbnAsync("9782075162869", Arg.Any<CancellationToken>())
+            .Returns(new ComicSearchResult("Title", "Serie", "9782075162869", 1, CatalogueCover, "Author", "Publisher", null, 120, true));
+        return job;
+    }
+
+    [Fact]
+    public async Task Handle_Should_TakeTheCoverAndThePagesFromTheArchive_WhenTheCatalogueHasOthers()
+    {
+        var job = SetupJobFoundInTheCatalogue();
+        SetupCloudinary();
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Value!.ImageLink.Should().Be("https://cdn.example.com/cover.webp");
+        result.Value.NumberOfPages.Should().Be(48);
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepTheCatalogueCover_WhenTheFirstPageCannotBeUploaded()
+    {
+        var job = SetupJobFoundInTheCatalogue();
+        _cloudinaryService.UploadImageFromFileAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(null, null, false, "upload error"));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Value!.ImageLink.Should().Be(CatalogueCover);
+        result.Value.NumberOfPages.Should().Be(48);
+    }
+
     // ── Cover upload skipped when no webp files ───────────────────────────────
 
     [Fact]
