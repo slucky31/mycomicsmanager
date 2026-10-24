@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.65.1"></a>
+## [10.65.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.1) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **nav:** center the wrapped Missing volumes label in the tablet rail ([#1222](https://www.github.com/slucky31/mycomicsmanager/issues/1222)) ([06ed85b](https://www.github.com/slucky31/mycomicsmanager/commit/06ed85b168f96efbbaff5d15d4f931682d756dff))
+
 <a name="10.65.0"></a>
 ## [10.65.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.0) (2026-10-24)
 
