@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.62.0"></a>
+## [10.62.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.62.0) (2026-10-24)
+
+### ✨ Features
+
+* **libraries:** remember the view of each library ([#1210](https://www.github.com/slucky31/mycomicsmanager/issues/1210)) ([#1211](https://www.github.com/slucky31/mycomicsmanager/issues/1211)) ([9907c1f](https://www.github.com/slucky31/mycomicsmanager/commit/9907c1f274688a299e70a11f11e339e89ff61b9e))
+
 <a name="10.61.0"></a>
 ## [10.61.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.61.0) (2026-10-23)
 
