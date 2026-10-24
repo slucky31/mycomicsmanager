@@ -30,7 +30,6 @@ public sealed partial class LibrariesList : IDisposable
     private PopupAnchor? _sheetAnchor;
 
     // The search of all the libraries (#1209): the typed term is searched after a pause.
-    private string _searchTermValue = string.Empty;
     private CancellationTokenSource? _searchCts;
     private string _shownSearch = string.Empty;
     private LibrariesSearchViewModel _searchResults = LibrariesSearchViewModel.Empty;
@@ -43,10 +42,10 @@ public sealed partial class LibrariesList : IDisposable
 
     private string SearchTerm
     {
-        get => _searchTermValue;
+        get;
         set
         {
-            _searchTermValue = value;
+            field = value;
             var previous = _searchCts;
             previous?.Cancel();
             previous?.Dispose();
@@ -58,7 +57,7 @@ public sealed partial class LibrariesList : IDisposable
             }
             _ = SearchAfterPauseAsync(value.Trim(), _searchCts.Token);
         }
-    }
+    } = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {

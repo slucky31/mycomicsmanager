@@ -155,16 +155,16 @@ public sealed class LibrariesListTests : IAsyncDisposable
     }
 
     [Fact]
-    public void SearchTerm_Should_SayNothingWasFound_AndClearTheSearchToShowTheCardsAgain()
+    public async Task SearchTerm_Should_SayNothingWasFound_AndClearTheSearchToShowTheCardsAgain()
     {
         GivenSearch("zorglub", LibrariesList.SearchPageSize, BookSearchResult.Empty);
         var cut = Render(_readBooks);
         Type(cut, "zorglub");
         cut.WaitForAssertion(() => cut.Find(".search-results").TextContent.Should().Contain("No results for “zorglub”"));
 
-        cut.FindAll(".search-results button").Single(b => b.TextContent.Contains("Clear search", StringComparison.Ordinal)).Click();
+        await cut.FindAll(".search-results button").Single(b => b.TextContent.Contains("Clear search", StringComparison.Ordinal)).ClickAsync(new());
 
-        cut.FindAll(".search-results").Should().BeEmpty();
+        cut.WaitForAssertion(() => cut.FindAll(".search-results").Should().BeEmpty());
         cut.FindAll(".library-card").Should().ContainSingle();
         cut.Find(".libraries-search-field input").GetAttribute("value").Should().BeNullOrEmpty();
     }
