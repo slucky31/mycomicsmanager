@@ -6,6 +6,7 @@ using Application.Libraries.GetById;
 using Application.Libraries.List;
 using Application.Libraries.Summaries;
 using Application.Libraries.Update;
+using Application.Users.HiddenLibraries;
 using Domain.Libraries;
 using Domain.Primitives;
 
@@ -18,6 +19,8 @@ public class LibrariesService(
     ICommandHandler<CreateLibraryCommand, Library> createLibraryHandler,
     ICommandHandler<UpdateLibraryCommand, Library> updateLibraryHandler,
     ICommandHandler<DeleteLibraryCommand> deleteLibraryHandler,
+    IQueryHandler<GetShowHiddenLibrariesQuery, bool> getShowHiddenLibrariesHandler,
+    ICommandHandler<SetShowHiddenLibrariesCommand> setShowHiddenLibrariesHandler,
     ICurrentUserService currentUserService) : ILibrariesService
 {
     public async Task<Result<Library>> GetById(string? id)
@@ -76,7 +79,8 @@ public class LibrariesService(
             request.Icon,
             userIdResult.Value,
             request.DefaultBookSortOrder,
-            request.DefaultView);
+            request.DefaultView,
+            request.IsHidden);
 
         return await updateLibraryHandler.Handle(command, cancellationToken);
     }
@@ -94,7 +98,10 @@ public class LibrariesService(
         return await getLibrariesHandler.Handle(query, cancellationToken);
     }
 
-    public async Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(CancellationToken cancellationToken = default)
+    public Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(CancellationToken cancellationToken = default) =>
+        GetSummaries(includeHidden: false, cancellationToken);
+
+    public async Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(bool includeHidden, CancellationToken cancellationToken = default)
     {
         var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
@@ -102,7 +109,29 @@ public class LibrariesService(
             return userIdResult.Error!;
         }
 
-        return await getLibrarySummariesHandler.Handle(new GetLibrarySummariesQuery(userIdResult.Value), cancellationToken);
+        return await getLibrarySummariesHandler.Handle(new GetLibrarySummariesQuery(userIdResult.Value, includeHidden), cancellationToken);
+    }
+
+    public async Task<Result<bool>> GetShowHiddenLibraries(CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await getShowHiddenLibrariesHandler.Handle(new GetShowHiddenLibrariesQuery(userIdResult.Value), cancellationToken);
+    }
+
+    public async Task<Result> SetShowHiddenLibraries(bool show, CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await setShowHiddenLibrariesHandler.Handle(new SetShowHiddenLibrariesCommand(userIdResult.Value, show), cancellationToken);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)

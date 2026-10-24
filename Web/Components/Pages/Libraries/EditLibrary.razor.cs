@@ -75,7 +75,8 @@ public sealed partial class EditLibrary : IDisposable
     // The count of books and latest covers of the preview; the card shows none when they cannot be loaded.
     private async Task LoadBooksAsync(Guid libraryId)
     {
-        var result = await LibrariesService.GetSummaries(_disposalCts.Token);
+        // The library edited may be hidden.
+        var result = await LibrariesService.GetSummaries(includeHidden: true, _disposalCts.Token);
         var summary = result.IsSuccess ? result.Value?.FirstOrDefault(s => s.Id == libraryId) : null;
         if (summary is null)
         {
@@ -113,7 +114,7 @@ public sealed partial class EditLibrary : IDisposable
         _isSaving = true;
         try
         {
-            var result = await LibrariesService.Update(new UpdateLibraryRequest(_model.Id.ToString(), _model.Name, _model.Color, _model.Icon), _disposalCts.Token);
+            var result = await LibrariesService.Update(new UpdateLibraryRequest(_model.Id.ToString(), _model.Name, _model.Color, _model.Icon, IsHidden: _model.IsHidden), _disposalCts.Token);
             if (result.IsSuccess)
             {
                 Snackbar.Add($"{_model.Name} was saved", Severity.Success);

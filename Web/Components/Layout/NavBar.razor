@@ -1,4 +1,4 @@
-@using Web.Components.SharedComponents
+﻿@using Web.Components.SharedComponents
 
 @* Tablet (rail) and desktop (side bar): one navigation, its width set by the screen width (NavBar.razor.css). *@
 <nav class="side-nav" aria-label="Main">
@@ -18,7 +18,7 @@
             @foreach (var library in _libraries)
             {
                 var isCurrent = library.Id == _currentLibraryId;
-                <a href="@library.Href" class="side-nav-library @ActiveClass(isCurrent)" aria-current="@AriaCurrent(isCurrent)" aria-label="@library.AriaLabel">
+                <a href="@library.Href" class="@library.CssClass @ActiveClass(isCurrent)" aria-current="@AriaCurrent(isCurrent)" aria-label="@library.AriaLabel">
                     <MudIcon Icon="@LibraryIcons.Resolve(library.Icon)" Style="@($"color: {library.Color};")" Size="Size.Small" />
                     <span class="side-nav-library-name">@library.Name</span>
                     <span class="side-nav-library-count" aria-hidden="true">@library.CountLabel</span>

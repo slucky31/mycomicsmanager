@@ -1,5 +1,7 @@
 using AwesomeAssertions;
 using Bunit;
+using Domain.Primitives;
+using Domain.Users;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MudBlazor;
@@ -22,7 +24,7 @@ public sealed class UserSettingsComponentTests
         TimeSpan.Zero);
 
     private static async Task<(BunitContext Ctx, IRenderedComponent<UserSettings> Cut, ISnackbar Snackbar)> RenderAsync(
-        HealthCheckService healthCheckService, bool isAdmin = false)
+        HealthCheckService healthCheckService, bool isAdmin = false, ILibrariesService? librariesService = null, LibrariesNotifier? librariesNotifier = null)
     {
         var snackbar = Substitute.For<ISnackbar>();
         var ctx = new BunitContext();
@@ -34,6 +36,8 @@ public sealed class UserSettingsComponentTests
         ctx.Services.AddSingleton(Substitute.For<ILegacyMigrationService>());
         ctx.Services.AddSingleton(Substitute.For<IComicInfoSyncService>());
         ctx.Services.AddSingleton(Substitute.For<IArchiveRefreshService>());
+        ctx.Services.AddSingleton(librariesService ?? HidingLibraries(show: false));
+        ctx.Services.AddSingleton(librariesNotifier ?? new LibrariesNotifier());
         var authorization = ctx.AddAuthorization();
         authorization.SetAuthorized("user");
         if (isAdmin)
@@ -46,6 +50,82 @@ public sealed class UserSettingsComponentTests
         await Task.Yield();
 
         return (ctx, cut, snackbar);
+    }
+
+    private static ILibrariesService HidingLibraries(bool show)
+    {
+        var librariesService = Substitute.For<ILibrariesService>();
+        librariesService.GetShowHiddenLibraries(Arg.Any<CancellationToken>()).Returns(Result<bool>.Success(show));
+        librariesService.SetShowHiddenLibraries(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+        return librariesService;
+    }
+
+    private static HealthCheckService Healthy()
+    {
+        var healthCheckService = Substitute.For<HealthCheckService>();
+        healthCheckService
+            .CheckHealthAsync(Arg.Any<Func<HealthCheckRegistration, bool>?>(), Arg.Any<CancellationToken>())
+            .Returns(CreateReport(HealthStatus.Healthy));
+        return healthCheckService;
+    }
+
+    [Fact]
+    public async Task LoadShowHiddenLibrariesAsync_Should_CheckTheSwitch_WhenTheUserShowsTheHiddenLibraries()
+    {
+        var (ctx, cut, _) = await RenderAsync(Healthy(), librariesService: HidingLibraries(show: true));
+        await using var _ = ctx;
+
+        var input = cut.Find(".settings-hidden-libraries input[role=switch]");
+        input.HasAttribute("checked").Should().BeTrue();
+        input.HasAttribute("disabled").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task LoadShowHiddenLibrariesAsync_Should_ShowAnError_WhenTheSettingCannotBeLoaded()
+    {
+        var librariesService = Substitute.For<ILibrariesService>();
+        librariesService.GetShowHiddenLibraries(Arg.Any<CancellationToken>()).Returns(Result<bool>.Failure(UsersError.NotFound));
+
+        var (ctx, cut, snackbar) = await RenderAsync(Healthy(), librariesService: librariesService);
+        await using var _ = ctx;
+
+        cut.Find(".settings-hidden-libraries input[role=switch]").HasAttribute("checked").Should().BeFalse();
+        snackbar.Received(1).Add("Failed to load the setting of the hidden libraries", Severity.Error);
+    }
+
+    [Fact]
+    public async Task SetShowHiddenLibrariesAsync_Should_SaveTheSetting_AndRefreshTheNavigation()
+    {
+        var librariesService = HidingLibraries(show: false);
+        var notifier = new LibrariesNotifier();
+        var notified = 0;
+        notifier.LibrariesChanged += (_, _) => notified++;
+        var (ctx, cut, _) = await RenderAsync(Healthy(), librariesService: librariesService, librariesNotifier: notifier);
+        await using var _ = ctx;
+
+        await cut.Find(".settings-hidden-libraries input[role=switch]").ChangeAsync(new() { Value = true });
+
+        await librariesService.Received(1).SetShowHiddenLibraries(true, Arg.Any<CancellationToken>());
+        cut.Find(".settings-hidden-libraries input[role=switch]").HasAttribute("checked").Should().BeTrue();
+        notified.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SetShowHiddenLibrariesAsync_Should_KeepTheSetting_WhenItCannotBeSaved()
+    {
+        var librariesService = HidingLibraries(show: false);
+        librariesService.SetShowHiddenLibraries(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(Result.Failure(UsersError.NotFound));
+        var notifier = new LibrariesNotifier();
+        var notified = 0;
+        notifier.LibrariesChanged += (_, _) => notified++;
+        var (ctx, cut, snackbar) = await RenderAsync(Healthy(), librariesService: librariesService, librariesNotifier: notifier);
+        await using var _ = ctx;
+
+        await cut.Find(".settings-hidden-libraries input[role=switch]").ChangeAsync(new() { Value = true });
+
+        cut.Find(".settings-hidden-libraries input[role=switch]").HasAttribute("checked").Should().BeFalse();
+        snackbar.Received(1).Add("Failed to save the setting of the hidden libraries", Severity.Error);
+        notified.Should().Be(0);
     }
 
     [Fact]

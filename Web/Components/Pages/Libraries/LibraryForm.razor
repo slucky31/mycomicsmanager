@@ -1,4 +1,4 @@
-@using Domain.Libraries
+﻿@using Domain.Libraries
 @using Web.Validators
 
 @* The form of a library (E3, E4, T12): the preview beside the name, the type (when created), the color and the icon. *@
@@ -70,6 +70,20 @@
             </div>
             @Error("library-icon", nameof(LibraryUiDto.Icon))
         </fieldset>
+
+        @if (CanHide)
+        {
+            <label class="library-hidden">
+                <MudIcon Icon="@Icons.Material.Outlined.VisibilityOff" Class="library-hidden-icon" />
+                <span class="library-hidden-text">
+                    <span class="library-hidden-label">Hide this library</span>
+                    <span id="library-hidden-help" class="library-hidden-help">Hidden libraries and their books are left out of the menu, the libraries page, the search, moves, statistics and missing volumes. Turn on "Show hidden libraries" in Settings to see them again.</span>
+                </span>
+                <input id="library-hidden" type="checkbox" role="switch" class="library-hidden-input" checked="@Model.IsHidden"
+                       aria-describedby="library-hidden-help" @onchange="OnHiddenChangedAsync" />
+                <span class="library-switch" aria-hidden="true"><span class="library-switch-thumb"></span></span>
+            </label>
+        }
     </div>
 
     @Footer

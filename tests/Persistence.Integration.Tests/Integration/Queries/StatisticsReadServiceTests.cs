@@ -37,7 +37,7 @@ public class StatisticsReadServiceTests(IntegrationTestWebAppFactory factory) : 
     {
         // Act
         var result = await StatisticsReadService.GetStatisticsAsync(
-            DefaultLibrary.UserId, null, s_readingsFrom, TestContext.Current.CancellationToken);
+            DefaultLibrary.UserId, null, true, s_readingsFrom, TestContext.Current.CancellationToken);
 
         // Assert
         result.TotalBooks.Should().Be(0);
@@ -67,7 +67,7 @@ public class StatisticsReadServiceTests(IntegrationTestWebAppFactory factory) : 
 
         // Act
         var result = await StatisticsReadService.GetStatisticsAsync(
-            DefaultLibrary.UserId, null, s_readingsFrom, TestContext.Current.CancellationToken);
+            DefaultLibrary.UserId, null, true, s_readingsFrom, TestContext.Current.CancellationToken);
 
         // Assert
         result.TotalBooks.Should().Be(3);
@@ -98,7 +98,7 @@ public class StatisticsReadServiceTests(IntegrationTestWebAppFactory factory) : 
 
         // Act
         var result = await StatisticsReadService.GetStatisticsAsync(
-            DefaultLibrary.UserId, otherLibrary.Id, s_readingsFrom, TestContext.Current.CancellationToken);
+            DefaultLibrary.UserId, otherLibrary.Id, true, s_readingsFrom, TestContext.Current.CancellationToken);
 
         // Assert
         result.TotalBooks.Should().Be(2);
@@ -117,7 +117,7 @@ public class StatisticsReadServiceTests(IntegrationTestWebAppFactory factory) : 
 
         // Act
         var result = await StatisticsReadService.GetStatisticsAsync(
-            DefaultLibrary.UserId, null, s_readingsFrom, TestContext.Current.CancellationToken);
+            DefaultLibrary.UserId, null, true, s_readingsFrom, TestContext.Current.CancellationToken);
 
         // Assert
         result.TotalBooks.Should().Be(1);
@@ -138,11 +138,40 @@ public class StatisticsReadServiceTests(IntegrationTestWebAppFactory factory) : 
 
         // Act
         var result = await StatisticsReadService.GetStatisticsAsync(
-            DefaultLibrary.UserId, null, s_readingsFrom, TestContext.Current.CancellationToken);
+            DefaultLibrary.UserId, null, true, s_readingsFrom, TestContext.Current.CancellationToken);
 
         // Assert
         result.TotalReadings.Should().Be(2);
         result.ReadingsPerMonth.Should().ContainSingle()
             .Which.Should().BeEquivalentTo(new { Year = 2025, Month = 1, Count = 1 });
+    }
+
+    [Fact]
+    public async Task GetStatisticsAsync_Should_LeaveOutTheHiddenLibraries_UnlessIncludedOrChosen()
+    {
+        // Arrange
+        var hiddenLibrary = await CreateLibraryAsync(DefaultLibrary.UserId);
+        hiddenLibrary.UpdateHidden(true);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+        await SeedAsync(
+            CreateBook(DefaultLibrary.Id, "Naruto", 1),
+            CreateBook(hiddenLibrary.Id, "Bleach", 1),
+            CreateBook(hiddenLibrary.Id, "Bleach", 2));
+
+        // Act
+        var withoutHidden = await StatisticsReadService.GetStatisticsAsync(
+            DefaultLibrary.UserId, null, false, s_readingsFrom, TestContext.Current.CancellationToken);
+        var withHidden = await StatisticsReadService.GetStatisticsAsync(
+            DefaultLibrary.UserId, null, true, s_readingsFrom, TestContext.Current.CancellationToken);
+        var chosen = await StatisticsReadService.GetStatisticsAsync(
+            DefaultLibrary.UserId, hiddenLibrary.Id, false, s_readingsFrom, TestContext.Current.CancellationToken);
+
+        // Assert
+        withoutHidden.TotalBooks.Should().Be(1);
+        withoutHidden.TotalLibraries.Should().Be(1);
+        withHidden.TotalBooks.Should().Be(3);
+        withHidden.TotalLibraries.Should().Be(2);
+        chosen.TotalBooks.Should().Be(2);
+        chosen.TotalLibraries.Should().Be(1);
     }
 }

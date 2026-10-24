@@ -1,4 +1,4 @@
-/* A card shows bigger covers as soon as it is wide enough for them. */
+﻿/* A card shows bigger covers as soon as it is wide enough for them. */
 .library-cell {
     container-type: inline-size;
     min-width: 0;
@@ -24,6 +24,26 @@
     gap: 16px;
     color: #1B1D24;
     text-decoration: none;
+}
+
+/* A hidden library, listed when "Show hidden libraries" is on (#1215). */
+.library-card-hidden {
+    border-style: dashed;
+    border-color: #9A9DAB;
+}
+
+.library-card-hidden .library-card-link {
+    opacity: 0.6;
+}
+
+.library-hidden-chip {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #EDEDF2;
+    color: #3D4150;
+    font-size: 11px;
+    font-weight: 600;
 }
 
 /* The three latest covers, fanned out. */

@@ -23,6 +23,18 @@ public sealed class NavLibraryItemViewModelTests
         item.Href.Should().Be($"/libraries/{id}");
         item.CountLabel.Should().Be("24");
         item.AriaLabel.Should().Be("Read Books, 24 books");
+        item.CssClass.Should().Be("side-nav-library");
+    }
+
+    [Fact]
+    public void From_Should_DimAndNameAHiddenLibrary()
+    {
+        var summary = new LibrarySummary(Guid.CreateVersion7(), "Loans", "#5C6BC0", "Bookmark", LibraryBookType.Physical, 3) { IsHidden = true };
+
+        var item = NavLibraryItemViewModel.From(summary);
+
+        item.CssClass.Should().Be("side-nav-library side-nav-library-hidden");
+        item.AriaLabel.Should().Be("Loans, hidden, 3 books");
     }
 
     [Fact]

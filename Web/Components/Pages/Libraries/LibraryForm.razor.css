@@ -1,4 +1,4 @@
-/* The form of a library (E3, T12). */
+﻿/* The form of a library (E3, T12). */
 .library-form {
     flex-grow: 1;
     display: flex;
@@ -78,6 +78,85 @@
 
 .library-fieldset .library-form-note {
     margin-top: 8px;
+}
+
+/* Hidden (#1215): the native checkbox stays focusable and is drawn as a switch. */
+.library-hidden {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #E2E3EA;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+::deep .library-hidden-icon {
+    flex-shrink: 0;
+    color: #5C6070;
+}
+
+.library-hidden-text {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.library-hidden-label {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.library-hidden-help {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.library-hidden-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+.library-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 51px;
+    height: 31px;
+    border-radius: 16px;
+    background: #C9CAD3;
+    transition: background 0.15s ease;
+}
+
+.library-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease;
+}
+
+.library-hidden-input:checked + .library-switch {
+    background: #594AE2;
+}
+
+.library-hidden-input:checked + .library-switch .library-switch-thumb {
+    transform: translateX(20px);
+}
+
+.library-hidden-input:focus-visible + .library-switch {
+    outline: 2px solid #594AE2;
+    outline-offset: 2px;
 }
 
 /* Type: two radio buttons drawn as cards. */

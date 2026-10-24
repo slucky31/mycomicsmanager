@@ -6,6 +6,7 @@ using Application.Libraries.GetById;
 using Application.Libraries.List;
 using Application.Libraries.Summaries;
 using Application.Libraries.Update;
+using Application.Users.HiddenLibraries;
 using Ardalis.GuardClauses;
 using AwesomeAssertions;
 using Domain.Libraries;
@@ -25,6 +26,8 @@ public sealed class LibrariesServiceTests
     private readonly ICommandHandler<CreateLibraryCommand, Library> _createLibraryHandler;
     private readonly ICommandHandler<UpdateLibraryCommand, Library> _updateLibraryHandler;
     private readonly ICommandHandler<DeleteLibraryCommand> _deleteLibraryHandler;
+    private readonly IQueryHandler<GetShowHiddenLibrariesQuery, bool> _getShowHiddenLibrariesHandler = Substitute.For<IQueryHandler<GetShowHiddenLibrariesQuery, bool>>();
+    private readonly ICommandHandler<SetShowHiddenLibrariesCommand> _setShowHiddenLibrariesHandler = Substitute.For<ICommandHandler<SetShowHiddenLibrariesCommand>>();
     private readonly ICurrentUserService _currentUserService;
     private readonly LibrariesService _service;
 
@@ -48,6 +51,8 @@ public sealed class LibrariesServiceTests
             _createLibraryHandler,
             _updateLibraryHandler,
             _deleteLibraryHandler,
+            _getShowHiddenLibrariesHandler,
+            _setShowHiddenLibrariesHandler,
             _currentUserService);
     }
 
@@ -261,7 +266,7 @@ public sealed class LibrariesServiceTests
         var library = CreateLibrary(name);
         _updateLibraryHandler.Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
-        var request = new UpdateLibraryRequest(libraryId.ToString(), name, "#5C6BC0", "Bookmark");
+        var request = new UpdateLibraryRequest(libraryId.ToString(), name, "#5C6BC0", "Bookmark", IsHidden: true);
 
         // Act
         var result = await _service.Update(request, TestContext.Current.CancellationToken);
@@ -272,6 +277,7 @@ public sealed class LibrariesServiceTests
             Arg.Is<UpdateLibraryCommand>(c =>
                 c.Id == libraryId &&
                 c.Name == name &&
+                c.IsHidden == true &&
                 c.UserId == DefaultUserId),
             Arg.Any<CancellationToken>());
     }
@@ -353,7 +359,19 @@ public sealed class LibrariesServiceTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeSameAs(summaries);
         await _getLibrarySummariesHandler.Received(1).Handle(
-            Arg.Is<GetLibrarySummariesQuery>(q => q.UserId == DefaultUserId),
+            Arg.Is<GetLibrarySummariesQuery>(q => q.UserId == DefaultUserId && !q.IncludeHidden),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetSummaries_Should_AskForTheHiddenLibraries_WhenIncludeHiddenIsTrue()
+    {
+        // Act
+        await _service.GetSummaries(includeHidden: true, TestContext.Current.CancellationToken);
+
+        // Assert
+        await _getLibrarySummariesHandler.Received(1).Handle(
+            Arg.Is<GetLibrarySummariesQuery>(q => q.UserId == DefaultUserId && q.IncludeHidden),
             Arg.Any<CancellationToken>());
     }
 
@@ -370,6 +388,57 @@ public sealed class LibrariesServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UsersError.NotFound);
         await _getLibrarySummariesHandler.DidNotReceive().Handle(Arg.Any<GetLibrarySummariesQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region ShowHiddenLibraries Tests
+
+    [Fact]
+    public async Task GetShowHiddenLibraries_Should_QueryTheSettingOfTheCurrentUser()
+    {
+        // Arrange
+        _getShowHiddenLibrariesHandler.Handle(Arg.Any<GetShowHiddenLibrariesQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<bool>.Success(true));
+
+        // Act
+        var result = await _service.GetShowHiddenLibraries(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Value.Should().BeTrue();
+        await _getShowHiddenLibrariesHandler.Received(1).Handle(new GetShowHiddenLibrariesQuery(DefaultUserId), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SetShowHiddenLibraries_Should_SaveTheSettingOfTheCurrentUser()
+    {
+        // Arrange
+        _setShowHiddenLibrariesHandler.Handle(Arg.Any<SetShowHiddenLibrariesCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // Act
+        var result = await _service.SetShowHiddenLibraries(true, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _setShowHiddenLibrariesHandler.Received(1).Handle(new SetShowHiddenLibrariesCommand(DefaultUserId, true), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ShowHiddenLibraries_Should_ReturnTheUserError_WhenTheCurrentUserIsUnknown()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        // Act
+        var read = await _service.GetShowHiddenLibraries(TestContext.Current.CancellationToken);
+        var saved = await _service.SetShowHiddenLibraries(true, TestContext.Current.CancellationToken);
+
+        // Assert
+        read.Error.Should().Be(UsersError.NotFound);
+        saved.Error.Should().Be(UsersError.NotFound);
+        await _getShowHiddenLibrariesHandler.DidNotReceive().Handle(Arg.Any<GetShowHiddenLibrariesQuery>(), Arg.Any<CancellationToken>());
+        await _setShowHiddenLibrariesHandler.DidNotReceive().Handle(Arg.Any<SetShowHiddenLibrariesCommand>(), Arg.Any<CancellationToken>());
     }
 
     #endregion

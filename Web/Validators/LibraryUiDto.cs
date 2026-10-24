@@ -23,6 +23,8 @@ public class LibraryUiDto : Entity<Guid>
 
     public LibraryView DefaultView { get; set; } = LibraryView.Covers;
 
+    public bool IsHidden { get; set; }
+
     [Label("RelativePath")]
     public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 
@@ -35,6 +37,7 @@ public class LibraryUiDto : Entity<Guid>
         BookType = library.BookType,
         DefaultBookSortOrder = library.DefaultBookSortOrder,
         DefaultView = library.DefaultView,
+        IsHidden = library.IsHidden,
         CreatedOnUtc = library.CreatedOnUtc,
         ModifiedOnUtc = library.ModifiedOnUtc
     };

@@ -26,6 +26,17 @@ public interface ILibrariesService
     Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(
         CancellationToken cancellationToken = default);
 
+    // includeHidden lists the hidden libraries even when the user does not show them (#1215).
+    Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(bool includeHidden,
+        CancellationToken cancellationToken = default);
+
+    // The setting "Show hidden libraries" of the user.
+    Task<Result<bool>> GetShowHiddenLibraries(
+        CancellationToken cancellationToken = default);
+
+    Task<Result> SetShowHiddenLibraries(bool show,
+        CancellationToken cancellationToken = default);
+
     Task<Result> Delete(string? id,
         CancellationToken cancellationToken = default);
 }

@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Application.Statistics.Get;
 using Domain.Libraries;
 using Domain.Statistics;
+using Domain.Users;
 using NSubstitute;
 
 namespace Application.UnitTests.Statistics;
@@ -14,6 +15,7 @@ public class GetStatisticsQueryHandlerTests
     private readonly GetStatisticsQueryHandler _handler;
     private readonly IStatisticsReadService _statisticsReadServiceMock;
     private readonly IRepository<Library, Guid> _libraryRepositoryMock;
+    private readonly IRepository<User, Guid> _userRepositoryMock = Substitute.For<IRepository<User, Guid>>();
 
     public GetStatisticsQueryHandlerTests()
     {
@@ -23,10 +25,10 @@ public class GetStatisticsQueryHandlerTests
         timeProvider.GetUtcNow().Returns(s_now);
 
         _statisticsReadServiceMock
-            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
+            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<bool>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
             .Returns(new StatisticsDto());
 
-        _handler = new GetStatisticsQueryHandler(_statisticsReadServiceMock, _libraryRepositoryMock, timeProvider);
+        _handler = new GetStatisticsQueryHandler(_statisticsReadServiceMock, _libraryRepositoryMock, timeProvider, _userRepositoryMock);
     }
 
     private static Library CreateLibrary(Guid userId)
@@ -53,7 +55,7 @@ public class GetStatisticsQueryHandlerTests
         result.Error.Should().Be(StatisticsError.BadRequest);
         await _libraryRepositoryMock.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
         await _statisticsReadServiceMock.DidNotReceive()
-            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
+            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<bool>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -71,7 +73,7 @@ public class GetStatisticsQueryHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.NotFound);
         await _statisticsReadServiceMock.DidNotReceive()
-            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
+            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<bool>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -89,7 +91,7 @@ public class GetStatisticsQueryHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.NotFound);
         await _statisticsReadServiceMock.DidNotReceive()
-            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
+            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<bool>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -107,7 +109,7 @@ public class GetStatisticsQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         await _statisticsReadServiceMock.Received(1)
-            .GetStatisticsAsync(userId, library.Id, s_expectedFirstMonth, Arg.Any<CancellationToken>());
+            .GetStatisticsAsync(userId, library.Id, false, s_expectedFirstMonth, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -124,7 +126,7 @@ public class GetStatisticsQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         await _libraryRepositoryMock.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
         await _statisticsReadServiceMock.Received(1)
-            .GetStatisticsAsync(userId, null, s_expectedFirstMonth, Arg.Any<CancellationToken>());
+            .GetStatisticsAsync(userId, null, false, s_expectedFirstMonth, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -144,7 +146,7 @@ public class GetStatisticsQueryHandlerTests
             ]
         };
         _statisticsReadServiceMock
-            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
+            .GetStatisticsAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<bool>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
             .Returns(statistics);
 
         // Act
@@ -162,5 +164,22 @@ public class GetStatisticsQueryHandlerTests
         value.ReadingsPerMonth[9].Should().Be(new MonthlyReadingCountDto(2026, 1, 0));
         value.ReadingsPerMonth[^1].Should().Be(new MonthlyReadingCountDto(2026, 3, 5));
         value.ReadingsPerMonth.Sum(m => m.Count).Should().Be(7);
+    }
+
+    [Fact]
+    public async Task Handle_Should_CountTheHiddenLibraries_WhenTheUserShowsThem()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var user = User.Create("user@example.com", "auth-id");
+        user.UpdateShowHiddenLibraries(true);
+        _userRepositoryMock.GetByIdAsync(userId).Returns(user);
+
+        // Act
+        await _handler.Handle(new GetStatisticsQuery(userId), TestContext.Current.CancellationToken);
+
+        // Assert
+        await _statisticsReadServiceMock.Received(1)
+            .GetStatisticsAsync(userId, null, true, s_expectedFirstMonth, Arg.Any<CancellationToken>());
     }
 }

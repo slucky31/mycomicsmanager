@@ -1,11 +1,13 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
 using Application.Libraries;
+using Application.Users;
 using Ardalis.GuardClauses;
 using Domain.Books;
 using Domain.FeedImports;
 using Domain.Libraries;
 using Domain.Primitives;
+using Domain.Users;
 
 namespace Application.Books.MoveTargets;
 
@@ -13,7 +15,8 @@ public sealed class GetBookMoveTargetsQueryHandler(
     IBookRepository bookRepository,
     IRepository<Library, Guid> libraryRepository,
     ILibraryReadService libraryReadService,
-    IBookReadService bookReadService) : IQueryHandler<GetBookMoveTargetsQuery, BookMoveTargets>
+    IBookReadService bookReadService,
+    IRepository<User, Guid> userRepository) : IQueryHandler<GetBookMoveTargetsQuery, BookMoveTargets>
 {
     // A selection of a library holds at most the books loaded on its page.
     public const int MaxBooks = 500;
@@ -34,8 +37,9 @@ public sealed class GetBookMoveTargetsQueryHandler(
             return BooksError.NotFound;
         }
 
-        // Ordered by name, with their book counts.
-        var libraries = await libraryReadService.GetSummariesAsync(request.UserId, cancellationToken);
+        // Ordered by name, with their book counts; a hidden library is a target only when the user shows them.
+        var includeHidden = await userRepository.ShowsHiddenLibrariesAsync(request.UserId);
+        var libraries = await libraryReadService.GetSummariesAsync(request.UserId, includeHidden, cancellationToken);
         var current = libraries.FirstOrDefault(l => l.Id == source.Id) is { } summary
             ? new BookMoveTarget(summary.Id, summary.Name, summary.Color, summary.Icon, 0, summary.BookCount)
             : new BookMoveTarget(source.Id, source.Name, source.Color, source.Icon, 0);

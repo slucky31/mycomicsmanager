@@ -383,6 +383,9 @@ namespace Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("ModifiedOnUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -485,6 +488,9 @@ namespace Persistence.Migrations
 
                     b.Property<DateTime?>("ModifiedOnUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("ShowHiddenLibraries")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 

@@ -26,7 +26,7 @@ public sealed class EditLibraryComponentTests : IAsyncDisposable
     public EditLibraryComponentTests()
     {
         _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result<Library>.Success(_library));
-        _librariesService.GetSummaries(Arg.Any<CancellationToken>()).Returns(_ => Result<IReadOnlyList<LibrarySummary>>.Success(
+        _librariesService.GetSummaries(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(_ => Result<IReadOnlyList<LibrarySummary>>.Success(
             [new LibrarySummary(_library.Id, "Mangas", "#26A69A", "AutoStories", LibraryBookType.Physical, 38) { Covers = ["/a.webp", "/b.webp"] }]));
         _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result<Library>.Success(_library));
 
@@ -79,6 +79,21 @@ public sealed class EditLibraryComponentTests : IAsyncDisposable
         await cut.Find("form").SubmitAsync();
 
         await _librariesService.Received(1).Update(Arg.Is<UpdateLibraryRequest>(r => r.Name == "Imported"), Arg.Any<CancellationToken>());
+        cut.FindAll("#library-hidden").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SaveAsync_Should_HideTheLibrary_WhenHideThisLibraryIsTurnedOn()
+    {
+        var cut = Render();
+
+        await cut.Find("#library-hidden").ChangeAsync(new() { Value = true });
+        await cut.Find("form").SubmitAsync();
+
+        cut.Find(".library-card").ClassList.Should().Contain("library-card-hidden");
+        cut.Find(".library-hidden-chip").TextContent.Should().Be("Hidden");
+        await _librariesService.Received(1).Update(Arg.Is<UpdateLibraryRequest>(r => r.IsHidden == true), Arg.Any<CancellationToken>());
+        await _librariesService.Received(1).GetSummaries(true, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -101,7 +116,7 @@ public sealed class EditLibraryComponentTests : IAsyncDisposable
     [Fact]
     public void EditLibrary_Should_ShowNoBooksInThePreview_WhenTheyCannotBeLoaded()
     {
-        _librariesService.GetSummaries(Arg.Any<CancellationToken>()).Returns(LibrariesError.BadRequest);
+        _librariesService.GetSummaries(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(LibrariesError.BadRequest);
 
         var cut = Render();
 
@@ -119,7 +134,7 @@ public sealed class EditLibraryComponentTests : IAsyncDisposable
 
         cut.Find(".form-bar-subtitle").TextContent.Should().Be("Mangas");
         await _librariesService.Received(1).Update(
-            new UpdateLibraryRequest(_library.Id.ToString(), "Manga", "#FFCA28", "AutoStories"), Arg.Any<CancellationToken>());
+            new UpdateLibraryRequest(_library.Id.ToString(), "Manga", "#FFCA28", "AutoStories", IsHidden: false), Arg.Any<CancellationToken>());
         _snackbar.Received(1).Add("Manga was saved", Severity.Success);
         _navigation.Uri.Should().EndWith($"/libraries/{_library.Id}");
     }

@@ -30,6 +30,11 @@ public sealed record LibraryCardViewModel(
 
     public string ActionsButtonId => $"library-actions-{Id}";
 
+    // Listed only when the user shows the hidden libraries (#1215).
+    public bool IsHidden { get; init; }
+
+    public string CssClass => IsHidden ? "library-card library-card-hidden" : "library-card";
+
     // The feed imports deposit their files in the Imported library.
     public bool CanDelete => !Library.IsImportedName(Name);
 
@@ -44,12 +49,18 @@ public sealed record LibraryCardViewModel(
             summary.Icon,
             summary.BookType == LibraryBookType.Digital,
             summary.BookCount,
-            summary.Covers);
+            summary.Covers)
+        {
+            IsHidden = summary.IsHidden
+        };
     }
 
     // The card of the library being created or edited (E3, T12): "New library" until it has a name.
-    public static LibraryCardViewModel Preview(Guid id, string? name, string color, string icon, LibraryBookType bookType, int bookCount, IReadOnlyList<string> covers) =>
-        new(id, string.IsNullOrWhiteSpace(name) ? "New library" : name.Trim(), color, icon, bookType == LibraryBookType.Digital, bookCount, covers);
+    public static LibraryCardViewModel Preview(Guid id, string? name, string color, string icon, LibraryBookType bookType, int bookCount, IReadOnlyList<string> covers, bool isHidden = false) =>
+        new(id, string.IsNullOrWhiteSpace(name) ? "New library" : name.Trim(), color, icon, bookType == LibraryBookType.Digital, bookCount, covers)
+        {
+            IsHidden = isHidden
+        };
 
     // "3 libraries · 48 books", under the page title on a large screen.
     public static string Subtitle(IReadOnlyCollection<LibraryCardViewModel> libraries)

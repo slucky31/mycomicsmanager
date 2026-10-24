@@ -16,12 +16,14 @@ public partial class NavBar : IDisposable
     [Inject] private IServiceScopeFactory ScopeFactory { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState>? AuthenticationState { get; set; }
     [Inject] private FeedImportNotifier FeedImportNotifier { get; set; } = default!;
+    [Inject] private LibrariesNotifier LibrariesNotifier { get; set; } = default!;
     [Inject] private ILogger<NavBar> Logger { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
         NavigationManager.LocationChanged += OnLocationChangedAsync;
-        FeedImportNotifier.DecisionsChanged += OnFeedImportsChangedAsync;
+        FeedImportNotifier.DecisionsChanged += OnRefreshRequestedAsync;
+        LibrariesNotifier.LibrariesChanged += OnRefreshRequestedAsync;
         UpdateCurrentLibrary();
         await RefreshAsync();
     }
@@ -36,7 +38,7 @@ public partial class NavBar : IDisposable
         });
     }
 
-    private async void OnFeedImportsChangedAsync(object? sender, EventArgs e)
+    private async void OnRefreshRequestedAsync(object? sender, EventArgs e)
     {
         await InvokeAsync(async () =>
         {
@@ -148,7 +150,8 @@ public partial class NavBar : IDisposable
         {
             // free managed resources
             NavigationManager.LocationChanged -= OnLocationChangedAsync;
-            FeedImportNotifier.DecisionsChanged -= OnFeedImportsChangedAsync;
+            FeedImportNotifier.DecisionsChanged -= OnRefreshRequestedAsync;
+            LibrariesNotifier.LibrariesChanged -= OnRefreshRequestedAsync;
         }
 
         _isDisposed = true;

@@ -16,4 +16,7 @@ public sealed record LibrarySummary(
 
     // The image links of the latest books that have a cover, newest first (at most MaxCovers).
     public IReadOnlyList<string> Covers { get; init; } = [];
+
+    // Listed only when the user shows the hidden libraries (#1215).
+    public bool IsHidden { get; init; }
 }

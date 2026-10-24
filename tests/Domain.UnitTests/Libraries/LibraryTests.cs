@@ -290,6 +290,45 @@ public class LibraryTests
     }
 
     // -------------------------------------------------------
+    // UpdateHidden
+    // -------------------------------------------------------
+
+    [Fact]
+    public void UpdateHidden_Should_HideAndShowTheLibrary()
+    {
+        // Arrange
+        var library = Library.Create("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, DefaultUserId).Value!;
+        library.IsHidden.Should().BeFalse();
+
+        // Act
+        var hidden = library.UpdateHidden(true);
+        var hiddenState = library.IsHidden;
+        var shown = library.UpdateHidden(false);
+
+        // Assert
+        hidden.IsSuccess.Should().BeTrue();
+        hiddenState.Should().BeTrue();
+        shown.IsSuccess.Should().BeTrue();
+        library.IsHidden.Should().BeFalse();
+    }
+
+    [Fact]
+    public void UpdateHidden_Should_RefuseToHideTheImportedLibrary_ButLetItBeShown()
+    {
+        // Arrange
+        var library = Library.Create(LibraryConstants.ImportedName, "#5C6BC0", "Bookmark", LibraryBookType.Digital, DefaultUserId).Value!;
+
+        // Act
+        var hidden = library.UpdateHidden(true);
+        var shown = library.UpdateHidden(false);
+
+        // Assert
+        hidden.Error.Should().Be(LibrariesError.ImportedLibraryNotHidden);
+        shown.IsSuccess.Should().BeTrue();
+        library.IsHidden.Should().BeFalse();
+    }
+
+    // -------------------------------------------------------
     // CanContain
     // -------------------------------------------------------
 

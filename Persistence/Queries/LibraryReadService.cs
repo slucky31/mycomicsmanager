@@ -11,9 +11,9 @@ namespace Persistence.Queries;
 
 public class LibraryReadService(ApplicationDbContext context) : ILibraryReadService
 {
-    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, Guid userId, bool includeHidden, CancellationToken cancellationToken = default)
     {
-        var librariesQuery = context.Libraries.AsNoTracking().Where(l => l.UserId == userId);
+        var librariesQuery = OfUser(userId, includeHidden);
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -53,10 +53,9 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 #pragma warning restore CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
     }
 
-    public async Task<IReadOnlyList<LibrarySummary>> GetSummariesAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<LibrarySummary>> GetSummariesAsync(Guid userId, bool includeHidden, CancellationToken cancellationToken = default)
     {
-        return await context.Libraries.AsNoTracking()
-            .Where(l => l.UserId == userId)
+        return await OfUser(userId, includeHidden)
             .OrderBy(l => l.Name)
             .ThenBy(l => l.Id)
             .Select(l => new LibrarySummary(
@@ -72,9 +71,25 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
                     .OrderByDescending(b => b.Id)
                     .Select(b => b.ImageLink)
                     .Take(LibrarySummary.MaxCovers)
-                    .ToList()
+                    .ToList(),
+                IsHidden = l.IsHidden
             })
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlySet<Guid>> ListHiddenIdsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var ids = await context.Libraries.AsNoTracking()
+            .Where(l => l.UserId == userId && l.IsHidden)
+            .Select(l => l.Id)
+            .ToListAsync(cancellationToken);
+        return ids.ToHashSet();
+    }
+
+    private IQueryable<Library> OfUser(Guid userId, bool includeHidden)
+    {
+        var libraries = context.Libraries.AsNoTracking().Where(l => l.UserId == userId);
+        return includeHidden ? libraries : libraries.Where(l => !l.IsHidden);
     }
 
     public async Task<IReadOnlyList<Library>> ListByNameAsync(string name, CancellationToken cancellationToken = default)
