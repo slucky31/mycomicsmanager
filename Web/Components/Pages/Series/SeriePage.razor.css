@@ -130,6 +130,53 @@
     text-decoration: none;
 }
 
+/* An owned book: its cover opens it, its ⋮ (or a long press) shows its actions (#1220). */
+.serie-slot-owned {
+    position: relative;
+    /* A long press opens the actions: no text selection nor iOS link preview. */
+    -webkit-touch-callout: none;
+    user-select: none;
+}
+
+.serie-slot-link {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}
+
+.serie-slot-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: #131B2C;
+    color: #ffffff;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.serie-slot-actions:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (hover: hover) {
+    .serie-slot-owned:hover .serie-slot-actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
 .serie-slot-frame {
     position: relative;
     display: block;

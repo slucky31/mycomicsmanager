@@ -1,4 +1,5 @@
 using Application.Series.Detail;
+using Domain.Libraries;
 using Domain.Series;
 
 namespace Web.Models;
@@ -14,7 +15,8 @@ public sealed record SeriePageViewModel(
     string PublishedLabel,
     int? TotalVolumes,
     bool IsFinished,
-    IReadOnlyList<SerieSlotViewModel> Slots)
+    IReadOnlyList<SerieSlotViewModel> Slots,
+    bool IsDigital = false)
 {
     public static SeriePageViewModel From(SerieDetail detail)
     {
@@ -37,7 +39,8 @@ public sealed record SeriePageViewModel(
             PublishedText(summary.TotalVolumes, summary.IsFinished),
             summary.TotalVolumes,
             summary.IsFinished,
-            SerieSlotViewModel.Of(detail.Books, completeness.Missing));
+            SerieSlotViewModel.Of(detail.Books, completeness.Missing),
+            detail.BookType == LibraryBookType.Digital);
     }
 
     private static string ProgressText(SerieCompleteness completeness) => completeness.Status switch

@@ -35,6 +35,6 @@ public sealed class GetSerieQueryHandler(
         var infos = await seriesReadService.ListInfosAsync(request.UserId, request.LibraryId, cancellationToken);
         var info = infos.FirstOrDefault(i => i.NormalizedName == normalizedName);
 
-        return new SerieDetail(library.Name, SerieGrouping.Summarize(books, info), books);
+        return new SerieDetail(library.Name, SerieGrouping.Summarize(books, info), books, library.BookType);
     }
 }

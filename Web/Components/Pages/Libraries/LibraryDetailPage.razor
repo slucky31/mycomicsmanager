@@ -169,36 +169,7 @@
 
 @if (_actionsBook is { } book)
 {
-    <ActionSheet Open="@(_openSheet == LibrarySheet.BookActions)" AriaLabel="@($"Actions for {book.Title}")"
-                 Anchor="@_sheetAnchor" AlignEnd="@_sheetAlignEnd" OnClose="CloseSheet">
-        <Header>
-            <div class="book-actions-header">
-                @if (!string.IsNullOrEmpty(book.ImageLink))
-                {
-                    <img src="@book.ImageLink" alt="" />
-                }
-                <div class="book-actions-heading">
-                    <div class="book-actions-title">@book.Title</div>
-                    <div class="book-actions-serie">@book.SerieAndVolume</div>
-                </div>
-            </div>
-        </Header>
-        <ChildContent>
-            @if (IsDigital)
-            {
-                <ActionSheetItem Icon="@Icons.Material.Filled.MenuBook" Text="Read" Href="@($"/books/{book.Id}/read")" />
-            }
-            <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit" Href="@($"/books/{book.Id}/edit")" />
-            <ActionSheetItem Icon="@Icons.Material.Filled.ManageSearch" Text="Import info from the web" Href="@($"/books/{book.Id}/find-details")" />
-            @if (IsDigital)
-            {
-                <ActionSheetItem Icon="@Icons.Material.Filled.DocumentScanner" Text="Find ISBN" Href="@($"/books/{book.Id}/read?mode={Books.BookReader.IsbnSearchMode}")" />
-                <ActionSheetItem Icon="@Icons.Material.Filled.Download" Text="Download CBZ" OnClick="() => DownloadBookAsync(book.Id)" />
-            }
-            <ActionSheetItem Icon="@Icons.Material.Filled.DriveFileMove" Text="Move to another library" OnClick="() => MoveAsync(book.Id)" />
-            <ActionSheetItem Icon="@Icons.Material.Filled.Checklist" Text="Select several books" OnClick="() => StartSelecting(book.Id)" />
-            <div class="action-sheet-divider"></div>
-            <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete" Danger="true" OnClick="() => DeleteAsync(book.Id)" />
-        </ChildContent>
-    </ActionSheet>
+    <BookActionsSheet Book="@BookActionsTarget.From(book)" Open="@(_openSheet == LibrarySheet.BookActions)" IsDigital="@IsDigital"
+                      Anchor="@_sheetAnchor" AlignEnd="@_sheetAlignEnd" OnClose="CloseSheet"
+                      OnSelect="() => StartSelecting(book.Id)" OnBookGone="() => ReloadBooksAsync()" />
 }

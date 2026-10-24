@@ -1,5 +1,5 @@
-// Library page: a long press (touch) or a right click (mouse) on a book opens its actions, and the menus of a
-// tablet open next to the button that shows them.
+// Library and series pages: a long press (touch) or a right click (mouse) on a book opens its actions, and the
+// menus of a tablet open next to the button that shows them.
 const LONG_PRESS_MS = 500;
 const MOVE_TOLERANCE = 10;
 const BOOK_SELECTOR = '[data-book-id]';
