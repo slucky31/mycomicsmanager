@@ -19,8 +19,7 @@ public class LibrariesService(
     ICommandHandler<CreateLibraryCommand, Library> createLibraryHandler,
     ICommandHandler<UpdateLibraryCommand, Library> updateLibraryHandler,
     ICommandHandler<DeleteLibraryCommand> deleteLibraryHandler,
-    IQueryHandler<GetShowHiddenLibrariesQuery, bool> getShowHiddenLibrariesHandler,
-    ICommandHandler<SetShowHiddenLibrariesCommand> setShowHiddenLibrariesHandler,
+    ShowHiddenLibrariesHandlers showHiddenLibrariesHandlers,
     ICurrentUserService currentUserService) : ILibrariesService
 {
     public async Task<Result<Library>> GetById(string? id)
@@ -120,7 +119,7 @@ public class LibrariesService(
             return userIdResult.Error!;
         }
 
-        return await getShowHiddenLibrariesHandler.Handle(new GetShowHiddenLibrariesQuery(userIdResult.Value), cancellationToken);
+        return await showHiddenLibrariesHandlers.Get.Handle(new GetShowHiddenLibrariesQuery(userIdResult.Value), cancellationToken);
     }
 
     public async Task<Result> SetShowHiddenLibraries(bool show, CancellationToken cancellationToken = default)
@@ -131,7 +130,7 @@ public class LibrariesService(
             return userIdResult.Error!;
         }
 
-        return await setShowHiddenLibrariesHandler.Handle(new SetShowHiddenLibrariesCommand(userIdResult.Value, show), cancellationToken);
+        return await showHiddenLibrariesHandlers.Set.Handle(new SetShowHiddenLibrariesCommand(userIdResult.Value, show), cancellationToken);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)

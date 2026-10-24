@@ -11,9 +11,10 @@ namespace Persistence.Queries;
 
 public class LibraryReadService(ApplicationDbContext context) : ILibraryReadService
 {
-    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, Guid userId, bool includeHidden, CancellationToken cancellationToken = default)
+    public async Task<IPagedList<Library>> GetLibrariesAsync(string? searchTerm, LibrariesColumn? sortColumn, SortOrder? sortOrder, int page, int pageSize, UserLibraries libraries, CancellationToken cancellationToken = default)
     {
-        var librariesQuery = OfUser(userId, includeHidden);
+        ArgumentNullException.ThrowIfNull(libraries);
+        var librariesQuery = OfUser(libraries.UserId, libraries.IncludeHidden);
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {

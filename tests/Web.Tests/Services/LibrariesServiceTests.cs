@@ -51,8 +51,7 @@ public sealed class LibrariesServiceTests
             _createLibraryHandler,
             _updateLibraryHandler,
             _deleteLibraryHandler,
-            _getShowHiddenLibrariesHandler,
-            _setShowHiddenLibrariesHandler,
+            new ShowHiddenLibrariesHandlers(_getShowHiddenLibrariesHandler, _setShowHiddenLibrariesHandler),
             _currentUserService);
     }
 

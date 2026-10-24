@@ -35,7 +35,7 @@ public class ListLibraryCommandeTests
         List<Library> list = [s_library];
         var query = list.BuildMock();
         var mockPagedList = new PagedList<Library>(query);
-        _libraryReadServiceMock.GetLibrariesAsync(s_request.searchTerm, s_request.sortColumn, s_request.sortOrder, s_request.page, s_request.pageSize, s_request.UserId, false, Arg.Any<CancellationToken>()).Returns(mockPagedList);
+        _libraryReadServiceMock.GetLibrariesAsync(s_request.searchTerm, s_request.sortColumn, s_request.sortOrder, s_request.page, s_request.pageSize, new UserLibraries(s_request.UserId, false), Arg.Any<CancellationToken>()).Returns(mockPagedList);
 
         // Act
         var result = await _handler.Handle(s_request, TestContext.Current.CancellationToken);
@@ -65,6 +65,6 @@ public class ListLibraryCommandeTests
         await _handler.Handle(s_request, TestContext.Current.CancellationToken);
 
         // Assert
-        await _libraryReadServiceMock.Received(1).GetLibrariesAsync(s_request.searchTerm, s_request.sortColumn, s_request.sortOrder, s_request.page, s_request.pageSize, s_request.UserId, true, Arg.Any<CancellationToken>());
+        await _libraryReadServiceMock.Received(1).GetLibrariesAsync(s_request.searchTerm, s_request.sortColumn, s_request.sortOrder, s_request.page, s_request.pageSize, new UserLibraries(s_request.UserId, true), Arg.Any<CancellationToken>());
     }
 }

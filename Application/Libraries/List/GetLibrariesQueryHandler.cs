@@ -19,7 +19,7 @@ public sealed class GetLibrariesQueryHandler(ILibraryReadService libraryReadServ
         }
 
         var includeHidden = await userRepository.ShowsHiddenLibrariesAsync(request.UserId);
-        var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize, request.UserId, includeHidden, cancellationToken);
+        var list = await libraryReadService.GetLibrariesAsync(request.searchTerm, request.sortColumn, request.sortOrder, request.page, request.pageSize, new UserLibraries(request.UserId, includeHidden), cancellationToken);
 
         return Result<IPagedList<Library>>.Success(list);
     }

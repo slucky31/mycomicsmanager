@@ -32,7 +32,7 @@ public class GetLibrariesQueryHandlerTests
         result.Error.Should().Be(LibrariesError.ValidationError);
         await _libraryReadServiceMock.DidNotReceive().GetLibrariesAsync(
             Arg.Any<string?>(), Arg.Any<LibrariesColumn?>(), Arg.Any<SortOrder?>(),
-            Arg.Any<int>(), Arg.Any<int>(), Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>());
+            Arg.Any<int>(), Arg.Any<int>(), Arg.Any<UserLibraries>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class GetLibrariesQueryHandlerTests
         var query = new GetLibrariesQuery(null, null, null, 1, 10, s_userId);
         var pagedList = Substitute.For<IPagedList<Library>>();
         _libraryReadServiceMock
-            .GetLibrariesAsync(null, null, null, 1, 10, s_userId, false, Arg.Any<CancellationToken>())
+            .GetLibrariesAsync(null, null, null, 1, 10, new UserLibraries(s_userId, false), Arg.Any<CancellationToken>())
             .Returns(pagedList);
 
         // Act
@@ -52,6 +52,6 @@ public class GetLibrariesQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().Be(pagedList);
         await _libraryReadServiceMock.Received(1).GetLibrariesAsync(
-            null, null, null, 1, 10, s_userId, false, Arg.Any<CancellationToken>());
+            null, null, null, 1, 10, new UserLibraries(s_userId, false), Arg.Any<CancellationToken>());
     }
 }

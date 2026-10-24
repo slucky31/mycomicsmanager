@@ -1,4 +1,4 @@
-﻿.settings-page {
+.settings-page {
     /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
     min-height: 100dvh;
     background: #F4F4F6;

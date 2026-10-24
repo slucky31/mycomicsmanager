@@ -51,7 +51,7 @@ public partial class LibraryForm
     private bool _iconsOpen;
 
     private LibraryCardViewModel Preview =>
-        LibraryCardViewModel.Preview(Model.Id, Model.Name, Model.Color, Model.Icon, Model.BookType, BookCount, Covers, Model.IsHidden);
+        LibraryCardViewModel.Preview(Model.Id, Model.Name, Model.Color, Model.Icon, Model.BookType, BookCount, Covers) with { IsHidden = Model.IsHidden };
 
     private string IconLabel => LibraryIcons.LabelOf(Model.Icon);
 

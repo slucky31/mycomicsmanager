@@ -26,7 +26,7 @@ public sealed class GetMissingVolumesQueryHandler(
             return SeriesError.BadRequest;
         }
 
-        IReadOnlySet<Guid> hidden = await userRepository.ShowsHiddenLibrariesAsync(request.UserId)
+        var hidden = await userRepository.ShowsHiddenLibrariesAsync(request.UserId)
             ? new HashSet<Guid>()
             : await libraryReadService.ListHiddenIdsAsync(request.UserId, cancellationToken);
         var books = (await seriesReadService.ListBooksAsync(request.UserId, null, cancellationToken))

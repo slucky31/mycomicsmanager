@@ -14,8 +14,7 @@ public interface ILibraryReadService
         SortOrder? sortOrder,
         int page,
         int pageSize,
-        Guid userId,
-        bool includeHidden,
+        UserLibraries libraries,
         CancellationToken cancellationToken = default);
 
     Task<Library?> GetByNameAsync(

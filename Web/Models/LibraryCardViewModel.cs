@@ -56,11 +56,8 @@ public sealed record LibraryCardViewModel(
     }
 
     // The card of the library being created or edited (E3, T12): "New library" until it has a name.
-    public static LibraryCardViewModel Preview(Guid id, string? name, string color, string icon, LibraryBookType bookType, int bookCount, IReadOnlyList<string> covers, bool isHidden = false) =>
-        new(id, string.IsNullOrWhiteSpace(name) ? "New library" : name.Trim(), color, icon, bookType == LibraryBookType.Digital, bookCount, covers)
-        {
-            IsHidden = isHidden
-        };
+    public static LibraryCardViewModel Preview(Guid id, string? name, string color, string icon, LibraryBookType bookType, int bookCount, IReadOnlyList<string> covers) =>
+        new(id, string.IsNullOrWhiteSpace(name) ? "New library" : name.Trim(), color, icon, bookType == LibraryBookType.Digital, bookCount, covers);
 
     // "3 libraries · 48 books", under the page title on a large screen.
     public static string Subtitle(IReadOnlyCollection<LibraryCardViewModel> libraries)
