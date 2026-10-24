@@ -1,4 +1,5 @@
 using Application.Books;
+using Application.Books.Search;
 using Base.Integration.Tests;
 using Domain.Books;
 using Domain.Libraries;
@@ -312,5 +313,53 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
             [candidates.Id] = IsbnScanState.Candidates,
             [notFound.Id] = IsbnScanState.NotFound,
         });
+    }
+
+    // ── Search of all the libraries (#1209) ──────────────────────────────────
+
+    [Fact]
+    public async Task SearchAsync_Should_FindSeriesAndBooksOfAllTheUserLibraries_WhenSerieMatches()
+    {
+        // Arrange
+        var secondLibrary = Library.Create("Digital", "#000000", "book", LibraryBookType.Physical, DefaultLibrary.UserId).Value!;
+        var otherUserLibrary = Library.Create("Other", "#000000", "book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
+        Context.Libraries.AddRange(secondLibrary, otherUserLibrary);
+        var second = CreateBook("Astérix", "La Serpe d'or", "9780000001002", 2);
+        var first = CreateBook("Astérix", "Astérix le Gaulois", "9780000001001", 1);
+        var elsewhere = PhysicalBook.Create(new BookMetadata("Astérix", "Astérix le Gaulois (numérique)", "9780000001003", 1), secondLibrary.Id).Value!;
+        BookRepository.Add(second);
+        BookRepository.Add(first);
+        BookRepository.Add(elsewhere);
+        BookRepository.Add(CreateBook("Tintin", "Tintin au Tibet", "9780000001004", 20));
+        BookRepository.Add(PhysicalBook.Create(new BookMetadata("Astérix", "Astérix gladiateur", "9780000001005", 4), otherUserLibrary.Id).Value!);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await BookReadService.SearchAsync(DefaultLibrary.UserId, "astérix", 20, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Series.Should().BeEquivalentTo([
+            new SerieSearchHit(DefaultLibrary.Id, "Astérix", 2),
+            new SerieSearchHit(secondLibrary.Id, "Astérix", 1)]);
+        result.BookCount.Should().Be(3);
+        result.Books.Select(b => b.Id).Should().Equal(first.Id, elsewhere.Id, second.Id);
+        result.Books[0].Should().Be(new BookSearchHit(first.Id, DefaultLibrary.Id, "Astérix le Gaulois", "Astérix", 1, first.ImageLink));
+    }
+
+    [Fact]
+    public async Task SearchAsync_Should_KeepTheFirstBooksAndCountThemAll_WhenTitleMatchesMoreThanTheLimit()
+    {
+        // Arrange
+        BookRepository.Add(CreateBook("Astérix", "Astérix le Gaulois", "9780000001011", 1));
+        BookRepository.Add(CreateBook("Alix", "Le Dernier Gaulois", "9780000001012", 30));
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await BookReadService.SearchAsync(DefaultLibrary.UserId, "GAULOIS", 1, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Series.Should().BeEmpty();
+        result.BookCount.Should().Be(2);
+        result.Books.Should().ContainSingle().Which.Title.Should().Be("Le Dernier Gaulois");
     }
 }

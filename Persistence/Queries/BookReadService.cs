@@ -1,5 +1,6 @@
 using Application.Books;
 using Application.Books.List;
+using Application.Books.Search;
 using Application.Interfaces;
 using Domain.Books;
 using Domain.Libraries;
@@ -68,6 +69,45 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
 #pragma warning restore CA1826
 
         return await new PagedList<BookSummaryDto>(projected).ExecuteQueryAsync(page, pageSize, cancellationToken);
+    }
+
+    // At most this many series are found: a term matching more is too short to be useful.
+    private const int SearchSerieLimit = 20;
+
+    public async Task<BookSearchResult> SearchAsync(Guid userId, string searchTerm, int bookLimit, CancellationToken cancellationToken = default)
+    {
+        var pattern = $"%{LikePatternHelper.EscapeLikeSpecialChars(searchTerm)}%";
+        var books = context.Set<Book>()
+            .AsNoTracking()
+            .Where(b => b.Library!.UserId == userId);
+
+        var series = await books
+            .Where(b => b.Serie != null && b.Serie != "" && EF.Functions.ILike(b.Serie, pattern, @"\"))
+            .GroupBy(b => new { b.LibraryId, b.Serie })
+            .Select(g => new { g.Key.LibraryId, g.Key.Serie, Count = g.Count() })
+            .OrderBy(s => s.Serie)
+            .ThenBy(s => s.LibraryId)
+            .Take(SearchSerieLimit)
+            .ToListAsync(cancellationToken);
+
+        var matching = books.Where(b =>
+            EF.Functions.ILike(b.Title, pattern, @"\") ||
+            (b.Serie != null && EF.Functions.ILike(b.Serie, pattern, @"\")));
+
+        var bookCount = await matching.CountAsync(cancellationToken);
+        var found = await matching
+            .OrderBy(b => b.Serie)
+            .ThenBy(b => b.VolumeNumber)
+            .ThenBy(b => b.Title)
+            .ThenBy(b => b.Id)
+            .Take(bookLimit)
+            .Select(b => new BookSearchHit(b.Id, b.LibraryId, b.Title, b.Serie, b.VolumeNumber, b.ImageLink))
+            .ToListAsync(cancellationToken);
+
+        return new BookSearchResult(
+            [.. series.Select(s => new SerieSearchHit(s.LibraryId, s.Serie, s.Count))],
+            found,
+            bookCount);
     }
 
     public async Task<IReadOnlyList<BookIdentityDto>> ListIdentitiesByUserAsync(Guid userId, CancellationToken cancellationToken = default)

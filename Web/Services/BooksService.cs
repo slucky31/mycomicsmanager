@@ -5,6 +5,7 @@ using Application.Books.Delete;
 using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
 using Application.Books.List;
+using Application.Books.Search;
 using Application.Books.Update;
 using Application.Interfaces;
 using Domain.Books;
@@ -17,6 +18,7 @@ public class BooksService(
     IQueryHandler<GetBookByIdQuery, Book> getBookByIdHandler,
     IQueryHandler<GetBooksQuery, List<Book>> getBooksHandler,
     IQueryHandler<GetPagedBooksQuery, IPagedList<BookSummaryDto>> getPagedBooksHandler,
+    IQueryHandler<SearchBooksQuery, BookSearchResult> searchBooksHandler,
     ICommandHandler<CreateBookCommand, Book> createBookHandler,
     ICommandHandler<UpdateBookCommand, Book> updateBookHandler,
     ICommandHandler<DeleteBookCommand> deleteBookHandler,
@@ -178,6 +180,17 @@ public class BooksService(
         var query = new GetPagedBooksQuery(userIdResult.Value, libraryId, page, pageSize, sortOrder, searchTerm);
 
         return await getPagedBooksHandler.Handle(query, cancellationToken);
+    }
+
+    public async Task<Result<BookSearchResult>> Search(string searchTerm, int bookLimit, CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await searchBooksHandler.Handle(new SearchBooksQuery(userIdResult.Value, searchTerm, bookLimit), cancellationToken);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)
