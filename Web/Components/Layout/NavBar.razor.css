@@ -144,6 +144,13 @@
         background-color: rgba(255, 255, 255, 0.1);
     }
 
+    /* A long label ("Missing volumes") wraps on two lines in the 88 px rail: center each line. */
+    .side-nav-label {
+        padding: 0 4px;
+        line-height: 1.2;
+        text-align: center;
+    }
+
     .side-nav-spacer {
         flex-grow: 1;
     }
@@ -186,6 +193,9 @@
 
     .side-nav-label {
         order: 1;
+        padding: 0;
+        line-height: normal;
+        text-align: start;
     }
 
     .side-nav-item.active,
