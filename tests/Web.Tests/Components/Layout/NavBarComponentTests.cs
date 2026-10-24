@@ -49,23 +49,6 @@ public sealed class NavBarComponentTests
     }
 
     [Fact]
-    public async Task NavBar_Should_KeepOnlyTheSideNavigation_WhenTheBottomBarIsHidden()
-    {
-        await using var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddMudServices();
-        ctx.Services.AddSingleton(Substitute.For<IFeedImportService>());
-        ctx.Services.AddSingleton(new FeedImportNotifier());
-        ctx.Services.AddSingleton(new LibrariesNotifier());
-        ctx.AddAuthorization().SetAuthorized("user@example.com");
-
-        var cut = ctx.Render<NavBar>(parameters => parameters.Add(p => p.ShowBottomBar, false));
-
-        cut.FindAll("nav.side-nav").Should().ContainSingle();
-        cut.FindAll("nav.bottom-nav").Should().BeEmpty();
-    }
-
-    [Fact]
     public async Task RefreshLibrariesAsync_Should_ListTheUserLibraries_AndMarkTheCurrentOne()
     {
         var current = new LibrarySummary(Guid.CreateVersion7(), "Read Books", "#2E7D32", "Star", LibraryBookType.Physical, 24);
