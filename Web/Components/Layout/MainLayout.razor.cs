@@ -7,7 +7,7 @@ namespace Web.Components.Layout;
 public partial class MainLayout : IDisposable
 {
     private bool _isDisposed;
-    private bool _showNavigation = true;
+    private bool _showBottomBar = true;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     protected override void OnInitialized()
@@ -18,16 +18,16 @@ public partial class MainLayout : IDisposable
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        var showNavigation = _showNavigation;
+        var showBottomBar = _showBottomBar;
         UpdateNavigationVisibility();
-        if (showNavigation != _showNavigation)
+        if (showBottomBar != _showBottomBar)
         {
             InvokeAsync(StateHasChanged);
         }
     }
 
     private void UpdateNavigationVisibility() =>
-        _showNavigation = !NavigationRules.HidesNavigation(NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
+        _showBottomBar = !NavigationRules.HidesBottomBar(NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
 
     public void Dispose()
     {

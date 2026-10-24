@@ -59,33 +59,36 @@
     </a>
 </nav>
 
-@* Phone: bottom navigation. *@
-<nav class="bottom-nav" aria-label="Main">
-    <a href="/libraries/list" class="bottom-nav-item @LibrariesEntryClass" aria-current="@AriaCurrent(IsLibrariesEntryActive)">
-        <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" /></span>
-        <span class="bottom-nav-label">Libraries</span>
-    </a>
-    <a href="/statistics" class="bottom-nav-item @ActiveClass(IsActive("/statistics"))" aria-current="@AriaCurrent(IsActive("/statistics"))">
-        <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.BarChart" /></span>
-        <span class="bottom-nav-label">Stats</span>
-    </a>
-    <a href="/import" class="bottom-nav-item @ActiveClass(IsActive("/import"))" aria-current="@AriaCurrent(IsActive("/import"))">
-        <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.Upload" /></span>
-        <span class="bottom-nav-label">Import</span>
-    </a>
-    <a href="/feed-imports" class="bottom-nav-item @ActiveClass(IsActive("/feed-imports"))" aria-current="@AriaCurrent(IsActive("/feed-imports"))"
-       aria-label="@FeedsLabel">
-        <span class="bottom-nav-icon">
-            <MudIcon Icon="@Icons.Material.Filled.RssFeed" />
-            @if (_arbitrationCount > 0)
-            {
-                <span class="nav-badge" title="@ArbitrationBadgeLabel">@_arbitrationCount</span>
-            }
-        </span>
-        <span class="bottom-nav-label">Feeds</span>
-    </a>
-    <a href="/settings" class="bottom-nav-item @ActiveClass(IsActive("/settings"))" aria-current="@AriaCurrent(IsActive("/settings"))">
-        <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.Settings" /></span>
-        <span class="bottom-nav-label">Settings</span>
-    </a>
-</nav>
+@* Phone: bottom navigation, hidden on focused tasks (MainLayout). *@
+@if (ShowBottomBar)
+{
+    <nav class="bottom-nav" aria-label="Main">
+        <a href="/libraries/list" class="bottom-nav-item @LibrariesEntryClass" aria-current="@AriaCurrent(IsLibrariesEntryActive)">
+            <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" /></span>
+            <span class="bottom-nav-label">Libraries</span>
+        </a>
+        <a href="/statistics" class="bottom-nav-item @ActiveClass(IsActive("/statistics"))" aria-current="@AriaCurrent(IsActive("/statistics"))">
+            <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.BarChart" /></span>
+            <span class="bottom-nav-label">Stats</span>
+        </a>
+        <a href="/import" class="bottom-nav-item @ActiveClass(IsActive("/import"))" aria-current="@AriaCurrent(IsActive("/import"))">
+            <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.Upload" /></span>
+            <span class="bottom-nav-label">Import</span>
+        </a>
+        <a href="/feed-imports" class="bottom-nav-item @ActiveClass(IsActive("/feed-imports"))" aria-current="@AriaCurrent(IsActive("/feed-imports"))"
+           aria-label="@FeedsLabel">
+            <span class="bottom-nav-icon">
+                <MudIcon Icon="@Icons.Material.Filled.RssFeed" />
+                @if (_arbitrationCount > 0)
+                {
+                    <span class="nav-badge" title="@ArbitrationBadgeLabel">@_arbitrationCount</span>
+                }
+            </span>
+            <span class="bottom-nav-label">Feeds</span>
+        </a>
+        <a href="/settings" class="bottom-nav-item @ActiveClass(IsActive("/settings"))" aria-current="@AriaCurrent(IsActive("/settings"))">
+            <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.Settings" /></span>
+            <span class="bottom-nav-label">Settings</span>
+        </a>
+    </nav>
+}
