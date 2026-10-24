@@ -15,10 +15,8 @@
                        CloseOnEscapeKey="true" />
 </div>
 
-@if (_showNavigation)
-{
-    <NavBar />
-}
-<main class="page-body @(_showNavigation ? "with-nav" : string.Empty)">
+@* The rail and the side bar are always shown; only the bottom bar of a phone is hidden on focused tasks (NavigationRules). *@
+<NavBar ShowBottomBar="_showBottomBar" />
+<main class="page-body @(_showBottomBar ? "with-bottom-bar" : string.Empty)">
     @Body
 </main>

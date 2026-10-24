@@ -1,12 +1,13 @@
 namespace Web.Models;
 
-// Which navigation entry is active and when the navigation is hidden, from the base-relative URI.
+// Which navigation entry is active and when the bottom bar of a phone is hidden, from the base-relative URI.
 public static class NavigationRules
 {
     private const string LibrariesPrefix = "libraries/";
 
-    // Adding a book is a focused task: the navigation is hidden so it cannot be left by mistake.
-    private static readonly string[] s_pathsWithoutNavigation = ["books/add"];
+    // Adding a book is a focused task: on a phone the bottom bar is hidden so it cannot be left by mistake.
+    // The rail and the side bar of a tablet or a desktop stay, they do not take the room of the page.
+    private static readonly string[] s_pathsWithoutBottomBar = ["books/add"];
 
     // So is importing a book's info from the web (books/{id}/find-details).
     private const string FindDetailsSuffix = "/find-details";
@@ -34,10 +35,10 @@ public static class NavigationRules
             || current.StartsWith(trimmed + "/", StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool HidesNavigation(string relativePath)
+    public static bool HidesBottomBar(string relativePath)
     {
         var current = StripQueryAndFragment(relativePath);
-        return s_pathsWithoutNavigation.Any(path => IsActive(current, path))
+        return s_pathsWithoutBottomBar.Any(path => IsActive(current, path))
             || current.TrimEnd('/').EndsWith(FindDetailsSuffix, StringComparison.OrdinalIgnoreCase);
     }
 

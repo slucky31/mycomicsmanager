@@ -19,6 +19,9 @@ public partial class NavBar : IDisposable
     [Inject] private LibrariesNotifier LibrariesNotifier { get; set; } = default!;
     [Inject] private ILogger<NavBar> Logger { get; set; } = default!;
 
+    // False on focused tasks (adding a book, importing its info): only the phone's bottom bar is hidden.
+    [Parameter] public bool ShowBottomBar { get; set; } = true;
+
     protected override async Task OnInitializedAsync()
     {
         NavigationManager.LocationChanged += OnLocationChangedAsync;

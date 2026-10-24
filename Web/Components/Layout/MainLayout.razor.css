@@ -14,14 +14,14 @@
 
 /* Phone: room for the fixed bottom bar (64 px + home indicator); full-height pages subtract the same */
 @media (max-width: 959.98px) {
-    .page-body.with-nav {
+    .page-body.with-bottom-bar {
         padding-bottom: calc(64px + env(safe-area-inset-bottom));
     }
 }
 
 /* Tablet: 88 px rail */
 @media (min-width: 960px) {
-    .page-body.with-nav {
+    .page-body {
         margin-left: 88px;
         padding-left: 0;
     }
@@ -29,7 +29,7 @@
 
 /* Desktop: 260 px side bar */
 @media (min-width: 1440px) {
-    .page-body.with-nav {
+    .page-body {
         margin-left: 260px;
     }
 }
