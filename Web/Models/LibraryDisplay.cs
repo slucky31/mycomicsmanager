@@ -1,6 +1,5 @@
 using Domain.Libraries;
 using Domain.Primitives;
-using Web.Enums;
 
 namespace Web.Models;
 
@@ -16,7 +15,15 @@ public static class LibraryDisplay
         _ => "Newest first",
     };
 
-    public static string ViewLabel(ViewMode viewMode) => viewMode == ViewMode.List ? "List" : "Covers";
+    public static string ViewLabel(LibraryView view) => view switch
+    {
+        LibraryView.List => "List",
+        LibraryView.Series => "Series",
+        _ => "Covers",
+    };
+
+    // The books of a library, even when it opens on its series (#1210).
+    public static string BooksHref(Guid libraryId) => $"/libraries/{libraryId}?books=true";
 
     // "24 books · Newest first"; the sort alone while the number of books is unknown (page opened on a search).
     public static string Subtitle(int? bookCount, BookSortOrder sortOrder) =>

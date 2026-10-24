@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using Domain.Libraries;
-using Web.Enums;
 using Web.Models;
 using Xunit;
 
@@ -23,10 +22,16 @@ public sealed class LibraryDisplayTests
         LibraryDisplay.SortLabel(sortOrder).Should().Be(expected);
 
     [Theory]
-    [InlineData(ViewMode.Covers, "Covers")]
-    [InlineData(ViewMode.List, "List")]
-    public void ViewLabel_Should_NameTheView(ViewMode viewMode, string expected) =>
-        LibraryDisplay.ViewLabel(viewMode).Should().Be(expected);
+    [InlineData(LibraryView.Covers, "Covers")]
+    [InlineData(LibraryView.List, "List")]
+    [InlineData(LibraryView.Series, "Series")]
+    public void ViewLabel_Should_NameTheView(LibraryView view, string expected) =>
+        LibraryDisplay.ViewLabel(view).Should().Be(expected);
+
+    [Fact]
+    public void BooksHref_Should_AskForTheBooks_OfTheLibrary() =>
+        LibraryDisplay.BooksHref(Guid.Parse("0193f3a8-0000-7000-8000-000000000001"))
+            .Should().Be("/libraries/0193f3a8-0000-7000-8000-000000000001?books=true");
 
     [Fact]
     public void Subtitle_Should_GiveTheNumberOfBooksAndTheSortOrder() =>

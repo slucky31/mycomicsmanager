@@ -9,5 +9,6 @@ public record UpdateLibraryCommand(
     string Color,
     string Icon,
     Guid UserId,
-    BookSortOrder? DefaultBookSortOrder = null
+    BookSortOrder? DefaultBookSortOrder = null,
+    LibraryView? DefaultView = null
 ) : ICommand<Library>;

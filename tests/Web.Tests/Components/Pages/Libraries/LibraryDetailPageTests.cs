@@ -6,6 +6,7 @@ using Bunit;
 using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
@@ -13,7 +14,6 @@ using NSubstitute;
 using Web.Components.Pages.Dialogs;
 using Web.Components.Pages.Libraries;
 using Web.Components.Pages.Libraries.Views;
-using Web.Enums;
 using Web.Infrastructure;
 using Web.Models;
 using Web.Services;
@@ -75,15 +75,21 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     private void GivenPage(int pageNumber, string search, IPagedList<BookSummaryDto> page) =>
         GivenPage(pageNumber, search, Task.FromResult(Result<IPagedList<BookSummaryDto>>.Success(page)));
 
-    private async Task<IRenderedComponent<LibraryDetailPage>> RenderAsync(LibraryBookType bookType = LibraryBookType.Physical)
+    private void GivenLibrary(LibraryBookType bookType, LibraryView defaultView)
     {
         _library = Library.Create("Read Books", "#5C6BC0", "Bookmark", bookType, Guid.CreateVersion7()).Value!;
+        _library.UpdateDefaultView(defaultView);
         _librariesService.GetById(_library.Id.ToString()).Returns(Result<Library>.Success(_library));
         _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Library>.Success(_library));
         GivenPage(1, string.Empty, Page(24, false, _blacksad, _hiver));
+    }
+
+    private async Task<IRenderedComponent<LibraryDetailPage>> RenderAsync(LibraryBookType bookType = LibraryBookType.Physical, LibraryView defaultView = LibraryView.Covers)
+    {
+        GivenLibrary(bookType, defaultView);
 
         var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
-        await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item").Should().HaveCount(2));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item, .list-item").Should().HaveCount(2));
         return cut;
     }
 
@@ -213,7 +219,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ChooseViewMode_Should_ShowTheList_AndCheckIt_AndRememberIt()
+    public async Task ChooseViewAsync_Should_ShowTheList_AndCheckIt_AndSaveIt()
     {
         var cut = await RenderAsync();
 
@@ -222,8 +228,63 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         cut.FindAll(".list-item").Should().HaveCount(2);
         await cut.Find("button[aria-label='Sort and view']").ClickAsync(new());
         cut.Find("[role=dialog] [aria-pressed=true]:contains('List')").ClassList.Should().Contain("action-sheet-item-selected");
-        await _ctx.DisposeComponentsAsync();
-        _stateService.Load(_library.Id)!.View.Should().Be(ViewMode.List);
+        await _librariesService.Received(1).Update(
+            Arg.Is<UpdateLibraryRequest>(r => r.DefaultView == LibraryView.List && r.DefaultBookSortOrder == null && r.Name == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ChooseViewAsync_Should_KeepTheView_WhenItCannotBeSaved()
+    {
+        var cut = await RenderAsync();
+        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Library>.Failure(LibrariesError.NotFound));
+
+        await ChooseAsync(cut, "Sort and view", "List");
+
+        cut.FindAll(".cover-item").Should().HaveCount(2);
+        _snackbar.Received(1).Add("Failed to save the view", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ChooseViewAsync_Should_SaveTheSeries_AndOpenTheSeriesPage()
+    {
+        var cut = await RenderAsync();
+
+        await ChooseAsync(cut, "Sort and view", "One card per series");
+
+        await _librariesService.Received(1).Update(Arg.Is<UpdateLibraryRequest>(r => r.DefaultView == LibraryView.Series), Arg.Any<CancellationToken>());
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/libraries/{_library.Id}/series");
+    }
+
+    [Fact]
+    public async Task LoadDataAsync_Should_ShowTheSavedList_WhenTheLibraryOpensOnIt()
+    {
+        var cut = await RenderAsync(defaultView: LibraryView.List);
+
+        cut.FindAll(".list-item").Should().HaveCount(2);
+        Subtitle(cut).Should().EndWith("List");
+    }
+
+    [Fact]
+    public async Task LoadDataAsync_Should_OpenTheSeriesPage_WhenTheLibraryOpensOnItsSeries()
+    {
+        GivenLibrary(LibraryBookType.Physical, LibraryView.Series);
+        var navigation = _ctx.Services.GetRequiredService<NavigationManager>();
+
+        var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
+
+        await cut.WaitForAssertionAsync(() => navigation.Uri.Should().EndWith($"/libraries/{_library.Id}/series"));
+        await _booksService.DidNotReceive().GetPagedByLibrary(_library.Id, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<BookSortOrder>(), Arg.Any<string?>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task LoadDataAsync_Should_ShowTheCovers_WhenTheBooksAreAskedFromTheSeries()
+    {
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/?books=true");
+
+        var cut = await RenderAsync(defaultView: LibraryView.Series);
+
+        cut.FindAll(".cover-item").Should().HaveCount(2);
     }
 
     [Fact]

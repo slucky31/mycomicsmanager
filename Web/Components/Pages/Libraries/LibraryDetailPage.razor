@@ -5,7 +5,6 @@
 @using Domain.Libraries
 @using Web.Components.Pages.Libraries.Views
 @using Web.Components.SharedComponents
-@using Web.Enums
 @using Web.Models
 
 <PageTitle>@(_library?.Name ?? "Library") — MyComicsManager</PageTitle>
@@ -104,7 +103,7 @@
         }
         else
         {
-            @if (_currentViewMode == ViewMode.List)
+            @if (_currentViewMode == LibraryView.List)
             {
                 <BooksListView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" />
             }
@@ -135,11 +134,11 @@
     <div class="action-sheet-divider"></div>
     <div class="action-sheet-section">View</div>
     <ActionSheetItem Icon="@Icons.Material.Filled.GridView" Text="Covers" Description="Most books on screen"
-                     Selected="@(_currentViewMode == ViewMode.Covers)" OnClick="() => ChooseViewMode(ViewMode.Covers)" />
+                     Selected="@(_currentViewMode == LibraryView.Covers)" OnClick="() => ChooseViewAsync(LibraryView.Covers)" />
     <ActionSheetItem Icon="@Icons.Material.Filled.ViewList" Text="List" Description="Title, series, authors, rating"
-                     Selected="@(_currentViewMode == ViewMode.List)" OnClick="() => ChooseViewMode(ViewMode.List)" />
+                     Selected="@(_currentViewMode == LibraryView.List)" OnClick="() => ChooseViewAsync(LibraryView.List)" />
     <ActionSheetItem Icon="@Icons.Material.Filled.CollectionsBookmark" Text="Series" Description="One card per series, what is missing"
-                     Href="@SerieDisplay.SeriesHref(_libraryGuid)" />
+                     OnClick="() => ChooseViewAsync(LibraryView.Series)" />
 </ActionSheet>
 
 <ActionSheet Open="@(_openSheet == LibrarySheet.AddBook)" AriaLabel="Add a book" Anchor="@_sheetAnchor" AlignEnd="true" OnClose="CloseSheet">

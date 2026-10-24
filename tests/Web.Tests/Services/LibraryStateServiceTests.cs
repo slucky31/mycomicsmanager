@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using Web.Enums;
 using Web.Services;
 using Xunit;
 
@@ -21,27 +20,25 @@ public class LibraryStateServiceTests
     public void Save_Should_PersistState_WhenCalled()
     {
         var libraryId = Guid.NewGuid();
-        var state = new LibraryPageState("batman", ViewMode.Covers);
+        var state = new LibraryPageState("batman");
 
         _service.Save(libraryId, state);
         var result = _service.Load(libraryId);
 
         result.Should().NotBeNull();
         result!.Search.Should().Be("batman");
-        result.View.Should().Be(ViewMode.Covers);
     }
 
     [Fact]
     public void Save_Should_OverwriteExistingState_WhenCalledTwiceForSameLibrary()
     {
         var libraryId = Guid.NewGuid();
-        _service.Save(libraryId, new LibraryPageState("old", ViewMode.List));
+        _service.Save(libraryId, new LibraryPageState("old"));
 
-        _service.Save(libraryId, new LibraryPageState("new", ViewMode.Covers));
+        _service.Save(libraryId, new LibraryPageState("new"));
         var result = _service.Load(libraryId);
 
         result!.Search.Should().Be("new");
-        result.View.Should().Be(ViewMode.Covers);
     }
 
     [Fact]
@@ -49,7 +46,7 @@ public class LibraryStateServiceTests
     {
         var savedId = Guid.NewGuid();
         var otherId = Guid.NewGuid();
-        _service.Save(savedId, new LibraryPageState("x", ViewMode.Covers));
+        _service.Save(savedId, new LibraryPageState("x"));
 
         var result = _service.Load(otherId);
 
@@ -61,8 +58,8 @@ public class LibraryStateServiceTests
     {
         var id1 = Guid.NewGuid();
         var id2 = Guid.NewGuid();
-        _service.Save(id1, new LibraryPageState("search1", ViewMode.Covers));
-        _service.Save(id2, new LibraryPageState("search2", ViewMode.List));
+        _service.Save(id1, new LibraryPageState("search1"));
+        _service.Save(id2, new LibraryPageState("search2"));
 
         _service.Load(id1)!.Search.Should().Be("search1");
         _service.Load(id2)!.Search.Should().Be("search2");
@@ -72,11 +69,10 @@ public class LibraryStateServiceTests
     public void Save_Should_AllowEmptySearchTerm()
     {
         var libraryId = Guid.NewGuid();
-        _service.Save(libraryId, new LibraryPageState(string.Empty, ViewMode.Covers));
+        _service.Save(libraryId, new LibraryPageState(string.Empty));
 
         var result = _service.Load(libraryId);
 
         result!.Search.Should().BeEmpty();
-        result.View.Should().Be(ViewMode.Covers);
     }
 }

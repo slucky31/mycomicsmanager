@@ -75,7 +75,8 @@ public class LibrariesService(
             request.Color,
             request.Icon,
             userIdResult.Value,
-            request.DefaultBookSortOrder);
+            request.DefaultBookSortOrder,
+            request.DefaultView);
 
         return await updateLibraryHandler.Handle(command, cancellationToken);
     }
