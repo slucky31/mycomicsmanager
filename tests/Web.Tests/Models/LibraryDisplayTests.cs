@@ -29,11 +29,6 @@ public sealed class LibraryDisplayTests
         LibraryDisplay.ViewLabel(view).Should().Be(expected);
 
     [Fact]
-    public void BooksHref_Should_AskForTheBooks_OfTheLibrary() =>
-        LibraryDisplay.BooksHref(Guid.Parse("0193f3a8-0000-7000-8000-000000000001"))
-            .Should().Be("/libraries/0193f3a8-0000-7000-8000-000000000001?books=true");
-
-    [Fact]
     public void Subtitle_Should_GiveTheNumberOfBooksAndTheSortOrder() =>
         LibraryDisplay.Subtitle(24, BookSortOrder.IdDesc).Should().Be("24 books · Newest first");
 

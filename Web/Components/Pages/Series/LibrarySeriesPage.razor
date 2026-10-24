@@ -1,10 +1,13 @@
 @page "/libraries/{LibraryId:guid}/series"
 
+@using Domain.Libraries
+
 <PageTitle>@(_libraryName ?? "Series") — MyComicsManager</PageTitle>
 
 <div class="series-page">
-    <PageBar BackHref="@LibraryDisplay.BooksHref(LibraryId)" BackLabel="Back to the books" Title="@_libraryName" Subtitle="@Subtitle">
+    <PageBar BackHref="/libraries/list" BackLabel="Back to libraries" Title="@_libraryName" Subtitle="@Subtitle">
         <MudIconButton Icon="@Icons.Material.Filled.PlaylistRemove" Href="@SerieDisplay.MissingVolumesHref" aria-label="Missing volumes" />
+        <MudIconButton id="@ViewButtonId" Icon="@Icons.Material.Filled.Tune" OnClick="OpenViewSheetAsync" aria-label="View" Disabled="@(_library is null)" />
     </PageBar>
 
     @if (_isLoading)
@@ -54,3 +57,12 @@
         </div>
     }
 </div>
+
+<ActionSheet Open="@_isViewSheetOpen" AriaLabel="View" Title="View" Anchor="@_sheetAnchor" AlignEnd="true" OnClose="CloseViewSheet">
+    <ActionSheetItem Icon="@Icons.Material.Filled.GridView" Text="Covers" Description="Most books on screen"
+                     OnClick="() => ChooseViewAsync(LibraryView.Covers)" />
+    <ActionSheetItem Icon="@Icons.Material.Filled.ViewList" Text="List" Description="Title, series, authors, rating"
+                     OnClick="() => ChooseViewAsync(LibraryView.List)" />
+    <ActionSheetItem Icon="@Icons.Material.Filled.CollectionsBookmark" Text="Series" Description="One card per series, what is missing"
+                     Selected="true" OnClick="CloseViewSheet" />
+</ActionSheet>

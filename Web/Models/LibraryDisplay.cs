@@ -22,9 +22,6 @@ public static class LibraryDisplay
         _ => "Covers",
     };
 
-    // The books of a library, even when it opens on its series (#1210).
-    public static string BooksHref(Guid libraryId) => $"/libraries/{libraryId}?books=true";
-
     // "24 books · Newest first"; the sort alone while the number of books is unknown (page opened on a search).
     public static string Subtitle(int? bookCount, BookSortOrder sortOrder) =>
         bookCount is { } count ? $"{BookCount(count)} · {SortLabel(sortOrder)}" : SortLabel(sortOrder);

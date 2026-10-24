@@ -278,16 +278,6 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task LoadDataAsync_Should_ShowTheCovers_WhenTheBooksAreAskedFromTheSeries()
-    {
-        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/?books=true");
-
-        var cut = await RenderAsync(defaultView: LibraryView.Series);
-
-        cut.FindAll(".cover-item").Should().HaveCount(2);
-    }
-
-    [Fact]
     public async Task SearchTerm_Should_ShowTheMatchingBooksAndTheirNumber_AfterAPause()
     {
         var cut = await RenderAsync();

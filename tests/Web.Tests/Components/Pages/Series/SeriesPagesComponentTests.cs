@@ -34,6 +34,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_seriesService);
         _ctx.Services.AddSingleton(_librariesService);
         _ctx.Services.AddSingleton(_snackbar);
+        _ctx.Services.AddScoped<PopupAnchorLocator>();
         _librariesService.GetById(s_libraryId.ToString())
             .Returns(Library.Create("BD", "#594AE2", "Book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!);
     }
@@ -74,6 +75,50 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         cut.WaitForAssertion(() => cut.Find(".series-empty"));
         _snackbar.Received(1).Add("Failed to load the series", Severity.Error);
+    }
+
+    [Fact]
+    public void LibrarySeriesPage_Should_GoBackToTheLibraries()
+    {
+        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<SerieSummary>>.Success([]));
+
+        var cut = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
+
+        cut.Find("a[aria-label='Back to libraries']").GetAttribute("href").Should().Be("/libraries/list");
+    }
+
+    [Fact]
+    public async Task ChooseViewAsync_Should_SaveTheView_AndOpenTheBooks()
+    {
+        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<SerieSummary>>.Success([]));
+        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Library.Create("BD", "#594AE2", "Book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!);
+        var cut = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
+        cut.WaitForAssertion(() => cut.Find("button[aria-label='View']").HasAttribute("disabled").Should().BeFalse());
+
+        await cut.Find("button[aria-label='View']").ClickAsync(new());
+        await cut.Find("[role=dialog] .action-sheet-item:contains('List')").ClickAsync(new());
+
+        await _librariesService.Received(1).Update(
+            Arg.Is<UpdateLibraryRequest>(r => r.Id == s_libraryId.ToString() && r.DefaultView == LibraryView.List), Arg.Any<CancellationToken>());
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/libraries/{s_libraryId}");
+    }
+
+    [Fact]
+    public async Task ChooseViewAsync_Should_StayOnTheSeries_WhenTheViewCannotBeSaved()
+    {
+        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<SerieSummary>>.Success([]));
+        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Library>.Failure(LibrariesError.NotFound));
+        var navigation = _ctx.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo($"/libraries/{s_libraryId}/series");
+        var cut = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
+        cut.WaitForAssertion(() => cut.Find("button[aria-label='View']").HasAttribute("disabled").Should().BeFalse());
+
+        await cut.Find("button[aria-label='View']").ClickAsync(new());
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Covers')").ClickAsync(new());
+
+        _snackbar.Received(1).Add("Failed to save the view", Severity.Error);
+        navigation.Uri.Should().EndWith($"/libraries/{s_libraryId}/series");
     }
 
     [Fact]
