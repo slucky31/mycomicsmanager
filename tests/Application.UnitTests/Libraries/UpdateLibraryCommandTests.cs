@@ -243,6 +243,41 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenDefaultViewIsInvalid()
+    {
+        // Arrange
+        var command = new UpdateLibraryCommand(s_command.Id, null, "#5C6BC0", "Bookmark", s_userId, DefaultView: (LibraryView)999);
+        var freshLibrary = Library.Create("library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(command.Id).Returns(freshLibrary);
+
+        // Act
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Error.Should().Be(LibrariesError.BadRequest);
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_SaveTheDefaultView_AndKeepTheSortOrder_WhenOnlyTheViewIsSent()
+    {
+        // Arrange
+        var command = new UpdateLibraryCommand(s_command.Id, null, "#5C6BC0", "Bookmark", s_userId, DefaultView: LibraryView.Series);
+        var freshLibrary = Library.Create("library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+        freshLibrary.UpdateDefaultBookSortOrder(BookSortOrder.IdAsc);
+        _librayRepositoryMock.GetByIdAsync(command.Id).Returns(freshLibrary);
+
+        // Act
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.DefaultView.Should().Be(LibraryView.Series);
+        result.Value.DefaultBookSortOrder.Should().Be(BookSortOrder.IdAsc);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnFolderNotMoved_WhenImportDirectoryWasNotMoved()
     {
         // Arrange

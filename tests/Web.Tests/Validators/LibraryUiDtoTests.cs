@@ -130,6 +130,7 @@ public sealed class LibraryUiDtoTests
         dto.CreatedOnUtc.Should().Be(library.CreatedOnUtc);
         dto.ModifiedOnUtc.Should().Be(library.ModifiedOnUtc);
         dto.DefaultBookSortOrder.Should().Be(library.DefaultBookSortOrder);
+        dto.DefaultView.Should().Be(library.DefaultView);
     }
 
     [Fact]

@@ -9,7 +9,6 @@ using MudBlazor.Services;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Web.Components.Pages.Libraries;
-using Web.Enums;
 using Web.Services;
 using Xunit;
 
@@ -43,9 +42,9 @@ public sealed class LibraryDetailPageMoveTests : IAsyncDisposable
 
     public ValueTask DisposeAsync() => _ctx.DisposeAsync();
 
-    private async Task<IRenderedComponent<LibraryDetailPage>> RenderAsync(ViewMode viewMode)
+    private async Task<IRenderedComponent<LibraryDetailPage>> RenderAsync(LibraryView view)
     {
-        _stateService.Save(_library.Id, new LibraryPageState(string.Empty, viewMode));
+        _library.UpdateDefaultView(view);
         var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Comics"));
         _booksService.ClearReceivedCalls();
@@ -60,7 +59,7 @@ public sealed class LibraryDetailPageMoveTests : IAsyncDisposable
     {
         var bookId = Guid.CreateVersion7();
         _workflow.ChooseAndMoveAsync(bookId, Arg.Any<CancellationToken>()).Returns(true);
-        var cut = await RenderAsync(ViewMode.List);
+        var cut = await RenderAsync(LibraryView.List);
 
         await cut.InvokeAsync(() => cut.Instance.MoveAsync(bookId));
 
@@ -72,7 +71,7 @@ public sealed class LibraryDetailPageMoveTests : IAsyncDisposable
     public async Task MoveAsync_Should_NotReload_WhenTheBookWasNotMoved()
     {
         _workflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(false);
-        var cut = await RenderAsync(ViewMode.Covers);
+        var cut = await RenderAsync(LibraryView.Covers);
 
         await cut.InvokeAsync(() => cut.Instance.MoveAsync(Guid.CreateVersion7()));
 
@@ -84,7 +83,7 @@ public sealed class LibraryDetailPageMoveTests : IAsyncDisposable
     {
         var pending = new TaskCompletionSource<bool>();
         _workflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(pending.Task);
-        var cut = await RenderAsync(ViewMode.Covers);
+        var cut = await RenderAsync(LibraryView.Covers);
 
         var first = cut.InvokeAsync(() => cut.Instance.MoveAsync(Guid.CreateVersion7()));
         await cut.InvokeAsync(() => cut.Instance.MoveAsync(Guid.CreateVersion7()));
@@ -98,7 +97,7 @@ public sealed class LibraryDetailPageMoveTests : IAsyncDisposable
     public async Task MoveAsync_Should_SwallowCancellation_WhenThePageIsDisposedDuringTheMove()
     {
         _workflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).ThrowsAsync(new OperationCanceledException());
-        var cut = await RenderAsync(ViewMode.Covers);
+        var cut = await RenderAsync(LibraryView.Covers);
 
         var move = () => cut.InvokeAsync(() => cut.Instance.MoveAsync(Guid.CreateVersion7()));
 

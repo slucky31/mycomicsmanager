@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Web.Components.Pages.Libraries.Views;
-using Web.Enums;
 using Web.Extensions;
 using Web.Infrastructure;
 using Web.Models;
@@ -26,6 +25,9 @@ public partial class LibraryDetailPage : IAsyncDisposable
     [Inject] private IIsbnScanService IsbnScanService { get; set; } = default!;
 
     [Parameter] public string? LibraryId { get; set; }
+
+    // Set by the link back from the series: the books are shown even when the library opens on its series.
+    [SupplyParameterFromQuery(Name = "books")] public bool ShowBooks { get; set; }
 
     internal const int PageSize = 24;
     private const string SortAndViewButtonId = "library-sort-and-view";
@@ -97,7 +99,8 @@ public partial class LibraryDetailPage : IAsyncDisposable
         }
     }
 
-    private ViewMode _currentViewMode = ViewMode.Covers;
+    // Covers or List: a library that opens on its series is sent to the series page.
+    private LibraryView _currentViewMode = LibraryView.Covers;
     private BookSortOrder _currentSortOrder = BookSortOrder.IdDesc;
 
     private bool IsDigital => _library?.BookType == LibraryBookType.Digital;
@@ -124,10 +127,10 @@ public partial class LibraryDetailPage : IAsyncDisposable
         await LoadDataAsync();
     }
 
-    // Keeps the search and the view of the library left, then forgets everything shown of it.
+    // Keeps the search of the library left, then forgets everything shown of it.
     private async Task LeaveLibraryAsync()
     {
-        LibraryStateService.Save(_libraryGuid, new LibraryPageState(SearchTerm, _currentViewMode));
+        LibraryStateService.Save(_libraryGuid, new LibraryPageState(SearchTerm));
 
         if (_searchCts is not null)
         {
@@ -153,7 +156,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         _shownSearch = string.Empty;
         _searchTermValue = string.Empty;
         _isSearchOpen = false;
-        _currentViewMode = ViewMode.Covers;
+        _currentViewMode = LibraryView.Covers;
         _observerInitialized = false;
         _openSheet = LibrarySheet.None;
         _actionsBook = null;
@@ -248,7 +251,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         }
         finally
         {
-            LibraryStateService.Save(_libraryGuid, new LibraryPageState(SearchTerm, _currentViewMode));
+            LibraryStateService.Save(_libraryGuid, new LibraryPageState(SearchTerm));
             _dotNetRef?.Dispose();
         }
     }
@@ -269,7 +272,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
             if (saved is not null)
             {
                 _searchTermValue = saved.Search;
-                _currentViewMode = saved.View;
                 _isSearchOpen = !string.IsNullOrEmpty(saved.Search);
             }
 
@@ -283,6 +285,13 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
             _library = LibraryUiDto.Convert(libResult.Value!);
             _currentSortOrder = _library.DefaultBookSortOrder;
+
+            if (_library.DefaultView == LibraryView.Series && !ShowBooks)
+            {
+                NavigationManager.NavigateTo(SerieDisplay.SeriesHref(_libraryGuid), replace: true);
+                return;
+            }
+            _currentViewMode = _library.DefaultView == LibraryView.List ? LibraryView.List : LibraryView.Covers;
 
             await LoadFirstPageAsync(_disposalCts.Token);
         }
@@ -482,15 +491,52 @@ public partial class LibraryDetailPage : IAsyncDisposable
         }
     }
 
-    private void ChooseViewMode(ViewMode mode)
+    // The chosen view becomes the one the library opens with (#1210); Series leaves for the series page.
+    private async Task ChooseViewAsync(LibraryView view)
     {
         CloseSheet();
-        if (_currentViewMode != mode)
+        if (_library is null || (view != _library.DefaultView && !await SaveDefaultViewAsync(_library, view)))
         {
-            _currentViewMode = mode;
+            return;
+        }
+
+        if (view == LibraryView.Series)
+        {
+            NavigationManager.NavigateTo(SerieDisplay.SeriesHref(_libraryGuid));
+        }
+        else if (_currentViewMode != view)
+        {
+            _currentViewMode = view;
             // The sentinel is rendered again under the new view.
             _observerInitialized = false;
         }
+    }
+
+    private async Task<bool> SaveDefaultViewAsync(LibraryUiDto library, LibraryView view)
+    {
+        try
+        {
+            var result = await LibrariesService.Update(new UpdateLibraryRequest(
+                library.Id.ToString(),
+                null,
+                library.Color,
+                library.Icon,
+                DefaultView: view), _disposalCts.Token);
+
+            if (result.IsSuccess)
+            {
+                library.DefaultView = view;
+                return true;
+            }
+
+            Snackbar.Add("Failed to save the view", Severity.Error);
+            Logger.LogError("Failed to save the view of library {LibraryId}: {ErrorDescription}", library.Id, result.Error!.Description);
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed while saving; nothing to update.
+        }
+        return false;
     }
 
     // ── Sheets ─────────────────────────────────────────────────────────

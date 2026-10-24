@@ -375,6 +375,9 @@ namespace Persistence.Migrations
                     b.Property<int>("DefaultBookSortOrder")
                         .HasColumnType("integer");
 
+                    b.Property<int>("DefaultView")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Icon")
                         .IsRequired()
                         .HasMaxLength(100)

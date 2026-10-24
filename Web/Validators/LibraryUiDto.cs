@@ -21,6 +21,8 @@ public class LibraryUiDto : Entity<Guid>
 
     public BookSortOrder DefaultBookSortOrder { get; set; } = BookSortOrder.IdDesc;
 
+    public LibraryView DefaultView { get; set; } = LibraryView.Covers;
+
     [Label("RelativePath")]
     public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 
@@ -32,6 +34,7 @@ public class LibraryUiDto : Entity<Guid>
         Icon = library.Icon,
         BookType = library.BookType,
         DefaultBookSortOrder = library.DefaultBookSortOrder,
+        DefaultView = library.DefaultView,
         CreatedOnUtc = library.CreatedOnUtc,
         ModifiedOnUtc = library.ModifiedOnUtc
     };

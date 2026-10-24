@@ -258,6 +258,38 @@ public class LibraryTests
     }
 
     // -------------------------------------------------------
+    // UpdateDefaultView
+    // -------------------------------------------------------
+
+    [Fact]
+    public void UpdateDefaultView_Should_ChangeTheView_WhenValid()
+    {
+        // Arrange
+        var library = Library.Create("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, DefaultUserId).Value!;
+
+        // Act
+        var result = library.UpdateDefaultView(LibraryView.Series);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        library.DefaultView.Should().Be(LibraryView.Series);
+    }
+
+    [Fact]
+    public void UpdateDefaultView_Should_ReturnBadRequest_AndKeepTheView_WhenTheViewIsUndefined()
+    {
+        // Arrange
+        var library = Library.Create("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, DefaultUserId).Value!;
+
+        // Act
+        var result = library.UpdateDefaultView((LibraryView)999);
+
+        // Assert
+        result.Error.Should().Be(LibrariesError.BadRequest);
+        library.DefaultView.Should().Be(LibraryView.Covers);
+    }
+
+    // -------------------------------------------------------
     // CanContain
     // -------------------------------------------------------
 

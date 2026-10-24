@@ -7,4 +7,5 @@ public sealed record UpdateLibraryRequest(
     string? Name,
     string Color,
     string Icon,
-    BookSortOrder? DefaultBookSortOrder = null);
+    BookSortOrder? DefaultBookSortOrder = null,
+    LibraryView? DefaultView = null);

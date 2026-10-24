@@ -18,6 +18,8 @@ public class Library : Entity<Guid>
 
     public BookSortOrder DefaultBookSortOrder { get; protected set; } = BookSortOrder.IdDesc;
 
+    public LibraryView DefaultView { get; protected set; } = LibraryView.Covers;
+
     public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 
     public string ImportDirectoryName => $"{RelativePath}_{Id}";
@@ -117,6 +119,17 @@ public class Library : Entity<Guid>
         }
 
         DefaultBookSortOrder = sortOrder;
+        return Result.Success();
+    }
+
+    public Result UpdateDefaultView(LibraryView view)
+    {
+        if (!Enum.IsDefined(view))
+        {
+            return LibrariesError.BadRequest;
+        }
+
+        DefaultView = view;
         return Result.Success();
     }
 

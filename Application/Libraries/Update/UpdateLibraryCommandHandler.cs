@@ -30,14 +30,11 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
             return updateResult.Error!;
         }
 
-        // Validate and apply sort order before any storage side-effects
-        if (request.DefaultBookSortOrder is not null)
+        // Validate and apply sort order and view before any storage side-effects
+        var displayResult = ApplyDisplayPreferences(library, request);
+        if (displayResult.IsFailure)
         {
-            var sortResult = library.UpdateDefaultBookSortOrder(request.DefaultBookSortOrder.Value);
-            if (sortResult.IsFailure)
-            {
-                return sortResult.Error!;
-            }
+            return displayResult.Error!;
         }
 
         // Update name only if provided
@@ -58,6 +55,21 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         }
 
         return library;
+    }
+
+    // The sort order and the view the library opens with, each only when sent.
+    private static Result ApplyDisplayPreferences(Library library, UpdateLibraryCommand request)
+    {
+        if (request.DefaultBookSortOrder is not null)
+        {
+            var sortResult = library.UpdateDefaultBookSortOrder(request.DefaultBookSortOrder.Value);
+            if (sortResult.IsFailure)
+            {
+                return sortResult;
+            }
+        }
+
+        return request.DefaultView is not null ? library.UpdateDefaultView(request.DefaultView.Value) : Result.Success();
     }
 
     private async Task<Result> ApplyNameUpdateAsync(Library library, Guid libraryId, string name, Guid userId, CancellationToken cancellationToken)
