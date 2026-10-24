@@ -5,6 +5,7 @@ using Application.Books.Delete;
 using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
 using Application.Books.List;
+using Application.Books.Search;
 using Application.Books.Update;
 using Application.Interfaces;
 using Ardalis.GuardClauses;
@@ -24,6 +25,7 @@ public sealed class BooksServiceTests
     private readonly IQueryHandler<GetBookByIdQuery, Book> _getBookByIdHandler;
     private readonly IQueryHandler<GetBooksQuery, List<Book>> _getBooksHandler;
     private readonly IQueryHandler<GetPagedBooksQuery, IPagedList<BookSummaryDto>> _getPagedBooksHandler;
+    private readonly IQueryHandler<SearchBooksQuery, BookSearchResult> _searchBooksHandler;
     private readonly ICommandHandler<CreateBookCommand, Book> _createBookHandler;
     private readonly ICommandHandler<UpdateBookCommand, Book> _updateBookHandler;
     private readonly ICommandHandler<DeleteBookCommand> _deleteBookHandler;
@@ -41,6 +43,7 @@ public sealed class BooksServiceTests
         _getBookByIdHandler = Substitute.For<IQueryHandler<GetBookByIdQuery, Book>>();
         _getBooksHandler = Substitute.For<IQueryHandler<GetBooksQuery, List<Book>>>();
         _getPagedBooksHandler = Substitute.For<IQueryHandler<GetPagedBooksQuery, IPagedList<BookSummaryDto>>>();
+        _searchBooksHandler = Substitute.For<IQueryHandler<SearchBooksQuery, BookSearchResult>>();
         _createBookHandler = Substitute.For<ICommandHandler<CreateBookCommand, Book>>();
         _updateBookHandler = Substitute.For<ICommandHandler<UpdateBookCommand, Book>>();
         _deleteBookHandler = Substitute.For<ICommandHandler<DeleteBookCommand>>();
@@ -55,6 +58,7 @@ public sealed class BooksServiceTests
             _getBookByIdHandler,
             _getBooksHandler,
             _getPagedBooksHandler,
+            _searchBooksHandler,
             _createBookHandler,
             _updateBookHandler,
             _deleteBookHandler,
@@ -1201,6 +1205,41 @@ public sealed class BooksServiceTests
         await _getBooksHandler.Received(1).Handle(
             Arg.Is<GetBooksQuery>(q => q.UserId == DefaultUserId && q.LibraryId == DefaultLibraryId),
             Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region Search Tests
+
+    [Fact]
+    public async Task Search_Should_ReturnError_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        // Act
+        var result = await _service.Search("astérix", 20, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UsersError.NotFound);
+        await _searchBooksHandler.DidNotReceive().Handle(Arg.Any<SearchBooksQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Search_Should_SearchTheLibrariesOfTheUser_WhenUserIsAuthenticated()
+    {
+        // Arrange
+        _searchBooksHandler.Handle(Arg.Any<SearchBooksQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<BookSearchResult>.Success(BookSearchResult.Empty));
+
+        // Act
+        var result = await _service.Search("astérix", 20, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _searchBooksHandler.Received(1).Handle(
+            new SearchBooksQuery(DefaultUserId, "astérix", 20), Arg.Any<CancellationToken>());
     }
 
     #endregion

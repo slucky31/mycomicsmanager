@@ -1,5 +1,6 @@
 using Application.Books;
 using Application.Books.List;
+using Application.Books.Search;
 using Domain.Libraries;
 
 namespace Application.Interfaces;
@@ -14,6 +15,9 @@ public interface IBookReadService
         BookSortOrder sortOrder,
         string? searchTerm,
         CancellationToken cancellationToken = default);
+
+    // The series and the first books of all the libraries of the user whose title or series holds the term (#1209).
+    Task<BookSearchResult> SearchAsync(Guid userId, string searchTerm, int bookLimit, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<BookIdentityDto>> ListIdentitiesByUserAsync(Guid userId, CancellationToken cancellationToken = default);
 

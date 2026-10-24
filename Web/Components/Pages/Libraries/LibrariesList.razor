@@ -21,6 +21,21 @@
         <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Href="/libraries/add" Class="libraries-bar-new">New library</MudButton>
     </header>
 
+    @if (_libraries.Count > 0)
+    {
+        <div class="libraries-search">
+            <label class="libraries-search-field">
+                <MudIcon Icon="@Icons.Material.Filled.Search" Class="libraries-search-icon" />
+                <input type="search" placeholder="Search all libraries" aria-label="Search all libraries by title or series"
+                       @bind="SearchTerm" @bind:event="oninput" />
+                @if (!string.IsNullOrEmpty(SearchTerm))
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="ClearSearch" aria-label="Clear search" />
+                }
+            </label>
+        </div>
+    }
+
     @if (_isLoading)
     {
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
@@ -33,6 +48,67 @@
             <MudText Typo="Typo.body2" Class="libraries-empty-hint">Create a library to start adding your books</MudText>
             <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Href="/libraries/add">New library</MudButton>
         </div>
+    }
+    else if (IsSearching)
+    {
+        <section class="search-results" aria-label="Search results" aria-busy="@(_isSearchLoading ? "true" : "false")">
+            @if (_searchResults.HasResults)
+            {
+                @if (_searchResults.Series.Count > 0)
+                {
+                    <h2 class="search-heading">@_searchResults.SeriesHeading</h2>
+                    @foreach (var serie in _searchResults.Series)
+                    {
+                        <a class="search-row" href="@serie.Href">
+                            <LibraryIcon Icon="@serie.Library.Icon" Color="@serie.Library.Color" />
+                            <span class="search-row-text">
+                                <span class="search-row-title">@serie.Name</span>
+                                <span class="search-row-details">@serie.Details</span>
+                            </span>
+                            <span class="search-chip" style="@($"--library-color: {serie.Library.Color};")">@serie.Library.Name</span>
+                        </a>
+                    }
+                }
+                @if (_searchResults.Books.Count > 0)
+                {
+                    <h2 class="search-heading">@_searchResults.BooksHeading</h2>
+                    @foreach (var book in _searchResults.Books)
+                    {
+                        <a class="search-row" href="@book.Href">
+                            @if (string.IsNullOrEmpty(book.ImageLink))
+                            {
+                                <span class="search-cover search-cover-none" aria-hidden="true"><MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" /></span>
+                            }
+                            else
+                            {
+                                <img class="search-cover" src="@book.ImageLink" alt="" loading="lazy" />
+                            }
+                            <span class="search-row-text">
+                                <span class="search-row-title">@book.Title</span>
+                                <span class="search-row-details">@book.SerieAndVolume</span>
+                            </span>
+                            <span class="search-chip" style="@($"--library-color: {book.Library.Color};")">@book.Library.Name</span>
+                        </a>
+                    }
+                    @if (_searchResults.RemainingBookCount > 0)
+                    {
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" Class="search-more" Disabled="_isSearchLoading" OnClick="ShowMoreAsync">@_searchResults.MoreLabel</MudButton>
+                    }
+                }
+            }
+            else if (_isSearchLoading || string.IsNullOrEmpty(_shownSearch))
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
+            }
+            else
+            {
+                <div class="libraries-empty">
+                    <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 64px; opacity: 0.5;" />
+                    <MudText Typo="Typo.h6" Class="mt-4">No results for “@_shownSearch”</MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mt-2" OnClick="ClearSearch">Clear search</MudButton>
+                </div>
+            }
+        </section>
     }
     else
     {
