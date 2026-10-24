@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.64.1"></a>
+## [10.64.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.64.1) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **navigation:** keep the side menu on tablet and desktop on Import info and Add book ([#1223](https://www.github.com/slucky31/mycomicsmanager/issues/1223)) ([723128b](https://www.github.com/slucky31/mycomicsmanager/commit/723128b4211d86913287625ecf566b5f4120eb06))
+
 <a name="10.64.0"></a>
 ## [10.64.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.64.0) (2026-10-24)
 
