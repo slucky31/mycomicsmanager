@@ -26,9 +26,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     [Parameter] public string? LibraryId { get; set; }
 
-    // Set by the link back from the series: the books are shown even when the library opens on its series.
-    [SupplyParameterFromQuery(Name = "books")] public bool ShowBooks { get; set; }
-
     internal const int PageSize = 24;
     private const string SortAndViewButtonId = "library-sort-and-view";
     private const string MoreActionsButtonId = "library-more-actions";
@@ -286,7 +283,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
             _library = LibraryUiDto.Convert(libResult.Value!);
             _currentSortOrder = _library.DefaultBookSortOrder;
 
-            if (_library.DefaultView == LibraryView.Series && !ShowBooks)
+            if (_library.DefaultView == LibraryView.Series)
             {
                 NavigationManager.NavigateTo(SerieDisplay.SeriesHref(_libraryGuid), replace: true);
                 return;
