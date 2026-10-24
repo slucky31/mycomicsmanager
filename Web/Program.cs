@@ -256,7 +256,7 @@ builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();
 builder.Services.AddScoped<LibrariesNotifier>();
-builder.Services.AddScoped<ShowHiddenLibrariesHandlers>();
+builder.Services.AddScoped<IHiddenLibrariesService, HiddenLibrariesService>();
 builder.Services.AddScoped<PopupAnchorLocator>();
 builder.Services.AddScoped<IImportOrchestrator, ImportOrchestrator>();
 builder.Services.AddSingleton<IImportJobEnqueuer, HangfireImportJobEnqueuer>();

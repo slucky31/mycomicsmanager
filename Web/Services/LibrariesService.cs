@@ -6,7 +6,6 @@ using Application.Libraries.GetById;
 using Application.Libraries.List;
 using Application.Libraries.Summaries;
 using Application.Libraries.Update;
-using Application.Users.HiddenLibraries;
 using Domain.Libraries;
 using Domain.Primitives;
 
@@ -19,7 +18,6 @@ public class LibrariesService(
     ICommandHandler<CreateLibraryCommand, Library> createLibraryHandler,
     ICommandHandler<UpdateLibraryCommand, Library> updateLibraryHandler,
     ICommandHandler<DeleteLibraryCommand> deleteLibraryHandler,
-    ShowHiddenLibrariesHandlers showHiddenLibrariesHandlers,
     ICurrentUserService currentUserService) : ILibrariesService
 {
     public async Task<Result<Library>> GetById(string? id)
@@ -109,28 +107,6 @@ public class LibrariesService(
         }
 
         return await getLibrarySummariesHandler.Handle(new GetLibrarySummariesQuery(userIdResult.Value, includeHidden), cancellationToken);
-    }
-
-    public async Task<Result<bool>> GetShowHiddenLibraries(CancellationToken cancellationToken = default)
-    {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
-        if (userIdResult.IsFailure)
-        {
-            return userIdResult.Error!;
-        }
-
-        return await showHiddenLibrariesHandlers.Get.Handle(new GetShowHiddenLibrariesQuery(userIdResult.Value), cancellationToken);
-    }
-
-    public async Task<Result> SetShowHiddenLibraries(bool show, CancellationToken cancellationToken = default)
-    {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
-        if (userIdResult.IsFailure)
-        {
-            return userIdResult.Error!;
-        }
-
-        return await showHiddenLibrariesHandlers.Set.Handle(new SetShowHiddenLibrariesCommand(userIdResult.Value, show), cancellationToken);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)

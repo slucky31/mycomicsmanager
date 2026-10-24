@@ -13,7 +13,7 @@ public partial class UserSettings
     [Inject] private HealthCheckService HealthCheckService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private ILogger<UserSettings> Logger { get; set; } = default!;
-    [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
+    [Inject] private IHiddenLibrariesService HiddenLibrariesService { get; set; } = default!;
     [Inject] private LibrariesNotifier LibrariesNotifier { get; set; } = default!;
 
     private string _username = string.Empty;
@@ -65,7 +65,7 @@ public partial class UserSettings
     {
         try
         {
-            var result = await LibrariesService.GetShowHiddenLibraries();
+            var result = await HiddenLibrariesService.GetShowHiddenLibraries();
             if (result.IsSuccess)
             {
                 _showHiddenLibraries = result.Value;
@@ -88,7 +88,7 @@ public partial class UserSettings
         _isSavingHidden = true;
         try
         {
-            var result = await LibrariesService.SetShowHiddenLibraries(show);
+            var result = await HiddenLibrariesService.SetShowHiddenLibraries(show);
             if (result.IsSuccess)
             {
                 _showHiddenLibraries = show;
