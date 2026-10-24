@@ -10,13 +10,17 @@ public sealed record NavLibraryItemViewModel(
     string Icon,
     string Href,
     string CountLabel,
-    string AriaLabel)
+    string AriaLabel,
+    bool IsHidden = false)
 {
+    public string CssClass => IsHidden ? "side-nav-library side-nav-library-hidden" : "side-nav-library";
+
     public static NavLibraryItemViewModel From(LibrarySummary summary)
     {
         ArgumentNullException.ThrowIfNull(summary);
 
         var books = summary.BookCount == 1 ? "1 book" : $"{summary.BookCount} books";
+        var hidden = summary.IsHidden ? ", hidden" : string.Empty;
         return new NavLibraryItemViewModel(
             summary.Id,
             summary.Name,
@@ -24,6 +28,7 @@ public sealed record NavLibraryItemViewModel(
             summary.Icon,
             $"/libraries/{summary.Id}",
             summary.BookCount.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            $"{summary.Name}, {books}");
+            $"{summary.Name}{hidden}, {books}",
+            summary.IsHidden);
     }
 }

@@ -278,6 +278,40 @@ public class UpdateLibraryCommandTests
     }
 
     [Fact]
+    public async Task Handle_Should_HideTheLibrary_WhenIsHiddenIsSent()
+    {
+        // Arrange
+        var command = new UpdateLibraryCommand(s_command.Id, null, "#5C6BC0", "Bookmark", s_userId, IsHidden: true);
+        var freshLibrary = Library.Create("library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(command.Id).Returns(freshLibrary);
+
+        // Act
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.IsHidden.Should().BeTrue();
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_RefuseToHideTheImportedLibrary()
+    {
+        // Arrange
+        var command = new UpdateLibraryCommand(s_command.Id, null, "#5C6BC0", "Bookmark", s_userId, IsHidden: true);
+        var imported = Library.Create(LibraryConstants.ImportedName, "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(command.Id).Returns(imported);
+
+        // Act
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Error.Should().Be(LibrariesError.ImportedLibraryNotHidden);
+        imported.IsHidden.Should().BeFalse();
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnFolderNotMoved_WhenImportDirectoryWasNotMoved()
     {
         // Arrange

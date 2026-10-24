@@ -80,4 +80,18 @@ public class UserTests
         user.Email.Should().BeNull();
         user.AuthId.Should().BeNull();
     }
+
+    [Fact]
+    public void UpdateShowHiddenLibraries_Should_ChangeTheSetting()
+    {
+        // Arrange
+        var user = User.Create("user@example.com", "auth-id");
+        user.ShowHiddenLibraries.Should().BeFalse();
+
+        // Act
+        user.UpdateShowHiddenLibraries(true);
+
+        // Assert
+        user.ShowHiddenLibraries.Should().BeTrue();
+    }
 }

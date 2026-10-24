@@ -9,6 +9,9 @@ public class User : Entity<Guid>
 
     public string AuthId { get; protected set; } = string.Empty;
 
+    // The hidden libraries are shown everywhere, as the others (#1215).
+    public bool ShowHiddenLibraries { get; protected set; }
+
     public static User Create(string email, string authId)
     {
         var user = new User
@@ -25,5 +28,7 @@ public class User : Entity<Guid>
         Email = email;
         AuthId = authId;
     }
+
+    public void UpdateShowHiddenLibraries(bool show) => ShowHiddenLibraries = show;
 
 }

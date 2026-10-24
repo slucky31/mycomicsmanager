@@ -1,16 +1,19 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
+using Application.Users;
 using Ardalis.GuardClauses;
 using Domain.Libraries;
 using Domain.Primitives;
 using Domain.Statistics;
+using Domain.Users;
 
 namespace Application.Statistics.Get;
 
 public sealed class GetStatisticsQueryHandler(
     IStatisticsReadService statisticsReadService,
     IRepository<Library, Guid> libraryRepository,
-    TimeProvider timeProvider) : IQueryHandler<GetStatisticsQuery, StatisticsDto>
+    TimeProvider timeProvider,
+    IRepository<User, Guid> userRepository) : IQueryHandler<GetStatisticsQuery, StatisticsDto>
 {
     public const int MonthsInReadingHistory = 12;
 
@@ -36,9 +39,11 @@ public sealed class GetStatisticsQueryHandler(
         var firstMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc)
             .AddMonths(-(MonthsInReadingHistory - 1));
 
+        var includeHidden = await userRepository.ShowsHiddenLibrariesAsync(request.UserId);
         var statistics = await statisticsReadService.GetStatisticsAsync(
             request.UserId,
             request.LibraryId,
+            includeHidden,
             firstMonth,
             cancellationToken);
 

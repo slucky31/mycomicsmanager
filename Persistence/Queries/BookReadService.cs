@@ -74,12 +74,12 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
     // At most this many series are found: a term matching more is too short to be useful.
     private const int SearchSerieLimit = 20;
 
-    public async Task<BookSearchResult> SearchAsync(Guid userId, string searchTerm, int bookLimit, CancellationToken cancellationToken = default)
+    public async Task<BookSearchResult> SearchAsync(Guid userId, string searchTerm, int bookLimit, bool includeHidden, CancellationToken cancellationToken = default)
     {
         var pattern = $"%{LikePatternHelper.EscapeLikeSpecialChars(searchTerm)}%";
         var books = context.Set<Book>()
             .AsNoTracking()
-            .Where(b => b.Library!.UserId == userId);
+            .Where(b => b.Library!.UserId == userId && (includeHidden || !b.Library.IsHidden));
 
         var series = await books
             .Where(b => b.Serie != null && b.Serie != "" && EF.Functions.ILike(b.Serie, pattern, @"\"))

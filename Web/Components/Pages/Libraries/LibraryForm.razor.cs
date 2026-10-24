@@ -24,6 +24,9 @@ public partial class LibraryForm
 
     private string? NameHelp => NameLocked ? "The feed imports add their books here: this library keeps its name." : null;
 
+    // An existing library can be hidden, except the Imported one (NameLocked), where the feed imports add their books (#1215).
+    private bool CanHide => !IsNew && !NameLocked;
+
     [Parameter]
     public FormErrors Errors { get; set; } = FormErrors.None;
 
@@ -48,7 +51,7 @@ public partial class LibraryForm
     private bool _iconsOpen;
 
     private LibraryCardViewModel Preview =>
-        LibraryCardViewModel.Preview(Model.Id, Model.Name, Model.Color, Model.Icon, Model.BookType, BookCount, Covers);
+        LibraryCardViewModel.Preview(Model.Id, Model.Name, Model.Color, Model.Icon, Model.BookType, BookCount, Covers) with { IsHidden = Model.IsHidden };
 
     private string IconLabel => LibraryIcons.LabelOf(Model.Icon);
 
@@ -75,6 +78,12 @@ public partial class LibraryForm
     private Task ChooseIconAsync(string icon)
     {
         Model.Icon = icon;
+        return OnChanged.InvokeAsync();
+    }
+
+    private Task OnHiddenChangedAsync(ChangeEventArgs args)
+    {
+        Model.IsHidden = args.Value is true;
         return OnChanged.InvokeAsync();
     }
 

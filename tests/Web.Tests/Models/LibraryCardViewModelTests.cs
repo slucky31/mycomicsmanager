@@ -52,6 +52,18 @@ public sealed class LibraryCardViewModelTests
     }
 
     [Fact]
+    public void From_Should_MarkAHiddenLibrary()
+    {
+        var summary = new LibrarySummary(Guid.CreateVersion7(), "Loans", "#2E7D32", "Star", LibraryBookType.Physical, 3) { IsHidden = true };
+
+        var card = LibraryCardViewModel.From(summary);
+
+        card.IsHidden.Should().BeTrue();
+        card.CssClass.Should().Be("library-card library-card-hidden");
+        Card("Read Books", LibraryBookType.Physical, 1).CssClass.Should().Be("library-card");
+    }
+
+    [Fact]
     public void From_Should_Throw_WhenTheSummaryIsNull()
     {
         var act = () => LibraryCardViewModel.From(null!);

@@ -11,11 +11,14 @@ public class StatisticsReadService(ApplicationDbContext context) : IStatisticsRe
     public async Task<StatisticsDto> GetStatisticsAsync(
         Guid userId,
         Guid? libraryId,
+        bool includeHidden,
         DateTime readingsFromUtc,
         CancellationToken cancellationToken = default)
     {
-        var books = FilterBooks(context.Set<Book>().AsNoTracking(), userId, libraryId);
-        var digitalBooks = FilterBooks(context.Set<DigitalBook>().AsNoTracking(), userId, libraryId);
+        // A library chosen is counted even when hidden.
+        var withHidden = includeHidden || libraryId is not null;
+        var books = FilterBooks(context.Set<Book>().AsNoTracking(), userId, libraryId, withHidden);
+        var digitalBooks = FilterBooks(context.Set<DigitalBook>().AsNoTracking(), userId, libraryId, withHidden);
         var readings = books.SelectMany(b => b.ReadingDates);
 
         var totalBooks = await books.CountAsync(cancellationToken);
@@ -26,7 +29,7 @@ public class StatisticsReadService(ApplicationDbContext context) : IStatisticsRe
 
         var totalLibraries = await context.Set<Library>()
             .AsNoTracking()
-            .CountAsync(l => l.UserId == userId && (libraryId == null || l.Id == libraryId), cancellationToken);
+            .CountAsync(l => l.UserId == userId && (libraryId == null || l.Id == libraryId) && (withHidden || !l.IsHidden), cancellationToken);
 
         var totalReadings = await readings.CountAsync(cancellationToken);
         var averageRating = await readings.AverageAsync(rd => (double?)rd.Rating, cancellationToken);
@@ -51,7 +54,7 @@ public class StatisticsReadService(ApplicationDbContext context) : IStatisticsRe
         };
     }
 
-    private static IQueryable<TBook> FilterBooks<TBook>(IQueryable<TBook> books, Guid userId, Guid? libraryId)
+    private static IQueryable<TBook> FilterBooks<TBook>(IQueryable<TBook> books, Guid userId, Guid? libraryId, bool withHidden)
         where TBook : Book
-        => books.Where(b => b.Library!.UserId == userId && (libraryId == null || b.LibraryId == libraryId));
+        => books.Where(b => b.Library!.UserId == userId && (libraryId == null || b.LibraryId == libraryId) && (withHidden || !b.Library.IsHidden));
 }

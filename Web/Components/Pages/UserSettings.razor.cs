@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MudBlazor;
 using Web.Models;
+using Web.Services;
 
 namespace Web.Components.Pages;
 
@@ -12,6 +13,8 @@ public partial class UserSettings
     [Inject] private HealthCheckService HealthCheckService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private ILogger<UserSettings> Logger { get; set; } = default!;
+    [Inject] private IHiddenLibrariesService HiddenLibrariesService { get; set; } = default!;
+    [Inject] private LibrariesNotifier LibrariesNotifier { get; set; } = default!;
 
     private string _username = string.Empty;
     private string _email = string.Empty;
@@ -20,6 +23,11 @@ public partial class UserSettings
     private SystemHealthViewModel _health = SystemHealthViewModel.Unavailable;
     private bool _showHealthDetail;
     private bool _isLoadingHealth = true;
+
+    private bool _showHiddenLibraries;
+    private bool _isLoadingHidden = true;
+    private bool _isSavingHidden;
+    private int _hiddenVersion;
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -48,8 +56,55 @@ public partial class UserSettings
                   ?? user?.FindFirstValue("email")
                   ?? string.Empty;
         }
+        await LoadShowHiddenLibrariesAsync();
         await LoadHealthAsync();
         await base.OnInitializedAsync();
+    }
+
+    private async Task LoadShowHiddenLibrariesAsync()
+    {
+        try
+        {
+            var result = await HiddenLibrariesService.GetShowHiddenLibraries();
+            if (result.IsSuccess)
+            {
+                _showHiddenLibraries = result.Value;
+            }
+            else if (result.IsFailure)
+            {
+                Snackbar.Add("Failed to load the setting of the hidden libraries", Severity.Error);
+                Logger.LogError("Failed to load the setting of the hidden libraries: {Error}", result.Error?.Description);
+            }
+        }
+        finally
+        {
+            _isLoadingHidden = false;
+        }
+    }
+
+    // The setting is saved at once; the navigation lists the libraries again.
+    private async Task SetShowHiddenLibrariesAsync(bool show)
+    {
+        _isSavingHidden = true;
+        try
+        {
+            var result = await HiddenLibrariesService.SetShowHiddenLibraries(show);
+            if (result.IsSuccess)
+            {
+                _showHiddenLibraries = show;
+                LibrariesNotifier.NotifyChanged();
+            }
+            else
+            {
+                Snackbar.Add("Failed to save the setting of the hidden libraries", Severity.Error);
+                Logger.LogError("Failed to save the setting of the hidden libraries: {Error}", result.Error?.Description);
+            }
+        }
+        finally
+        {
+            _isSavingHidden = false;
+            _hiddenVersion++;
+        }
     }
 
     private async Task LoadHealthAsync()

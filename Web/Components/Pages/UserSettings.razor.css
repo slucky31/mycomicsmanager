@@ -143,6 +143,68 @@ div.settings-row {
     color: #C62828;
 }
 
+/* ── Show hidden libraries (#1215): the native checkbox stays focusable and is drawn as a switch. ── */
+.settings-hidden-libraries {
+    position: relative;
+}
+
+.settings-row-label {
+    display: block;
+}
+
+.settings-row-help {
+    display: block;
+    font-size: 13px;
+    color: #5C6070;
+}
+
+.settings-switch-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+.settings-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 51px;
+    height: 31px;
+    border-radius: 16px;
+    background: #C9CAD3;
+    transition: background 0.15s ease;
+}
+
+.settings-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease;
+}
+
+.settings-switch-input:checked + .settings-switch {
+    background: #594AE2;
+}
+
+.settings-switch-input:checked + .settings-switch .settings-switch-thumb {
+    transform: translateX(20px);
+}
+
+.settings-switch-input:focus-visible + .settings-switch {
+    outline: 2px solid #594AE2;
+    outline-offset: 2px;
+}
+
+.settings-switch-input:disabled + .settings-switch {
+    opacity: 0.5;
+}
+
 /* ── System health ── */
 .settings-health-chip {
     display: inline-flex;

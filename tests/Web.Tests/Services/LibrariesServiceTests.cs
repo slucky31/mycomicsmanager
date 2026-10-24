@@ -261,7 +261,7 @@ public sealed class LibrariesServiceTests
         var library = CreateLibrary(name);
         _updateLibraryHandler.Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>())
             .Returns(library);
-        var request = new UpdateLibraryRequest(libraryId.ToString(), name, "#5C6BC0", "Bookmark");
+        var request = new UpdateLibraryRequest(libraryId.ToString(), name, "#5C6BC0", "Bookmark", IsHidden: true);
 
         // Act
         var result = await _service.Update(request, TestContext.Current.CancellationToken);
@@ -272,6 +272,7 @@ public sealed class LibrariesServiceTests
             Arg.Is<UpdateLibraryCommand>(c =>
                 c.Id == libraryId &&
                 c.Name == name &&
+                c.IsHidden == true &&
                 c.UserId == DefaultUserId),
             Arg.Any<CancellationToken>());
     }
@@ -353,7 +354,19 @@ public sealed class LibrariesServiceTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeSameAs(summaries);
         await _getLibrarySummariesHandler.Received(1).Handle(
-            Arg.Is<GetLibrarySummariesQuery>(q => q.UserId == DefaultUserId),
+            Arg.Is<GetLibrarySummariesQuery>(q => q.UserId == DefaultUserId && !q.IncludeHidden),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetSummaries_Should_AskForTheHiddenLibraries_WhenIncludeHiddenIsTrue()
+    {
+        // Act
+        await _service.GetSummaries(includeHidden: true, TestContext.Current.CancellationToken);
+
+        // Assert
+        await _getLibrarySummariesHandler.Received(1).Handle(
+            Arg.Is<GetLibrarySummariesQuery>(q => q.UserId == DefaultUserId && q.IncludeHidden),
             Arg.Any<CancellationToken>());
     }
 

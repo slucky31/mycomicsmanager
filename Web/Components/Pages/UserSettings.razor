@@ -27,6 +27,17 @@
         </section>
 
         <section class="settings-card settings-list">
+            @* The version in the key recreates the switch after a save, so a refused change shows the actual setting again. *@
+            <label @key="_hiddenVersion" class="settings-row settings-hidden-libraries">
+                <MudIcon Icon="@Icons.Material.Outlined.Visibility" Class="settings-row-icon" />
+                <span class="settings-row-text">
+                    <span class="settings-row-label">Show hidden libraries</span>
+                    <span id="settings-hidden-libraries-help" class="settings-row-help">Hidden libraries and their books are shown everywhere, dimmed.</span>
+                </span>
+                <input type="checkbox" role="switch" class="settings-switch-input" checked="@_showHiddenLibraries" disabled="@(_isLoadingHidden || _isSavingHidden)"
+                       aria-describedby="settings-hidden-libraries-help" @onchange="@(args => SetShowHiddenLibrariesAsync(args.Value is true))" />
+                <span class="settings-switch" aria-hidden="true"><span class="settings-switch-thumb"></span></span>
+            </label>
             <button type="button" class="settings-row" aria-expanded="@(_showHealthDetail ? "true" : "false")" aria-controls="settings-health-detail"
                     @onclick="ToggleHealthDetail">
                 <MudIcon Icon="@Icons.Material.Outlined.MonitorHeart" Class="settings-row-icon" />

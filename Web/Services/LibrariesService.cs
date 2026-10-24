@@ -76,7 +76,8 @@ public class LibrariesService(
             request.Icon,
             userIdResult.Value,
             request.DefaultBookSortOrder,
-            request.DefaultView);
+            request.DefaultView,
+            request.IsHidden);
 
         return await updateLibraryHandler.Handle(command, cancellationToken);
     }
@@ -94,7 +95,10 @@ public class LibrariesService(
         return await getLibrariesHandler.Handle(query, cancellationToken);
     }
 
-    public async Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(CancellationToken cancellationToken = default)
+    public Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(CancellationToken cancellationToken = default) =>
+        GetSummaries(includeHidden: false, cancellationToken);
+
+    public async Task<Result<IReadOnlyList<LibrarySummary>>> GetSummaries(bool includeHidden, CancellationToken cancellationToken = default)
     {
         var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
@@ -102,7 +106,7 @@ public class LibrariesService(
             return userIdResult.Error!;
         }
 
-        return await getLibrarySummariesHandler.Handle(new GetLibrarySummariesQuery(userIdResult.Value), cancellationToken);
+        return await getLibrarySummariesHandler.Handle(new GetLibrarySummariesQuery(userIdResult.Value, includeHidden), cancellationToken);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)

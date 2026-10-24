@@ -1,3 +1,4 @@
+using Application.Libraries;
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Books;
@@ -49,7 +50,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Ascending, 1, 2, s_userId, TestContext.Current.CancellationToken);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Ascending, 1, 2, new UserLibraries(s_userId, true), TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -65,7 +66,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync("comics", null, null, 1, 3, s_userId, TestContext.Current.CancellationToken);
+        var pagedList = await LibraryReadService.GetLibrariesAsync("comics", null, null, 1, 3, new UserLibraries(s_userId, true), TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -82,7 +83,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, new UserLibraries(s_userId, true), TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -103,7 +104,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync("", null, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
+        var pagedList = await LibraryReadService.GetLibrariesAsync("", null, null, 1, 10, new UserLibraries(s_userId, true), TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -124,7 +125,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, new UserLibraries(s_userId, true), TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -140,7 +141,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Id, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Id, null, 1, 10, new UserLibraries(s_userId, true), TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -156,7 +157,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, null, 1, 10, s_userId, TestContext.Current.CancellationToken);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, null, 1, 10, new UserLibraries(s_userId, true), TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -172,7 +173,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await CreateLibraries();
 
         // Act
-        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Descending, 1, 10, s_userId, TestContext.Current.CancellationToken);
+        var pagedList = await LibraryReadService.GetLibrariesAsync(null, LibrariesColumn.Name, SortOrder.Descending, 1, 10, new UserLibraries(s_userId, true), TestContext.Current.CancellationToken);
 
         //Assert
         pagedList.Should().NotBeNull();
@@ -280,7 +281,7 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var summaries = await LibraryReadService.GetSummariesAsync(s_userId, TestContext.Current.CancellationToken);
+        var summaries = await LibraryReadService.GetSummariesAsync(s_userId, true, TestContext.Current.CancellationToken);
 
         // Assert
         summaries.Select(s => s.Id).Should().Equal(_libs.OrderBy(l => l.Name, StringComparer.Ordinal).Select(l => l.Id));
@@ -305,10 +306,35 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         }
 
         // Act
-        var summaries = await LibraryReadService.GetSummariesAsync(s_userId, TestContext.Current.CancellationToken);
+        var summaries = await LibraryReadService.GetSummariesAsync(s_userId, true, TestContext.Current.CancellationToken);
 
         // Assert
         summaries.Single(s => s.Id == _lib2.Id).Covers.Should().Equal("/covers/5.webp", "/covers/4.webp", "/covers/2.webp");
         summaries.Single(s => s.Id == _lib1.Id).Covers.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetSummariesAsync_Should_LeaveOutTheHiddenLibraries_UnlessIncludeHidden()
+    {
+        // Arrange
+        await CreateLibraries();
+        _lib3.UpdateHidden(true);
+        LibraryRepository.Update(_lib3);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var visible = await LibraryReadService.GetSummariesAsync(s_userId, false, TestContext.Current.CancellationToken);
+        var all = await LibraryReadService.GetSummariesAsync(s_userId, true, TestContext.Current.CancellationToken);
+        var paged = await LibraryReadService.GetLibrariesAsync(null, null, null, 1, 10, new UserLibraries(s_userId, false), TestContext.Current.CancellationToken);
+        var hiddenIds = await LibraryReadService.ListHiddenIdsAsync(s_userId, TestContext.Current.CancellationToken);
+
+        // Assert
+        visible.Select(s => s.Id).Should().HaveCount(6).And.NotContain(_lib3.Id);
+        all.Should().HaveCount(7);
+        all.Single(s => s.Id == _lib3.Id).IsHidden.Should().BeTrue();
+        all.Single(s => s.Id == _lib2.Id).IsHidden.Should().BeFalse();
+        Guard.Against.Null(paged.Items);
+        paged.Items.Select(l => l.Id).Should().HaveCount(6).And.NotContain(_lib3.Id);
+        hiddenIds.Should().Equal(_lib3.Id);
     }
 }

@@ -13,4 +13,5 @@ public static class LibrariesError
     public static readonly TError ValidationError = new("LIB504", "The parameter were not validated");
     public static readonly TError BookTypeMismatch = new("LIB505", "Book type does not match library type");
     public static readonly TError ImportedLibraryProtected = new("LIB506", "The Imported library cannot be deleted or renamed");
+    public static readonly TError ImportedLibraryNotHidden = new("LIB507", "The Imported library cannot be hidden");
 }

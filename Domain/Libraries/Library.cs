@@ -20,6 +20,9 @@ public class Library : Entity<Guid>
 
     public LibraryView DefaultView { get; protected set; } = LibraryView.Covers;
 
+    // Left out of the lists of the user, unless they show the hidden libraries (#1215).
+    public bool IsHidden { get; protected set; }
+
     public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
 
     public string ImportDirectoryName => $"{RelativePath}_{Id}";
@@ -130,6 +133,18 @@ public class Library : Entity<Guid>
         }
 
         DefaultView = view;
+        return Result.Success();
+    }
+
+    // The feed imports deposit their books in the Imported library: it stays in sight.
+    public Result UpdateHidden(bool hidden)
+    {
+        if (hidden && IsImported)
+        {
+            return LibrariesError.ImportedLibraryNotHidden;
+        }
+
+        IsHidden = hidden;
         return Result.Success();
     }
 

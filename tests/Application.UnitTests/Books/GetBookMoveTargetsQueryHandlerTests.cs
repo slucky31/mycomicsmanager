@@ -5,6 +5,7 @@ using Application.Libraries;
 using Application.Libraries.Summaries;
 using Domain.Books;
 using Domain.Libraries;
+using Domain.Users;
 using NSubstitute;
 
 namespace Application.UnitTests.Books;
@@ -17,11 +18,12 @@ public class GetBookMoveTargetsQueryHandlerTests
     private readonly IRepository<Library, Guid> _libraryRepository = Substitute.For<IRepository<Library, Guid>>();
     private readonly ILibraryReadService _libraryReadService = Substitute.For<ILibraryReadService>();
     private readonly IBookReadService _bookReadService = Substitute.For<IBookReadService>();
+    private readonly IRepository<User, Guid> _userRepository = Substitute.For<IRepository<User, Guid>>();
     private readonly GetBookMoveTargetsQueryHandler _handler;
 
     public GetBookMoveTargetsQueryHandlerTests()
     {
-        _handler = new GetBookMoveTargetsQueryHandler(_bookRepository, _libraryRepository, _libraryReadService, _bookReadService);
+        _handler = new GetBookMoveTargetsQueryHandler(_bookRepository, _libraryRepository, _libraryReadService, _bookReadService, _userRepository);
     }
 
     private static Library Digital(string name) => Library.Create(name, "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
@@ -30,7 +32,7 @@ public class GetBookMoveTargetsQueryHandlerTests
     private void GivenLibraries(params Library[] libraries)
     {
         IReadOnlyList<LibrarySummary> summaries = [.. libraries.Select(l => new LibrarySummary(l.Id, l.Name, l.Color, l.Icon, l.BookType, l.Name.Length))];
-        _libraryReadService.GetSummariesAsync(s_userId, Arg.Any<CancellationToken>()).Returns(summaries);
+        _libraryReadService.GetSummariesAsync(s_userId, false, Arg.Any<CancellationToken>()).Returns(summaries);
     }
 
     private DigitalBook GivenBookIn(Library library, string serie)
@@ -178,5 +180,22 @@ public class GetBookMoveTargetsQueryHandlerTests
 
         result.Value!.SuggestedLibraryId.Should().BeNull();
         await _bookReadService.DidNotReceive().ListSerieLocationsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_OfferTheHiddenLibraries_WhenTheUserShowsThem()
+    {
+        var user = User.Create("user@example.com", "auth-id");
+        user.UpdateShowHiddenLibraries(true);
+        _userRepository.GetByIdAsync(s_userId).Returns(user);
+        var toSort = Digital("À trier");
+        var hidden = Digital("Loans");
+        _libraryReadService.GetSummariesAsync(s_userId, true, Arg.Any<CancellationToken>())
+            .Returns([new LibrarySummary(toSort.Id, toSort.Name, toSort.Color, toSort.Icon, toSort.BookType, 1), new LibrarySummary(hidden.Id, hidden.Name, hidden.Color, hidden.Icon, hidden.BookType, 2) { IsHidden = true }]);
+        var book = GivenBookIn(toSort, "Blacksad");
+
+        var result = await _handler.Handle(new GetBookMoveTargetsQuery(book.Id, s_userId), TestContext.Current.CancellationToken);
+
+        result.Value!.Libraries.Select(l => l.Name).Should().Equal("Loans");
     }
 }

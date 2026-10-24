@@ -335,7 +335,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var result = await BookReadService.SearchAsync(DefaultLibrary.UserId, "astérix", 20, TestContext.Current.CancellationToken);
+        var result = await BookReadService.SearchAsync(DefaultLibrary.UserId, "astérix", 20, true, TestContext.Current.CancellationToken);
 
         // Assert
         result.Series.Should().BeEquivalentTo([
@@ -347,6 +347,28 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
     }
 
     [Fact]
+    public async Task SearchAsync_Should_LeaveOutTheHiddenLibraries_UnlessIncludeHidden()
+    {
+        // Arrange
+        var hiddenLibrary = Library.Create("Hidden", "#000000", "book", LibraryBookType.Physical, DefaultLibrary.UserId).Value!;
+        hiddenLibrary.UpdateHidden(true);
+        Context.Libraries.Add(hiddenLibrary);
+        BookRepository.Add(CreateBook("Astérix", "Astérix le Gaulois", "9780000001021", 1));
+        BookRepository.Add(PhysicalBook.Create(new BookMetadata("Astérix", "La Serpe d'or", "9780000001022", 2), hiddenLibrary.Id).Value!);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var withoutHidden = await BookReadService.SearchAsync(DefaultLibrary.UserId, "astérix", 20, false, TestContext.Current.CancellationToken);
+        var withHidden = await BookReadService.SearchAsync(DefaultLibrary.UserId, "astérix", 20, true, TestContext.Current.CancellationToken);
+
+        // Assert
+        withoutHidden.Series.Select(s => s.LibraryId).Should().Equal(DefaultLibrary.Id);
+        withoutHidden.BookCount.Should().Be(1);
+        withHidden.Series.Should().HaveCount(2);
+        withHidden.BookCount.Should().Be(2);
+    }
+
+    [Fact]
     public async Task SearchAsync_Should_KeepTheFirstBooksAndCountThemAll_WhenTitleMatchesMoreThanTheLimit()
     {
         // Arrange
@@ -355,7 +377,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var result = await BookReadService.SearchAsync(DefaultLibrary.UserId, "GAULOIS", 1, TestContext.Current.CancellationToken);
+        var result = await BookReadService.SearchAsync(DefaultLibrary.UserId, "GAULOIS", 1, true, TestContext.Current.CancellationToken);
 
         // Assert
         result.Series.Should().BeEmpty();

@@ -5,6 +5,7 @@ using Domain.Primitives;
 
 namespace Application.Libraries;
 
+// includeHidden: false leaves out the hidden libraries (#1215).
 public interface ILibraryReadService
 {
     Task<IPagedList<Library>> GetLibrariesAsync(
@@ -13,7 +14,7 @@ public interface ILibraryReadService
         SortOrder? sortOrder,
         int page,
         int pageSize,
-        Guid userId,
+        UserLibraries libraries,
         CancellationToken cancellationToken = default);
 
     Task<Library?> GetByNameAsync(
@@ -23,6 +24,12 @@ public interface ILibraryReadService
 
     // Every library of the user, ordered by name, with its book count and its latest covers.
     Task<IReadOnlyList<LibrarySummary>> GetSummariesAsync(
+        Guid userId,
+        bool includeHidden,
+        CancellationToken cancellationToken = default);
+
+    // The ids of the hidden libraries of the user.
+    Task<IReadOnlySet<Guid>> ListHiddenIdsAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
 

@@ -8,4 +8,5 @@ public sealed record UpdateLibraryRequest(
     string Color,
     string Icon,
     BookSortOrder? DefaultBookSortOrder = null,
-    LibraryView? DefaultView = null);
+    LibraryView? DefaultView = null,
+    bool? IsHidden = null);

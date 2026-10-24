@@ -1,10 +1,13 @@
 using Application.Abstractions.Messaging;
+using Application.Interfaces;
+using Application.Users;
 using Domain.Libraries;
 using Domain.Primitives;
+using Domain.Users;
 
 namespace Application.Libraries.Summaries;
 
-public sealed class GetLibrarySummariesQueryHandler(ILibraryReadService libraryReadService)
+public sealed class GetLibrarySummariesQueryHandler(ILibraryReadService libraryReadService, IRepository<User, Guid> userRepository)
     : IQueryHandler<GetLibrarySummariesQuery, IReadOnlyList<LibrarySummary>>
 {
     public async Task<Result<IReadOnlyList<LibrarySummary>>> Handle(GetLibrarySummariesQuery request, CancellationToken cancellationToken)
@@ -14,7 +17,8 @@ public sealed class GetLibrarySummariesQueryHandler(ILibraryReadService libraryR
             return LibrariesError.ValidationError;
         }
 
-        var summaries = await libraryReadService.GetSummariesAsync(request.UserId, cancellationToken);
+        var includeHidden = request.IncludeHidden || await userRepository.ShowsHiddenLibrariesAsync(request.UserId);
+        var summaries = await libraryReadService.GetSummariesAsync(request.UserId, includeHidden, cancellationToken);
 
         return Result<IReadOnlyList<LibrarySummary>>.Success(summaries);
     }

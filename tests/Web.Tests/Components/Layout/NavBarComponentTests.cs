@@ -24,6 +24,7 @@ public sealed class NavBarComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddScoped(_ => service);
         ctx.Services.AddSingleton(new FeedImportNotifier());
+        ctx.Services.AddSingleton(new LibrariesNotifier());
         ctx.AddAuthorization().SetAuthorized("user@example.com");
 
         var cut = ctx.Render<NavBar>();
@@ -39,6 +40,7 @@ public sealed class NavBarComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton(Substitute.For<IFeedImportService>());
         ctx.Services.AddSingleton(new FeedImportNotifier());
+        ctx.Services.AddSingleton(new LibrariesNotifier());
         ctx.AddAuthorization().SetAuthorized("admin").SetRoles("Admin");
 
         var cut = ctx.Render<NavBar>();
@@ -59,6 +61,7 @@ public sealed class NavBarComponentTests
         ctx.Services.AddSingleton(Substitute.For<IFeedImportService>());
         ctx.Services.AddScoped(_ => libraries);
         ctx.Services.AddSingleton(new FeedImportNotifier());
+        ctx.Services.AddSingleton(new LibrariesNotifier());
         ctx.AddAuthorization().SetAuthorized("user@example.com");
         ctx.Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>().NavigateTo($"/libraries/{current.Id}");
 
@@ -85,6 +88,7 @@ public sealed class NavBarComponentTests
         ctx.Services.AddScoped(_ => feeds);
         ctx.Services.AddScoped(_ => libraries);
         ctx.Services.AddSingleton(new FeedImportNotifier());
+        ctx.Services.AddSingleton(new LibrariesNotifier());
         ctx.AddAuthorization().SetAuthorized("user@example.com");
 
         var cut = ctx.Render<NavBar>();
