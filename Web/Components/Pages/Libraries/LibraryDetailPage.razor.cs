@@ -660,39 +660,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
         }
     }
 
-    private async Task DownloadBookAsync(Guid bookId)
-    {
-        CloseSheet();
-        await JS.InvokeVoidAsync("open", $"/api/books/{bookId}/download", "_blank");
-    }
-
-    internal async Task MoveAsync(Guid bookId)
-    {
-        CloseSheet();
-        if (_isMoving)
-        {
-            return;
-        }
-
-        _isMoving = true;
-        try
-        {
-            if (await BookMoveWorkflow.ChooseAndMoveAsync(bookId, _disposalCts.Token))
-            {
-                // The book has left this library: reload so it disappears from the current view.
-                await ReloadBooksAsync();
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Component disposed while moving; nothing to update.
-        }
-        finally
-        {
-            _isMoving = false;
-        }
-    }
-
     // A book left the library (moved or deleted): one book less, counted again by a load without search.
     private Task ReloadBooksAsync() => ReloadBooksAsync(1);
 
@@ -791,33 +758,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
         finally
         {
             _isDeleting = false;
-        }
-    }
-
-    private async Task DeleteAsync(Guid bookId)
-    {
-        CloseSheet();
-        var confirmed = await DialogService.ShowConfirmationAsync("Delete book", "This book will be deleted with its readings. This cannot be undone.", "Delete book");
-        if (confirmed)
-        {
-            try
-            {
-                var res = await BooksService.Delete(bookId.ToString(), _disposalCts.Token);
-
-                if (res.IsSuccess)
-                {
-                    await ReloadBooksAsync();
-                }
-                else
-                {
-                    Snackbar.Add("Failed to delete book", Severity.Error);
-                    Logger.LogError("Failed to delete book with ID {BookId}: {ErrorDescription}", bookId, res.Error!.Description);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Component disposed while deleting; nothing to update.
-            }
         }
     }
 }

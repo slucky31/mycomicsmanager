@@ -1,0 +1,34 @@
+<ActionSheet Open="@Open" AriaLabel="@($"Actions for {Book.Title}")" Anchor="@Anchor" AlignEnd="@AlignEnd" OnClose="OnClose">
+    <Header>
+        <div class="book-actions-header">
+            @if (!string.IsNullOrEmpty(Book.ImageLink))
+            {
+                <img src="@Book.ImageLink" alt="" />
+            }
+            <div class="book-actions-heading">
+                <div class="book-actions-title">@Book.Title</div>
+                <div class="book-actions-serie">@Book.SerieAndVolume</div>
+            </div>
+        </div>
+    </Header>
+    <ChildContent>
+        @if (IsDigital)
+        {
+            <ActionSheetItem Icon="@Icons.Material.Filled.MenuBook" Text="Read" Href="@($"/books/{Book.Id}/read")" />
+        }
+        <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit" Href="@($"/books/{Book.Id}/edit")" />
+        <ActionSheetItem Icon="@Icons.Material.Filled.ManageSearch" Text="Import info from the web" Href="@($"/books/{Book.Id}/find-details")" />
+        @if (IsDigital)
+        {
+            <ActionSheetItem Icon="@Icons.Material.Filled.DocumentScanner" Text="Find ISBN" Href="@($"/books/{Book.Id}/read?mode={Pages.Books.BookReader.IsbnSearchMode}")" />
+            <ActionSheetItem Icon="@Icons.Material.Filled.Download" Text="Download CBZ" OnClick="DownloadAsync" />
+        }
+        <ActionSheetItem Icon="@Icons.Material.Filled.DriveFileMove" Text="Move to another library" OnClick="MoveAsync" />
+        @if (OnSelect.HasDelegate)
+        {
+            <ActionSheetItem Icon="@Icons.Material.Filled.Checklist" Text="Select several books" OnClick="OnSelect" />
+        }
+        <div class="action-sheet-divider"></div>
+        <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete" Danger="true" OnClick="DeleteAsync" />
+    </ChildContent>
+</ActionSheet>

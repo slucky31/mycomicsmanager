@@ -2,7 +2,7 @@
 
 <PageTitle>@(_serie?.Name ?? "Series") — MyComicsManager</PageTitle>
 
-<div class="serie-page">
+<div class="serie-page" @ref="_content">
     <PageBar BackHref="@SerieDisplay.SeriesHref(LibraryId)" BackLabel="Back to the series" Title="@(_serie?.Name ?? Name)" Subtitle="@_serie?.Subtitle" />
 
     @if (_isLoading)
@@ -61,22 +61,35 @@
                 }
                 else
                 {
-                    <a @key="slot.Key" class="serie-slot" href="@slot.Href">
-                        <span class="serie-slot-frame">
-                            @if (!string.IsNullOrEmpty(slot.ImageLink))
-                            {
-                                <img class="serie-slot-cover" src="@slot.ImageLink" alt="@($"Cover of {slot.Title}")" loading="lazy" />
-                            }
-                            else
-                            {
-                                <span class="serie-slot-cover serie-slot-placeholder">@slot.Title</span>
-                            }
-                            <span class="serie-slot-badge">@slot.Badge</span>
-                        </span>
-                        <span class="serie-slot-title">@slot.Title</span>
-                    </a>
+                    <div @key="slot.Key" class="serie-slot serie-slot-owned" data-book-id="@slot.Book!.Id">
+                        <a class="serie-slot-link" href="@slot.Href">
+                            <span class="serie-slot-frame">
+                                @if (!string.IsNullOrEmpty(slot.ImageLink))
+                                {
+                                    <img class="serie-slot-cover" src="@slot.ImageLink" alt="@($"Cover of {slot.Title}")" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span class="serie-slot-cover serie-slot-placeholder">@slot.Title</span>
+                                }
+                                <span class="serie-slot-badge">@slot.Badge</span>
+                            </span>
+                            <span class="serie-slot-title">@slot.Title</span>
+                        </a>
+                        @* Touch screens open the actions with a long press (libraryPage.js); a mouse shows this button on hover. *@
+                        <button type="button" id="@BookActionsIds.Of(slot.Book.Id)" class="serie-slot-actions"
+                                aria-label="@($"More actions for {slot.Title}")" @onclick="() => OpenBookActionsAsync(slot.Book)">
+                            <MudIcon Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
+                        </button>
+                    </div>
                 }
             }
         </div>
     }
 </div>
+
+@if (_actionsBook is { } book)
+{
+    <BookActionsSheet Book="@book" Open="@_isActionsOpen" IsDigital="@(_serie?.IsDigital ?? false)"
+                      Anchor="@_actionsAnchor" AlignEnd="@_actionsAlignEnd" OnClose="CloseActions" OnBookGone="ReloadAfterBookGoneAsync" />
+}

@@ -1,17 +1,24 @@
+using Domain.Series;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
+using Web.Components.Pages.Libraries.Views;
+using Web.Infrastructure;
 using Web.Models;
 using Web.Services;
 
 namespace Web.Components.Pages.Series;
 
-// A series of a library: how complete it is, and its volumes with the missing ones in their place (#1205).
+// A series of a library: how complete it is, and its volumes with the missing ones in their place (#1205),
+// each book with the actions it has among the covers of its library (#1220).
 public partial class SeriePage : IAsyncDisposable
 {
     [Inject] private ISeriesService SeriesService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private ILogger<SeriePage> Logger { get; set; } = default!;
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+    [Inject] private PopupAnchorLocator PopupAnchorLocator { get; set; } = default!;
 
     [Parameter] public Guid LibraryId { get; set; }
 
@@ -25,6 +32,15 @@ public partial class SeriePage : IAsyncDisposable
     private bool _isEditing;
     private bool _isSaving;
     private readonly SerieTotalForm _form = new();
+
+    private BookActionsTarget? _actionsBook;
+    private bool _isActionsOpen;
+    private PopupAnchor? _actionsAnchor;
+    private bool _actionsAlignEnd;
+
+    private ElementReference _content;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<SeriePage>? _dotNetRef;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -46,7 +62,7 @@ public partial class SeriePage : IAsyncDisposable
         }
     }
 
-    private async Task LoadAsync()
+    private async Task LoadAsync(bool bookGone = false)
     {
         var shown = _shown;
         if (string.IsNullOrWhiteSpace(shown.Name))
@@ -67,6 +83,11 @@ public partial class SeriePage : IAsyncDisposable
             {
                 _serie = SeriePageViewModel.From(result.Value!);
             }
+            else if (result.IsFailure && bookGone && result.Error == SeriesError.NotFound)
+            {
+                // Its last book was moved or deleted: the series is gone too.
+                NavigationManager.NavigateTo(SerieDisplay.SeriesHref(shown.LibraryId));
+            }
             else if (result.IsFailure)
             {
                 Snackbar.Add("Series not found", Severity.Error);
@@ -79,6 +100,70 @@ public partial class SeriePage : IAsyncDisposable
             // Page left while loading.
         }
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        try
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            var module = await JS.InvokeAsync<IJSObjectReference?>("import", _disposalCts.Token, AppVersion.Versioned("./js/libraryPage.js"));
+            if (module is not null)
+            {
+                await module.InvokeVoidAsync("attach", _disposalCts.Token, _content, _dotNetRef);
+                _module = module;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Page left while rendering.
+        }
+        catch (JSException ex)
+        {
+            Logger.LogWarning(ex, "Unable to set up the long press on the books of a series of library {LibraryId}", LibraryId);
+        }
+    }
+
+    // ── Actions of a book (#1220) ──────────────────────────────────────
+
+    internal async Task OpenBookActionsAsync(BookActionsTarget book)
+    {
+        var anchor = await PopupAnchorLocator.AnchorOfAsync(BookActionsIds.Of(book.Id), _disposalCts.Token);
+        ShowBookActions(book, anchor, alignEnd: true);
+    }
+
+    // Long press or right click on a book (libraryPage.js): the menu opens at the finger.
+    [JSInvokable]
+    public void OpenBookActionsAt(string bookId, PopupAnchor anchor)
+    {
+        var book = Guid.TryParse(bookId, out var id) ? _serie?.Slots.Select(s => s.Book).FirstOrDefault(b => b?.Id == id) : null;
+        if (book is null)
+        {
+            return;
+        }
+
+        ShowBookActions(book, anchor, alignEnd: false);
+        StateHasChanged();
+    }
+
+    private void ShowBookActions(BookActionsTarget book, PopupAnchor? anchor, bool alignEnd)
+    {
+        _actionsBook = book;
+        _actionsAnchor = anchor;
+        _actionsAlignEnd = alignEnd;
+        _isActionsOpen = true;
+    }
+
+    private void CloseActions() => _isActionsOpen = false;
+
+    // A book moved or deleted leaves its place to a missing volume, or the series when it was the last one.
+    private Task ReloadAfterBookGoneAsync() => LoadAsync(bookGone: true);
+
+    // ── Number of volumes published ────────────────────────────────────
 
     private void StartEdit()
     {
@@ -126,6 +211,22 @@ public partial class SeriePage : IAsyncDisposable
     {
         await _disposalCts.CancelAsync();
         _disposalCts.Dispose();
+        try
+        {
+            if (_module is not null)
+            {
+                await _module.InvokeVoidAsync("detach", CancellationToken.None, _content);
+                await _module.DisposeAsync();
+            }
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
+        {
+            // JS interop can fail when the Blazor circuit is disconnected; intentionally ignored.
+        }
+        finally
+        {
+            _dotNetRef?.Dispose();
+        }
     }
 
     private sealed class SerieTotalForm

@@ -22,8 +22,7 @@ public sealed record BookListItemViewModel(
     public string? VolumeBadge { get; } = VolumeNumber > 0 ? $"#{VolumeNumber}" : null;
 
     // "Blacksad · #4" under the title in the list.
-    public string SerieAndVolume { get; } = string.Join(" · ",
-        new[] { Serie, VolumeNumber > 0 ? $"#{VolumeNumber}" : null }.Where(part => !string.IsNullOrWhiteSpace(part)));
+    public string SerieAndVolume { get; } = BookActionsTarget.SerieAndVolumeOf(Serie, VolumeNumber);
 
     public bool HasBeenRead => ReadCount > 0;
 

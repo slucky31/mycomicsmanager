@@ -12,6 +12,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages.Series;
+using Web.Models;
 using Web.Services;
 using Web.Tests.Models;
 using Xunit;
@@ -26,6 +27,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     private readonly ISeriesService _seriesService = Substitute.For<ISeriesService>();
     private readonly ILibrariesService _librariesService = Substitute.For<ILibrariesService>();
     private readonly ISnackbar _snackbar = Substitute.For<ISnackbar>();
+    private readonly IBookMoveWorkflow _moveWorkflow = Substitute.For<IBookMoveWorkflow>();
 
     public SeriesPagesComponentTests()
     {
@@ -35,6 +37,8 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_librariesService);
         _ctx.Services.AddSingleton(_snackbar);
         _ctx.Services.AddScoped<PopupAnchorLocator>();
+        _ctx.Services.AddSingleton(Substitute.For<IBooksService>());
+        _ctx.Services.AddSingleton(_moveWorkflow);
         _librariesService.GetById(s_libraryId.ToString())
             .Returns(Library.Create("BD", "#594AE2", "Book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!);
     }
@@ -173,6 +177,79 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         navigation.Uri.Should().EndWith($"/libraries/{s_libraryId}/series");
         _snackbar.Received(1).Add("Series not found", Severity.Error);
+    }
+
+    // ── Actions of a book (#1220) ──────────────────────────────────────
+
+    private IRenderedComponent<SeriePage> RenderThorgal(LibraryBookType bookType, params SerieDetail[] next)
+    {
+        var books = new[] { SeriesTestData.Book("Thorgal", 1), SeriesTestData.Book("Thorgal", 3) };
+        var first = new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [1, 3]), books, bookType);
+        _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>())
+            .Returns(Result<SerieDetail>.Success(first), next.Select(d => Result<SerieDetail>.Success(d)).ToArray());
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/libraries/{s_libraryId}/serie?name=Thorgal");
+
+        var cut = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
+        cut.WaitForAssertion(() => cut.FindAll(".serie-slot").Should().HaveCount(3));
+        return cut;
+    }
+
+    private static IEnumerable<string> Actions(IRenderedComponent<SeriePage> cut) =>
+        cut.FindAll("[role=dialog] .action-sheet-item").Select(i => i.TextContent.Trim());
+
+    [Fact]
+    public async Task OpenBookActionsAsync_Should_OpenTheActionsOfAnOwnedBook_WithoutTheSelection()
+    {
+        var cut = RenderThorgal(LibraryBookType.Physical);
+
+        cut.FindAll(".serie-slot-actions").Select(b => b.GetAttribute("aria-label"))
+            .Should().Equal("More actions for Thorgal 1", "More actions for Thorgal 3");
+        await cut.FindAll(".serie-slot-actions")[1].ClickAsync(new());
+
+        cut.Find("[role=dialog]").GetAttribute("aria-label").Should().Be("Actions for Thorgal 3");
+        cut.Find(".book-actions-serie").TextContent.Should().Be("Thorgal · #3");
+        Actions(cut).Should().Equal("Edit", "Import info from the web", "Move to another library", "Delete");
+    }
+
+    [Fact]
+    public async Task OpenBookActionsAt_Should_OpenTheActionsOfTheLongPressedBook_WithTheDigitalOnes()
+    {
+        var cut = RenderThorgal(LibraryBookType.Digital);
+        var bookId = cut.FindAll(".serie-slot-owned")[0].GetAttribute("data-book-id")!;
+
+        await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(Guid.CreateVersion7().ToString(), PopupAnchor.At(1, 1, 1024, 768)));
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
+
+        await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(bookId, PopupAnchor.At(120, 200, 1024, 768)));
+        Actions(cut).Should().Equal("Read", "Edit", "Import info from the web", "Find ISBN", "Download CBZ", "Move to another library", "Delete");
+    }
+
+    [Fact]
+    public async Task MoveAsync_Should_ShowTheMovedVolumeAsMissing()
+    {
+        var left = new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [3]), [SeriesTestData.Book("Thorgal", 3)]);
+        var cut = RenderThorgal(LibraryBookType.Physical, left);
+        _moveWorkflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
+        await cut.FindAll(".serie-slot-actions")[0].ClickAsync(new());
+
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
+
+        cut.WaitForAssertion(() => cut.FindAll(".serie-slot-missing-number").Select(m => m.TextContent).Should().Equal("#1–2"));
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task MoveAsync_Should_GoBackToTheSeries_WhenTheLastBookOfTheSeriesIsGone()
+    {
+        var cut = RenderThorgal(LibraryBookType.Physical);
+        _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>()).Returns(SeriesError.NotFound);
+        _moveWorkflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
+        await cut.FindAll(".serie-slot-actions")[0].ClickAsync(new());
+
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
+
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/libraries/{s_libraryId}/series");
+        _snackbar.DidNotReceive().Add(Arg.Any<string>(), Arg.Any<Severity>(), Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 
     [Fact]

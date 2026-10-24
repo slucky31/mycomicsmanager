@@ -1,6 +1,7 @@
 using Application.Series;
 using Application.Series.Detail;
 using AwesomeAssertions;
+using Domain.Libraries;
 using Web.Models;
 using Xunit;
 
@@ -29,7 +30,9 @@ public sealed class SeriePageViewModelTests
         page.TotalVolumes.Should().Be(6);
         page.IsFinished.Should().BeTrue();
         page.Slots.Select(s => (s.Badge, s.IsMissing)).Should().Equal(("#1", false), ("#2", true), ("#3", false), ("#4–6", true));
-        page.Slots[0].Should().Be(new SerieSlotViewModel(first.BookId.ToString(), "#1", "Thorgal 1", "https://c/1.jpg", $"/books/{first.BookId}"));
+        page.Slots[0].Should().Be(new SerieSlotViewModel(first.BookId.ToString(), "#1", "Thorgal 1", "https://c/1.jpg", $"/books/{first.BookId}",
+            new BookActionsTarget(first.BookId, "Thorgal 1", "Thorgal · #1", "https://c/1.jpg")));
+        page.IsDigital.Should().BeFalse();
         page.Slots[1].Key.Should().Be("missing-2");
     }
 
@@ -54,5 +57,14 @@ public sealed class SeriePageViewModelTests
         page.Subtitle.Should().Be("in BD · 2 books");
         page.ProgressPercent.Should().Be(0);
         page.Slots.Should().HaveCount(2).And.OnlyContain(s => !s.IsMissing);
+    }
+
+    [Fact]
+    public void From_Should_SayTheBooksAreDigital_WhenTheirLibraryIs()
+    {
+        var books = new[] { SeriesTestData.Book("Saga", 1) };
+        var detail = new SerieDetail("Comics", SeriesTestData.Summary("Saga", [1]), books, LibraryBookType.Digital);
+
+        SeriePageViewModel.From(detail).IsDigital.Should().BeTrue();
     }
 }

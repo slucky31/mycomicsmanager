@@ -3,15 +3,16 @@ using Domain.Series;
 
 namespace Web.Models;
 
-// One place of the series page (#1205): a book owned, or volumes missing between them.
-public sealed record SerieSlotViewModel(string Key, string Badge, string? Title, string ImageLink, string? Href)
+// One place of the series page (#1205): a book owned, with its actions (#1220), or volumes missing between them.
+public sealed record SerieSlotViewModel(string Key, string Badge, string? Title, string ImageLink, string? Href, BookActionsTarget? Book = null)
 {
-    public bool IsMissing => Href is null;
+    public bool IsMissing => Book is null;
 
     public static SerieSlotViewModel Owned(SerieBookRow book)
     {
         ArgumentNullException.ThrowIfNull(book);
-        return new SerieSlotViewModel(book.BookId.ToString(), $"#{book.VolumeNumber}", book.Title, book.ImageLink, $"/books/{book.BookId}");
+        var target = new BookActionsTarget(book.BookId, book.Title, BookActionsTarget.SerieAndVolumeOf(book.Serie, book.VolumeNumber), book.ImageLink);
+        return new SerieSlotViewModel(book.BookId.ToString(), $"#{book.VolumeNumber}", book.Title, book.ImageLink, $"/books/{book.BookId}", target);
     }
 
     public static SerieSlotViewModel Missing(VolumeRange range)

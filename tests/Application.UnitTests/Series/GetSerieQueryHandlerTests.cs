@@ -14,7 +14,7 @@ public class GetSerieQueryHandlerTests
     private readonly ISeriesReadService _readService = Substitute.For<ISeriesReadService>();
     private readonly IRepository<Library, Guid> _libraryRepository = Substitute.For<IRepository<Library, Guid>>();
     private readonly GetSerieQueryHandler _handler;
-    private readonly Library _library = Library.Create("BD", "#594AE2", "Book", LibraryBookType.Physical, s_userId).Value!;
+    private readonly Library _library = Library.Create("BD", "#594AE2", "Book", LibraryBookType.Digital, s_userId).Value!;
 
     public GetSerieQueryHandlerTests()
     {
@@ -62,6 +62,7 @@ public class GetSerieQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         var detail = result.Value!;
         detail.LibraryName.Should().Be("BD");
+        detail.BookType.Should().Be(LibraryBookType.Digital);
         detail.Books.Select(b => b.VolumeNumber).Should().Equal(1, 3);
         detail.Summary.Completeness.Missing.Should().Equal(new VolumeRange(2, 2), new VolumeRange(4, 4));
     }
