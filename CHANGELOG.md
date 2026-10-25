@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.65.4"></a>
+## [10.65.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.4) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **import:** report truncated archives as corrupt (FP422) ([#1235](https://www.github.com/slucky31/mycomicsmanager/issues/1235)) ([d3493cb](https://www.github.com/slucky31/mycomicsmanager/commit/d3493cb331f33e20fbaeb92883a9663440e4e351))
+
 <a name="10.65.3"></a>
 ## [10.65.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.3) (2026-10-25)
 
