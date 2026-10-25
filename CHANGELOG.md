@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.65.5"></a>
+## [10.65.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.5) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **import:** convert very wide pages by checking the decoded size ([#1236](https://www.github.com/slucky31/mycomicsmanager/issues/1236)) ([06038a0](https://www.github.com/slucky31/mycomicsmanager/commit/06038a0e1dcf209032dd839d50179418789c53a6))
+
 <a name="10.65.4"></a>
 ## [10.65.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.4) (2026-10-25)
 
