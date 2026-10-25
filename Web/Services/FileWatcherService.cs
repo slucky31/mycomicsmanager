@@ -283,11 +283,11 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             catch (IOException ex)
             {
                 // Expected while the file is being written: only the final failure is a warning.
-                _logger.LogDebug("File not ready yet on attempt {Attempt}: {FilePath} ({Reason})", attempt, filePath, ex.Message);
+                _logger.LogDebug(ex, "File not ready yet on attempt {Attempt}: {FilePath}", attempt, filePath);
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogDebug("File not accessible yet on attempt {Attempt}: {FilePath} ({Reason})", attempt, filePath, ex.Message);
+                _logger.LogDebug(ex, "File not accessible yet on attempt {Attempt}: {FilePath}", attempt, filePath);
             }
 
             await Task.Delay(delayMs, ct).ConfigureAwait(false);
