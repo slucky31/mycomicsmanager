@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.65.6"></a>
+## [10.65.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.6) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **covers:** allow Bubble cover images to be uploaded to Cloudinary ([#1224](https://www.github.com/slucky31/mycomicsmanager/issues/1224)) ([#1229](https://www.github.com/slucky31/mycomicsmanager/issues/1229)) ([3de46b8](https://www.github.com/slucky31/mycomicsmanager/commit/3de46b87068bbe2a7f9b302a665b98a3b553d1ff))
+
 <a name="10.65.5"></a>
 ## [10.65.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.5) (2026-10-25)
 
