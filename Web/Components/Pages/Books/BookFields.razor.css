@@ -11,7 +11,7 @@
     width: 20px;
     height: 20px;
     margin: 2px 0 0;
-    accent-color: #594AE2;
+    accent-color: var(--mud-palette-primary);
     cursor: pointer;
 }
 
@@ -25,10 +25,10 @@
 .book-one-shot-label {
     font-size: 14px;
     font-weight: 500;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .book-one-shot-help {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }

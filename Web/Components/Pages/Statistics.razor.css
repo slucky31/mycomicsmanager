@@ -1,8 +1,8 @@
 .stats-page {
     /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
     min-height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -41,7 +41,7 @@
 
 .stats-card {
     background: #ffffff;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 16px;
 }
 
@@ -54,14 +54,14 @@
     align-items: baseline;
     gap: 8px;
     font-size: 16px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .stats-headline-number {
     font-size: 40px;
     font-weight: 700;
     line-height: 1;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .stats-headline-read {
@@ -83,13 +83,13 @@
 .stats-progress-value {
     height: 100%;
     border-radius: 4px;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
 }
 
 .stats-headline-percent {
     margin-top: 6px;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* The tiles come before the chart on a phone (S4) and below it from the tablet on (T10). */
@@ -110,7 +110,7 @@
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -155,12 +155,12 @@
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .stats-section-head span {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .stats-chart {
@@ -185,7 +185,7 @@
     right: calc(100% + 8px);
     top: -8px;
     font-size: 11px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .stats-chart-bars,
@@ -213,7 +213,7 @@
     max-width: 28px;
     min-height: 4px;
     border-radius: 4px 4px 0 0;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
 }
 
 .stats-chart-peak {
@@ -223,14 +223,14 @@
     transform: translateX(-50%);
     font-size: 12px;
     font-weight: 500;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .stats-chart-months {
     margin-top: 4px;
     font-size: 11px;
     text-align: center;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* ── Tablet and large screen (T10): library in the bar, headline and chart side by side, 6 tiles ── */

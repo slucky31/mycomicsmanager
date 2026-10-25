@@ -1,8 +1,8 @@
 .libraries-page {
     /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
     min-height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -36,7 +36,7 @@
     display: none;
     margin-top: 2px;
     font-size: 15px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 ::deep .libraries-bar-new {
@@ -57,7 +57,7 @@
     align-items: center;
     gap: 12px;
     padding: 4px 20px 12px;
-    border-bottom: 1px solid #E2E3EA;
+    border-bottom: 1px solid var(--mcm-border);
 }
 
 .library-actions-heading {
@@ -74,7 +74,7 @@
 
 .library-actions-details {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* ── No library yet ──────────────────────────────────── */
@@ -90,7 +90,7 @@
 
 ::deep .libraries-empty-hint {
     margin-bottom: 16px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* ── Tablet: 80 px bar, "New library" with its label, two columns from 840 px ── */
@@ -170,11 +170,11 @@
     border-radius: 24px;
     background: #ffffff;
     border: 1px solid #DCDDE3;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .libraries-search-field:focus-within {
-    border: 2px solid #594AE2;
+    border: 2px solid var(--mud-palette-primary);
     padding-left: 13px;
 }
 
@@ -187,7 +187,7 @@
     font: inherit;
     /* 16px: iOS does not zoom on the field */
     font-size: 16px;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .libraries-search-field input::-webkit-search-cancel-button {
@@ -207,7 +207,7 @@
     font-weight: 700;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .search-row {
@@ -218,12 +218,12 @@
     padding: 8px 12px;
     border-radius: 12px;
     background: #ffffff;
-    color: #1B1D24;
+    color: var(--mcm-text);
     text-decoration: none;
 }
 
 .search-row:hover {
-    background: #F1EFFD;
+    background: var(--mcm-primary-soft);
 }
 
 .search-row-text {
@@ -245,7 +245,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .search-cover {
@@ -254,14 +254,14 @@
     height: 52px;
     border-radius: 4px;
     object-fit: cover;
-    background: #E2E3EA;
+    background: var(--mcm-border);
 }
 
 .search-cover-none {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* The library of a result, on the tint of its color. */

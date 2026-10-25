@@ -11,14 +11,14 @@
     align-items: center;
     gap: 8px;
     padding: 0 12px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 22px;
     background: #ffffff;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .icon-search:focus-within {
-    border-color: #594AE2;
+    border-color: var(--mud-palette-primary);
 }
 
 .icon-search input {
@@ -29,7 +29,7 @@
     background: transparent;
     font: inherit;
     font-size: 16px;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .icon-chooser-caption {
@@ -37,12 +37,12 @@
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .icon-chooser-empty {
     padding: 16px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
     font-size: 14px;
     text-align: center;
 }
@@ -61,8 +61,8 @@
     padding: 0;
     border: 0;
     border-radius: 12px;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
     cursor: pointer;
 }
 
@@ -71,15 +71,15 @@
 }
 
 .icon-choice:focus-visible {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: 2px;
 }
 
 .icon-choice-selected,
 .icon-choice-selected:hover {
-    background: #F1EFFD;
-    color: #594AE2;
-    box-shadow: inset 0 0 0 2px #594AE2;
+    background: var(--mcm-primary-soft);
+    color: var(--mud-palette-primary);
+    box-shadow: inset 0 0 0 2px var(--mud-palette-primary);
 }
 
 @media (min-width: 600px) {
@@ -94,7 +94,7 @@
 
     .icon-choice {
         background: #ffffff;
-        border: 1px solid #E2E3EA;
+        border: 1px solid var(--mcm-border);
     }
 
     .icon-choice-selected {

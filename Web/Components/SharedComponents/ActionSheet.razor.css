@@ -17,7 +17,7 @@
     padding: 8px 0 calc(16px + env(safe-area-inset-bottom));
     border-radius: 20px 20px 0 0;
     background: #ffffff;
-    color: #1B1D24;
+    color: var(--mcm-text);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
     outline: none;
 }
@@ -27,7 +27,7 @@
     height: 4px;
     margin: 0 auto 8px;
     border-radius: 2px;
-    background: #C9CBD6;
+    background: var(--mcm-border-strong);
 }
 
 .action-sheet-title-row {
@@ -49,13 +49,13 @@
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 ::deep .action-sheet-divider {
     height: 1px;
     margin: 4px 0;
-    background: #E2E3EA;
+    background: var(--mcm-border);
 }
 
 @media (min-width: 600px) {

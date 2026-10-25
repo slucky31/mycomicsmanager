@@ -4,7 +4,7 @@
     align-items: center;
     gap: 14px;
     padding: 12px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 14px;
     background: #ffffff;
 }
@@ -28,7 +28,7 @@
 .edit-readings-hint,
 .edit-readings-empty {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .edit-library-caption {
@@ -65,7 +65,7 @@
     align-items: center;
     gap: 12px;
     padding: 4px 4px 4px 14px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 14px;
     background: #ffffff;
 }
@@ -91,17 +91,17 @@
     border: 0;
     border-radius: 22px;
     background: none;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
     cursor: pointer;
 }
 
 .edit-reading-delete:hover {
-    background: #FDECEC;
-    color: #C62828;
+    background: var(--mcm-error-soft);
+    color: var(--mcm-error);
 }
 
 .edit-reading-delete:focus-visible {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: 2px;
 }
 
@@ -112,7 +112,7 @@
 
 .edit-readings-empty {
     padding: 14px;
-    border: 1px dashed #E2E3EA;
+    border: 1px dashed var(--mcm-border);
     border-radius: 14px;
     text-align: center;
 }

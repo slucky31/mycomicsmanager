@@ -12,7 +12,7 @@
     box-sizing: border-box;
     border-radius: 9px;
     background-color: #F5A524;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font-size: 11px;
     font-weight: 700;
     line-height: 18px;
@@ -27,7 +27,7 @@
     right: 0;
     z-index: 1100;
     display: flex;
-    background-color: #131B2C;
+    background-color: var(--mcm-badge);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
@@ -89,7 +89,7 @@
         align-items: center;
         gap: 8px;
         padding: 16px 0 calc(16px + env(safe-area-inset-bottom));
-        background-color: #131B2C;
+        background-color: var(--mcm-badge);
         overflow-y: auto;
     }
 

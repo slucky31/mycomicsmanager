@@ -1,0 +1,45 @@
+/* Colours shared by the components' scoped styles. The primary colour comes from the MudBlazor theme (--mud-palette-primary). */
+:root {
+    /* Pressed or hovered primary */
+    --mcm-primary-strong: #4A3BC4;
+    /* Primary tint behind a selected or highlighted item */
+    --mcm-primary-soft: #F1EFFD;
+    /* Body text and titles */
+    --mcm-text: #1B1D24;
+    /* Secondary text, captions, icons */
+    --mcm-text-muted: #5C6070;
+    /* Page and form background */
+    --mcm-surface-muted: #F4F4F6;
+    /* Placeholders and neutral chips */
+    --mcm-surface-sunken: #EDEDF2;
+    /* Card and divider lines */
+    --mcm-border: #E2E3EA;
+    /* Chip outlines, handles, empty stars */
+    --mcm-border-strong: #C9CBD6;
+    /* Inactive switch and slider tracks */
+    --mcm-track: #C9CAD3;
+    /* Dark volume badges on covers */
+    --mcm-badge: #131B2C;
+    /* Errors and destructive actions */
+    --mcm-error: #C62828;
+    /* Error text on a tinted background */
+    --mcm-error-strong: #B3261E;
+    /* Error tint */
+    --mcm-error-soft: #FDECEC;
+    /* Success icons and states */
+    --mcm-success: #2E7D32;
+    /* Success text on a tinted background */
+    --mcm-success-strong: #1E6B24;
+    /* Success tint */
+    --mcm-success-soft: #E6F4EA;
+    /* Information text */
+    --mcm-info: #1D4ED8;
+    /* Information tint */
+    --mcm-info-soft: #E8EEFD;
+    /* Warning text and outlines */
+    --mcm-warning-strong: #8A5300;
+    /* Missing volumes */
+    --mcm-missing: #8A3B00;
+    /* Rating stars */
+    --mcm-star: #E8A317;
+}

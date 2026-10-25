@@ -8,11 +8,11 @@
 .form-field-label {
     font-size: 14px;
     font-weight: 500;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .form-field-invalid .form-field-label {
-    color: #C62828;
+    color: var(--mcm-error);
 }
 
 .form-field ::deep input,
@@ -22,10 +22,10 @@
     min-width: 0;
     height: 48px;
     padding: 0 14px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 10px;
     background: #ffffff;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font: inherit;
     font-size: 16px;
     outline: none;
@@ -48,19 +48,19 @@
 }
 
 .form-field ::deep input:focus {
-    border: 2px solid #594AE2;
+    border: 2px solid var(--mud-palette-primary);
     padding: 0 13px;
 }
 
 .form-field ::deep input[aria-invalid="true"] {
-    border: 2px solid #C62828;
+    border: 2px solid var(--mcm-error);
     padding: 0 13px;
 }
 
 /* A value that cannot be changed: shown, not offered for editing. */
 .form-field ::deep input[readonly] {
-    background: #F4F4F6;
-    color: #5C6070;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text-muted);
 }
 
 .form-field ::deep input::placeholder {
@@ -72,7 +72,7 @@
     align-items: center;
     gap: 4px;
     font-size: 13px;
-    color: #C62828;
+    color: var(--mcm-error);
 }
 
 .form-field-error ::deep svg {
@@ -81,5 +81,5 @@
 
 .form-field-help {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }

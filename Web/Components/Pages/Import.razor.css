@@ -1,8 +1,8 @@
 .import-page {
     /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
     min-height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -27,7 +27,7 @@
 
 .import-bar-subtitle {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .import-content {
@@ -40,7 +40,7 @@
 
 .import-card {
     padding: 12px 14px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 12px;
     background: #ffffff;
     font-size: 14px;
@@ -48,8 +48,8 @@
 
 .import-error {
     border-color: #F4C7C3;
-    background: #FDECEC;
-    color: #B3261E;
+    background: var(--mcm-error-soft);
+    color: var(--mcm-error-strong);
 }
 
 .import-empty {
@@ -63,7 +63,7 @@
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
     font-weight: 500;
     text-decoration: none;
 }
@@ -85,7 +85,7 @@
     margin-top: -4px;
     font-size: 13px;
     text-align: center;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .import-section-head {
@@ -102,12 +102,12 @@
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .import-section-head span {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .import-jobs {
@@ -120,7 +120,7 @@
     padding: 24px 0;
     font-size: 14px;
     text-align: center;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 @media (min-width: 840px) {

@@ -13,18 +13,18 @@
     margin: 0;
     font-size: 20px;
     font-weight: 500;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .move-intro {
     margin: 4px 0 0;
     font-size: 14px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .move-intro strong {
     font-weight: 500;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 /* Close is only shown from the tablet on: the sheet of a phone closes with Cancel. */
@@ -40,7 +40,7 @@
     border: 0;
     border-radius: 22px;
     background: none;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
     cursor: pointer;
 }
 
@@ -61,20 +61,20 @@
     border: 0;
     border-radius: 12px;
     background: none;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font: inherit;
     text-align: left;
     cursor: pointer;
 }
 
 .move-library:hover:not(:disabled) {
-    background: #F4F4F6;
+    background: var(--mcm-surface-muted);
 }
 
 .move-library:focus-visible,
 .move-button:focus-visible,
 .move-close:focus-visible {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: 2px;
 }
 
@@ -85,7 +85,7 @@
 
 .move-library-selected,
 .move-library-selected:hover:not(:disabled) {
-    background: #F1EFFD;
+    background: var(--mcm-primary-soft);
 }
 
 .move-library-text {
@@ -114,8 +114,8 @@
     align-items: center;
     padding: 0 8px;
     border-radius: 11px;
-    background: #E6F4EA;
-    color: #1E6B24;
+    background: var(--mcm-success-soft);
+    color: var(--mcm-success-strong);
     font-size: 12px;
     font-weight: 500;
 }
@@ -123,7 +123,7 @@
 .move-library-details {
     display: block;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .move-library-radio {
@@ -134,7 +134,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #C9CBD6;
+    border: 2px solid var(--mcm-border-strong);
     border-radius: 11px;
 }
 
@@ -143,7 +143,7 @@
     height: 24px;
     border: 0;
     border-radius: 12px;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
     color: #ffffff;
 }
 
@@ -173,16 +173,16 @@
 
 .move-cancel {
     flex: 1 1 0;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     background: #ffffff;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .move-confirm {
     flex: 2 1 0;
     min-width: 0;
     border: 0;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
     color: #ffffff;
 }
 

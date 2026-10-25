@@ -2,8 +2,8 @@
     /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
     min-height: 100dvh;
     padding-bottom: 24px;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -29,7 +29,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: 15px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .book-bar-trail a {
@@ -43,7 +43,7 @@
 
 .book-bar-trail-current {
     display: none;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 ::deep .book-bar-edit {
@@ -83,7 +83,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #3B2FB0 0%, #594AE2 100%);
+    background: linear-gradient(135deg, #3B2FB0 0%, var(--mud-palette-primary) 100%);
     color: #ffffff;
 }
 
@@ -108,12 +108,12 @@
 .book-serie {
     font-size: 15px;
     font-weight: 500;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
 }
 
 .book-authors {
     font-size: 14px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .book-status {
@@ -132,10 +132,10 @@
     display: flex;
     align-items: center;
     padding: 0 10px;
-    border: 1px solid #4A3BC4;
+    border: 1px solid var(--mcm-primary-strong);
     border-radius: 12px;
     font-size: 12px;
-    color: #4A3BC4;
+    color: var(--mcm-primary-strong);
 }
 
 .book-read {
@@ -145,10 +145,10 @@
     gap: 4px;
     padding: 0 8px;
     border-radius: 11px;
-    background: #E6F4EA;
+    background: var(--mcm-success-soft);
     font-size: 12px;
     font-weight: 500;
-    color: #2E7D32;
+    color: var(--mcm-success);
 }
 
 .book-read ::deep .mud-icon-root {
@@ -162,11 +162,11 @@
 
 .book-stars ::deep .book-star {
     font-size: 18px;
-    color: #C9CBD6;
+    color: var(--mcm-border-strong);
 }
 
 .book-stars ::deep .book-star-on {
-    color: #E8A317;
+    color: var(--mcm-star);
 }
 
 /* ── Main action: read a digital book, add a reading of a paper one ── */
@@ -185,7 +185,7 @@
     padding: 0 16px;
     border: 0;
     border-radius: 26px;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
     font: inherit;
     font-size: 16px;
     font-weight: 500;
@@ -195,9 +195,9 @@
 }
 
 .book-primary-outlined {
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     background: #ffffff;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .book-primary-text {
@@ -223,7 +223,7 @@
 .book-progress > div {
     height: 4px;
     border-radius: 2px;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
 }
 
 /* The progress bar, then "Start over" at its end */
@@ -248,7 +248,7 @@
     border: 0;
     border-radius: 4px;
     background: none;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
     font: inherit;
     font-size: 13px;
     font-weight: 500;
@@ -287,13 +287,13 @@
     align-items: center;
     gap: 8px;
     padding: 0 14px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 22px;
     background: #ffffff;
     font: inherit;
     font-size: 14px;
     font-weight: 500;
-    color: #1B1D24;
+    color: var(--mcm-text);
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
@@ -320,7 +320,7 @@
     container-type: inline-size;
     min-width: 0;
     padding: 16px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 16px;
     background: #ffffff;
 }
@@ -331,7 +331,7 @@
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .book-details dl {
@@ -354,7 +354,7 @@
 .book-details dt {
     margin-bottom: 2px;
     font-size: 12px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .book-details dd {
@@ -400,7 +400,7 @@
 
 .book-history-empty {
     font-size: 15px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .book-history-add {
@@ -415,7 +415,7 @@
     font: inherit;
     font-size: 15px;
     font-weight: 500;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
     cursor: pointer;
 }
 
@@ -427,7 +427,7 @@
     margin-top: 12px;
     padding: 12px;
     border-radius: 12px;
-    background: #F1EFFD;
+    background: var(--mcm-primary-soft);
 }
 
 .book-reading-form-title {
@@ -451,12 +451,12 @@
     border: 0;
     border-radius: 22px;
     background: none;
-    color: #C9CBD6;
+    color: var(--mcm-border-strong);
     cursor: pointer;
 }
 
 .book-star-button.book-star-on {
-    color: #E8A317;
+    color: var(--mcm-star);
 }
 
 .book-star-button ::deep .mud-icon-root {
@@ -471,19 +471,19 @@
 .book-reading-buttons button {
     flex: 1 1 0;
     height: 44px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 22px;
     background: #ffffff;
     font: inherit;
     font-size: 15px;
     font-weight: 500;
-    color: #1B1D24;
+    color: var(--mcm-text);
     cursor: pointer;
 }
 
 .book-reading-buttons .book-reading-save {
-    border-color: #594AE2;
-    background: #594AE2;
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-primary);
     color: #ffffff;
 }
 
@@ -507,7 +507,7 @@
 
 .book-not-found p {
     margin: 0 0 16px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* ── Actions sheet: the book above its actions ── */
@@ -516,7 +516,7 @@
     align-items: center;
     gap: 12px;
     padding: 4px 20px 12px;
-    border-bottom: 1px solid #E2E3EA;
+    border-bottom: 1px solid var(--mcm-border);
 }
 
 .book-sheet-header img {
@@ -541,7 +541,7 @@
 
 .book-sheet-details {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* ── Tablet: the cover and the main action on the left, the rest on the right ── */
@@ -558,7 +558,7 @@
     ::deep .book-bar-edit {
         display: inline-flex;
         height: 44px;
-        border: 1px solid #E2E3EA;
+        border: 1px solid var(--mcm-border);
         border-radius: 22px;
         background: #ffffff;
         text-transform: none;
