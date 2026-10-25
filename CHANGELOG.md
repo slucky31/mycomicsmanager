@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.65.3"></a>
+## [10.65.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.3) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **libraries:** keep infinite scroll working after coming back from a book ([#1230](https://www.github.com/slucky31/mycomicsmanager/issues/1230)) ([#1231](https://www.github.com/slucky31/mycomicsmanager/issues/1231)) ([6ad8d81](https://www.github.com/slucky31/mycomicsmanager/commit/6ad8d8172ab3b93b2aa459f77e520b90bd9fb68f))
+
 <a name="10.65.2"></a>
 ## [10.65.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.2) (2026-10-25)
 
