@@ -39,7 +39,9 @@ public class ArchiveExtractorService(ILogger<ArchiveExtractorService> logger) : 
             Directory.CreateDirectory(destinationPath);
             return await Task.Run(() => ExtractInternal(archivePath, destinationPath), ct);
         }
-        catch (InvalidDataException ex)
+        // SharpCompress reports unreadable archives (e.g. a ZIP truncated before its central directory)
+        // with ArchiveException, IncompleteArchiveException included.
+        catch (Exception ex) when (ex is InvalidDataException or ArchiveException)
         {
             logger.LogError(ex, "Corrupt archive: {Path}", archivePath);
             return FileProcessingError.CorruptArchive;

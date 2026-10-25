@@ -178,6 +178,24 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExtractAsync_Should_ReturnCorruptArchive_WhenZipIsTruncatedBeforeCentralDirectory()
+    {
+        // Arrange
+        var archivePath = CreateZipArchive([("page-001.jpg", "fake-image-data"), ("page-002.jpg", "fake-image-data")]);
+        var bytes = await File.ReadAllBytesAsync(archivePath, TestContext.Current.CancellationToken);
+        var centralDirectoryStart = bytes.AsSpan().IndexOf("PK\u0001\u0002"u8);
+        await File.WriteAllBytesAsync(archivePath, bytes[..centralDirectoryStart], TestContext.Current.CancellationToken);
+        var destDir = CreateDestDir();
+
+        // Act
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(FileProcessingError.CorruptArchive);
+    }
+
+    [Fact]
     public async Task ExtractAsync_Should_ReturnSortedFiles()
     {
         // Arrange
