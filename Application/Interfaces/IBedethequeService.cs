@@ -20,4 +20,7 @@ public interface IBedethequeService
     bool IsEnabled { get; }
 
     Task<BedethequeBookResult> SearchByIsbnAsync(string isbn, CancellationToken ct = default);
+
+    // The editions whose title or series match the query, for a book without ISBN (#1237).
+    Task<BookCandidatesResult> SearchByTextAsync(BookTextQuery query, CancellationToken ct = default);
 }

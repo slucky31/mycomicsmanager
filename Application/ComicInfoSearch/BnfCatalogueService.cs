@@ -52,23 +52,9 @@ public partial class BnfCatalogueService : IBnfCatalogueService
             return CreateNotFoundResult();
         }
 
-        try
+        return await SearchRetrieveAsync($"bib.fuzzyISBN all \"{cleanIsbn}\"", 1, $"ISBN {cleanIsbn}", records =>
         {
-            var query = Uri.EscapeDataString($"bib.fuzzyISBN all \"{cleanIsbn}\"");
-            var url = new Uri(_settings.BaseUrl,
-                $"/api/SRU?version=1.2&operation=searchRetrieve&query={query}&recordSchema=unimarcXchange&maximumRecords=1");
-
-            _logger.LogInformation("Searching the BnF catalogue for ISBN: {Isbn}", cleanIsbn);
-
-            var response = await _httpClient.GetAsync(url, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogWarning("BnF catalogue returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
-                return CreateFailedResult();
-            }
-
-            var xml = await response.Content.ReadAsStringAsync(cancellationToken);
-            var record = XDocument.Parse(xml).Descendants(s_marc + "record").FirstOrDefault();
+            var record = records.FirstOrDefault();
             if (record is null)
             {
                 _logger.LogWarning("No record found in the BnF catalogue for ISBN: {Isbn}", cleanIsbn);
@@ -76,22 +62,85 @@ public partial class BnfCatalogueService : IBnfCatalogueService
             }
 
             return ParseRecord(record);
+        }, CreateFailedResult(), cancellationToken);
+    }
+
+    public async Task<BookCandidatesResult> SearchByTextAsync(BookTextQuery query, CancellationToken cancellationToken = default)
+    {
+        if (!IsEnabled || query.IsEmpty)
+        {
+            return BookCandidatesResult.None;
+        }
+
+        return await SearchRetrieveAsync(BuildTextQuery(query), BookCandidatesResult.MaxCandidates, $"\"{query.ToText()}\"",
+            records => new BookCandidatesResult([.. records.Select(ToCandidate).Where(candidate => candidate.Title.Length > 0)]).RankedFor(query),
+            BookCandidatesResult.Failure, cancellationToken);
+    }
+
+    // The title is searched in the title of the records; the series too, else anywhere: old records put it in the title.
+    private static string BuildTextQuery(BookTextQuery query)
+    {
+        var clauses = new List<string>();
+        if (!string.IsNullOrWhiteSpace(query.Title))
+        {
+            clauses.Add($"bib.title all \"{ToCqlTerm(query.Title)}\"");
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Serie) && !string.Equals(query.Serie.Trim(), query.Title?.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            clauses.Add($"{(clauses.Count == 0 ? "bib.title" : "bib.anywhere")} all \"{ToCqlTerm(query.Serie)}\"");
+        }
+
+        return string.Join(" and ", clauses);
+    }
+
+    // A quote or a backslash would end the term of the CQL query.
+    private static string ToCqlTerm(string value) =>
+        new string([.. value.Where(c => c is not '"' and not '\\')]).Trim();
+
+    private async Task<T> SearchRetrieveAsync<T>(string cql, int maximumRecords, string searchedFor,
+        Func<IEnumerable<XElement>, T> read, T failed, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var url = new Uri(_settings.BaseUrl,
+                $"/api/SRU?version=1.2&operation=searchRetrieve&query={Uri.EscapeDataString(cql)}&recordSchema=unimarcXchange&maximumRecords={maximumRecords}");
+
+            _logger.LogInformation("Searching the BnF catalogue for {SearchedFor}", searchedFor);
+
+            var response = await _httpClient.GetAsync(url, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("BnF catalogue returned {StatusCode} for {SearchedFor}", response.StatusCode, searchedFor);
+                return failed;
+            }
+
+            var xml = await response.Content.ReadAsStringAsync(cancellationToken);
+            return read(XDocument.Parse(xml).Descendants(s_marc + "record"));
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP error searching the BnF catalogue for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "HTTP error searching the BnF catalogue for {SearchedFor}", searchedFor);
+            return failed;
         }
         catch (XmlException ex)
         {
-            _logger.LogError(ex, "XML parsing error for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "XML parsing error for {SearchedFor}", searchedFor);
+            return failed;
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            _logger.LogError(ex, "Timeout searching the BnF catalogue for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "Timeout searching the BnF catalogue for {SearchedFor}", searchedFor);
+            return failed;
         }
+    }
+
+    // The ISBN of the edition is in 010 $a.
+    private static BookCandidate ToCandidate(XElement record)
+    {
+        var book = ParseRecord(record);
+        var isbn = BookCandidate.ValidIsbn(FirstSubfield(Fields(record, "010").FirstOrDefault(), "a"));
+        return new BookCandidate(book.Title, book.Serie, book.VolumeNumber, book.Publishers, book.PublishDate, isbn, null);
     }
 
     private static BnfBookResult ParseRecord(XElement record)

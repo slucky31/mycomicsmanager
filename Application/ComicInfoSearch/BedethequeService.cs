@@ -25,6 +25,9 @@ public partial class BedethequeService : IBedethequeService
     // The album data is text: the browser does not need to load what makes the page look nice.
     private static readonly string[] BrowserRunRejectedResources = ["image", "media", "font", "stylesheet"];
 
+    // A text search reads the album pages one by one (Browser Run waits between them): only the first ones.
+    private const int MaxAlbumPages = 3;
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IIsbnBedethequeCacheRepository _cacheRepository;
     private readonly BedethequeSettings _settings;
@@ -124,6 +127,108 @@ public partial class BedethequeService : IBedethequeService
         }
     }
 
+    // Google (SerpApi) finds the album pages, then each page is read: only the page gives the ISBN of the album.
+    public async Task<BookCandidatesResult> SearchByTextAsync(BookTextQuery query, CancellationToken ct = default)
+    {
+        if (!IsEnabled || query.IsEmpty)
+        {
+            return BookCandidatesResult.None;
+        }
+
+        var text = query.ToText();
+        if (_circuit.PausedUntil is { } pausedUntil)
+        {
+            _logger.LogInformation("Bedetheque is paused until {PausedUntil} after a Cloudflare challenge: {Query} not searched", pausedUntil, text);
+            return BookCandidatesResult.Failure;
+        }
+
+        if (string.IsNullOrWhiteSpace(_settings.SerpApiKey))
+        {
+            _logger.LogWarning("SerpApi key is not configured, skipping Bedetheque search for {Query}", text);
+            return BookCandidatesResult.None;
+        }
+
+        try
+        {
+            var links = await SearchGoogleAsync(text, ct);
+            if (links is null)
+            {
+                return BookCandidatesResult.Failure;
+            }
+
+            var candidates = new List<BookCandidate>();
+            foreach (var url in links.Where(l => l.StartsWith(_bdUrlPrefix, StringComparison.OrdinalIgnoreCase)).Take(MaxAlbumPages))
+            {
+                var candidate = await ReadCandidateAsync(url, ct);
+                if (candidate is not null)
+                {
+                    candidates.Add(candidate);
+                }
+            }
+
+            // Every album page was blocked: Bedetheque may know the book.
+            return candidates.Count == 0 && _circuit.PausedUntil is not null
+                ? BookCandidatesResult.Failure
+                : new BookCandidatesResult(candidates).RankedFor(query);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP error searching Bedetheque for {Query}", text);
+            return BookCandidatesResult.Failure;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON parsing error searching Bedetheque for {Query}", text);
+            return BookCandidatesResult.Failure;
+        }
+        catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
+        {
+            _logger.LogError(ex, "Timeout searching Bedetheque for {Query}", text);
+            return BookCandidatesResult.Failure;
+        }
+    }
+
+    private async Task<BookCandidate?> ReadCandidateAsync(string url, CancellationToken ct)
+    {
+        var html = await FetchPageAsync(url, ct);
+        if (html is null)
+        {
+            return null;
+        }
+
+        var (album, isbn) = ParseAlbumPage(html, url, _coversBaseUrl);
+        if (!album.Found)
+        {
+            return null;
+        }
+
+        // The ISBN search of the edition picked then reads the page from the cache, without SerpApi.
+        if (isbn is not null && await _cacheRepository.GetUrlByIsbnAsync(isbn, ct) is null)
+        {
+            await _cacheRepository.SaveAsync(isbn, url, ct);
+        }
+
+        return new BookCandidate(album.Title, album.Serie, album.VolumeNumber, album.Publishers, album.PublishDate, isbn, album.CoverUrl);
+    }
+
+    // The links Google finds on bedetheque.com, or null when SerpApi could not be searched.
+    private async Task<List<string>?> SearchGoogleAsync(string text, CancellationToken ct)
+    {
+        _logger.LogInformation("Calling SerpApi for {Query}", text);
+
+        var serpClient = _httpClientFactory.CreateClient("SerpApi");
+        using var response = await serpClient.GetAsync(new Uri(BuildSerpApiUrl(text)), ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning("SerpApi returned {StatusCode} for {Query}", response.StatusCode, text);
+            return null;
+        }
+
+        var serpResult = await response.Content.ReadFromJsonAsync<SerpApiResponse>(JsonOptions, ct);
+        return serpResult?.OrganicResults?.Select(r => r.Link).OfType<string>()
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? [];
+    }
+
     private async Task<string?> ResolveUrlAsync(string isbn, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(_settings.SerpApiKey))
@@ -150,20 +255,11 @@ public partial class BedethequeService : IBedethequeService
 
     private async Task<string?> TrySearchFormatAsync(string searchIsbn, string normalizedIsbn, CancellationToken ct)
     {
-        var serpUrl = BuildSerpApiUrl(searchIsbn);
-        _logger.LogInformation("Calling SerpApi for ISBN {Isbn} (search: {SearchIsbn})", normalizedIsbn, searchIsbn);
-
-        var serpClient = _httpClientFactory.CreateClient("SerpApi");
-        var response = await serpClient.GetAsync(new Uri(serpUrl), ct);
-        if (!response.IsSuccessStatusCode)
+        var links = await SearchGoogleAsync(searchIsbn, ct);
+        if (links is null)
         {
-            _logger.LogWarning("SerpApi returned {StatusCode} for ISBN {SearchIsbn}", response.StatusCode, searchIsbn);
             return null;
         }
-
-        var serpResult = await response.Content.ReadFromJsonAsync<SerpApiResponse>(JsonOptions, ct);
-        var links = serpResult?.OrganicResults?.Select(r => r.Link).OfType<string>()
-                        .Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? [];
 
         var bdLinks = links
             .Where(l => l.StartsWith(_bdUrlPrefix, StringComparison.OrdinalIgnoreCase))
@@ -261,9 +357,9 @@ public partial class BedethequeService : IBedethequeService
         return name is not null && RegularVolumeRegex().IsMatch(HtmlEntity.DeEntitize(name.InnerText));
     }
 
-    private string BuildSerpApiUrl(string isbn)
+    private string BuildSerpApiUrl(string searched)
     {
-        var query = Uri.EscapeDataString($"{isbn} site:bedetheque.com");
+        var query = Uri.EscapeDataString($"{searched} site:bedetheque.com");
         return $"{_settings.SerpApiBaseUrl}/search.json?engine=google&q={query}&location=France&google_domain=google.fr&hl=fr&gl=fr&api_key={_settings.SerpApiKey}";
     }
 
@@ -363,7 +459,11 @@ public partial class BedethequeService : IBedethequeService
         html.Contains("Just a moment", StringComparison.OrdinalIgnoreCase)
         && html.Contains("cloudflare", StringComparison.OrdinalIgnoreCase);
 
-    private BedethequeBookResult ParsePage(string html, string pageUrl, string coversBaseUrl)
+    private BedethequeBookResult ParsePage(string html, string pageUrl, string coversBaseUrl) =>
+        ParseAlbumPage(html, pageUrl, coversBaseUrl).Album;
+
+    // The album and its ISBN ("EAN/ISBN"), when the page gives a valid one.
+    private (BedethequeBookResult Album, string? Isbn) ParseAlbumPage(string html, string pageUrl, string coversBaseUrl)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
@@ -380,7 +480,7 @@ public partial class BedethequeService : IBedethequeService
 
         _logger.LogInformation("Parsed Bedetheque page: {Serie} T{Volume} - {Title}", serie, volumeNumber, title);
 
-        return new BedethequeBookResult(
+        var album = new BedethequeBookResult(
             Title: title,
             Serie: serie,
             VolumeNumber: volumeNumber,
@@ -391,6 +491,7 @@ public partial class BedethequeService : IBedethequeService
             CoverUrl: coverUrl,
             Found: !string.IsNullOrWhiteSpace(title) || !string.IsNullOrWhiteSpace(serie)
         );
+        return (album, BookCandidate.ValidIsbn(GetSheetText(sheet, "ISBN")));
     }
 
     // The album sheet ("Informations sur l'album") lists its fields as <dt>label</dt><dd>value</dd>; a <dt> left

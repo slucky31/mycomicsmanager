@@ -38,12 +38,9 @@ public class GoogleBooksService : IGoogleBooksService
             return CreateNotFoundResult();
         }
 
-        try
+        return await SearchAsync($"ISBN {cleanIsbn}", async () =>
         {
-
             var url = WithApiKey(_settings.BaseUrl + SearchPath + cleanIsbn);
-
-            _logger.LogInformation("Searching Google Books for ISBN: {Isbn}", cleanIsbn);
 
             var response = await _httpClient.GetAsync(url, cancellationToken);
 
@@ -97,21 +94,71 @@ public class GoogleBooksService : IGoogleBooksService
                 Language: volumeInfo.Language,
                 Found: true
             );
+        }, CreateFailedResult(), cancellationToken);
+    }
+
+    public async Task<BookCandidatesResult> SearchByTextAsync(BookTextQuery query, CancellationToken cancellationToken = default)
+    {
+        if (!IsEnabled || query.IsEmpty)
+        {
+            return BookCandidatesResult.None;
+        }
+
+        var text = query.ToText();
+        return await SearchAsync($"\"{text}\"", async () =>
+        {
+            var url = WithApiKey($"{_settings.BaseUrl}/volumes?q={Uri.EscapeDataString(text)}&printType=books&maxResults={BookCandidatesResult.MaxCandidates}");
+            var response = await _httpClient.GetAsync(url, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Google Books returned {StatusCode} for {Query}", response.StatusCode, text);
+                return BookCandidatesResult.Failure;
+            }
+
+            var searchResponse = await response.Content.ReadFromJsonAsync<GoogleBooksSearchResponse>(JsonOptions, cancellationToken);
+            return new BookCandidatesResult([.. (searchResponse?.Items ?? [])
+                .Select(item => item.VolumeInfo)
+                .OfType<GoogleBooksVolumeInfo>()
+                .Where(info => !string.IsNullOrWhiteSpace(info.Title))
+                .Select(ToCandidate)]).RankedFor(query);
+        }, BookCandidatesResult.Failure, cancellationToken);
+    }
+
+    // Google Books gives the series in the title: the candidate shows it as it is.
+    private BookCandidate ToCandidate(GoogleBooksVolumeInfo info) =>
+        new(
+            Title: info.Title!,
+            Serie: null,
+            VolumeNumber: null,
+            Publishers: string.IsNullOrEmpty(info.Publisher) ? [] : [info.Publisher],
+            PublishDate: PublishDateHelper.ParsePublishDate(info.PublishedDate, _logger),
+            Isbn: BookCandidate.ValidIsbn(Identifier(info, "ISBN_13") ?? Identifier(info, "ISBN_10")),
+            CoverUrl: GetBestCoverUrl(info.ImageLinks));
+
+    private static string? Identifier(GoogleBooksVolumeInfo info, string type) =>
+        info.IndustryIdentifiers?.FirstOrDefault(id => string.Equals(id.Type, type, StringComparison.Ordinal))?.Identifier;
+
+    private async Task<T> SearchAsync<T>(string searchedFor, Func<Task<T>> search, T failed, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInformation("Searching Google Books for {SearchedFor}", searchedFor);
+            return await search();
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP error searching Google Books for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "HTTP error searching Google Books for {SearchedFor}", searchedFor);
+            return failed;
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "JSON parsing error for {SearchedFor}", searchedFor);
+            return failed;
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            _logger.LogError(ex, "Timeout searching Google Books for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "Timeout searching Google Books for {SearchedFor}", searchedFor);
+            return failed;
         }
     }
 
@@ -247,7 +294,13 @@ public class GoogleBooksService : IGoogleBooksService
         [property: JsonPropertyName("pageCount")] int? PageCount,
         [property: JsonPropertyName("categories")] IReadOnlyList<string>? Categories,
         [property: JsonPropertyName("imageLinks")] GoogleBooksImageLinks? ImageLinks,
-        [property: JsonPropertyName("language")] string? Language
+        [property: JsonPropertyName("language")] string? Language,
+        [property: JsonPropertyName("industryIdentifiers")] IReadOnlyList<GoogleBooksIdentifier>? IndustryIdentifiers = null
+    );
+
+    private sealed record GoogleBooksIdentifier(
+        [property: JsonPropertyName("type")] string? Type,
+        [property: JsonPropertyName("identifier")] string? Identifier
     );
 
     private sealed record GoogleBooksImageLinks(

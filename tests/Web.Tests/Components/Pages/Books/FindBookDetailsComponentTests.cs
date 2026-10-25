@@ -319,14 +319,157 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         cut.Find(".find-details-apply").TextContent.Should().Contain("Apply 2 changes");
     }
 
-    [Fact]
-    public async Task FetchWebServicesAsync_Should_SearchNothing_AndOfferNoChange_WhenTheBookHasNoIsbn()
+    // ── A book without ISBN (#1237) ──────────────────────────────────
+
+    private const string EditionIsbn = "9782012101357";
+    private static readonly BookTextQuery s_bookQuery = new("Âme rouge", "Blacksad", 1);
+
+    private static readonly BookCandidate s_editionWithIsbn =
+        new("Âme rouge", "Blacksad", 1, ["Dargaud"], new DateOnly(2003, 1, 1), EditionIsbn, null);
+
+    private static readonly BookCandidate s_editionWithoutIsbn =
+        new("Âme rouge (tirage de tête)", "Blacksad", 1, [], null, null, new Uri("https://assets.bubblebd.com/img/2.jpg"));
+
+    // The BnF finds two editions, Google Books one, the others nothing.
+    private void TheSourcesFindTheEditions()
     {
+        _bnfService.SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>())
+            .Returns(new BookCandidatesResult([s_editionWithoutIsbn, s_editionWithIsbn]));
+        _googleBooksService.SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>())
+            .Returns(new BookCandidatesResult([s_editionWithIsbn with { Publishers = ["Dargaud Benelux"] }]));
+        _bedethequeService.SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>()).Returns(BookCandidatesResult.Failure);
+        _openLibraryService.SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>()).Returns(BookCandidatesResult.None);
+        _booksService.IsIsbnAvailable(_book.Id.ToString(), EditionIsbn, Arg.Any<CancellationToken>()).Returns(Result<bool>.Success(true));
+    }
+
+    private async Task<IRenderedComponent<FindBookDetails>> RenderEditionsFoundAsync()
+    {
+        TheSourcesFindTheEditions();
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Pick the edition of the book"));
+        return cut;
+    }
+
+    private static AngleSharp.Dom.IElement CompareButton(IRenderedComponent<FindBookDetails> cut) =>
+        cut.FindAll("button").Single(b => b.TextContent.Contains("Compare with this edition", StringComparison.Ordinal));
+
+    private static async Task PickTheBnfEditionAsync(IRenderedComponent<FindBookDetails> cut)
+    {
+        var editions = cut.FindAll(".find-details-edition");
+        await editions.Single(e => e.TextContent.Contains("Dargaud · 2003", StringComparison.Ordinal) && !e.TextContent.Contains("Benelux", StringComparison.Ordinal))
+            .ClickAsync(new());
+        await CompareButton(cut).ClickAsync(new());
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SearchEverySourceByTitleSerieAndVolume_WhenTheBookHasNoIsbn()
+    {
+        var cut = await RenderEditionsFoundAsync();
+
+        await _bnfService.Received(1).SearchByTextAsync(s_bookQuery, Arg.Any<CancellationToken>());
+        await _bedethequeService.Received(1).SearchByTextAsync(s_bookQuery, Arg.Any<CancellationToken>());
+        await _openLibraryService.Received(1).SearchByTextAsync(s_bookQuery, Arg.Any<CancellationToken>());
+        await _googleBooksService.Received(1).SearchByTextAsync(s_bookQuery, Arg.Any<CancellationToken>());
+        await _bubbleService.DidNotReceive().SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>());
+        await _bnfService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        cut.FindAll(".find-details-editions-title").Select(title => string.Join(": ", title.Children.Select(part => part.TextContent))).Should().Equal(
+            "BnF: 2 editions", "Bedetheque: could not be searched", "OpenLibrary: nothing found", "Google Books: 1 edition");
+        // An edition without ISBN cannot be searched on the other sources.
+        cut.FindAll(".find-details-edition").Single(e => e.TextContent.Contains("tirage de tête", StringComparison.Ordinal))
+            .HasAttribute("disabled").Should().BeTrue();
+        CompareButton(cut).HasAttribute("disabled").Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CompareWithEditionAsync_Should_SearchTheIsbnOfTheEdition_ThenSaveItWithTheBook()
+    {
+        var cut = await RenderEditionsFoundAsync();
+
+        await PickTheBnfEditionAsync(cut);
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+        cut.Find(".find-details-picked").TextContent.Should().Contain("Edition picked on BnF").And.Contain("(Dargaud · 2003)").And.Contain(EditionIsbn);
+        await _bnfService.Received(1).SearchByIsbnAsync(EditionIsbn, Arg.Any<CancellationToken>());
+        await _googleBooksService.Received(1).SearchByIsbnAsync(EditionIsbn, Arg.Any<CancellationToken>());
+        // The ISBN of the edition is a change by itself.
+        cut.Find(".find-details-apply").TextContent.Should().Contain("Apply 1 change");
+
+        await ApplyAsync(cut);
+
+        await _booksService.Received(1).Update(Arg.Is<UpdateBookRequest>(r => r.Isbn == EditionIsbn), Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task CompareWithEditionAsync_Should_RefuseTheEdition_WhenItsIsbnIsTakenOrCannotBeChecked(bool checkFails)
+    {
+        var cut = await RenderEditionsFoundAsync();
+        _booksService.IsIsbnAvailable(_book.Id.ToString(), EditionIsbn, Arg.Any<CancellationToken>())
+            .Returns(checkFails ? Result<bool>.Failure(BooksError.NotFound) : Result<bool>.Success(false));
+
+        await PickTheBnfEditionAsync(cut);
+
+        cut.Markup.Should().Contain("Pick the edition of the book").And.NotContain("Edition picked on");
+        CompareButton(cut).HasAttribute("disabled").Should().BeFalse();
+        await _bnfService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ChangeEdition_Should_GoBackToTheEditionsFound_WithoutSearchingAgain()
+    {
+        var cut = await RenderEditionsFoundAsync();
+        await PickTheBnfEditionAsync(cut);
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+
+        await cut.FindAll("button").Single(b => b.TextContent.Contains("Change edition", StringComparison.Ordinal)).ClickAsync(new());
+
+        cut.FindAll(".find-details-edition").Should().HaveCount(3);
+        cut.Markup.Should().NotContain("Sources checked:");
+        await _bnfService.Received(1).SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SearchTheQueryTyped_WhenTheFormIsSubmitted()
+    {
+        var cut = await RenderEditionsFoundAsync();
+
+        await cut.Find(".find-details-query-title input").InputAsync(new ChangeEventArgs { Value = "Une âme rouge" });
+        await cut.Find(".find-details-query-volume input").InputAsync(new ChangeEventArgs { Value = "2" });
+        await cut.Find("form").SubmitAsync();
+
+        await _bnfService.Received(1).SearchByTextAsync(new BookTextQuery("Une âme rouge", "Blacksad", 2), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_DropTheResultsOfAnOlderSearch()
+    {
+        var firstSearch = new TaskCompletionSource<BookCandidatesResult>();
+        _bnfService.SearchByTextAsync(s_bookQuery, Arg.Any<CancellationToken>()).Returns(firstSearch.Task);
+        _bnfService.SearchByTextAsync(new BookTextQuery("Okko", "Blacksad", 1), Arg.Any<CancellationToken>())
+            .Returns(new BookCandidatesResult([s_editionWithIsbn with { Title = "Okko" }]));
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Searching the sources…"));
+
+        await cut.Find(".find-details-query-title input").InputAsync(new ChangeEventArgs { Value = "Okko" });
+        await cut.Find("form").SubmitAsync();
+        await cut.InvokeAsync(() => firstSearch.SetResult(new BookCandidatesResult([s_editionWithIsbn])));
+
+        cut.FindAll(".find-details-edition-title").Select(title => title.TextContent).Should().Equal("Okko");
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SayNoSourceIsTurnedOn_WhenEveryOneIsOff()
+    {
+        _bnfService.IsEnabled.Returns(false);
+        _openLibraryService.IsEnabled.Returns(false);
+        _googleBooksService.IsEnabled.Returns(false);
+        _bedethequeService.IsEnabled.Returns(false);
+
         var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
 
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("This book has no ISBN"));
-        cut.Find(".find-details-apply").HasAttribute("disabled").Should().BeTrue();
-        await _bnfService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("No web source is turned on"));
+        CompareButton(cut).HasAttribute("disabled").Should().BeTrue();
     }
 
     [Fact]

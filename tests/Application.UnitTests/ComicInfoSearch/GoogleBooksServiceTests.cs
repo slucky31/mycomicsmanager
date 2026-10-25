@@ -1,5 +1,6 @@
 using System.Net;
 using Application.ComicInfoSearch;
+using Application.Interfaces;
 using Microsoft.Extensions.Options;
 
 namespace Application.UnitTests.ComicInfoSearch;
@@ -905,6 +906,59 @@ public sealed class GoogleBooksServiceTests
         {
             Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
         };
+    }
+
+    private static string TextSearchUrl(string escapedQuery) =>
+        new Uri($"https://www.googleapis.com/books/v1/volumes?q={escapedQuery}&printType=books&maxResults=10").ToString();
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnTheVolumesWithTheirIsbn_WhenGoogleBooksFindsTheTitle()
+    {
+        var json = """
+        { "items": [
+            { "volumeInfo": { "title": "Astérix et les Goths", "publisher": "Hachette", "publishedDate": "2004-06-01",
+                "industryIdentifiers": [{ "type": "ISBN_10", "identifier": "2012101356" }, { "type": "ISBN_13", "identifier": "9782012101357" }],
+                "imageLinks": { "thumbnail": "http://books.google.com/thumb.jpg?id=1&edge=curl" } } },
+            { "volumeInfo": { "title": "Astérix, l'intégrale" } },
+            { "volumeInfo": { "title": " " } },
+            {}
+        ] }
+        """;
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [TextSearchUrl("Ast%C3%A9rix%203%20Ast%C3%A9rix%20et%20les%20Goths")] = CreateJsonResponse(json),
+        });
+        using var httpClient = new HttpClient(handler);
+
+        var result = await CreateService(httpClient).SearchByTextAsync(new BookTextQuery("Astérix et les Goths", "Astérix", 3), TestContext.Current.CancellationToken);
+
+        result.Candidates.Should().BeEquivalentTo(new BookCandidate[]
+        {
+            new("Astérix et les Goths", null, null, ["Hachette"], new DateOnly(2004, 6, 1), "9782012101357", new Uri("https://books.google.com/thumb.jpg?id=1")),
+            new("Astérix, l'intégrale", null, null, [], null, null, null),
+        }, options => options.WithStrictOrdering());
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnFailed_WhenGoogleBooksAnswersAnError()
+    {
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>());
+        using var httpClient = new HttpClient(handler);
+
+        var result = await CreateService(httpClient).SearchByTextAsync(new BookTextQuery("Okko", null, null), TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SearchNothing_WhenGoogleBooksIsTurnedOff()
+    {
+        using var handler = new MockHttpMessageHandler(new HttpRequestException("Google Books must not be called"));
+        using var httpClient = new HttpClient(handler);
+
+        var result = await CreateService(httpClient, enabled: false).SearchByTextAsync(new BookTextQuery("Okko", null, null), TestContext.Current.CancellationToken);
+
+        result.Should().Be(BookCandidatesResult.None);
     }
 
     private sealed class MockHttpMessageHandler : HttpMessageHandler

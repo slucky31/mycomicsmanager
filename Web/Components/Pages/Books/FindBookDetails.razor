@@ -36,12 +36,93 @@
                 </div>
             </div>
         }
+        else if (IsTextSearch)
+        {
+            <form class="find-details-card find-details-query" @onsubmit="SearchByTextAsync">
+                <div class="find-details-query-hint">
+                    <MudIcon Icon="@Icons.Material.Outlined.Info" />
+                    <span>This book has no ISBN. Search the sources by title, series and volume, then pick the matching edition.</span>
+                </div>
+                <div class="find-details-query-fields">
+                    <MudTextField T="string" @bind-Value="_queryTitle" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Class="find-details-query-title" />
+                    <MudTextField T="string" @bind-Value="_querySerie" Label="Series" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Class="find-details-query-serie" />
+                    <MudNumericField T="int?" @bind-Value="_queryVolume" Label="Volume" Min="0" HideSpinButtons="true" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Class="find-details-query-volume" />
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search"
+                               Disabled="@(IsTextSearching || TextQuery.IsEmpty)" Class="find-details-query-search">Search</MudButton>
+                </div>
+                <div role="status" aria-live="polite">
+                    @if (_textSearchStates.Count == 0)
+                    {
+                        <span class="find-details-muted">No web source is turned on (Settings → Features).</span>
+                    }
+                    else if (IsTextSearching)
+                    {
+                        <span>Searching the sources… (@TextSearchesDone/@_textSearchStates.Count)</span>
+                        <MudProgressLinear Color="Color.Primary" Value="@(100.0 * TextSearchesDone / _textSearchStates.Count)" Rounded="true" Class="find-details-progress" />
+                    }
+                    else
+                    {
+                        <span class="find-details-muted">Pick the edition of the book, then compare it with the book.</span>
+                    }
+                </div>
+            </form>
+
+            @foreach (var (source, state) in _textSearchStates)
+            {
+                var candidates = CandidatesOf(source);
+                var headingId = $"find-details-editions-{source}";
+                <section @key="source" class="find-details-card find-details-editions" aria-labelledby="@headingId">
+                    <h2 id="@headingId" class="find-details-editions-title">
+                        <span>@BookSources.Name(source)</span>
+                        <span class="find-details-muted">@BookCandidateDisplay.Summary(state, candidates.Count)</span>
+                    </h2>
+                    @if (candidates.Count > 0)
+                    {
+                        <div class="find-details-editions-list" role="radiogroup" aria-labelledby="@headingId">
+                            @foreach (var candidate in candidates)
+                            {
+                                var chosen = IsChosen(source, candidate);
+                                <button type="button" role="radio" aria-checked="@(chosen ? "true" : "false")"
+                                        class="@($"find-details-option find-details-edition{(chosen ? " selected" : "")}")"
+                                        disabled="@(candidate.Isbn is null)"
+                                        @onclick="() => Choose(source, candidate)">
+                                    @if (candidate.CoverUrl is not null)
+                                    {
+                                        <img class="find-details-cover" src="@candidate.CoverUrl" alt="" loading="lazy" />
+                                    }
+                                    else
+                                    {
+                                        <span class="find-details-cover find-details-cover-none"><MudIcon Icon="@Icons.Material.Outlined.MenuBook" /></span>
+                                    }
+                                    <span class="find-details-option-text">
+                                        <span class="find-details-edition-title">@candidate.Title</span>
+                                        @if (BookCandidateDisplay.SerieAndVolume(candidate) is { } serieAndVolume)
+                                        {
+                                            <span class="find-details-muted">@serieAndVolume</span>
+                                        }
+                                        @if (BookCandidateDisplay.Edition(candidate) is { } edition)
+                                        {
+                                            <span class="find-details-muted">@edition</span>
+                                        }
+                                        <span class="find-details-edition-isbn">@BookCandidateDisplay.Isbn(candidate)</span>
+                                    </span>
+                                    @if (chosen)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Class="find-details-option-check" />
+                                    }
+                                </button>
+                            }
+                        </div>
+                    }
+                </section>
+            }
+        }
         else
         {
             <div class="find-details-card find-details-status" role="status" aria-live="polite">
                 @if (_searchStates.Count == 0)
                 {
-                    <span>This book has no ISBN, so the web sources cannot be searched.</span>
+                    <span>No web source is turned on (Settings → Features).</span>
                 }
                 else if (IsSearching)
                 {
@@ -62,7 +143,15 @@
                 }
             </div>
 
-            @if (_isbnFromPage)
+            @if (_edition is { } picked)
+            {
+                <div class="find-details-card find-details-isbn">
+                    <MudIcon Icon="@Icons.Material.Outlined.Info" />
+                    <span class="find-details-picked">Edition picked on @BookSources.Name(picked.Source): <strong>@picked.Candidate.Title</strong>@(BookCandidateDisplay.Edition(picked.Candidate) is { } pickedEdition ? $" ({pickedEdition})" : string.Empty). Its ISBN <strong>@_isbn</strong> will be saved with the book.</span>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="ChangeEdition" Class="find-details-change-edition">Change edition</MudButton>
+                </div>
+            }
+            else if (_isbnFromPage)
             {
                 <div class="find-details-card find-details-isbn">
                     <MudIcon Icon="@Icons.Material.Outlined.Info" />
@@ -134,14 +223,28 @@
     {
         <div class="find-details-actions">
             <MudButton Variant="Variant.Outlined" OnClick="Cancel" Disabled="_isSaving" Class="find-details-cancel">Cancel</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyAndSaveAsync"
-                       Disabled="@(_isSaving || _changeCount == 0)" Class="find-details-apply">
-                @if (_isSaving)
-                {
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                }
-                @BookDetailsComparison.ApplyLabel(_changeCount)
-            </MudButton>
+            @if (IsTextSearch)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CompareWithEditionAsync"
+                           Disabled="@(_chosen is null || _isCheckingIsbn)" Class="find-details-apply find-details-compare">
+                    @if (_isCheckingIsbn)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    Compare with this edition
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyAndSaveAsync"
+                           Disabled="@(_isSaving || _changeCount == 0)" Class="find-details-apply">
+                    @if (_isSaving)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    @BookDetailsComparison.ApplyLabel(_changeCount)
+                </MudButton>
+            }
         </div>
     }
 </div>

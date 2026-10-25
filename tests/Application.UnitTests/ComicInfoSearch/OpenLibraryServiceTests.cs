@@ -1,5 +1,6 @@
 using System.Net;
 using Application.ComicInfoSearch;
+using Application.Interfaces;
 using Microsoft.Extensions.Options;
 
 namespace Application.UnitTests.ComicInfoSearch;
@@ -514,6 +515,68 @@ public class OpenLibraryServiceTests
         {
             Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
         };
+    }
+
+    private static string TextSearchUrl(string escapedQuery) =>
+        new Uri($"https://openlibrary.org/search.json?q={escapedQuery}&fields=title,publisher,first_publish_year,isbn,cover_i&limit=10").ToString();
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnTheWorksWithAnIsbn13_WhenOpenLibraryFindsTheTitle()
+    {
+        var json = """
+        { "docs": [
+            { "title": "Aste\u0301rix et les Goths", "publisher": ["Hachette", "Dargaud"], "first_publish_year": 1963,
+              "isbn": ["2012101356", "bad", "9782012101357"], "cover_i": 12345 },
+            { "title": "Astérix, l'intégrale", "isbn": ["2847891641"] },
+            { "title": null }
+        ] }
+        """;
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [TextSearchUrl("Ast%C3%A9rix%20et%20les%20Goths")] = CreateJsonResponse(json),
+        });
+        using var httpClient = new HttpClient(handler);
+
+        var result = await CreateService(httpClient).SearchByTextAsync(new BookTextQuery("Astérix et les Goths", null, null), TestContext.Current.CancellationToken);
+
+        result.Candidates.Should().BeEquivalentTo(new BookCandidate[]
+        {
+            new("Astérix et les Goths", null, null, ["Hachette"], new DateOnly(1963, 1, 1), "9782012101357", new Uri("https://covers.openlibrary.org/b/id/12345-M.jpg")),
+            new("Astérix, l'intégrale", null, null, [], null, "2847891641", null),
+        }, options => options.WithStrictOrdering());
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnFailed_WhenOpenLibraryCannotBeReached()
+    {
+        using var handler = new MockHttpMessageHandler(new HttpRequestException("Network error"));
+        using var httpClient = new HttpClient(handler);
+
+        var result = await CreateService(httpClient).SearchByTextAsync(new BookTextQuery("Okko", null, null), TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnFailed_WhenOpenLibraryAnswersAnError()
+    {
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>());
+        using var httpClient = new HttpClient(handler);
+
+        var result = await CreateService(httpClient).SearchByTextAsync(new BookTextQuery("Okko", null, null), TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SearchNothing_WhenTheQueryIsEmpty()
+    {
+        using var handler = new MockHttpMessageHandler(new HttpRequestException("OpenLibrary must not be called"));
+        using var httpClient = new HttpClient(handler);
+
+        var result = await CreateService(httpClient).SearchByTextAsync(new BookTextQuery(null, " ", 1), TestContext.Current.CancellationToken);
+
+        result.Should().Be(BookCandidatesResult.None);
     }
 
     private sealed class MockHttpMessageHandler : HttpMessageHandler

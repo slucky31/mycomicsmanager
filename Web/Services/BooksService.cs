@@ -4,6 +4,7 @@ using Application.Books.Create;
 using Application.Books.Delete;
 using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
+using Application.Books.IsbnAvailability;
 using Application.Books.List;
 using Application.Books.Search;
 using Application.Books.Update;
@@ -25,6 +26,7 @@ public class BooksService(
     ICommandHandler<DeleteBooksCommand, DeleteBooksResult> deleteBooksHandler,
     ICommandHandler<AddReadingDateCommand, ReadingDate> addReadingDateHandler,
     ICommandHandler<DeleteReadingDateCommand> deleteReadingDateHandler,
+    IQueryHandler<IsIsbnAvailableQuery, bool> isIsbnAvailableHandler,
     ICurrentUserService currentUserService) : IBooksService
 {
     public async Task<Result<Book>> GetById(string? id)
@@ -97,6 +99,22 @@ public class BooksService(
             request.NumberOfPages);
 
         return await updateBookHandler.Handle(command, cancellationToken);
+    }
+
+    public async Task<Result<bool>> IsIsbnAvailable(string bookId, string isbn, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(bookId, out var guidId))
+        {
+            return BooksError.ValidationError;
+        }
+
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await isIsbnAvailableHandler.Handle(new IsIsbnAvailableQuery(guidId, isbn, userIdResult.Value), cancellationToken);
     }
 
     public async Task<Result<ReadingDate>> AddReadingDate(string bookId, int rating, CancellationToken cancellationToken = default)
