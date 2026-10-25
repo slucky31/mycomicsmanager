@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.66.0"></a>
+## [10.66.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.66.0) (2026-10-25)
+
+### ✨ Features
+
+* **books:** search the editions of a book without ISBN by title, series and volume ([#1237](https://www.github.com/slucky31/mycomicsmanager/issues/1237)) ([#1238](https://www.github.com/slucky31/mycomicsmanager/issues/1238)) ([28b69bd](https://www.github.com/slucky31/mycomicsmanager/commit/28b69bd6b4bfa3b53e381ed50f093ffc44510eba))
+
 <a name="10.65.6"></a>
 ## [10.65.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.6) (2026-10-25)
 
