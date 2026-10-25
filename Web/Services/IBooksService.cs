@@ -17,6 +17,8 @@ public interface IBooksService
     Task<Result<Book>> Create(CreateBookRequest request, CancellationToken cancellationToken = default);
     Task<Result<Book>> GetById(string? id);
     Task<Result<Book>> Update(UpdateBookRequest request, CancellationToken cancellationToken = default);
+    // Whether the ISBN can be given to the book: false when another book of the same type holds it (#1217).
+    Task<Result<bool>> IsIsbnAvailable(string bookId, string isbn, CancellationToken cancellationToken = default);
     Task<Result<List<Book>>> GetAll();
     Task<Result<List<Book>>> GetByLibrary(Guid libraryId, CancellationToken cancellationToken = default);
     Task<Result<IPagedList<BookSummaryDto>>> GetPagedByLibrary(Guid libraryId, int page, int pageSize, BookSortOrder sortOrder, string? searchTerm = null, CancellationToken cancellationToken = default);

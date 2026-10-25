@@ -23,4 +23,7 @@ public interface IGoogleBooksService
     bool IsEnabled { get; }
 
     Task<GoogleBooksBookResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default);
+
+    // The editions whose title or series match the query, for a book without ISBN (#1237).
+    Task<BookCandidatesResult> SearchByTextAsync(BookTextQuery query, CancellationToken cancellationToken = default);
 }

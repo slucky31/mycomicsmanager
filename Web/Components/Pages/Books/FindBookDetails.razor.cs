@@ -31,7 +31,7 @@ public partial class FindBookDetails
 
     private BookUiDto? _currentBook;
     private string? _isbn;
-    private bool _isbnFromPage;
+    private bool IsbnFromPage { get; set; }
     private BnfBookResult? _bnfResult;
     private BedethequeBookResult? _bedethequeResult;
     private BubbleBookResult? _bubbleResult;
@@ -74,6 +74,7 @@ public partial class FindBookDetails
     {
         _isLoading = true;
         _loadError = false;
+        ResetTextSearch();
 
         try
         {
@@ -87,10 +88,11 @@ public partial class FindBookDetails
 
             _currentBook = BookUiDto.Convert(result.Value);
             ResolveIsbn(_currentBook.ISBN);
+            InitTextQuery(_currentBook);
             RefreshComparison();
             _isLoading = false;
             StateHasChanged();
-            await FetchWebServicesAsync();
+            await (IsTextSearch ? SearchByTextAsync() : FetchWebServicesAsync());
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
@@ -110,7 +112,7 @@ public partial class FindBookDetails
             : null;
 
         _isbn = isbnFromPage ?? currentIsbn;
-        _isbnFromPage = isbnFromPage is not null && !string.Equals(isbnFromPage, currentIsbn, StringComparison.Ordinal);
+        IsbnFromPage = isbnFromPage is not null && !string.Equals(isbnFromPage, currentIsbn, StringComparison.Ordinal);
     }
 
     private async Task FetchWebServicesAsync()
@@ -123,6 +125,7 @@ public partial class FindBookDetails
         // Start all requests concurrently, then apply each result as soon as it comes, so that
         // a slow or failing provider neither delays nor prevents the others.
         var isbn = _isbn;
+        ClearSourceResults();
         _searchStates.Clear();
         foreach (var source in WebSources())
         {
@@ -172,12 +175,12 @@ public partial class FindBookDetails
     private async Task SearchProviderAsync<T>(BookSource source, string provider, Task<T> search, Func<T?, ProviderSearchState> apply)
         where T : class
     {
-        var searchedFor = _searchedFor;
+        var searchedFor = (_searchedFor, _isbn);
 
         var result = await AwaitProviderAsync(search, provider);
 
-        // Another book or ISBN was opened meanwhile: this result is not for the page shown.
-        if (_searchedFor != searchedFor)
+        // Another book, ISBN or edition was opened meanwhile: this result is not for the page shown.
+        if ((_searchedFor, _isbn) != searchedFor)
         {
             return;
         }
@@ -185,6 +188,18 @@ public partial class FindBookDetails
         _searchStates[source] = apply(result);
         RefreshComparison();
         StateHasChanged();
+    }
+
+    private void ClearSourceResults()
+    {
+        _bnfResult = null;
+        _bedethequeResult = null;
+        _bubbleResult = null;
+        _olResult = null;
+        _googleResult = null;
+        _bnfParsed = null;
+        _olParsed = null;
+        _googleParsed = null;
     }
 
     // Each source can be turned off in Settings → Features.
@@ -229,8 +244,8 @@ public partial class FindBookDetails
         CountChanges();
     }
 
-    // The ISBN read on the page is saved too: it counts as a change.
-    private void CountChanges() => _changeCount = _comparison.CountChanges(_selected) + (_isbnFromPage ? 1 : 0);
+    // The ISBN read on the page, or the one of the edition picked, is saved too: it counts as a change.
+    private void CountChanges() => _changeCount = _comparison.CountChanges(_selected) + (IsbnIsNew ? 1 : 0);
 
     private bool IsSelected(string field, BookFieldOption option) =>
         option.Sources.Contains(_selected.GetValueOrDefault(field, BookSource.Current));

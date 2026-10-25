@@ -70,19 +70,15 @@ public partial class BubbleService : IBubbleService
             return CreateNotFoundResult();
         }
 
-        try
+        return await SearchAsync($"ISBN {cleanIsbn}", async () =>
         {
-            _logger.LogInformation("Searching Bubble for ISBN: {Isbn}", cleanIsbn);
-
-            using var response = await SearchAlbumsAsync(cleanIsbn, ct);
-            if (!response.IsSuccessStatusCode)
+            var hits = await SearchAlbumsAsync(cleanIsbn, MaxHits, ct);
+            if (hits is null)
             {
-                _logger.LogWarning("Bubble search returned {StatusCode} for ISBN: {Isbn}", response.StatusCode, cleanIsbn);
                 return CreateFailedResult();
             }
 
-            var search = await response.Content.ReadFromJsonAsync<AlgoliaResponse>(JsonSerializerOptions.Default, ct);
-            var hit = search?.Hits?.FirstOrDefault(h => HasEan(h, cleanIsbn));
+            var hit = hits.FirstOrDefault(h => HasEan(h, cleanIsbn));
             if (hit is null)
             {
                 _logger.LogInformation("No album found on Bubble for ISBN: {Isbn}", cleanIsbn);
@@ -93,40 +89,88 @@ public partial class BubbleService : IBubbleService
             var result = ToResult(hit);
             var page = await FetchAlbumPageAsync(hit, ct);
             return page is null ? result : AddPageDetails(result, page);
+        }, CreateFailedResult(), ct);
+    }
+
+    // The search of the site is full text: the series, the volume and the title in one query.
+    public async Task<BookCandidatesResult> SearchByTextAsync(BookTextQuery query, CancellationToken ct = default)
+    {
+        if (!IsEnabled || query.IsEmpty)
+        {
+            return BookCandidatesResult.None;
+        }
+
+        var text = query.ToText();
+        return await SearchAsync($"\"{text}\"", async () =>
+        {
+            var hits = await SearchAlbumsAsync(text, BookCandidatesResult.MaxCandidates, ct);
+            return hits is null
+                ? BookCandidatesResult.Failure
+                : new BookCandidatesResult([.. hits.Select(ToCandidate)]).RankedFor(query);
+        }, BookCandidatesResult.Failure, ct);
+    }
+
+    private async Task<T> SearchAsync<T>(string searchedFor, Func<Task<T>> search, T failed, CancellationToken ct)
+    {
+        try
+        {
+            _logger.LogInformation("Searching Bubble for {SearchedFor}", searchedFor);
+            return await search();
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP error searching Bubble for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "HTTP error searching Bubble for {SearchedFor}", searchedFor);
+            return failed;
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "JSON parsing error searching Bubble for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "JSON parsing error searching Bubble for {SearchedFor}", searchedFor);
+            return failed;
         }
         catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
         {
-            _logger.LogError(ex, "Timeout searching Bubble for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "Timeout searching Bubble for {SearchedFor}", searchedFor);
+            return failed;
         }
     }
 
-    private async Task<HttpResponseMessage> SearchAlbumsAsync(string isbn, CancellationToken ct)
+    // The albums the index finds, or null when Bubble could not be searched.
+    private async Task<IReadOnlyList<AlgoliaHit>?> SearchAlbumsAsync(string query, int hitsPerPage, CancellationToken ct)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_settings.AlgoliaBaseUrl, $"/1/indexes/{AlbumsIndex}/query"))
         {
-            Content = JsonContent.Create(new AlgoliaQuery(isbn, MaxHits)),
+            Content = JsonContent.Create(new AlgoliaQuery(query, hitsPerPage)),
         };
         request.Headers.Add("X-Algolia-Application-Id", _settings.ApplicationId);
         request.Headers.Add("X-Algolia-API-Key", _settings.ApiKey);
 
-        return await _httpClient.SendAsync(request, ct);
+        using var response = await _httpClient.SendAsync(request, ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning("Bubble search returned {StatusCode} for {Query}", response.StatusCode, query);
+            return null;
+        }
+
+        var search = await response.Content.ReadFromJsonAsync<AlgoliaResponse>(JsonSerializerOptions.Default, ct);
+        return search?.Hits ?? [];
     }
+
+    private static BookCandidate ToCandidate(AlgoliaHit hit) =>
+        new(
+            Title: hit.Title ?? hit.SerieTitle ?? string.Empty,
+            Serie: hit.SerieTitle,
+            VolumeNumber: hit.Tome,
+            Publishers: [],
+            PublishDate: null,
+            Isbn: EansOf(hit).Select(BookCandidate.ValidIsbn).FirstOrDefault(isbn => isbn is not null),
+            CoverUrl: ToUri(hit.ImageUrl));
+
+    private static string[] EansOf(AlgoliaHit hit) =>
+        hit.Eans?.Split([' ', ',', ';', '|'], StringSplitOptions.RemoveEmptyEntries) ?? [];
 
     // The search is full text: only an album whose EANs hold the ISBN is the book.
     private static bool HasEan(AlgoliaHit hit, string isbn) =>
-        hit.Eans?.Split([' ', ',', ';', '|'], StringSplitOptions.RemoveEmptyEntries)
-            .Any(ean => string.Equals(IsbnHelper.NormalizeIsbn(ean), isbn, StringComparison.Ordinal)) == true;
+        EansOf(hit).Any(ean => string.Equals(IsbnHelper.NormalizeIsbn(ean), isbn, StringComparison.Ordinal));
 
     private static BubbleBookResult ToResult(AlgoliaHit hit) =>
         new(

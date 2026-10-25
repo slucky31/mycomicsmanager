@@ -33,6 +33,17 @@ public sealed class ProviderSearchStateDisplayTests
     }
 
     [Fact]
+    public void Of_Should_ReadTheEditionsFoundByATextSearch()
+    {
+        var edition = new BookCandidate("Okko", "Okko", 1, [], null, null, null);
+
+        ProviderSearchStates.Of(new BookCandidatesResult([edition])).Should().Be(ProviderSearchState.Found);
+        ProviderSearchStates.Of(BookCandidatesResult.None).Should().Be(ProviderSearchState.NotFound);
+        ProviderSearchStates.Of(BookCandidatesResult.Failure).Should().Be(ProviderSearchState.Failed);
+        ProviderSearchStates.Of((BookCandidatesResult?)null).Should().Be(ProviderSearchState.Failed);
+    }
+
+    [Fact]
     public void Icon_Should_DifferForEachState()
     {
         Enum.GetValues<ProviderSearchState>().Select(ProviderSearchStateDisplay.Icon)

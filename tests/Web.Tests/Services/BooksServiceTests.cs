@@ -4,6 +4,7 @@ using Application.Books.Create;
 using Application.Books.Delete;
 using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
+using Application.Books.IsbnAvailability;
 using Application.Books.List;
 using Application.Books.Search;
 using Application.Books.Update;
@@ -32,6 +33,7 @@ public sealed class BooksServiceTests
     private readonly ICommandHandler<DeleteBooksCommand, DeleteBooksResult> _deleteBooksHandler;
     private readonly ICommandHandler<AddReadingDateCommand, ReadingDate> _addReadingDateHandler;
     private readonly ICommandHandler<DeleteReadingDateCommand> _deleteReadingDateHandler;
+    private readonly IQueryHandler<IsIsbnAvailableQuery, bool> _isIsbnAvailableHandler;
     private readonly ICurrentUserService _currentUserService;
     private readonly BooksService _service;
 
@@ -50,6 +52,7 @@ public sealed class BooksServiceTests
         _deleteBooksHandler = Substitute.For<ICommandHandler<DeleteBooksCommand, DeleteBooksResult>>();
         _addReadingDateHandler = Substitute.For<ICommandHandler<AddReadingDateCommand, ReadingDate>>();
         _deleteReadingDateHandler = Substitute.For<ICommandHandler<DeleteReadingDateCommand>>();
+        _isIsbnAvailableHandler = Substitute.For<IQueryHandler<IsIsbnAvailableQuery, bool>>();
 
         _currentUserService = Substitute.For<ICurrentUserService>();
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(DefaultUserId);
@@ -65,6 +68,7 @@ public sealed class BooksServiceTests
             _deleteBooksHandler,
             _addReadingDateHandler,
             _deleteReadingDateHandler,
+            _isIsbnAvailableHandler,
             _currentUserService);
     }
 
@@ -1299,6 +1303,43 @@ public sealed class BooksServiceTests
                 q.SortOrder == sortOrder &&
                 q.SearchTerm == searchTerm),
             Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region IsIsbnAvailable
+
+    [Fact]
+    public async Task IsIsbnAvailable_Should_ReturnValidationError_WhenBookIdIsInvalid()
+    {
+        var result = await _service.IsIsbnAvailable("not-a-guid", "9782012101333", TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(BooksError.ValidationError);
+        await _isIsbnAvailableHandler.DidNotReceive().Handle(Arg.Any<IsIsbnAvailableQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task IsIsbnAvailable_Should_ReturnError_WhenUserNotAuthenticated()
+    {
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        var result = await _service.IsIsbnAvailable(Guid.CreateVersion7().ToString(), "9782012101333", TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(UsersError.NotFound);
+        await _isIsbnAvailableHandler.DidNotReceive().Handle(Arg.Any<IsIsbnAvailableQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task IsIsbnAvailable_Should_AskTheHandlerForTheBookOfTheUser_WhenBookIdIsValid()
+    {
+        var bookId = Guid.CreateVersion7();
+        _isIsbnAvailableHandler.Handle(Arg.Any<IsIsbnAvailableQuery>(), Arg.Any<CancellationToken>()).Returns(Result<bool>.Success(false));
+
+        var result = await _service.IsIsbnAvailable(bookId.ToString(), "9782012101333", TestContext.Current.CancellationToken);
+
+        result.Value.Should().BeFalse();
+        await _isIsbnAvailableHandler.Received(1).Handle(
+            new IsIsbnAvailableQuery(bookId, "9782012101333", DefaultUserId), Arg.Any<CancellationToken>());
     }
 
     #endregion

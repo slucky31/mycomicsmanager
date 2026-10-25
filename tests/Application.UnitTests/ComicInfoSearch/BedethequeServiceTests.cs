@@ -1089,6 +1089,143 @@ public sealed class BedethequeServiceTests : IDisposable
         circuit.PausedUntil.Should().NotBeNull();
     }
 
+    // ── SearchByTextAsync ────────────────────────────────────────────
+
+    private static readonly BookTextQuery s_bigudenQuery = new("L'Ankou", "Biguden", 1);
+
+    private static readonly string AlbumWithIsbnHtml = FullAlbumHtml.Replace("<dt>Planches</dt>", "<dt>EAN/ISBN</dt><dd>978-2-205-05731-7</dd><dt>Planches</dt>", StringComparison.Ordinal);
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReadTheAlbumPagesFoundByGoogle_WhenTheSerieIsOnBedetheque()
+    {
+        var cache = EmptyCache();
+        var service = CreateService(SerpAndPageFactory(SerpApiJson(PageUrl, OkkoSerieUrl), AlbumWithIsbnHtml), cache);
+
+        var result = await service.SearchByTextAsync(s_bigudenQuery, TestContext.Current.CancellationToken);
+
+        result.Candidates.Should().BeEquivalentTo(new BookCandidate[]
+        {
+            new("L'Ankou", "Biguden", 1, ["EP Media"], new DateOnly(2014, 8, 27), ValidIsbn, new Uri(ExpectedCoverUrl)),
+        });
+        await cache.Received(1).SaveAsync(ValidIsbn, PageUrl, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReadTheFirstThreeAlbumPages_WhenGoogleFindsMore()
+    {
+        var pagesRead = 0;
+        var cache = CacheWithUrl(ValidIsbn, PageUrl);
+        var factory = FactoryWith(
+            Track(new FakeHttpMessageHandler(_ => JsonResponse(SerpApiJson(
+                "https://www.bedetheque.com/BD-A-1.html", "https://www.bedetheque.com/BD-B-2.html",
+                "https://www.bedetheque.com/BD-C-3.html", "https://www.bedetheque.com/BD-D-4.html")))),
+            Track(new FakeHttpMessageHandler(_ =>
+            {
+                pagesRead++;
+                return HtmlResponse(AlbumWithIsbnHtml);
+            })));
+        var service = CreateService(factory, cache);
+
+        var result = await service.SearchByTextAsync(s_bigudenQuery, TestContext.Current.CancellationToken);
+
+        pagesRead.Should().Be(3);
+        result.Candidates.Should().HaveCount(3);
+        await cache.DidNotReceive().SaveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SkipThePages_WhenTheyHoldNoAlbum()
+    {
+        var service = CreateService(SerpAndPageFactory(SerpApiJson(PageUrl), "<html><body></body></html>"));
+
+        var result = await service.SearchByTextAsync(s_bigudenQuery, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnFailed_WhenTheAlbumPagesAreBlockedByCloudflare()
+    {
+        var circuit = new BedethequeCircuit(TimeProvider.System);
+        var service = CreateService(SerpAndPageFactory(SerpApiJson(PageUrl), "<title>Just a moment...</title> cloudflare"), circuit: circuit);
+
+        var result = await service.SearchByTextAsync(s_bigudenQuery, TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+        circuit.PausedUntil.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnFailed_WhenBedethequeIsPaused()
+    {
+        var circuit = new BedethequeCircuit(TimeProvider.System);
+        circuit.Pause(TimeSpan.FromHours(1));
+        var factory = SerpAndPageFactory(SerpApiJson(PageUrl));
+        var service = CreateService(factory, circuit: circuit);
+
+        var result = await service.SearchByTextAsync(s_bigudenQuery, TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+        factory.DidNotReceive().CreateClient("SerpApi");
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnFailed_WhenSerpApiAnswersAnError()
+    {
+        var factory = FactoryWith(Track(new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.TooManyRequests))));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByTextAsync(s_bigudenQuery, TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("network")]
+    [InlineData("timeout")]
+    [InlineData("json")]
+    public async Task SearchByTextAsync_Should_ReturnFailed_WhenSerpApiCannotBeRead(string failure)
+    {
+        var factory = FactoryWith(Track(failure switch
+        {
+            "network" => new FakeHttpMessageHandler(new HttpRequestException("Network error")),
+            "timeout" => new FakeHttpMessageHandler(new TaskCanceledException("Timeout")),
+            _ => new FakeHttpMessageHandler(_ => JsonResponse("{ not json")),
+        }));
+        var service = CreateService(factory);
+
+        var result = await service.SearchByTextAsync(s_bigudenQuery, TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SearchNothing_WhenNoSerpApiKeyIsConfigured()
+    {
+        var factory = SerpAndPageFactory(SerpApiJson(PageUrl));
+        var service = CreateService(factory, settings: new BedethequeSettings { SerpApiKey = "", BaseUrl = new Uri("https://www.bedetheque.com"), SerpApiBaseUrl = new Uri("https://serpapi.com") });
+
+        var result = await service.SearchByTextAsync(s_bigudenQuery, TestContext.Current.CancellationToken);
+
+        result.Should().Be(BookCandidatesResult.None);
+        factory.DidNotReceive().CreateClient("SerpApi");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SearchByTextAsync_Should_SearchNothing_WhenTheQueryIsEmptyOrBedethequeIsTurnedOff(bool enabled)
+    {
+        var factory = SerpAndPageFactory(SerpApiJson(PageUrl));
+        var service = CreateService(factory, enabled: enabled);
+
+        var result = await service.SearchByTextAsync(enabled ? new BookTextQuery(null, null, 1) : s_bigudenQuery, TestContext.Current.CancellationToken);
+
+        result.Should().Be(BookCandidatesResult.None);
+        factory.DidNotReceive().CreateClient("SerpApi");
+    }
+
     // ── Handler ──────────────────────────────────────────────────────
 
     private sealed class FakeHttpMessageHandler : HttpMessageHandler

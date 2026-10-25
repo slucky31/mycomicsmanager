@@ -170,6 +170,92 @@
     color: #594AE2;
 }
 
+/* ── A book without ISBN: the search by text and the editions found ── */
+.find-details-query {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.find-details-query-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: #5C6070;
+}
+
+.find-details-query-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+}
+
+::deep .find-details-query-search {
+    min-height: 44px;
+    border-radius: 12px;
+    text-transform: none;
+}
+
+.find-details-editions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.find-details-editions-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.find-details-editions-title .find-details-muted {
+    font-weight: 400;
+}
+
+.find-details-editions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.find-details-edition:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.find-details-edition-title {
+    font-size: 15px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.find-details-edition-isbn {
+    font-size: 12px;
+    color: #5C6070;
+    font-variant-numeric: tabular-nums;
+}
+
+.find-details-edition .find-details-muted {
+    font-size: 13px;
+}
+
+.find-details-cover-none {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ECEDF2;
+    color: #5C6070;
+}
+
+.find-details-picked {
+    flex-grow: 1;
+}
+
 /* ── Fields that already match, sources checked ── */
 .find-details-match {
     display: flex;
@@ -263,5 +349,9 @@
     ::deep .find-details-apply {
         flex: 0 0 auto;
         min-width: 140px;
+    }
+
+    .find-details-query-fields {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) 96px auto;
     }
 }

@@ -37,12 +37,9 @@ public class OpenLibraryService : IOpenLibraryService
             return CreateNotFoundResult();
         }
 
-        try
+        return await SearchAsync($"ISBN {cleanIsbn}", async () =>
         {
-
             var url = new Uri(_settings.BaseUrl, $"/isbn/{cleanIsbn}.json");
-
-            _logger.LogInformation("Searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
 
             var response = await _httpClient.GetAsync(url, cancellationToken);
 
@@ -90,21 +87,70 @@ public class OpenLibraryService : IOpenLibraryService
                 Serie: serie,
                 VolumeNumber: volumeNumber
             );
+        }, CreateFailedResult(), cancellationToken);
+    }
+
+    // OpenLibrary searches works: a work lists the ISBNs of its editions, the first one stands for it.
+    public async Task<BookCandidatesResult> SearchByTextAsync(BookTextQuery query, CancellationToken cancellationToken = default)
+    {
+        if (!IsEnabled || query.IsEmpty)
+        {
+            return BookCandidatesResult.None;
+        }
+
+        var text = query.ToText();
+        return await SearchAsync($"\"{text}\"", async () =>
+        {
+            var url = new Uri(_settings.BaseUrl,
+                $"/search.json?q={Uri.EscapeDataString(text)}&fields=title,publisher,first_publish_year,isbn,cover_i&limit={BookCandidatesResult.MaxCandidates}");
+            var response = await _httpClient.GetAsync(url, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("OpenLibrary returned {StatusCode} for {Query}", response.StatusCode, text);
+                return BookCandidatesResult.Failure;
+            }
+
+            var search = await response.Content.ReadFromJsonAsync<OpenLibrarySearch>(JsonOptions, cancellationToken);
+            return new BookCandidatesResult([.. (search?.Docs ?? [])
+                .Where(doc => !string.IsNullOrWhiteSpace(doc.Title))
+                .Select(ToCandidate)]).RankedFor(query);
+        }, BookCandidatesResult.Failure, cancellationToken);
+    }
+
+    private BookCandidate ToCandidate(OpenLibraryWork work)
+    {
+        var isbns = (work.Isbn ?? []).Select(BookCandidate.ValidIsbn).OfType<string>().ToList();
+        return new BookCandidate(
+            Title: ToComposedForm(work.Title!),
+            Serie: null,
+            VolumeNumber: null,
+            Publishers: [.. (work.Publisher ?? []).Take(1).Select(ToComposedForm)],
+            PublishDate: work.FirstPublishYear is >= 1 and <= 9999 ? new DateOnly(work.FirstPublishYear.Value, 1, 1) : null,
+            Isbn: isbns.Find(isbn => isbn.Length == 13) ?? isbns.FirstOrDefault(),
+            CoverUrl: work.CoverId is { } coverId ? new Uri(_settings.CoversBaseUrl, $"/b/id/{coverId}-M.jpg") : null);
+    }
+
+    private async Task<T> SearchAsync<T>(string searchedFor, Func<Task<T>> search, T failed, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInformation("Searching OpenLibrary for {SearchedFor}", searchedFor);
+            return await search();
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP error searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "HTTP error searching OpenLibrary for {SearchedFor}", searchedFor);
+            return failed;
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "JSON parsing error for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "JSON parsing error for {SearchedFor}", searchedFor);
+            return failed;
         }
         catch (TaskCanceledException ex) when (ex.CancellationToken != cancellationToken)
         {
-            _logger.LogError(ex, "Timeout searching OpenLibrary for ISBN: {Isbn}", cleanIsbn);
-            return CreateFailedResult();
+            _logger.LogError(ex, "Timeout searching OpenLibrary for {SearchedFor}", searchedFor);
+            return failed;
         }
     }
 
@@ -182,6 +228,18 @@ public class OpenLibraryService : IOpenLibraryService
         [property: JsonPropertyName("number_of_pages")] int? NumberOfPages,
         [property: JsonPropertyName("covers")] IReadOnlyList<long>? Covers,
         [property: JsonPropertyName("series")] IReadOnlyList<string>? Series
+    );
+
+    private sealed record OpenLibrarySearch(
+        [property: JsonPropertyName("docs")] IReadOnlyList<OpenLibraryWork>? Docs
+    );
+
+    private sealed record OpenLibraryWork(
+        [property: JsonPropertyName("title")] string? Title,
+        [property: JsonPropertyName("publisher")] IReadOnlyList<string>? Publisher,
+        [property: JsonPropertyName("first_publish_year")] int? FirstPublishYear,
+        [property: JsonPropertyName("isbn")] IReadOnlyList<string>? Isbn,
+        [property: JsonPropertyName("cover_i")] long? CoverId
     );
 
     private sealed record OpenLibraryAuthorRef(

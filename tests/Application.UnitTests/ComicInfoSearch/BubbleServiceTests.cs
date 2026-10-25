@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using Application.ComicInfoSearch;
+using Application.Interfaces;
 using Microsoft.Extensions.Options;
 
 namespace Application.UnitTests.ComicInfoSearch;
@@ -289,6 +290,51 @@ public sealed class BubbleServiceTests
     public void ParseReleaseDate_Should_ReturnNull_WhenTheValueIsNotADate(string? value)
     {
         BubbleService.ParseReleaseDate(value).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnTheAlbumsFound_WhenBubbleKnowsTheSerie()
+    {
+        using var handler = new FakeHandler(_ => Json("""
+            {"hits":[
+            {"objectId":"a","permalink":"p","tome":2,"title":"Gotham Central","eans":"","serieTitle":"Catwoman - Selina Kyle"},
+            {"objectId":"7w2yaSAyke","permalink":"catwoman-selina-kyle-tome-1-pales-copies","tome":1,"title":"Pâles copies",
+            "eans":"bad 9791026816263","imageUrl":"https://assets.bubblebd.com/img/deezclcnp2/sg2ogbtfrb.jpg","serieTitle":"Catwoman - Selina Kyle"}]}
+            """));
+        using var client = new HttpClient(handler);
+
+        var result = await CreateService(client).SearchByTextAsync(new BookTextQuery("Pâles copies", "Catwoman - Selina Kyle", 1), TestContext.Current.CancellationToken);
+
+        result.Candidates.Should().BeEquivalentTo(new BookCandidate[]
+        {
+            new("Pâles copies", "Catwoman - Selina Kyle", 1, [], null, "9791026816263", new Uri("https://assets.bubblebd.com/img/deezclcnp2/sg2ogbtfrb.jpg")),
+            new("Gotham Central", "Catwoman - Selina Kyle", 2, [], null, null, null),
+        }, options => options.WithStrictOrdering());
+        handler.Requests.Should().ContainSingle()
+            .Which.Body.Should().Contain("\"query\":\"Catwoman - Selina Kyle 1 P\\u00E2les copies\"").And.Contain("\"hitsPerPage\":10");
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnFailed_WhenBubbleAnswersAnError()
+    {
+        using var handler = new FakeHandler(_ => new HttpResponseMessage(HttpStatusCode.Forbidden));
+        using var client = new HttpClient(handler);
+
+        var result = await CreateService(client).SearchByTextAsync(new BookTextQuery("Okko", null, null), TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SearchNothing_WhenTheQueryIsEmpty()
+    {
+        using var handler = new FakeHandler(_ => Json("{}"));
+        using var client = new HttpClient(handler);
+
+        var result = await CreateService(client).SearchByTextAsync(new BookTextQuery(null, null, 2), TestContext.Current.CancellationToken);
+
+        result.Should().Be(BookCandidatesResult.None);
+        handler.Requests.Should().BeEmpty();
     }
 
     private sealed class FakeHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler

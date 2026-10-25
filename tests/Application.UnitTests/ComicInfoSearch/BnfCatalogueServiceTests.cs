@@ -213,6 +213,72 @@ public sealed class BnfCatalogueServiceTests : IDisposable
         result.Failed.Should().BeTrue();
     }
 
+    // Two records of the BnF catalogue: the 2004 edition of a volume (with its ISBN) and the 1963 one (without).
+    private static string Records(params string[] records) => $"""
+        <?xml version="1.0" encoding="UTF-8"?><srw:searchRetrieveResponse xmlns:srw="http://www.loc.gov/zing/srw/">
+        <srw:records>{string.Concat(records.Select(fields => $"<srw:record><srw:recordData><mxc:record xmlns:mxc=\"info:lc/xmlns/marcxchange-v2\" format=\"UNIMARC\">{fields}</mxc:record></srw:recordData></srw:record>"))}</srw:records>
+        </srw:searchRetrieveResponse>
+        """;
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnTheEditionsWithTheirIsbn_WhenTheBnfKnowsTheTitle()
+    {
+        var (service, handler) = CreateService(_ => Xml(Records(
+            Field("200", ("a", "Astérix et les Goths")) + Field("210", ("c", "Dargaud"), ("d", "1963")) + Field("461", ("t", "Astérix"), ("v", "3")),
+            Field("010", ("a", "978-2-01-210135-7")) + Field("200", ("a", "Astérix et les Goths")) + Field("210", ("c", "Hachette"), ("d", "2004"))
+                + Field("461", ("t", "Astérix"), ("v", "3")),
+            Field("200", ("a", "Astérix, l'intégrale")))));
+
+        var result = await service.SearchByTextAsync(new BookTextQuery("Astérix et les Goths", "Astérix", 3), TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeFalse();
+        result.Candidates.Should().BeEquivalentTo(new BookCandidate[]
+        {
+            new("Astérix et les Goths", "Astérix", 3, ["Hachette"], new DateOnly(2004, 1, 1), "9782012101357", null),
+            new("Astérix et les Goths", "Astérix", 3, ["Dargaud"], new DateOnly(1963, 1, 1), null, null),
+            new("Astérix, l'intégrale", null, null, [], null, null, null),
+        }, options => options.WithStrictOrdering());
+        handler.LastRequest!.RequestUri!.AbsoluteUri.Should()
+            .Contain("bib.title%20all%20%22Ast%C3%A9rix%20et%20les%20Goths%22%20and%20bib.anywhere%20all%20%22Ast%C3%A9rix%22")
+            .And.Contain("maximumRecords=10");
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SearchTheSerieInTheTitles_WhenNoTitleIsGiven()
+    {
+        var (service, handler) = CreateService(_ => Xml(NoRecordResponse));
+
+        var result = await service.SearchByTextAsync(new BookTextQuery(null, "Le \"grand\" Okko", null), TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.Failed.Should().BeFalse();
+        handler.LastRequest!.RequestUri!.AbsoluteUri.Should().Contain("query=bib.title%20all%20%22Le%20grand%20Okko%22&");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SearchByTextAsync_Should_SearchNothing_WhenTheQueryIsEmptyOrTheBnfIsTurnedOff(bool enabled)
+    {
+        var (service, handler) = CreateService(_ => Xml(NoRecordResponse), enabled);
+        var query = enabled ? new BookTextQuery(" ", null, 3) : new BookTextQuery("Okko", "Okko", 1);
+
+        var result = await service.SearchByTextAsync(query, TestContext.Current.CancellationToken);
+
+        result.Should().Be(BookCandidatesResult.None);
+        handler.LastRequest.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_ReturnFailed_WhenTheBnfAnswersAnError()
+    {
+        var (service, _) = CreateService(_ => new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+
+        var result = await service.SearchByTextAsync(new BookTextQuery("Okko", null, null), TestContext.Current.CancellationToken);
+
+        result.Failed.Should().BeTrue();
+    }
+
     private sealed class StubHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
     {
         public HttpRequestMessage? LastRequest { get; private set; }
