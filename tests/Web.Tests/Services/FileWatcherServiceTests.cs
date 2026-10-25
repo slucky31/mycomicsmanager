@@ -188,6 +188,23 @@ public sealed class FileWatcherServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ProcessFileAsync_Should_CreateImportJob_WhenFileIsOpenForReadingElsewhere()
+    {
+        // An import job reading the archive (#1233) must not make the file look locked.
+        var libDir = Path.Combine(_importDir, _libraryId.ToString());
+        Directory.CreateDirectory(libDir);
+        var filePath = Path.Combine(libDir, "reading.cbz");
+        await File.WriteAllBytesAsync(filePath, new byte[100], TestContext.Current.CancellationToken);
+        await using var reader = File.OpenRead(filePath);
+
+        await _service.ProcessFileAsync(filePath, CancellationToken.None);
+
+        await _createHandler.Received(1).Handle(
+            Arg.Is<CreateImportJobCommand>(c => c.OriginalFileName == "reading.cbz"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task ProcessFileAsync_Should_EnqueueHangfireJob_AfterCreatingImportJob()
     {
         var libDir = Path.Combine(_importDir, _libraryId.ToString());

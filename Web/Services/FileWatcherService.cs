@@ -270,7 +270,9 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             { return false; }
             try
             {
-                using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                // FileShare.Read, not None: a writer is still refused, but an import job already reading the archive
+                // (FileShare.Read too) no longer makes every polling scan of the file fail.
+                using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var size = stream.Length;
                 if (size > 0 && size == lastSize)
                 {
@@ -280,11 +282,12 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             }
             catch (IOException ex)
             {
-                _logger.LogWarning(ex, "File not ready yet on attempt {Attempt}: {FilePath}", attempt, filePath);
+                // Expected while the file is being written: only the final failure is a warning.
+                _logger.LogDebug("File not ready yet on attempt {Attempt}: {FilePath} ({Reason})", attempt, filePath, ex.Message);
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning(ex, "File not accessible yet on attempt {Attempt}: {FilePath}", attempt, filePath);
+                _logger.LogDebug("File not accessible yet on attempt {Attempt}: {FilePath} ({Reason})", attempt, filePath, ex.Message);
             }
 
             await Task.Delay(delayMs, ct).ConfigureAwait(false);

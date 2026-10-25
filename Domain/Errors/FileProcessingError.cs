@@ -1,4 +1,4 @@
-using Domain.Primitives;
+﻿using Domain.Primitives;
 
 namespace Domain.Errors;
 
@@ -14,4 +14,7 @@ public static class FileProcessingError
 
     public static TError InvalidImageContent(string fileName) =>
         new("FP503", $"Image '{fileName}' could not be converted: file is corrupt or has an unrecognized format.");
+
+    public static TError ImageTooLarge(string fileName, int width, int height) =>
+        new("FP504", $"Image '{fileName}' is too large to be converted ({width}×{height}).");
 }

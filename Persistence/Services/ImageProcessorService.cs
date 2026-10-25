@@ -14,6 +14,8 @@ namespace Persistence.Services;
 // - every page is encoded as lossy WebP, PNG sources included.
 // - a page narrower than the target is never enlarged: upscaling adds no detail, and a narrow strip (a spine)
 //   would exceed the 16383px limit of WebP once scaled to the target width.
+// - the decoded size of every page is checked before the first conversion, so an oversized page fails the import
+//   at once instead of after the whole album.
 // Pages are named page-001.webp... in file name order; WebP pages already at their final width are copied as is.
 public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IImageProcessor
 {
@@ -23,8 +25,9 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
     private static readonly SKSamplingOptions s_stepSampling = new(SKFilterMode.Linear, SKMipmapMode.None);
     private static readonly SKSamplingOptions s_finalSampling = new(SKCubicResampler.Mitchell);
     private static readonly int[] s_decodeDenominators = [8, 4, 2];
-    // Pages bigger than this are refused: decoding them would exhaust the memory of the Raspberry Pi.
-    private const int MaxDimension = 8_000;
+    // Pages whose decoded bitmap would exceed this are refused: 40 Mpx is 160 MB in RGBA on the Raspberry Pi.
+    // The decoded size, not the source size, is what costs memory: a 9136×3780 JPEG double page decodes at 4568×1890.
+    internal const long MaxDecodedPixels = 40_000_000;
 
     private static readonly HashSet<string> s_inputExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".jpeg", ".jpg", ".png", ".gif", ".webp" };
@@ -51,6 +54,12 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
         if (imageFiles.Count == 0)
         {
             return new ImageProcessingResult(0, 0, false);
+        }
+
+        var oversizedImage = FindOversizedImage(imageFiles, targetWidth);
+        if (oversizedImage is not null)
+        {
+            return oversizedImage;
         }
 
         Directory.CreateDirectory(destinationDirectory);
@@ -122,9 +131,41 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
         return (processedCount, skippedCount);
     }
 
+    // First page whose decoded bitmap would be too big. A page that cannot be read is left to the conversion,
+    // which reports it as corrupt; a WebP page already at its final width is copied, never decoded.
+    private static TError? FindOversizedImage(List<string> imageFiles, int targetWidth)
+    {
+        foreach (var filePath in imageFiles)
+        {
+            using var codec = OpenCodec(filePath);
+            if (codec is null)
+            {
+                continue;
+            }
+
+            var size = new ImageSize(codec.Info.Width, codec.Info.Height);
+            var effectiveWidth = EffectiveWidth(size, targetWidth);
+            if (IsWebp(filePath) && size.Width == effectiveWidth)
+            {
+                continue;
+            }
+
+            var decoded = DecodeSize(codec, effectiveWidth);
+            if ((long)decoded.Width * decoded.Height > MaxDecodedPixels)
+            {
+                return FileProcessingError.ImageTooLarge(Path.GetFileName(filePath), size.Width, size.Height);
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsWebp(string filePath) =>
+        string.Equals(Path.GetExtension(filePath), ".webp", StringComparison.OrdinalIgnoreCase);
+
     private bool ShouldSkipConversion(string filePath, int targetWidth)
     {
-        if (!string.Equals(Path.GetExtension(filePath), ".webp", StringComparison.OrdinalIgnoreCase))
+        if (!IsWebp(filePath))
         {
             return false;
         }
@@ -159,15 +200,6 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
     private static int EffectiveWidth(ImageSize size, int targetWidth) =>
         Math.Min(size.Width, size.IsDoublePage ? targetWidth * 2 : targetWidth);
 
-    private static void EnsureSupportedDimensions(ImageSize size)
-    {
-        if (size.Width > MaxDimension || size.Height > MaxDimension)
-        {
-            throw new InvalidOperationException(
-                $"Image dimensions ({size.Width}×{size.Height}) exceed maximum allowed ({MaxDimension}px).");
-        }
-    }
-
     // Size of the image without decoding its pixels; null when the file is not a readable image.
     private static ImageSize? Identify(string filePath)
     {
@@ -180,7 +212,6 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
         using var codec = OpenCodec(sourcePath)
             ?? throw new InvalidDataException($"Unsupported or corrupt image: {Path.GetFileName(sourcePath)}");
         var size = new ImageSize(codec.Info.Width, codec.Info.Height);
-        EnsureSupportedDimensions(size);
 
         var effectiveWidth = EffectiveWidth(size, targetWidth);
         var targetHeight = (int)Math.Round((double)size.Height * effectiveWidth / size.Width);
@@ -228,11 +259,7 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
     // Only JPEG supports scaled decoding: the other formats return their full size and are decoded as is.
     private static SKBitmap Decode(SKCodec codec, int targetWidth)
     {
-        var full = codec.Info;
-        var denominator = DecodeScaleDenominator(full.Width, targetWidth);
-        var scaled = denominator == 1 ? full.Size : codec.GetScaledDimensions(1f / denominator);
-        var decodeSize = scaled.Width >= targetWidth ? scaled : full.Size;
-
+        var decodeSize = DecodeSize(codec, targetWidth);
         var info = new SKImageInfo(decodeSize.Width, decodeSize.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
         var bitmap = new SKBitmap(info);
         var result = codec.GetPixels(info, bitmap.GetPixels());
@@ -243,6 +270,14 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
         }
 
         return bitmap;
+    }
+
+    private static SKSizeI DecodeSize(SKCodec codec, int targetWidth)
+    {
+        var full = codec.Info;
+        var denominator = DecodeScaleDenominator(full.Width, targetWidth);
+        var scaled = denominator == 1 ? full.Size : codec.GetScaledDimensions(1f / denominator);
+        return scaled.Width >= targetWidth ? scaled : full.Size;
     }
 
     private static SKBitmap ResizeInSteps(SKBitmap source, int targetWidth, int targetHeight)
