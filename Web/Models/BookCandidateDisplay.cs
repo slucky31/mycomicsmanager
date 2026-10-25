@@ -16,7 +16,7 @@ public static class BookCandidateDisplay
 
     // "Hachette · 2004": what tells the editions of a book apart.
     public static string? Edition(BookCandidate candidate) =>
-        Join(candidate.Publishers.FirstOrDefault(), candidate.PublishDate?.Year.ToString(CultureInfo.InvariantCulture));
+        Join(candidate.Publishers.Count > 0 ? candidate.Publishers[0] : null, candidate.PublishDate?.Year.ToString(CultureInfo.InvariantCulture));
 
     public static string Isbn(BookCandidate candidate) =>
         candidate.Isbn is null ? "No ISBN: this edition cannot be picked" : $"ISBN {candidate.Isbn}";

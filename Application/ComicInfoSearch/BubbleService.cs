@@ -162,15 +162,15 @@ public partial class BubbleService : IBubbleService
             VolumeNumber: hit.Tome,
             Publishers: [],
             PublishDate: null,
-            Isbn: Eans(hit).Select(BookCandidate.ValidIsbn).FirstOrDefault(isbn => isbn is not null),
+            Isbn: EansOf(hit).Select(BookCandidate.ValidIsbn).FirstOrDefault(isbn => isbn is not null),
             CoverUrl: ToUri(hit.ImageUrl));
 
-    private static string[] Eans(AlgoliaHit hit) =>
+    private static string[] EansOf(AlgoliaHit hit) =>
         hit.Eans?.Split([' ', ',', ';', '|'], StringSplitOptions.RemoveEmptyEntries) ?? [];
 
     // The search is full text: only an album whose EANs hold the ISBN is the book.
     private static bool HasEan(AlgoliaHit hit, string isbn) =>
-        Eans(hit).Any(ean => string.Equals(IsbnHelper.NormalizeIsbn(ean), isbn, StringComparison.Ordinal));
+        EansOf(hit).Any(ean => string.Equals(IsbnHelper.NormalizeIsbn(ean), isbn, StringComparison.Ordinal));
 
     private static BubbleBookResult ToResult(AlgoliaHit hit) =>
         new(

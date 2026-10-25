@@ -34,7 +34,7 @@ public partial class FindBookDetails
     private BookTextQuery TextQuery => new(_queryTitle, _querySerie, _queryVolume);
 
     // The ISBN saved with the book differs from its own: read on a page, or the one of the edition picked.
-    private bool IsbnIsNew => _isbnFromPage || _edition is not null;
+    private bool IsbnIsNew => IsbnFromPage || _edition is not null;
 
     // Another book is opened: nothing of the previous search stays.
     private void ResetTextSearch()

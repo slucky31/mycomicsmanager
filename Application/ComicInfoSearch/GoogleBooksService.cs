@@ -132,10 +132,10 @@ public class GoogleBooksService : IGoogleBooksService
             VolumeNumber: null,
             Publishers: string.IsNullOrEmpty(info.Publisher) ? [] : [info.Publisher],
             PublishDate: PublishDateHelper.ParsePublishDate(info.PublishedDate, _logger),
-            Isbn: BookCandidate.ValidIsbn(Identifier(info, "ISBN_13") ?? Identifier(info, "ISBN_10")),
+            Isbn: BookCandidate.ValidIsbn(FindIdentifier(info, "ISBN_13") ?? FindIdentifier(info, "ISBN_10")),
             CoverUrl: GetBestCoverUrl(info.ImageLinks));
 
-    private static string? Identifier(GoogleBooksVolumeInfo info, string type) =>
+    private static string? FindIdentifier(GoogleBooksVolumeInfo info, string type) =>
         info.IndustryIdentifiers?.FirstOrDefault(id => string.Equals(id.Type, type, StringComparison.Ordinal))?.Identifier;
 
     private async Task<T> SearchAsync<T>(string searchedFor, Func<Task<T>> search, T failed, CancellationToken cancellationToken)

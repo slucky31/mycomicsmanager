@@ -31,7 +31,7 @@ public partial class FindBookDetails
 
     private BookUiDto? _currentBook;
     private string? _isbn;
-    private bool _isbnFromPage;
+    private bool IsbnFromPage { get; set; }
     private BnfBookResult? _bnfResult;
     private BedethequeBookResult? _bedethequeResult;
     private BubbleBookResult? _bubbleResult;
@@ -112,7 +112,7 @@ public partial class FindBookDetails
             : null;
 
         _isbn = isbnFromPage ?? currentIsbn;
-        _isbnFromPage = isbnFromPage is not null && !string.Equals(isbnFromPage, currentIsbn, StringComparison.Ordinal);
+        IsbnFromPage = isbnFromPage is not null && !string.Equals(isbnFromPage, currentIsbn, StringComparison.Ordinal);
     }
 
     private async Task FetchWebServicesAsync()
