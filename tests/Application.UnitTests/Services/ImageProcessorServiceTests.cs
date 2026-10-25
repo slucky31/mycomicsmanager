@@ -52,6 +52,50 @@ public sealed class ImageProcessorServiceTests : IDisposable
 
     private readonly record struct PixelSize(int Width, int Height);
 
+    // A PNG whose header declares the given size, without the pixels: enough to be identified, too big to allocate in a test.
+    private static byte[] PngHeader(int width, int height)
+    {
+        using var stream = new MemoryStream();
+        stream.Write([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+        var header = new byte[13];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(header, width);
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(header.AsSpan(4), height);
+        header[8] = 8; // bit depth
+        header[9] = 6; // RGBA
+        WritePngChunk(stream, "IHDR", header);
+        WritePngChunk(stream, "IDAT", [0x78, 0x9C, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01]);
+        WritePngChunk(stream, "IEND", []);
+        return stream.ToArray();
+    }
+
+    private static void WritePngChunk(Stream stream, string type, byte[] data)
+    {
+        var typeBytes = System.Text.Encoding.ASCII.GetBytes(type);
+        var length = new byte[4];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(length, data.Length);
+        var crc = new byte[4];
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(crc, Crc32([.. typeBytes, .. data]));
+        stream.Write(length);
+        stream.Write(typeBytes);
+        stream.Write(data);
+        stream.Write(crc);
+    }
+
+    private static uint Crc32(byte[] bytes)
+    {
+        var crc = 0xFFFFFFFFu;
+        foreach (var b in bytes)
+        {
+            crc ^= b;
+            for (var bit = 0; bit < 8; bit++)
+            {
+                crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320u : crc >> 1;
+            }
+        }
+
+        return ~crc;
+    }
+
     private static PixelSize ReadSize(string path)
     {
         using var codec = SKCodec.Create(path);
@@ -485,20 +529,37 @@ public sealed class ImageProcessorServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ProcessImagesAsync_Should_ReturnFailure_WhenImageExceedsMaxDimension()
+    public async Task ProcessImagesAsync_Should_ReturnTooLargeBeforeAnyConversion_WhenDecodedImageExceedsMaxPixels()
     {
-        // Arrange — 8001px is one pixel over the limit that protects the memory of the Raspberry Pi
+        // Arrange — a PNG is decoded at full size: 6400×6251 is just over the 40 Mpx limit of the Raspberry Pi
         var sourceDir = CreateSourceDir();
         var destDir = CreateSourceDir("dest");
-        await CreatePngAsync(Path.Combine(sourceDir, "huge.png"), width: 10, height: 8001);
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"));
+        await File.WriteAllBytesAsync(Path.Combine(sourceDir, "page-002.png"), PngHeader(6400, 6251), TestContext.Current.CancellationToken);
 
         // Act
         var result = await Service.ProcessImagesAsync(sourceDir, destDir, 140, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Code.Should().Be("FP503");
-        result.Error.Description.Should().Contain("huge.png");
+        result.Error.Should().Be(FileProcessingError.ImageTooLarge("page-002.png", 6400, 6251));
+        Directory.GetFiles(destDir).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ProcessImagesAsync_Should_ConvertVeryWideJpegDoublePage_WhenDecodedAtReducedScale()
+    {
+        // Arrange — 9136px wide (#1233): decoded at 1/2 scale (4568px), far under the pixel limit
+        var sourceDir = CreateSourceDir();
+        var destDir = CreateSourceDir("dest");
+        await CreateJpegAsync(Path.Combine(sourceDir, "page-001.jpg"), width: 9136, height: 378);
+
+        // Act
+        var result = await Service.ProcessImagesAsync(sourceDir, destDir, 1400, null, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        ReadSize(Path.Combine(destDir, "page-001.webp")).Width.Should().Be(2800);
     }
 
     [Theory]
