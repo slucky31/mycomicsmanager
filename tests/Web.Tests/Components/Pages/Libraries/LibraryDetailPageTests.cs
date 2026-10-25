@@ -434,6 +434,23 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         cut.FindAll(".cover-item").Should().HaveCount(2);
     }
 
+    [Fact]
+    public async Task OnAfterRenderAsync_Should_ObserveTheSentinelWithThePage_WhenTheBooksAreShownBeforeTheScriptsAreReady()
+    {
+        // Back from a book (#1230): the books can be on screen before the browser answered the first script call.
+        _ctx.JSInterop.SetupVoid("bodyScroll.disable");
+        var firstPage = new TaskCompletionSource<Result<IPagedList<BookSummaryDto>>>();
+        GivenLibrary(LibraryBookType.Physical, LibraryView.Covers);
+        GivenPage(1, string.Empty, firstPage.Task);
+
+        var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
+        firstPage.SetResult(Result<IPagedList<BookSummaryDto>>.Success(Page(24, true, _blacksad, _hiver)));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item").Should().HaveCount(2));
+
+        var observe = _ctx.JSInterop.VerifyInvoke("infiniteScroll.observe");
+        observe.Arguments[0].Should().NotBeNull();
+    }
+
     // ── Several books (#1150) ──────────────────────────────────────────
 
     private static string Heading(IRenderedComponent<LibraryDetailPage> cut) => cut.Find("h1").TextContent;

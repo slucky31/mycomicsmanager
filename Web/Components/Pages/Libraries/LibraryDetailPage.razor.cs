@@ -108,6 +108,10 @@ public partial class LibraryDetailPage : IAsyncDisposable
     // The library on screen: the side bar links to the other libraries, which are shown in this same page.
     private string? _shownLibraryId;
 
+    // Created before any script call: a render that shows the books before the browser answered the first call
+    // (back from a book) must observe the sentinel with it (#1230).
+    protected override void OnInitialized() => _dotNetRef = DotNetObjectReference.Create(this);
+
     protected override async Task OnParametersSetAsync()
     {
         if (_shownLibraryId == LibraryId)
@@ -185,7 +189,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
             if (firstRender)
             {
                 await JS.InvokeVoidAsync("bodyScroll.disable", _disposalCts.Token);
-                _dotNetRef = DotNetObjectReference.Create(this);
                 var module = await JS.InvokeAsync<IJSObjectReference?>("import", _disposalCts.Token, AppVersion.Versioned("./js/libraryPage.js"));
                 if (module is not null)
                 {

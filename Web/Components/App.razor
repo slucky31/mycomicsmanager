@@ -43,7 +43,7 @@
             observe: function (dotNetRef, sentinelId, scrollContainerSelector) {
                 if (this._observer) { this._observer.disconnect(); }
                 var sentinel = document.getElementById(sentinelId);
-                if (!sentinel) return;
+                if (!sentinel || !dotNetRef) return;
                 var root = document.querySelector(scrollContainerSelector) || null;
                 var self = this;
                 this._observer = new IntersectionObserver(
