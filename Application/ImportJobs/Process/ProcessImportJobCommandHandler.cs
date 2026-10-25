@@ -18,6 +18,7 @@ public sealed class ProcessImportJobCommandHandler(
     : ICommandHandler<ProcessImportJobCommand, DigitalBook>
 {
     private const string CompletedStatus = "Completed";
+    private const string ExtractingStatus = "Extracting";
 
     public async Task<Result<DigitalBook>> Handle(ProcessImportJobCommand request, CancellationToken cancellationToken)
     {
@@ -178,7 +179,7 @@ public sealed class ProcessImportJobCommandHandler(
 
         logger.LogWarning("Import job {JobId}: ISBN {Isbn} is already used by book {BookId}",
             importJob.Id, isbn, existingBook.Id);
-        return await FailJobAsync(importJob, "Extracting",
+        return await FailJobAsync(importJob, ExtractingStatus,
             ImportJobError.IsbnAlreadyOwned(IsbnHelper.NormalizeIsbn(isbn), existingBook.Library?.Name), ct);
     }
 
@@ -190,7 +191,7 @@ public sealed class ProcessImportJobCommandHandler(
         var advanceResult = await AdvanceAndSaveAsync(importJob, ImportJobStatus.Extracting, ct);
         if (advanceResult.IsFailure)
         {
-            return await FailJobAsync(importJob, "Extracting", advanceResult.Error!, ct);
+            return await FailJobAsync(importJob, ExtractingStatus, advanceResult.Error!, ct);
         }
 
         string? comicInfoXmlPath = null;
@@ -201,7 +202,7 @@ public sealed class ProcessImportJobCommandHandler(
                 importJob.OriginalFilePath, rawDir, ct);
             if (pdfResult.IsFailure)
             {
-                return await FailJobAsync(importJob, "Extracting", pdfResult.Error!, ct);
+                return await FailJobAsync(importJob, ExtractingStatus, pdfResult.Error!, ct);
             }
         }
         else
@@ -210,7 +211,7 @@ public sealed class ProcessImportJobCommandHandler(
                 importJob.OriginalFilePath, rawDir, ct);
             if (archiveResult.IsFailure)
             {
-                return await FailJobAsync(importJob, "Extracting", archiveResult.Error!, ct);
+                return await FailJobAsync(importJob, ExtractingStatus, archiveResult.Error!, ct);
             }
             comicInfoXmlPath = archiveResult.Value!.ComicInfoXmlPath;
         }
