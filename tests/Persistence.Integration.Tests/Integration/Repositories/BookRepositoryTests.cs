@@ -1,6 +1,7 @@
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Books;
+using Domain.Libraries;
 
 namespace Persistence.Tests.Integration.Repositories;
 
@@ -265,7 +266,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("978-0-7851-9901-2", TestContext.Current.CancellationToken);
+        var result = await BookRepository.GetByIsbnAsync("978-0-7851-9901-2", DefaultLibrary.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -283,7 +284,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("978-0-7852-0012-3", TestContext.Current.CancellationToken);
+        var result = await BookRepository.GetByIsbnAsync("978-0-7852-0012-3", DefaultLibrary.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -300,7 +301,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("9780000000000", TestContext.Current.CancellationToken);
+        var result = await BookRepository.GetByIsbnAsync("9780000000000", DefaultLibrary.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();
@@ -310,7 +311,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsNull()
     {
         // Act
-        var action = async () => await BookRepository.GetByIsbnAsync(null!);
+        var action = async () => await BookRepository.GetByIsbnAsync(null!, DefaultLibrary.Id);
 
         // Assert
         await action.Should().ThrowAsync<ArgumentException>()
@@ -321,7 +322,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsEmpty()
     {
         // Act
-        var action = async () => await BookRepository.GetByIsbnAsync(string.Empty);
+        var action = async () => await BookRepository.GetByIsbnAsync(string.Empty, DefaultLibrary.Id);
 
         // Assert
         await action.Should().ThrowAsync<ArgumentException>()
@@ -332,7 +333,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsWhitespace()
     {
         // Act
-        var action = async () => await BookRepository.GetByIsbnAsync("   ");
+        var action = async () => await BookRepository.GetByIsbnAsync("   ", DefaultLibrary.Id);
 
         // Assert
         await action.Should().ThrowAsync<ArgumentException>()
@@ -348,7 +349,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("0-439-65548-X", TestContext.Current.CancellationToken);
+        var result = await BookRepository.GetByIsbnAsync("0-439-65548-X", DefaultLibrary.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -365,7 +366,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("978 0 7852 0234 5", TestContext.Current.CancellationToken);
+        var result = await BookRepository.GetByIsbnAsync("978 0 7852 0234 5", DefaultLibrary.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -382,12 +383,72 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Act
-        var result = await BookRepository.GetByIsbnAsync("043965548x", TestContext.Current.CancellationToken);
+        var result = await BookRepository.GetByIsbnAsync("043965548x", DefaultLibrary.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
         Guard.Against.Null(result);
         result.ISBN.Should().Be("043965548X");
+    }
+
+    [Fact]
+    public async Task GetByIsbnAsync_ShouldReturnTheBookWithItsLibrary_WhenItIsInAnotherLibraryOfTheSameType()
+    {
+        // Arrange
+        var otherLibrary = await AddLibraryAsync(LibraryBookType.Physical, DefaultLibrary.UserId);
+        var book = PhysicalBook.Create(new BookMetadata("Hulk", "Hulk Vol 1", "9780785111764"), otherLibrary.Id).Value!;
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await BookRepository.GetByIsbnAsync("9780785111764", DefaultLibrary.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().NotBeNull();
+        Guard.Against.Null(result);
+        result.Id.Should().Be(book.Id);
+        result.Library!.Name.Should().Be(otherLibrary.Name);
+    }
+
+    [Fact]
+    public async Task GetByIsbnAsync_ShouldReturnNull_WhenTheIsbnIsOnlyInALibraryOfTheOtherType()
+    {
+        // Arrange
+        var digitalLibrary = await AddLibraryAsync(LibraryBookType.Digital, DefaultLibrary.UserId);
+        var book = DigitalBook.Create(new BookMetadata("Hulk", "Hulk Vol 1", "9780785111764"),
+            digitalLibrary.Id, "/lib/9780785111764.cbz", 100).Value!;
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await BookRepository.GetByIsbnAsync("9780785111764", DefaultLibrary.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetByIsbnAsync_ShouldReturnNull_WhenTheIsbnIsOnlyInALibraryOfAnotherUser()
+    {
+        // Arrange
+        var otherUserLibrary = await AddLibraryAsync(LibraryBookType.Physical, Guid.CreateVersion7());
+        var book = PhysicalBook.Create(new BookMetadata("Hulk", "Hulk Vol 1", "9780785111764"), otherUserLibrary.Id).Value!;
+        BookRepository.Add(book);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        // Act
+        var result = await BookRepository.GetByIsbnAsync("9780785111764", DefaultLibrary.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    private async Task<Library> AddLibraryAsync(LibraryBookType bookType, Guid userId)
+    {
+        var library = Library.Create($"Other {Guid.CreateVersion7()}", "#000000", "book", bookType, userId).Value!;
+        Context.Libraries.Add(library);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+        return library;
     }
 
     [Fact]

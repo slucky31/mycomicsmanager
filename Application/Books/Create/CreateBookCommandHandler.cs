@@ -35,13 +35,6 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
 
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(request.ISBN);
 
-        // Check if a book with the same ISBN doesn't already exist
-        var existingBook = await bookRepository.GetByIsbnAsync(normalizedIsbn, cancellationToken);
-        if (existingBook is not null)
-        {
-            return BooksError.Duplicate;
-        }
-
         // Fetch the library
         var library = await libraryRepository.GetByIdAsync(request.LibraryId);
         if (library is null)
@@ -53,6 +46,13 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         if (library.UserId != request.UserId)
         {
             return LibrariesError.NotFound;
+        }
+
+        // The same ISBN can be owned once in Physical and once in Digital, not twice in the same type
+        var existingBook = await bookRepository.GetByIsbnAsync(normalizedIsbn, request.LibraryId, cancellationToken);
+        if (existingBook is not null)
+        {
+            return BooksError.Duplicate;
         }
 
         // Create Book

@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.Books;
 using Application.Helpers;
 using Application.Interfaces;
@@ -86,6 +86,13 @@ public sealed class ProcessImportJobCommandHandler(
             if (extractResult.IsFailure)
             { return extractResult.Error!; }
 
+            // Checked before the conversion, and before the cover named after the ISBN is uploaded.
+            var declaredIsbn = TextOrNull(FileNameIsbnExtractor.ExtractIsbn(importJob.OriginalFileName))
+                ?? TextOrNull(extractResult.Value?.Isbn);
+            var duplicateError = await EnsureIsbnNotOwnedAsync(importJob, declaredIsbn, ct);
+            if (duplicateError is not null)
+            { return duplicateError; }
+
             var convertResult = await ConvertStepAsync(importJob, rawDir, convertedDir, ct);
             if (convertResult.IsFailure)
             { return convertResult.Error!; }
@@ -94,7 +101,7 @@ public sealed class ProcessImportJobCommandHandler(
             var webpFiles = externalServices.TempWorkspace.GetWebpFiles(convertedDir);
 
             var metaResult = await SearchMetadataStepAsync(
-                importJob, extractResult.Value, convertResult.Value!, webpFiles, convertedDir, ct);
+                importJob, extractResult.Value, declaredIsbn, convertResult.Value!, webpFiles, convertedDir, ct);
             if (metaResult.IsFailure)
             { return metaResult.Error!; }
             var (meta, isbnScan) = metaResult.Value;
@@ -151,6 +158,28 @@ public sealed class ProcessImportJobCommandHandler(
                     filePath, result.Error?.Description);
             }
         }
+    }
+
+    // ── ISBN already owned ────────────────────────────────────────────────────
+
+    // An ISBN is owned at most once in Digital (#1217): the import of a book already there fails.
+    private async Task<TError?> EnsureIsbnNotOwnedAsync(ImportJob importJob, string? isbn, CancellationToken ct)
+    {
+        if (isbn is null)
+        {
+            return null;
+        }
+
+        var existingBook = await repositories.Books.GetByIsbnAsync(isbn, importJob.LibraryId, ct);
+        if (existingBook is null)
+        {
+            return null;
+        }
+
+        logger.LogWarning("Import job {JobId}: ISBN {Isbn} is already used by book {BookId}",
+            importJob.Id, isbn, existingBook.Id);
+        return await FailJobAsync(importJob, "Extracting",
+            ImportJobError.IsbnAlreadyOwned(IsbnHelper.NormalizeIsbn(isbn), existingBook.Library?.Name), ct);
     }
 
     // ── Step 2: Extracting ────────────────────────────────────────────────────
@@ -245,6 +274,7 @@ public sealed class ProcessImportJobCommandHandler(
     private async Task<Result<(BookMetadata Metadata, IsbnScanResult? IsbnScan)>> SearchMetadataStepAsync(
         ImportJob importJob,
         ComicInfoData? comicInfo,
+        string? declaredIsbn,
         ImageProcessingResult conversion,
         IReadOnlyList<string> pages,
         string convertedDir,
@@ -256,7 +286,7 @@ public sealed class ProcessImportJobCommandHandler(
             return await FailJobAsync(importJob, "SearchingMetadata", advanceResult.Error!, ct);
         }
 
-        var (isbn, isbnScan) = await ResolveIsbnAsync(importJob, comicInfo, pages, ct);
+        var (isbn, isbnScan) = await ResolveIsbnAsync(importJob, declaredIsbn, pages, ct);
         // The ComicInfo.xml shipped with the file wins: the catalogue only fills the fields it leaves empty,
         // since a catalogue title it cannot split into serie and volume comes back as both serie and title.
         var serie = TextOrNull(comicInfo?.Series);
@@ -317,12 +347,11 @@ public sealed class ProcessImportJobCommandHandler(
 
     // The file name and ComicInfo.xml come first: the pages are only read (OCR) when neither has an ISBN.
     private async Task<(string? Isbn, IsbnScanResult? Scan)> ResolveIsbnAsync(
-        ImportJob importJob, ComicInfoData? comicInfo, IReadOnlyList<string> pages, CancellationToken ct)
+        ImportJob importJob, string? declaredIsbn, IReadOnlyList<string> pages, CancellationToken ct)
     {
-        var isbn = FileNameIsbnExtractor.ExtractIsbn(importJob.OriginalFileName) ?? comicInfo?.Isbn;
-        if (!string.IsNullOrWhiteSpace(isbn))
+        if (declaredIsbn is not null)
         {
-            return (isbn, null);
+            return (declaredIsbn, null);
         }
 
         var scan = await externalServices.IsbnScanner.ScanPagesAsync(pages, ct);
@@ -334,7 +363,20 @@ public sealed class ProcessImportJobCommandHandler(
             return (null, scan);
         }
 
-        return (scan.Isbns.Count == 1 ? scan.Isbns[0] : null, scan);
+        if (scan.Isbns.Count == 0)
+        {
+            return (null, scan);
+        }
+
+        // The OCR can misread: an ISBN already owned in Digital is only kept as a candidate.
+        if (await repositories.Books.GetByIsbnAsync(scan.Isbns[0], importJob.LibraryId, ct) is not null)
+        {
+            logger.LogInformation("Import job {JobId}: the ISBN read on the pages is already used, kept as a candidate",
+                importJob.Id);
+            return (null, scan);
+        }
+
+        return (scan.Isbns[0], scan);
     }
 
     // ── Step 5: UploadingCover (best-effort, never fails the pipeline) ────────
@@ -444,8 +486,8 @@ public sealed class ProcessImportJobCommandHandler(
         var digitalBook = bookResult.Value!;
         if (isbnScan is { Completed: true })
         {
-            // A single ISBN is already the book's: only several of them are kept as candidates.
-            digitalBook.RecordIsbnScan(isbnScan.Isbns.Count > 1 ? isbnScan.Isbns : [], externalServices.Clock.GetUtcNow().UtcDateTime);
+            // The ISBNs read are kept as candidates, unless the single one read became the book's.
+            digitalBook.RecordIsbnScan(normalizedIsbn is null ? isbnScan.Isbns : [], externalServices.Clock.GetUtcNow().UtcDateTime);
         }
 
         repositories.Books.Add(digitalBook);

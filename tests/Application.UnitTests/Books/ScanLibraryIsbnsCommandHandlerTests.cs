@@ -68,7 +68,7 @@ public sealed class ScanLibraryIsbnsCommandHandlerTests
     {
         var book = AddBookToScan("Arctic Nation", new IsbnScanResult(true, [Isbn]));
         var other = DigitalBook.Create(new BookMetadata("Blacksad", "Arctic Nation", Isbn), _libraryId, "/data/A/other.cbz", 1024).Value!;
-        _bookRepository.GetByIsbnAsync(Isbn, Arg.Any<CancellationToken>()).Returns(other);
+        _bookRepository.GetByIsbnAsync(Isbn, Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(other);
         ListToScan(book);
 
         var result = await ScanAsync();

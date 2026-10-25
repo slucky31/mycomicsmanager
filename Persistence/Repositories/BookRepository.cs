@@ -84,7 +84,7 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Book?> GetByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
+    public async Task<Book?> GetByIsbnAsync(string isbn, Guid libraryId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(isbn))
         {
@@ -93,7 +93,13 @@ public class BookRepository(ApplicationDbContext dbContext) : IBookRepository
 
         var normalizedIsbn = IsbnHelper.NormalizeIsbn(isbn);
 
+        var scope = dbContext.Libraries.Where(l => l.Id == libraryId);
+
         return await dbContext.Books
-            .FirstOrDefaultAsync(b => b.ISBN == normalizedIsbn, cancellationToken);
+            .Include(b => b.Library)
+            .Where(b => b.ISBN == normalizedIsbn
+                && scope.Any(l => l.UserId == b.Library!.UserId && l.BookType == b.Library.BookType))
+            .OrderBy(b => b.Id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

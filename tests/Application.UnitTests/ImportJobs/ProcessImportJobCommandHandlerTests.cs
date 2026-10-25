@@ -1,4 +1,4 @@
-﻿using Application.ImportJobs;
+using Application.ImportJobs;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
 using Domain.Books;
@@ -389,6 +389,51 @@ public class ProcessImportJobCommandHandlerTests
         await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _isbnScanner.DidNotReceive().ScanPagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>());
+    }
+
+    // ── ISBN already owned in Digital (#1217) ────────────────────────────────
+
+    [Fact]
+    public async Task Handle_Should_FailBeforeConverting_WhenTheIsbnOfTheFileIsAlreadyOwned()
+    {
+        var job = CreatePendingJob("Serie 9782075162869.cbz", "/srv/Serie 9782075162869.cbz");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+        var existingBook = DigitalBook.Create(
+            new BookMetadata("Serie", "Title", "9782075162869"), Guid.CreateVersion7(), "/lib/9782075162869.cbz", 100).Value!;
+        _bookRepository.GetByIsbnAsync(Arg.Any<string>(), job.LibraryId, Arg.Any<CancellationToken>()).Returns(existingBook);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("IMP409D");
+        job.Status.Should().Be(ImportJobStatus.Failed);
+        job.ErrorMessage.Should().Be("ISBN 9782075162869 is already used by a digital book.");
+        await _imageProcessor.DidNotReceive().ProcessImagesAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
+            Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>());
+        await _cloudinaryService.DidNotReceive().UploadImageFromFileAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _bookRepository.DidNotReceive().Add(Arg.Any<Book>());
+        _importDirectoryStorage.Received(1).MoveOriginalFileToError(job.OriginalFilePath);
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepTheIsbnReadOnThePagesAsCandidate_WhenItIsAlreadyOwned()
+    {
+        var job = SetupJobWithoutIsbn();
+        _isbnScanner.ScanPagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())
+            .Returns(new IsbnScanResult(true, ["9782075162869"]));
+        var existingBook = DigitalBook.Create(
+            new BookMetadata("Serie", "Title", "9782075162869"), Guid.CreateVersion7(), "/lib/9782075162869.cbz", 100).Value!;
+        _bookRepository.GetByIsbnAsync("9782075162869", job.LibraryId, Arg.Any<CancellationToken>()).Returns(existingBook);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ISBN.Should().BeNull();
+        result.Value.IsbnCandidates.Should().Equal("9782075162869");
+        await _comicSearchService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     // ── Cover upload ──────────────────────────────────────────────────────────

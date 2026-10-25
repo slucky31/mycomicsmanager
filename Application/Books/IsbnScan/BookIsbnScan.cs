@@ -38,7 +38,7 @@ internal static class BookIsbnScan
         DateTime scannedAtUtc,
         CancellationToken ct)
     {
-        if (isbns.Count == 1 && await bookRepository.GetByIsbnAsync(isbns[0], ct) is null)
+        if (isbns.Count == 1 && await bookRepository.GetByIsbnAsync(isbns[0], book.LibraryId, ct) is null)
         {
             book.RecordIsbnScan([], scannedAtUtc);
             book.AssignIsbn(isbns[0]);

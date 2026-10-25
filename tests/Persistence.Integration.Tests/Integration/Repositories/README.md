@@ -55,3 +55,5 @@ The `BookRepositoryTests` class provides comprehensive integration tests for the
 - ✅ Handles ISBN-10 format
 - ✅ Handles ISBN with spaces
 - ✅ Case-insensitive for ISBN-10 with 'X' check digit
+- ✅ Finds the ISBN in the other libraries of the same owner and the same book type, with the library
+- ✅ Ignores the libraries of the other book type and of the other users

@@ -45,7 +45,7 @@ public sealed class UpdateBookCommandHandler(
         }
 
         var existingBook = normalizedIsbn is not null
-            ? await bookRepository.GetByIsbnAsync(normalizedIsbn, cancellationToken)
+            ? await bookRepository.GetByIsbnAsync(normalizedIsbn, book.LibraryId, cancellationToken)
             : null;
         if (existingBook is not null && existingBook.Id != request.Id)
         {
