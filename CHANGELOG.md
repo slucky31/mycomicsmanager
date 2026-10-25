@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.65.2"></a>
+## [10.65.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.2) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **import:** block an ISBN already owned in a digital library ([#1217](https://www.github.com/slucky31/mycomicsmanager/issues/1217)) ([#1227](https://www.github.com/slucky31/mycomicsmanager/issues/1227)) ([0f1800e](https://www.github.com/slucky31/mycomicsmanager/commit/0f1800e04952eb0233f3105982e636f904e35c1d))
+
 <a name="10.65.1"></a>
 ## [10.65.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.65.1) (2026-10-24)
 
