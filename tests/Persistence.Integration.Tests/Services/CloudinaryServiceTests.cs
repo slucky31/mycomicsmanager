@@ -33,8 +33,10 @@ public class CloudinaryServiceTests
         return service;
     }
 
-    [Fact]
-    public async Task UploadImageFromUrlAsync_ShouldReturnSuccess_WhenUploadSucceeds()
+    [Theory]
+    [InlineData("https://covers.openlibrary.org/b/id/123-L.jpg")]
+    [InlineData("https://assets.bubblebd.com/img/zwisd1reza/tj08p3szc3.jpg")]
+    public async Task UploadImageFromUrlAsync_ShouldReturnSuccess_WhenUploadSucceeds(string address)
     {
         // Arrange
         using var response = new HttpResponseMessage(HttpStatusCode.OK)
@@ -48,7 +50,7 @@ public class CloudinaryServiceTests
 
         // Act
         var result = await service.UploadImageFromUrlAsync(
-            new Uri("https://covers.openlibrary.org/b/id/123-L.jpg"), "covers", "test", TestContext.Current.CancellationToken);
+            new Uri(address), "covers", "test", TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeTrue();
