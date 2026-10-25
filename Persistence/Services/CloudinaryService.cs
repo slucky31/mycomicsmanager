@@ -12,7 +12,7 @@ namespace Persistence.Services;
 public class CloudinaryService : ICloudinaryService
 {
     private static readonly HashSet<string> s_allowedCoverHosts =
-        new(["www.bedetheque.com", "books.google.com", "books.googleusercontent.com", "covers.openlibrary.org"],
+        new(["www.bedetheque.com", "books.google.com", "books.googleusercontent.com", "covers.openlibrary.org", "assets.bubblebd.com"],
             StringComparer.OrdinalIgnoreCase);
 
     private readonly Cloudinary _cloudinary;
