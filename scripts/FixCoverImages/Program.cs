@@ -105,6 +105,7 @@ if (dryRun)
 // ─── DI setup ─────────────────────────────────────────────────────────────────
 
 var services = new ServiceCollection();
+services.AddLogging();
 services.AddApplication();
 services.AddInfrastructure(connectionString, rootPath: Path.GetTempPath(), config);
 
