@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.69.1"></a>
+## [10.69.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.1) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* **scripts:** register logging in FixCoverImages so CloudinaryService resolves ([#1239](https://www.github.com/slucky31/mycomicsmanager/issues/1239)) ([a385534](https://www.github.com/slucky31/mycomicsmanager/commit/a385534f0efa2390317e3b939b75bc752504f168))
+
 <a name="10.69.0"></a>
 ## [10.69.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.0) (2026-10-26)
 
