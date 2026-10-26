@@ -62,7 +62,7 @@
     border-radius: 10px;
     background: var(--mcm-badge);
     color: #ffffff;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
 }
 
@@ -95,7 +95,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--mcm-text-muted);
 }
 

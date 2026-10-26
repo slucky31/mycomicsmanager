@@ -42,7 +42,7 @@
     border-radius: 10px;
     background: var(--mcm-surface-sunken);
     color: #3D4150;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
 }
 
@@ -138,7 +138,8 @@
     box-sizing: border-box;
     border: 1px solid var(--library-color);
     border-radius: 12px;
-    color: var(--library-color);
+    /* The library colour darkened enough to be read on white, whatever the colour (#1245). */
+    color: color-mix(in srgb, var(--library-color) 45%, var(--mcm-text));
     font-size: 12px;
 }
 

@@ -12,6 +12,9 @@ public partial class FeedImportsPage : IAsyncDisposable
 {
     private const int PageSize = 20;
 
+    // Under the h2 of the side panel the sections are level 3; inline, the title of the card is a button, not a heading.
+    private static int SectionLevel(bool inPanel) => inPanel ? 3 : 2;
+
     [Inject] private IFeedImportService FeedImportService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private FeedImportNotifier Notifier { get; set; } = default!;
