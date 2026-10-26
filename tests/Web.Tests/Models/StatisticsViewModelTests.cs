@@ -121,6 +121,21 @@ public sealed class StatisticsViewModelTests
         chart.AriaLabel.Should().Be("Readings per month over the last 2 months: no readings");
     }
 
+    [Fact]
+    public void PeriodLabel_Should_CountTheMonths()
+    {
+        ReadingsChartViewModel.From(Months(1, 6, 0)).PeriodLabel.Should().Be("last 3 months");
+    }
+
+    [Fact]
+    public void PeriodLabel_Should_SayLastMonth_WhenTheChartHasOneMonth()
+    {
+        var chart = ReadingsChartViewModel.From(Months(4));
+
+        chart.PeriodLabel.Should().Be("last month");
+        chart.AriaLabel.Should().Be("Readings per month over the last month: 4 readings, peak of 4 in January");
+    }
+
     [Theory]
     [InlineData(0, 1)]
     [InlineData(2, 1)]

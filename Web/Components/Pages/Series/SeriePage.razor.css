@@ -30,13 +30,13 @@
 }
 
 .serie-progress-label {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 600;
 }
 
 .serie-progress-count,
 .serie-progress-published {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -73,7 +73,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -84,7 +84,7 @@
     border-radius: 8px;
     font: inherit;
     /* 16px: iOS does not zoom on the field */
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     color: var(--mcm-text);
 }
 
@@ -93,7 +93,7 @@
     align-items: center;
     gap: 8px;
     min-height: 44px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .serie-total-finished ::deep input {
@@ -202,7 +202,7 @@
     overflow: hidden;
     background: var(--mud-palette-primary);
     color: #ffffff;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
 }
 
@@ -217,7 +217,7 @@
     border-radius: 10px;
     background: var(--mcm-badge);
     color: #ffffff;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 700;
 }
 
@@ -231,12 +231,12 @@
     border: 2px dashed #C08A5A;
     background: #FFF6EE;
     color: var(--mcm-missing);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 600;
 }
 
 .serie-slot-missing-number {
-    font-size: 18px;
+    font-size: var(--mcm-font-subtitle);
     font-weight: 700;
 }
 
@@ -244,7 +244,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
 }
 

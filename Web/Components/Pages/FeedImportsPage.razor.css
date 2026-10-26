@@ -24,7 +24,7 @@
 .feeds-bar h1 {
     flex-grow: 1;
     margin: 0;
-    font-size: 26px;
+    font-size: var(--mcm-font-page);
     font-weight: 700;
 }
 
@@ -62,7 +62,7 @@
     background: #ffffff;
     color: var(--mcm-text);
     font: inherit;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
     cursor: pointer;
 }
@@ -84,7 +84,7 @@
     border-radius: 12px;
     background: var(--mcm-info-soft);
     color: var(--mcm-info);
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .feeds-selection {
@@ -99,7 +99,7 @@
     border-radius: 12px;
     background: var(--mcm-text);
     color: #ffffff;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .feeds-selection span {
@@ -128,7 +128,7 @@
 .feeds-empty,
 .feeds-panel-empty {
     padding: 32px 0;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     text-align: center;
     color: var(--mcm-text-muted);
 }
@@ -181,13 +181,13 @@
 }
 
 .feed-card-title {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
     line-height: 19px;
 }
 
 .feed-card-subtitle {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -200,7 +200,7 @@
 }
 
 .feed-card-date {
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }
 
@@ -210,7 +210,7 @@
 
 .feed-card-summary {
     margin-top: 6px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
     overflow-wrap: anywhere;
 }
@@ -230,7 +230,7 @@
     border-radius: 12px;
     background: var(--mcm-surface-sunken);
     color: var(--mcm-text-muted);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
     white-space: nowrap;
 }
@@ -268,7 +268,7 @@
     min-height: 40px;
     border-radius: 20px;
     text-transform: none;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .feed-link {
@@ -276,7 +276,7 @@
     align-items: center;
     min-height: 40px;
     color: var(--mud-palette-primary);
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
     text-decoration: none;
 }
@@ -310,20 +310,20 @@
 
 .feed-detail-heading h2 {
     margin: 0;
-    font-size: 22px;
+    font-size: var(--mcm-font-title-l);
     font-weight: 500;
 }
 
 .feed-detail-subtitle {
     margin-top: 4px;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     color: var(--mcm-text-muted);
 }
 
 .feed-box {
     padding: 14px 16px;
     border-radius: 12px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     overflow-wrap: anywhere;
 }
 
@@ -364,7 +364,7 @@
 
 .feed-section-title {
     margin: 0 0 6px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -372,7 +372,7 @@
 }
 
 .feed-muted {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -381,7 +381,7 @@
     grid-template-columns: max-content minmax(0, 1fr);
     gap: 4px 12px;
     margin: 0;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .feed-facts dt {
@@ -402,7 +402,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .feed-file-name {
@@ -422,7 +422,7 @@
     align-items: center;
     gap: 4px;
     color: var(--mud-palette-primary);
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     text-decoration: none;
 }
 
@@ -442,7 +442,7 @@
     flex-direction: column;
     padding: 6px 0 6px 12px;
     border-left: 2px solid var(--mcm-border);
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
 }
 
 .feed-timeline-date {
@@ -473,7 +473,7 @@
     }
 
     .feeds-bar h1 {
-        font-size: 28px;
+        font-size: var(--mcm-font-page);
     }
 
     .feeds-search {

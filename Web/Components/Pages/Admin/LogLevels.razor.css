@@ -21,7 +21,7 @@
 
 .log-levels-bar h1 {
     margin: 0;
-    font-size: 26px;
+    font-size: var(--mcm-font-page);
     font-weight: 700;
 }
 
@@ -39,7 +39,7 @@
 
 .log-levels-hint {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     color: var(--mcm-text-muted);
 }
 
@@ -78,7 +78,7 @@
     background: transparent;
     color: var(--mcm-text);
     font: inherit;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
 }
 
 ::deep .log-levels-reset {
@@ -90,7 +90,7 @@
 
 .log-levels-count,
 .log-levels-empty {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -128,7 +128,7 @@
     flex-grow: 1;
     min-width: 0;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     overflow-wrap: anywhere;
 }
 
@@ -138,7 +138,7 @@
     border-radius: 10px;
     background: var(--mcm-surface-sunken);
     color: var(--mcm-text-muted);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     line-height: 20px;
 }
 
@@ -165,7 +165,7 @@
     background: #ffffff;
     color: var(--mcm-text);
     font: inherit;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
@@ -214,7 +214,7 @@
     }
 
     .log-levels-bar h1 {
-        font-size: 28px;
+        font-size: var(--mcm-font-page);
     }
 
     .log-levels-content {

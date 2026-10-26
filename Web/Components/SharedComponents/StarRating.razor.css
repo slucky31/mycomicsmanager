@@ -18,7 +18,7 @@
 }
 
 .star-rating-button ::deep svg {
-    font-size: 28px;
+    font-size: var(--mcm-font-page);
 }
 
 .star-rating-on {
@@ -36,7 +36,7 @@
 }
 
 .star-rating-readonly ::deep .star-rating-star {
-    font-size: 18px;
+    font-size: var(--mcm-font-subtitle);
     color: var(--mcm-border-strong);
 }
 

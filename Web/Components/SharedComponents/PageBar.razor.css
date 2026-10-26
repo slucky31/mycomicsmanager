@@ -17,7 +17,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
     font-weight: 500;
     line-height: 24px;
 }
@@ -26,6 +26,6 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }

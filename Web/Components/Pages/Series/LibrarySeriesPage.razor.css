@@ -87,7 +87,7 @@
     overflow: hidden;
     background: var(--mud-palette-primary);
     color: #ffffff;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
 }
 
@@ -99,7 +99,7 @@
     display: flex;
     align-items: center;
     border-radius: 11px;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 700;
 }
 
@@ -129,11 +129,11 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 600;
 }
 
 .serie-detail {
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }

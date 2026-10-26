@@ -28,12 +28,12 @@
     outline: none;
     background: transparent;
     font: inherit;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     color: var(--mcm-text);
 }
 
 .icon-chooser-caption {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -43,7 +43,7 @@
 .icon-chooser-empty {
     padding: 16px;
     color: var(--mcm-text-muted);
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     text-align: center;
 }
 

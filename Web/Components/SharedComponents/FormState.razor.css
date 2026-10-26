@@ -12,7 +12,7 @@
 
 .form-state h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
     font-weight: 500;
     color: var(--mcm-text);
 }
@@ -22,6 +22,6 @@
 }
 
 .form-state ::deep .form-state-icon {
-    font-size: 64px;
+    font-size: var(--mcm-font-hero);
     color: #B5B8C4;
 }

@@ -21,12 +21,12 @@
 
 .import-bar h1 {
     margin: 0;
-    font-size: 26px;
+    font-size: var(--mcm-font-page);
     font-weight: 700;
 }
 
 .import-bar-subtitle {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -43,7 +43,7 @@
     border: 1px solid var(--mcm-border);
     border-radius: 12px;
     background: #ffffff;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .import-error {
@@ -77,13 +77,13 @@
     width: 100%;
     height: 52px;
     border-radius: 26px;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     text-transform: none;
 }
 
 .import-hint {
     margin-top: -4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     text-align: center;
     color: var(--mcm-text-muted);
 }
@@ -98,7 +98,7 @@
 .import-section-head h2 {
     flex-grow: 1;
     margin: 0;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -106,7 +106,7 @@
 }
 
 .import-section-head span {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -118,7 +118,7 @@
 
 .import-none {
     padding: 24px 0;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     text-align: center;
     color: var(--mcm-text-muted);
 }
@@ -130,7 +130,7 @@
     }
 
     .import-bar h1 {
-        font-size: 28px;
+        font-size: var(--mcm-font-page);
     }
 
     .import-content {

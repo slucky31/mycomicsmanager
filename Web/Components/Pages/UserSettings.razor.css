@@ -20,7 +20,7 @@
 
 .settings-bar h1 {
     margin: 0;
-    font-size: 26px;
+    font-size: var(--mcm-font-page);
     font-weight: 700;
 }
 
@@ -58,7 +58,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: var(--mcm-font-subtitle);
     font-weight: 700;
 }
 
@@ -68,12 +68,12 @@
 }
 
 .settings-account-name {
-    font-size: 17px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
 }
 
 .settings-account-email {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     color: var(--mcm-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -98,7 +98,7 @@
     background: none;
     color: var(--mcm-text);
     font: inherit;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     text-align: left;
     text-decoration: none;
     cursor: pointer;
@@ -119,7 +119,7 @@ div.settings-row {
 }
 
 ::deep .settings-row-icon {
-    font-size: 22px;
+    font-size: var(--mcm-font-title-l);
     flex-shrink: 0;
 }
 
@@ -129,12 +129,12 @@ div.settings-row {
 }
 
 .settings-row-value {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     color: var(--mcm-text-muted);
 }
 
 ::deep .settings-row-end {
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
     color: var(--mcm-text-muted);
     flex-shrink: 0;
 }
@@ -154,7 +154,7 @@ div.settings-row {
 
 .settings-row-help {
     display: block;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -215,13 +215,13 @@ div.settings-row {
     border-radius: 12px;
     background: var(--mcm-surface-sunken);
     color: var(--mcm-text-muted);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
     white-space: nowrap;
 }
 
 .settings-health-chip ::deep svg {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .health-healthy {
@@ -259,7 +259,7 @@ div.settings-row {
     align-items: center;
     gap: 12px;
     min-height: 36px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .settings-health-name {
@@ -271,14 +271,14 @@ div.settings-row {
 
 .settings-health-empty {
     min-height: 36px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     color: var(--mcm-text-muted);
 }
 
 /* ── Administration ── */
 .settings-section-title {
     margin: 0 0 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -292,7 +292,7 @@ div.settings-row {
     }
 
     .settings-bar h1 {
-        font-size: 28px;
+        font-size: var(--mcm-font-page);
     }
 
     .settings-content {

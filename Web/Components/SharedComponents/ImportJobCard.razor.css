@@ -27,7 +27,7 @@
 }
 
 .import-job-name {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
@@ -35,7 +35,7 @@
 }
 
 .import-job-meta {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -49,13 +49,13 @@
     border-radius: 12px;
     background: var(--mcm-surface-sunken);
     color: var(--mcm-text-muted);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
     white-space: nowrap;
 }
 
 .import-job-status ::deep svg {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .status-processing .import-job-status {
@@ -89,20 +89,20 @@
 
 .import-job-step {
     margin-top: 6px;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }
 
 .import-job-error {
     margin-top: 8px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-error-strong);
     overflow-wrap: anywhere;
 }
 
 .import-job-error-step {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }
 
@@ -121,7 +121,7 @@
     align-items: center;
     min-height: 44px;
     color: var(--mud-palette-primary);
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
     text-decoration: none;
 }

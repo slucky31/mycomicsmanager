@@ -77,6 +77,9 @@ public sealed record ReadingsChartViewModel(
 {
     private static readonly int[] s_stepMultipliers = [1, 2, 5];
 
+    // "last month", "last 6 months".
+    public string PeriodLabel => Period(Bars.Count);
+
     public static ReadingsChartViewModel From(IReadOnlyList<MonthlyReadingCountDto> months)
     {
         ArgumentNullException.ThrowIfNull(months);
@@ -130,9 +133,12 @@ public sealed record ReadingsChartViewModel(
         return 0;
     }
 
+    private static string Period(int months) =>
+        months == 1 ? "last month" : string.Create(CultureInfo.InvariantCulture, $"last {months} months");
+
     private static string AriaLabelFor(IReadOnlyList<MonthlyReadingCountDto> months, int total, int peakIndex)
     {
-        var period = $"Readings per month over the last {months.Count} months";
+        var period = $"Readings per month over the {Period(months.Count)}";
         if (peakIndex < 0)
         {
             return $"{period}: no readings";

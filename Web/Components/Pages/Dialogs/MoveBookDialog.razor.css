@@ -11,14 +11,14 @@
 
 .move-heading h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
     font-weight: 500;
     color: var(--mcm-text);
 }
 
 .move-intro {
     margin: 4px 0 0;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     color: var(--mcm-text-muted);
 }
 
@@ -103,7 +103,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
 }
 
@@ -116,13 +116,13 @@
     border-radius: 11px;
     background: var(--mcm-success-soft);
     color: var(--mcm-success-strong);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
 }
 
 .move-library-details {
     display: block;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -148,7 +148,7 @@
 }
 
 .move-library-radio-on ::deep svg {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
 }
 
 .move-actions {
@@ -166,7 +166,7 @@
     padding: 0 20px;
     border-radius: 26px;
     font: inherit;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
     cursor: pointer;
 }
@@ -203,6 +203,6 @@
     .move-button {
         flex: 0 0 auto;
         height: 48px;
-        font-size: 15px;
+        font-size: var(--mcm-font-body);
     }
 }

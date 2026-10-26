@@ -105,9 +105,9 @@ public sealed class EditBookComponentTests : IAsyncDisposable
         cut.Find(".edit-library-name").TextContent.Should().Be("Read Books · Physical");
         cut.Find(".edit-library-cover").GetAttribute("alt").Should().Be("Cover of Extremity");
         cut.Find(".form-section-note").TextContent.Should().Be("2 readings");
-        cut.FindAll(".edit-reading-date").Select(d => d.TextContent).Should().Equal("12 March 2026", "2 August 2024");
+        cut.FindAll(".edit-reading-date").Select(d => d.TextContent).Should().Equal("12/03/2026", "02/08/2024");
         cut.Find(".edit-reading [role=img]").GetAttribute("aria-label").Should().Be("Rated 4 out of 5");
-        cut.Find(".edit-reading-delete").GetAttribute("aria-label").Should().Be("Delete the reading of 12 March 2026");
+        cut.Find(".edit-reading-delete").GetAttribute("aria-label").Should().Be("Delete the reading of 12/03/2026");
     }
 
     [Fact]
@@ -230,7 +230,7 @@ public sealed class EditBookComponentTests : IAsyncDisposable
 
         await _booksService.Received(1).DeleteReadingDate(_book.Id.ToString(), _recentReading.Id.ToString(), Arg.Any<CancellationToken>());
         await _dialogs.Received(1).ShowAsync<ConfirmationDialog>("Delete this reading?", Arg.Any<DialogParameters>(), Arg.Any<DialogOptions?>());
-        cut.FindAll(".edit-reading-date").Select(d => d.TextContent).Should().Equal("2 August 2024");
+        cut.FindAll(".edit-reading-date").Select(d => d.TextContent).Should().Equal("02/08/2024");
         cut.Find(".form-section-note").TextContent.Should().Be("1 reading");
         cut.Find("#book-title").GetAttribute("value").Should().Be("Changed");
     }

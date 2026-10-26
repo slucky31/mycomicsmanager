@@ -6,7 +6,7 @@
 }
 
 .form-field-label {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
     color: var(--mcm-text);
 }
@@ -27,7 +27,7 @@
     background: #ffffff;
     color: var(--mcm-text);
     font: inherit;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     outline: none;
 }
 
@@ -71,15 +71,15 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-error);
 }
 
 .form-field-error ::deep svg {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
 }
 
 .form-field-help {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }

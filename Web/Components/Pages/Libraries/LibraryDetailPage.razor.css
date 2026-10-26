@@ -33,7 +33,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
     font-weight: 500;
     line-height: 24px;
 }
@@ -42,7 +42,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -97,7 +97,7 @@
     background: transparent;
     font: inherit;
     /* 16px: iOS does not zoom on the field */
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     color: var(--mcm-text);
 }
 
@@ -129,7 +129,7 @@
 .library-search-results {
     flex-shrink: 0;
     padding: 4px 16px 8px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -164,12 +164,12 @@
     }
 
     .library-bar-title h1 {
-        font-size: 24px;
+        font-size: var(--mcm-font-title-l);
         line-height: 28px;
     }
 
     .library-bar-subtitle {
-        font-size: 14px;
+        font-size: var(--mcm-font-label);
     }
 
     .library-bar-view {
@@ -198,7 +198,7 @@
     }
 
     .library-search-field input {
-        font-size: 15px;
+        font-size: var(--mcm-font-body);
     }
 
     ::deep .library-bar-new-book {
@@ -231,14 +231,14 @@
     }
 
     .library-bar-title h1 {
-        font-size: 32px;
+        font-size: var(--mcm-font-page-l);
         font-weight: 700;
         line-height: 38px;
     }
 
     .library-bar-subtitle {
         margin-top: 2px;
-        font-size: 15px;
+        font-size: var(--mcm-font-body);
     }
 
     .library-search {
@@ -257,13 +257,13 @@
 
 .add-book-sheet-heading h2 {
     margin: 0;
-    font-size: 18px;
+    font-size: var(--mcm-font-subtitle);
     font-weight: 500;
 }
 
 .add-book-sheet-target {
     margin-top: 2px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     color: var(--mcm-text-muted);
 }
 
@@ -280,7 +280,7 @@
     border-radius: 26px;
     background: var(--mud-palette-primary);
     color: #ffffff;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
     text-decoration: none;
 }

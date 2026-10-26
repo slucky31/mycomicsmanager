@@ -8,7 +8,7 @@
     border: 0;
     background: none;
     font: inherit;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     text-align: left;
     text-decoration: none;
     color: var(--mcm-text);
@@ -42,7 +42,7 @@
 
 .action-sheet-item-description {
     display: block;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 400;
     color: var(--mcm-text-muted);
 }

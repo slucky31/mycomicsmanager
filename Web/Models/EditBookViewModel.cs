@@ -1,4 +1,5 @@
 using System.Globalization;
+using Application.Helpers;
 using Domain.Books;
 
 namespace Web.Models;
@@ -47,7 +48,7 @@ public sealed record EditBookViewModel
             Readings = [.. book.ReadingDates
                 .OrderByDescending(rd => rd.Date)
                 .ThenBy(rd => rd.Id)
-                .Select(rd => new EditBookReading(rd.Id, rd.Date.ToString("d MMMM yyyy", CultureInfo.InvariantCulture), rd.Rating))],
+                .Select(rd => new EditBookReading(rd.Id, rd.Date.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture), rd.Rating))],
         };
     }
 }

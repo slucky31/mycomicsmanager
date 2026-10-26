@@ -32,7 +32,7 @@
     border-radius: 12px;
     background: var(--mcm-error-soft);
     color: var(--mcm-error);
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 @media (min-width: 600px) {
@@ -73,7 +73,7 @@
         padding: 16px;
         border: 2px dashed var(--mcm-border);
         color: var(--mcm-text-muted);
-        font-size: 14px;
+        font-size: var(--mcm-font-label);
         text-align: center;
         box-shadow: none;
     }

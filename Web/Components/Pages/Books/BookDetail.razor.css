@@ -28,7 +28,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     color: var(--mcm-text-muted);
 }
 
@@ -99,20 +99,20 @@
 
 .book-heading h1 {
     margin: 0;
-    font-size: 24px;
+    font-size: var(--mcm-font-title-l);
     font-weight: 700;
     line-height: 28px;
     overflow-wrap: anywhere;
 }
 
 .book-serie {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
     color: var(--mud-palette-primary);
 }
 
 .book-authors {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     color: var(--mcm-text-muted);
 }
 
@@ -134,7 +134,7 @@
     padding: 0 10px;
     border: 1px solid var(--mcm-primary-strong);
     border-radius: 12px;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-primary-strong);
 }
 
@@ -146,13 +146,13 @@
     padding: 0 8px;
     border-radius: 11px;
     background: var(--mcm-success-soft);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
     color: var(--mcm-success);
 }
 
 .book-read ::deep .mud-icon-root {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .book-stars {
@@ -161,7 +161,7 @@
 }
 
 .book-stars ::deep .book-star {
-    font-size: 18px;
+    font-size: var(--mcm-font-subtitle);
     color: var(--mcm-border-strong);
 }
 
@@ -187,7 +187,7 @@
     border-radius: 26px;
     background: var(--mud-palette-primary);
     font: inherit;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
     color: #ffffff;
     text-decoration: none;
@@ -208,7 +208,7 @@
 }
 
 .book-primary-progress {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 400;
     opacity: 0.85;
 }
@@ -250,7 +250,7 @@
     background: none;
     color: var(--mud-palette-primary);
     font: inherit;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
@@ -262,7 +262,7 @@
 }
 
 .book-start-over ::deep .mud-icon-root {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
 }
 
 /* ── Other actions, with a label; they scroll sideways on a narrow phone ── */
@@ -291,7 +291,7 @@
     border-radius: 22px;
     background: #ffffff;
     font: inherit;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
     color: var(--mcm-text);
     text-decoration: none;
@@ -305,7 +305,7 @@
 }
 
 .book-action ::deep .mud-icon-root {
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
 }
 
 /* ── Panels: details and reading history ── */
@@ -327,7 +327,7 @@
 
 .book-panel h2 {
     margin: 0 0 12px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -353,7 +353,7 @@
 
 .book-details dt {
     margin-bottom: 2px;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }
 
@@ -362,7 +362,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
 }
 
 .book-details dd > span {
@@ -395,11 +395,11 @@
 
 .book-history-date {
     flex-grow: 1;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
 }
 
 .book-history-empty {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     color: var(--mcm-text-muted);
 }
 
@@ -413,7 +413,7 @@
     border: 0;
     background: none;
     font: inherit;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
     color: var(--mud-palette-primary);
     cursor: pointer;
@@ -431,7 +431,7 @@
 }
 
 .book-reading-form-title {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
 }
 
@@ -460,7 +460,7 @@
 }
 
 .book-star-button ::deep .mud-icon-root {
-    font-size: 30px;
+    font-size: var(--mcm-font-page);
 }
 
 .book-reading-buttons {
@@ -475,7 +475,7 @@
     border-radius: 22px;
     background: #ffffff;
     font: inherit;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
     color: var(--mcm-text);
     cursor: pointer;
@@ -502,7 +502,7 @@
 
 .book-not-found h1 {
     margin: 16px 0 4px;
-    font-size: 22px;
+    font-size: var(--mcm-font-title-l);
 }
 
 .book-not-found p {
@@ -535,12 +535,12 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
 }
 
 .book-sheet-details {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -562,7 +562,7 @@
         border-radius: 22px;
         background: #ffffff;
         text-transform: none;
-        font-size: 15px;
+        font-size: var(--mcm-font-body);
     }
 
     .book-body {
@@ -604,23 +604,23 @@
     }
 
     .book-heading h1 {
-        font-size: 34px;
+        font-size: var(--mcm-font-page-l);
         line-height: 40px;
     }
 
     .book-serie {
-        font-size: 18px;
+        font-size: var(--mcm-font-subtitle);
     }
 
     .book-authors {
-        font-size: 16px;
+        font-size: var(--mcm-font-body-l);
     }
 
     .book-format {
         height: 26px;
         padding: 0 12px;
         border-radius: 13px;
-        font-size: 13px;
+        font-size: var(--mcm-font-small);
     }
 
     .book-actions {
@@ -639,11 +639,11 @@
     }
 
     .book-details dt {
-        font-size: 13px;
+        font-size: var(--mcm-font-small);
     }
 
     .book-details dd {
-        font-size: 16px;
+        font-size: var(--mcm-font-body-l);
     }
 }
 
@@ -682,6 +682,6 @@
 
 
     .book-heading h1 {
-        font-size: 40px;
+        font-size: var(--mcm-font-display);
     }
 }

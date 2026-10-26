@@ -49,19 +49,19 @@
 
 .found-title {
     margin: 0;
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
     font-weight: 700;
     overflow-wrap: anywhere;
 }
 
 .found-serie {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
     color: var(--mud-palette-primary);
 }
 
 .found-line {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     color: var(--mcm-text-muted);
 }
 
@@ -76,12 +76,12 @@
     border-radius: 12px;
     background: var(--mcm-success-soft);
     color: var(--mcm-success);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
 }
 
 .found-source ::deep svg {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .found-rating {
@@ -92,13 +92,13 @@
 }
 
 .found-rating-title {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
 }
 
 .found-rating-hint {
     margin-bottom: 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -142,12 +142,12 @@
     }
 
     .found-title {
-        font-size: 24px;
+        font-size: var(--mcm-font-title-l);
     }
 
     .found-serie,
     .found-line {
-        font-size: 15px;
+        font-size: var(--mcm-font-body);
     }
 
     .found-actions {
