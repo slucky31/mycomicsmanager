@@ -184,7 +184,7 @@
     position: absolute;
     right: calc(100% + 8px);
     top: -8px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--mcm-text-muted);
 }
 
@@ -228,7 +228,7 @@
 
 .stats-chart-months {
     margin-top: 4px;
-    font-size: 11px;
+    font-size: 12px;
     text-align: center;
     color: var(--mcm-text-muted);
 }

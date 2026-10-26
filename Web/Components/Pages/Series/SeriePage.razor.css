@@ -217,7 +217,7 @@
     border-radius: 10px;
     background: var(--mcm-badge);
     color: #ffffff;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
 }
 
@@ -231,7 +231,7 @@
     border: 2px dashed #C08A5A;
     background: #FFF6EE;
     color: var(--mcm-missing);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
 }
 

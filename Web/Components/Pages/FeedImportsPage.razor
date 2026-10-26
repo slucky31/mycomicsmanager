@@ -118,7 +118,7 @@
         }
 
         <section class="feed-detail-section">
-            <h3 class="feed-section-title">Article</h3>
+            <div class="feed-section-title" role="heading" aria-level="@SectionLevel(inPanel)">Article</div>
             <dl class="feed-facts">
                 <dt>Published on</dt>
                 <dd>@decision.PublishedAtDisplay</dd>
@@ -137,7 +137,7 @@
         </section>
 
         <section class="feed-detail-section">
-            <h3 class="feed-section-title">Files</h3>
+            <div class="feed-section-title" role="heading" aria-level="@SectionLevel(inPanel)">Files</div>
             @if (decision.Candidates.Count == 0)
             {
                 <div class="feed-muted">No link extracted yet.</div>
@@ -177,7 +177,7 @@
         </section>
 
         <section class="feed-detail-section">
-            <h3 class="feed-section-title">History</h3>
+            <div class="feed-section-title" role="heading" aria-level="@SectionLevel(inPanel)">History</div>
             <ol class="feed-timeline">
                 @foreach (var evt in decision.Events)
                 {
