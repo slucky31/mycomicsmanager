@@ -23,12 +23,12 @@
 }
 
 .found-cover {
-    width: 104px;
-    height: 156px;
+    width: var(--mcm-cover-l-compact);
+    height: calc(var(--mcm-cover-l-compact) * 1.5);
     flex-shrink: 0;
     object-fit: cover;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border-radius: var(--mcm-cover-radius-l);
+    box-shadow: var(--mcm-cover-shadow-l);
 }
 
 .found-cover-none {
@@ -139,12 +139,6 @@
         gap: 20px;
         padding: 0;
         border: 0;
-    }
-
-    .found-cover {
-        width: 140px;
-        height: 210px;
-        border-radius: 8px;
     }
 
     .found-title {

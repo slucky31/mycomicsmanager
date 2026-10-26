@@ -42,4 +42,19 @@
     --mcm-missing: #8A3B00;
     /* Rating stars */
     --mcm-star: #E8A317;
+
+    /* Covers: four sizes, all 2:3 (#1244). XS in menus and lists of results, S in lists, M in the grids, L on a book. */
+    --mcm-cover-xs: 40px;
+    --mcm-cover-s: 72px;
+    --mcm-cover-m-min: 140px;
+    --mcm-cover-l-compact: 124px;
+    --mcm-cover-l: 240px;
+    --mcm-cover-radius-xs: 4px;
+    --mcm-cover-radius: 6px;
+    --mcm-cover-radius-l: 8px;
+    --mcm-cover-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    --mcm-cover-shadow-l: 0 4px 12px rgba(0, 0, 0, 0.25);
+    /* The grids of covers: Covers view, series page and list of series. */
+    --mcm-cover-grid-gap: 16px 12px;
+    --mcm-cover-grid-gap-wide: 24px 20px;
 }

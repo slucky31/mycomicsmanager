@@ -33,7 +33,7 @@
     {
         if (!string.IsNullOrEmpty(book.ImageLink))
         {
-            <img class="list-thumb" src="@book.ImageLink" alt="" loading="lazy" />
+            <img class="list-thumb" src="@CoverImage.Sized(book.ImageLink, CoverSize.Small)" alt="" loading="lazy" />
         }
         else
         {

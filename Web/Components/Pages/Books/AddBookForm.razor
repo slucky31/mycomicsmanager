@@ -22,7 +22,7 @@
                 <div class="found-book">
                     @if (!string.IsNullOrEmpty(found.ImageLink))
                     {
-                        <img class="found-cover" src="@found.ImageLink" alt="@found.CoverAlt" />
+                        <img class="found-cover" src="@CoverImage.Sized(found.ImageLink, CoverSize.Large)" alt="@found.CoverAlt" />
                     }
                     else
                     {

@@ -72,11 +72,11 @@
 .book-cover {
     grid-area: cover;
     display: block;
-    width: 124px;
-    aspect-ratio: 2 / 3;
+    width: var(--mcm-cover-l-compact);
+    height: calc(var(--mcm-cover-l-compact) * 1.5);
     object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    border-radius: var(--mcm-cover-radius-l);
+    box-shadow: var(--mcm-cover-shadow-l);
 }
 
 .book-cover-none {
@@ -520,11 +520,11 @@
 }
 
 .book-sheet-header img {
-    width: 40px;
-    height: 60px;
+    width: var(--mcm-cover-xs);
+    height: calc(var(--mcm-cover-xs) * 1.5);
     flex-shrink: 0;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: var(--mcm-cover-radius-xs);
 }
 
 .book-sheet-heading {
@@ -573,7 +573,7 @@
     }
 
     .book-side {
-        width: 220px;
+        width: var(--mcm-cover-l);
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
@@ -590,9 +590,8 @@
     }
 
     .book-cover {
-        width: 100%;
-        border-radius: 10px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        width: var(--mcm-cover-l);
+        height: calc(var(--mcm-cover-l) * 1.5);
     }
 
     .book-primary {
@@ -662,9 +661,6 @@
         padding: 8px 40px 0;
     }
 
-    .book-side {
-        width: 300px;
-    }
 }
 
 /* ── Large screen: breadcrumb, larger cover and title ── */
@@ -684,9 +680,6 @@
         padding: 8px 48px 0;
     }
 
-    .book-side {
-        width: 380px;
-    }
 
     .book-heading h1 {
         font-size: 40px;

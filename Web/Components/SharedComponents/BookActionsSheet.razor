@@ -3,7 +3,7 @@
         <div class="book-actions-header">
             @if (!string.IsNullOrEmpty(Book.ImageLink))
             {
-                <img src="@Book.ImageLink" alt="" />
+                <img src="@CoverImage.Sized(Book.ImageLink, CoverSize.ExtraSmall)" alt="" loading="lazy" />
             }
             <div class="book-actions-heading">
                 <div class="book-actions-title">@Book.Title</div>
