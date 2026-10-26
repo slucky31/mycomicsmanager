@@ -159,10 +159,10 @@
 }
 
 .find-details-cover {
-    width: 40px;
-    height: 60px;
+    width: var(--mcm-cover-xs);
+    height: calc(var(--mcm-cover-xs) * 1.5);
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: var(--mcm-cover-radius-xs);
 }
 
 ::deep .find-details-option-check {
@@ -299,6 +299,12 @@
 @keyframes find-details-spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::deep .find-details-state-searching {
+        animation: none;
     }
 }
 

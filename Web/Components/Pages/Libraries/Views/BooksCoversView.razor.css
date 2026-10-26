@@ -1,7 +1,7 @@
 .covers-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px 12px;
+    gap: var(--mcm-cover-grid-gap);
     padding: 8px 16px 16px;
 }
 
@@ -32,8 +32,8 @@
     display: block;
     width: 100%;
     aspect-ratio: 2 / 3;
-    border-radius: 6px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    border-radius: var(--mcm-cover-radius);
+    box-shadow: var(--mcm-cover-shadow);
 }
 
 .cover-image {
@@ -131,8 +131,8 @@
 
 @media (min-width: 600px) {
     .covers-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 24px 20px;
+        grid-template-columns: repeat(auto-fill, minmax(var(--mcm-cover-m-min), 1fr));
+        gap: var(--mcm-cover-grid-gap-wide);
         padding: 8px 28px 24px;
     }
 
@@ -162,12 +162,6 @@
 
     .cover-serie {
         font-size: var(--mcm-font-caption);
-    }
-}
-
-@media (min-width: 840px) {
-    .covers-grid {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 }
 

@@ -50,18 +50,18 @@
     }
 
     .book-form-side {
-        width: 220px;
+        width: var(--mcm-cover-l);
         flex-shrink: 0;
     }
 
     .book-form-cover {
         display: block;
         box-sizing: border-box;
-        width: 220px;
-        height: 330px;
+        width: var(--mcm-cover-l);
+        height: calc(var(--mcm-cover-l) * 1.5);
         object-fit: cover;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border-radius: var(--mcm-cover-radius-l);
+        box-shadow: var(--mcm-cover-shadow-l);
     }
 
     .book-form-cover-none {

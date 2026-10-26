@@ -54,7 +54,7 @@
 
 .library-select-placeholder {
     font-weight: 400;
-    color: #8A8E9C;
+    color: var(--mcm-text-muted);
 }
 
 ::deep .library-select-chevron {

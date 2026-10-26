@@ -64,7 +64,7 @@
 }
 
 .form-field ::deep input::placeholder {
-    color: #8A8E9C;
+    color: var(--mcm-text-muted);
 }
 
 .form-field-error {

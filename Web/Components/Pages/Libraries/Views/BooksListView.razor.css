@@ -28,11 +28,11 @@
 
 .list-thumb {
     flex-shrink: 0;
-    width: 68px;
-    height: 102px;
+    width: var(--mcm-cover-s);
+    height: calc(var(--mcm-cover-s) * 1.5);
     object-fit: cover;
-    border-radius: 5px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    border-radius: var(--mcm-cover-radius);
+    box-shadow: var(--mcm-cover-shadow);
     -webkit-user-drag: none;
 }
 
@@ -44,7 +44,7 @@
 .list-text {
     flex-grow: 1;
     min-width: 0;
-    min-height: 102px;
+    min-height: 108px;
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -142,11 +142,6 @@
 
     .list-link {
         gap: 14px;
-    }
-
-    .list-thumb {
-        width: 76px;
-        height: 114px;
     }
 
     .list-text {

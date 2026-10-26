@@ -8,10 +8,10 @@
 
 .book-actions-header img {
     flex-shrink: 0;
-    width: 40px;
-    height: 60px;
+    width: var(--mcm-cover-xs);
+    height: calc(var(--mcm-cover-xs) * 1.5);
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: var(--mcm-cover-radius-xs);
 }
 
 .book-actions-heading {

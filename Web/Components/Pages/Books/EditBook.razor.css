@@ -10,12 +10,12 @@
 }
 
 .edit-library-cover {
-    width: 56px;
-    height: 84px;
+    width: var(--mcm-cover-s);
+    height: calc(var(--mcm-cover-s) * 1.5);
     flex-shrink: 0;
     object-fit: cover;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    border-radius: var(--mcm-cover-radius);
+    box-shadow: var(--mcm-cover-shadow);
 }
 
 .edit-library-text {
