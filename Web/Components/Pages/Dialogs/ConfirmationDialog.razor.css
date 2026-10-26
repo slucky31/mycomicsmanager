@@ -8,7 +8,7 @@
     margin: 0;
     font-size: 20px;
     font-weight: 500;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .confirm-icon {
@@ -19,8 +19,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 22px;
-    background: #FDECEC;
-    color: #B3261E;
+    background: var(--mcm-error-soft);
+    color: var(--mcm-error-strong);
 }
 
 .confirm-text {
@@ -49,24 +49,24 @@
 }
 
 .confirm-button:focus-visible {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: 2px;
 }
 
 .confirm-cancel {
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     background: #ffffff;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .confirm-action {
     border: 0;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
     color: #ffffff;
 }
 
 .confirm-danger {
-    background: #B3261E;
+    background: var(--mcm-error-strong);
 }
 
 @media (min-width: 600px) {

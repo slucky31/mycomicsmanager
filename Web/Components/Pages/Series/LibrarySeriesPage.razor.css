@@ -1,7 +1,7 @@
 .series-page {
     min-height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -46,7 +46,7 @@
     flex-direction: column;
     gap: 4px;
     min-width: 0;
-    color: #1B1D24;
+    color: var(--mcm-text);
     text-decoration: none;
 }
 
@@ -84,7 +84,7 @@
     box-sizing: border-box;
     padding: 10px;
     overflow: hidden;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
     color: #ffffff;
     font-size: 13px;
     font-weight: 500;
@@ -105,7 +105,7 @@
 .serie-count {
     left: 6px;
     bottom: 6px;
-    background: #131B2C;
+    background: var(--mcm-badge);
     color: #ffffff;
 }
 
@@ -121,7 +121,7 @@
 
 .serie-badge-missing {
     background: #FFE2C7;
-    color: #8A3B00;
+    color: var(--mcm-missing);
 }
 
 .serie-name {
@@ -134,5 +134,5 @@
 
 .serie-detail {
     font-size: 12px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }

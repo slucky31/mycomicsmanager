@@ -24,7 +24,7 @@
     gap: 10px;
     border: 0;
     border-radius: 26px;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
     color: #ffffff;
     font: inherit;
     font-size: 16px;
@@ -33,11 +33,11 @@
 }
 
 .isbn-look-up:hover {
-    background: #4A3BC4;
+    background: var(--mcm-primary-strong);
 }
 
 .isbn-look-up:focus-visible {
-    outline: 2px solid #1B1D24;
+    outline: 2px solid var(--mcm-text);
     outline-offset: 2px;
 }
 

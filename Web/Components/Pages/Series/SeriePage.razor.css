@@ -1,7 +1,7 @@
 .serie-page {
     min-height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -18,7 +18,7 @@
     margin: 8px 16px 4px;
     padding: 14px 16px;
     background: #ffffff;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 16px;
 }
 
@@ -37,7 +37,7 @@
 .serie-progress-count,
 .serie-progress-published {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .serie-progress-bar {
@@ -49,7 +49,7 @@
 
 .serie-progress-value {
     height: 100%;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
 }
 
 .serie-progress-published {
@@ -74,18 +74,18 @@
     flex-direction: column;
     gap: 4px;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .serie-total-field ::deep input {
     height: 44px;
     padding: 0 12px;
-    border: 1px solid #C9CBD6;
+    border: 1px solid var(--mcm-border-strong);
     border-radius: 8px;
     font: inherit;
     /* 16px: iOS does not zoom on the field */
     font-size: 16px;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .serie-total-finished {
@@ -126,7 +126,7 @@
     flex-direction: column;
     gap: 4px;
     min-width: 0;
-    color: #1B1D24;
+    color: var(--mcm-text);
     text-decoration: none;
 }
 
@@ -158,7 +158,7 @@
     justify-content: center;
     border: 0;
     border-radius: 50%;
-    background: #131B2C;
+    background: var(--mcm-badge);
     color: #ffffff;
     cursor: pointer;
     opacity: 0;
@@ -199,7 +199,7 @@
     box-sizing: border-box;
     padding: 8px;
     overflow: hidden;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
     color: #ffffff;
     font-size: 12px;
     font-weight: 500;
@@ -214,7 +214,7 @@
     display: flex;
     align-items: center;
     border-radius: 10px;
-    background: #131B2C;
+    background: var(--mcm-badge);
     color: #ffffff;
     font-size: 11px;
     font-weight: 700;
@@ -229,7 +229,7 @@
     gap: 4px;
     border: 2px dashed #C08A5A;
     background: #FFF6EE;
-    color: #8A3B00;
+    color: var(--mcm-missing);
     font-size: 11px;
     font-weight: 600;
 }
@@ -248,5 +248,5 @@
 }
 
 .serie-slot-title-missing {
-    color: #8A3B00;
+    color: var(--mcm-missing);
 }

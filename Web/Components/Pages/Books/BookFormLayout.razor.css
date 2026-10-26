@@ -30,8 +30,8 @@
     gap: 8px;
     padding: 12px 14px;
     border-radius: 12px;
-    background: #FDECEC;
-    color: #C62828;
+    background: var(--mcm-error-soft);
+    color: var(--mcm-error);
     font-size: 14px;
 }
 
@@ -71,8 +71,8 @@
         justify-content: center;
         gap: 8px;
         padding: 16px;
-        border: 2px dashed #E2E3EA;
-        color: #5C6070;
+        border: 2px dashed var(--mcm-border);
+        color: var(--mcm-text-muted);
         font-size: 14px;
         text-align: center;
         box-shadow: none;

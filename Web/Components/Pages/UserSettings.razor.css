@@ -1,8 +1,8 @@
 .settings-page {
     /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
     min-height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -35,7 +35,7 @@
 
 .settings-card {
     background: #ffffff;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 16px;
     padding: 14px;
 }
@@ -54,7 +54,7 @@
     border-radius: 50%;
     object-fit: cover;
     background: #E8E6FC;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -74,7 +74,7 @@
 
 .settings-account-email {
     font-size: 14px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -94,9 +94,9 @@
     gap: 14px;
     padding: 8px 4px;
     border: 0;
-    border-bottom: 1px solid #E2E3EA;
+    border-bottom: 1px solid var(--mcm-border);
     background: none;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font: inherit;
     font-size: 16px;
     text-align: left;
@@ -113,7 +113,7 @@ div.settings-row {
 }
 
 .settings-row:focus-visible {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: -2px;
     border-radius: 8px;
 }
@@ -130,17 +130,17 @@ div.settings-row {
 
 .settings-row-value {
     font-size: 15px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 ::deep .settings-row-end {
     font-size: 20px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
     flex-shrink: 0;
 }
 
 .settings-sign-out {
-    color: #C62828;
+    color: var(--mcm-error);
 }
 
 /* ── Show hidden libraries (#1215): the native checkbox stays focusable and is drawn as a switch. ── */
@@ -155,7 +155,7 @@ div.settings-row {
 .settings-row-help {
     display: block;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .settings-switch-input {
@@ -172,7 +172,7 @@ div.settings-row {
     width: 51px;
     height: 31px;
     border-radius: 16px;
-    background: #C9CAD3;
+    background: var(--mcm-track);
     transition: background 0.15s ease;
 }
 
@@ -189,7 +189,7 @@ div.settings-row {
 }
 
 .settings-switch-input:checked + .settings-switch {
-    background: #594AE2;
+    background: var(--mud-palette-primary);
 }
 
 .settings-switch-input:checked + .settings-switch .settings-switch-thumb {
@@ -197,7 +197,7 @@ div.settings-row {
 }
 
 .settings-switch-input:focus-visible + .settings-switch {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: 2px;
 }
 
@@ -213,8 +213,8 @@ div.settings-row {
     height: 24px;
     padding: 0 10px;
     border-radius: 12px;
-    background: #EDEDF2;
-    color: #5C6070;
+    background: var(--mcm-surface-sunken);
+    color: var(--mcm-text-muted);
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
@@ -225,18 +225,18 @@ div.settings-row {
 }
 
 .health-healthy {
-    background: #E6F4EA;
-    color: #1E6B24;
+    background: var(--mcm-success-soft);
+    color: var(--mcm-success-strong);
 }
 
 .health-degraded {
     background: #FFF3DC;
-    color: #8A5300;
+    color: var(--mcm-warning-strong);
 }
 
 .health-unhealthy {
     background: #FDE7E7;
-    color: #B3261E;
+    color: var(--mcm-error-strong);
 }
 
 ::deep .settings-health-chevron {
@@ -251,7 +251,7 @@ div.settings-row {
     margin: 0;
     padding: 4px 4px 8px 40px;
     list-style: none;
-    border-bottom: 1px solid #E2E3EA;
+    border-bottom: 1px solid var(--mcm-border);
 }
 
 .settings-health-check {
@@ -272,7 +272,7 @@ div.settings-row {
 .settings-health-empty {
     min-height: 36px;
     font-size: 14px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* ── Administration ── */
@@ -282,7 +282,7 @@ div.settings-row {
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 @media (min-width: 840px) {

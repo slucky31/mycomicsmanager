@@ -3,8 +3,8 @@
     flex-direction: column;
     /* The page fills the screen; on a phone the bottom navigation bar (64px + home indicator) is subtracted */
     height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -43,7 +43,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* The view is in the subtitle from the tablet on. */
@@ -85,8 +85,8 @@
     padding: 0 4px 0 12px;
     border-radius: 22px;
     background: #ffffff;
-    border: 2px solid #594AE2;
-    color: #5C6070;
+    border: 2px solid var(--mud-palette-primary);
+    color: var(--mcm-text-muted);
 }
 
 .library-search-field input {
@@ -98,7 +98,7 @@
     font: inherit;
     /* 16px: iOS does not zoom on the field */
     font-size: 16px;
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .library-search-field input::-webkit-search-cancel-button {
@@ -111,7 +111,7 @@
 
 /* Books being chosen (#1150): the bar is tinted, and offers the move. */
 .library-bar-selecting {
-    background: #F1EFFD;
+    background: var(--mcm-primary-soft);
 }
 
 ::deep .library-bar-select-all,
@@ -130,7 +130,7 @@
     flex-shrink: 0;
     padding: 4px 16px 8px;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* ── Scrollable content ───────────────────────────────── */
@@ -152,7 +152,7 @@
 
 ::deep .library-empty-hint {
     margin-bottom: 16px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* ── Tablet: 72 px bar, search always shown, "New book" with its label ── */
@@ -190,11 +190,11 @@
     }
 
     .library-search-field {
-        border: 1px solid #E2E3EA;
+        border: 1px solid var(--mcm-border);
     }
 
     .library-search-field:focus-within {
-        border-color: #594AE2;
+        border-color: var(--mud-palette-primary);
     }
 
     .library-search-field input {
@@ -264,7 +264,7 @@
 .add-book-sheet-target {
     margin-top: 2px;
     font-size: 14px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .add-book-sheet-primary {
@@ -278,7 +278,7 @@
     justify-content: center;
     gap: 10px;
     border-radius: 26px;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
     color: #ffffff;
     font-size: 16px;
     font-weight: 500;
@@ -286,10 +286,10 @@
 }
 
 .add-book-sheet-primary a:hover {
-    background: #4A3BC4;
+    background: var(--mcm-primary-strong);
 }
 
 .add-book-sheet-primary a:focus-visible {
-    outline: 2px solid #1B1D24;
+    outline: 2px solid var(--mcm-text);
     outline-offset: 2px;
 }

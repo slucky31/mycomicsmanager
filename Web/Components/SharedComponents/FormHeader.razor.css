@@ -18,7 +18,7 @@
     border: 0;
     border-radius: 22px;
     background: none;
-    color: #1B1D24;
+    color: var(--mcm-text);
     cursor: pointer;
 }
 
@@ -27,7 +27,7 @@
 }
 
 .form-bar-back:focus-visible {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: 2px;
 }
 
@@ -48,7 +48,7 @@
 
 .form-bar-subtitle {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

@@ -1,8 +1,8 @@
 /* Feeds (S2, S3, T9, D6): status chips, compact cards, the detail under the card on a phone and beside the list from 960px. */
 .feeds-page {
     min-height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -57,10 +57,10 @@
     flex-shrink: 0;
     height: 36px;
     padding: 0 14px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 18px;
     background: #ffffff;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font: inherit;
     font-size: 14px;
     font-weight: 500;
@@ -68,13 +68,13 @@
 }
 
 .feeds-chip[aria-pressed="true"] {
-    border-color: #594AE2;
-    background: #594AE2;
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-primary);
     color: #ffffff;
 }
 
 .feeds-chip:focus-visible {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: 2px;
 }
 
@@ -82,8 +82,8 @@
     margin: 0 16px 12px;
     padding: 10px 14px;
     border-radius: 12px;
-    background: #E8EEFD;
-    color: #1D4ED8;
+    background: var(--mcm-info-soft);
+    color: var(--mcm-info);
     font-size: 14px;
 }
 
@@ -97,7 +97,7 @@
     margin: 0 16px 12px;
     padding: 8px 8px 8px 14px;
     border-radius: 12px;
-    background: #1B1D24;
+    background: var(--mcm-text);
     color: #ffffff;
     font-size: 14px;
 }
@@ -130,7 +130,7 @@
     padding: 32px 0;
     font-size: 14px;
     text-align: center;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 ::deep .feeds-more {
@@ -139,7 +139,7 @@
 
 .feed-card {
     padding: 14px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 16px;
     background: #ffffff;
 }
@@ -155,7 +155,7 @@
     height: 20px;
     margin: 2px 0 0;
     flex-shrink: 0;
-    accent-color: #594AE2;
+    accent-color: var(--mud-palette-primary);
 }
 
 .feed-card-main {
@@ -175,7 +175,7 @@
 }
 
 .feed-card-main:focus-visible {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: 4px;
     border-radius: 8px;
 }
@@ -188,7 +188,7 @@
 
 .feed-card-subtitle {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .feed-card-status-line {
@@ -201,7 +201,7 @@
 
 .feed-card-date {
     font-size: 12px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 ::deep .feed-card-menu {
@@ -211,14 +211,14 @@
 .feed-card-summary {
     margin-top: 6px;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
     overflow-wrap: anywhere;
 }
 
 .feed-card-detail {
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid #E2E3EA;
+    border-top: 1px solid var(--mcm-border);
 }
 
 /* ── Status chip ── */
@@ -228,8 +228,8 @@
     height: 24px;
     padding: 0 10px;
     border-radius: 12px;
-    background: #EDEDF2;
-    color: #5C6070;
+    background: var(--mcm-surface-sunken);
+    color: var(--mcm-text-muted);
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
@@ -237,22 +237,22 @@
 
 .feed-status-decide {
     background: #FFF1DC;
-    color: #8A5300;
+    color: var(--mcm-warning-strong);
 }
 
 .feed-status-running {
-    background: #E8EEFD;
-    color: #1D4ED8;
+    background: var(--mcm-info-soft);
+    color: var(--mcm-info);
 }
 
 .feed-status-done {
-    background: #E6F4EA;
-    color: #1E6B24;
+    background: var(--mcm-success-soft);
+    color: var(--mcm-success-strong);
 }
 
 .feed-status-failed {
-    background: #FDECEC;
-    color: #B3261E;
+    background: var(--mcm-error-soft);
+    color: var(--mcm-error-strong);
 }
 
 /* ── Actions and detail ── */
@@ -275,7 +275,7 @@
     display: inline-flex;
     align-items: center;
     min-height: 40px;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
     font-size: 14px;
     font-weight: 500;
     text-decoration: none;
@@ -317,7 +317,7 @@
 .feed-detail-subtitle {
     margin-top: 4px;
     font-size: 15px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .feed-box {
@@ -332,8 +332,8 @@
 }
 
 .feed-box-error {
-    background: #FDECEC;
-    color: #B3261E;
+    background: var(--mcm-error-soft);
+    color: var(--mcm-error-strong);
 }
 
 .feed-box-decide {
@@ -342,8 +342,8 @@
 }
 
 .feed-box-info {
-    background: #E8EEFD;
-    color: #1D4ED8;
+    background: var(--mcm-info-soft);
+    color: var(--mcm-info);
 }
 
 .feed-detail .feed-actions {
@@ -352,7 +352,7 @@
 
 .feed-correction {
     padding: 12px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 12px;
 }
 
@@ -368,12 +368,12 @@
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .feed-muted {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .feed-facts {
@@ -385,7 +385,7 @@
 }
 
 .feed-facts dt {
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .feed-facts dd {
@@ -421,13 +421,13 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
     font-size: 13px;
     text-decoration: none;
 }
 
 .feed-mirror.is-chosen {
-    color: #1E6B24;
+    color: var(--mcm-success-strong);
     font-weight: 500;
 }
 
@@ -441,12 +441,12 @@
     display: flex;
     flex-direction: column;
     padding: 6px 0 6px 12px;
-    border-left: 2px solid #E2E3EA;
+    border-left: 2px solid var(--mcm-border);
     font-size: 13px;
 }
 
 .feed-timeline-date {
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .feed-timeline-status {
@@ -517,8 +517,8 @@
     }
 
     .feed-card.selected {
-        border-color: #594AE2;
-        box-shadow: 0 0 0 1px #594AE2;
+        border-color: var(--mud-palette-primary);
+        box-shadow: 0 0 0 1px var(--mud-palette-primary);
     }
 
     .feed-card-extra,
@@ -536,7 +536,7 @@
         overflow-y: auto;
         box-sizing: border-box;
         padding: 20px;
-        border: 1px solid #E2E3EA;
+        border: 1px solid var(--mcm-border);
         border-radius: 16px;
         background: #ffffff;
     }

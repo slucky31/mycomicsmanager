@@ -11,13 +11,13 @@
     font-size: 16px;
     text-align: left;
     text-decoration: none;
-    color: #1B1D24;
+    color: var(--mcm-text);
     cursor: pointer;
 }
 
 .action-sheet-item:hover,
 .action-sheet-item:focus-visible {
-    background: #F4F4F6;
+    background: var(--mcm-surface-muted);
 }
 
 .action-sheet-item:disabled {
@@ -29,11 +29,11 @@
 .action-sheet-item-selected,
 .action-sheet-item-selected:hover {
     font-weight: 500;
-    background: #F1EFFD;
+    background: var(--mcm-primary-soft);
 }
 
 .action-sheet-item-danger {
-    color: #C62828;
+    color: var(--mcm-error);
 }
 
 .action-sheet-item-text {
@@ -44,7 +44,7 @@
     display: block;
     font-size: 13px;
     font-weight: 400;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 ::deep .action-sheet-item-icon {
@@ -54,7 +54,7 @@
 
 ::deep .action-sheet-item-check {
     flex-shrink: 0;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
 }
 
 /* The menu of a tablet is narrower: the descriptions stay on the phone sheet. */

@@ -1,7 +1,7 @@
 .missing-page {
     min-height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -31,7 +31,7 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .missing-serie {
@@ -40,9 +40,9 @@
     gap: 12px;
     padding: 12px;
     background: #ffffff;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 12px;
-    color: #1B1D24;
+    color: var(--mcm-text);
     text-decoration: none;
 }
 
@@ -56,7 +56,7 @@
 }
 
 .missing-serie-placeholder {
-    background: #594AE2;
+    background: var(--mud-palette-primary);
 }
 
 .missing-serie-body {
@@ -84,7 +84,7 @@
 .missing-serie-owned {
     flex-shrink: 0;
     font-size: 12px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .missing-serie-volumes {
@@ -101,14 +101,14 @@
     border-radius: 12px;
     border: 1px dashed #C08A5A;
     background: #FFF6EE;
-    color: #8A3B00;
+    color: var(--mcm-missing);
     font-size: 12px;
     font-weight: 600;
 }
 
 ::deep .missing-serie-chevron {
     flex-shrink: 0;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .missing-empty {
@@ -122,5 +122,5 @@
 }
 
 ::deep .missing-empty-hint {
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }

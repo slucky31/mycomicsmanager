@@ -4,13 +4,13 @@
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .comicinfo-sync-hint {
     margin: 0 0 8px;
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .comicinfo-sync {

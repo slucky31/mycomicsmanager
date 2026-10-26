@@ -1,8 +1,8 @@
 /* Log levels (Settings, Administration): a list that fits a phone, one card per logger. */
 .log-levels-page {
     min-height: 100dvh;
-    background: #F4F4F6;
-    color: #1B1D24;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
 }
 
 @media (max-width: 959.98px) {
@@ -26,7 +26,7 @@
 }
 
 ::deep .log-levels-back {
-    color: #1B1D24;
+    color: var(--mcm-text);
 }
 
 .log-levels-content {
@@ -40,7 +40,7 @@
 .log-levels-hint {
     margin: 0;
     font-size: 14px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* ── Filter and reset ── */
@@ -59,15 +59,15 @@
     align-items: center;
     gap: 8px;
     padding: 0 12px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 22px;
     background: #ffffff;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .log-levels-filter:focus-within {
-    border-color: #594AE2;
-    box-shadow: 0 0 0 1px #594AE2;
+    border-color: var(--mud-palette-primary);
+    box-shadow: 0 0 0 1px var(--mud-palette-primary);
 }
 
 .log-levels-filter input {
@@ -76,7 +76,7 @@
     border: 0;
     outline: none;
     background: transparent;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font: inherit;
     font-size: 15px;
 }
@@ -91,7 +91,7 @@
 .log-levels-count,
 .log-levels-empty {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .log-levels-empty {
@@ -111,7 +111,7 @@
 
 .logger {
     padding: 12px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 14px;
     background: #ffffff;
 }
@@ -136,8 +136,8 @@
     flex-shrink: 0;
     padding: 0 8px;
     border-radius: 10px;
-    background: #EDEDF2;
-    color: #5C6070;
+    background: var(--mcm-surface-sunken);
+    color: var(--mcm-text-muted);
     font-size: 12px;
     line-height: 20px;
 }
@@ -152,7 +152,7 @@
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     margin-top: 8px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 10px;
     overflow: hidden;
 }
@@ -161,9 +161,9 @@
     min-height: 36px;
     padding: 0 2px;
     border: 0;
-    border-left: 1px solid #E2E3EA;
+    border-left: 1px solid var(--mcm-border);
     background: #ffffff;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font: inherit;
     font-size: 13px;
     cursor: pointer;
@@ -177,7 +177,7 @@
 }
 
 .logger-level:focus-visible {
-    outline: 2px solid #594AE2;
+    outline: 2px solid var(--mud-palette-primary);
     outline-offset: -2px;
 }
 
@@ -187,23 +187,23 @@
 }
 
 .level-debug[aria-pressed="true"] {
-    background: #2E7D32;
+    background: var(--mcm-success);
 }
 
 .level-info[aria-pressed="true"] {
-    background: #1D4ED8;
+    background: var(--mcm-info);
 }
 
 .level-warning[aria-pressed="true"] {
-    background: #8A5300;
+    background: var(--mcm-warning-strong);
 }
 
 .level-error[aria-pressed="true"] {
-    background: #B3261E;
+    background: var(--mcm-error-strong);
 }
 
 .level-none[aria-pressed="true"] {
-    background: #1B1D24;
+    background: var(--mcm-text);
 }
 
 /* From the tablet on: the name and the levels on one line, two columns of loggers on a large screen. */

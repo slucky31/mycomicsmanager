@@ -12,7 +12,7 @@
     gap: 16px;
     padding: 14px;
     background: #ffffff;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 16px;
 }
 
@@ -22,7 +22,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    color: #1B1D24;
+    color: var(--mcm-text);
     text-decoration: none;
 }
 
@@ -40,7 +40,7 @@
     flex-shrink: 0;
     padding: 2px 8px;
     border-radius: 10px;
-    background: #EDEDF2;
+    background: var(--mcm-surface-sunken);
     color: #3D4150;
     font-size: 11px;
     font-weight: 600;
@@ -87,7 +87,7 @@
     justify-content: center;
     border: 2px dashed #D0D2DB;
     box-shadow: none;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* Books without a cover: the library icon on its tint. */
@@ -97,7 +97,7 @@
     align-items: center;
     justify-content: center;
     background: color-mix(in srgb, var(--library-color) 10%, #ffffff);
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     box-shadow: none;
     color: var(--library-color);
 }
@@ -144,7 +144,7 @@
 
 .library-count {
     font-size: 14px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 ::deep .library-card-actions {
@@ -153,7 +153,7 @@
     width: 44px;
     height: 44px;
     margin: -6px -6px 0 -8px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 @container (min-width: 420px) {

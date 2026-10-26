@@ -9,7 +9,7 @@
     border: 0;
     border-radius: 26px;
     background: none;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font: inherit;
     font-size: 16px;
     font-weight: 500;
@@ -19,7 +19,7 @@
 }
 
 .form-button:focus-visible {
-    outline: 2px solid #1B1D24;
+    outline: 2px solid var(--mcm-text);
     outline-offset: 2px;
 }
 
@@ -29,22 +29,22 @@
 }
 
 .form-button-primary {
-    background: #594AE2;
+    background: var(--mud-palette-primary);
     color: #ffffff;
 }
 
 .form-button-primary:hover:not(:disabled) {
-    background: #4A3BC4;
+    background: var(--mcm-primary-strong);
 }
 
 .form-button-outlined {
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     background: #ffffff;
 }
 
 .form-button-text {
     height: 44px;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
     font-size: 15px;
 }
 

@@ -3,7 +3,7 @@
     align-items: center;
     gap: 12px;
     padding: 4px 20px 12px;
-    border-bottom: 1px solid #E2E3EA;
+    border-bottom: 1px solid var(--mcm-border);
 }
 
 .book-actions-header img {
@@ -25,5 +25,5 @@
 
 .book-actions-serie {
     font-size: 13px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }

@@ -3,17 +3,17 @@
     height: 36px;
     padding: 0 14px;
     border-radius: 18px;
-    border: 1px solid #C9CBD6;
+    border: 1px solid var(--mcm-border-strong);
     background: #ffffff;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font: inherit;
     font-size: 14px;
     cursor: pointer;
 }
 
 .filter-chip-selected {
-    border-color: #594AE2;
-    background: #594AE2;
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-primary);
     color: #ffffff;
     font-weight: 500;
 }

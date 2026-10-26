@@ -145,7 +145,7 @@
 
 .reader-progress-value {
     height: 100%;
-    background: #594AE2;
+    background: var(--mud-palette-primary);
 }
 
 .reader-title {
@@ -225,7 +225,7 @@
     padding: 12px 16px 16px;
     border-radius: 12px;
     background: #fff;
-    color: #1B1D24;
+    color: var(--mcm-text);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     z-index: 4;
 }
@@ -252,7 +252,7 @@
 ::deep .reader-panel-label {
     display: block;
     margin-top: 8px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 .reader-options {
@@ -269,27 +269,27 @@
     justify-content: center;
     gap: 2px;
     padding: 6px 4px;
-    border: 1px solid #E2E3EA;
+    border: 1px solid var(--mcm-border);
     border-radius: 8px;
     background: #fff;
-    color: #1B1D24;
+    color: var(--mcm-text);
     font: inherit;
     font-size: 0.8125rem;
     cursor: pointer;
 }
 
 .reader-option-selected {
-    border-color: #594AE2;
+    border-color: var(--mud-palette-primary);
     /* The primary color at 10 % over white, opaque so that the contrast (5.2:1) can be checked. */
     background: #EEEDFC;
-    color: #594AE2;
+    color: var(--mud-palette-primary);
     font-weight: 500;
 }
 
 ::deep .reader-panel-note {
     display: block;
     margin-top: 12px;
-    color: #5C6070;
+    color: var(--mcm-text-muted);
 }
 
 /* First opening: the three tap zones (30 / 40 / 30 %) over the page. */
@@ -374,5 +374,5 @@
 }
 
 ::deep .reader-rotate-hint {
-    color: #E2E3EA;
+    color: var(--mcm-border);
 }
