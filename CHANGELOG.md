@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.68.1"></a>
+## [10.68.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.68.1) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* **ui:** readable placeholders and library colours, headings and motion ([#1245](https://www.github.com/slucky31/mycomicsmanager/issues/1245)) ([#1248](https://www.github.com/slucky31/mycomicsmanager/issues/1248)) ([b366270](https://www.github.com/slucky31/mycomicsmanager/commit/b36627075ea12ba6958110c7ebb6bce0067472dd))
+
 <a name="10.68.0"></a>
 ## [10.68.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.68.0) (2026-10-26)
 
