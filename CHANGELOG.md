@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.68.0"></a>
+## [10.68.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.68.0) (2026-10-26)
+
+### ✨ Features
+
+* **ui:** four cover sizes, one grid and resized Cloudinary covers ([#1244](https://www.github.com/slucky31/mycomicsmanager/issues/1244)) ([#1247](https://www.github.com/slucky31/mycomicsmanager/issues/1247)) ([36794a1](https://www.github.com/slucky31/mycomicsmanager/commit/36794a1bc3e04564bbbe59f704f22aa5d290b1a7))
+
 <a name="10.67.0"></a>
 ## [10.67.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.67.0) (2026-10-26)
 
