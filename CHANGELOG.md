@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.67.0"></a>
+## [10.67.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.67.0) (2026-10-26)
+
+### ✨ Features
+
+* **ui:** share one MudTheme and the recurring colours as CSS variables ([#1242](https://www.github.com/slucky31/mycomicsmanager/issues/1242)) ([#1243](https://www.github.com/slucky31/mycomicsmanager/issues/1243)) ([fe3d735](https://www.github.com/slucky31/mycomicsmanager/commit/fe3d7350a0db09df29c688e5105656545da22939))
+
 <a name="10.66.1"></a>
 ## [10.66.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.66.1) (2026-10-25)
 
