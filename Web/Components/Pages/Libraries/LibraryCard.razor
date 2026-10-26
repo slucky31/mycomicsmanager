@@ -22,7 +22,7 @@
                 @* The newest cover is drawn last, in front and on the left. *@
                 @for (var i = Library.Covers.Count - 1; i >= 0; i--)
                 {
-                    <img class="@($"library-cover library-cover-{i}")" src="@Library.Covers[i]" alt="" loading="lazy" />
+                    <img class="@($"library-cover library-cover-{i}")" src="@CoverImage.Sized(Library.Covers[i], CoverSize.Small)" alt="" loading="lazy" />
                 }
             }
             else if (Library.BookCount == 0)

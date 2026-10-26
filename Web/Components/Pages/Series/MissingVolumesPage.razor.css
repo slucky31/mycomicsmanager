@@ -48,11 +48,10 @@
 
 .missing-serie-cover {
     flex-shrink: 0;
-    width: 44px;
-    height: 66px;
-    border-radius: 4px;
+    width: var(--mcm-cover-xs);
+    height: calc(var(--mcm-cover-xs) * 1.5);
+    border-radius: var(--mcm-cover-radius-xs);
     object-fit: cover;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .missing-serie-placeholder {

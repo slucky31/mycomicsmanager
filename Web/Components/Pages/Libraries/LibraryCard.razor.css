@@ -50,18 +50,19 @@
 .library-covers {
     position: relative;
     flex-shrink: 0;
-    width: 112px;
-    height: 104px;
+    /* Three S covers, 24px apart. */
+    width: calc(var(--mcm-cover-s) + 48px);
+    height: calc(var(--mcm-cover-s) * 1.5 + 8px);
 }
 
 .library-cover {
     position: absolute;
-    width: 64px;
-    height: 96px;
+    width: var(--mcm-cover-s);
+    height: calc(var(--mcm-cover-s) * 1.5);
     box-sizing: border-box;
     object-fit: cover;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    border-radius: var(--mcm-cover-radius);
+    box-shadow: var(--mcm-cover-shadow);
 }
 
 .library-cover-0 {
@@ -165,24 +166,6 @@
 
     .library-card {
         padding: 20px;
-    }
-
-    .library-covers {
-        width: 168px;
-        height: 152px;
-    }
-
-    .library-cover {
-        width: 96px;
-        height: 144px;
-    }
-
-    .library-cover-1 {
-        left: 36px;
-    }
-
-    .library-cover-2 {
-        left: 72px;
     }
 
     .library-name {

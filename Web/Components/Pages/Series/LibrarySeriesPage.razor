@@ -38,7 +38,7 @@
                         <span class="serie-stack-back" aria-hidden="true"></span>
                         @if (!string.IsNullOrEmpty(serie.Cover))
                         {
-                            <img class="serie-cover" src="@serie.Cover" alt="" loading="lazy" />
+                            <img class="serie-cover" src="@CoverImage.Sized(serie.Cover, CoverSize.Medium)" alt="" loading="lazy" />
                         }
                         else
                         {

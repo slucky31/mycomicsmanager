@@ -111,13 +111,14 @@
 .serie-volumes {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px 12px;
+    gap: var(--mcm-cover-grid-gap);
     padding: 12px 16px 16px;
 }
 
 @media (min-width: 600px) {
     .serie-volumes {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(var(--mcm-cover-m-min), 1fr));
+        gap: var(--mcm-cover-grid-gap-wide);
     }
 }
 
@@ -187,12 +188,12 @@
     display: block;
     width: 100%;
     aspect-ratio: 2 / 3;
-    border-radius: 6px;
+    border-radius: var(--mcm-cover-radius);
 }
 
 .serie-slot-cover {
     object-fit: cover;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--mcm-cover-shadow);
 }
 
 .serie-slot-placeholder {

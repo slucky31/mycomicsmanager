@@ -176,7 +176,7 @@
                                     <span class="find-details-option-source">@option.SourcesLabel</span>
                                     @if (field.IsImage && option.Value is not null)
                                     {
-                                        <img class="find-details-cover" src="@option.Value" alt="@($"Cover from {option.SourcesLabel}")" />
+                                        <img class="find-details-cover" src="@CoverImage.Sized(option.Value, CoverSize.ExtraSmall)" alt="@($"Cover from {option.SourcesLabel}")" loading="lazy" />
                                     }
                                     else
                                     {

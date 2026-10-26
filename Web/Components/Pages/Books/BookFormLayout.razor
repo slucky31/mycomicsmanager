@@ -5,7 +5,7 @@
     <div class="book-form-side">
         @if (!string.IsNullOrWhiteSpace(ImageLink))
         {
-            <img class="book-form-cover" src="@ImageLink" alt="Cover preview" />
+            <img class="book-form-cover" src="@CoverImage.Sized(ImageLink, CoverSize.Large)" alt="Cover preview" />
         }
         else
         {

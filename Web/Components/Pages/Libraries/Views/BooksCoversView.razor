@@ -35,7 +35,7 @@
         <span class="cover-frame">
             @if (!string.IsNullOrEmpty(book.ImageLink))
             {
-                <img class="cover-image" src="@book.ImageLink" alt="@($"Cover of {book.Title}")" loading="lazy" />
+                <img class="cover-image" src="@CoverImage.Sized(book.ImageLink, CoverSize.Medium)" alt="@($"Cover of {book.Title}")" loading="lazy" />
             }
             else
             {
