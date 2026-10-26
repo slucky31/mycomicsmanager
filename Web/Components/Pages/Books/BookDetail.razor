@@ -44,7 +44,7 @@
             <div class="book-side">
                 @if (!string.IsNullOrEmpty(view.ImageLink))
                 {
-                    <img class="book-cover" src="@view.ImageLink" alt="@view.CoverAlt" />
+                    <img class="book-cover" src="@CoverImage.Sized(view.ImageLink, CoverSize.Large)" alt="@view.CoverAlt" />
                 }
                 else
                 {
@@ -240,7 +240,7 @@
                 <div class="book-sheet-header">
                     @if (!string.IsNullOrEmpty(view.ImageLink))
                     {
-                        <img src="@view.ImageLink" alt="" />
+                        <img src="@CoverImage.Sized(view.ImageLink, CoverSize.ExtraSmall)" alt="" loading="lazy" />
                     }
                     <div class="book-sheet-heading">
                         <div class="book-sheet-title">@view.Title</div>

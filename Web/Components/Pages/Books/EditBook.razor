@@ -32,7 +32,7 @@
                 <div class="edit-library">
                     @if (!string.IsNullOrWhiteSpace(_model.ImageLink))
                     {
-                        <img class="edit-library-cover" src="@_model.ImageLink" alt="@view.CoverAlt" />
+                        <img class="edit-library-cover" src="@CoverImage.Sized(_model.ImageLink, CoverSize.Small)" alt="@view.CoverAlt" loading="lazy" />
                     }
                     <div class="edit-library-text">
                         <div class="edit-library-caption">Library</div>

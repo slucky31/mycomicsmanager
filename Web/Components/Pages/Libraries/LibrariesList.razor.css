@@ -250,9 +250,9 @@
 
 .search-cover {
     flex-shrink: 0;
-    width: 36px;
-    height: 52px;
-    border-radius: 4px;
+    width: var(--mcm-cover-xs);
+    height: calc(var(--mcm-cover-xs) * 1.5);
+    border-radius: var(--mcm-cover-radius-xs);
     object-fit: cover;
     background: var(--mcm-border);
 }

@@ -31,7 +31,7 @@
                     <a @key="serie.Href" class="missing-serie" href="@serie.Href">
                         @if (!string.IsNullOrEmpty(serie.Cover))
                         {
-                            <img class="missing-serie-cover" src="@serie.Cover" alt="" loading="lazy" />
+                            <img class="missing-serie-cover" src="@CoverImage.Sized(serie.Cover, CoverSize.ExtraSmall)" alt="" loading="lazy" />
                         }
                         else
                         {
