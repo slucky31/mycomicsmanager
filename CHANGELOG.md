@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.69.0"></a>
+## [10.69.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.0) (2026-10-26)
+
+### ✨ Features
+
+* **ui:** one type scale, consistent dates and a DESIGN.md ([#1246](https://www.github.com/slucky31/mycomicsmanager/issues/1246)) ([#1249](https://www.github.com/slucky31/mycomicsmanager/issues/1249)) ([a773885](https://www.github.com/slucky31/mycomicsmanager/commit/a7738850c0b690982dcff39c710466879c269969))
+
 <a name="10.68.1"></a>
 ## [10.68.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.68.1) (2026-10-26)
 
