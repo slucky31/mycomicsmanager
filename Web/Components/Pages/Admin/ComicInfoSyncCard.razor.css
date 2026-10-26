@@ -1,6 +1,6 @@
 .comicinfo-sync-title {
     margin: 16px 0 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -9,7 +9,7 @@
 
 .comicinfo-sync-hint {
     margin: 0 0 8px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 

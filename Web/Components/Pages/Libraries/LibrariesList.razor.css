@@ -27,7 +27,7 @@
 
 .libraries-bar-title h1 {
     margin: 0;
-    font-size: 26px;
+    font-size: var(--mcm-font-page);
     font-weight: 700;
 }
 
@@ -35,7 +35,7 @@
 .libraries-bar-subtitle {
     display: none;
     margin-top: 2px;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     color: var(--mcm-text-muted);
 }
 
@@ -68,12 +68,12 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
 }
 
 .library-actions-details {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -101,7 +101,7 @@
     }
 
     .libraries-bar-title h1 {
-        font-size: 30px;
+        font-size: var(--mcm-font-page);
     }
 
     ::deep .libraries-bar-add {
@@ -114,7 +114,7 @@
         padding: 0 18px 0 14px;
         border-radius: 22px;
         text-transform: none;
-        font-size: 15px;
+        font-size: var(--mcm-font-body);
     }
 
     .libraries-grid {
@@ -137,7 +137,7 @@
     }
 
     .libraries-bar-title h1 {
-        font-size: 32px;
+        font-size: var(--mcm-font-page-l);
     }
 
     .libraries-bar-subtitle {
@@ -186,7 +186,7 @@
     background: transparent;
     font: inherit;
     /* 16px: iOS does not zoom on the field */
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     color: var(--mcm-text);
 }
 
@@ -203,7 +203,7 @@
 
 .search-heading {
     margin: 8px 0 0;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 700;
     letter-spacing: 0.6px;
     text-transform: uppercase;
@@ -244,7 +244,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -273,7 +273,7 @@
     text-overflow: ellipsis;
     padding: 2px 8px;
     border-radius: 10px;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     background: color-mix(in srgb, var(--library-color) 12%, #ffffff);
     color: color-mix(in srgb, var(--library-color) 70%, #000000);
 }

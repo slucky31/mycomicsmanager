@@ -7,7 +7,7 @@
     background: #ffffff;
     color: var(--mcm-text);
     font: inherit;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     cursor: pointer;
 }
 

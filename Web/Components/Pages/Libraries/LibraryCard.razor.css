@@ -42,7 +42,7 @@
     border-radius: 10px;
     background: var(--mcm-surface-sunken);
     color: #3D4150;
-    font-size: 11px;
+    font-size: var(--mcm-font-caption);
     font-weight: 600;
 }
 
@@ -120,7 +120,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 18px;
+    font-size: var(--mcm-font-subtitle);
     font-weight: 500;
 }
 
@@ -139,11 +139,11 @@
     border: 1px solid var(--library-color);
     border-radius: 12px;
     color: var(--library-color);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
 }
 
 .library-count {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     color: var(--mcm-text-muted);
 }
 
@@ -185,6 +185,6 @@
     }
 
     .library-name {
-        font-size: 22px;
+        font-size: var(--mcm-font-title-l);
     }
 }

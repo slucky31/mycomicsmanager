@@ -19,11 +19,11 @@
 }
 
 .book-actions-title {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
 }
 
 .book-actions-serie {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }

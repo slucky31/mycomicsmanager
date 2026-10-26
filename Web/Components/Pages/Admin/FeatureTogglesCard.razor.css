@@ -1,6 +1,6 @@
 .feature-toggles-title {
     margin: 16px 0 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -9,7 +9,7 @@
 
 .feature-toggles-hint {
     margin: 0 0 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -34,12 +34,12 @@
 
 .feature-toggle-label {
     display: block;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
 }
 
 .feature-toggle-description {
     display: block;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -48,7 +48,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 6px;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }
 

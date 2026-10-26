@@ -31,7 +31,7 @@
 .scan-title {
     flex-grow: 1;
     margin: 0;
-    font-size: 18px;
+    font-size: var(--mcm-font-subtitle);
     font-weight: 500;
 }
 
@@ -145,7 +145,7 @@
     top: calc(50% + 105px);
     margin: 0;
     text-align: center;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
@@ -170,7 +170,7 @@
     padding: 0 14px;
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.12);
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .scan-target strong {
@@ -189,7 +189,7 @@
     background: #2C2F3A;
     color: #ffffff;
     font: inherit;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
     text-decoration: none;
     cursor: pointer;
@@ -235,18 +235,18 @@
 }
 
 .scan-error-icon ::deep svg {
-    font-size: 32px;
+    font-size: var(--mcm-font-page-l);
 }
 
 .scan-error h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
     font-weight: 500;
 }
 
 .scan-error p {
     margin: 0;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     color: #B9B9C6;
 }
 

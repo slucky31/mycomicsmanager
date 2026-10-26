@@ -27,7 +27,7 @@
 
 .missing-library {
     margin: 12px 0 0;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -77,13 +77,13 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 600;
 }
 
 .missing-serie-owned {
     flex-shrink: 0;
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }
 
@@ -102,7 +102,7 @@
     border: 1px dashed #C08A5A;
     background: #FFF6EE;
     color: var(--mcm-missing);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 600;
 }
 

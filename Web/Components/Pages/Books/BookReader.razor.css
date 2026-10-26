@@ -177,7 +177,7 @@
 
 ::deep .reader-isbn {
     font-family: monospace;
-    font-size: 1.1rem;
+    font-size: var(--mcm-font-subtitle);
     letter-spacing: 0.05em;
 }
 
@@ -274,7 +274,7 @@
     background: #fff;
     color: var(--mcm-text);
     font: inherit;
-    font-size: 0.8125rem;
+    font-size: var(--mcm-font-small);
     cursor: pointer;
 }
 

@@ -1,5 +1,33 @@
 /* Colours shared by the components' scoped styles. The primary colour comes from the MudBlazor theme (--mud-palette-primary). */
 :root {
+    /* Type scale (#1246): one role per size, the components use the role. */
+    --mcm-font-caption: 12px;
+    --mcm-font-small: 13px;
+    --mcm-font-label: 14px;
+    --mcm-font-body: 15px;
+    --mcm-font-body-l: 16px;
+    --mcm-font-subtitle: 18px;
+    --mcm-font-title: 20px;
+    --mcm-font-title-l: 22px;
+    --mcm-font-page: 28px;
+    --mcm-font-page-l: 32px;
+    --mcm-font-display: 40px;
+    --mcm-font-display-l: 52px;
+    --mcm-font-hero: 64px;
+
+    /* Spacing and radius scales for new styles (#1246). */
+    --mcm-space-1: 4px;
+    --mcm-space-2: 8px;
+    --mcm-space-3: 12px;
+    --mcm-space-4: 16px;
+    --mcm-space-5: 24px;
+    --mcm-space-6: 32px;
+    --mcm-radius-s: 4px;
+    --mcm-radius-m: 8px;
+    --mcm-radius-l: 12px;
+    --mcm-radius-xl: 16px;
+    --mcm-radius-pill: 999px;
+
     /* Pressed or hovered primary */
     --mcm-primary-strong: #4A3BC4;
     /* Primary tint behind a selected or highlighted item */

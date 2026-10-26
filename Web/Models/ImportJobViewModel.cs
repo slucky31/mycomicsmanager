@@ -1,3 +1,4 @@
+using System.Globalization;
 using Domain.ImportJobs;
 
 namespace Web.Models;
@@ -71,6 +72,10 @@ public record ImportJobViewModel(
         Enum.TryParse<ImportJobStatus>(step, out var status) ? GetStatusDisplay(status) : step;
 
     public bool IsTerminal => Status is "Completed" or "Failed";
+
+    // Same format as the other dates of the app (#1246): "03/10/2026 19:23", in local time.
+    public string CreatedAtDisplay =>
+        CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
 
     public string? DurationDisplay =>
         CompletedAt.HasValue

@@ -11,7 +11,7 @@
 .isbn-form ::deep .isbn-input {
     height: 56px;
     border-radius: 12px;
-    font-size: 22px;
+    font-size: var(--mcm-font-title-l);
     letter-spacing: 0.04em;
     font-variant-numeric: tabular-nums;
 }
@@ -27,7 +27,7 @@
     background: var(--mud-palette-primary);
     color: #ffffff;
     font: inherit;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
     cursor: pointer;
 }

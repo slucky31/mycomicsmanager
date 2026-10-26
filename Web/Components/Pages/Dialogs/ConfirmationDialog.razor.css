@@ -6,7 +6,7 @@
 
 .confirm-heading h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
     font-weight: 500;
     color: var(--mcm-text);
 }
@@ -25,7 +25,7 @@
 
 .confirm-text {
     margin: 12px 0 0;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     line-height: 1.45;
     color: #3C4050;
 }
@@ -43,7 +43,7 @@
     padding: 0 22px;
     border-radius: 26px;
     font: inherit;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-weight: 500;
     cursor: pointer;
 }
@@ -77,6 +77,6 @@
 
     .confirm-button {
         height: 48px;
-        font-size: 15px;
+        font-size: var(--mcm-font-body);
     }
 }

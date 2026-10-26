@@ -40,7 +40,7 @@
 }
 
 .library-select-label {
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }
 
@@ -48,7 +48,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
 }
 
@@ -75,7 +75,7 @@
     gap: 6px;
     padding: 0 10px 0 14px;
     border-radius: 20px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .library-select-compact ::deep .library-icon {
@@ -89,21 +89,21 @@
 }
 
 .library-select-compact .library-select-label {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .library-select-compact .library-select-value {
     max-width: 220px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .library-select-compact ::deep .library-select-chevron {
-    font-size: 18px;
+    font-size: var(--mcm-font-subtitle);
 }
 
 .library-select-error {
     display: block;
     margin-top: 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-error);
 }

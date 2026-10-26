@@ -33,7 +33,7 @@
 }
 
 .app-title {
-  font-size: 2.5rem;
+  font-size: var(--mcm-font-display);
   font-weight: 400;
   color: #fff;
   letter-spacing: 0.01em;
@@ -41,7 +41,7 @@
 }
 
 .subtitle {
-  font-size: 1.15rem;
+  font-size: var(--mcm-font-subtitle);
   color: #e0e0e0;
   margin-bottom: 1rem;
   text-align: center;
@@ -50,7 +50,7 @@
 /* ::deep is required here: MudButton renders its HTML outside Login.razor's scope */
 ::deep .sign-in-btn {
   width: 95%;
-  font-size: 1.25rem;
+  font-size: var(--mcm-font-title);
   font-weight: 500;
   color: #fff;
   padding: 0.75rem 1rem;
@@ -73,5 +73,5 @@
   width: 100%;
   text-align: center;
   color: #bbb;
-  font-size: 1rem;
+  font-size: var(--mcm-font-body-l);
 }

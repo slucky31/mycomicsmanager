@@ -25,7 +25,7 @@
 /* On a phone the preview is the card itself, without its caption. */
 .library-form-caption {
     display: none;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -33,7 +33,7 @@
 }
 
 .library-form-note {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -49,17 +49,17 @@
     padding: 12px 14px;
     border-radius: 12px;
     background: var(--mcm-error-soft);
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .library-form-error {
     margin-top: 6px;
     gap: 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
 }
 
 .library-form-error ::deep svg {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
 }
 
 .library-fieldset {
@@ -72,7 +72,7 @@
 .library-fieldset legend {
     padding: 0;
     margin-bottom: 10px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
 }
 
@@ -105,14 +105,14 @@
 
 .library-hidden-label {
     display: block;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
 }
 
 .library-hidden-help {
     display: block;
     margin-top: 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -208,12 +208,12 @@
 }
 
 .library-type-card-title {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
 }
 
 .library-type-card-description {
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }
 
@@ -277,11 +277,11 @@
 }
 
 .library-icon-row-caption {
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
 }
 
 .library-icon-row-name {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
     color: var(--mcm-text);
 }

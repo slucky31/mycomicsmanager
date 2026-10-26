@@ -13,7 +13,7 @@
     border-radius: 9px;
     background-color: #F5A524;
     color: var(--mcm-text);
-    font-size: 11px;
+    font-size: var(--mcm-font-caption);
     font-weight: 700;
     line-height: 18px;
     text-align: center;
@@ -61,7 +61,7 @@
 }
 
 .bottom-nav-label {
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
     line-height: 1.2;
 }
@@ -121,7 +121,7 @@
         gap: 4px;
         color: #ffffff;
         text-decoration: none;
-        font-size: 12px;
+        font-size: var(--mcm-font-caption);
         font-weight: 500;
     }
 
@@ -172,7 +172,7 @@
     .side-nav-title {
         display: inline;
         font-family: 'Bangers', system-ui;
-        font-size: 24px;
+        font-size: var(--mcm-font-title-l);
     }
 
     .side-nav-item {
@@ -183,7 +183,7 @@
         gap: 14px;
         padding: 0 14px;
         border-radius: 22px;
-        font-size: 15px;
+        font-size: var(--mcm-font-body);
     }
 
     /* The icon and the badge become items of the row: icon, label, then the badge at the end. */
@@ -230,7 +230,7 @@
         border-radius: 20px;
         color: #ffffff;
         text-decoration: none;
-        font-size: 14px;
+        font-size: var(--mcm-font-label);
     }
 
     .side-nav-library-name {
@@ -242,7 +242,7 @@
     }
 
     .side-nav-library-count {
-        font-size: 12px;
+        font-size: var(--mcm-font-caption);
         color: #B9B9C6;
     }
 

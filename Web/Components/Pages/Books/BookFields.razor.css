@@ -23,12 +23,12 @@
 }
 
 .book-one-shot-label {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
     color: var(--mcm-text);
 }
 
 .book-one-shot-help {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }

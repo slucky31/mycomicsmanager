@@ -27,16 +27,16 @@
 .edit-library-hint,
 .edit-readings-hint,
 .edit-readings-empty {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
 .edit-library-caption {
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
 }
 
 .edit-library-name {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
 }
 
@@ -76,7 +76,7 @@
 }
 
 .edit-reading-date {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
 }
 

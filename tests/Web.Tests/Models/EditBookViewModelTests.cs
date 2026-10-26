@@ -30,8 +30,8 @@ public sealed class EditBookViewModelTests
             ReadingsCountLabel = "2 readings",
         });
         view.Readings.Select(r => (r.Date, r.Rating, r.DeleteLabel)).Should().Equal(
-            ("12 March 2026", 4, "Delete the reading of 12 March 2026"),
-            ("2 August 2024", 5, "Delete the reading of 2 August 2024"));
+            ("12/03/2026", 4, "Delete the reading of 12/03/2026"),
+            ("02/08/2024", 5, "Delete the reading of 02/08/2024"));
         view.LibraryLabel("Read Books").Should().Be("Read Books · Physical");
     }
 

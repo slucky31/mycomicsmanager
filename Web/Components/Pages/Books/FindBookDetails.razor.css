@@ -27,12 +27,12 @@
 
 .find-details-bar-title h1 {
     margin: 0;
-    font-size: 18px;
+    font-size: var(--mcm-font-subtitle);
     font-weight: 500;
 }
 
 .find-details-bar-subtitle {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -65,7 +65,7 @@
     border: 1px solid var(--mcm-border);
     border-radius: 12px;
     background: #ffffff;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .find-details-card strong {
@@ -96,7 +96,7 @@
 /* ── A field and its values ── */
 .find-details-field-label {
     margin-bottom: 6px;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
 }
 
@@ -145,7 +145,7 @@
 }
 
 .find-details-option-source {
-    font-size: 11px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -153,7 +153,7 @@
 }
 
 .find-details-option-value {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
 }
@@ -208,7 +208,7 @@
     justify-content: space-between;
     gap: 8px;
     margin: 0;
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
     font-weight: 500;
 }
 
@@ -228,19 +228,19 @@
 }
 
 .find-details-edition-title {
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
     overflow-wrap: anywhere;
 }
 
 .find-details-edition-isbn {
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
     font-variant-numeric: tabular-nums;
 }
 
 .find-details-edition .find-details-muted {
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
 }
 
 .find-details-cover-none {
@@ -265,12 +265,12 @@
     border-radius: 12px;
     background: var(--mcm-success-soft);
     color: var(--mcm-success-strong);
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .find-details-match ::deep svg {
     flex-shrink: 0;
-    font-size: 20px;
+    font-size: var(--mcm-font-title);
 }
 
 .find-details-sources {
@@ -278,7 +278,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 4px 12px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -289,7 +289,7 @@
 }
 
 .find-details-source ::deep svg {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
 }
 
 ::deep .find-details-state-searching {
@@ -319,7 +319,7 @@
     min-height: 48px;
     border-radius: 12px;
     text-transform: none;
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
 }
 
 ::deep .find-details-apply {
@@ -333,7 +333,7 @@
     }
 
     .find-details-bar-title h1 {
-        font-size: 22px;
+        font-size: var(--mcm-font-title-l);
     }
 
     .find-details-content {

@@ -30,6 +30,14 @@ public sealed class ImportJobViewModelTests
     }
 
     [Fact]
+    public void CreatedAtDisplay_Should_ShowTheLocalDateAndTime_LikeTheOtherDatesOfTheApp()
+    {
+        var viewModel = ImportJobViewModel.From(CreateJob()) with { CreatedAt = new DateTime(2026, 10, 3, 17, 23, 0, DateTimeKind.Utc) };
+
+        viewModel.CreatedAtDisplay.Should().MatchRegex(@"^0[34]/10/2026 \d{2}:23$");
+    }
+
+    [Fact]
     public void From_Should_MapErrorDetails_WhenJobFailed()
     {
         var job = CreateJob();

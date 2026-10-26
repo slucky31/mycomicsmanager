@@ -116,6 +116,9 @@ Enforced via `.editorconfig`:
 
 ## Code Quality Rules
 
+### Design System
+- Read `DESIGN.md` before changing the UI. Colours, font sizes, spacing, radii and cover sizes come from the CSS variables of `Web/wwwroot/css/theme.css` (`--mcm-*`); never hard-code a value that has a variable, and add a variable there when a new value is needed in more than one component.
+
 ### Accessibility (Blazor / MudBlazor)
 - Every icon-only `MudIconButton` must have an `aria-label` attribute.
 - Every icon-only `MudMenu` trigger must have an `AriaLabel` parameter (e.g., `"More actions"`).

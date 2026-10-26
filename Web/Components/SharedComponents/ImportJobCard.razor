@@ -5,7 +5,7 @@
         <MudIcon Icon="@Icons.Material.Outlined.Description" Class="import-job-file-icon" />
         <div class="import-job-text">
             <div class="import-job-name" title="@Job.OriginalFileName">@Job.OriginalFileName</div>
-            <div class="import-job-meta">@BookText.Join(Job.FileSizeDisplay, Job.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm"), Job.DurationDisplay)</div>
+            <div class="import-job-meta">@BookText.Join(Job.FileSizeDisplay, Job.CreatedAtDisplay, Job.DurationDisplay)</div>
         </div>
         <span class="import-job-status"><MudIcon Icon="@StatusIcon" />@Job.StatusDisplay</span>
     </div>

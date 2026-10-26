@@ -55,7 +55,7 @@
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    font-size: 15px;
+    font-size: var(--mcm-font-body);
     font-weight: 500;
     line-height: 19px;
 }
@@ -64,7 +64,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -84,7 +84,7 @@
 }
 
 ::deep .list-star {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
     color: #F5A524;
 }
 
@@ -97,12 +97,12 @@
     border-radius: 11px;
     background: var(--mcm-success-soft);
     color: var(--mcm-success);
-    font-size: 12px;
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
 }
 
 ::deep .list-read-icon {
-    font-size: 14px;
+    font-size: var(--mcm-font-label);
 }
 
 .list-actions {
@@ -155,12 +155,12 @@
     }
 
     .list-title {
-        font-size: 16px;
+        font-size: var(--mcm-font-body-l);
         line-height: 20px;
     }
 
     .list-meta {
-        font-size: 14px;
+        font-size: var(--mcm-font-label);
     }
 }
 
@@ -202,7 +202,7 @@ button.list-link:focus-visible {
 }
 
 .list-check ::deep svg {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
 }
 
 .list-item-checked {

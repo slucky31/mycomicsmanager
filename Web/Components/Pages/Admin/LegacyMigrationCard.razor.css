@@ -1,6 +1,6 @@
 .legacy-migration-title {
     margin: 16px 0 4px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -9,7 +9,7 @@
 
 .legacy-migration-hint {
     margin: 0 0 8px;
-    font-size: 13px;
+    font-size: var(--mcm-font-small);
     color: var(--mcm-text-muted);
 }
 
@@ -22,7 +22,7 @@
 }
 
 .legacy-migration-label {
-    font-size: 16px;
+    font-size: var(--mcm-font-body-l);
 }
 
 .legacy-migration-count {
