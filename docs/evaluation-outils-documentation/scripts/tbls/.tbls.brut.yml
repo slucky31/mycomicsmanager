@@ -1,0 +1,18 @@
+# Configuration tbls pour MyComicsManager (base PostgreSQL issue des migrations EF Core)
+dsn: postgres://postgres@127.0.0.1:55432/mycomics?sslmode=disable
+docPath: doc
+format:
+  adjust: true
+er:
+  format: mermaid
+  distance: 1
+exclude:
+  - __EFMigrationsHistory
+  - DataProtectionKeys
+lint:
+  requireTableComment:
+    enabled: true
+  requireColumnComment:
+    enabled: false
+  unrelatedTable:
+    enabled: true
