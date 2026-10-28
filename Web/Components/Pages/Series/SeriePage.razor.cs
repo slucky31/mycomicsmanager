@@ -20,6 +20,8 @@ public partial class SeriePage : IAsyncDisposable
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private PopupAnchorLocator PopupAnchorLocator { get; set; } = default!;
 
+    public const string Msg_LoadFailed = "Failed to load the series";
+
     [Parameter] public Guid LibraryId { get; set; }
 
     [SupplyParameterFromQuery(Name = "name")]
@@ -29,6 +31,8 @@ public partial class SeriePage : IAsyncDisposable
     private (Guid LibraryId, string? Name) _shown;
     private SeriePageViewModel? _serie;
     private bool _isLoading = true;
+    // The series could not be loaded, for another reason than it being gone: an error with Retry (#1241).
+    private bool _loadFailed;
     private bool _isEditing;
     private bool _isSaving;
     private readonly SerieTotalForm _form = new();
@@ -51,6 +55,12 @@ public partial class SeriePage : IAsyncDisposable
 
         _shown = (LibraryId, Name);
         _isEditing = false;
+        _serie = null;
+        await RetryAsync();
+    }
+
+    private async Task RetryAsync()
+    {
         _isLoading = true;
         try
         {
@@ -82,23 +92,35 @@ public partial class SeriePage : IAsyncDisposable
             if (result.IsSuccess)
             {
                 _serie = SeriePageViewModel.From(result.Value!);
+                _loadFailed = false;
             }
-            else if (result.IsFailure && bookGone && result.Error == SeriesError.NotFound)
+            else if (result.IsFailure && result.Error == SeriesError.NotFound)
             {
-                // Its last book was moved or deleted: the series is gone too.
-                NavigationManager.NavigateTo(SerieDisplay.SeriesHref(shown.LibraryId));
+                ShowGone(shown.LibraryId, bookGone);
             }
             else if (result.IsFailure)
             {
-                Snackbar.Add("Series not found", Severity.Error);
+                // A database or network error: the series may well still exist, so the page stays to retry.
+                _loadFailed = true;
+                Snackbar.Add(Msg_LoadFailed, Severity.Error);
                 Logger.LogError("Failed to load a series of library {LibraryId}: {ErrorDescription}", shown.LibraryId, result.Error!.Description);
-                NavigationManager.NavigateTo(SerieDisplay.SeriesHref(shown.LibraryId));
             }
         }
         catch (OperationCanceledException)
         {
             // Page left while loading.
         }
+    }
+
+    private void ShowGone(Guid libraryId, bool bookGone)
+    {
+        // When its last book was moved or deleted, the series is gone too: no need to say so.
+        if (!bookGone)
+        {
+            Snackbar.Add(SeriesError.NotFound.Description!, Severity.Error);
+        }
+
+        NavigationManager.NavigateTo(SerieDisplay.SeriesHref(libraryId));
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

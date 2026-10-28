@@ -8,6 +8,9 @@ public sealed record SerieSlotViewModel(string Key, string Badge, string? Title,
 {
     public bool IsMissing => Book is null;
 
+    // The volume before the title, so that books whose titles start alike stay apart (#1241).
+    public string? Label => IsMissing ? null : $"{Badge} · {Title}";
+
     public static SerieSlotViewModel Owned(SerieBookRow book)
     {
         ArgumentNullException.ThrowIfNull(book);
