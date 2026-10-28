@@ -1,4 +1,4 @@
-@using Web.Components.SharedComponents
+﻿@using Web.Components.SharedComponents
 @using Web.Models
 
 @rendermode InteractiveServer
@@ -39,6 +39,15 @@
     @if (_isLoading)
     {
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
+    }
+    else if (_loadFailed && _libraries.Count == 0)
+    {
+        <div class="libraries-empty" role="alert">
+            <MudIcon Icon="@Icons.Material.Filled.CloudOff" Style="font-size: 80px; opacity: 0.4;" />
+            <MudText Typo="Typo.h6" Class="mt-4">@LibrariesList.Msg_LoadFailed</MudText>
+            <MudText Typo="Typo.body2" Class="libraries-empty-hint">Check the connection, then try again.</MudText>
+            <MudButton StartIcon="@Icons.Material.Filled.Refresh" Variant="Variant.Filled" Color="Color.Primary" OnClick="RetryAsync">Retry</MudButton>
+        </div>
     }
     else if (_libraries.Count == 0)
     {

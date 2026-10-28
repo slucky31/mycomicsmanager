@@ -1,4 +1,4 @@
-@* A library as on the libraries page: its latest covers, icon, name, type and count of books. Without a link, it is the preview of the library form. *@
+﻿@* A library as on the libraries page: its latest covers, icon, name, type and count of books. Without a link, it is the preview of the library form. *@
 <div class="library-cell">
     <article class="@Library.CssClass" style="@($"--library-color: {Library.Color};")">
         @if (Href is null)
@@ -41,7 +41,7 @@
         <span class="library-card-text">
             <span class="library-card-heading">
                 <LibraryIcon Icon="@Library.Icon" />
-                <span class="library-name">@Library.Name</span>
+                <span class="library-name" title="@Library.Name">@Library.Name</span>
                 @if (Library.IsHidden)
                 {
                     <span class="library-hidden-chip">Hidden</span>
