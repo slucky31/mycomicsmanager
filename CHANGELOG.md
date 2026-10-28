@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.69.3"></a>
+## [10.69.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.3) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* **deps:** update skiasharp monorepo to 4.154.0 ([#1251](https://www.github.com/slucky31/mycomicsmanager/issues/1251)) ([f6cf9b4](https://www.github.com/slucky31/mycomicsmanager/commit/f6cf9b4129b550bd3ab699e9b00a38e6095e4875))
+
 <a name="10.69.2"></a>
 ## [10.69.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.2) (2026-10-27)
 
