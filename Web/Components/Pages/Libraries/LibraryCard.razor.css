@@ -1,4 +1,4 @@
-﻿/* A card shows bigger covers as soon as it is wide enough for them. */
+/* A card shows bigger covers as soon as it is wide enough for them. */
 .library-cell {
     container-type: inline-size;
     min-width: 0;
