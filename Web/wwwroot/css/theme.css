@@ -85,4 +85,14 @@
     /* The grids of covers: Covers view, series page and list of series. */
     --mcm-cover-grid-gap: 16px 12px;
     --mcm-cover-grid-gap-wide: 24px 20px;
+    /* The space above the bars of the pages: the iPhone status bar. */
+    --mcm-top-inset: env(safe-area-inset-top, 0px);
+}
+
+/* In the app added to the Home Screen, iOS 26 and later blur the top of the page a little below the status bar,
+   whatever the page does: the bars start lower, out of the blur. Only where there is a status bar (#1250). */
+@media (display-mode: standalone) {
+    :root {
+        --mcm-top-inset: calc(env(safe-area-inset-top, 0px) + min(env(safe-area-inset-top, 0px) * 100, 28px));
+    }
 }

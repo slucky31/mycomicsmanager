@@ -15,7 +15,7 @@
     min-height: 60px;
     display: flex;
     align-items: center;
-    padding: env(safe-area-inset-top) 16px 0;
+    padding: var(--mcm-top-inset) 16px 0;
 }
 
 .settings-bar h1 {
@@ -288,7 +288,7 @@ div.settings-row {
 @media (min-width: 840px) {
     .settings-bar {
         min-height: 72px;
-        padding: env(safe-area-inset-top) 28px 0;
+        padding: var(--mcm-top-inset) 28px 0;
     }
 
     .settings-bar h1 {

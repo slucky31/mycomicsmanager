@@ -13,7 +13,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: env(safe-area-inset-top) 16px 0 4px;
+    padding: var(--mcm-top-inset) 16px 0 4px;
 }
 
 ::deep .find-details-back {
@@ -335,7 +335,7 @@
 @media (min-width: 840px) {
     .find-details-bar {
         min-height: 72px;
-        padding: env(safe-area-inset-top) 28px 0 16px;
+        padding: var(--mcm-top-inset) 28px 0 16px;
     }
 
     .find-details-bar-title h1 {

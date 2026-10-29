@@ -18,7 +18,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 4px;
-    padding: env(safe-area-inset-top) 4px 0 16px;
+    padding: var(--mcm-top-inset) 4px 0 16px;
 }
 
 .feeds-bar h1 {
@@ -469,7 +469,7 @@
         flex-wrap: nowrap;
         min-height: 72px;
         gap: 8px;
-        padding: env(safe-area-inset-top) 20px 0 28px;
+        padding: var(--mcm-top-inset) 20px 0 28px;
     }
 
     .feeds-bar h1 {
