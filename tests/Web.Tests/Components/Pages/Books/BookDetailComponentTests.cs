@@ -100,7 +100,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
     public async Task LoadBookAsync_Should_ShowTheDigitalBook_WithItsMainActionAndItsActions()
     {
         var book = DigitalBook();
-        book.UpdateReadingProgress(27);
+        book.UpdateReadingProgress(27, DateTime.UtcNow);
 
         var cut = await RenderAsync(book);
 
@@ -128,10 +128,10 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
     public async Task StartOverAsync_Should_ResetTheProgressAndReloadTheBook()
     {
         var book = DigitalBook();
-        book.UpdateReadingProgress(27);
+        book.UpdateReadingProgress(27, DateTime.UtcNow);
         var cut = await RenderAsync(book);
         _readerService.SaveProgressAsync(book.Id, 0, Arg.Any<CancellationToken>())
-            .Returns(_ => { book.UpdateReadingProgress(0); return Result.Success(); });
+            .Returns(_ => { book.UpdateReadingProgress(0, DateTime.UtcNow); return Result.Success(); });
 
         await cut.Find(".book-start-over").ClickAsync(new());
 
@@ -145,7 +145,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
     public async Task StartOverAsync_Should_KeepTheProgressAndShowAnError_WhenSavingFails()
     {
         var book = DigitalBook();
-        book.UpdateReadingProgress(27);
+        book.UpdateReadingProgress(27, DateTime.UtcNow);
         var cut = await RenderAsync(book);
         _readerService.SaveProgressAsync(book.Id, 0, Arg.Any<CancellationToken>()).Returns(Result.Failure(BooksError.NotFound));
 
@@ -160,7 +160,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
     public async Task StartOverAsync_Should_ShowAnError_WhenSavingThrows()
     {
         var book = DigitalBook();
-        book.UpdateReadingProgress(27);
+        book.UpdateReadingProgress(27, DateTime.UtcNow);
         var cut = await RenderAsync(book);
         _readerService.SaveProgressAsync(book.Id, 0, Arg.Any<CancellationToken>()).ThrowsAsync(new InvalidOperationException());
 

@@ -10,10 +10,12 @@ namespace Application.UnitTests.Books;
 public class UpdateReadingProgressCommandHandlerTests
 {
     private static readonly Guid s_userId = Guid.CreateVersion7();
+    private static readonly DateTimeOffset s_now = new(2026, 10, 29, 20, 0, 0, TimeSpan.Zero);
 
     private readonly IBookRepository _bookRepository = Substitute.For<IBookRepository>();
     private readonly IRepository<Library, Guid> _libraryRepository = Substitute.For<IRepository<Library, Guid>>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly TimeProvider _clock = Substitute.For<TimeProvider>();
     private readonly DigitalBook _book;
     private readonly UpdateReadingProgressCommandHandler _handler;
 
@@ -24,7 +26,8 @@ public class UpdateReadingProgressCommandHandlerTests
         _book = DigitalBook.Create(new BookMetadata("Blacksad", "Arctic Nation", null), library.Id, "/library/BD/blacksad-02.cbz", 1_000).Value!;
         _bookRepository.GetByIdAsync(_book.Id).Returns(_book);
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
-        _handler = new UpdateReadingProgressCommandHandler(_bookRepository, _libraryRepository, _unitOfWork);
+        _clock.GetUtcNow().Returns(s_now);
+        _handler = new UpdateReadingProgressCommandHandler(_bookRepository, _libraryRepository, _unitOfWork, _clock);
     }
 
     [Theory]
@@ -52,12 +55,13 @@ public class UpdateReadingProgressCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_SaveProgress_WhenPageChanged()
+    public async Task Handle_Should_SaveProgressAndReadingTime_WhenPageChanged()
     {
         var result = await _handler.Handle(new UpdateReadingProgressCommand(_book.Id, s_userId, 3), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         _book.LastReadPage.Should().Be(3);
+        _book.LastReadAt.Should().Be(s_now.UtcDateTime);
         _bookRepository.Received(1).Update(_book);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -65,7 +69,7 @@ public class UpdateReadingProgressCommandHandlerTests
     [Fact]
     public async Task Handle_Should_NotSave_WhenPageIsUnchanged()
     {
-        _book.UpdateReadingProgress(3);
+        _book.UpdateReadingProgress(3, DateTime.UtcNow);
 
         var result = await _handler.Handle(new UpdateReadingProgressCommand(_book.Id, s_userId, 3), TestContext.Current.CancellationToken);
 

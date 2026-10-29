@@ -1,5 +1,6 @@
 using Application.Books;
 using Application.Books.List;
+using Application.Books.Reading;
 using Application.Books.Search;
 using Application.Interfaces;
 using Domain.Books;
@@ -108,6 +109,41 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
             [.. series.Select(s => new SerieSearchHit(s.LibraryId, s.Serie, s.Count))],
             found,
             bookCount);
+    }
+
+    public async Task<IReadOnlyList<BookInProgressDto>> ListInProgressAsync(Guid userId, bool includeHidden, CancellationToken cancellationToken = default)
+        => await context.Set<DigitalBook>()
+            .AsNoTracking()
+            .Where(b => b.Library!.UserId == userId && (includeHidden || !b.Library.IsHidden))
+            // Marking a book as read takes it back to the first page.
+            .Where(b => b.LastReadPage > 0)
+            // The books read before the reading time was recorded come last.
+            .OrderByDescending(b => b.LastReadAt.HasValue)
+            .ThenByDescending(b => b.LastReadAt)
+            .ThenByDescending(b => b.Id)
+            .Select(b => new BookInProgressDto(b.Id, b.LibraryId, b.Serie, b.Title, b.VolumeNumber, b.ImageLink, b.LastReadPage, b.NumberOfPages, b.LastReadAt))
+            .ToListAsync(cancellationToken);
+
+    public async Task<IPagedList<BookReadingDto>> GetRecentReadingsAsync(Guid userId, int page, int pageSize, bool includeHidden, CancellationToken cancellationToken = default)
+    {
+        var readings = context.Set<Book>()
+            .AsNoTracking()
+            .Where(b => b.Library!.UserId == userId && (includeHidden || !b.Library.IsHidden))
+            .SelectMany(b => b.ReadingDates, (b, rd) => new { Book = b, Reading = rd })
+            .OrderByDescending(x => x.Reading.Date)
+            .ThenByDescending(x => x.Reading.Id)
+            .Select(x => new BookReadingDto(
+                x.Reading.Id,
+                x.Book.Id,
+                x.Book.LibraryId,
+                x.Book.Serie,
+                x.Book.Title,
+                x.Book.VolumeNumber,
+                x.Book.ImageLink,
+                x.Reading.Date,
+                x.Reading.Rating));
+
+        return await new PagedList<BookReadingDto>(readings).ExecuteQueryAsync(page, pageSize, cancellationToken);
     }
 
     public async Task<IReadOnlyList<BookIdentityDto>> ListIdentitiesByUserAsync(Guid userId, CancellationToken cancellationToken = default)

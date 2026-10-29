@@ -11,6 +11,9 @@ public sealed class DigitalBook : Book
     // Zero-based index of the last page displayed in the reader.
     public int LastReadPage { get; private set; }
 
+    // When the reader last saved the page (#1252): the books in progress are listed from the last one read.
+    public DateTime? LastReadAt { get; private set; }
+
     // How the reader displays this book, chosen by the reader in its "Display" panel.
     public ReaderLayout ReaderLayout { get; private set; }
 
@@ -78,7 +81,7 @@ public sealed class DigitalBook : Book
         }
     }
 
-    public Result UpdateReadingProgress(int pageIndex)
+    public Result UpdateReadingProgress(int pageIndex, DateTime readAtUtc)
     {
         if (pageIndex < 0)
         {
@@ -86,6 +89,7 @@ public sealed class DigitalBook : Book
         }
 
         LastReadPage = pageIndex;
+        LastReadAt = readAtUtc;
         return Result.Success();
     }
 

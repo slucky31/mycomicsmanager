@@ -27,6 +27,10 @@
         </div>
     }
 
+    <a href="/reading" class="side-nav-item @ActiveClass(IsActive("/reading"))" aria-current="@AriaCurrent(IsActive("/reading"))">
+        <span class="side-nav-icon"><MudIcon Icon="@Icons.Material.Filled.AutoStories" /></span>
+        <span class="side-nav-label">Reading</span>
+    </a>
     <a href="/statistics" class="side-nav-item @ActiveClass(IsActive("/statistics"))" aria-current="@AriaCurrent(IsActive("/statistics"))">
         <span class="side-nav-icon"><MudIcon Icon="@Icons.Material.Filled.BarChart" /></span>
         <span class="side-nav-label">Statistics</span>
@@ -66,6 +70,10 @@
         <a href="/libraries/list" class="bottom-nav-item @LibrariesEntryClass" aria-current="@AriaCurrent(IsLibrariesEntryActive)">
             <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" /></span>
             <span class="bottom-nav-label">Libraries</span>
+        </a>
+        <a href="/reading" class="bottom-nav-item @ActiveClass(IsActive("/reading"))" aria-current="@AriaCurrent(IsActive("/reading"))">
+            <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.AutoStories" /></span>
+            <span class="bottom-nav-label">Reading</span>
         </a>
         <a href="/statistics" class="bottom-nav-item @ActiveClass(IsActive("/statistics"))" aria-current="@AriaCurrent(IsActive("/statistics"))">
             <span class="bottom-nav-icon"><MudIcon Icon="@Icons.Material.Filled.BarChart" /></span>
