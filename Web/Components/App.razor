@@ -19,6 +19,11 @@
     <link rel="shortcut icon" href="/favicon/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="MCM" />
+    @* An opaque status bar above the app, in the colour of the pages (--mcm-surface-muted). When the app draws under it,
+       iOS 26 and later blur the top of every page and nothing in the page can stop it (#1250). Keep "default":
+       iOS reads it when the app is added to the Home Screen, so the app has to be added again after a change. *@
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#F4F4F6" />
     <link rel="manifest" href="/favicon/site.webmanifest" />
     <HeadOutlet />
 </head>

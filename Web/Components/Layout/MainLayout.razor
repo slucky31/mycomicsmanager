@@ -17,9 +17,6 @@
 </div>
 
 @* The rail and the side bar are always shown; only the bottom bar of a phone is hidden on focused tasks (NavigationRules). *@
-@* iOS 26 blurs the top of a page under the status bar unless a fixed bar sits there, like the reader's (#1250):
-   this strip is that bar, the colour of the pages. It has no height where there is no status bar. *@
-<div class="status-bar-backdrop" aria-hidden="true"></div>
 <NavBar ShowBottomBar="_showBottomBar" />
 <main class="page-body @(_showBottomBar ? "with-bottom-bar" : string.Empty)">
     @Body
