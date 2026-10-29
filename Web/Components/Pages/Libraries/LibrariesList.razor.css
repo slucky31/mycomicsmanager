@@ -17,7 +17,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: env(safe-area-inset-top) 4px 0 16px;
+    padding: var(--mcm-top-inset) 4px 0 16px;
 }
 
 .libraries-bar-title {
