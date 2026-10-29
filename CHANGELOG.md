@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.69.7"></a>
+## [10.69.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.7) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **libraries:** readable names on a phone and a retry when loading fails ([#1253](https://www.github.com/slucky31/mycomicsmanager/issues/1253)) ([55ac6eb](https://www.github.com/slucky31/mycomicsmanager/commit/55ac6ebddc17f732aea1009bcaf413be42652cc3))
+
 <a name="10.69.6"></a>
 ## [10.69.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.6) (2026-10-29)
 
