@@ -25,6 +25,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#F4F4F6" />
     <link rel="manifest" href="/favicon/site.webmanifest" />
+    @* The app added to the iPhone Home Screen (navigator.standalone): its pages start lower, out of the blur
+       iOS draws under the status bar (--mcm-top-inset, theme.css, #1250). Set before the first paint. *@
+    <script>if (navigator.standalone) { document.documentElement.classList.add('ios-standalone'); }</script>
     <HeadOutlet />
 </head>
 
