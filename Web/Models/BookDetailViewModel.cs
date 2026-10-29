@@ -61,9 +61,6 @@ public sealed record BookDetailViewModel
     public string CoverAlt => $"Cover of {Title}";
     public string ActionsLabel => $"Actions for {Title}";
     public string LibraryHref => $"/libraries/{LibraryId}";
-    public string EditHref => $"/books/{Id}/edit";
-    public string FindDetailsHref => $"/books/{Id}/find-details";
-    public string ReadHref => $"/books/{Id}/read";
     public string DownloadHref => $"/api/books/{Id}/download";
 
     public static string RatingLabel(int rating) => $"Rated {rating} out of 5";

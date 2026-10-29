@@ -108,6 +108,9 @@ public partial class LibraryDetailPage : IAsyncDisposable
     // The library on screen: the side bar links to the other libraries, which are shown in this same page.
     private string? _shownLibraryId;
 
+    // This page as it is shown: back from a book comes here (#1261).
+    private string HereHref => "/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+
     // Created before any script call: a render that shows the books before the browser answered the first call
     // (back from a book) must observe the sentinel with it (#1230).
     protected override void OnInitialized() => _dotNetRef = DotNetObjectReference.Create(this);

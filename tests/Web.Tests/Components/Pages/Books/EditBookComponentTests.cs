@@ -111,6 +111,16 @@ public sealed class EditBookComponentTests : IAsyncDisposable
     }
 
     [Fact]
+    public void EditBook_Should_GoBackToTheBookWithTheScreenItWasOpenedFrom()
+    {
+        _navigation.NavigateTo($"/books/{_book.Id}/edit?from=%2Freading");
+
+        var cut = Render();
+
+        cut.Find(".form-bar-back").GetAttribute("href").Should().Be($"/books/{_book.Id}?from=%2Freading");
+    }
+
+    [Fact]
     public void EditBook_Should_NameTheLibraryLibrary_WhenItCannotBeLoaded_AndSayThereIsNoReading()
     {
         var book = DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null, 4), _library.Id, "/data/A/b.cbz", 1).Value!;

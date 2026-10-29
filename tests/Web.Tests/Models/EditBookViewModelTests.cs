@@ -25,7 +25,6 @@ public sealed class EditBookViewModelTests
             ImageLink = "/covers/extremity.webp",
             IsDigital = false,
             Subtitle = "Extremity · Volume 1",
-            BookHref = $"/books/{book.Id}",
             CoverAlt = "Cover of Extremity",
             ReadingsCountLabel = "2 readings",
         });

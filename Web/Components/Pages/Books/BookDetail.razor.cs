@@ -29,6 +29,10 @@ public sealed partial class BookDetail : IDisposable
     [Parameter]
     public string BookId { get; set; } = string.Empty;
 
+    // The screen the book was opened from (#1261): back goes there, and the edit pages keep it.
+    [SupplyParameterFromQuery(Name = ReturnLinks.QueryName)]
+    public string? From { get; set; }
+
     private readonly CancellationTokenSource _disposalCts = new();
     private Book? _book;
     private BookDetailViewModel? _view;
@@ -42,6 +46,13 @@ public sealed partial class BookDetail : IDisposable
     private bool _isStartingOver;
     private bool _actionsOpen;
     private PopupAnchor? _sheetAnchor;
+
+    private string HereHref => ReturnLinks.With($"/books/{BookId}", From);
+    private string EditHref => ReturnLinks.With($"/books/{BookId}/edit", From);
+    private string FindDetailsHref => ReturnLinks.With($"/books/{BookId}/find-details", From);
+
+    // Leaving the reader comes back to this page, which still knows where it was opened from.
+    private string ReadHref => ReturnLinks.With($"/books/{BookId}/read", HereHref);
 
     protected override async Task OnInitializedAsync()
     {
@@ -211,7 +222,7 @@ public sealed partial class BookDetail : IDisposable
             case IsbnScanOutcome.Assigned:
                 // The book has its ISBN now: fetch its information right away.
                 Snackbar.Add("ISBN found in the pages", Severity.Success);
-                NavigationManager.NavigateTo($"/books/{BookId}/find-details");
+                NavigationManager.NavigateTo(FindDetailsHref);
                 return;
             case IsbnScanOutcome.WithCandidates:
                 Snackbar.Add("Several ISBNs found in the pages: pick the book's own", Severity.Info);
@@ -228,9 +239,9 @@ public sealed partial class BookDetail : IDisposable
     }
 
     private void UseIsbnCandidate(string isbn) =>
-        NavigationManager.NavigateTo($"/books/{BookId}/find-details?isbn={Uri.EscapeDataString(isbn)}");
+        NavigationManager.NavigateTo(ReturnLinks.With($"/books/{BookId}/find-details?isbn={Uri.EscapeDataString(isbn)}", From));
 
-    private void FindIsbn() => NavigationManager.NavigateTo($"/books/{BookId}/read?mode={BookReader.IsbnSearchMode}");
+    private void FindIsbn() => NavigationManager.NavigateTo(ReturnLinks.With($"/books/{BookId}/read?mode={BookReader.IsbnSearchMode}", HereHref));
 
     // ── Actions ────────────────────────────────────────────────────────
 
@@ -309,7 +320,7 @@ public sealed partial class BookDetail : IDisposable
 
     private void GoBack()
     {
-        NavigationManager.NavigateTo(_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list");
+        NavigationManager.NavigateTo(ReturnLinks.Local(From) ?? (_book is not null ? $"/libraries/{_book.LibraryId}" : "/libraries/list"));
     }
 
     public void Dispose()

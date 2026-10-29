@@ -18,4 +18,8 @@ public partial class BooksListView
 
     [Parameter]
     public EventCallback<BookListItemViewModel> OnToggle { get; set; }
+
+    // The page the books are shown on: back from a book comes here (#1261).
+    [Parameter]
+    public string? From { get; set; }
 }

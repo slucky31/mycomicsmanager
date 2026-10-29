@@ -9,7 +9,7 @@
 
 <div class="book-page">
     <header class="book-bar">
-        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" aria-label="Back to library" Class="book-bar-back" />
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" aria-label="Back" Class="book-bar-back" />
         <nav class="book-bar-trail" aria-label="Breadcrumb">
             @if (_view is not null)
             {
@@ -18,8 +18,8 @@
         </nav>
         @if (_view is not null)
         {
-            <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@_view.EditHref" aria-label="Edit book" Class="book-bar-edit-icon" />
-            <MudButton StartIcon="@Icons.Material.Filled.Edit" Href="@_view.EditHref" Variant="Variant.Outlined" Class="book-bar-edit">Edit</MudButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@EditHref" aria-label="Edit book" Class="book-bar-edit-icon" />
+            <MudButton StartIcon="@Icons.Material.Filled.Edit" Href="@EditHref" Variant="Variant.Outlined" Class="book-bar-edit">Edit</MudButton>
             <MudIconButton id="@ActionsButtonId" Icon="@Icons.Material.Filled.MoreVert" OnClick="OpenActionsAsync" aria-label="More actions" Class="book-bar-more" />
         }
     </header>
@@ -34,7 +34,7 @@
             <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" Size="Size.Large" />
             <h1>Book not found</h1>
             <p>The book you're looking for doesn't exist.</p>
-            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled" Color="Color.Primary" OnClick="GoBack">Back to Books</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled" Color="Color.Primary" OnClick="GoBack">Back</MudButton>
         </div>
     }
     else
@@ -56,7 +56,7 @@
                 <div class="book-primary">
                     @if (view.IsDigital)
                     {
-                        <a class="book-primary-button" href="@view.ReadHref">
+                        <a class="book-primary-button" href="@ReadHref">
                             <MudIcon Icon="@Icons.Material.Filled.PlayArrow" />
                             <span class="book-primary-text">
                                 @view.ReadLabel
@@ -117,7 +117,7 @@
                 </div>
 
                 <div class="book-actions">
-                    <a class="book-action" href="@view.FindDetailsHref"><MudIcon Icon="@Icons.Material.Filled.CloudDownload" />Import info</a>
+                    <a class="book-action" href="@FindDetailsHref"><MudIcon Icon="@Icons.Material.Filled.CloudDownload" />Import info</a>
                     @if (view.IsDigital)
                     {
                         <button type="button" class="book-action" @onclick="FindIsbn"><MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" />Find ISBN</button>
@@ -249,8 +249,8 @@
                 </div>
             </Header>
             <ChildContent>
-                <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit" Href="@view.EditHref" />
-                <ActionSheetItem Icon="@Icons.Material.Filled.CloudDownload" Text="Import info from the web" Href="@view.FindDetailsHref" />
+                <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit" Href="@EditHref" />
+                <ActionSheetItem Icon="@Icons.Material.Filled.CloudDownload" Text="Import info from the web" Href="@FindDetailsHref" />
                 <ActionSheetItem Icon="@Icons.Material.Filled.DriveFileMove" Text="Move to another library" Disabled="_isMoving" OnClick="MoveFromActionsAsync" />
                 <div class="action-sheet-divider"></div>
                 <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete" Danger="true" OnClick="DeleteFromActionsAsync" />

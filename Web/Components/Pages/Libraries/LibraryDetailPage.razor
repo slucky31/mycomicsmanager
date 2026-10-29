@@ -105,11 +105,11 @@
         {
             @if (_currentViewMode == LibraryView.List)
             {
-                <BooksListView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" />
+                <BooksListView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" From="@HereHref" />
             }
             else
             {
-                <BooksCoversView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" />
+                <BooksCoversView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" From="@HereHref" />
             }
             @if (_isLoadingMore)
             {
@@ -171,5 +171,5 @@
 {
     <BookActionsSheet Book="@BookActionsTarget.From(book)" Open="@(_openSheet == LibrarySheet.BookActions)" IsDigital="@IsDigital"
                       Anchor="@_sheetAnchor" AlignEnd="@_sheetAlignEnd" OnClose="CloseSheet"
-                      OnSelect="() => StartSelecting(book.Id)" OnBookGone="() => ReloadBooksAsync()" />
+                      OnSelect="() => StartSelecting(book.Id)" OnBookGone="() => ReloadBooksAsync()" From="@HereHref" />
 }

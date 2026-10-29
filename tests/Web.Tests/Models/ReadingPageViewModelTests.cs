@@ -25,7 +25,7 @@ public sealed class ReadingPageViewModelTests
         book.Progress.Should().Be("Page 34 of 56");
         book.Percent.Should().Be(60);
         book.ProgressStyle.Should().Be("width: 60%;");
-        book.ReadHref.Should().Be($"/books/{dto.Id}/read");
+        book.ReadHref.Should().Be($"/books/{dto.Id}/read?from=%2Freading");
         book.AriaLabel.Should().Be("Continue Amarillo, Page 34 of 56");
     }
 
@@ -46,7 +46,7 @@ public sealed class ReadingPageViewModelTests
         reading.DateLabel.Should().Be("27/10/2026");
         reading.RatingLabel.Should().Be("Rated 4 out of 5");
         reading.SerieAndVolume.Should().Be("Thorgal · Volume 12");
-        reading.Href.Should().Be($"/books/{reading.BookId}");
+        reading.Href.Should().Be($"/books/{reading.BookId}?from=%2Freading");
     }
 
     [Fact]

@@ -22,8 +22,8 @@
     else
     {
         var view = _view;
-        <FormHeader Title="Edit book" Subtitle="@view.Subtitle" BackHref="@view.BookHref">
-            <FormButton Variant="FormButtonVariant.Outlined" Href="@view.BookHref">Cancel</FormButton>
+        <FormHeader Title="Edit book" Subtitle="@view.Subtitle" BackHref="@BookHref">
+            <FormButton Variant="FormButtonVariant.Outlined" Href="@BookHref">Cancel</FormButton>
             <FormButton Type="submit" Form="edit-book-form" Icon="@Icons.Material.Filled.Check" Disabled="_isSaving">Save changes</FormButton>
         </FormHeader>
 
@@ -74,7 +74,7 @@
             </ChildContent>
             <Footer>
                 <FormFooter>
-                    <FormButton Variant="FormButtonVariant.Outlined" Href="@view.BookHref">Cancel</FormButton>
+                    <FormButton Variant="FormButtonVariant.Outlined" Href="@BookHref">Cancel</FormButton>
                     <FormButton Type="submit" Icon="@Icons.Material.Filled.Check" Disabled="_isSaving">Save changes</FormButton>
                 </FormFooter>
             </Footer>

@@ -15,7 +15,8 @@ public sealed record SerieSlotViewModel(string Key, string Badge, string? Title,
     {
         ArgumentNullException.ThrowIfNull(book);
         var target = new BookActionsTarget(book.BookId, book.Title, BookActionsTarget.SerieAndVolumeOf(book.Serie, book.VolumeNumber), book.ImageLink);
-        return new SerieSlotViewModel(book.BookId.ToString(), $"#{book.VolumeNumber}", book.Title, book.ImageLink, $"/books/{book.BookId}", target);
+        return new SerieSlotViewModel(book.BookId.ToString(), $"#{book.VolumeNumber}", book.Title, book.ImageLink,
+            ReturnLinks.Book(book.BookId, SerieDisplay.SerieHref(book.LibraryId, book.Serie)), target);
     }
 
     public static SerieSlotViewModel Missing(VolumeRange range)

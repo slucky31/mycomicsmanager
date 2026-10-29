@@ -100,5 +100,6 @@
 @if (_actionsBook is { } book)
 {
     <BookActionsSheet Book="@book" Open="@_isActionsOpen" IsDigital="@(_serie?.IsDigital ?? false)"
-                      Anchor="@_actionsAnchor" AlignEnd="@_actionsAlignEnd" OnClose="CloseActions" OnBookGone="ReloadAfterBookGoneAsync" />
+                      Anchor="@_actionsAnchor" AlignEnd="@_actionsAlignEnd" OnClose="CloseActions" OnBookGone="ReloadAfterBookGoneAsync"
+                      From="@SerieDisplay.SerieHref(LibraryId, Name ?? string.Empty)" />
 }
