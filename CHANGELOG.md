@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.70.1"></a>
+## [10.70.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.70.1) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **layout:** start the bars lower wherever there is a status bar ([#1259](https://www.github.com/slucky31/mycomicsmanager/issues/1259)) ([62a17df](https://www.github.com/slucky31/mycomicsmanager/commit/62a17df8c60be73d9d4e798b606a81e286031c71))
+
 <a name="10.70.0"></a>
 ## [10.70.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.70.0) (2026-10-29)
 
