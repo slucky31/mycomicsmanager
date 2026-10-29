@@ -34,6 +34,7 @@ public sealed class SeriePageViewModelTests
             new BookActionsTarget(first.BookId, "Thorgal 1", "Thorgal · #1", "https://c/1.jpg")));
         page.IsDigital.Should().BeFalse();
         page.Slots[1].Key.Should().Be("missing-2");
+        page.Slots.Select(s => s.Label).Should().Equal("#1 · Thorgal 1", null, "#3 · Thorgal 3", null);
     }
 
     [Theory]

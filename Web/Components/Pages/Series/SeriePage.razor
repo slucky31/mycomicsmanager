@@ -9,6 +9,15 @@
     {
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
     }
+    else if (_loadFailed && _serie is null)
+    {
+        <div class="serie-error" role="alert">
+            <MudIcon Icon="@Icons.Material.Filled.CloudOff" Style="font-size: 80px; opacity: 0.4;" />
+            <MudText Typo="Typo.h6">@SeriePage.Msg_LoadFailed</MudText>
+            <MudText Typo="Typo.body2" Class="serie-error-hint">Check the connection, then try again.</MudText>
+            <MudButton StartIcon="@Icons.Material.Filled.Refresh" Variant="Variant.Filled" Color="Color.Primary" OnClick="RetryAsync">Retry</MudButton>
+        </div>
+    }
     else if (_serie is { } serie)
     {
         @if (serie.ShowsCompleteness)
@@ -62,7 +71,7 @@
                 else
                 {
                     <div @key="slot.Key" class="serie-slot serie-slot-owned" data-book-id="@slot.Book!.Id">
-                        <a class="serie-slot-link" href="@slot.Href">
+                        <a class="serie-slot-link" href="@slot.Href" title="@slot.Title">
                             <span class="serie-slot-frame">
                                 @if (!string.IsNullOrEmpty(slot.ImageLink))
                                 {
@@ -74,7 +83,7 @@
                                 }
                                 <span class="serie-slot-badge">@slot.Badge</span>
                             </span>
-                            <span class="serie-slot-title">@slot.Title</span>
+                            <span class="serie-slot-title">@slot.Label</span>
                         </a>
                         @* Touch screens open the actions with a long press (libraryPage.js); a mouse shows this button on hover. *@
                         <button type="button" id="@BookActionsIds.Of(slot.Book.Id)" class="serie-slot-actions"

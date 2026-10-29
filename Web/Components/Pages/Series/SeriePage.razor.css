@@ -10,6 +10,23 @@
     }
 }
 
+/* ── The series could not be loaded: the error and Retry (#1241) ── */
+.serie-error {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mcm-space-2);
+    padding: var(--mcm-space-6);
+    text-align: center;
+}
+
+::deep .serie-error-hint {
+    margin-bottom: var(--mcm-space-2);
+    color: var(--mcm-text-muted);
+}
+
 /* ── Completeness: the bar, then the volumes published ── */
 .serie-progress {
     display: flex;
@@ -240,10 +257,14 @@
     font-weight: 700;
 }
 
+/* The volume then the title, on two lines (#1241). */
 .serie-slot-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
     font-size: var(--mcm-font-caption);
     font-weight: 500;
 }

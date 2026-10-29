@@ -138,6 +138,9 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         cut.WaitForAssertion(() => cut.FindAll(".serie-slot").Should().HaveCount(3));
         cut.Find(".serie-slot-missing-number").TextContent.Should().Be("#2");
+        cut.Find(".page-bar h1").GetAttribute("title").Should().Be("Thorgal");
+        cut.FindAll(".serie-slot-link").Select(l => (l.GetAttribute("title"), l.QuerySelector(".serie-slot-title")!.TextContent))
+            .Should().Equal(("Thorgal 1", "#1 · Thorgal 1"), ("Thorgal 3", "#3 · Thorgal 3"));
         cut.Find(".serie-progress-label").TextContent.Should().Be("1 volume missing");
 
         cut.Find(".serie-progress-edit").Click();
@@ -177,6 +180,37 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         navigation.Uri.Should().EndWith($"/libraries/{s_libraryId}/series");
         _snackbar.Received(1).Add("Series not found", Severity.Error);
+    }
+
+    [Fact]
+    public void SeriePage_Should_OfferToRetryInPlace_WhenTheSeriesCannotBeLoaded()
+    {
+        _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>()).Returns(SeriesError.BadRequest);
+        var navigation = _ctx.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo($"/libraries/{s_libraryId}/serie?name=Thorgal");
+
+        var cut = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
+
+        cut.WaitForAssertion(() => cut.Find("[role=alert]").TextContent.Should().Contain(SeriePage.Msg_LoadFailed));
+        navigation.Uri.Should().EndWith($"/libraries/{s_libraryId}/serie?name=Thorgal");
+        _snackbar.Received(1).Add(SeriePage.Msg_LoadFailed, Severity.Error);
+        _snackbar.DidNotReceive().Add("Series not found", Arg.Any<Severity>(), Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task RetryAsync_Should_ShowTheVolumes_WhenTheSeriesCanBeLoadedAgain()
+    {
+        _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>()).Returns(
+            Result<SerieDetail>.Failure(SeriesError.BadRequest),
+            Result<SerieDetail>.Success(new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [1]), [SeriesTestData.Book("Thorgal", 1)])));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/libraries/{s_libraryId}/serie?name=Thorgal");
+        var cut = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
+        cut.WaitForAssertion(() => cut.Find("[role=alert]"));
+
+        await cut.Find("[role=alert] button").ClickAsync(new());
+
+        cut.WaitForAssertion(() => cut.FindAll(".serie-slot").Should().HaveCount(1));
+        cut.FindAll("[role=alert]").Should().BeEmpty();
     }
 
     // ── Actions of a book (#1220) ──────────────────────────────────────
