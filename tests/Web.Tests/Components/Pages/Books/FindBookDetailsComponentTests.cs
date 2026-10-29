@@ -493,4 +493,16 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_book.Id}");
         await _booksService.DidNotReceive().Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Cancel_Should_GoBackToTheBookWithTheScreenItWasOpenedFrom()
+    {
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn={PageIsbn}&from=%2Freading");
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+
+        await cut.FindAll("button").Single(b => b.TextContent.Trim() == "Cancel").ClickAsync(new());
+
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_book.Id}?from=%2Freading");
+    }
 }

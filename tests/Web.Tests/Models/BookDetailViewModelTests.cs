@@ -39,9 +39,6 @@ public sealed class BookDetailViewModelTests
             CoverAlt = "Cover of Âme rouge",
             ActionsLabel = "Actions for Âme rouge",
             LibraryHref = $"/libraries/{LibraryId}",
-            EditHref = $"/books/{book.Id}/edit",
-            FindDetailsHref = $"/books/{book.Id}/find-details",
-            ReadHref = $"/books/{book.Id}/read",
             DownloadHref = $"/api/books/{book.Id}/download",
         });
         view.Details.Should().Equal(

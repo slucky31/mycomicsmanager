@@ -67,7 +67,7 @@ public sealed class ReadingPageComponentTests
 
         cut.WaitForAssertion(() => cut.Find(".reading-bar-subtitle").TextContent.Should().Be("1 in progress · 2 readings"));
         var progress = cut.Find("a.reading-progress-item");
-        progress.GetAttribute("href").Should().Be($"/books/{amarillo.Id}/read");
+        progress.GetAttribute("href").Should().Be($"/books/{amarillo.Id}/read?from=%2Freading");
         progress.TextContent.Should().Contain("Page 34 of 56");
         cut.FindAll(".reading-month").Select(m => m.TextContent).Should().Equal("October 2026", "September 2026");
         cut.FindAll(".reading-recent-title").Select(t => t.TextContent).Should().Equal("Le Fils", "La Magicienne trahie");

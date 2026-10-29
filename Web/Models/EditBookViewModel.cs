@@ -26,7 +26,6 @@ public sealed record EditBookViewModel
 
     public IReadOnlyList<EditBookReading> Readings { get; init; } = [];
 
-    public string BookHref => $"/books/{Id}";
     public string CoverAlt => $"Cover of {Title}";
 
     public string ReadingsCountLabel => Readings.Count == 1 ? "1 reading" : $"{Readings.Count} readings";

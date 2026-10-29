@@ -14,13 +14,13 @@
     <ChildContent>
         @if (IsDigital)
         {
-            <ActionSheetItem Icon="@Icons.Material.Filled.MenuBook" Text="Read" Href="@($"/books/{Book.Id}/read")" />
+            <ActionSheetItem Icon="@Icons.Material.Filled.MenuBook" Text="Read" Href="@ReturnLinks.Read(Book.Id, From)" />
         }
-        <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit" Href="@($"/books/{Book.Id}/edit")" />
-        <ActionSheetItem Icon="@Icons.Material.Filled.ManageSearch" Text="Import info from the web" Href="@($"/books/{Book.Id}/find-details")" />
+        <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit" Href="@ReturnLinks.With($"/books/{Book.Id}/edit", From)" />
+        <ActionSheetItem Icon="@Icons.Material.Filled.ManageSearch" Text="Import info from the web" Href="@ReturnLinks.With($"/books/{Book.Id}/find-details", From)" />
         @if (IsDigital)
         {
-            <ActionSheetItem Icon="@Icons.Material.Filled.DocumentScanner" Text="Find ISBN" Href="@($"/books/{Book.Id}/read?mode={Pages.Books.BookReader.IsbnSearchMode}")" />
+            <ActionSheetItem Icon="@Icons.Material.Filled.DocumentScanner" Text="Find ISBN" Href="@ReturnLinks.With($"/books/{Book.Id}/read?mode={Pages.Books.BookReader.IsbnSearchMode}", From)" />
             <ActionSheetItem Icon="@Icons.Material.Filled.Download" Text="Download CBZ" OnClick="DownloadAsync" />
         }
         <ActionSheetItem Icon="@Icons.Material.Filled.DriveFileMove" Text="Move to another library" OnClick="MoveAsync" />

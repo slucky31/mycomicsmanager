@@ -1,3 +1,4 @@
+using System.Globalization;
 using AwesomeAssertions;
 using Bunit;
 using Domain.Books;
@@ -107,12 +108,39 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
         cut.Find(".book-bar-trail a").TextContent.Should().Be("Read Books");
         cut.Find(".book-serie").TextContent.Should().Be("Blacksad · Volume 4");
         cut.Find(".book-format").TextContent.Should().Be("Digital · 56 pages");
-        cut.Find("a.book-primary-button").GetAttribute("href").Should().Be($"/books/{book.Id}/read");
+        cut.Find("a.book-primary-button").GetAttribute("href").Should().Be($"/books/{book.Id}/read?from=%2Fbooks%2F{book.Id}");
         cut.Find(".book-primary-text").TextContent.Should().Contain("Continue reading").And.Contain("Page 28 of 56");
         cut.Find(".book-progress > div").GetAttribute("style").Should().Contain("width: 50%");
         cut.FindAll(".book-action").Select(a => a.TextContent).Should().Equal("Import info", "Find ISBN", "CBZ", "Move");
         cut.Find("a.book-action[download]").GetAttribute("href").Should().Be($"/api/books/{book.Id}/download");
         cut.Find(".book-history-empty").TextContent.Should().Be("Not read yet");
+    }
+
+    [Theory]
+    [InlineData("%2Freading", "/reading")]
+    [InlineData("%2F%2Fevil.example", "/libraries/{0}")]
+    [InlineData(null, "/libraries/{0}")]
+    public async Task GoBack_Should_GoBackToTheScreenTheBookWasOpenedFrom_WhenItIsAPathOfTheSite(string? from, string expected)
+    {
+        var book = DigitalBook();
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo(from is null ? $"/books/{book.Id}" : $"/books/{book.Id}?from={from}");
+        var cut = await RenderAsync(book);
+
+        await cut.Find("button[aria-label='Back']").ClickAsync(new());
+
+        CurrentUri.Should().EndWith(string.Format(CultureInfo.InvariantCulture, expected, book.LibraryId));
+    }
+
+    [Fact]
+    public async Task LoadBookAsync_Should_KeepTheScreenTheBookWasOpenedFrom_InItsLinks()
+    {
+        var book = DigitalBook();
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{book.Id}?from=%2Freading");
+
+        var cut = await RenderAsync(book);
+
+        cut.Find("a.book-primary-button").GetAttribute("href").Should().Be($"/books/{book.Id}/read?from=%2Fbooks%2F{book.Id}%3Ffrom%3D%252Freading");
+        cut.Find("a.book-bar-edit").GetAttribute("href").Should().Be($"/books/{book.Id}/edit?from=%2Freading");
     }
 
     [Fact]

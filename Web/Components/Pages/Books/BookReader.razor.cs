@@ -52,6 +52,12 @@ public sealed partial class BookReader : IAsyncDisposable
     [SupplyParameterFromQuery(Name = "mode")]
     public string? Mode { get; set; }
 
+    // The screen the reader was opened from (#1261): leaving the reader goes back there.
+    [SupplyParameterFromQuery(Name = ReturnLinks.QueryName)]
+    public string? From { get; set; }
+
+    private string ExitHref => ReturnLinks.Local(From) ?? $"/books/{BookId}";
+
     private Guid _bookGuid;
     private BookReaderInfoDto? _info;
     private bool _isLoading = true;
@@ -648,7 +654,7 @@ public sealed partial class BookReader : IAsyncDisposable
             _currentPage = 0;
             await SaveProgressAsync(0);
             Snackbar.Add("Reading date added", Severity.Success);
-            NavigationManager.NavigateTo($"/books/{BookId}");
+            NavigationManager.NavigateTo(ExitHref);
         }
         catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
         {
@@ -664,7 +670,7 @@ public sealed partial class BookReader : IAsyncDisposable
     private async Task CloseAsync()
     {
         await SaveProgressAsync(_currentPage);
-        NavigationManager.NavigateTo($"/books/{BookId}");
+        NavigationManager.NavigateTo(ExitHref);
     }
 
     public async ValueTask DisposeAsync()

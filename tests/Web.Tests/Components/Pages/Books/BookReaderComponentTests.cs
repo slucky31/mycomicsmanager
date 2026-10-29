@@ -139,10 +139,24 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
         await _readerService.Received(1).SaveProgressAsync(_bookId, 6, Arg.Any<CancellationToken>());
     }
 
+    [Theory]
+    [InlineData("%2Freading", "/reading")]
+    [InlineData("https%3A%2F%2Fevil.example%2F", "/books/{0}")]
+    public async Task CloseAsync_Should_GoBackToTheScreenTheReaderWasOpenedFrom_WhenItIsAPathOfTheSite(string from, string expected)
+    {
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_bookId}/read?from={from}");
+        var cut = await RenderAttachedReaderAsync(pageCount: 20, lastReadPage: 7);
+
+        await ClickAsync(cut, "Close reader");
+
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith(string.Format(CultureInfo.InvariantCulture, expected, _bookId));
+    }
+
     [Fact]
     public async Task MarkAsReadAsync_Should_AddReadingDateAndRestartTheBook_WhenLastPageIsPassed()
     {
         _booksService.AddReadingDate(_bookId.ToString(), 3, Arg.Any<CancellationToken>()).Returns(Result<ReadingDate>.Success(null!));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_bookId}/read?from=%2Freading");
         var cut = await RenderAttachedReaderAsync(pageCount: 3, lastReadPage: 2);
 
         await ClickAsync(cut, "Next page");
@@ -152,6 +166,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
 
         await _booksService.Received(1).AddReadingDate(_bookId.ToString(), 3, Arg.Any<CancellationToken>());
         await _readerService.Received(1).SaveProgressAsync(_bookId, 0, Arg.Any<CancellationToken>());
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith("/reading");
     }
 
     [Fact]

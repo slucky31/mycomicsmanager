@@ -44,6 +44,10 @@ public partial class BookActionsSheet : IAsyncDisposable
     [Parameter]
     public EventCallback OnBookGone { get; set; }
 
+    // The page the sheet is opened on: leaving the reader or the book comes back there (#1261).
+    [Parameter]
+    public string? From { get; set; }
+
     private readonly CancellationTokenSource _disposalCts = new();
     private bool _isMoving;
 

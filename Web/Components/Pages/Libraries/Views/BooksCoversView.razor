@@ -16,7 +16,7 @@
             }
             else
             {
-                <a class="cover-link" href="@($"/books/{book.Id}")">
+                <a class="cover-link" href="@ReturnLinks.Book(book.Id, From)">
                     @Cover(book)
                 </a>
                 @* Touch screens open the actions with a long press (libraryPage.js); a mouse shows this button on hover. *@

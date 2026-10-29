@@ -29,6 +29,12 @@ public partial class FindBookDetails
     [SupplyParameterFromQuery(Name = "isbn")]
     public string? Isbn { get; set; }
 
+    // The screen the book was opened from (#1261), kept for the book page this page goes back to.
+    [SupplyParameterFromQuery(Name = ReturnLinks.QueryName)]
+    public string? From { get; set; }
+
+    private string BookHref => ReturnLinks.With($"/books/{BookId}", From);
+
     private BookUiDto? _currentBook;
     private string? _isbn;
     private bool IsbnFromPage { get; set; }
@@ -422,7 +428,7 @@ public partial class FindBookDetails
 
         if (result.IsSuccess)
         {
-            NavigationManager.NavigateTo($"/books/{BookId}");
+            NavigationManager.NavigateTo(BookHref);
         }
         else
         {
@@ -432,5 +438,5 @@ public partial class FindBookDetails
         }
     }
 
-    private void Cancel() => NavigationManager.NavigateTo($"/books/{BookId}");
+    private void Cancel() => NavigationManager.NavigateTo(BookHref);
 }

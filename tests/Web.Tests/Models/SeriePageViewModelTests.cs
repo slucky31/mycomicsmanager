@@ -30,7 +30,7 @@ public sealed class SeriePageViewModelTests
         page.TotalVolumes.Should().Be(6);
         page.IsFinished.Should().BeTrue();
         page.Slots.Select(s => (s.Badge, s.IsMissing)).Should().Equal(("#1", false), ("#2", true), ("#3", false), ("#4–6", true));
-        page.Slots[0].Should().Be(new SerieSlotViewModel(first.BookId.ToString(), "#1", "Thorgal 1", "https://c/1.jpg", $"/books/{first.BookId}",
+        page.Slots[0].Should().Be(new SerieSlotViewModel(first.BookId.ToString(), "#1", "Thorgal 1", "https://c/1.jpg", $"/books/{first.BookId}?from=%2Flibraries%2F{first.LibraryId}%2Fserie%3Fname%3DThorgal",
             new BookActionsTarget(first.BookId, "Thorgal 1", "Thorgal · #1", "https://c/1.jpg")));
         page.IsDigital.Should().BeFalse();
         page.Slots[1].Key.Should().Be("missing-2");

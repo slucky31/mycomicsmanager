@@ -16,7 +16,7 @@
             }
             else
             {
-                <a class="list-link" href="@($"/books/{book.Id}")">
+                <a class="list-link" href="@ReturnLinks.Book(book.Id, From)">
                     @Row(book)
                 </a>
                 <button type="button" id="@BookActionsIds.Of(book.Id)" class="list-actions"

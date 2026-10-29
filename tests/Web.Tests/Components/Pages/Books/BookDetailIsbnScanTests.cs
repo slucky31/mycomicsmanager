@@ -109,7 +109,7 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
 
         await ClickAsync(cut, "Look in the reader");
 
-        CurrentUri.Should().EndWith($"/books/{_book.Id}/read?mode=isbn");
+        CurrentUri.Should().EndWith($"/books/{_book.Id}/read?mode=isbn&from=%2Fbooks%2F{_book.Id}");
     }
 
     [Fact]

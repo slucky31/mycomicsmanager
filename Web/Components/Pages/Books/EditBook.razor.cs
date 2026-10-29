@@ -25,6 +25,10 @@ public sealed partial class EditBook : IDisposable
     [Parameter]
     public string BookId { get; set; } = string.Empty;
 
+    // The screen the book was opened from (#1261), kept for the book page this form goes back to.
+    [SupplyParameterFromQuery(Name = ReturnLinks.QueryName)]
+    public string? From { get; set; }
+
     private readonly BookValidator _validator = new();
     private readonly CancellationTokenSource _disposalCts = new();
 
@@ -37,7 +41,7 @@ public sealed partial class EditBook : IDisposable
     private bool _isSaving;
     private Guid? _deletingReadingId;
 
-    private string BookHref => $"/books/{BookId}";
+    private string BookHref => ReturnLinks.With($"/books/{BookId}", From);
 
     protected override async Task OnInitializedAsync()
     {

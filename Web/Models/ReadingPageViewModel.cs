@@ -7,7 +7,7 @@ namespace Web.Models;
 // A book in progress on the Reading page (#1252): its cover opens the reader at the page where it stopped.
 public sealed record BookInProgressViewModel(Guid Id, string Title, string SerieAndVolume, string ImageLink, string Progress, int Percent)
 {
-    public string ReadHref => $"/books/{Id}/read";
+    public string ReadHref => ReturnLinks.Read(Id, ReturnLinks.ReadingHref);
 
     public string ProgressStyle => $"width: {Percent.ToString(CultureInfo.InvariantCulture)}%;";
 
@@ -25,7 +25,7 @@ public sealed record BookInProgressViewModel(Guid Id, string Title, string Serie
 // A reading date of a book on the Reading page (#1252).
 public sealed record BookReadingViewModel(Guid ReadingDateId, Guid BookId, string Title, string SerieAndVolume, string ImageLink, DateTime Date, int Rating)
 {
-    public string Href => $"/books/{BookId}";
+    public string Href => ReturnLinks.Book(BookId, ReturnLinks.ReadingHref);
 
     public string DateLabel => Date.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture);
 
