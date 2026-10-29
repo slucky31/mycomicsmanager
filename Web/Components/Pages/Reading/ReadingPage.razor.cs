@@ -19,7 +19,6 @@ public partial class ReadingPage : IAsyncDisposable
     private List<BookReadingViewModel> _readings = [];
     private IReadOnlyList<ReadingMonthViewModel> _months = [];
     private int _readingCount;
-    private int _readingsPage;
     private bool _isLoading;
     private bool _isLoadingMore;
     private bool _loaded;
@@ -54,7 +53,6 @@ public partial class ReadingPage : IAsyncDisposable
             _inProgress = [.. inProgress.Value!.Select(BookInProgressViewModel.From)];
             _readings = [.. (readings.Value!.Items ?? []).Select(BookReadingViewModel.From)];
             _readingCount = readings.Value.TotalCount;
-            _readingsPage = 1;
             _months = ReadingPageDisplay.ByMonth(_readings);
             _loaded = true;
         }
@@ -75,12 +73,14 @@ public partial class ReadingPage : IAsyncDisposable
             return;
         }
 
-        var page = _readingsPage + 1;
+        // Every page before the last one is full.
+        var loaded = _readings.Count;
+        var page = loaded / ReadingsPageSize + 1;
         _isLoadingMore = true;
         try
         {
             var result = await ReadingService.GetRecentReadings(page, ReadingsPageSize, _disposalCts.Token);
-            if (page != _readingsPage + 1)
+            if (loaded != _readings.Count)
             {
                 return;
             }
@@ -89,7 +89,6 @@ public partial class ReadingPage : IAsyncDisposable
             {
                 _readings.AddRange((result.Value!.Items ?? []).Select(BookReadingViewModel.From));
                 _readingCount = result.Value.TotalCount;
-                _readingsPage = page;
                 _months = ReadingPageDisplay.ByMonth(_readings);
             }
             else if (result.IsFailure)
