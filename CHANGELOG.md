@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.69.4"></a>
+## [10.69.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.4) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **layout:** no blur under the iOS status bar ([#1255](https://www.github.com/slucky31/mycomicsmanager/issues/1255)) ([b638c81](https://www.github.com/slucky31/mycomicsmanager/commit/b638c81113389241ed99e113c2c7edcffd0d4840))
+
 <a name="10.69.3"></a>
 ## [10.69.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.3) (2026-10-28)
 
