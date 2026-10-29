@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.70.3"></a>
+## [10.70.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.70.3) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **navigation:** go back to the screen a book was opened from ([#1262](https://www.github.com/slucky31/mycomicsmanager/issues/1262)) ([b26e63a](https://www.github.com/slucky31/mycomicsmanager/commit/b26e63a459797fc785dfd2a35d7874ca477379b6))
+
 <a name="10.70.2"></a>
 ## [10.70.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.70.2) (2026-10-29)
 
