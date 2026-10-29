@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.70.4"></a>
+## [10.70.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.70.4) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **layout:** detect the iPhone Home Screen app to start the bars lower ([#1264](https://www.github.com/slucky31/mycomicsmanager/issues/1264)) ([5c26d2d](https://www.github.com/slucky31/mycomicsmanager/commit/5c26d2d73924b8f0acc4444ba87ef83371ee29f8))
+
 <a name="10.70.3"></a>
 ## [10.70.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.70.3) (2026-10-29)
 
