@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.70.0"></a>
+## [10.70.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.70.0) (2026-10-29)
+
+### ✨ Features
+
+* **reading:** add a Reading page with the books in progress and the last readings ([#1258](https://www.github.com/slucky31/mycomicsmanager/issues/1258)) ([54eec61](https://www.github.com/slucky31/mycomicsmanager/commit/54eec612b1f0b7729767d7a4a367a9e703b99ff9))
+
 <a name="10.69.8"></a>
 ## [10.69.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.8) (2026-10-29)
 
