@@ -18,14 +18,14 @@ public partial class ReadingPage : IAsyncDisposable
     private IReadOnlyList<BookInProgressViewModel> _inProgress = [];
     private List<BookReadingViewModel> _readings = [];
     private IReadOnlyList<ReadingMonthViewModel> _months = [];
-    private int _readingCount;
+    private int ReadingCount { get; set; }
     private bool _isLoading;
     private bool _isLoadingMore;
     private bool _loaded;
     private bool _loadFailed;
     private readonly CancellationTokenSource _disposalCts = new();
 
-    private int RemainingReadings => Math.Max(0, _readingCount - _readings.Count);
+    private int RemainingReadings => Math.Max(0, ReadingCount - _readings.Count);
 
     protected override Task OnInitializedAsync() => LoadAsync();
 
@@ -52,7 +52,7 @@ public partial class ReadingPage : IAsyncDisposable
 
             _inProgress = [.. inProgress.Value!.Select(BookInProgressViewModel.From)];
             _readings = [.. (readings.Value!.Items ?? []).Select(BookReadingViewModel.From)];
-            _readingCount = readings.Value.TotalCount;
+            ReadingCount = readings.Value.TotalCount;
             _months = ReadingPageDisplay.ByMonth(_readings);
             _loaded = true;
         }
@@ -88,7 +88,7 @@ public partial class ReadingPage : IAsyncDisposable
             if (result.IsSuccess)
             {
                 _readings.AddRange((result.Value!.Items ?? []).Select(BookReadingViewModel.From));
-                _readingCount = result.Value.TotalCount;
+                ReadingCount = result.Value.TotalCount;
                 _months = ReadingPageDisplay.ByMonth(_readings);
             }
             else if (result.IsFailure)
