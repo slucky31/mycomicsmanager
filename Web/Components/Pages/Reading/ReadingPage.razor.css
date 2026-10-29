@@ -70,6 +70,8 @@
 
 .reading-progress-list > li {
     flex: 0 0 var(--mcm-cover-reading);
+    /* A long title is cut with an ellipsis instead of widening its cover (min-width: auto keeps the whole line). */
+    min-width: 0;
     scroll-snap-align: start;
 }
 
