@@ -26,6 +26,8 @@ public sealed partial class LibrariesList : IDisposable
     private readonly CancellationTokenSource _disposalCts = new();
     private List<LibraryCardViewModel> _libraries = [];
     private bool _isLoading = true;
+    // The libraries could not be loaded: an error with Retry, not the empty state (#1240).
+    private bool _loadFailed;
     private LibraryCardViewModel? _actionsLibrary;
     private PopupAnchor? _sheetAnchor;
 
@@ -71,11 +73,26 @@ public sealed partial class LibrariesList : IDisposable
         if (result.IsSuccess && result.Value is not null)
         {
             _libraries = [.. result.Value.Select(LibraryCardViewModel.From)];
+            _loadFailed = false;
         }
         else if (result.IsFailure)
         {
+            _loadFailed = true;
             Logger.LogError("Failed to load the libraries: {Error}", result.Error?.Description);
             Snackbar.Add(Msg_LoadFailed, Severity.Error);
+        }
+    }
+
+    private async Task RetryAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            await LoadLibrariesAsync();
+        }
+        finally
+        {
+            _isLoading = false;
         }
     }
 

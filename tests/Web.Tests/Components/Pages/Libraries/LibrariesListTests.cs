@@ -78,6 +78,7 @@ public sealed class LibrariesListTests : IAsyncDisposable
         var cut = Render(_readBooks, _toSort, _ebooks);
 
         cut.FindAll(".library-name").Select(n => n.TextContent).Should().Equal("Read Books", "À trier", "MesEbooks");
+        cut.FindAll(".library-name").Select(n => n.GetAttribute("title")).Should().Equal("Read Books", "À trier", "MesEbooks");
         cut.FindAll(".library-type").Select(n => n.TextContent).Should().Equal("Physical", "Digital", "Digital");
         cut.FindAll(".library-count").Select(n => n.TextContent).Should().Equal("24 books", "2 books", "No books yet");
         cut.Find(".libraries-bar-subtitle").TextContent.Should().Be("3 libraries · 26 books");
@@ -213,6 +214,23 @@ public sealed class LibrariesListTests : IAsyncDisposable
 
         _snackbar.Received(1).Add(LibrariesList.Msg_LoadFailed, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
         cut.FindAll(".library-card").Should().BeEmpty();
+        var error = cut.Find("[role=alert]");
+        error.TextContent.Should().Contain(LibrariesList.Msg_LoadFailed).And.NotContain("No libraries yet");
+        error.QuerySelector("button")!.TextContent.Trim().Should().Be("Retry");
+        cut.FindAll("a[href='/libraries/add']").Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task RetryAsync_Should_ShowTheLibraries_WhenTheyCanBeLoadedAgain()
+    {
+        _librariesService.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<LibrarySummary>>.Failure(LibrariesError.ValidationError));
+        var cut = _ctx.Render<LibrariesList>();
+        GivenLibraries(_readBooks);
+
+        await cut.Find("[role=alert] button").ClickAsync(new());
+
+        cut.FindAll("[role=alert]").Should().BeEmpty();
+        cut.FindAll(".library-name").Select(n => n.TextContent).Should().Equal("Read Books");
     }
 
     [Fact]
