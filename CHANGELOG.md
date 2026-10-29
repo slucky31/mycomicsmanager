@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.69.5"></a>
+## [10.69.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.5) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **series:** tell volumes apart and retry when a series fails to load ([#1254](https://www.github.com/slucky31/mycomicsmanager/issues/1254)) ([da3142f](https://www.github.com/slucky31/mycomicsmanager/commit/da3142f9dd2c58b32e614b65b26238076793d3a6))
+
 <a name="10.69.4"></a>
 ## [10.69.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.69.4) (2026-10-29)
 
