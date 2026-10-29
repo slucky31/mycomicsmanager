@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.70.2"></a>
+## [10.70.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.70.2) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **reading:** keep every cover of the books in progress at the same width ([#1260](https://www.github.com/slucky31/mycomicsmanager/issues/1260)) ([22420b3](https://www.github.com/slucky31/mycomicsmanager/commit/22420b3e250b89aef37e55c162c1c65196b9bc7d))
+
 <a name="10.70.1"></a>
 ## [10.70.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.70.1) (2026-10-29)
 
