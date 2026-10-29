@@ -15,7 +15,7 @@ consistent from one screen to the other.
 - **Primary** (`--mud-palette-primary`, #594AE2): primary actions, current selection, links. Pressed:
   `--mcm-primary-strong`; tint behind a selected item: `--mcm-primary-soft`.
 - **Text** (`--mcm-text`, #1B1D24) and **muted text** (`--mcm-text-muted`, #5C6070, also for placeholders).
-- **Surfaces**: white cards on `--mcm-surface-muted`; `--mcm-surface-sunken` for placeholders and neutral chips.
+- **Surfaces**: white cards (`--mcm-surface`) on `--mcm-surface-muted`; `--mcm-surface-sunken` for placeholders and neutral chips.
 - **Lines**: `--mcm-border`, `--mcm-border-strong`.
 - **States**: error, success, info and warning each have a colour, a stronger colour for text on a tint, and a
   tint (`--mcm-error`, `--mcm-error-strong`, `--mcm-error-soft`…).
@@ -61,7 +61,7 @@ All 2:3, in four sizes (`--mcm-cover-*`):
 |---|---|---|---|
 | XS | 40px | action menus, search results, Find details, missing volumes | 4px |
 | S | 72px | list view, edit header, library cards | 6px |
-| M | grid cell | Covers view, series page, list of series | 6px |
+| M | grid cell (`--mcm-cover-reading`, 112px, in the row of the Reading page on a phone) | Covers view, series page, list of series, books in progress | 6px |
 | L | 124px, then 240px from 600px | a book's page and the book forms | 8px |
 
 `CoverImage.Sized(link, CoverSize)` asks Cloudinary for the cover at the size it is shown.

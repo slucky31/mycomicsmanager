@@ -36,6 +36,8 @@
     --mcm-text: #1B1D24;
     /* Secondary text, captions, icons */
     --mcm-text-muted: #5C6070;
+    /* Cards and lists on the page background */
+    --mcm-surface: #FFFFFF;
     /* Page and form background */
     --mcm-surface-muted: #F4F4F6;
     /* Placeholders and neutral chips */
@@ -75,6 +77,8 @@
     --mcm-cover-xs: 40px;
     --mcm-cover-s: 72px;
     --mcm-cover-m-min: 140px;
+    /* A cover of the row of books in progress on a phone (#1252) */
+    --mcm-cover-reading: 112px;
     --mcm-cover-l-compact: 124px;
     --mcm-cover-l: 240px;
     --mcm-cover-radius-xs: 4px;

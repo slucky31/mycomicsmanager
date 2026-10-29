@@ -10,7 +10,8 @@ namespace Application.Books.ReadingProgress;
 public sealed class UpdateReadingProgressCommandHandler(
     IBookRepository bookRepository,
     IRepository<Library, Guid> libraryRepository,
-    IUnitOfWork unitOfWork) : ICommandHandler<UpdateReadingProgressCommand>
+    IUnitOfWork unitOfWork,
+    TimeProvider clock) : ICommandHandler<UpdateReadingProgressCommand>
 {
     public async Task<Result> Handle(UpdateReadingProgressCommand command, CancellationToken cancellationToken)
     {
@@ -31,7 +32,7 @@ public sealed class UpdateReadingProgressCommandHandler(
             return Result.Success();
         }
 
-        var updateResult = book.UpdateReadingProgress(command.PageIndex);
+        var updateResult = book.UpdateReadingProgress(command.PageIndex, clock.GetUtcNow().UtcDateTime);
         if (updateResult.IsFailure)
         {
             return updateResult;

@@ -1,4 +1,5 @@
 using Application.Books;
+using Application.Books.Reading;
 using Application.Books.Search;
 using Base.Integration.Tests;
 using Domain.Books;
@@ -383,5 +384,76 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         result.Series.Should().BeEmpty();
         result.BookCount.Should().Be(2);
         result.Books.Should().ContainSingle().Which.Title.Should().Be("Le Dernier Gaulois");
+    }
+
+    // ── Reading page (#1252) ─────────────────────────────────────────────────
+
+    private static DigitalBook CreateDigitalBook(Guid libraryId, string title, int volumeNumber)
+        => DigitalBook.Create(new BookMetadata("Blacksad", title, null, volumeNumber), libraryId, $"/library/BD/blacksad-{volumeNumber}.cbz", 1_000).Value!;
+
+    [Fact]
+    public async Task ListInProgressAsync_Should_ListTheStartedBooks_TheLastOneReadFirst()
+    {
+        // Arrange
+        var digitalLibrary = Library.Create("BD", "#5C6BC0", "book", LibraryBookType.Digital, DefaultLibrary.UserId).Value!;
+        var hiddenLibrary = Library.Create("Hidden", "#000000", "book", LibraryBookType.Digital, DefaultLibrary.UserId).Value!;
+        hiddenLibrary.UpdateHidden(true);
+        Context.Libraries.AddRange(digitalLibrary, hiddenLibrary);
+        var readFirst = CreateDigitalBook(digitalLibrary.Id, "Quelque part entre les ombres", 1);
+        readFirst.UpdateReadingProgress(5, new DateTime(2026, 10, 1, 20, 0, 0, DateTimeKind.Utc));
+        var readLast = CreateDigitalBook(digitalLibrary.Id, "Arctic Nation", 2);
+        readLast.UpdateReadingProgress(3, new DateTime(2026, 10, 20, 20, 0, 0, DateTimeKind.Utc));
+        var readBeforeTheTimeWasKept = CreateDigitalBook(digitalLibrary.Id, "Âme rouge", 3);
+        readBeforeTheTimeWasKept.UpdateReadingProgress(4, DateTime.UtcNow);
+        var notStarted = CreateDigitalBook(digitalLibrary.Id, "L'Enfer, le silence", 4);
+        var hidden = CreateDigitalBook(hiddenLibrary.Id, "Amarillo", 5);
+        hidden.UpdateReadingProgress(9, DateTime.UtcNow);
+        foreach (var book in new[] { readFirst, readLast, readBeforeTheTimeWasKept, notStarted, hidden })
+        {
+            BookRepository.Add(book);
+        }
+        Context.Entry(readBeforeTheTimeWasKept).Property(b => b.LastReadAt).CurrentValue = null;
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var withoutHidden = await BookReadService.ListInProgressAsync(DefaultLibrary.UserId, false, TestContext.Current.CancellationToken);
+        var withHidden = await BookReadService.ListInProgressAsync(DefaultLibrary.UserId, true, TestContext.Current.CancellationToken);
+
+        // Assert
+        withoutHidden.Select(b => b.Id).Should().Equal(readLast.Id, readFirst.Id, readBeforeTheTimeWasKept.Id);
+        withoutHidden[0].Should().Be(new BookInProgressDto(readLast.Id, digitalLibrary.Id, "Blacksad", "Arctic Nation", 2, readLast.ImageLink, 3, null,
+            new DateTime(2026, 10, 20, 20, 0, 0, DateTimeKind.Utc)));
+        withHidden.Select(b => b.Id).Should().Contain(hidden.Id).And.HaveCount(4);
+    }
+
+    [Fact]
+    public async Task GetRecentReadingsAsync_Should_PageTheReadingsOfTheUser_TheLastOneFirst()
+    {
+        // Arrange
+        var hiddenLibrary = Library.Create("Hidden", "#000000", "book", LibraryBookType.Physical, DefaultLibrary.UserId).Value!;
+        hiddenLibrary.UpdateHidden(true);
+        Context.Libraries.Add(hiddenLibrary);
+        var readTwice = CreateBook("Thorgal", "La Magicienne trahie", "9780000001031", 1);
+        var firstReading = readTwice.AddReadingDate(new DateTime(2026, 9, 1, 20, 0, 0, DateTimeKind.Utc), 3);
+        var lastReading = readTwice.AddReadingDate(new DateTime(2026, 10, 27, 20, 0, 0, DateTimeKind.Utc), 5);
+        var readOnce = CreateBook("Thorgal", "L'Île des mers gelées", "9780000001032", 2);
+        var middleReading = readOnce.AddReadingDate(new DateTime(2026, 10, 2, 20, 0, 0, DateTimeKind.Utc), 4);
+        var neverRead = CreateBook("Thorgal", "Les Trois Vieillards", "9780000001033", 3);
+        var hidden = PhysicalBook.Create(new BookMetadata("Thorgal", "La Galère noire", "9780000001034", 4), hiddenLibrary.Id).Value!;
+        var hiddenReading = hidden.AddReadingDate(new DateTime(2026, 10, 28, 20, 0, 0, DateTimeKind.Utc), 2);
+        await SeedAsync([readTwice, readOnce, neverRead, hidden]);
+
+        // Act
+        var firstPage = await BookReadService.GetRecentReadingsAsync(DefaultLibrary.UserId, 1, 2, false, TestContext.Current.CancellationToken);
+        var secondPage = await BookReadService.GetRecentReadingsAsync(DefaultLibrary.UserId, 2, 2, false, TestContext.Current.CancellationToken);
+        var withHidden = await BookReadService.GetRecentReadingsAsync(DefaultLibrary.UserId, 1, 10, true, TestContext.Current.CancellationToken);
+
+        // Assert
+        firstPage.TotalCount.Should().Be(3);
+        firstPage.Items!.Select(r => r.ReadingDateId).Should().Equal(lastReading.Id, middleReading.Id);
+        firstPage.Items!.First().Should().Be(new BookReadingDto(lastReading.Id, readTwice.Id, DefaultLibrary.Id, "Thorgal", "La Magicienne trahie", 1,
+            readTwice.ImageLink, new DateTime(2026, 10, 27, 20, 0, 0, DateTimeKind.Utc), 5));
+        secondPage.Items!.Select(r => r.ReadingDateId).Should().Equal(firstReading.Id);
+        withHidden.Items!.Select(r => r.ReadingDateId).Should().StartWith(hiddenReading.Id).And.HaveCount(4);
     }
 }

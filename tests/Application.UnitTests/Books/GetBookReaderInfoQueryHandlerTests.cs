@@ -27,7 +27,7 @@ public class GetBookReaderInfoQueryHandlerTests
     private DigitalBook CreateDigitalBook(int lastReadPage = 0)
     {
         var book = DigitalBook.Create(new BookMetadata("Blacksad", "Quelque part entre les ombres", null), _library.Id, FilePath, 1_000).Value!;
-        book.UpdateReadingProgress(lastReadPage);
+        book.UpdateReadingProgress(lastReadPage, DateTime.UtcNow);
         _bookRepository.GetByIdAsync(book.Id).Returns(book);
         return book;
     }

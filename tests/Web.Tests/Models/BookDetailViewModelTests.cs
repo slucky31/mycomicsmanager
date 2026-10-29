@@ -119,7 +119,7 @@ public sealed class BookDetailViewModelTests
     public void From_Should_OfferToContinueReading_WhenTheReaderRecordedAPage(int lastReadPage, int pages, string progress, int percent)
     {
         var book = Digital(new BookMetadata("Blacksad", "Âme rouge", null, NumberOfPages: pages));
-        book.UpdateReadingProgress(lastReadPage);
+        book.UpdateReadingProgress(lastReadPage, DateTime.UtcNow);
 
         var view = BookDetailViewModel.From(book);
 
@@ -133,7 +133,7 @@ public sealed class BookDetailViewModelTests
     public void From_Should_ShowThePageWithoutProgress_WhenTheNumberOfPagesIsUnknown()
     {
         var book = Digital(new BookMetadata("Blacksad", "Âme rouge", null));
-        book.UpdateReadingProgress(9);
+        book.UpdateReadingProgress(9, DateTime.UtcNow);
 
         var view = BookDetailViewModel.From(book);
 

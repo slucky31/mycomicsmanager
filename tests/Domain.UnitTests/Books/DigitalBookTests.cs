@@ -223,24 +223,29 @@ public class DigitalBookTests
     }
 
     [Fact]
-    public void UpdateReadingProgress_Should_StorePage_WhenIndexIsPositiveOrZero()
+    public void UpdateReadingProgress_Should_StorePageAndReadingTime_WhenIndexIsPositiveOrZero()
     {
         var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
+        var firstRead = new DateTime(2026, 10, 28, 21, 0, 0, DateTimeKind.Utc);
+        var secondRead = firstRead.AddHours(1);
+        book.LastReadAt.Should().BeNull();
 
-        book.UpdateReadingProgress(12).IsSuccess.Should().BeTrue();
+        book.UpdateReadingProgress(12, firstRead).IsSuccess.Should().BeTrue();
         book.LastReadPage.Should().Be(12);
+        book.LastReadAt.Should().Be(firstRead);
 
-        book.UpdateReadingProgress(0).IsSuccess.Should().BeTrue();
+        book.UpdateReadingProgress(0, secondRead).IsSuccess.Should().BeTrue();
         book.LastReadPage.Should().Be(0);
+        book.LastReadAt.Should().Be(secondRead);
     }
 
     [Fact]
     public void UpdateReadingProgress_Should_FailWithoutChange_WhenIndexIsNegative()
     {
         var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize).Value!;
-        book.UpdateReadingProgress(5);
+        book.UpdateReadingProgress(5, DateTime.UtcNow);
 
-        var result = book.UpdateReadingProgress(-1);
+        var result = book.UpdateReadingProgress(-1, DateTime.UtcNow);
 
         result.Error.Should().Be(BooksError.BadRequest);
         book.LastReadPage.Should().Be(5);

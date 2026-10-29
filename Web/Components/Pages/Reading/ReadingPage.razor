@@ -1,0 +1,114 @@
+@page "/reading"
+
+@using Web.Models
+
+<PageTitle>Reading — MyComicsManager</PageTitle>
+
+<div class="reading-page">
+    <header class="reading-bar">
+        <h1>Reading</h1>
+        @if (_loaded)
+        {
+            <div class="reading-bar-subtitle">@ReadingPageDisplay.Subtitle(_inProgress.Count, ReadingCount)</div>
+        }
+    </header>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="reading-loading" />
+    }
+    else if (_loadFailed)
+    {
+        <div class="reading-empty" role="alert">
+            <MudIcon Icon="@Icons.Material.Filled.CloudOff" Class="reading-empty-icon" />
+            <div class="reading-empty-title">Couldn't load your readings</div>
+            <div class="reading-empty-hint">Check the connection, then try again.</div>
+            <MudButton StartIcon="@Icons.Material.Filled.Refresh" Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadAsync">Retry</MudButton>
+        </div>
+    }
+    else if (_loaded)
+    {
+        <section class="reading-section" aria-labelledby="reading-progress-title">
+            <h2 id="reading-progress-title" class="reading-section-title">In progress</h2>
+            @if (_inProgress.Count > 0)
+            {
+                <ul class="reading-progress-list">
+                    @foreach (var book in _inProgress)
+                    {
+                        <li @key="book.Id">
+                            <a href="@book.ReadHref" class="reading-progress-item" aria-label="@book.AriaLabel">
+                                @if (string.IsNullOrEmpty(book.ImageLink))
+                                {
+                                    <span class="reading-progress-cover reading-cover-none" aria-hidden="true"><MudIcon Icon="@Icons.Material.Filled.MenuBook" /></span>
+                                }
+                                else
+                                {
+                                    <img class="reading-progress-cover" src="@CoverImage.Sized(book.ImageLink, CoverSize.Medium)" alt="" loading="lazy" />
+                                }
+                                <span class="reading-progress-bar" aria-hidden="true"><span class="reading-progress-value" style="@book.ProgressStyle"></span></span>
+                                <span class="reading-progress-title" title="@book.Title">@book.Title</span>
+                                <span class="reading-progress-page">@book.Progress</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="reading-section-empty">No book in progress. A digital book opened in the reader shows here until it is marked as read.</div>
+            }
+        </section>
+
+        <section class="reading-section" aria-labelledby="reading-recent-title">
+            <h2 id="reading-recent-title" class="reading-section-title">Recently read</h2>
+            @if (_months.Count > 0)
+            {
+                @foreach (var month in _months)
+                {
+                    <h3 class="reading-month">@month.Label</h3>
+                    <ul class="reading-recent-list">
+                        @foreach (var reading in month.Readings)
+                        {
+                            <li @key="reading.ReadingDateId">
+                                <a href="@reading.Href" class="reading-recent-item">
+                                    @if (string.IsNullOrEmpty(reading.ImageLink))
+                                    {
+                                        <span class="reading-recent-cover reading-cover-none" aria-hidden="true"><MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" /></span>
+                                    }
+                                    else
+                                    {
+                                        <img class="reading-recent-cover" src="@CoverImage.Sized(reading.ImageLink, CoverSize.ExtraSmall)" alt="" loading="lazy" />
+                                    }
+                                    <span class="reading-recent-text">
+                                        <span class="reading-recent-title">@reading.Title</span>
+                                        <span class="reading-recent-serie">@reading.SerieAndVolume</span>
+                                    </span>
+                                    <span class="reading-recent-meta">
+                                        <span class="reading-recent-date">@reading.DateLabel</span>
+                                        <span class="reading-stars" role="img" aria-label="@reading.RatingLabel">
+                                            @for (var star = 1; star <= 5; star++)
+                                            {
+                                                <MudIcon Icon="@(star <= reading.Rating ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)" Class="@(star <= reading.Rating ? "reading-star reading-star-on" : "reading-star")" />
+                                            }
+                                        </span>
+                                    </span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                @if (RemainingReadings > 0)
+                {
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="LoadMoreAsync" Disabled="_isLoadingMore" Class="reading-more">
+                        @ReadingPageDisplay.MoreLabel(RemainingReadings)
+                    </MudButton>
+                }
+            }
+            else
+            {
+                <div class="reading-section-empty">No reading yet. Mark a book as read to find it here.</div>
+            }
+        </section>
+    }
+</div>

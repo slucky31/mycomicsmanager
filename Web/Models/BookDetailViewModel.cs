@@ -114,15 +114,8 @@ public sealed record BookDetailViewModel
             return ("Read", null, null);
         }
 
-        var page = book.LastReadPage + 1;
-        if (book.NumberOfPages is not > 0)
-        {
-            return ("Continue reading", $"Page {page}", null);
-        }
-
-        var pageCount = book.NumberOfPages.Value;
-        page = Math.Min(page, pageCount);
-        return ("Continue reading", $"Page {page} of {pageCount}", page * 100 / pageCount);
+        var (progress, percent) = ReadingProgressDisplay.Of(book.LastReadPage, book.NumberOfPages);
+        return ("Continue reading", progress, percent);
     }
 
     private static string? IsbnScanNoticeOf(IsbnScanState state, DateTime? scannedAt) => state switch
