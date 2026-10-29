@@ -6,6 +6,18 @@
     padding-right: env(safe-area-inset-right);
 }
 
+/* Above the pages, under the menus and dialogs of MudBlazor (from 1100). */
+.status-bar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background: var(--mcm-surface-muted);
+    pointer-events: none;
+    z-index: 1000;
+}
+
 /* After a navigation Blazor moves the focus to the page title (FocusOnNavigate) for screen readers;
    the title is not a control, so the focus is not drawn around it (iOS Safari draws it). */
 .page-body ::deep h1[tabindex="-1"]:focus {
