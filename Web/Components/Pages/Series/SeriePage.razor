@@ -65,32 +65,13 @@
                             <span class="serie-slot-missing-number">@slot.Badge</span>
                             <span>Missing</span>
                         </span>
-                        <span class="serie-slot-title serie-slot-title-missing">Not in library</span>
+                        <span class="serie-slot-title-missing">Not in library</span>
                     </div>
                 }
                 else
                 {
-                    <div @key="slot.Key" class="serie-slot serie-slot-owned" data-book-id="@slot.Book!.Id">
-                        <a class="serie-slot-link" href="@slot.Href" title="@slot.Title">
-                            <span class="serie-slot-frame">
-                                @if (!string.IsNullOrEmpty(slot.ImageLink))
-                                {
-                                    <img class="serie-slot-cover" src="@CoverImage.Sized(slot.ImageLink, CoverSize.Medium)" alt="@($"Cover of {slot.Title}")" loading="lazy" />
-                                }
-                                else
-                                {
-                                    <span class="serie-slot-cover serie-slot-placeholder">@slot.Title</span>
-                                }
-                                <span class="serie-slot-badge">@slot.Badge</span>
-                            </span>
-                            <span class="serie-slot-title">@slot.Label</span>
-                        </a>
-                        @* Touch screens open the actions with a long press (libraryPage.js); a mouse shows this button on hover. *@
-                        <button type="button" id="@BookActionsIds.Of(slot.Book.Id)" class="serie-slot-actions"
-                                aria-label="@($"More actions for {slot.Title}")" @onclick="() => OpenBookActionsAsync(slot.Book)">
-                            <MudIcon Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
-                        </button>
-                    </div>
+                    <BookCover @key="slot.Key" BookId="@slot.Book!.Id" Title="@(slot.Title!)" Label="@slot.Label" ImageLink="@slot.ImageLink" Badge="@slot.Badge"
+                               Href="@slot.Href" OnActions="() => OpenBookActionsAsync(slot.Book)" />
                 }
             }
         </div>

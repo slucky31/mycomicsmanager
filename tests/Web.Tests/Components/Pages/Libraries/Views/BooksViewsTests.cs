@@ -39,7 +39,7 @@ public sealed class BooksViewsTests : IAsyncDisposable
         cut.Find("a.cover-link").GetAttribute("href").Should().Be($"/books/{_book.Id}");
         cut.Find("img").GetAttribute("alt").Should().Be("Cover of Âme rouge");
         cut.Find(".cover-volume").TextContent.Should().Be("#4");
-        cut.Find(".cover-serie").TextContent.Should().Be("Blacksad");
+        cut.Find(".cover-subtitle").TextContent.Should().Be("Blacksad");
         cut.Find(".cover-item").GetAttribute("data-book-id").Should().Be(_book.Id.ToString());
     }
 

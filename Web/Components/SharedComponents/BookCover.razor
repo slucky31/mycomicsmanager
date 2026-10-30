@@ -1,0 +1,55 @@
+<div class="@(Checked ? "cover-item cover-item-checked" : "cover-item")" data-book-id="@BookId">
+    @if (Selecting)
+    {
+        @* While books are chosen (#1150), a tap checks a book instead of opening it. *@
+        <button type="button" class="cover-link" role="checkbox" aria-checked="@(Checked ? "true" : "false")" aria-label="@Title"
+                @onclick="OnToggle">
+            @Content
+        </button>
+    }
+    else
+    {
+        <a class="cover-link" href="@Href" title="@Title" aria-label="@LinkLabel">
+            @Content
+        </a>
+        @if (OnActions.HasDelegate)
+        {
+            @* Always shown, on a phone too (#1265); a long press or a right click still opens the actions (libraryPage.js). *@
+            <button type="button" id="@BookActionsIds.Of(BookId)" class="cover-actions"
+                    aria-label="@($"More actions for {Title}")" @onclick="OnActions">
+                <span class="cover-actions-dot"><MudIcon Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" /></span>
+            </button>
+        }
+    }
+</div>
+
+@code {
+    private RenderFragment Content => __builder =>
+    {
+        <span class="cover-frame">
+            @if (!string.IsNullOrEmpty(ImageLink))
+            {
+                <img class="cover-image" src="@CoverImage.Sized(ImageLink, CoverSize.Medium)" alt="@($"Cover of {Title}")" loading="lazy" />
+            }
+            else
+            {
+                <span class="cover-placeholder">@Title</span>
+            }
+            @if (Badge is not null)
+            {
+                <span class="cover-volume">@Badge</span>
+            }
+            @CoverContent
+            @if (Selecting)
+            {
+                <span class="cover-check" aria-hidden="true"><MudIcon Icon="@Icons.Material.Filled.Check" /></span>
+            }
+        </span>
+        @BelowCover
+        <span class="cover-title">@(Label ?? Title)</span>
+        @if (!string.IsNullOrEmpty(Subtitle))
+        {
+            <span class="cover-subtitle">@Subtitle</span>
+        }
+    };
+}

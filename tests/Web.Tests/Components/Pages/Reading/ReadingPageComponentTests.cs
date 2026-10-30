@@ -17,12 +17,13 @@ public sealed class ReadingPageComponentTests
 {
     private readonly IReadingService _readingService = Substitute.For<IReadingService>();
     private readonly ISnackbar _snackbar = Substitute.For<ISnackbar>();
+    private readonly IBookMoveWorkflow _moveWorkflow = Substitute.For<IBookMoveWorkflow>();
 
     private static BookInProgressDto InProgress(string title) =>
         new(Guid.CreateVersion7(), Guid.CreateVersion7(), "Blacksad", title, 5, "https://example.com/cover.jpg", 33, 56, DateTime.UtcNow);
 
-    private static BookReadingDto Reading(string title, DateTime date) =>
-        new(Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), "Thorgal", title, 1, "", date, 4);
+    private static BookReadingDto Reading(string title, DateTime date, bool isDigital = false) =>
+        new(Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), "Thorgal", title, 1, "", date, 4, isDigital);
 
     private static IPagedList<BookReadingDto> Page(int totalCount, params BookReadingDto[] readings)
     {
@@ -50,6 +51,9 @@ public sealed class ReadingPageComponentTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton(_readingService);
         ctx.Services.AddSingleton(_snackbar);
+        ctx.Services.AddScoped<PopupAnchorLocator>();
+        ctx.Services.AddSingleton(Substitute.For<IBooksService>());
+        ctx.Services.AddSingleton(_moveWorkflow);
         return (ctx, ctx.Render<ReadingPage>());
     }
 
@@ -66,12 +70,72 @@ public sealed class ReadingPageComponentTests
         await using var _ = ctx;
 
         cut.WaitForAssertion(() => cut.Find(".reading-bar-subtitle").TextContent.Should().Be("1 in progress · 2 readings"));
-        var progress = cut.Find("a.reading-progress-item");
+        var progress = cut.Find("a.cover-link");
         progress.GetAttribute("href").Should().Be($"/books/{amarillo.Id}/read?from=%2Freading");
-        progress.TextContent.Should().Contain("Page 34 of 56");
+        progress.GetAttribute("aria-label").Should().Be("Continue Amarillo, Page 34 of 56");
+        progress.QuerySelector(".reading-progress-bar").Should().NotBeNull();
         cut.FindAll(".reading-month").Select(m => m.TextContent).Should().Equal("October 2026", "September 2026");
         cut.FindAll(".reading-recent-title").Select(t => t.TextContent).Should().Equal("Le Fils", "La Magicienne trahie");
         cut.FindAll(".reading-more").Should().BeEmpty();
+    }
+
+    private static IEnumerable<string> Actions(IRenderedComponent<ReadingPage> cut) =>
+        cut.FindAll("[role=dialog] .action-sheet-item").Select(i => i.TextContent.Trim());
+
+    [Fact]
+    public async Task OpenActionsAsync_Should_OpenTheDigitalActions_OfABookInProgress()
+    {
+        GivenInProgress(InProgress("Amarillo"));
+        GivenReadings(1, Page(0));
+
+        var (ctx, cut) = Render();
+        await using var _ = ctx;
+        cut.WaitForAssertion(() => cut.FindAll(".cover-actions").Should().ContainSingle());
+
+        cut.Find(".cover-actions").GetAttribute("aria-label").Should().Be("More actions for Amarillo");
+        await cut.Find(".cover-actions").ClickAsync(new());
+
+        cut.Find("[role=dialog]").GetAttribute("aria-label").Should().Be("Actions for Amarillo");
+        Actions(cut).Should().Equal("Read", "Edit", "Import info from the web", "Find ISBN", "Download CBZ", "Move to another library", "Delete");
+    }
+
+    [Theory]
+    [InlineData(false, new[] { "Edit", "Import info from the web", "Move to another library", "Delete" })]
+    [InlineData(true, new[] { "Read", "Edit", "Import info from the web", "Find ISBN", "Download CBZ", "Move to another library", "Delete" })]
+    public async Task OpenActionsAsync_Should_OpenTheActionsOfTheBook_OfARecentReading(bool isDigital, string[] expected)
+    {
+        GivenInProgress();
+        var reading = Reading("Le Fils", new DateTime(2026, 10, 18, 20, 0, 0, DateTimeKind.Utc), isDigital);
+        GivenReadings(1, Page(1, reading));
+
+        var (ctx, cut) = Render();
+        await using var _ = ctx;
+        cut.WaitForAssertion(() => cut.FindAll(".reading-recent-actions").Should().ContainSingle());
+
+        cut.Find(".reading-recent-actions").Id.Should().Be($"reading-actions-{reading.ReadingDateId}");
+        await cut.Find(".reading-recent-actions").ClickAsync(new());
+
+        cut.Find("[role=dialog]").GetAttribute("aria-label").Should().Be("Actions for Le Fils");
+        Actions(cut).Should().Equal(expected);
+    }
+
+    [Fact]
+    public async Task OnBookGone_Should_LoadTheReadingsAgain_WhenTheBookIsMoved()
+    {
+        GivenInProgress(InProgress("Amarillo"));
+        GivenReadings(1, Page(0));
+        _moveWorkflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        var (ctx, cut) = Render();
+        await using var _ = ctx;
+        cut.WaitForAssertion(() => cut.FindAll(".cover-actions").Should().ContainSingle());
+        GivenInProgress();
+        await cut.Find(".cover-actions").ClickAsync(new());
+
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
+
+        cut.WaitForAssertion(() => cut.FindAll(".cover-item").Should().BeEmpty());
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
     }
 
     [Fact]

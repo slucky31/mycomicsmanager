@@ -136,10 +136,10 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         var cut = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
 
-        cut.WaitForAssertion(() => cut.FindAll(".serie-slot").Should().HaveCount(3));
+        cut.WaitForAssertion(() => cut.FindAll(".serie-slot, .cover-item").Should().HaveCount(3));
         cut.Find(".serie-slot-missing-number").TextContent.Should().Be("#2");
         cut.Find(".page-bar h1").GetAttribute("title").Should().Be("Thorgal");
-        cut.FindAll(".serie-slot-link").Select(l => (l.GetAttribute("title"), l.QuerySelector(".serie-slot-title")!.TextContent))
+        cut.FindAll("a.cover-link").Select(l => (l.GetAttribute("title"), l.QuerySelector(".cover-title")!.TextContent))
             .Should().Equal(("Thorgal 1", "#1 · Thorgal 1"), ("Thorgal 3", "#3 · Thorgal 3"));
         cut.Find(".serie-progress-label").TextContent.Should().Be("1 volume missing");
 
@@ -209,7 +209,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         await cut.Find("[role=alert] button").ClickAsync(new());
 
-        cut.WaitForAssertion(() => cut.FindAll(".serie-slot").Should().HaveCount(1));
+        cut.WaitForAssertion(() => cut.FindAll(".serie-slot, .cover-item").Should().HaveCount(1));
         cut.FindAll("[role=alert]").Should().BeEmpty();
     }
 
@@ -224,7 +224,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/libraries/{s_libraryId}/serie?name=Thorgal");
 
         var cut = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
-        cut.WaitForAssertion(() => cut.FindAll(".serie-slot").Should().HaveCount(3));
+        cut.WaitForAssertion(() => cut.FindAll(".serie-slot, .cover-item").Should().HaveCount(3));
         return cut;
     }
 
@@ -236,9 +236,9 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     {
         var cut = RenderThorgal(LibraryBookType.Physical);
 
-        cut.FindAll(".serie-slot-actions").Select(b => b.GetAttribute("aria-label"))
+        cut.FindAll(".cover-actions").Select(b => b.GetAttribute("aria-label"))
             .Should().Equal("More actions for Thorgal 1", "More actions for Thorgal 3");
-        await cut.FindAll(".serie-slot-actions")[1].ClickAsync(new());
+        await cut.FindAll(".cover-actions")[1].ClickAsync(new());
 
         cut.Find("[role=dialog]").GetAttribute("aria-label").Should().Be("Actions for Thorgal 3");
         cut.Find(".book-actions-serie").TextContent.Should().Be("Thorgal · #3");
@@ -249,7 +249,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     public async Task OpenBookActionsAt_Should_OpenTheActionsOfTheLongPressedBook_WithTheDigitalOnes()
     {
         var cut = RenderThorgal(LibraryBookType.Digital);
-        var bookId = cut.FindAll(".serie-slot-owned")[0].GetAttribute("data-book-id")!;
+        var bookId = cut.FindAll(".cover-item")[0].GetAttribute("data-book-id")!;
 
         await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(Guid.CreateVersion7().ToString(), PopupAnchor.At(1, 1, 1024, 768)));
         cut.FindAll("[role=dialog]").Should().BeEmpty();
@@ -264,7 +264,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         var left = new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [3]), [SeriesTestData.Book("Thorgal", 3)]);
         var cut = RenderThorgal(LibraryBookType.Physical, left);
         _moveWorkflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
-        await cut.FindAll(".serie-slot-actions")[0].ClickAsync(new());
+        await cut.FindAll(".cover-actions")[0].ClickAsync(new());
 
         await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
 
@@ -278,7 +278,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         var cut = RenderThorgal(LibraryBookType.Physical);
         _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>()).Returns(SeriesError.NotFound);
         _moveWorkflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
-        await cut.FindAll(".serie-slot-actions")[0].ClickAsync(new());
+        await cut.FindAll(".cover-actions")[0].ClickAsync(new());
 
         await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
 

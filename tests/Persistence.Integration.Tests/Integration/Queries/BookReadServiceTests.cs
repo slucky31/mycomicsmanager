@@ -13,7 +13,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
     private PhysicalBook CreateBook(string serie, string title, string isbn, int volumeNumber = 1)
         => PhysicalBook.Create(new BookMetadata(serie, title, isbn, volumeNumber), DefaultLibrary.Id).Value!;
 
-    private async Task SeedAsync(IEnumerable<PhysicalBook> books)
+    private async Task SeedAsync(IEnumerable<Book> books)
     {
         foreach (var book in books)
         {
@@ -441,7 +441,11 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         var neverRead = CreateBook("Thorgal", "Les Trois Vieillards", "9780000001033", 3);
         var hidden = PhysicalBook.Create(new BookMetadata("Thorgal", "La Galère noire", "9780000001034", 4), hiddenLibrary.Id).Value!;
         var hiddenReading = hidden.AddReadingDate(new DateTime(2026, 10, 28, 20, 0, 0, DateTimeKind.Utc), 2);
-        await SeedAsync([readTwice, readOnce, neverRead, hidden]);
+        var digitalLibrary = Library.Create("BD", "#5C6BC0", "book", LibraryBookType.Digital, DefaultLibrary.UserId).Value!;
+        Context.Libraries.Add(digitalLibrary);
+        var digital = CreateDigitalBook(digitalLibrary.Id, "Arctic Nation", 2);
+        var digitalReading = digital.AddReadingDate(new DateTime(2026, 8, 1, 20, 0, 0, DateTimeKind.Utc), 4);
+        await SeedAsync([readTwice, readOnce, neverRead, hidden, digital]);
 
         // Act
         var firstPage = await BookReadService.GetRecentReadingsAsync(DefaultLibrary.UserId, 1, 2, false, TestContext.Current.CancellationToken);
@@ -449,11 +453,11 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         var withHidden = await BookReadService.GetRecentReadingsAsync(DefaultLibrary.UserId, 1, 10, true, TestContext.Current.CancellationToken);
 
         // Assert
-        firstPage.TotalCount.Should().Be(3);
+        firstPage.TotalCount.Should().Be(4);
         firstPage.Items!.Select(r => r.ReadingDateId).Should().Equal(lastReading.Id, middleReading.Id);
         firstPage.Items!.First().Should().Be(new BookReadingDto(lastReading.Id, readTwice.Id, DefaultLibrary.Id, "Thorgal", "La Magicienne trahie", 1,
-            readTwice.ImageLink, new DateTime(2026, 10, 27, 20, 0, 0, DateTimeKind.Utc), 5));
-        secondPage.Items!.Select(r => r.ReadingDateId).Should().Equal(firstReading.Id);
-        withHidden.Items!.Select(r => r.ReadingDateId).Should().StartWith(hiddenReading.Id).And.HaveCount(4);
+            readTwice.ImageLink, new DateTime(2026, 10, 27, 20, 0, 0, DateTimeKind.Utc), 5, false));
+        secondPage.Items!.Select(r => (r.ReadingDateId, r.IsDigital)).Should().Equal((firstReading.Id, false), (digitalReading.Id, true));
+        withHidden.Items!.Select(r => r.ReadingDateId).Should().StartWith(hiddenReading.Id).And.HaveCount(5);
     }
 }

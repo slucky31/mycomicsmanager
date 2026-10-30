@@ -66,6 +66,9 @@ All 2:3, in four sizes (`--mcm-cover-*`):
 
 `CoverImage.Sized(link, CoverSize)` asks Cloudinary for the cover at the size it is shown.
 
+A book in a grid of covers (Covers view, series page, books in progress) is the `BookCover` component: its cover, volume, title,
+subtitle and a ⋮ always shown in its top right corner, on a phone too. A row of a list ends with the same ⋮ (44px).
+
 ## Elevation & Depth
 
 Flat cards with a 1px border (`--mcm-border`) on a muted background. Shadows only on covers
