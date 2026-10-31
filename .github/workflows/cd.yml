@@ -270,3 +270,29 @@ jobs:
             } catch (error) {
               core.setFailed(error.message);
             }
+
+  # Bumps the image tag in mycomicsmanager-config: the Pi's deploy.sh cron (every 5 min)
+  # pulls main and applies it, without waiting hours for Renovate's next run (kept as a
+  # fallback). RELEASE_TOKEN must be able to push to slucky31/mycomicsmanager-config.
+  bump-config:
+    name: Deploy (bump mycomicsmanager-config)
+    needs: [build, docker-web]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mycomicsmanager-config
+        uses: actions/checkout@v7
+        with:
+          repository: slucky31/mycomicsmanager-config
+          token: ${{ secrets.RELEASE_TOKEN }}
+      - name: Bump and push
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          git config user.email "nicolas.dufaut@gmail.com"
+          git config user.name "slucky31"
+          sed -i -E "s#(ghcr\.io/slucky31/mcm:)[0-9][^ ]*#\1${VERSION}#" mcm/docker-compose.yml
+          git diff --quiet && { echo "Already at ${VERSION}."; exit 0; }
+          git commit -am "chore(deps): update ghcr.io/slucky31/mcm docker tag to v${VERSION}"
+          # Renovate may push meanwhile: rebase and retry instead of failing the deploy.
+          for i in 1 2 3; do git pull -q --rebase && git push -q && exit 0; sleep 5; done
+          exit 1
