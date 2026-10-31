@@ -36,19 +36,12 @@
                     @foreach (var book in _inProgress)
                     {
                         <li @key="book.Id">
-                            <a href="@book.ReadHref" class="reading-progress-item" aria-label="@book.AriaLabel">
-                                @if (string.IsNullOrEmpty(book.ImageLink))
-                                {
-                                    <span class="reading-progress-cover reading-cover-none" aria-hidden="true"><MudIcon Icon="@Icons.Material.Filled.MenuBook" /></span>
-                                }
-                                else
-                                {
-                                    <img class="reading-progress-cover" src="@CoverImage.Sized(book.ImageLink, CoverSize.Medium)" alt="" loading="lazy" />
-                                }
-                                <span class="reading-progress-bar" aria-hidden="true"><span class="reading-progress-value" style="@book.ProgressStyle"></span></span>
-                                <span class="reading-progress-title" title="@book.Title">@book.Title</span>
-                                <span class="reading-progress-page">@book.Progress</span>
-                            </a>
+                            <BookCover BookId="@book.Id" Title="@book.Title" Subtitle="@book.Progress" ImageLink="@book.ImageLink"
+                                       Href="@book.ReadHref" LinkLabel="@book.AriaLabel" OnActions="() => OpenActionsAsync(book.ActionsTarget, true, BookActionsIds.Of(book.Id))">
+                                <BelowCover>
+                                    <span class="reading-progress-bar" aria-hidden="true"><span class="reading-progress-value" style="@book.ProgressStyle"></span></span>
+                                </BelowCover>
+                            </BookCover>
                         </li>
                     }
                 </ul>
@@ -69,7 +62,7 @@
                     <ul class="reading-recent-list">
                         @foreach (var reading in month.Readings)
                         {
-                            <li @key="reading.ReadingDateId">
+                            <li @key="reading.ReadingDateId" class="reading-recent-row">
                                 <a href="@reading.Href" class="reading-recent-item">
                                     @if (string.IsNullOrEmpty(reading.ImageLink))
                                     {
@@ -93,6 +86,10 @@
                                         </span>
                                     </span>
                                 </a>
+                                <button type="button" id="@reading.ActionsId" class="reading-recent-actions" aria-label="@($"More actions for {reading.Title}")"
+                                        @onclick="() => OpenActionsAsync(reading.ActionsTarget, reading.IsDigital, reading.ActionsId)">
+                                    <MudIcon Icon="@Icons.Material.Filled.MoreVert" />
+                                </button>
                             </li>
                         }
                     </ul>
@@ -112,3 +109,9 @@
         </section>
     }
 </div>
+
+@if (_actionsBook is { } actionsBook)
+{
+    <BookActionsSheet Book="@actionsBook" Open="@_isActionsOpen" IsDigital="@_actionsDigital" Anchor="@_actionsAnchor" AlignEnd="true"
+                      OnClose="CloseActions" OnBookGone="LoadAsync" From="@ReturnLinks.ReadingHref" />
+}

@@ -13,6 +13,9 @@ public sealed record BookInProgressViewModel(Guid Id, string Title, string Serie
 
     public string AriaLabel => $"Continue {Title}, {Progress}";
 
+    // A book in progress is always digital (#1265).
+    public BookActionsTarget ActionsTarget => new(Id, Title, SerieAndVolume, ImageLink);
+
     public static BookInProgressViewModel From(BookInProgressDto book)
     {
         ArgumentNullException.ThrowIfNull(book);
@@ -23,9 +26,15 @@ public sealed record BookInProgressViewModel(Guid Id, string Title, string Serie
 }
 
 // A reading date of a book on the Reading page (#1252).
-public sealed record BookReadingViewModel(Guid ReadingDateId, Guid BookId, string Title, string SerieAndVolume, string ImageLink, DateTime Date, int Rating)
+public sealed record BookReadingViewModel(Guid ReadingDateId, Guid BookId, string Title, string SerieAndVolume, string ImageLink, DateTime Date, int Rating,
+    bool IsDigital)
 {
     public string Href => ReturnLinks.Book(BookId, ReturnLinks.ReadingHref);
+
+    public BookActionsTarget ActionsTarget => new(BookId, Title, SerieAndVolume, ImageLink);
+
+    // A book read twice has two rows: the ⋮ of each row is told apart by its reading (#1265).
+    public string ActionsId => $"reading-actions-{ReadingDateId}";
 
     public string DateLabel => Date.ToString(PublishDateHelper.DisplayFormat, CultureInfo.InvariantCulture);
 
@@ -35,7 +44,7 @@ public sealed record BookReadingViewModel(Guid ReadingDateId, Guid BookId, strin
     {
         ArgumentNullException.ThrowIfNull(reading);
         return new(reading.ReadingDateId, reading.BookId, reading.Title, BookText.SerieAndVolume(reading.Serie, reading.Title, reading.VolumeNumber) ?? string.Empty,
-            reading.ImageLink, reading.Date, reading.Rating);
+            reading.ImageLink, reading.Date, reading.Rating, reading.IsDigital);
     }
 }
 

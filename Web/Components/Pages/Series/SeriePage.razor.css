@@ -144,108 +144,20 @@
     flex-direction: column;
     gap: 4px;
     min-width: 0;
-    color: var(--mcm-text);
-    text-decoration: none;
 }
 
-/* An owned book: its cover opens it, its ⋮ (or a long press) shows its actions (#1220). */
-.serie-slot-owned {
-    position: relative;
-    /* A long press opens the actions: no text selection nor iOS link preview. */
-    -webkit-touch-callout: none;
-    user-select: none;
-}
-
-.serie-slot-link {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-    color: inherit;
-    text-decoration: none;
-}
-
-.serie-slot-actions {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    border-radius: 50%;
-    background: var(--mcm-badge);
-    color: #ffffff;
-    cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.serie-slot-actions:focus-visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-@media (hover: hover) {
-    .serie-slot-owned:hover .serie-slot-actions {
-        opacity: 1;
-        pointer-events: auto;
-    }
-}
-
-.serie-slot-frame {
-    position: relative;
-    display: block;
-}
-
-.serie-slot-cover,
+/* Volumes missing between the books (#1205); the books are BookCover (#1265). */
 .serie-slot-missing {
-    display: block;
+    box-sizing: border-box;
     width: 100%;
     aspect-ratio: 2 / 3;
-    border-radius: var(--mcm-cover-radius);
-}
-
-.serie-slot-cover {
-    object-fit: cover;
-    box-shadow: var(--mcm-cover-shadow);
-}
-
-.serie-slot-placeholder {
-    box-sizing: border-box;
-    padding: 8px;
-    overflow: hidden;
-    background: var(--mud-palette-primary);
-    color: #ffffff;
-    font-size: var(--mcm-font-caption);
-    font-weight: 500;
-}
-
-.serie-slot-badge {
-    position: absolute;
-    left: 6px;
-    bottom: 6px;
-    height: 20px;
-    padding: 0 6px;
-    display: flex;
-    align-items: center;
-    border-radius: 10px;
-    background: var(--mcm-badge);
-    color: #ffffff;
-    font-size: var(--mcm-font-caption);
-    font-weight: 700;
-}
-
-.serie-slot-missing {
-    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 4px;
     border: 2px dashed #C08A5A;
+    border-radius: var(--mcm-cover-radius);
     background: #FFF6EE;
     color: var(--mcm-missing);
     font-size: var(--mcm-font-caption);
@@ -257,18 +169,20 @@
     font-weight: 700;
 }
 
-/* The volume then the title, on two lines (#1241). */
-.serie-slot-title {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-    overflow-wrap: anywhere;
-    font-size: var(--mcm-font-caption);
+.serie-slot-title-missing {
+    font-size: var(--mcm-font-small);
     font-weight: 500;
+    line-height: 16px;
+    color: var(--mcm-missing);
 }
 
-.serie-slot-title-missing {
-    color: var(--mcm-missing);
+@media (min-width: 600px) {
+    .serie-slot {
+        gap: 6px;
+    }
+
+    .serie-slot-title-missing {
+        font-size: var(--mcm-font-label);
+        line-height: 18px;
+    }
 }

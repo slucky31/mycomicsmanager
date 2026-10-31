@@ -11,7 +11,7 @@ public sealed class ReadingPageViewModelTests
         new(Guid.CreateVersion7(), Guid.CreateVersion7(), "Blacksad", "Amarillo", 5, "cover.jpg", lastReadPage, numberOfPages, null);
 
     private static BookReadingViewModel Reading(DateTime date) =>
-        BookReadingViewModel.From(new BookReadingDto(Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), "Thorgal", "Le Fils", 12, "", date, 4));
+        BookReadingViewModel.From(new BookReadingDto(Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), "Thorgal", "Le Fils", 12, "", date, 4, false));
 
     [Fact]
     public void From_Should_ShowWhereTheReaderStopped_WhenTheNumberOfPagesIsKnown()

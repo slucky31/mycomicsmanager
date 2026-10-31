@@ -75,22 +75,7 @@
     scroll-snap-align: start;
 }
 
-.reading-progress-item {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    color: inherit;
-    text-decoration: none;
-}
 
-.reading-progress-cover {
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    border-radius: var(--mcm-cover-radius);
-    box-shadow: var(--mcm-cover-shadow);
-    object-fit: cover;
-    background: var(--mcm-surface-sunken);
-}
 
 .reading-cover-none {
     display: flex;
@@ -99,8 +84,10 @@
     color: var(--mcm-text-muted);
 }
 
+/* Between the cover and the title of the book (BookCover). */
 .reading-progress-bar {
     display: block;
+    margin: 2px 0;
     height: 4px;
     border-radius: var(--mcm-radius-pill);
     background: var(--mcm-border);
@@ -113,18 +100,7 @@
     background: var(--mud-palette-primary);
 }
 
-.reading-progress-title {
-    font-size: var(--mcm-font-label);
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 
-.reading-progress-page {
-    font-size: var(--mcm-font-caption);
-    color: var(--mcm-text-muted);
-}
 
 /* Recently read: one card per month. */
 .reading-month {
@@ -142,16 +118,44 @@
     border-radius: var(--mcm-radius-xl);
 }
 
+.reading-recent-row {
+    display: flex;
+    align-items: center;
+    padding-right: var(--mcm-space-1);
+}
+
+/* The ⋮ of a reading (#1265), as at the end of a row of the list of books. */
+.reading-recent-actions {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 22px;
+    background: none;
+    color: var(--mcm-text-muted);
+    cursor: pointer;
+}
+
+.reading-recent-actions:hover,
+.reading-recent-actions:focus-visible {
+    background: var(--mcm-border);
+}
+
 .reading-recent-list > li + li {
     border-top: 1px solid var(--mcm-border);
 }
 
 .reading-recent-item {
+    flex: 1 1 auto;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: var(--mcm-space-3);
     min-height: 44px;
-    padding: 10px var(--mcm-space-3);
+    padding: 10px var(--mcm-space-1) 10px var(--mcm-space-3);
     color: inherit;
     text-decoration: none;
 }

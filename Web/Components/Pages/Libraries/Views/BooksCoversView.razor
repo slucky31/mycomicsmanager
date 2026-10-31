@@ -5,58 +5,17 @@
 <div class="covers-grid">
     @foreach (var book in Books)
     {
-        <div @key="book.Id" class="@(Selection.IsChecked(book) ? "cover-item cover-item-checked" : "cover-item")" data-book-id="@book.Id">
-            @if (Selection.IsActive)
-            {
-                @* While books are chosen (#1150), a tap checks a book instead of opening it. *@
-                <button type="button" class="cover-link" role="checkbox" aria-checked="@Selection.AriaChecked(book)" aria-label="@book.Title"
-                        @onclick="() => OnToggle.InvokeAsync(book)">
-                    @Cover(book)
-                </button>
-            }
-            else
-            {
-                <a class="cover-link" href="@ReturnLinks.Book(book.Id, From)">
-                    @Cover(book)
-                </a>
-                @* Touch screens open the actions with a long press (libraryPage.js); a mouse shows this button on hover. *@
-                <button type="button" id="@BookActionsIds.Of(book.Id)" class="cover-actions"
-                        aria-label="@($"More actions for {book.Title}")" @onclick="() => OnActions.InvokeAsync(book)">
-                    <MudIcon Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
-                </button>
-            }
-        </div>
+        <BookCover @key="book.Id" BookId="@book.Id" Title="@book.Title" Subtitle="@book.Serie" ImageLink="@book.ImageLink" Badge="@book.VolumeBadge"
+                   Href="@ReturnLinks.Book(book.Id, From)" OnActions="() => OnActions.InvokeAsync(book)"
+                   Selecting="@Selection.IsActive" Checked="@Selection.IsChecked(book)" OnToggle="() => OnToggle.InvokeAsync(book)">
+            <CoverContent>
+                @if (book.IsbnScanState != IsbnScanState.HasIsbn)
+                {
+                    <span class="cover-isbn-state">
+                        <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount" OnDarkBackground="true" />
+                    </span>
+                }
+            </CoverContent>
+        </BookCover>
     }
 </div>
-
-@code {
-    private RenderFragment Cover(BookListItemViewModel book) => __builder =>
-    {
-        <span class="cover-frame">
-            @if (!string.IsNullOrEmpty(book.ImageLink))
-            {
-                <img class="cover-image" src="@CoverImage.Sized(book.ImageLink, CoverSize.Medium)" alt="@($"Cover of {book.Title}")" loading="lazy" />
-            }
-            else
-            {
-                <span class="cover-placeholder">@book.Title</span>
-            }
-            @if (book.VolumeBadge is not null)
-            {
-                <span class="cover-volume">@book.VolumeBadge</span>
-            }
-            @if (book.IsbnScanState != IsbnScanState.HasIsbn)
-            {
-                <span class="cover-isbn-state">
-                    <IsbnScanStateIcon State="@book.IsbnScanState" CandidateCount="@book.IsbnCandidateCount" OnDarkBackground="true" />
-                </span>
-            }
-            @if (Selection.IsActive)
-            {
-                <span class="cover-check" aria-hidden="true"><MudIcon Icon="@Icons.Material.Filled.Check" /></span>
-            }
-        </span>
-        <span class="cover-title">@book.Title</span>
-        <span class="cover-serie">@book.Serie</span>
-    };
-}

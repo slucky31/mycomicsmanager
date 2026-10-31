@@ -141,7 +141,8 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
                 x.Book.VolumeNumber,
                 x.Book.ImageLink,
                 x.Reading.Date,
-                x.Reading.Rating));
+                x.Reading.Rating,
+                x.Book.Library!.BookType == LibraryBookType.Digital));
 
         return await new PagedList<BookReadingDto>(readings).ExecuteQueryAsync(page, pageSize, cancellationToken);
     }

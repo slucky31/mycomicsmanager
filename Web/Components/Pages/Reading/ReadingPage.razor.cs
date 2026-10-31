@@ -6,7 +6,7 @@ using Web.Services;
 
 namespace Web.Components.Pages.Reading;
 
-// The books in progress and the last readings (#1252).
+// The books in progress and the last readings (#1252), each with the actions of the book (#1265).
 public partial class ReadingPage : IAsyncDisposable
 {
     internal const int ReadingsPageSize = 20;
@@ -14,6 +14,7 @@ public partial class ReadingPage : IAsyncDisposable
     [Inject] private IReadingService ReadingService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private ILogger<ReadingPage> Logger { get; set; } = default!;
+    [Inject] private PopupAnchorLocator PopupAnchorLocator { get; set; } = default!;
 
     private IReadOnlyList<BookInProgressViewModel> _inProgress = [];
     private List<BookReadingViewModel> _readings = [];
@@ -24,6 +25,11 @@ public partial class ReadingPage : IAsyncDisposable
     private bool _loaded;
     private bool _loadFailed;
     private readonly CancellationTokenSource _disposalCts = new();
+
+    private BookActionsTarget? _actionsBook;
+    private bool _actionsDigital;
+    private bool _isActionsOpen;
+    private PopupAnchor? _actionsAnchor;
 
     private int RemainingReadings => Math.Max(0, ReadingCount - _readings.Count);
 
@@ -106,6 +112,17 @@ public partial class ReadingPage : IAsyncDisposable
             _isLoadingMore = false;
         }
     }
+
+    // The menu opens next to the ⋮ on a tablet, as a bottom sheet on a phone.
+    internal async Task OpenActionsAsync(BookActionsTarget book, bool isDigital, string buttonId)
+    {
+        _actionsAnchor = await PopupAnchorLocator.AnchorOfAsync(buttonId, _disposalCts.Token);
+        _actionsBook = book;
+        _actionsDigital = isDigital;
+        _isActionsOpen = true;
+    }
+
+    private void CloseActions() => _isActionsOpen = false;
 
     private void ShowLoadError(TError? error)
     {
