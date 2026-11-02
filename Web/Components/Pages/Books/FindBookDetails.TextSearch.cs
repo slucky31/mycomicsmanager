@@ -25,7 +25,10 @@ public partial class FindBookDetails
     private (BookSource Source, BookCandidate Candidate)? _edition;
     private bool _isCheckingIsbn;
 
-    private bool IsTextSearch => _edition is null && string.IsNullOrWhiteSpace(_isbn);
+    // The ISBN of the book that no source knows (#1268): the sources are searched by title instead, and the book keeps it.
+    private string? _keptIsbn;
+
+    private bool IsTextSearch => _edition is null && (_keptIsbn is not null || string.IsNullOrWhiteSpace(_isbn));
 
     private bool IsTextSearching => _textSearchStates.ContainsValue(ProviderSearchState.Searching);
 
@@ -34,7 +37,7 @@ public partial class FindBookDetails
     private BookTextQuery TextQuery => new(_queryTitle, _querySerie, _queryVolume);
 
     // The ISBN saved with the book differs from its own: read on a page, or the one of the edition picked.
-    private bool IsbnIsNew => IsbnFromPage || _edition is not null;
+    private bool IsbnIsNew => IsbnFromPage || (_edition is not null && _keptIsbn is null);
 
     // Another book is opened: nothing of the previous search stays.
     private void ResetTextSearch()
@@ -42,8 +45,24 @@ public partial class FindBookDetails
         _textSearchId++;
         _chosen = null;
         _edition = null;
+        _keptIsbn = null;
         _candidates.Clear();
         _textSearchStates.Clear();
+    }
+
+    // No source knows the ISBN of the book: the page goes on with the search by title, series and volume.
+    private async Task SearchByTextWhenIsbnIsUnknownAsync(string isbn)
+    {
+        if (_edition is not null || _keptIsbn is not null || _isbn != isbn || !IsbnIsUnknown)
+        {
+            return;
+        }
+
+        _keptIsbn = isbn;
+        _searchStates.Clear();
+        ClearSourceResults();
+        RefreshComparison();
+        await SearchByTextAsync();
     }
 
     private void InitTextQuery(BookUiDto book)
@@ -125,17 +144,9 @@ public partial class FindBookDetails
         _isCheckingIsbn = true;
         try
         {
-            var availability = await BooksService.IsIsbnAvailable(BookId, isbn);
-            if (availability.IsFailure)
+            // The book keeping its own ISBN, the one of the edition is not saved: it needs no check.
+            if (_keptIsbn is null && !await IsIsbnAvailableAsync(isbn))
             {
-                Logger.LogError("Could not check ISBN {Isbn} for book {BookId}: {Error}", isbn, BookId, availability.Error?.Description);
-                Snackbar.Add($"Could not check the ISBN of this edition: {availability.Error?.Description}", Severity.Error);
-                return;
-            }
-
-            if (!availability.Value)
-            {
-                Snackbar.Add($"ISBN {isbn} is already used by another of your books: pick another edition.", Severity.Error);
                 return;
             }
 
@@ -153,11 +164,30 @@ public partial class FindBookDetails
         await FetchWebServicesAsync();
     }
 
+    private async Task<bool> IsIsbnAvailableAsync(string isbn)
+    {
+        var availability = await BooksService.IsIsbnAvailable(BookId, isbn);
+        if (availability.IsFailure)
+        {
+            Logger.LogError("Could not check ISBN {Isbn} for book {BookId}: {Error}", isbn, BookId, availability.Error?.Description);
+            Snackbar.Add($"Could not check the ISBN of this edition: {availability.Error?.Description}", Severity.Error);
+            return false;
+        }
+
+        if (!availability.Value)
+        {
+            Snackbar.Add($"ISBN {isbn} is already used by another of your books: pick another edition.", Severity.Error);
+            return false;
+        }
+
+        return true;
+    }
+
     // Back to the editions found: the comparison of the edition is dropped, the search is kept.
     private void ChangeEdition()
     {
         _edition = null;
-        _isbn = null;
+        _isbn = _keptIsbn;
         _searchStates.Clear();
         ClearSourceResults();
         _selected.Clear();

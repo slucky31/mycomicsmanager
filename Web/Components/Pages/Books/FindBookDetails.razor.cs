@@ -142,6 +142,7 @@ public partial class FindBookDetails
 
         StateHasChanged();
         await Task.WhenAll(searches);
+        await SearchByTextWhenIsbnIsUnknownAsync(isbn);
     }
 
     // Starts the search of one source; its result is applied as soon as it comes.
@@ -227,6 +228,12 @@ public partial class FindBookDetails
 
     // Every source answered and none of them knows the book.
     private bool NoSourceFound => _searchStates.Count > 0 && !IsSearching && !_searchStates.ContainsValue(ProviderSearchState.Found);
+
+    // Every source answered, at least one of them could search the ISBN, and none of them knows it.
+    private bool IsbnIsUnknown => NoSourceFound && _searchStates.ContainsValue(ProviderSearchState.NotFound);
+
+    // The ISBN saved with the book: the edition picked by title only brings its values when the book keeps its own ISBN.
+    private string SavedIsbn => _keptIsbn ?? _isbn ?? string.Empty;
 
     private void RefreshComparison()
     {
@@ -383,7 +390,7 @@ public partial class FindBookDetails
         {
             try
             {
-                cover = await ComicSearchService.UploadCoverAsync(coverUri, _isbn ?? string.Empty);
+                cover = await ComicSearchService.UploadCoverAsync(coverUri, SavedIsbn);
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
             {
@@ -415,7 +422,7 @@ public partial class FindBookDetails
             _currentBook.Id.ToString(),
             serie,
             title,
-            _isbn ?? string.Empty,
+            SavedIsbn,
             volumeNumber,
             cover,
             authors,
