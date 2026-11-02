@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.72.0"></a>
+## [10.72.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.72.0) (2026-11-02)
+
+### ✨ Features
+
+* **books:** search by title when no source knows the ISBN ([#1268](https://www.github.com/slucky31/mycomicsmanager/issues/1268)) ([#1269](https://www.github.com/slucky31/mycomicsmanager/issues/1269)) ([c6d58ae](https://www.github.com/slucky31/mycomicsmanager/commit/c6d58aef00d388bc19c68c6eba7ad764210b216d))
+
+### Other
+
+* **cd:** bumper le tag mcm dans mycomicsmanager-config après publication ([#1267](https://www.github.com/slucky31/mycomicsmanager/issues/1267)) ([c9db0b8](https://www.github.com/slucky31/mycomicsmanager/commit/c9db0b8f64ae497be58a86afcfe46024ab3687a0))
+
 <a name="10.71.0"></a>
 ## [10.71.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.71.0) (2026-10-31)
 
