@@ -49,8 +49,9 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
             .Returns(new BnfBookResult(string.Empty, null, [], [], null, null, null, Found: false));
         _bedethequeService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new BedethequeBookResult(string.Empty, string.Empty, 0, [], [], null, null, null, Found: false));
+        // OpenLibrary knows the book, with its title only: no source knowing it, the page searches by title (#1268).
         _openLibraryService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new OpenLibraryBookResult(string.Empty, null, [], [], null, null, null, Found: false));
+            .Returns(new OpenLibraryBookResult("Âme rouge", null, [], [], null, null, null, Found: true));
         _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new GoogleBooksBookResult(string.Empty, null, [], [], null, null, null, null, [], null, Found: false));
     }
@@ -169,13 +170,19 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
             .Returns(new BnfBookResult(string.Empty, null, [], [], null, null, null, Found: false, Failed: true));
         _openLibraryService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException<OpenLibraryBookResult>(new HttpRequestException("Network unreachable")));
+        _googleBooksService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new GoogleBooksBookResult(string.Empty, null, [], [], null, null, null, null, [], null, Found: false, Failed: true));
+        _bedethequeService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new BedethequeBookResult(string.Empty, string.Empty, 0, [], [], null, null, null, Found: false, Failed: true));
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_book.Id}/find-details?isbn={PageIsbn}");
         var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
 
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
         cut.Markup.Should().Contain("BnF: could not be searched")
             .And.Contain("OpenLibrary: could not be searched")
-            .And.Contain("Google Books: book not found");
+            .And.Contain("Google Books: could not be searched");
+        // No source could search the ISBN: it may be known, the page does not search by title.
+        await _bnfService.DidNotReceive().SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>());
     }
 
     private const string UploadedCover = "https://res.cloudinary.com/demo/cover.jpg";
@@ -427,6 +434,65 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         cut.FindAll(".find-details-edition").Should().HaveCount(3);
         cut.Markup.Should().NotContain("Sources checked:");
         await _bnfService.Received(1).SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    // ── An ISBN no source knows (#1268) ──────────────────────────────
+
+    // The book has an ISBN that every source searched without finding it.
+    private async Task<IRenderedComponent<FindBookDetails>> RenderIsbnUnknownAsync()
+    {
+        UseBook(DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", PageIsbn), Guid.CreateVersion7(), "/data/A/b.cbz", 1).Value!);
+        _openLibraryService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new OpenLibraryBookResult(string.Empty, null, [], [], null, null, null, Found: false));
+        return await RenderEditionsFoundAsync();
+    }
+
+    [Fact]
+    public async Task FetchWebServicesAsync_Should_SearchByTitleSerieAndVolume_WhenNoSourceKnowsTheIsbn()
+    {
+        var cut = await RenderIsbnUnknownAsync();
+
+        cut.Find(".find-details-query-hint").TextContent.Should().Contain($"No source found ISBN {PageIsbn}.");
+        await _bnfService.Received(1).SearchByIsbnAsync(PageIsbn, Arg.Any<CancellationToken>());
+        await _bnfService.Received(1).SearchByTextAsync(s_bookQuery, Arg.Any<CancellationToken>());
+        await _googleBooksService.Received(1).SearchByTextAsync(s_bookQuery, Arg.Any<CancellationToken>());
+        cut.FindAll(".find-details-edition").Should().HaveCount(3);
+    }
+
+    [Fact]
+    public async Task CompareWithEditionAsync_Should_KeepTheIsbnOfTheBook_WhenNoSourceKnowsIt()
+    {
+        var cut = await RenderIsbnUnknownAsync();
+        _bnfService.SearchByIsbnAsync(EditionIsbn, Arg.Any<CancellationToken>())
+            .Returns(new BnfBookResult("Âme rouge", null, ["Juan Díaz Canales"], [], null, null, null, Found: true));
+
+        await PickTheBnfEditionAsync(cut);
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+        cut.Find(".find-details-picked").TextContent.Should().Contain($"The book keeps its ISBN {PageIsbn}.").And.NotContain(EditionIsbn);
+        await _bnfService.Received(1).SearchByIsbnAsync(EditionIsbn, Arg.Any<CancellationToken>());
+        // The ISBN of the edition is not saved: it needs no check, and it is no change.
+        await _booksService.DidNotReceive().IsIsbnAvailable(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        cut.Find(".find-details-apply").HasAttribute("disabled").Should().BeTrue();
+
+        await cut.Find("button[role=radio][aria-checked=false]").ClickAsync(new());
+        await ApplyAsync(cut);
+
+        await _booksService.Received(1).Update(Arg.Is<UpdateBookRequest>(r => r.Isbn == PageIsbn), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ChangeEdition_Should_GoBackToTheSearchByTitle_WhenNoSourceKnowsTheIsbn()
+    {
+        var cut = await RenderIsbnUnknownAsync();
+        await PickTheBnfEditionAsync(cut);
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+
+        await cut.FindAll("button").Single(b => b.TextContent.Contains("Change edition", StringComparison.Ordinal)).ClickAsync(new());
+
+        cut.Find(".find-details-query-hint").TextContent.Should().Contain($"No source found ISBN {PageIsbn}.");
+        cut.FindAll(".find-details-edition").Should().HaveCount(3);
+        await _bnfService.Received(1).SearchByIsbnAsync(PageIsbn, Arg.Any<CancellationToken>());
     }
 
     [Fact]
