@@ -5,7 +5,7 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/dotnet:2-10.0-noble",
 	"features": {
-		"ghcr.io/nikiforovall/devcontainer-features/dotnet-csharpier:1": {},
+		"ghcr.io/nikiforovall/devcontainer-features/dotnet-csharpier:2": {},
 		"ghcr.io/daniellindemann/dev-container-features/dotnet-usersecrets-persistence:0.0.1": {}
 	}
 
