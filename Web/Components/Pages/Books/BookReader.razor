@@ -246,7 +246,7 @@
                     <MudText Typo="Typo.body2" Color="Color.Secondary">Select it to fetch the information of the book.</MudText>
                     @foreach (var isbn in _isbnCandidates)
                     {
-                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.TravelExplore"
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudDownload"
                                    Class="reader-isbn" OnClick="@(() => FetchBookInfoAsync(isbn))">
                             @isbn
                         </MudButton>
