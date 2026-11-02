@@ -318,7 +318,7 @@ public sealed class ProcessImportJobCommandHandler(
             }
         }
 
-        serie ??= Path.GetFileNameWithoutExtension(importJob.OriginalFileName);
+        serie ??= FileNameTitleHelper.ToTitle(importJob.OriginalFileName);
         title ??= serie;
         authors ??= string.Empty;
         publishers ??= string.Empty;
