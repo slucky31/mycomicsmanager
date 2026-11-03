@@ -13,13 +13,29 @@ public static partial class ComicTitleParser
     [GeneratedRegex(@"\b(?:tomes?|t|vol(?:ume)?s?\.?)\s*\d{1,4}\s*(?:à|a|-|–|au)\s*(?:t\s*)?\d{1,4}\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex VolumeRangePattern();
 
-    // "Tome 3", "T03", "T.3", "Vol. 105", "Volume 2", "#40", "n°12"
-    [GeneratedRegex(@"(?:\b(?:tome|vol(?:ume)?\.?|t\.?)\s*|#\s*|\bn°\s*)0*(\d{1,4})\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    // "Tome 3", "T03", "T.3", "Vol. 105", "Volume 2", "#40", "n°12", "n56"
+    [GeneratedRegex(@"(?:\b(?:tome|vol(?:ume)?\.?|t\.?)\s*|#\s*|\bn°\s*|\bn(?=\d))0*(\d{1,4})\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex VolumePattern();
 
     // "Largo Winch - 20 - Le prix de l'argent", "Largo Winch – 20"
     [GeneratedRegex(@"\s[-–—:]\s*0*(\d{1,4})(?=\s*(?:[-–—:]|$))", RegexOptions.CultureInvariant)]
     private static partial Regex DashedNumberPattern();
+
+    // "XIII 01 - Le jour du soleil noir", "Les Vieux Fourneaux 08": at most 3 digits, so a year is not a volume.
+    [GeneratedRegex(@"(?<=\s)0*(\d{1,3})(?=\s+[-–—:]|$)", RegexOptions.CultureInvariant)]
+    private static partial Regex TrailingNumberPattern();
+
+    // "Ashita_no_Joe_T08@BD_fr": what follows '@' is the tag of whoever shared the file.
+    [GeneratedRegex(@"@.*$", RegexOptions.CultureInvariant)]
+    private static partial Regex ReleaseTagPattern();
+
+    // "Blacksad T03 zz", "zzmurenaT03": "zz" is a release marker, as a word of its own or glued to the start.
+    [GeneratedRegex(@"^zz(?!z)|\bzz\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex ReleaseMarkerPattern();
+
+    // "murenaT03LaMeilleure", "ALatelier": a space before each word of a camelCase name.
+    [GeneratedRegex(@"(?<=\p{Ll})(?=\p{Lu})|(?<=\d)(?=\p{L})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})", RegexOptions.CultureInvariant)]
+    private static partial Regex CamelCaseBoundaryPattern();
 
     [GeneratedRegex(@"[\[(]([^\])]*)[\])]", RegexOptions.CultureInvariant)]
     private static partial Regex BracketGroupPattern();
@@ -57,6 +73,11 @@ public static partial class ComicTitleParser
             match = DashedNumberPattern().Match(text);
         }
 
+        if (!match.Success)
+        {
+            match = TrailingNumberPattern().Match(text);
+        }
+
         if (match.Success)
         {
             var serie = NullIfEmpty(text[..match.Index]);
@@ -83,11 +104,19 @@ public static partial class ComicTitleParser
             extension = Path.GetExtension(text);
         }
 
+        text = ReleaseTagPattern().Replace(text, string.Empty);
+
         // File names often use '_' or '.' instead of spaces.
         text = text.Replace('_', ' ');
         if (!text.Contains(' ', StringComparison.Ordinal))
         {
             text = text.Replace('.', ' ');
+        }
+
+        text = ReleaseMarkerPattern().Replace(text, " ").Trim();
+        if (!text.Contains(' ', StringComparison.Ordinal))
+        {
+            text = SplitCamelCase(text);
         }
 
         // Keep bracket groups that carry the volume ("(Tome 12)"), drop the others ("[FR]", "(2024)").
@@ -97,6 +126,14 @@ public static partial class ComicTitleParser
                 : " ");
 
         return MultiSpacePattern().Replace(text, " ").Trim(s_trimChars);
+    }
+
+    private static string SplitCamelCase(string text)
+    {
+        var split = CamelCaseBoundaryPattern().Replace(text, " ");
+        return split.Length == text.Length || split.Length == 0
+            ? text
+            : char.ToUpperInvariant(split[0]) + split[1..];
     }
 
     private static string? NullIfEmpty(string value)

@@ -521,6 +521,27 @@ public class ProcessImportJobCommandHandlerTests
         result.Value.Should().NotBeNull();
     }
 
+    [Fact]
+    public async Task Handle_Should_CleanTheFileName_WhenItGivesTheSerieAndTheTitle()
+    {
+        var job = CreatePendingJob("Ashita.no.Joe.T08.[BD.fr].(2024).cbz", "/srv/Ashita.no.Joe.T08.[BD.fr].(2024).cbz");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+        SetupImageProcessor();
+        SetupComicInfoXml();
+        SetupCloudinary();
+        SetupArchiveBuilder();
+        SetupNoMetadataSearch();
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Serie.Should().Be("Ashita no Joe");
+        result.Value.Title.Should().Be("Ashita no Joe");
+        result.Value.VolumeNumber.Should().Be(8);
+    }
+
     // ── Failure paths ─────────────────────────────────────────────────────────
 
     [Fact]
