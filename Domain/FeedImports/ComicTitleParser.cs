@@ -13,13 +13,21 @@ public static partial class ComicTitleParser
     [GeneratedRegex(@"\b(?:tomes?|t|vol(?:ume)?s?\.?)\s*\d{1,4}\s*(?:à|a|-|–|au)\s*(?:t\s*)?\d{1,4}\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex VolumeRangePattern();
 
-    // "Tome 3", "T03", "T.3", "Vol. 105", "Volume 2", "#40", "n°12"
-    [GeneratedRegex(@"(?:\b(?:tome|vol(?:ume)?\.?|t\.?)\s*|#\s*|\bn°\s*)0*(\d{1,4})\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    // "Tome 3", "T03", "T.3", "Vol. 105", "Volume 2", "#40", "n°12", "n56"
+    [GeneratedRegex(@"(?:\b(?:tome|vol(?:ume)?\.?|t\.?)\s*|#\s*|\bn°\s*|\bn(?=\d))0*(\d{1,4})\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex VolumePattern();
 
     // "Largo Winch - 20 - Le prix de l'argent", "Largo Winch – 20"
     [GeneratedRegex(@"\s[-–—:]\s*0*(\d{1,4})(?=\s*(?:[-–—:]|$))", RegexOptions.CultureInvariant)]
     private static partial Regex DashedNumberPattern();
+
+    // "XIII 01 - Le jour du soleil noir", "Les Vieux Fourneaux 08": at most 3 digits, so a year is not a volume.
+    [GeneratedRegex(@"(?<=\s)0*(\d{1,3})(?=\s+[-–—:]|$)", RegexOptions.CultureInvariant)]
+    private static partial Regex TrailingNumberPattern();
+
+    // "Ashita_no_Joe_T08@BD_fr": what follows '@' is the tag of whoever shared the file.
+    [GeneratedRegex(@"@.*$", RegexOptions.CultureInvariant)]
+    private static partial Regex ReleaseTagPattern();
 
     [GeneratedRegex(@"[\[(]([^\])]*)[\])]", RegexOptions.CultureInvariant)]
     private static partial Regex BracketGroupPattern();
@@ -57,6 +65,11 @@ public static partial class ComicTitleParser
             match = DashedNumberPattern().Match(text);
         }
 
+        if (!match.Success)
+        {
+            match = TrailingNumberPattern().Match(text);
+        }
+
         if (match.Success)
         {
             var serie = NullIfEmpty(text[..match.Index]);
@@ -82,6 +95,8 @@ public static partial class ComicTitleParser
             text = text[..^extension.Length];
             extension = Path.GetExtension(text);
         }
+
+        text = ReleaseTagPattern().Replace(text, string.Empty);
 
         // File names often use '_' or '.' instead of spaces.
         text = text.Replace('_', ' ');
