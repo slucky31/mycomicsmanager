@@ -21,6 +21,9 @@ public class ComicTitleParserTests
     [InlineData("XIII 01 - Le jour du soleil noir", "XIII", 1, "Le jour du soleil noir")]
     [InlineData("Les Vieux Fourneaux 08", "Les Vieux Fourneaux", 8, null)]
     [InlineData("Ashita_no_Joe_T08@BD_fr.cbz", "Ashita no Joe", 8, null)]
+    [InlineData("Blacksad_T03_zz.cbz", "Blacksad", 3, null)]
+    [InlineData("zzmurenaT03LaMeilleureDesMres.cbz", "Murena", 3, "La Meilleure Des Mres")]
+    [InlineData("ZZ Jazz Band T02 ZZ - Le retour", "Jazz Band", 2, "Le retour")]
     public void Parse_Should_ExtractSerieVolumeAndTitle_WhenTitleHasAVolume(string input, string serie, int volume, string? title)
     {
         var parsed = ComicTitleParser.Parse(input);
@@ -35,6 +38,8 @@ public class ComicTitleParserTests
     [InlineData("Maus", "Maus", null)]
     [InlineData("1984", "1984", null)]
     [InlineData("Paris 2024", "Paris 2024", null)]
+    [InlineData("zzuneFeministeRevolutionnaireALatelier.cbz", "Une Feministe Revolutionnaire A Latelier", null)]
+    [InlineData("Zzzap", "Zzzap", null)]
     [InlineData("L'Arabe du futur : Une jeunesse au Moyen-Orient", "L'Arabe du futur", "Une jeunesse au Moyen-Orient")]
     public void Parse_Should_ReturnNoVolume_WhenTitleHasNone(string input, string serie, string? title)
     {

@@ -29,6 +29,14 @@ public static partial class ComicTitleParser
     [GeneratedRegex(@"@.*$", RegexOptions.CultureInvariant)]
     private static partial Regex ReleaseTagPattern();
 
+    // "Blacksad T03 zz", "zzmurenaT03": "zz" is a release marker, as a word of its own or glued to the start.
+    [GeneratedRegex(@"^zz(?!z)|\bzz\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex ReleaseMarkerPattern();
+
+    // "murenaT03LaMeilleure", "ALatelier": a space before each word of a camelCase name.
+    [GeneratedRegex(@"(?<=\p{Ll})(?=\p{Lu})|(?<=\d)(?=\p{L})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})", RegexOptions.CultureInvariant)]
+    private static partial Regex CamelCaseBoundaryPattern();
+
     [GeneratedRegex(@"[\[(]([^\])]*)[\])]", RegexOptions.CultureInvariant)]
     private static partial Regex BracketGroupPattern();
 
@@ -105,6 +113,12 @@ public static partial class ComicTitleParser
             text = text.Replace('.', ' ');
         }
 
+        text = ReleaseMarkerPattern().Replace(text, " ").Trim();
+        if (!text.Contains(' ', StringComparison.Ordinal))
+        {
+            text = SplitCamelCase(text);
+        }
+
         // Keep bracket groups that carry the volume ("(Tome 12)"), drop the others ("[FR]", "(2024)").
         text = BracketGroupPattern().Replace(text, m =>
             VolumePattern().IsMatch(m.Groups[1].Value) || VolumeRangePattern().IsMatch(m.Groups[1].Value)
@@ -112,6 +126,14 @@ public static partial class ComicTitleParser
                 : " ");
 
         return MultiSpacePattern().Replace(text, " ").Trim(s_trimChars);
+    }
+
+    private static string SplitCamelCase(string text)
+    {
+        var split = CamelCaseBoundaryPattern().Replace(text, " ");
+        return split.Length == text.Length || split.Length == 0
+            ? text
+            : char.ToUpperInvariant(split[0]) + split[1..];
     }
 
     private static string? NullIfEmpty(string value)
