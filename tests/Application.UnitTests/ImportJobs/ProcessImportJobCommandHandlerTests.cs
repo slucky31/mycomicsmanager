@@ -537,8 +537,9 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Serie.Should().Be("Ashita no Joe T08");
-        result.Value.Title.Should().Be("Ashita no Joe T08");
+        result.Value!.Serie.Should().Be("Ashita no Joe");
+        result.Value.Title.Should().Be("Ashita no Joe");
+        result.Value.VolumeNumber.Should().Be(8);
     }
 
     // ── Failure paths ─────────────────────────────────────────────────────────

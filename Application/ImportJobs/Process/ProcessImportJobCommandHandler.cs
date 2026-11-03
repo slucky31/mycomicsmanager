@@ -318,7 +318,15 @@ public sealed class ProcessImportJobCommandHandler(
             }
         }
 
-        serie ??= FileNameTitleHelper.ToTitle(importJob.OriginalFileName);
+        if (serie is null)
+        {
+            // Last resort: the file name, cleaned, with the volume it may carry (#1270).
+            var fromFileName = FileNameTitleHelper.Parse(importJob.OriginalFileName);
+            serie = fromFileName.Serie!;
+            title ??= fromFileName.Title;
+            volumeNumber ??= fromFileName.Volume;
+        }
+
         title ??= serie;
         authors ??= string.Empty;
         publishers ??= string.Empty;
