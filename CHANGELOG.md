@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.72.4"></a>
+## [10.72.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.72.4) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency google.apis.customsearchapi.v1 to 1.78.0.3520 ([#1278](https://www.github.com/slucky31/mycomicsmanager/issues/1278)) ([aff6362](https://www.github.com/slucky31/mycomicsmanager/commit/aff636229ede1cc8e1bab6bc45cbbccbacee921e))
+
 <a name="10.72.3"></a>
 ## [10.72.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.72.3) (2026-11-03)
 
