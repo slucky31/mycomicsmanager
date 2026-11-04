@@ -235,9 +235,14 @@
                 Sync now
             </MudButton>
         }
+        <MudTooltip Text="Clear successful items">
+            <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep" Class="feeds-clear-success"
+                           Disabled="@(_isDeleting || _counts.Downloaded == 0)"
+                           OnClick="DeleteDownloadedAsync"
+                           aria-label="Clear successful items" />
+        </MudTooltip>
         <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="More actions" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
             <MudMenuItem Icon="@Icons.Material.Filled.Checklist" OnClick="StartSelecting">Select several</MudMenuItem>
-            <MudMenuItem Icon="@Icons.Material.Outlined.DeleteSweep" Disabled="_isDeleting" OnClick="DeleteDownloadedAsync">Delete downloaded items</MudMenuItem>
         </MudMenu>
     </header>
 

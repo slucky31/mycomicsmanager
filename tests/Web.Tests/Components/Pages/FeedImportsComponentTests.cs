@@ -378,6 +378,23 @@ public sealed class FeedImportsComponentTests
         await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(3, false)]
+    public async Task ClearSuccessfulButton_Should_BeDisabled_WhenNothingIsDownloaded(int downloaded, bool disabled)
+    {
+        var service = CreateService();
+        service.GetStatusCountsAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportStatusCounts>.Success(new FeedImportStatusCounts(15, 1, 11, downloaded)));
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.WaitForAssertionAsync(() =>
+            cut.Find("button[aria-label='Clear successful items']").HasAttribute("disabled").Should().Be(disabled));
+    }
+
     [Fact]
     public async Task DeleteDownloadedAsync_Should_NotDelete_WhenUserCancels()
     {
