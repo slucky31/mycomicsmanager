@@ -23,6 +23,7 @@ public sealed partial class BookDetail : IDisposable
 
     public static readonly string Msg_LoadFailed = "Unable to load the book";
     public static readonly string Msg_StartOverFailed = "Unable to reset the reading progress";
+    public static readonly string Msg_IsbnOwnersFailed = "Unable to check whether another book holds the ISBNs found";
 
     private const string ActionsButtonId = "book-actions";
 
@@ -36,6 +37,7 @@ public sealed partial class BookDetail : IDisposable
     private readonly CancellationTokenSource _disposalCts = new();
     private Book? _book;
     private BookDetailViewModel? _view;
+    private IsbnCandidatesViewModel _isbnCandidates = IsbnCandidatesViewModel.None;
     private string? _libraryName;
     private bool _isLoading = true;
     private bool _showAddReading;
@@ -71,6 +73,7 @@ public sealed partial class BookDetail : IDisposable
                 var libraryChanged = _book?.LibraryId != result.Value.LibraryId;
                 _book = result.Value;
                 _view = BookDetailViewModel.From(result.Value);
+                await LoadIsbnCandidatesAsync(_view);
                 if (libraryChanged)
                 {
                     await LoadLibraryNameAsync(result.Value.LibraryId);
@@ -86,6 +89,29 @@ public sealed partial class BookDetail : IDisposable
         {
             Logger.LogError(ex, "Unexpected error while loading book {BookId}", BookId);
             Snackbar.Add(Msg_LoadFailed, Severity.Error);
+        }
+    }
+
+    // The ISBNs read on the pages, each with the other book that already holds it (#1276). Without that
+    // book, they are still shown, as ISBNs to pick.
+    private async Task LoadIsbnCandidatesAsync(BookDetailViewModel view)
+    {
+        if (view.IsbnScanState != IsbnScanState.Candidates)
+        {
+            _isbnCandidates = IsbnCandidatesViewModel.None;
+            return;
+        }
+
+        var result = await BooksService.GetIsbnCandidateOwners(view.Id, _disposalCts.Token);
+        if (result.IsSuccess)
+        {
+            _isbnCandidates = IsbnCandidatesViewModel.Of(view.IsbnCandidates, result.Value!);
+        }
+        else
+        {
+            Logger.LogError("Unable to find the books holding the ISBNs read on the pages of book {BookId}: {Error}", BookId, result.Error?.Description);
+            Snackbar.Add(Msg_IsbnOwnersFailed, Severity.Error);
+            _isbnCandidates = IsbnCandidatesViewModel.Of(view.IsbnCandidates, []);
         }
     }
 
@@ -225,8 +251,9 @@ public sealed partial class BookDetail : IDisposable
                 NavigationManager.NavigateTo(FindDetailsHref);
                 return;
             case IsbnScanOutcome.WithCandidates:
-                Snackbar.Add("Several ISBNs found in the pages: pick the book's own", Severity.Info);
-                break;
+                await LoadBookAsync();
+                Snackbar.Add(_isbnCandidates.ScanMessage, Severity.Info);
+                return;
             case IsbnScanOutcome.WithoutIsbn:
                 Snackbar.Add("No ISBN found in the pages", Severity.Warning);
                 break;
@@ -237,6 +264,8 @@ public sealed partial class BookDetail : IDisposable
 
         await LoadBookAsync();
     }
+
+    private string OwnerHref(IsbnOwnerViewModel owner) => ReturnLinks.Book(owner.BookId, HereHref);
 
     private void UseIsbnCandidate(string isbn) =>
         NavigationManager.NavigateTo(ReturnLinks.With($"/books/{BookId}/find-details?isbn={Uri.EscapeDataString(isbn)}", From));

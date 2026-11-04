@@ -5,6 +5,7 @@ using Application.Books.Delete;
 using Application.Books.DeleteReadingDate;
 using Application.Books.GetById;
 using Application.Books.IsbnAvailability;
+using Application.Books.IsbnOwners;
 using Application.Books.List;
 using Application.Books.Search;
 using Application.Books.Update;
@@ -27,6 +28,7 @@ public class BooksService(
     ICommandHandler<AddReadingDateCommand, ReadingDate> addReadingDateHandler,
     ICommandHandler<DeleteReadingDateCommand> deleteReadingDateHandler,
     IQueryHandler<IsIsbnAvailableQuery, bool> isIsbnAvailableHandler,
+    IQueryHandler<GetIsbnCandidateOwnersQuery, IReadOnlyList<IsbnOwnerDto>> getIsbnCandidateOwnersHandler,
     ICurrentUserService currentUserService) : IBooksService
 {
     public async Task<Result<Book>> GetById(string? id)
@@ -115,6 +117,17 @@ public class BooksService(
         }
 
         return await isIsbnAvailableHandler.Handle(new IsIsbnAvailableQuery(guidId, isbn, userIdResult.Value), cancellationToken);
+    }
+
+    public async Task<Result<IReadOnlyList<IsbnOwnerDto>>> GetIsbnCandidateOwners(Guid bookId, CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await getIsbnCandidateOwnersHandler.Handle(new GetIsbnCandidateOwnersQuery(bookId, userIdResult.Value), cancellationToken);
     }
 
     public async Task<Result<ReadingDate>> AddReadingDate(string bookId, int rating, CancellationToken cancellationToken = default)
