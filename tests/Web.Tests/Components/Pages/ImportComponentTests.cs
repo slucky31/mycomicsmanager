@@ -97,16 +97,16 @@ public sealed class ImportComponentTests
         return file;
     }
 
+    // Owns its bUnit context, so that it is disposed with the setup.
     private sealed class TestSetup(
-        BunitContext ctx,
-        IRenderedComponent<Import> cut,
         Library library,
         ILibrariesService librariesService,
         IImportService importService,
         ISnackbar snackbar,
         IDialogService dialogService) : IAsyncDisposable
     {
-        public IRenderedComponent<Import> Cut { get; } = cut;
+        public BunitContext Context { get; } = new();
+        public IRenderedComponent<Import> Cut { get; set; } = default!;
         public Library Library { get; } = library;
         public ILibrariesService LibrariesService { get; } = librariesService;
         public IImportService ImportService { get; } = importService;
@@ -121,7 +121,7 @@ public sealed class ImportComponentTests
                 .Returns(dialog);
         }
 
-        public ValueTask DisposeAsync() => ctx.DisposeAsync();
+        public ValueTask DisposeAsync() => Context.DisposeAsync();
     }
 
     private static async Task<TestSetup> SetupAsync(
@@ -155,31 +155,21 @@ public sealed class ImportComponentTests
         var snackbar = Substitute.For<ISnackbar>();
         var dialogService = Substitute.For<IDialogService>();
 
-        // Owned by the returned TestSetup; disposed here only if the setup fails.
-        BunitContext? ctx = null;
-        try
-        {
-            ctx = new BunitContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            ctx.Services.AddSingleton(snackbar);
-            ctx.Services.AddMudServices();
-            ctx.Services.AddSingleton(dialogService);
-            ctx.AddLibrarySelect();
-            ctx.Services.AddSingleton(librariesService);
-            ctx.Services.AddSingleton(importService);
+        var setup = new TestSetup(library, librariesService, importService, snackbar, dialogService);
+        var ctx = setup.Context;
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton(snackbar);
+        ctx.Services.AddMudServices();
+        ctx.Services.AddSingleton(dialogService);
+        ctx.AddLibrarySelect();
+        ctx.Services.AddSingleton(librariesService);
+        ctx.Services.AddSingleton(importService);
 
-            ctx.Render<MudBlazor.MudPopoverProvider>();
-            var cut = ctx.Render<Import>();
-            await Task.Yield();
+        ctx.Render<MudBlazor.MudPopoverProvider>();
+        setup.Cut = ctx.Render<Import>();
+        await Task.Yield();
 
-            var setup = new TestSetup(ctx, cut, library, librariesService, importService, snackbar, dialogService);
-            ctx = null;
-            return setup;
-        }
-        finally
-        {
-            ctx?.Dispose();
-        }
+        return setup;
     }
 
     // ── LoadLibrariesAsync ────────────────────────────────────────────────────
