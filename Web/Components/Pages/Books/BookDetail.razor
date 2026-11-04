@@ -153,9 +153,8 @@
                             <MudAlert Severity="@(candidates.AllUsed ? Severity.Warning : Severity.Info)" Dense="true" Class="mt-4 book-isbn-candidates">
                                 <MudText Typo="Typo.body2">@candidates.Message</MudText>
                                 <div class="d-flex flex-wrap gap-2 mt-2">
-                                    @foreach (var candidate in candidates.Candidates.Where(c => !c.IsUsed))
+                                    @foreach (var isbn in candidates.FreeIsbns)
                                     {
-                                        var isbn = candidate.Isbn;
                                         <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
                                                    StartIcon="@Icons.Material.Filled.TravelExplore" Style="font-family: monospace;"
                                                    OnClick="@(() => UseIsbnCandidate(isbn))">
@@ -164,7 +163,7 @@
                                     }
                                 </div>
                                 @* The other book that holds the ISBN, to check whether this one is a duplicate (#1276). *@
-                                @foreach (var candidate in candidates.Candidates.Where(c => c.IsUsed))
+                                @foreach (var candidate in candidates.UsedCandidates)
                                 {
                                     var owner = candidate.Owner!;
                                     <a class="book-isbn-owner" href="@OwnerHref(owner)">

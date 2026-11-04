@@ -21,6 +21,8 @@ public sealed class IsbnCandidatesViewModelTests
             new IsbnCandidateViewModel(UsedIsbn, new IsbnOwnerViewModel(s_owner.BookId, "Âme rouge", "Blacksad · Volume 4", "https://covers/blacksad.jpg", "BD")),
             new IsbnCandidateViewModel(FreeIsbn, null));
         view.Candidates[0].Owner!.CoverAlt.Should().Be("Cover of Âme rouge");
+        view.FreeIsbns.Should().Equal(FreeIsbn);
+        view.UsedCandidates.Should().Equal(view.Candidates[0]);
     }
 
     [Fact]

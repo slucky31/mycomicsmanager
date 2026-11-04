@@ -30,8 +30,12 @@ public sealed record IsbnCandidatesViewModel(IReadOnlyList<IsbnCandidateViewMode
 {
     public static readonly IsbnCandidatesViewModel None = new([]);
 
+    // The ISBNs that can be picked, and those another book holds (shown with that book).
+    public IReadOnlyList<string> FreeIsbns { get; } = [.. Candidates.Where(c => !c.IsUsed).Select(c => c.Isbn)];
+    public IReadOnlyList<IsbnCandidateViewModel> UsedCandidates { get; } = [.. Candidates.Where(c => c.IsUsed)];
+
     // None can be picked: the book is likely a duplicate of the one(s) shown.
-    public bool AllUsed => Candidates.Count > 0 && Candidates.All(c => c.IsUsed);
+    public bool AllUsed => Candidates.Count > 0 && FreeIsbns.Count == 0;
 
     public string Message => (AllUsed, Candidates.Count) switch
     {
