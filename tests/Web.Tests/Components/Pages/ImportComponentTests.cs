@@ -155,20 +155,31 @@ public sealed class ImportComponentTests
         var snackbar = Substitute.For<ISnackbar>();
         var dialogService = Substitute.For<IDialogService>();
 
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton(snackbar);
-        ctx.Services.AddMudServices();
-        ctx.Services.AddSingleton(dialogService);
-        ctx.AddLibrarySelect();
-        ctx.Services.AddSingleton(librariesService);
-        ctx.Services.AddSingleton(importService);
+        // Owned by the returned TestSetup; disposed here only if the setup fails.
+        BunitContext? ctx = null;
+        try
+        {
+            ctx = new BunitContext();
+            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+            ctx.Services.AddSingleton(snackbar);
+            ctx.Services.AddMudServices();
+            ctx.Services.AddSingleton(dialogService);
+            ctx.AddLibrarySelect();
+            ctx.Services.AddSingleton(librariesService);
+            ctx.Services.AddSingleton(importService);
 
-        ctx.Render<MudBlazor.MudPopoverProvider>();
-        var cut = ctx.Render<Import>();
-        await Task.Yield();
+            ctx.Render<MudBlazor.MudPopoverProvider>();
+            var cut = ctx.Render<Import>();
+            await Task.Yield();
 
-        return new TestSetup(ctx, cut, library, librariesService, importService, snackbar, dialogService);
+            var setup = new TestSetup(ctx, cut, library, librariesService, importService, snackbar, dialogService);
+            ctx = null;
+            return setup;
+        }
+        finally
+        {
+            ctx?.Dispose();
+        }
     }
 
     // ── LoadLibrariesAsync ────────────────────────────────────────────────────
