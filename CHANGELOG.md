@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.72.5"></a>
+## [10.72.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.72.5) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **devcontainer:** remove unused CSharpier feature ([#1274](https://www.github.com/slucky31/mycomicsmanager/issues/1274)) ([e11b5a7](https://www.github.com/slucky31/mycomicsmanager/commit/e11b5a7fa59dbf28f49443e40a7ac180dc05a003))
+
 <a name="10.72.4"></a>
 ## [10.72.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.72.4) (2026-11-04)
 
