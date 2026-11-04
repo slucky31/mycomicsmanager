@@ -341,9 +341,9 @@ public partial class FeedImportsPage : IAsyncDisposable
         }
 
         var confirmed = await DialogService.ShowConfirmationAsync(
-            "Delete downloaded",
-            "Delete every downloaded decision whose import succeeded, with its history? The books already imported are kept; the decisions whose import is running or failed are kept too.",
-            "Delete downloaded");
+            "Clear successful items",
+            "Delete every downloaded item whose import succeeded, with its history? The books already imported are kept; the items whose import is running or failed are kept too.",
+            "Clear");
         if (!confirmed)
         {
             return;
