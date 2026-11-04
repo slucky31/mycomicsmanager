@@ -411,4 +411,64 @@ public class ImportJobTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.InvalidStatusTransition);
     }
+
+    // -------------------------------------------------------
+    // Retry
+    // -------------------------------------------------------
+
+    [Fact]
+    public void Retry_Should_PutTheJobBackInTheQueue_WhenItFailed()
+    {
+        // Arrange
+        var job = CreateValidJob();
+        job.Advance(ImportJobStatus.Extracting);
+        job.Advance(ImportJobStatus.Converting);
+        job.UpdateConversionProgress(3, 10);
+        job.Fail("Converting", "Bad image");
+        job.RecordErrorFile("/data/import/errors/blacksad-t01.cbz");
+
+        // Act
+        var result = job.Retry("/data/import/blacksad-t01 (2).cbz");
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        job.Status.Should().Be(ImportJobStatus.Pending);
+        job.OriginalFilePath.Should().Be("/data/import/blacksad-t01 (2).cbz");
+        job.ErrorMessage.Should().BeNull();
+        job.ErrorStep.Should().BeNull();
+        job.ErrorFilePath.Should().BeNull();
+        job.ConvertedImagesCount.Should().Be(0);
+        job.TotalImagesToConvert.Should().Be(0);
+    }
+
+    [Fact]
+    public void Retry_Should_ReturnNotFailed_WhenTheJobDidNotFail()
+    {
+        // Arrange
+        var job = CreateValidJob();
+
+        // Act
+        var result = job.Retry(DefaultFilePath);
+
+        // Assert
+        result.Error.Should().Be(ImportJobError.NotFailed);
+        job.Status.Should().Be(ImportJobStatus.Pending);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Retry_Should_ReturnBadRequest_WhenThePathIsEmpty(string filePath)
+    {
+        // Arrange
+        var job = CreateValidJob();
+        job.Fail("Extracting", "Corrupted");
+
+        // Act
+        var result = job.Retry(filePath);
+
+        // Assert
+        result.Error.Should().Be(ImportJobError.BadRequest);
+        job.Status.Should().Be(ImportJobStatus.Failed);
+    }
 }

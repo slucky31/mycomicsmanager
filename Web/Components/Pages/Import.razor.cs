@@ -2,6 +2,7 @@ using Domain.Libraries;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
+using Web.Extensions;
 using Web.Models;
 using Web.Services;
 using Web.Validators;
@@ -13,6 +14,7 @@ public partial class Import : IAsyncDisposable
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private IImportService ImportService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ILogger<Import> Logger { get; set; } = default!;
 
     [SupplyParameterFromQuery]
@@ -233,18 +235,19 @@ public partial class Import : IAsyncDisposable
         timer?.Dispose();
     }
 
-    private bool _isDeletingTerminal;
+    private bool _isDeletingCompleted;
 
-    internal async Task DeleteTerminalJobsAsync()
+    // Only the successful imports: a failed one is retried or abandoned from its card.
+    internal async Task DeleteCompletedJobsAsync()
     {
-        _isDeletingTerminal = true;
+        _isDeletingCompleted = true;
         StateHasChanged();
 
-        var terminalJobIds = _jobs.Where(j => j.IsTerminal).Select(j => j.Id).ToList();
+        var completedJobIds = _jobs.Where(j => j.IsCompleted).Select(j => j.Id).ToList();
         var errors = 0;
         try
         {
-            foreach (var jobId in terminalJobIds)
+            foreach (var jobId in completedJobIds)
             {
                 var result = await ImportService.DeleteImportJobAsync(jobId, _pollingCts.Token);
                 if (result.IsSuccess)
@@ -254,7 +257,7 @@ public partial class Import : IAsyncDisposable
                 else
                 {
                     errors++;
-                    Logger.LogError("Import: failed to delete terminal job {JobId}: {Error}", jobId, result.Error!.Description);
+                    Logger.LogError("Import: failed to delete completed job {JobId}: {Error}", jobId, result.Error!.Description);
                 }
             }
 
@@ -262,14 +265,14 @@ public partial class Import : IAsyncDisposable
             {
                 Snackbar.Add($"Unable to delete {errors} job(s)", Severity.Error);
             }
-            else if (terminalJobIds.Count > 0)
+            else if (completedJobIds.Count > 0)
             {
-                Snackbar.Add($"{terminalJobIds.Count} job(s) deleted", Severity.Success);
+                Snackbar.Add($"{completedJobIds.Count} job(s) deleted", Severity.Success);
             }
         }
         finally
         {
-            _isDeletingTerminal = false;
+            _isDeletingCompleted = false;
             StateHasChanged();
         }
     }
@@ -288,17 +291,74 @@ public partial class Import : IAsyncDisposable
         }
     }
 
+    internal async Task RetryJobAsync(Guid jobId)
+    {
+        var result = await ImportService.RetryImportJobAsync(jobId, _pollingCts.Token);
+        if (result.IsSuccess)
+        {
+            await RefreshJobsAsync();
+            StartPollingIfNeeded();
+            Snackbar.Add("Import restarted.", Severity.Success);
+        }
+        else
+        {
+            Logger.LogError("Import: failed to retry job {JobId}: {Error}", jobId, result.Error?.Description);
+            Snackbar.Add(result.Error?.Description ?? "Unable to retry the import", Severity.Error);
+        }
+
+        StateHasChanged();
+    }
+
+    internal async Task AbandonJobAsync(ImportJobViewModel job)
+    {
+        var confirmed = await DialogService.ShowConfirmationAsync(
+            "Abandon import",
+            $"Abandon the import of \"{job.OriginalFileName}\"? Its file is deleted from the errors directory.",
+            "Abandon");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        var result = await ImportService.AbandonImportJobAsync(job.Id, _pollingCts.Token);
+        if (result.IsSuccess)
+        {
+            _jobs.RemoveAll(j => j.Id == job.Id);
+        }
+        else
+        {
+            Logger.LogError("Import: failed to abandon job {JobId}: {Error}", job.Id, result.Error?.Description);
+            Snackbar.Add(result.Error?.Description ?? "Unable to abandon the import", Severity.Error);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task RefreshJobsAsync()
+    {
+        var capturedLibraryId = _selectedLibraryId;
+        var refreshResult = await ImportService.GetImportJobsAsync(capturedLibraryId, _pollingCts.Token);
+        if (_selectedLibraryId != capturedLibraryId)
+        {
+            return;
+        }
+
+        if (refreshResult.IsSuccess)
+        {
+            _jobs = refreshResult.Value!.OrderByDescending(j => j.CreatedAt).ToList();
+        }
+        else if (refreshResult.IsFailure)
+        {
+            Logger.LogError("Import: refresh failed for library {LibraryId}: {Error}", capturedLibraryId, refreshResult.Error!.Description);
+        }
+    }
+
     private async Task ForceFailJobAsync(Guid jobId)
     {
         var result = await ImportService.ForceFailImportJobAsync(jobId, _pollingCts.Token);
         if (result.IsSuccess)
         {
-            var capturedLibraryId = _selectedLibraryId;
-            var refreshResult = await ImportService.GetImportJobsAsync(capturedLibraryId, _pollingCts.Token);
-            if (refreshResult.IsSuccess && _selectedLibraryId == capturedLibraryId)
-            {
-                _jobs = refreshResult.Value!.OrderByDescending(j => j.CreatedAt).ToList();
-            }
+            await RefreshJobsAsync();
             Snackbar.Add("Import marked as failed.", Severity.Warning);
             StateHasChanged();
         }

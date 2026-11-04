@@ -8,7 +8,13 @@ public interface IImportDirectoryStorage
     Result Delete(string directoryName);
     Result Move(string originDirectoryName, string destinationDirectoryName);
     Result DeleteOriginalFile(string absoluteFilePath);
-    Result MoveOriginalFileToError(string absoluteFilePath);
+
+    // Moves the file into the "errors" directory of its library; returns its new path (null when there was no file).
+    Result<string?> MoveOriginalFileToError(string absoluteFilePath);
+
+    // Finds the file of a failed import: in the errors directory, or still where it was imported from.
+    // The library directory may have been renamed since, so its current name is tried too.
+    Result<string> LocateFailedFile(string directoryName, string originalFilePath, string? errorFilePath);
 
     // Absolute path of a file not yet present in the import directory (a suffix is added if the name is taken).
     Result<string> GetAvailableFilePath(string directoryName, string fileName);

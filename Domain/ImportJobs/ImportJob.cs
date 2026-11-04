@@ -35,6 +35,9 @@ public class ImportJob : Entity<Guid>
 
     public string? ErrorStep { get; private set; }
 
+    // Where the original file was moved after the failure (errors directory of the library), used by a retry.
+    public string? ErrorFilePath { get; private set; }
+
     public int ConvertedImagesCount { get; private set; }
 
     public int TotalImagesToConvert { get; private set; }
@@ -132,6 +135,36 @@ public class ImportJob : Entity<Guid>
         Status = ImportJobStatus.Completed;
         DigitalBookId = digitalBookId;
         CompletedAt = DateTime.UtcNow;
+        return Result.Success();
+    }
+
+    public void RecordErrorFile(string errorFilePath)
+    {
+        ErrorFilePath = errorFilePath;
+    }
+
+    // A failed import goes back to the queue, on the file put back at filePath.
+    public Result Retry(string filePath)
+    {
+        if (Status != ImportJobStatus.Failed)
+        {
+            return ImportJobError.NotFailed;
+        }
+
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return ImportJobError.BadRequest;
+        }
+
+        Status = ImportJobStatus.Pending;
+        OriginalFilePath = filePath;
+        CreatedAt = DateTime.UtcNow;
+        CompletedAt = null;
+        ErrorMessage = null;
+        ErrorStep = null;
+        ErrorFilePath = null;
+        ConvertedImagesCount = 0;
+        TotalImagesToConvert = 0;
         return Result.Success();
     }
 }

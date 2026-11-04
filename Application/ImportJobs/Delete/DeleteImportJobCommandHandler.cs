@@ -28,9 +28,9 @@ public sealed class DeleteImportJobCommandHandler(
             return ImportJobError.NotFound;
         }
 
-        if (job.Status is not (ImportJobStatus.Completed or ImportJobStatus.Failed))
+        if (job.Status != ImportJobStatus.Completed)
         {
-            return ImportJobError.NotTerminal;
+            return ImportJobError.NotCompleted;
         }
 
         importJobRepository.Remove(job);

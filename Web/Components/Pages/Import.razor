@@ -72,18 +72,19 @@
                 <div class="import-section-head">
                     <h2>In progress and recent</h2>
                     <span>@(_jobs.Count == 1 ? "1 file" : $"{_jobs.Count} files")</span>
-                    <MudTooltip Text="Clear finished imports">
+                    <MudTooltip Text="Clear successful imports">
                         <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep"
                                        Size="Size.Small"
-                                       Disabled="@(_isDeletingTerminal || !_jobs.Any(j => j.IsTerminal))"
-                                       OnClick="DeleteTerminalJobsAsync"
-                                       aria-label="Clear finished imports" />
+                                       Disabled="@(_isDeletingCompleted || !_jobs.Exists(j => j.IsCompleted))"
+                                       OnClick="DeleteCompletedJobsAsync"
+                                       aria-label="Clear successful imports" />
                     </MudTooltip>
                 </div>
                 <div class="import-jobs">
                     @foreach (var job in _jobs)
                     {
-                        <ImportJobCard @key="job.Id" Job="@job" OnDelete="DeleteJobAsync" OnForceFail="ForceFailJobAsync" />
+                        <ImportJobCard @key="job.Id" Job="@job" OnDelete="DeleteJobAsync" OnForceFail="ForceFailJobAsync"
+                                       OnRetry="RetryJobAsync" OnAbandon="AbandonJobAsync" />
                     }
                 </div>
             }

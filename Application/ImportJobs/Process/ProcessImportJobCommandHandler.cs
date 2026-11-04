@@ -42,7 +42,7 @@ public sealed class ProcessImportJobCommandHandler(
                     importJob.Id, importJob.Status);
                 var stuckResult = await FailJobAsync(importJob, importJob.Status.ToString(),
                     ImportJobError.InvalidStatusTransition, cancellationToken);
-                HandleOriginalFile(importJob.OriginalFilePath, success: false);
+                await HandleOriginalFileAsync(importJob, success: false, cancellationToken);
                 return stuckResult;
             }
 
@@ -66,7 +66,7 @@ public sealed class ProcessImportJobCommandHandler(
         finally
         {
             externalServices.TempWorkspace.CleanupDirectory(tempDir);
-            HandleOriginalFile(importJob.OriginalFilePath, pipelineResult?.IsSuccess == true);
+            await HandleOriginalFileAsync(importJob, pipelineResult?.IsSuccess == true, cancellationToken);
         }
     }
 
@@ -139,8 +139,9 @@ public sealed class ProcessImportJobCommandHandler(
 
     // ── Original file management ──────────────────────────────────────────────
 
-    private void HandleOriginalFile(string filePath, bool success)
+    private async Task HandleOriginalFileAsync(ImportJob importJob, bool success, CancellationToken ct)
     {
+        var filePath = importJob.OriginalFilePath;
         if (success)
         {
             var result = externalServices.ImportStorage.DeleteOriginalFile(filePath);
@@ -158,6 +159,23 @@ public sealed class ProcessImportJobCommandHandler(
                 logger.LogWarning("Could not move original file {FilePath} to error directory: {Error}",
                     filePath, result.Error?.Description);
             }
+            else if (result.Value is { } errorFilePath)
+            {
+                await RecordErrorFileAsync(importJob, errorFilePath, ct);
+            }
+        }
+    }
+
+    // Kept on the job so that a retry finds the file even when a timestamp was added to its name.
+    private async Task RecordErrorFileAsync(ImportJob importJob, string errorFilePath, CancellationToken ct)
+    {
+        importJob.RecordErrorFile(errorFilePath);
+        repositories.ImportJobs.Update(importJob);
+        var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
+        if (saveResult.IsFailure)
+        {
+            logger.LogWarning("Could not record the error file {ErrorFilePath} of job {JobId}: {Error}",
+                errorFilePath, importJob.Id, saveResult.Error?.Description);
         }
     }
 

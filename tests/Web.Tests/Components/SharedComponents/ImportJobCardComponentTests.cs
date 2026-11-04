@@ -54,4 +54,32 @@ public sealed class ImportJobCardComponentTests : IAsyncDisposable
         cut.Find(".import-job-error").TextContent.Should().Be("The PDF has no readable page.");
         cut.Find(".import-job-error-step").TextContent.Should().Be("Failed while: Extracting pages");
     }
+
+    [Fact]
+    public void Render_Should_OfferRetryAndAbandonButNotDelete_WhenTheImportFailed()
+    {
+        var cut = _ctx.Render<ImportJobCard>(p => p
+            .Add(c => c.Job, Job("Failed", "Failed"))
+            .Add(c => c.OnDelete, (Guid _) => { })
+            .Add(c => c.OnRetry, (Guid _) => { })
+            .Add(c => c.OnAbandon, (ImportJobViewModel _) => { }));
+
+        cut.FindAll("[aria-label='Retry this import']").Should().ContainSingle();
+        cut.FindAll("[aria-label='Abandon this import and delete its file']").Should().ContainSingle();
+        cut.FindAll("[aria-label='Delete this import']").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Render_Should_OfferOnlyDelete_WhenTheImportCompleted()
+    {
+        var cut = _ctx.Render<ImportJobCard>(p => p
+            .Add(c => c.Job, Job("Completed", "Imported", 100))
+            .Add(c => c.OnDelete, (Guid _) => { })
+            .Add(c => c.OnRetry, (Guid _) => { })
+            .Add(c => c.OnAbandon, (ImportJobViewModel _) => { }));
+
+        cut.FindAll("[aria-label='Delete this import']").Should().ContainSingle();
+        cut.FindAll("[aria-label='Retry this import']").Should().BeEmpty();
+        cut.FindAll("[aria-label='Abandon this import and delete its file']").Should().BeEmpty();
+    }
 }

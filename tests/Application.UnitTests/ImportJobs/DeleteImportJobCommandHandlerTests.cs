@@ -70,7 +70,7 @@ public class DeleteImportJobCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_WhenJobIsFailed()
+    public async Task Handle_Should_ReturnNotCompleted_WhenJobIsFailed()
     {
         // Arrange
         var job = CreateFailedJob();
@@ -82,12 +82,12 @@ public class DeleteImportJobCommandHandlerTests
         var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        _importJobRepository.Received(1).Remove(job);
+        result.Error.Should().Be(ImportJobError.NotCompleted);
+        _importJobRepository.DidNotReceive().Remove(Arg.Any<ImportJob>());
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnNotTerminal_WhenJobIsInProgress()
+    public async Task Handle_Should_ReturnNotCompleted_WhenJobIsInProgress()
     {
         // Arrange
         var job = CreatePendingJob();
@@ -100,7 +100,7 @@ public class DeleteImportJobCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(ImportJobError.NotTerminal);
+        result.Error.Should().Be(ImportJobError.NotCompleted);
         _importJobRepository.DidNotReceive().Remove(Arg.Any<ImportJob>());
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }

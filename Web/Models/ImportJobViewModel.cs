@@ -73,6 +73,11 @@ public record ImportJobViewModel(
 
     public bool IsTerminal => Status is "Completed" or "Failed";
 
+    public bool IsCompleted => Status == nameof(ImportJobStatus.Completed);
+
+    // A failed import is retried or abandoned, never deleted with the successful ones.
+    public bool IsFailed => Status == nameof(ImportJobStatus.Failed);
+
     // Same format as the other dates of the app (#1246): "03/10/2026 19:23", in local time.
     public string CreatedAtDisplay =>
         CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);

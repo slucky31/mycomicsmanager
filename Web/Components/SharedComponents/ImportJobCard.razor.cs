@@ -15,7 +15,19 @@ public partial class ImportJobCard
     [Parameter]
     public EventCallback<Guid> OnForceFail { get; set; }
 
+    [Parameter]
+    public EventCallback<Guid> OnRetry { get; set; }
+
+    // Receives the job, whose file name is shown in the confirmation.
+    [Parameter]
+    public EventCallback<ImportJobViewModel> OnAbandon { get; set; }
+
     private bool IsStuck => Job is { IsTerminal: false, Status: not "Pending" };
+
+    private bool HasActions =>
+        (Job.IsCompleted && OnDelete.HasDelegate)
+        || (Job.IsFailed && (OnRetry.HasDelegate || OnAbandon.HasDelegate))
+        || (IsStuck && OnForceFail.HasDelegate);
 
     private string StatusIcon => Job.StatusCssClass switch
     {
