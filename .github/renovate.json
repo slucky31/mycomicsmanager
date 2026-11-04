@@ -9,5 +9,62 @@
   "prConcurrentLimit": 10,
   "baseBranchPatterns": [
     "main"
+  ],
+  "timezone": "Europe/Paris",
+  "schedule": [
+    "* 0-6 * * 1"
+  ],
+  "packageRules": [
+    {
+      "description": "Filet : toutes les autres mises à jour NuGet mineures/patch dans une seule PR",
+      "matchManagers": ["nuget"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "NuGet (autres)"
+    },
+    {
+      "description": ".NET, ASP.NET Core, EF Core, Npgsql et images Docker dotnet",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": [
+        "Microsoft.*",
+        "Npgsql*",
+        "mcr.microsoft.com/dotnet/**"
+      ],
+      "groupName": ".NET et EF Core"
+    },
+    {
+      "description": "MudBlazor seul : impact visuel, à tester à part",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["MudBlazor"],
+      "groupName": "MudBlazor"
+    },
+    {
+      "description": "Hangfire",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["Hangfire*"],
+      "groupName": "Hangfire"
+    },
+    {
+      "description": "Tests et analyseurs (aucun impact sur le code livré)",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": [
+        "xunit*",
+        "NSubstitute*",
+        "bunit",
+        "AwesomeAssertions",
+        "MockQueryable.*",
+        "NetArchTest.Rules",
+        "Microsoft.NET.Test.Sdk",
+        "Microsoft.Testing.*",
+        "Microsoft.AspNetCore.Mvc.Testing",
+        "SonarAnalyzer.CSharp"
+      ],
+      "groupName": "Tests et analyseurs"
+    },
+    {
+      "description": "GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "GitHub Actions"
+    }
   ]
 }
