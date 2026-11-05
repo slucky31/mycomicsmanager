@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.72.8"></a>
+## [10.72.8](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.72.8) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **books:** show the book that already holds the ISBN read on the pages ([#1283](https://www.github.com/slucky31/mycomicsmanager/issues/1283)) ([70fd24b](https://www.github.com/slucky31/mycomicsmanager/commit/70fd24b58361b4d8ab10890843c99a331a80204b))
+
 <a name="10.72.7"></a>
 ## [10.72.7](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.72.7) (2026-11-05)
 
