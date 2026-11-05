@@ -270,12 +270,30 @@ public sealed class ImportComponentTests
     {
         var job = CreateJob(status: "Completed");
         await using var setup = await SetupAsync(initialJobs: [job]);
+        setup.GivenConfirmation(true);
         setup.ImportService.DeleteImportJobAsync(job.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         var card = setup.Cut.FindComponent<ImportJobCard>();
         await setup.Cut.InvokeAsync(() => card.Instance.OnDelete.InvokeAsync(job.Id));
 
         setup.Cut.Markup.Should().NotContain(job.OriginalFileName);
+        await setup.DialogService.Received(1).ShowAsync<ConfirmationDialog>("Delete import",
+            Arg.Is<DialogParameters>(p => ((string)p[nameof(ConfirmationDialog.ConfirmationMessage)]!).Contains(job.OriginalFileName)),
+            Arg.Any<DialogOptions>());
+    }
+
+    [Fact]
+    public async Task DeleteJobAsync_Should_KeepTheJob_WhenNotConfirmed()
+    {
+        var job = CreateJob(status: "Completed");
+        await using var setup = await SetupAsync(initialJobs: [job]);
+        setup.GivenConfirmation(false);
+
+        var card = setup.Cut.FindComponent<ImportJobCard>();
+        await setup.Cut.InvokeAsync(() => card.Instance.OnDelete.InvokeAsync(job.Id));
+
+        await setup.ImportService.DidNotReceive().DeleteImportJobAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        setup.Cut.Markup.Should().Contain(job.OriginalFileName);
     }
 
     [Fact]
@@ -283,6 +301,7 @@ public sealed class ImportComponentTests
     {
         var job = CreateJob(status: "Completed");
         await using var setup = await SetupAsync(initialJobs: [job]);
+        setup.GivenConfirmation(true);
         setup.ImportService.DeleteImportJobAsync(job.Id, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(new TError("del:err", "cannot delete")));
 
@@ -332,6 +351,7 @@ public sealed class ImportComponentTests
         var failedJob = CreateJob(status: "Failed", fileName: "failed.cbz");
         var activeJob = CreateJob(status: "Extracting", fileName: "active.cbz");
         await using var setup = await SetupAsync(initialJobs: [completedJob, failedJob, activeJob]);
+        setup.GivenConfirmation(true);
         setup.ImportService.DeleteImportJobAsync(completedJob.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteCompletedJobsAsync);
@@ -339,6 +359,38 @@ public sealed class ImportComponentTests
         setup.Cut.Markup.Should().NotContain("done.cbz");
         setup.Cut.Markup.Should().Contain("failed.cbz").And.Contain("active.cbz");
         await setup.ImportService.DidNotReceive().DeleteImportJobAsync(failedJob.Id, Arg.Any<CancellationToken>());
+        await setup.DialogService.Received(1).ShowAsync<ConfirmationDialog>("Clear successful imports",
+            Arg.Is<DialogParameters>(p => ((string)p[nameof(ConfirmationDialog.ConfirmationMessage)]!)
+                == "Delete 1 successful import(s) from the list? The imported books are kept. 2 import(s) running or failed will be kept."),
+            Arg.Any<DialogOptions>());
+        setup.Snackbar.Received().Add("1 import(s) deleted, 2 kept (running or failed).", Severity.Info,
+            Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
+    }
+
+    [Fact]
+    public async Task DeleteCompletedJobsAsync_Should_DeleteNothing_WhenNotConfirmed()
+    {
+        var completedJob = CreateJob(status: "Completed", fileName: "done.cbz");
+        await using var setup = await SetupAsync(initialJobs: [completedJob]);
+        setup.GivenConfirmation(false);
+
+        await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteCompletedJobsAsync);
+
+        await setup.ImportService.DidNotReceive().DeleteImportJobAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        setup.Cut.Markup.Should().Contain("done.cbz");
+    }
+
+    [Fact]
+    public async Task DeleteCompletedJobsAsync_Should_ReportSuccess_WhenOnlySuccessfulImportsAreListed()
+    {
+        var completedJob = CreateJob(status: "Completed", fileName: "done.cbz");
+        await using var setup = await SetupAsync(initialJobs: [completedJob]);
+        setup.GivenConfirmation(true);
+        setup.ImportService.DeleteImportJobAsync(completedJob.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteCompletedJobsAsync);
+
+        setup.Snackbar.Received().Add("1 import(s) deleted.", Severity.Success, Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
     }
 
     [Fact]
@@ -346,12 +398,13 @@ public sealed class ImportComponentTests
     {
         var completedJob = CreateJob(status: "Completed", fileName: "done.cbz");
         await using var setup = await SetupAsync(initialJobs: [completedJob]);
+        setup.GivenConfirmation(true);
         setup.ImportService.DeleteImportJobAsync(completedJob.Id, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(new TError("del:err", "boom")));
 
         await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteCompletedJobsAsync);
 
-        setup.Snackbar.Received().Add(Arg.Is<string>(s => s.Contains("Unable to delete")), Severity.Error,
+        setup.Snackbar.Received().Add("0 import(s) deleted, unable to delete 1.", Severity.Error,
             Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
     }
 

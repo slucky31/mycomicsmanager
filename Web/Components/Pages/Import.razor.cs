@@ -240,35 +240,31 @@ public partial class Import : IAsyncDisposable
     // Only the successful imports: a failed one is retried or abandoned from its card.
     internal async Task DeleteCompletedJobsAsync()
     {
+        var completedJobIds = _jobs.Where(j => j.IsCompleted).Select(j => j.Id).ToList();
+        if (completedJobIds.Count == 0 || _isDeletingCompleted)
+        {
+            return;
+        }
+
+        // Same confirmation as the sweep of the feed imports: what goes, and what is kept.
+        var kept = _jobs.Count - completedJobIds.Count;
+        var message = $"Delete {completedJobIds.Count} successful import(s) from the list? The imported books are kept.";
+        if (kept > 0)
+        {
+            message += $" {kept} import(s) running or failed will be kept.";
+        }
+
+        if (!await DialogService.ShowConfirmationAsync("Clear successful imports", message, "Clear successful imports"))
+        {
+            return;
+        }
+
         _isDeletingCompleted = true;
         StateHasChanged();
-
-        var completedJobIds = _jobs.Where(j => j.IsCompleted).Select(j => j.Id).ToList();
-        var errors = 0;
         try
         {
-            foreach (var jobId in completedJobIds)
-            {
-                var result = await ImportService.DeleteImportJobAsync(jobId, _pollingCts.Token);
-                if (result.IsSuccess)
-                {
-                    _jobs.RemoveAll(j => j.Id == jobId);
-                }
-                else
-                {
-                    errors++;
-                    Logger.LogError("Import: failed to delete completed job {JobId}: {Error}", jobId, result.Error!.Description);
-                }
-            }
-
-            if (errors > 0)
-            {
-                Snackbar.Add($"Unable to delete {errors} job(s)", Severity.Error);
-            }
-            else if (completedJobIds.Count > 0)
-            {
-                Snackbar.Add($"{completedJobIds.Count} job(s) deleted", Severity.Success);
-            }
+            var deleted = await DeleteJobsAsync(completedJobIds);
+            ShowDeletionSummary(deleted, completedJobIds.Count - deleted, kept);
         }
         finally
         {
@@ -277,18 +273,72 @@ public partial class Import : IAsyncDisposable
         }
     }
 
-    private async Task DeleteJobAsync(Guid jobId)
+    private async Task<int> DeleteJobsAsync(List<Guid> jobIds)
     {
+        var deleted = 0;
+        foreach (var jobId in jobIds)
+        {
+            var result = await ImportService.DeleteImportJobAsync(jobId, _pollingCts.Token);
+            if (result.IsSuccess)
+            {
+                _jobs.RemoveAll(j => j.Id == jobId);
+                deleted++;
+            }
+            else
+            {
+                Logger.LogError("Import: failed to delete completed job {JobId}: {Error}", jobId, result.Error!.Description);
+            }
+        }
+
+        return deleted;
+    }
+
+    private void ShowDeletionSummary(int deleted, int failed, int kept)
+    {
+        if (failed > 0)
+        {
+            Snackbar.Add($"{deleted} import(s) deleted, unable to delete {failed}.", Severity.Error);
+        }
+        else if (kept > 0)
+        {
+            Snackbar.Add($"{deleted} import(s) deleted, {kept} kept (running or failed).", Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add($"{deleted} import(s) deleted.", Severity.Success);
+        }
+    }
+
+    internal async Task DeleteJobAsync(Guid jobId)
+    {
+        var job = _jobs.Find(j => j.Id == jobId);
+        if (job is null)
+        {
+            return;
+        }
+
+        var confirmed = await DialogService.ShowConfirmationAsync(
+            "Delete import",
+            $"Delete the import of \"{job.OriginalFileName}\" from the list? The imported book is kept.",
+            "Delete import");
+        if (!confirmed)
+        {
+            return;
+        }
+
         var result = await ImportService.DeleteImportJobAsync(jobId, _pollingCts.Token);
         if (result.IsSuccess)
         {
             _jobs.RemoveAll(j => j.Id == jobId);
-            StateHasChanged();
+            Snackbar.Add("Import deleted.", Severity.Success);
         }
         else
         {
-            Snackbar.Add(result.Error?.Description ?? "Unable to delete the job", Severity.Error);
+            Logger.LogError("Import: failed to delete job {JobId}: {Error}", jobId, result.Error?.Description);
+            Snackbar.Add(result.Error?.Description ?? "Unable to delete the import.", Severity.Error);
         }
+
+        StateHasChanged();
     }
 
     internal async Task RetryJobAsync(Guid jobId)
@@ -313,8 +363,8 @@ public partial class Import : IAsyncDisposable
     {
         var confirmed = await DialogService.ShowConfirmationAsync(
             "Abandon import",
-            $"Abandon the import of \"{job.OriginalFileName}\"? Its file is deleted from the errors directory.",
-            "Abandon");
+            $"Abandon the import of \"{job.OriginalFileName}\"? It is removed from the list and its file is deleted from the errors directory; no book is created.",
+            "Abandon import");
         if (!confirmed)
         {
             return;
@@ -324,6 +374,7 @@ public partial class Import : IAsyncDisposable
         if (result.IsSuccess)
         {
             _jobs.RemoveAll(j => j.Id == job.Id);
+            Snackbar.Add("Import abandoned.", Severity.Success);
         }
         else
         {
