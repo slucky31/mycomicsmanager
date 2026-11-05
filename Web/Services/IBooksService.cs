@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Application.Books.Delete;
+using Application.Books.IsbnOwners;
 using Application.Books.List;
 using Application.Books.Search;
 using Application.Interfaces;
@@ -19,6 +20,8 @@ public interface IBooksService
     Task<Result<Book>> Update(UpdateBookRequest request, CancellationToken cancellationToken = default);
     // Whether the ISBN can be given to the book: false when another book of the same type holds it (#1217).
     Task<Result<bool>> IsIsbnAvailable(string bookId, string isbn, CancellationToken cancellationToken = default);
+    // The other books that already hold an ISBN read on the pages of the book (#1276), to compare them.
+    Task<Result<IReadOnlyList<IsbnOwnerDto>>> GetIsbnCandidateOwners(Guid bookId, CancellationToken cancellationToken = default);
     Task<Result<List<Book>>> GetAll();
     Task<Result<List<Book>>> GetByLibrary(Guid libraryId, CancellationToken cancellationToken = default);
     Task<Result<IPagedList<BookSummaryDto>>> GetPagedByLibrary(Guid libraryId, int page, int pageSize, BookSortOrder sortOrder, string? searchTerm = null, CancellationToken cancellationToken = default);

@@ -1,3 +1,4 @@
+using Application.Books.IsbnOwners;
 using Application.Books.IsbnScan;
 using AwesomeAssertions;
 using Bunit;
@@ -26,6 +27,7 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
     public BookDetailIsbnScanTests()
     {
         _booksService.GetById(_book.Id.ToString()).Returns(Result<Book>.Success(_book));
+        OwnersReturn(Result<IReadOnlyList<IsbnOwnerDto>>.Success([]));
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
         _ctx.Services.AddSingleton(_booksService);
@@ -56,6 +58,11 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
         cut.FindAll("button").Single(b => b.TextContent.Contains(text, StringComparison.Ordinal)).ClickAsync(new());
 
     private string CurrentUri => _ctx.Services.GetRequiredService<NavigationManager>().Uri;
+
+    private void OwnersReturn(Result<IReadOnlyList<IsbnOwnerDto>> result) =>
+        _booksService.GetIsbnCandidateOwners(_book.Id, Arg.Any<CancellationToken>()).Returns(result);
+
+    private static IsbnOwnerDto OwnerOf(string isbn) => new(isbn, Guid.CreateVersion7(), "Blacksad", "Âme rouge", 4, "https://covers/blacksad.jpg", "Mangas");
 
     private void ScanReturns(Result<IsbnScanOutcome> result) =>
         _isbnScanService.ScanBookAsync(_book.Id, Arg.Any<CancellationToken>()).Returns(result);
@@ -170,5 +177,50 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
         await ClickAsync(cut, "Scan the pages");
 
         ShouldShow("Unable to scan the pages of this book", Severity.Error);
+    }
+
+    [Fact]
+    public async Task LoadIsbnCandidatesAsync_Should_ShowTheBookHoldingTheIsbn_WhenTheSingleIsbnReadIsUsed()
+    {
+        _book.RecordIsbnScan(["9782800112343"], DateTime.UtcNow);
+        var owner = OwnerOf("9782800112343");
+        OwnersReturn(Result<IReadOnlyList<IsbnOwnerDto>>.Success([owner]));
+
+        var cut = await RenderAsync();
+
+        cut.Markup.Should().Contain("This one may be a duplicate");
+        cut.Find("a.book-isbn-owner").TextContent.Should().Contain("Blacksad · Volume 4").And.Contain("Library: Mangas");
+        cut.FindAll("button").Should().NotContain(b => b.TextContent.Contains("9782800112343", StringComparison.Ordinal));
+        cut.Find("a.book-isbn-owner").GetAttribute("href").Should().Be($"/books/{owner.BookId}?from=%2Fbooks%2F{_book.Id}");
+        cut.Find("img.book-isbn-owner-cover").GetAttribute("alt").Should().Be("Cover of Âme rouge");
+    }
+
+    [Fact]
+    public async Task LoadIsbnCandidatesAsync_Should_StillOfferTheIsbns_WhenTheirBooksCannotBeFound()
+    {
+        _book.RecordIsbnScan(["9782800112343", "2205056174"], DateTime.UtcNow);
+        OwnersReturn(Result<IReadOnlyList<IsbnOwnerDto>>.Failure(BooksError.NotFound));
+
+        var cut = await RenderAsync();
+
+        ShouldShow(BookDetail.Msg_IsbnOwnersFailed, Severity.Error);
+        cut.FindAll("button").Should().Contain(b => b.TextContent.Contains("9782800112343", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ScanIsbnAsync_Should_TellTheIsbnIsUsed_WhenTheSingleIsbnReadBelongsToAnotherBook()
+    {
+        _isbnScanService.ScanBookAsync(_book.Id, Arg.Any<CancellationToken>()).Returns(_ =>
+        {
+            _book.RecordIsbnScan(["9782800112343"], DateTime.UtcNow);
+            return Result<IsbnScanOutcome>.Success(IsbnScanOutcome.WithCandidates);
+        });
+        OwnersReturn(Result<IReadOnlyList<IsbnOwnerDto>>.Success([OwnerOf("9782800112343")]));
+        var cut = await RenderAsync();
+
+        await ClickAsync(cut, "Scan the pages");
+
+        ShouldShow("The ISBN found in the pages is already used by another book", Severity.Info);
+        cut.Markup.Should().Contain("Open that book");
     }
 }

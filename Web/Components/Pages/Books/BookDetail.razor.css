@@ -685,3 +685,95 @@
         font-size: var(--mcm-font-display);
     }
 }
+
+/* ── The other book holding an ISBN read on the pages (#1276) ── */
+.book-isbn-owner {
+    margin-top: var(--mcm-space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--mcm-space-3);
+    padding: var(--mcm-space-3);
+    border: 1px solid var(--mcm-border);
+    border-radius: var(--mcm-radius-m);
+    background: var(--mcm-surface);
+    color: var(--mcm-text);
+    text-decoration: none;
+}
+
+.book-isbn-owner:hover {
+    border-color: var(--mcm-border-strong);
+}
+
+.book-isbn-owner-cover {
+    flex-shrink: 0;
+    width: var(--mcm-cover-s);
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: var(--mcm-cover-radius);
+    box-shadow: var(--mcm-cover-shadow);
+}
+
+.book-isbn-owner-cover-none {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--mcm-surface-sunken);
+    color: var(--mcm-text-muted);
+}
+
+.book-isbn-owner-text {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.book-isbn-owner-isbn {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--mcm-space-2);
+    font-size: var(--mcm-font-small);
+    color: var(--mcm-text-muted);
+}
+
+.book-isbn-owner-used {
+    padding: 0 var(--mcm-space-2);
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface-muted);
+    font-size: var(--mcm-font-caption);
+    font-weight: 500;
+    color: var(--mcm-warning-strong);
+}
+
+.book-isbn-owner-title {
+    font-size: var(--mcm-font-body-l);
+    font-weight: 600;
+}
+
+.book-isbn-owner-muted {
+    font-size: var(--mcm-font-small);
+    color: var(--mcm-text-muted);
+}
+
+.book-isbn-owner-muted strong {
+    color: var(--mcm-text);
+}
+
+.book-isbn-owner-open {
+    flex-shrink: 0;
+    font-size: var(--mcm-font-label);
+    font-weight: 500;
+    color: var(--mcm-primary-strong);
+}
+
+@media (max-width: 599px) {
+    .book-isbn-owner {
+        flex-wrap: wrap;
+    }
+
+    .book-isbn-owner-open {
+        width: 100%;
+    }
+}

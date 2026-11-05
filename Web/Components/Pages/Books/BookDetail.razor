@@ -149,10 +149,11 @@
                         @* Search of the ISBN printed on the pages, while the book has none *@
                         @if (view.IsbnScanState == IsbnScanState.Candidates)
                         {
-                            <MudAlert Severity="Severity.Info" Dense="true" Class="mt-4">
-                                <MudText Typo="Typo.body2">Several ISBNs are printed in this book. Pick its own to fetch its information:</MudText>
+                            var candidates = _isbnCandidates;
+                            <MudAlert Severity="@(candidates.AllUsed ? Severity.Warning : Severity.Info)" Dense="true" Class="mt-4 book-isbn-candidates">
+                                <MudText Typo="Typo.body2">@candidates.Message</MudText>
                                 <div class="d-flex flex-wrap gap-2 mt-2">
-                                    @foreach (var isbn in view.IsbnCandidates)
+                                    @foreach (var isbn in candidates.FreeIsbns)
                                     {
                                         <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
                                                    StartIcon="@Icons.Material.Filled.TravelExplore" Style="font-family: monospace;"
@@ -161,6 +162,31 @@
                                         </MudButton>
                                     }
                                 </div>
+                                @* The other book that holds the ISBN, to check whether this one is a duplicate (#1276). *@
+                                @foreach (var candidate in candidates.UsedCandidates)
+                                {
+                                    var owner = candidate.Owner!;
+                                    <a class="book-isbn-owner" href="@OwnerHref(owner)">
+                                        @if (!string.IsNullOrEmpty(owner.ImageLink))
+                                        {
+                                            <img class="book-isbn-owner-cover" src="@CoverImage.Sized(owner.ImageLink, CoverSize.Small)" alt="@owner.CoverAlt" loading="lazy" />
+                                        }
+                                        else
+                                        {
+                                            <span class="book-isbn-owner-cover book-isbn-owner-cover-none" role="img" aria-label="No cover"><MudIcon Icon="@Icons.Material.Filled.MenuBook" /></span>
+                                        }
+                                        <span class="book-isbn-owner-text">
+                                            <span class="book-isbn-owner-isbn"><span class="book-isbn">@candidate.Isbn</span><span class="book-isbn-owner-used">Already used</span></span>
+                                            <span class="book-isbn-owner-title">@owner.Title</span>
+                                            @if (owner.SerieAndVolume is not null)
+                                            {
+                                                <span class="book-isbn-owner-muted">@owner.SerieAndVolume</span>
+                                            }
+                                            <span class="book-isbn-owner-muted">Library: <strong>@owner.LibraryName</strong></span>
+                                        </span>
+                                        <span class="book-isbn-owner-open">Open that book</span>
+                                    </a>
+                                }
                             </MudAlert>
                         }
                         else if (view.IsbnScanNotice is not null)

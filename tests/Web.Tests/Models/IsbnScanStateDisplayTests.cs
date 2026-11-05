@@ -19,6 +19,12 @@ public sealed class IsbnScanStateDisplayTests
     }
 
     [Fact]
+    public void Label_Should_AskToCheckTheIsbn_WhenASingleOneWasRead()
+    {
+        IsbnScanStateDisplay.Label(IsbnScanState.Candidates, candidateCount: 1).Should().Be("1 ISBN found in the pages, used by another book: check it");
+    }
+
+    [Fact]
     public void Icon_Should_DifferForEachStateToShow()
     {
         IsbnScanState[] shown = [IsbnScanState.NotScanned, IsbnScanState.Candidates, IsbnScanState.NotFound];

@@ -10,6 +10,7 @@ public static class IsbnScanStateDisplay
     public static string Label(IsbnScanState state, int candidateCount = 0) => state switch
     {
         IsbnScanState.NotScanned => "No ISBN: the pages were not scanned yet",
+        IsbnScanState.Candidates when candidateCount == 1 => "1 ISBN found in the pages, used by another book: check it",
         IsbnScanState.Candidates => $"{candidateCount} ISBNs found in the pages: pick the book's own",
         IsbnScanState.NotFound => "No ISBN found in the pages",
         _ => string.Empty,
