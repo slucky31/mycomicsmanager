@@ -9,7 +9,9 @@ public static class ImportJobError
     public static readonly TError InvalidStatusTransition = new("IMP405", "Invalid status transition.");
     public static readonly TError AlreadyCompleted = new("IMP409", "Import job is already completed.");
     public static readonly TError AlreadyFailed = new("IMP410", "Import job has already failed.");
-    public static readonly TError NotTerminal = new("IMP412", "Only completed or failed import jobs can be deleted.");
+    public static readonly TError NotCompleted = new("IMP412", "Only successful imports can be deleted: retry or abandon a failed import.");
+    public static readonly TError NotFailed = new("IMP413", "Only a failed import can be retried or abandoned.");
+    public static readonly TError FailedFileNotFound = new("IMP414", "The file of this failed import was not found in the errors directory.");
     public static readonly TError UnhandledException = new("IMP500", "An unexpected error occurred during import.");
     public static readonly TError InsufficientDiskSpace = new("IMP507", "Insufficient disk space to process the import.");
     public static readonly TError AlreadyQueued = new("IMP409B", "An active import job already exists for this file.");

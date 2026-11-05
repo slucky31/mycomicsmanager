@@ -50,7 +50,7 @@ public class ProcessImportJobCommandHandlerTests
         _importDirectoryStorage = Substitute.For<IImportDirectoryStorage>();
 
         _importDirectoryStorage.DeleteOriginalFile(Arg.Any<string>()).Returns(Result.Success());
-        _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>()).Returns(Result.Success());
+        _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>()).Returns(Result<string?>.Success(null));
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(0));
 
         _tempWorkspace.HasFreeSpace(Arg.Any<long>()).Returns(true);
@@ -926,11 +926,49 @@ public class ProcessImportJobCommandHandlerTests
             .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
 
         _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>())
-            .Returns(Result.Failure(s_processingError));
+            .Returns(Result<string?>.Failure(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
+        job.ErrorFilePath.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_Should_RecordTheErrorFilePath_WhenTheFileIsMovedToErrors()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
+        _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+        _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>())
+            .Returns(Result<string?>.Success("/import/lib/errors/comic_1.cbz"));
+
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        job.Status.Should().Be(ImportJobStatus.Failed);
+        job.ErrorFilePath.Should().Be("/import/lib/errors/comic_1.cbz");
+        _importJobRepository.Received().Update(job);
+    }
+
+    [Fact]
+    public async Task Handle_Should_StillReturnTheFailure_WhenTheErrorFilePathIsNotSaved()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
+        _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+        _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>())
+            .Returns(Result<string?>.Success("/import/lib/errors/comic.cbz"));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(s_processingError));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(s_processingError);
     }
 
     // ── FailJobAsync SaveChangesAsync failure (log-only) ─────────────────────

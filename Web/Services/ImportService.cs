@@ -1,9 +1,11 @@
 using Application.ImportJobs;
+using Application.ImportJobs.Abandon;
 using Application.ImportJobs.Create;
 using Application.ImportJobs.Delete;
 using Application.ImportJobs.ForceFail;
 using Application.ImportJobs.GetById;
 using Application.ImportJobs.List;
+using Application.ImportJobs.Retry;
 using Application.Interfaces;
 using Application.Libraries.GetById;
 using Domain.ImportJobs;
@@ -132,7 +134,19 @@ public class ImportService(
         return ImportJobViewModel.From(createResult.Value);
     }
 
-    public async Task<Result> DeleteImportJobAsync(Guid importJobId, CancellationToken ct = default)
+    public Task<Result> DeleteImportJobAsync(Guid importJobId, CancellationToken ct = default) =>
+        ForCurrentUserAsync(userId => handlers.DeleteJob.Handle(new DeleteImportJobCommand(importJobId, userId), ct), ct);
+
+    public Task<Result> ForceFailImportJobAsync(Guid importJobId, CancellationToken ct = default) =>
+        ForCurrentUserAsync(userId => handlers.ForceFailJob.Handle(new ForceFailImportJobCommand(importJobId, userId), ct), ct);
+
+    public Task<Result> RetryImportJobAsync(Guid importJobId, CancellationToken ct = default) =>
+        ForCurrentUserAsync(userId => handlers.RetryJob.Handle(new RetryImportJobCommand(importJobId, userId), ct), ct);
+
+    public Task<Result> AbandonImportJobAsync(Guid importJobId, CancellationToken ct = default) =>
+        ForCurrentUserAsync(userId => handlers.AbandonJob.Handle(new AbandonImportJobCommand(importJobId, userId), ct), ct);
+
+    private async Task<Result> ForCurrentUserAsync(Func<Guid, Task<Result>> command, CancellationToken ct)
     {
         var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
         if (userIdResult.IsFailure)
@@ -140,19 +154,6 @@ public class ImportService(
             return userIdResult.Error!;
         }
 
-        var command = new DeleteImportJobCommand(importJobId, userIdResult.Value);
-        return await handlers.DeleteJob.Handle(command, ct);
-    }
-
-    public async Task<Result> ForceFailImportJobAsync(Guid importJobId, CancellationToken ct = default)
-    {
-        var userIdResult = await currentUserService.GetCurrentUserIdAsync(ct);
-        if (userIdResult.IsFailure)
-        {
-            return userIdResult.Error!;
-        }
-
-        var command = new ForceFailImportJobCommand(importJobId, userIdResult.Value);
-        return await handlers.ForceFailJob.Handle(command, ct);
+        return await command(userIdResult.Value);
     }
 }

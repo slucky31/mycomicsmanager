@@ -25,7 +25,7 @@
         }
     }
 
-    @if (Job.BookHref is not null || (Job.IsTerminal && OnDelete.HasDelegate) || (IsStuck && OnForceFail.HasDelegate))
+    @if (Job.BookHref is not null || HasActions)
     {
         <div class="import-job-actions">
             @if (Job.BookHref is { } href)
@@ -41,7 +41,23 @@
                                    aria-label="Mark this import as failed" />
                 </MudTooltip>
             }
-            @if (Job.IsTerminal && OnDelete.HasDelegate)
+            @if (Job.IsFailed && OnAbandon.HasDelegate)
+            {
+                <MudTooltip Text="Abandon (deletes the file)">
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteForever"
+                                   OnClick="@(() => OnAbandon.InvokeAsync(Job))"
+                                   aria-label="Abandon this import and delete its file" />
+                </MudTooltip>
+            }
+            @if (Job.IsFailed && OnRetry.HasDelegate)
+            {
+                <MudTooltip Text="Retry">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Replay"
+                                   OnClick="@(() => OnRetry.InvokeAsync(Job.Id))"
+                                   aria-label="Retry this import" />
+                </MudTooltip>
+            }
+            @if (Job.IsCompleted && OnDelete.HasDelegate)
             {
                 <MudIconButton Icon="@Icons.Material.Outlined.Delete"
                                OnClick="@(() => OnDelete.InvokeAsync(Job.Id))"

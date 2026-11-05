@@ -1,4 +1,4 @@
-﻿using Domain.Books;
+using Domain.Books;
 using Domain.FeedImports;
 using Domain.ImportJobs;
 using Domain.Libraries;
@@ -85,6 +85,7 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<ImportJob>().Property(j => j.OriginalFilePath).HasMaxLength(ImportJobConstants.MaxFilePathLength);
             modelBuilder.Entity<ImportJob>().Property(j => j.ErrorMessage).HasMaxLength(ImportJobConstants.MaxErrorMessageLength);
             modelBuilder.Entity<ImportJob>().Property(j => j.ErrorStep).HasMaxLength(ImportJobConstants.MaxErrorStepLength);
+            modelBuilder.Entity<ImportJob>().Property(j => j.ErrorFilePath).HasMaxLength(ImportJobConstants.MaxFilePathLength);
             modelBuilder.Entity<ImportJob>().HasIndex(j => j.LibraryId);
             modelBuilder.Entity<ImportJob>().HasIndex(j => j.Status);
             // ponytail: filter references the numeric ordinals of Completed (6) and Failed (7); update if the enum is reordered

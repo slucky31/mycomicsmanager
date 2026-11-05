@@ -196,7 +196,8 @@ public sealed class ImportDirectoryStorageTests : IDisposable
 
         result.IsSuccess.Should().BeTrue();
         File.Exists(filePath).Should().BeFalse();
-        File.Exists(Path.Combine(libraryDir, "errors", "comic.cbz")).Should().BeTrue();
+        result.Value.Should().Be(Path.Combine(libraryDir, "errors", "comic.cbz"));
+        File.Exists(result.Value).Should().BeTrue();
     }
 
     [Fact]
@@ -217,6 +218,7 @@ public sealed class ImportDirectoryStorageTests : IDisposable
         var errorFiles = Directory.GetFiles(errorsDir);
         errorFiles.Should().HaveCount(2);
         errorFiles.Should().Contain(f => f != Path.Combine(errorsDir, "comic.cbz") && Path.GetFileName(f).StartsWith("comic_", StringComparison.Ordinal));
+        File.ReadAllText(result.Value!).Should().Be("new-content");
     }
 
     [Fact]
@@ -225,6 +227,7 @@ public sealed class ImportDirectoryStorageTests : IDisposable
         var result = _sut.MoveOriginalFileToError(Path.Combine(_root, "missing.cbz"));
 
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
     }
 
     [Fact]
@@ -244,6 +247,102 @@ public sealed class ImportDirectoryStorageTests : IDisposable
         var result = _sut.MoveOriginalFileToError(outsideFile);
 
         result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(ImportDirectoryStorageError.InvalidPath);
+    }
+
+    // ── LocateFailedFile ──────────────────────────────────────────────────────
+
+    private string CreateFile(params string[] parts)
+    {
+        var path = Path.Combine([_root, .. parts]);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, "content");
+        return path;
+    }
+
+    [Fact]
+    public void LocateFailedFile_Should_ReturnTheRecordedErrorFile_WhenItExists()
+    {
+        var errorFile = CreateFile("MYCOMICS_lib1", "errors", "comic_20261104.cbz");
+
+        var result = _sut.LocateFailedFile("MYCOMICS_lib1", Path.Combine(_root, "MYCOMICS_lib1", "comic.cbz"), errorFile);
+
+        result.Value.Should().Be(errorFile);
+    }
+
+    [Fact]
+    public void LocateFailedFile_Should_FindTheFileInTheErrorsOfTheRenamedLibrary_WhenTheRecordedPathIsStale()
+    {
+        var moved = CreateFile("RENAMED_lib1", "errors", "comic.cbz");
+
+        var result = _sut.LocateFailedFile("RENAMED_lib1",
+            Path.Combine(_root, "MYCOMICS_lib1", "comic.cbz"), Path.Combine(_root, "MYCOMICS_lib1", "errors", "comic.cbz"));
+
+        result.Value.Should().Be(moved);
+    }
+
+    [Fact]
+    public void LocateFailedFile_Should_FindTheFileInErrorsByItsName_WhenNoErrorFileWasRecorded()
+    {
+        var errorFile = CreateFile("MYCOMICS_lib1", "errors", "comic.cbz");
+
+        var result = _sut.LocateFailedFile("MYCOMICS_lib1", Path.Combine(_root, "MYCOMICS_lib1", "comic.cbz"), null);
+
+        result.Value.Should().Be(errorFile);
+    }
+
+    [Fact]
+    public void LocateFailedFile_Should_ReturnTheOriginalFile_WhenItWasNeverMoved()
+    {
+        var original = CreateFile("MYCOMICS_lib1", "comic.cbz");
+
+        var result = _sut.LocateFailedFile("MYCOMICS_lib1", original, null);
+
+        result.Value.Should().Be(original);
+    }
+
+    [Fact]
+    public void LocateFailedFile_Should_FindTheOriginalFileInTheRenamedLibrary_WhenItWasNeverMoved()
+    {
+        var moved = CreateFile("RENAMED_lib1", "comic.cbz");
+
+        var result = _sut.LocateFailedFile("RENAMED_lib1", Path.Combine(_root, "MYCOMICS_lib1", "comic.cbz"), null);
+
+        result.Value.Should().Be(moved);
+    }
+
+    [Fact]
+    public void LocateFailedFile_Should_IgnoreAPathOutsideTheImportDirectory()
+    {
+        var outside = Path.Combine(Path.GetTempPath(), $"outside-{Guid.NewGuid()}.cbz");
+        File.WriteAllText(outside, "content");
+        try
+        {
+            var result = _sut.LocateFailedFile("MYCOMICS_lib1", outside, outside);
+
+            result.Error.Should().Be(ImportDirectoryStorageError.SourceFileNotFound);
+        }
+        finally
+        {
+            File.Delete(outside);
+        }
+    }
+
+    [Theory]
+    [InlineData("", "/import/comic.cbz")]
+    [InlineData("MYCOMICS_lib1", "")]
+    public void LocateFailedFile_Should_ReturnArgumentNullOrEmpty_WhenAnArgumentIsEmpty(string directoryName, string originalFilePath)
+    {
+        var result = _sut.LocateFailedFile(directoryName, originalFilePath, null);
+
+        result.Error.Should().Be(ImportDirectoryStorageError.ArgumentNullOrEmpty);
+    }
+
+    [Fact]
+    public void LocateFailedFile_Should_ReturnInvalidPath_WhenTheDirectoryEscapesTheRoot()
+    {
+        var result = _sut.LocateFailedFile("../elsewhere", Path.Combine(_root, "comic.cbz"), null);
+
         result.Error.Should().Be(ImportDirectoryStorageError.InvalidPath);
     }
 

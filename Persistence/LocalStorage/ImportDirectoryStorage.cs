@@ -10,6 +10,7 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
     private readonly string _rootPath;
     private static readonly char[] s_charsToTrim = ['/', '\\'];
     private const string PartialFileExtension = ".part";
+    private const string ErrorsDirectoryName = "errors";
 
     public ImportDirectoryStorage(IOptions<ImportSettings> settings)
     {
@@ -147,7 +148,7 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
         return Result.Success();
     }
 
-    public Result MoveOriginalFileToError(string absoluteFilePath)
+    public Result<string?> MoveOriginalFileToError(string absoluteFilePath)
     {
         if (string.IsNullOrEmpty(absoluteFilePath))
         {
@@ -162,11 +163,11 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
 
         if (!File.Exists(absoluteFilePath))
         {
-            return Result.Success();
+            return Result<string?>.Success(null);
         }
 
         var libraryDir = Path.GetDirectoryName(absoluteFilePath) ?? _rootPath;
-        var errorsDir = Path.Combine(libraryDir, "errors");
+        var errorsDir = Path.Combine(libraryDir, ErrorsDirectoryName);
         Directory.CreateDirectory(errorsDir);
 
         var fileName = Path.GetFileName(absoluteFilePath);
@@ -181,7 +182,42 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
         }
 
         File.Move(absoluteFilePath, destPath);
-        return Result.Success();
+        return destPath;
+    }
+
+    public Result<string> LocateFailedFile(string directoryName, string originalFilePath, string? errorFilePath)
+    {
+        if (string.IsNullOrEmpty(directoryName) || string.IsNullOrEmpty(originalFilePath))
+        {
+            return ImportDirectoryStorageError.ArgumentNullOrEmpty;
+        }
+
+        var pathValidation = ValidatePath(directoryName);
+        if (pathValidation.IsFailure)
+        {
+            return pathValidation.Error!;
+        }
+
+        var libraryDir = Path.GetFullPath(Path.Combine(_rootPath, directoryName));
+        var errorFileName = Path.GetFileName(errorFilePath ?? originalFilePath);
+        var originalFileName = Path.GetFileName(originalFilePath);
+        string?[] candidates =
+        [
+            errorFilePath,
+            Path.Combine(libraryDir, ErrorsDirectoryName, errorFileName),
+            originalFilePath,
+            Path.Combine(libraryDir, originalFileName)
+        ];
+
+        foreach (var candidate in candidates)
+        {
+            if (!string.IsNullOrEmpty(candidate) && ValidateAbsolutePath(candidate).IsSuccess && File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return ImportDirectoryStorageError.SourceFileNotFound;
     }
 
     public Result<string> GetAvailableFilePath(string directoryName, string fileName)

@@ -303,6 +303,10 @@ namespace Persistence.Migrations
                     b.Property<Guid?>("DigitalBookId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ErrorFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("ErrorMessage")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");

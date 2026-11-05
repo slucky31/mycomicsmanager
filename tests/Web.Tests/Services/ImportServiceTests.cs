@@ -1,11 +1,13 @@
 using System.Text;
 using Application.Abstractions.Messaging;
 using Application.ImportJobs;
+using Application.ImportJobs.Abandon;
 using Application.ImportJobs.Create;
 using Application.ImportJobs.Delete;
 using Application.ImportJobs.ForceFail;
 using Application.ImportJobs.GetById;
 using Application.ImportJobs.List;
+using Application.ImportJobs.Retry;
 using Application.Interfaces;
 using Application.Libraries.GetById;
 using AwesomeAssertions;
@@ -29,6 +31,8 @@ public sealed class ImportServiceTests : IDisposable
     private readonly IQueryHandler<GetImportJobQuery, ImportJob> _getJobHandler;
     private readonly ICommandHandler<DeleteImportJobCommand> _deleteJobHandler;
     private readonly ICommandHandler<ForceFailImportJobCommand> _forceFailJobHandler;
+    private readonly ICommandHandler<RetryImportJobCommand> _retryJobHandler = Substitute.For<ICommandHandler<RetryImportJobCommand>>();
+    private readonly ICommandHandler<AbandonImportJobCommand> _abandonJobHandler = Substitute.For<ICommandHandler<AbandonImportJobCommand>>();
     private readonly IImportJobEnqueuer _enqueuer;
     private readonly ImportService _service;
     private readonly string _importDir;
@@ -71,6 +75,8 @@ public sealed class ImportServiceTests : IDisposable
             _createJobHandler,
             _deleteJobHandler,
             _forceFailJobHandler,
+            _retryJobHandler,
+            _abandonJobHandler,
             _getLibraryHandler);
 
         var settings = Options.Create(new ImportSettings
@@ -281,5 +287,31 @@ public sealed class ImportServiceTests : IDisposable
 
         result.IsFailure.Should().BeTrue();
         await _forceFailJobHandler.DidNotReceive().Handle(Arg.Any<ForceFailImportJobCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    // ── RetryImportJobAsync / AbandonImportJobAsync ───────────────────────────
+
+    [Fact]
+    public async Task RetryImportJobAsync_Should_SendTheCommandForTheCurrentUser()
+    {
+        var jobId = Guid.CreateVersion7();
+        _retryJobHandler.Handle(Arg.Any<RetryImportJobCommand>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        var result = await _service.RetryImportJobAsync(jobId, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        await _retryJobHandler.Received(1).Handle(new RetryImportJobCommand(jobId, _userId), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AbandonImportJobAsync_Should_SendTheCommandForTheCurrentUser()
+    {
+        var jobId = Guid.CreateVersion7();
+        _abandonJobHandler.Handle(Arg.Any<AbandonImportJobCommand>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        var result = await _service.AbandonImportJobAsync(jobId, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        await _abandonJobHandler.Received(1).Handle(new AbandonImportJobCommand(jobId, _userId), Arg.Any<CancellationToken>());
     }
 }

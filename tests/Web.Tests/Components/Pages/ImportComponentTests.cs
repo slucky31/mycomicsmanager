@@ -9,6 +9,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages;
+using Web.Components.Pages.Dialogs;
 using Web.Components.SharedComponents;
 using Web.Models;
 using Web.Services;
@@ -96,21 +97,31 @@ public sealed class ImportComponentTests
         return file;
     }
 
+    // Owns its bUnit context, so that it is disposed with the setup.
     private sealed class TestSetup(
-        BunitContext ctx,
-        IRenderedComponent<Import> cut,
         Library library,
         ILibrariesService librariesService,
         IImportService importService,
-        ISnackbar snackbar) : IAsyncDisposable
+        ISnackbar snackbar,
+        IDialogService dialogService) : IAsyncDisposable
     {
-        public IRenderedComponent<Import> Cut { get; } = cut;
+        public BunitContext Context { get; } = new();
+        public IRenderedComponent<Import> Cut { get; set; } = default!;
         public Library Library { get; } = library;
         public ILibrariesService LibrariesService { get; } = librariesService;
         public IImportService ImportService { get; } = importService;
         public ISnackbar Snackbar { get; } = snackbar;
+        public IDialogService DialogService { get; } = dialogService;
 
-        public ValueTask DisposeAsync() => ctx.DisposeAsync();
+        public void GivenConfirmation(bool confirmed)
+        {
+            var dialog = Substitute.For<IDialogReference>();
+            dialog.Result.Returns(confirmed ? DialogResult.Ok(true) : DialogResult.Cancel());
+            DialogService.ShowAsync<ConfirmationDialog>(Arg.Any<string>(), Arg.Any<DialogParameters>(), Arg.Any<DialogOptions>())
+                .Returns(dialog);
+        }
+
+        public ValueTask DisposeAsync() => Context.DisposeAsync();
     }
 
     private static async Task<TestSetup> SetupAsync(
@@ -142,20 +153,23 @@ public sealed class ImportComponentTests
             .Returns(jobsResult ?? Result<IReadOnlyList<ImportJobViewModel>>.Success(initialJobs ?? []));
 
         var snackbar = Substitute.For<ISnackbar>();
+        var dialogService = Substitute.For<IDialogService>();
 
-        var ctx = new BunitContext();
+        var setup = new TestSetup(library, librariesService, importService, snackbar, dialogService);
+        var ctx = setup.Context;
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton(snackbar);
         ctx.Services.AddMudServices();
+        ctx.Services.AddSingleton(dialogService);
         ctx.AddLibrarySelect();
         ctx.Services.AddSingleton(librariesService);
         ctx.Services.AddSingleton(importService);
 
         ctx.Render<MudBlazor.MudPopoverProvider>();
-        var cut = ctx.Render<Import>();
+        setup.Cut = ctx.Render<Import>();
         await Task.Yield();
 
-        return new TestSetup(ctx, cut, library, librariesService, importService, snackbar);
+        return setup;
     }
 
     // ── LoadLibrariesAsync ────────────────────────────────────────────────────
@@ -309,34 +323,107 @@ public sealed class ImportComponentTests
         setup.Snackbar.Received().Add("cannot force-fail", Severity.Error, Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
     }
 
-    // ── DeleteTerminalJobsAsync ───────────────────────────────────────────────
+    // ── DeleteCompletedJobsAsync ──────────────────────────────────────────────
 
     [Fact]
-    public async Task DeleteTerminalJobsAsync_Should_RemoveOnlyTerminalJobs()
+    public async Task DeleteCompletedJobsAsync_Should_RemoveOnlyCompletedJobs()
     {
-        var terminalJob = CreateJob(status: "Completed", fileName: "done.cbz");
+        var completedJob = CreateJob(status: "Completed", fileName: "done.cbz");
+        var failedJob = CreateJob(status: "Failed", fileName: "failed.cbz");
         var activeJob = CreateJob(status: "Extracting", fileName: "active.cbz");
-        await using var setup = await SetupAsync(initialJobs: [terminalJob, activeJob]);
-        setup.ImportService.DeleteImportJobAsync(terminalJob.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
+        await using var setup = await SetupAsync(initialJobs: [completedJob, failedJob, activeJob]);
+        setup.ImportService.DeleteImportJobAsync(completedJob.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
 
-        await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteTerminalJobsAsync);
+        await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteCompletedJobsAsync);
 
         setup.Cut.Markup.Should().NotContain("done.cbz");
-        setup.Cut.Markup.Should().Contain("active.cbz");
+        setup.Cut.Markup.Should().Contain("failed.cbz").And.Contain("active.cbz");
+        await setup.ImportService.DidNotReceive().DeleteImportJobAsync(failedJob.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task DeleteTerminalJobsAsync_Should_ShowSnackbarError_WhenSomeDeletesFail()
+    public async Task DeleteCompletedJobsAsync_Should_ShowSnackbarError_WhenSomeDeletesFail()
     {
-        var terminalJob = CreateJob(status: "Failed", fileName: "failed.cbz");
-        await using var setup = await SetupAsync(initialJobs: [terminalJob]);
-        setup.ImportService.DeleteImportJobAsync(terminalJob.Id, Arg.Any<CancellationToken>())
+        var completedJob = CreateJob(status: "Completed", fileName: "done.cbz");
+        await using var setup = await SetupAsync(initialJobs: [completedJob]);
+        setup.ImportService.DeleteImportJobAsync(completedJob.Id, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(new TError("del:err", "boom")));
 
-        await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteTerminalJobsAsync);
+        await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteCompletedJobsAsync);
 
         setup.Snackbar.Received().Add(Arg.Is<string>(s => s.Contains("Unable to delete")), Severity.Error,
             Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
+    }
+
+    // ── RetryJobAsync / AbandonJobAsync ───────────────────────────────────────
+
+    [Fact]
+    public async Task RetryJobAsync_Should_ShowTheJobAgainAsPending_WhenTheRetrySucceeds()
+    {
+        var failedJob = CreateJob(status: "Failed", fileName: "retry.cbz");
+        await using var setup = await SetupAsync(initialJobs: [failedJob]);
+        setup.ImportService.RetryImportJobAsync(failedJob.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
+        setup.ImportService.GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<ImportJobViewModel>>.Success([failedJob with { Status = "Pending", StatusDisplay = "Waiting" }]));
+
+        await setup.Cut.InvokeAsync(() => setup.Cut.Instance.RetryJobAsync(failedJob.Id));
+
+        setup.Cut.Find(".import-job-status").TextContent.Should().Contain("Waiting");
+        setup.Snackbar.Received().Add("Import restarted.", Severity.Success, Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
+    }
+
+    [Fact]
+    public async Task RetryJobAsync_Should_ShowTheError_WhenTheRetryFails()
+    {
+        var failedJob = CreateJob(status: "Failed", fileName: "retry.cbz");
+        await using var setup = await SetupAsync(initialJobs: [failedJob]);
+        setup.ImportService.RetryImportJobAsync(failedJob.Id, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new TError("IMP414", "file not found")));
+
+        await setup.Cut.InvokeAsync(() => setup.Cut.Instance.RetryJobAsync(failedJob.Id));
+
+        setup.Snackbar.Received().Add("file not found", Severity.Error, Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
+    }
+
+    [Fact]
+    public async Task AbandonJobAsync_Should_RemoveTheJob_WhenConfirmed()
+    {
+        var failedJob = CreateJob(status: "Failed", fileName: "abandon.cbz");
+        await using var setup = await SetupAsync(initialJobs: [failedJob]);
+        setup.GivenConfirmation(true);
+        setup.ImportService.AbandonImportJobAsync(failedJob.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        await setup.Cut.InvokeAsync(() => setup.Cut.Instance.AbandonJobAsync(failedJob));
+
+        setup.Cut.Markup.Should().NotContain("abandon.cbz");
+    }
+
+    [Fact]
+    public async Task AbandonJobAsync_Should_DoNothing_WhenNotConfirmed()
+    {
+        var failedJob = CreateJob(status: "Failed", fileName: "abandon.cbz");
+        await using var setup = await SetupAsync(initialJobs: [failedJob]);
+        setup.GivenConfirmation(false);
+
+        await setup.Cut.InvokeAsync(() => setup.Cut.Instance.AbandonJobAsync(failedJob));
+
+        await setup.ImportService.DidNotReceive().AbandonImportJobAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        setup.Cut.Markup.Should().Contain("abandon.cbz");
+    }
+
+    [Fact]
+    public async Task AbandonJobAsync_Should_KeepTheJobAndShowTheError_WhenTheAbandonFails()
+    {
+        var failedJob = CreateJob(status: "Failed", fileName: "abandon.cbz");
+        await using var setup = await SetupAsync(initialJobs: [failedJob]);
+        setup.GivenConfirmation(true);
+        setup.ImportService.AbandonImportJobAsync(failedJob.Id, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new TError("io", "cannot delete")));
+
+        await setup.Cut.InvokeAsync(() => setup.Cut.Instance.AbandonJobAsync(failedJob));
+
+        setup.Cut.Markup.Should().Contain("abandon.cbz");
+        setup.Snackbar.Received().Add("cannot delete", Severity.Error, Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
     }
 
     // ── Polling ───────────────────────────────────────────────────────────────
