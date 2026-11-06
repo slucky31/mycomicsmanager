@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.72.10"></a>
+## [10.72.10](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.72.10) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **forms:** hide the phone bottom bar on every form so Save stays visible ([#1288](https://www.github.com/slucky31/mycomicsmanager/issues/1288)) ([312a4eb](https://www.github.com/slucky31/mycomicsmanager/commit/312a4eb9a2c85e22fc58972b068b4590f79858f2))
+
 <a name="10.72.9"></a>
 ## [10.72.9](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.72.9) (2026-11-06)
 
