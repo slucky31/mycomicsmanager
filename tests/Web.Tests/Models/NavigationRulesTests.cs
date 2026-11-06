@@ -38,7 +38,11 @@ public sealed class NavigationRulesTests
     [InlineData("libraries/list", false)]
     [InlineData("books/01a10db7-5a64-73bc-91be-9aed30dcff5f/find-details?isbn=9782800112343", true)]
     [InlineData("books/01a10db7-5a64-73bc-91be-9aed30dcff5f/find-details/", true)]
-    public void HidesBottomBar_Should_HideItOnlyWhileAddingABookOrImportingItsInfo(string relativePath, bool expected)
+    [InlineData("books/01a10db7-5a64-73bc-91be-9aed30dcff5f/edit", true)]
+    [InlineData("libraries/add", true)]
+    [InlineData("libraries/01a10db7-5a64-73bc-91be-9aed30dcff5f/edit/", true)]
+    [InlineData("libraries/01a10db7-5a64-73bc-91be-9aed30dcff5f", false)]
+    public void HidesBottomBar_Should_HideItOnlyOnFocusedTasks(string relativePath, bool expected)
     {
         NavigationRules.HidesBottomBar(relativePath).Should().Be(expected);
     }

@@ -5,12 +5,13 @@ public static class NavigationRules
 {
     private const string LibrariesPrefix = "libraries/";
 
-    // Adding a book is a focused task: on a phone the bottom bar is hidden so it cannot be left by mistake.
+    // A form is a focused task (#1286): on a phone the bottom bar is hidden so it cannot be left by mistake,
+    // and so it does not cover the Save and Cancel actions kept at the bottom of the screen (FormFooter).
     // The rail and the side bar of a tablet or a desktop stay, they do not take the room of the page.
-    private static readonly string[] s_pathsWithoutBottomBar = ["books/add"];
+    private static readonly string[] s_pathsWithoutBottomBar = ["books/add", "libraries/add"];
 
-    // So is importing a book's info from the web (books/{id}/find-details).
-    private const string FindDetailsSuffix = "/find-details";
+    // Importing a book's info from the web (books/{id}/find-details) and editing a book or a library ({id}/edit).
+    private static readonly string[] s_suffixesWithoutBottomBar = ["/find-details", "/edit"];
 
     public static string StripQueryAndFragment(string relativePath)
     {
@@ -39,7 +40,7 @@ public static class NavigationRules
     {
         var current = StripQueryAndFragment(relativePath);
         return s_pathsWithoutBottomBar.Any(path => IsActive(current, path))
-            || current.TrimEnd('/').EndsWith(FindDetailsSuffix, StringComparison.OrdinalIgnoreCase);
+            || s_suffixesWithoutBottomBar.Any(suffix => current.TrimEnd('/').EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
     }
 
     // The library shown by the current page (its books, its settings), if any.
