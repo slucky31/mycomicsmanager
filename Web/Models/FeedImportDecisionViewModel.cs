@@ -53,7 +53,9 @@ public sealed record FeedImportDecisionViewModel(
     IReadOnlyList<FeedImportCandidateViewModel> Candidates,
     string? ImportPageUrl = null,
     FeedImportDecisionActions? Actions = null,
-    bool CanDelete = false)
+    bool CanDelete = false,
+    // "1fichier.com +2": the host used (else the first one) and how many others the links offer.
+    string? HostDisplay = null)
 #pragma warning restore CA1054, CA1056
 {
     public string CreatedAtDisplay => FormatDate(CreatedAt);
@@ -125,7 +127,23 @@ public sealed record FeedImportDecisionViewModel(
                 decision.ParsedSerie,
                 decision.ParsedTitle,
                 decision.ParsedVolume),
-            CanDelete: decision.CanDelete(DateTime.UtcNow));
+            CanDelete: decision.CanDelete(DateTime.UtcNow),
+            HostDisplay: GetHostDisplay(decision));
+    }
+
+    private static string? GetHostDisplay(FeedImportDecision decision)
+    {
+        var hosts = decision.Hosts;
+        if (hosts.Count == 0)
+        {
+            return null;
+        }
+
+        var chosen = decision.GetCandidates()
+            .SelectMany(c => c.Mirrors)
+            .FirstOrDefault(m => m.Url == decision.ChosenMirror)?.Host.Trim();
+        var shown = hosts.FirstOrDefault(h => string.Equals(h, chosen, StringComparison.OrdinalIgnoreCase)) ?? hosts[0];
+        return hosts.Count == 1 ? shown : string.Create(CultureInfo.InvariantCulture, $"{shown} +{hosts.Count - 1}");
     }
 
     private static string? GetImportPageUrl(FeedImportDecisionStatus status, Guid? importLibraryId)

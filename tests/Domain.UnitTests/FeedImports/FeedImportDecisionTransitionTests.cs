@@ -42,6 +42,18 @@ public class FeedImportDecisionTransitionTests
     }
 
     [Fact]
+    public void RecordLinks_Should_KeepEachHostOfTheLinksOnce_InOrder()
+    {
+        var decision = CreatePending();
+        var other = new DownloadCandidate("Blacksad T04", null, null,
+            [new DownloadMirror("https://1fichier.com/?def", " 1Fichier.com "), new DownloadMirror("https://turbobit.net/x.html", "turbobit.net")]);
+
+        decision.RecordLinks([s_candidate, other], s_parsed, "2 livres", FeedImportDecidedBy.Auto);
+
+        decision.Hosts.Should().Equal("1fichier.com", "rapidgator.net", "turbobit.net");
+    }
+
+    [Fact]
     public void RecordLinks_Should_ReturnBadRequest_WhenNoCandidateOrCandidateWithoutMirror()
     {
         var decision = CreatePending();
@@ -171,6 +183,7 @@ public class FeedImportDecisionTransitionTests
         decision.ErrorMessage.Should().Be("Host not supported: fileq.net.");
         decision.ParsedVolume.Should().Be(3);
         decision.GetCandidates().Should().ContainSingle().Which.Should().BeEquivalentTo(s_candidate);
+        decision.Hosts.Should().Equal("1fichier.com", "rapidgator.net");
     }
 
     [Fact]

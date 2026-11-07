@@ -1,3 +1,4 @@
+using Application.FeedImports.List;
 using AwesomeAssertions;
 using Domain.FeedImports;
 using Web.Models;
@@ -30,6 +31,25 @@ public sealed class FeedImportFiltersTests
     {
         FeedImportStatusCounts.Empty.Chips.Select(c => c.Label).Should().Equal("All", "To decide", "Failed", "Downloaded");
     }
+
+    [Fact]
+    public void HostOptionsFrom_Should_LeaveOutNoLink_WhenEveryDecisionHasALink()
+    {
+        var options = FeedImportHostOptions.From(new FeedImportHostCounts(0, [new FeedImportHostCount("1fichier.com", 2)], 0));
+
+        options.Options.Select(o => (o.Host, o.Label)).Should().Equal(((string?)null, "All hosts"), ("1fichier.com", "1fichier.com · 2"));
+    }
+
+    [Fact]
+    public void HostOptionsEmpty_Should_OfferAllTheHostsOnly() =>
+        FeedImportHostOptions.Empty.Options.Should().Equal(new FeedImportHostOption(null, "All hosts"));
+
+    [Theory]
+    [InlineData(null, "Host: All")]
+    [InlineData(FeedImportConstants.NoHost, "Host: No link")]
+    [InlineData("1fichier.com", "Host: 1fichier.com")]
+    public void HostButtonLabel_Should_NameTheHostChosen(string? host, string expected) =>
+        FeedImportFilters.HostButtonLabel(host).Should().Be(expected);
 
     [Theory]
     [InlineData(FeedImportFilter.All, null)]

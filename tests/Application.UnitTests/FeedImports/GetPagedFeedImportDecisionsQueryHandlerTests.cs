@@ -20,11 +20,12 @@ public class GetPagedFeedImportDecisionsQueryHandlerTests
 
     public static TheoryData<GetPagedFeedImportDecisionsQuery> InvalidQueries => new()
     {
-        new GetPagedFeedImportDecisionsQuery(Guid.Empty, null, null, 1, 20),
-        new GetPagedFeedImportDecisionsQuery(s_userId, null, null, 0, 20),
-        new GetPagedFeedImportDecisionsQuery(s_userId, null, null, 1, 0),
-        new GetPagedFeedImportDecisionsQuery(s_userId, null, null, 1, GetPagedFeedImportDecisionsQueryHandler.MaxPageSize + 1),
-        new GetPagedFeedImportDecisionsQuery(s_userId, (FeedImportDecisionStatus)999, null, 1, 20)
+        new GetPagedFeedImportDecisionsQuery(Guid.Empty, null, null, null, 1, 20),
+        new GetPagedFeedImportDecisionsQuery(s_userId, null, null, null, 0, 20),
+        new GetPagedFeedImportDecisionsQuery(s_userId, null, null, null, 1, 0),
+        new GetPagedFeedImportDecisionsQuery(s_userId, null, null, null, 1, GetPagedFeedImportDecisionsQueryHandler.MaxPageSize + 1),
+        new GetPagedFeedImportDecisionsQuery(s_userId, (FeedImportDecisionStatus)999, null, null, 1, 20),
+        new GetPagedFeedImportDecisionsQuery(s_userId, null, new string('h', FeedImportConstants.MaxHostLength + 1), null, 1, 20)
     };
 
     [Theory]
@@ -35,8 +36,7 @@ public class GetPagedFeedImportDecisionsQueryHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(FeedImportError.BadRequest);
-        await _readService.DidNotReceive().GetPagedAsync(
-            Arg.Any<Guid>(), Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await _readService.DidNotReceive().GetPagedAsync(Arg.Any<Guid>(), Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -45,13 +45,13 @@ public class GetPagedFeedImportDecisionsQueryHandlerTests
         var original = FeedImportDecision.Create(s_userId, 7, "Blacksad - Tomes 1 à 2", "https://planete-bd.org/7", null).Value!;
         var pagedList = Substitute.For<IPagedList<FeedImportDecision>>();
         pagedList.Items.Returns([original, original.CreateSibling(1).Value!]);
-        _readService.GetPagedAsync(s_userId, FeedImportDecisionStatus.Pending, "blacksad", 2, 20, Arg.Any<CancellationToken>())
+        _readService.GetPagedAsync(s_userId, FeedImportDecisionStatus.Pending, "1fichier.com", "blacksad", 2, 20, Arg.Any<CancellationToken>())
             .Returns(pagedList);
         _readService.GetMultiBookEntryIdsAsync(s_userId, Arg.Is<IReadOnlyCollection<long>>(ids => ids.SequenceEqual(new long[] { 7 })), Arg.Any<CancellationToken>())
             .Returns(new HashSet<long> { 7 });
 
         var result = await _handler.Handle(
-            new GetPagedFeedImportDecisionsQuery(s_userId, FeedImportDecisionStatus.Pending, "  blacksad ", 2, 20),
+            new GetPagedFeedImportDecisionsQuery(s_userId, FeedImportDecisionStatus.Pending, " 1fichier.com ", "  blacksad ", 2, 20),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();

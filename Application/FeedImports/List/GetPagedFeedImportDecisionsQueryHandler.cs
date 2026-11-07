@@ -19,13 +19,14 @@ public sealed class GetPagedFeedImportDecisionsQueryHandler(IFeedImportDecisionR
             query.Page < 1 ||
             query.PageSize < 1 ||
             query.PageSize > MaxPageSize ||
-            (query.Status.HasValue && !Enum.IsDefined(query.Status.Value)))
+            (query.Status.HasValue && !Enum.IsDefined(query.Status.Value)) ||
+            query.Host is { Length: > FeedImportConstants.MaxHostLength })
         {
             return FeedImportError.BadRequest;
         }
 
         var decisions = await readService.GetPagedAsync(
-            query.UserId, query.Status, query.SearchTerm?.Trim(), query.Page, query.PageSize, cancellationToken);
+            query.UserId, query.Status, FeedImportHostFilter.Normalize(query.Host), query.SearchTerm?.Trim(), query.Page, query.PageSize, cancellationToken);
 
         var entryIds = (decisions.Items ?? []).Select(d => d.MinifluxEntryId).Distinct().ToList();
         var multiBookEntryIds = await readService.GetMultiBookEntryIdsAsync(query.UserId, entryIds, cancellationToken);
