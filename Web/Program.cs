@@ -358,6 +358,9 @@ app.RegisterAccountEndpoints();
 // Register Books download endpoint
 app.RegisterBooksEndpoints();
 
+// Register the download of a failed import's file
+app.RegisterImportJobsEndpoints();
+
 app.MapAppHealthChecks();
 
 StartupInfo.Print(app.Services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(StartupInfo)));

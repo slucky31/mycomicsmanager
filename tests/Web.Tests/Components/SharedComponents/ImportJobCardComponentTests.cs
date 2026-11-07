@@ -70,6 +70,18 @@ public sealed class ImportJobCardComponentTests : IAsyncDisposable
     }
 
     [Fact]
+    public void Render_Should_OfferTheFileDownload_WhenTheImportFailed()
+    {
+        var job = Job("Failed", "Failed");
+
+        var cut = _ctx.Render<ImportJobCard>(p => p.Add(c => c.Job, job));
+
+        var link = cut.Find("[aria-label='Download the file of this import']");
+        link.GetAttribute("href").Should().Be($"/api/import-jobs/{job.Id}/file");
+        link.HasAttribute("download").Should().BeTrue();
+    }
+
+    [Fact]
     public void Render_Should_OfferOnlyDelete_WhenTheImportCompleted()
     {
         var cut = _ctx.Render<ImportJobCard>(p => p
@@ -81,5 +93,6 @@ public sealed class ImportJobCardComponentTests : IAsyncDisposable
         cut.FindAll("[aria-label='Delete this import']").Should().ContainSingle();
         cut.FindAll("[aria-label='Retry this import']").Should().BeEmpty();
         cut.FindAll("[aria-label='Abandon this import and delete its file']").Should().BeEmpty();
+        cut.FindAll("[aria-label='Download the file of this import']").Should().BeEmpty();
     }
 }

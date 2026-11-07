@@ -25,7 +25,7 @@
         }
     }
 
-    @if (Job.BookHref is not null || HasActions)
+    @if (Job.BookHref is not null || Job.FileHref is not null || HasActions)
     {
         <div class="import-job-actions">
             @if (Job.BookHref is { } href)
@@ -39,6 +39,15 @@
                     <MudIconButton Icon="@Icons.Material.Outlined.Cancel"
                                    OnClick="@(() => OnForceFail.InvokeAsync(Job.Id))"
                                    aria-label="Mark this import as failed" />
+                </MudTooltip>
+            }
+            @if (Job.FileHref is { } fileHref)
+            {
+                <MudTooltip Text="Download the file">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Download"
+                                   Href="@fileHref"
+                                   download
+                                   aria-label="Download the file of this import" />
                 </MudTooltip>
             }
             @if (Job.IsFailed && OnAbandon.HasDelegate)
