@@ -14,12 +14,13 @@ public sealed class LegacyMigrationServiceTests
     private static readonly Guid s_userId = Guid.CreateVersion7();
 
     private readonly ICommandHandler<StartLegacyMigrationCommand, int> _handler = Substitute.For<ICommandHandler<StartLegacyMigrationCommand, int>>();
+    private readonly IQueryHandler<CountLegacyFilesQuery, int> _countHandler = Substitute.For<IQueryHandler<CountLegacyFilesQuery, int>>();
     private readonly ICurrentUserService _currentUserService = Substitute.For<ICurrentUserService>();
     private readonly LegacyMigrationService _service;
 
     public LegacyMigrationServiceTests()
     {
-        _service = new LegacyMigrationService(_handler, _currentUserService);
+        _service = new LegacyMigrationService(_handler, _countHandler, _currentUserService);
     }
 
     [Fact]
@@ -42,5 +43,15 @@ public sealed class LegacyMigrationServiceTests
 
         result.Error.Should().Be(UsersError.NotFound);
         await _handler.DidNotReceive().Handle(Arg.Any<StartLegacyMigrationCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CountRemainingAsync_Should_ReturnTheNumberOfFilesLeftInTheOldLibrary()
+    {
+        _countHandler.Handle(Arg.Any<CountLegacyFilesQuery>(), Arg.Any<CancellationToken>()).Returns(42);
+
+        var result = await _service.CountRemainingAsync(TestContext.Current.CancellationToken);
+
+        result.Value.Should().Be(42);
     }
 }

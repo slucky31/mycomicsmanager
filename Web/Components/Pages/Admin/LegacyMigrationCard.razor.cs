@@ -12,6 +12,33 @@ public partial class LegacyMigrationCard
 
     private int _count = 20;
     private bool _isStarting;
+    private bool _isCounting;
+    private int? _remaining;
+
+    protected override Task OnInitializedAsync() => CountRemainingAsync();
+
+    internal async Task CountRemainingAsync()
+    {
+        _isCounting = true;
+        try
+        {
+            var result = await LegacyMigrationService.CountRemainingAsync();
+            if (result.IsSuccess)
+            {
+                _remaining = result.Value;
+            }
+            else if (result.IsFailure)
+            {
+                _remaining = null;
+                Snackbar.Add(result.Error?.Description ?? "Unable to count the files of the old library.", Severity.Error);
+                Logger.LogError("Settings: files of the old library not counted: {ErrorDescription}", result.Error?.Description);
+            }
+        }
+        finally
+        {
+            _isCounting = false;
+        }
+    }
 
     internal async Task MigrateAsync()
     {
