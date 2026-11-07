@@ -256,6 +256,20 @@
         }
     </div>
 
+    <div class="feeds-host-row">
+        <button type="button" id="@HostFilterButtonId" class="@($"feeds-host{(_host is null ? "" : " active")}")" aria-haspopup="dialog"
+                @onclick="OpenHostSheetAsync">
+            <MudIcon Icon="@Icons.Material.Outlined.Dns" Size="Size.Small" />
+            <span class="feeds-host-label">@FeedImportFilters.HostButtonLabel(_host)</span>
+            <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" />
+        </button>
+        @if (_host is not null)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Class="feeds-host-clear"
+                           OnClick="() => SelectHostAsync(null)" aria-label="Show every host" />
+        }
+    </div>
+
     @if (!FeedImportService.IsSyncEnabled)
     {
         <div class="feeds-note">Miniflux sync is turned off (Settings, Features).</div>
@@ -303,6 +317,10 @@
                             <span class="feed-card-status-line">
                                 <span class="@($"feed-status {decision.StatusCssClass}")">@decision.StatusDisplay</span>
                                 <span class="feed-card-date">@decision.CreatedAtDisplay</span>
+                                @if (decision.HostDisplay is not null)
+                                {
+                                    <span class="feed-card-host">· @decision.HostDisplay</span>
+                                }
                             </span>
                         </button>
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="@($"More actions for {decision.EntryTitle}")"
@@ -372,3 +390,11 @@
         </aside>
     </div>
 </div>
+
+<ActionSheet Open="@_isHostSheetOpen" AriaLabel="Filter by host" Title="Filter by host" Anchor="@_hostSheetAnchor" OnClose="CloseHostSheet">
+    @foreach (var option in _hostOptions.Options)
+    {
+        <ActionSheetItem Icon="@Icons.Material.Outlined.Dns" Text="@option.Label" Selected="@(option.Host == _host)"
+                         OnClick="() => SelectHostAsync(option.Host)" />
+    }
+</ActionSheet>

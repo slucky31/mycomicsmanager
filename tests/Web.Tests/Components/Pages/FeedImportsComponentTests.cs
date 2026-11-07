@@ -1,5 +1,6 @@
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Delete;
+using Application.FeedImports.List;
 using Application.FeedImports.Manage;
 using AwesomeAssertions;
 using Bunit;
@@ -39,6 +40,7 @@ public sealed class FeedImportsComponentTests
         ctx.Services.AddSingleton(service);
         ctx.Services.AddSingleton(snackbar);
         ctx.Services.AddSingleton(new FeedImportNotifier());
+        ctx.Services.AddScoped<PopupAnchorLocator>();
         if (dialogService is not null)
         {
             ctx.Services.AddSingleton(dialogService);
@@ -55,9 +57,11 @@ public sealed class FeedImportsComponentTests
     {
         var service = Substitute.For<IFeedImportService>();
         service.IsSyncEnabled.Returns(syncEnabled);
-        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Blacksad T3", "Largo Winch T20")));
-        service.GetStatusCountsAsync(Arg.Any<CancellationToken>()).Returns(Result<FeedImportStatusCounts>.Success(new FeedImportStatusCounts(15, 1, 14, 0)));
+        service.GetStatusCountsAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>()).Returns(Result<FeedImportStatusCounts>.Success(new FeedImportStatusCounts(15, 1, 14, 0)));
+        service.GetHostOptionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportHostOptions>.Success(FeedImportHostOptions.From(new FeedImportHostCounts(15, [new FeedImportHostCount("1fichier.com", 9)], 6))));
         return service;
     }
 
@@ -73,14 +77,14 @@ public sealed class FeedImportsComponentTests
         cut.Markup.Should().Contain("Largo Winch T20");
         cut.Markup.Should().Contain("Pending");
         cut.Markup.Should().Contain("Sync now");
-        await service.Received().GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>());
+        await service.Received().GetDecisionsAsync(null, null, null, 1, 20, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task LoadServerDataAsync_Should_ShowSnackbarError_WhenLoadFails()
     {
         var service = CreateService();
-        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Failure(new TError("feed:err", "boom")));
 
         var (ctx, cut, snackbar) = await RenderAsync(service);
@@ -104,8 +108,68 @@ public sealed class FeedImportsComponentTests
 
         await cut.FindAll(".feeds-chip").Single(c => c.TextContent.Contains("Failed", StringComparison.Ordinal)).ClickAsync(new());
 
-        await service.Received(1).GetDecisionsAsync(FeedImportDecisionStatus.Failed, null, 1, 20, Arg.Any<CancellationToken>());
+        await service.Received(1).GetDecisionsAsync(FeedImportDecisionStatus.Failed, null, null, 1, 20, Arg.Any<CancellationToken>());
         cut.FindAll(".feeds-chip[aria-pressed='true']").Should().ContainSingle().Which.TextContent.Should().Contain("Failed");
+        // The hosts are counted again in that status.
+        await service.Received(1).GetHostOptionsAsync(FeedImportDecisionStatus.Failed, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SelectHostAsync_Should_ShowTheDecisionsOfTheHostChosen_AndCountThem()
+    {
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+        cut.Find(".feeds-host").TextContent.Should().Contain("Host: All");
+
+        await cut.Find(".feeds-host").ClickAsync(new());
+        cut.FindAll("[role=dialog] .action-sheet-item").Select(i => i.TextContent.Trim()).Should().Equal("All hosts · 15", "1fichier.com · 9", "No link · 6");
+        await cut.Find("[role=dialog] .action-sheet-item:contains('1fichier.com')").ClickAsync(new());
+
+        await service.Received(1).GetDecisionsAsync(null, "1fichier.com", null, 1, 20, Arg.Any<CancellationToken>());
+        await service.Received(1).GetStatusCountsAsync("1fichier.com", Arg.Any<CancellationToken>());
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
+        cut.Find(".feeds-host.active").TextContent.Should().Contain("Host: 1fichier.com");
+
+        await cut.Find("button[aria-label='Show every host']").ClickAsync(new());
+
+        await service.Received(2).GetDecisionsAsync(null, null, null, 1, 20, Arg.Any<CancellationToken>());
+        cut.FindAll(".feeds-host.active").Should().BeEmpty();
+        cut.FindAll("button[aria-label='Show every host']").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SelectHostAsync_Should_ReloadNothing_WhenTheHostIsAlreadyChosen()
+    {
+        var service = CreateService();
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.Find(".feeds-host").ClickAsync(new());
+        await cut.Find("[role=dialog] .action-sheet-item:contains('All hosts')").ClickAsync(new());
+
+        await service.Received(1).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task LoadCountsAsync_Should_ShowSnackbarError_WhenTheHostsCannotBeCounted()
+    {
+        var service = CreateService();
+        service.GetHostOptionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportHostOptions>.Failure(new TError("feed:err", "boom")));
+
+        var (ctx, cut, snackbar) = await RenderAsync(service);
+        await using var _ = ctx;
+
+        await cut.WaitForAssertionAsync(() =>
+            snackbar.Received(1).Add("Unable to count the import decisions.", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
+        await cut.Find(".feeds-host").ClickAsync(new());
+        cut.FindAll("[role=dialog] .action-sheet-item").Select(i => i.TextContent.Trim()).Should().Equal("All hosts");
     }
 
     [Fact]
@@ -143,7 +207,7 @@ public sealed class FeedImportsComponentTests
 
         service.Received(1).TriggerSync();
         snackbar.Received(1).Add(Arg.Is<string>(m => m.StartsWith("Sync started", StringComparison.Ordinal)), Severity.Info, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
-        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -173,7 +237,7 @@ public sealed class FeedImportsComponentTests
     {
         var decision = CreateProbableDuplicate();
         var service = CreateService();
-        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(new FeedImportDecisionPageViewModel([decision], 1)));
         service.ResolveArbitrationAsync(decision.Id, FeedImportArbitrationAction.NotDuplicate, null, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -182,14 +246,15 @@ public sealed class FeedImportsComponentTests
         await using var _ = ctx;
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad - Tome 3"));
         // The arbitration is on the card itself, without opening the detail.
-        cut.Markup.Should().Contain("Not a duplicate").And.NotContain("1fichier.com");
+        cut.Markup.Should().Contain("Not a duplicate");
+        cut.FindAll(".feed-card-detail").Should().BeEmpty();
 
         var button = cut.FindAll("button").First(b => b.TextContent.Contains("Not a duplicate", StringComparison.Ordinal));
         await button.ClickAsync(new());
 
         await service.Received(1).ResolveArbitrationAsync(decision.Id, FeedImportArbitrationAction.NotDuplicate, null, Arg.Any<CancellationToken>());
         snackbar.Received(1).Add("Decision updated.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
-        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -211,7 +276,7 @@ public sealed class FeedImportsComponentTests
     private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImportsPage> Cut, ISnackbar Snackbar)> RenderExpandedAsync(
         IFeedImportService service, FeedImportDecisionViewModel decision)
     {
-        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(new FeedImportDecisionPageViewModel([decision], 1)));
         var (ctx, cut, snackbar) = await RenderAsync(service);
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain(decision.EntryTitle));
@@ -306,7 +371,7 @@ public sealed class FeedImportsComponentTests
 
         await service.Received(1).DeleteAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 1), Arg.Any<CancellationToken>());
         snackbar.Received(1).Add("1 decision(s) deleted.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
-        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -376,7 +441,7 @@ public sealed class FeedImportsComponentTests
 
         await service.Received(1).DeleteDownloadedAsync(Arg.Any<CancellationToken>());
         snackbar.Received(1).Add(message, severity, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
-        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Theory]
@@ -385,7 +450,7 @@ public sealed class FeedImportsComponentTests
     public async Task ClearSuccessfulButton_Should_BeDisabled_WhenNothingIsDownloaded(int downloaded, bool disabled)
     {
         var service = CreateService();
-        service.GetStatusCountsAsync(Arg.Any<CancellationToken>())
+        service.GetStatusCountsAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportStatusCounts>.Success(new FeedImportStatusCounts(15, 1, 11, downloaded)));
 
         var (ctx, cut, _) = await RenderAsync(service);
@@ -435,9 +500,9 @@ public sealed class FeedImportsComponentTests
         var service = CreateService();
         var first = CreatePage("Blacksad T3");
         var second = CreatePage("Largo Winch T20");
-        service.GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(null, null, null, 1, 20, Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(first with { TotalCount = 2 }));
-        service.GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(null, null, null, 2, 20, Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(second with { TotalCount = 2 }));
 
         var (ctx, cut, _) = await RenderAsync(service);
@@ -455,9 +520,9 @@ public sealed class FeedImportsComponentTests
     {
         var service = CreateService();
         var nextPage = new TaskCompletionSource<Result<FeedImportDecisionPageViewModel>>();
-        service.GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(null, null, null, 1, 20, Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Blacksad T3") with { TotalCount = 2 }));
-        service.GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>()).Returns(nextPage.Task);
+        service.GetDecisionsAsync(null, null, null, 2, 20, Arg.Any<CancellationToken>()).Returns(nextPage.Task);
 
         var (ctx, cut, _) = await RenderAsync(service);
         try
@@ -470,7 +535,7 @@ public sealed class FeedImportsComponentTests
             nextPage.SetResult(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Largo Winch T20") with { TotalCount = 2 }));
             await loading;
 
-            await service.Received(1).GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>());
+            await service.Received(1).GetDecisionsAsync(null, null, null, 2, 20, Arg.Any<CancellationToken>());
             await cut.WaitForAssertionAsync(() => cut.FindAll(".feed-card-title").Should().HaveCount(2));
         }
         finally
@@ -484,10 +549,10 @@ public sealed class FeedImportsComponentTests
     {
         var service = CreateService();
         var refreshed = CreateFullPage("Tome", 20);
-        service.GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>()).Returns(
+        service.GetDecisionsAsync(null, null, null, 1, 20, Arg.Any<CancellationToken>()).Returns(
             Result<FeedImportDecisionPageViewModel>.Success(CreateFullPage("Tome", 21)),
             Result<FeedImportDecisionPageViewModel>.Success(refreshed));
-        service.GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(null, null, null, 2, 20, Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Largo Winch T20") with { TotalCount = 21 }));
         service.DeleteAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
 
@@ -501,8 +566,8 @@ public sealed class FeedImportsComponentTests
 
         // The page after the first one is not asked again: the 20 decisions left fit in it.
         await cut.WaitForAssertionAsync(() => cut.FindAll(".feed-card-title").Should().HaveCount(20));
-        await service.Received(2).GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>());
-        await service.Received(1).GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>());
+        await service.Received(2).GetDecisionsAsync(null, null, null, 1, 20, Arg.Any<CancellationToken>());
+        await service.Received(1).GetDecisionsAsync(null, null, null, 2, 20, Arg.Any<CancellationToken>());
         cut.FindComponents<InfiniteScrollSentinel>().Should().BeEmpty();
     }
 
@@ -510,7 +575,7 @@ public sealed class FeedImportsComponentTests
     public async Task ApplyActionAsync_Should_KeepTheDecisionsShownAndShowAnError_WhenTheReloadFails()
     {
         var service = CreateService();
-        service.GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>()).Returns(
+        service.GetDecisionsAsync(null, null, null, 1, 20, Arg.Any<CancellationToken>()).Returns(
             Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Blacksad T3", "Largo Winch T20")),
             Result<FeedImportDecisionPageViewModel>.Failure(new TError("feed:err", "boom")));
         service.ApplyActionAsync(Arg.Any<Guid>(), FeedImportDecisionAction.Ignore, Arg.Any<CancellationToken>()).Returns(Result.Success());
@@ -529,7 +594,7 @@ public sealed class FeedImportsComponentTests
     public async Task LoadCountsAsync_Should_ShowSnackbarError_WhenCountFails()
     {
         var service = CreateService();
-        service.GetStatusCountsAsync(Arg.Any<CancellationToken>()).Returns(Result<FeedImportStatusCounts>.Failure(new TError("feed:err", "boom")));
+        service.GetStatusCountsAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>()).Returns(Result<FeedImportStatusCounts>.Failure(new TError("feed:err", "boom")));
 
         var (ctx, cut, snackbar) = await RenderAsync(service);
         await using var _ = ctx;
@@ -544,17 +609,17 @@ public sealed class FeedImportsComponentTests
     {
         var service = CreateService();
         var pendingPage = new TaskCompletionSource<Result<FeedImportDecisionPageViewModel>>();
-        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(pendingPage.Task);
 
         var (ctx, cut, _) = await RenderAsync(service);
         await using var _ = ctx;
 
-        await service.DidNotReceive().GetStatusCountsAsync(Arg.Any<CancellationToken>());
+        await service.DidNotReceive().GetStatusCountsAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>());
 
         await cut.InvokeAsync(() => pendingPage.SetResult(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Blacksad T3"))));
 
-        await cut.WaitForAssertionAsync(() => service.Received(1).GetStatusCountsAsync(Arg.Any<CancellationToken>()));
+        await cut.WaitForAssertionAsync(() => service.Received(1).GetStatusCountsAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>()));
         cut.Markup.Should().Contain("Blacksad T3");
     }
 
@@ -572,7 +637,7 @@ public sealed class FeedImportsComponentTests
         await cut.Find(".feeds-search.open input").InputAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = "  largo " });
 
         await cut.WaitForAssertionAsync(async () =>
-            await service.Received(1).GetDecisionsAsync(null, "largo", 1, 20, Arg.Any<CancellationToken>()), TimeSpan.FromSeconds(3));
+            await service.Received(1).GetDecisionsAsync(null, null, "largo", 1, 20, Arg.Any<CancellationToken>()), TimeSpan.FromSeconds(3));
     }
 
     [Fact]
@@ -594,7 +659,7 @@ public sealed class FeedImportsComponentTests
     public async Task SelectFilterAsync_Should_CloseTheDetail_WhenTheDecisionIsNoLongerListed()
     {
         var service = CreateService();
-        service.GetDecisionsAsync(FeedImportDecisionStatus.Failed, Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(FeedImportDecisionStatus.Failed, Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Thorgal T1")));
 
         var (ctx, cut, _) = await RenderAsync(service);
@@ -609,7 +674,7 @@ public sealed class FeedImportsComponentTests
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Thorgal T1"));
         cut.FindAll(".feeds-panel .feed-detail").Should().BeEmpty();
         cut.Markup.Should().Contain("Select an article to see its details.");
-        await service.Received(1).GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>());
+        await service.Received(1).GetDecisionsAsync(null, null, null, 1, 20, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -679,7 +744,7 @@ public sealed class FeedImportsComponentTests
         var decision = FeedImportDecisionViewModel.From(entry);
         var service = CreateService();
         service.ResolveArbitrationAsync(decision.Id, Arg.Any<FeedImportArbitrationAction>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
-        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPageViewModel>.Success(new FeedImportDecisionPageViewModel([decision], 1)));
 
         var (ctx, cut, _) = await RenderAsync(service);

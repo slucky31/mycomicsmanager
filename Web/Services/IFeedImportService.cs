@@ -13,6 +13,7 @@ public interface IFeedImportService
 
     Task<Result<FeedImportDecisionPageViewModel>> GetDecisionsAsync(
         FeedImportDecisionStatus? status,
+        string? host,
         string? searchTerm,
         int page,
         int pageSize,
@@ -39,6 +40,9 @@ public interface IFeedImportService
 
     Task<int> CountAwaitingArbitrationAsync(CancellationToken cancellationToken = default);
 
-    // The counts shown on the status filters of the Feeds page.
-    Task<Result<FeedImportStatusCounts>> GetStatusCountsAsync(CancellationToken cancellationToken = default);
+    // The counts shown on the status filters of the Feeds page, on the host chosen.
+    Task<Result<FeedImportStatusCounts>> GetStatusCountsAsync(string? host, CancellationToken cancellationToken = default);
+
+    // The hosts offered by the host filter of the Feeds page, counted in the status chosen.
+    Task<Result<FeedImportHostOptions>> GetHostOptionsAsync(FeedImportDecisionStatus? status, CancellationToken cancellationToken = default);
 }

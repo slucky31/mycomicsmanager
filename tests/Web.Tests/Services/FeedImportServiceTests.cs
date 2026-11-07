@@ -65,7 +65,7 @@ public sealed class FeedImportServiceTests
     {
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
 
-        var result = await _service.GetDecisionsAsync(null, null, 1, 20, TestContext.Current.CancellationToken);
+        var result = await _service.GetDecisionsAsync(null, null, null, 1, 20, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UsersError.NotFound);
@@ -80,10 +80,10 @@ public sealed class FeedImportServiceTests
         var pagedList = Substitute.For<IPagedList<FeedImportDecision>>();
         pagedList.Items.Returns([multiBook, singleBook]);
         pagedList.TotalCount.Returns(41);
-        _handler.Handle(new GetPagedFeedImportDecisionsQuery(s_userId, FeedImportDecisionStatus.Pending, "black", 3, 20), Arg.Any<CancellationToken>())
+        _handler.Handle(new GetPagedFeedImportDecisionsQuery(s_userId, FeedImportDecisionStatus.Pending, null, "black", 3, 20), Arg.Any<CancellationToken>())
             .Returns(Result<FeedImportDecisionPage>.Success(new FeedImportDecisionPage(pagedList, new HashSet<long> { 1 })));
 
-        var result = await _service.GetDecisionsAsync(FeedImportDecisionStatus.Pending, "black", 3, 20, TestContext.Current.CancellationToken);
+        var result = await _service.GetDecisionsAsync(FeedImportDecisionStatus.Pending, null, "black", 3, 20, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.TotalCount.Should().Be(41);
@@ -109,7 +109,7 @@ public sealed class FeedImportServiceTests
         var library = Library.Create("À trier", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Digital, s_userId).Value!;
         _libraryReadService.GetByNameAsync(LibraryConstants.ImportedName, s_userId, Arg.Any<CancellationToken>()).Returns(library);
 
-        var result = await _service.GetDecisionsAsync(null, null, 1, 20, TestContext.Current.CancellationToken);
+        var result = await _service.GetDecisionsAsync(null, null, null, 1, 20, TestContext.Current.CancellationToken);
 
         result.Value!.Items.Should().ContainSingle().Which.ImportPageUrl.Should().Be($"/import?libraryId={library.Id}");
     }
@@ -290,13 +290,13 @@ public sealed class FeedImportServiceTests
     [Fact]
     public async Task GetStatusCountsAsync_Should_CountTheDecisionsOfTheCurrentUser()
     {
-        _decisionReadService.CountPerStatusAsync(s_userId, Arg.Any<CancellationToken>()).Returns(new Dictionary<FeedImportDecisionStatus, int>
+        _decisionReadService.CountPerStatusAsync(s_userId, "1fichier.com", Arg.Any<CancellationToken>()).Returns(new Dictionary<FeedImportDecisionStatus, int>
         {
             [FeedImportDecisionStatus.Failed] = 2,
             [FeedImportDecisionStatus.Downloaded] = 1,
         });
 
-        var result = await _service.GetStatusCountsAsync(TestContext.Current.CancellationToken);
+        var result = await _service.GetStatusCountsAsync(" 1fichier.com ", TestContext.Current.CancellationToken);
 
         result.Value.Should().Be(new FeedImportStatusCounts(3, 0, 2, 1));
     }
@@ -306,10 +306,32 @@ public sealed class FeedImportServiceTests
     {
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
 
-        var result = await _service.GetStatusCountsAsync(TestContext.Current.CancellationToken);
+        var result = await _service.GetStatusCountsAsync(null, TestContext.Current.CancellationToken);
 
         result.Error.Should().Be(UsersError.NotFound);
-        await _decisionReadService.DidNotReceive().CountPerStatusAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await _decisionReadService.DidNotReceive().CountPerStatusAsync(Arg.Any<Guid>(), Arg.Any<string?>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetHostOptionsAsync_Should_CountTheDecisionsOfEachHost_InTheStatusChosen()
+    {
+        _decisionReadService.CountPerHostAsync(s_userId, FeedImportDecisionStatus.Failed, Arg.Any<CancellationToken>())
+            .Returns(new FeedImportHostCounts(5, [new FeedImportHostCount("1fichier.com", 3)], 2));
+
+        var result = await _service.GetHostOptionsAsync(FeedImportDecisionStatus.Failed, TestContext.Current.CancellationToken);
+
+        result.Value!.Options.Select(o => o.Label).Should().Equal("All hosts · 5", "1fichier.com · 3", "No link · 2");
+    }
+
+    [Fact]
+    public async Task GetHostOptionsAsync_Should_ReturnError_WhenUserNotResolved()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+
+        var result = await _service.GetHostOptionsAsync(null, TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(UsersError.NotFound);
+        await _decisionReadService.DidNotReceiveWithAnyArgs().CountPerHostAsync(default, default, TestContext.Current.CancellationToken);
     }
 
     [Fact]

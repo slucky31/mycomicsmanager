@@ -28,8 +28,8 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
         await SeedAsync(Guid.CreateVersion7(), "Other user");
 
         // Act
-        var page1 = await FeedImportDecisionReadService.GetPagedAsync(userId, null, null, 1, 3, TestContext.Current.CancellationToken);
-        var page2 = await FeedImportDecisionReadService.GetPagedAsync(userId, null, null, 2, 3, TestContext.Current.CancellationToken);
+        var page1 = await FeedImportDecisionReadService.GetPagedAsync(userId, null, null, null, 1, 3, TestContext.Current.CancellationToken);
+        var page2 = await FeedImportDecisionReadService.GetPagedAsync(userId, null, null, null, 2, 3, TestContext.Current.CancellationToken);
 
         // Assert
         page1.TotalCount.Should().Be(5);
@@ -48,10 +48,10 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
         await SeedAsync(userId, "Blacksad - Tome 3", "Astérix 100%", "Largo Winch");
 
         // Act
-        var byTitle = await FeedImportDecisionReadService.GetPagedAsync(userId, null, "blacksad", 1, 10, TestContext.Current.CancellationToken);
-        var byLikeChar = await FeedImportDecisionReadService.GetPagedAsync(userId, null, "%", 1, 10, TestContext.Current.CancellationToken);
-        var byOtherStatus = await FeedImportDecisionReadService.GetPagedAsync(userId, FeedImportDecisionStatus.Failed, null, 1, 10, TestContext.Current.CancellationToken);
-        var byPending = await FeedImportDecisionReadService.GetPagedAsync(userId, FeedImportDecisionStatus.Pending, null, 1, 10, TestContext.Current.CancellationToken);
+        var byTitle = await FeedImportDecisionReadService.GetPagedAsync(userId, null, null, "blacksad", 1, 10, TestContext.Current.CancellationToken);
+        var byLikeChar = await FeedImportDecisionReadService.GetPagedAsync(userId, null, null, "%", 1, 10, TestContext.Current.CancellationToken);
+        var byOtherStatus = await FeedImportDecisionReadService.GetPagedAsync(userId, FeedImportDecisionStatus.Failed, null, null, 1, 10, TestContext.Current.CancellationToken);
+        var byPending = await FeedImportDecisionReadService.GetPagedAsync(userId, FeedImportDecisionStatus.Pending, null, null, 1, 10, TestContext.Current.CancellationToken);
 
         // Assert
         byTitle.Items.Should().ContainSingle().Which.EntryTitle.Should().Be("Blacksad - Tome 3");
@@ -73,7 +73,7 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
         await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var page = await FeedImportDecisionReadService.GetPagedAsync(userId, null, null, 1, 10, TestContext.Current.CancellationToken);
+        var page = await FeedImportDecisionReadService.GetPagedAsync(userId, null, null, null, 1, 10, TestContext.Current.CancellationToken);
         var multiBook = await FeedImportDecisionReadService.GetMultiBookEntryIdsAsync(
             userId, page.Items!.Select(d => d.MinifluxEntryId).ToList(), TestContext.Current.CancellationToken);
 
@@ -114,7 +114,7 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
         await SeedAsync(Guid.CreateVersion7(), "Other user");
 
         // Act
-        var counts = await FeedImportDecisionReadService.CountPerStatusAsync(userId, TestContext.Current.CancellationToken);
+        var counts = await FeedImportDecisionReadService.CountPerStatusAsync(userId, null, TestContext.Current.CancellationToken);
 
         // Assert
         counts.Should().BeEquivalentTo(new Dictionary<FeedImportDecisionStatus, int>
@@ -122,5 +122,77 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
             [FeedImportDecisionStatus.Failed] = 1,
             [FeedImportDecisionStatus.Pending] = 2,
         });
+    }
+
+    private static readonly ParsedComicTitle s_parsed = new("Blacksad", null, 1);
+
+    private static DownloadCandidate Candidate(params string[] hosts) =>
+        new("Blacksad T01", null, null, [.. hosts.Select(h => new DownloadMirror($"https://{h}/file", h))]);
+
+    // A: 1fichier + rapidgator, B: turbobit (failed), C: no link.
+    private async Task<List<FeedImportDecision>> SeedWithHostsAsync(Guid userId)
+    {
+        var decisions = await SeedAsync(userId, "A", "B", "C");
+        decisions[0].RecordLinks([Candidate("1fichier.com", "rapidgator.net")], s_parsed, "Links found", FeedImportDecidedBy.Auto);
+        decisions[1].FailWithLinks([Candidate("turbobit.net")], s_parsed, "Link extraction", "Host not supported");
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await SeedAsync(Guid.CreateVersion7(), "Other user");
+        return decisions;
+    }
+
+    [Fact]
+    public async Task GetPagedAsync_Should_ShowTheDecisionsOfAHost_OrThoseWithoutLink()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        await SeedWithHostsAsync(userId);
+
+        // Act
+        var onRapidgator = await FeedImportDecisionReadService.GetPagedAsync(userId, null, "rapidgator.net", null, 1, 10, TestContext.Current.CancellationToken);
+        var withoutLink = await FeedImportDecisionReadService.GetPagedAsync(userId, null, FeedImportConstants.NoHost, null, 1, 10, TestContext.Current.CancellationToken);
+        var failedOnTurbobit = await FeedImportDecisionReadService.GetPagedAsync(
+            userId, FeedImportDecisionStatus.Failed, "turbobit.net", null, 1, 10, TestContext.Current.CancellationToken);
+
+        // Assert
+        onRapidgator.Items!.Select(d => d.EntryTitle).Should().Equal("A");
+        onRapidgator.Items!.First().Hosts.Should().Equal("1fichier.com", "rapidgator.net");
+        withoutLink.Items!.Select(d => d.EntryTitle).Should().Equal("C");
+        failedOnTurbobit.Items!.Select(d => d.EntryTitle).Should().Equal("B");
+    }
+
+    [Fact]
+    public async Task CountPerHostAsync_Should_CountTheDecisionsOfEachHost_InTheStatusGiven()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        await SeedWithHostsAsync(userId);
+
+        // Act
+        var all = await FeedImportDecisionReadService.CountPerHostAsync(userId, null, TestContext.Current.CancellationToken);
+        var failed = await FeedImportDecisionReadService.CountPerHostAsync(userId, FeedImportDecisionStatus.Failed, TestContext.Current.CancellationToken);
+
+        // Assert
+        all.All.Should().Be(3);
+        all.NoHost.Should().Be(1);
+        all.Hosts.Select(h => (h.Host, h.Count)).Should().Equal(("1fichier.com", 1), ("rapidgator.net", 1), ("turbobit.net", 1));
+        failed.All.Should().Be(1);
+        failed.NoHost.Should().Be(0);
+        failed.Hosts.Select(h => (h.Host, h.Count)).Should().Equal(("turbobit.net", 1));
+    }
+
+    [Fact]
+    public async Task CountPerStatusAsync_Should_CountTheDecisionsOfTheHostGiven()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        await SeedWithHostsAsync(userId);
+
+        // Act
+        var onTurbobit = await FeedImportDecisionReadService.CountPerStatusAsync(userId, "turbobit.net", TestContext.Current.CancellationToken);
+        var withoutLink = await FeedImportDecisionReadService.CountPerStatusAsync(userId, FeedImportConstants.NoHost, TestContext.Current.CancellationToken);
+
+        // Assert
+        onTurbobit.Should().BeEquivalentTo(new Dictionary<FeedImportDecisionStatus, int> { [FeedImportDecisionStatus.Failed] = 1 });
+        withoutLink.Should().BeEquivalentTo(new Dictionary<FeedImportDecisionStatus, int> { [FeedImportDecisionStatus.Pending] = 1 });
     }
 }

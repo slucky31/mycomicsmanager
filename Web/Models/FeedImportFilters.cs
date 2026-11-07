@@ -1,3 +1,4 @@
+using Application.FeedImports.List;
 using Domain.FeedImports;
 
 namespace Web.Models;
@@ -41,8 +42,44 @@ public sealed record FeedImportStatusCounts(int All, int ToDecide, int Failed, i
         new(filter, count > 0 ? $"{FeedImportFilters.Name(filter)} · {count}" : FeedImportFilters.Name(filter));
 }
 
+// One line of the host filter: a host, the decisions without link (FeedImportConstants.NoHost) or all of them (null).
+public sealed record FeedImportHostOption(string? Host, string Label);
+
+public sealed record FeedImportHostOptions(IReadOnlyList<FeedImportHostOption> Options)
+{
+    public static FeedImportHostOptions Empty { get; } = new([new FeedImportHostOption(null, FeedImportFilters.HostName(null))]);
+
+    // "All hosts · 38", then the hosts, most decisions first, then "No link · 4" when some have none.
+    public static FeedImportHostOptions From(FeedImportHostCounts counts)
+    {
+        ArgumentNullException.ThrowIfNull(counts);
+
+        List<FeedImportHostOption> options = [Option(null, counts.All)];
+        options.AddRange(counts.Hosts.Select(h => Option(h.Host, h.Count)));
+        if (counts.NoHost > 0)
+        {
+            options.Add(Option(FeedImportConstants.NoHost, counts.NoHost));
+        }
+
+        return new FeedImportHostOptions(options);
+    }
+
+    private static FeedImportHostOption Option(string? host, int count) =>
+        new(host, count > 0 ? $"{FeedImportFilters.HostName(host)} · {count}" : FeedImportFilters.HostName(host));
+}
+
 public static class FeedImportFilters
 {
+    public static string HostName(string? host) => host switch
+    {
+        null => "All hosts",
+        FeedImportConstants.NoHost => "No link",
+        _ => host,
+    };
+
+    // The button of the host filter.
+    public static string HostButtonLabel(string? host) => host is null ? "Host: All" : $"Host: {HostName(host)}";
+
     public static string Name(FeedImportFilter filter) => filter switch
     {
         FeedImportFilter.ToDecide => "To decide",

@@ -30,6 +30,7 @@ public class FeedImportService(
 
     public async Task<Result<FeedImportDecisionPageViewModel>> GetDecisionsAsync(
         FeedImportDecisionStatus? status,
+        string? host,
         string? searchTerm,
         int page,
         int pageSize,
@@ -41,7 +42,7 @@ public class FeedImportService(
             return userIdResult.Error!;
         }
 
-        var query = new GetPagedFeedImportDecisionsQuery(userIdResult.Value, status, searchTerm, page, pageSize);
+        var query = new GetPagedFeedImportDecisionsQuery(userIdResult.Value, status, host, searchTerm, page, pageSize);
         var result = await handlers.GetDecisions.Handle(query, cancellationToken);
         if (result.IsFailure)
         {
@@ -174,7 +175,7 @@ public class FeedImportService(
             : await decisionReadService.CountByStatusAsync(userIdResult.Value, FeedImportDecisionStatus.AwaitingArbitration, cancellationToken);
     }
 
-    public async Task<Result<FeedImportStatusCounts>> GetStatusCountsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<FeedImportStatusCounts>> GetStatusCountsAsync(string? host, CancellationToken cancellationToken = default)
     {
         var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)
@@ -182,8 +183,20 @@ public class FeedImportService(
             return userIdResult.Error!;
         }
 
-        var counts = await decisionReadService.CountPerStatusAsync(userIdResult.Value, cancellationToken);
+        var counts = await decisionReadService.CountPerStatusAsync(userIdResult.Value, FeedImportHostFilter.Normalize(host), cancellationToken);
         return FeedImportStatusCounts.From(counts);
+    }
+
+    public async Task<Result<FeedImportHostOptions>> GetHostOptionsAsync(FeedImportDecisionStatus? status, CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var counts = await decisionReadService.CountPerHostAsync(userIdResult.Value, status, cancellationToken);
+        return FeedImportHostOptions.From(counts);
     }
 
     private Result StartNextStep(Guid decisionId, Result<FeedImportDecisionStatus> result)

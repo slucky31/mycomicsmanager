@@ -1,3 +1,4 @@
+using Application.FeedImports.List;
 using Domain.FeedImports;
 
 namespace Application.Interfaces;
@@ -7,6 +8,7 @@ public interface IFeedImportDecisionReadService
     Task<IPagedList<FeedImportDecision>> GetPagedAsync(
         Guid userId,
         FeedImportDecisionStatus? status,
+        string? host,
         string? searchTerm,
         int page,
         int pageSize,
@@ -20,6 +22,9 @@ public interface IFeedImportDecisionReadService
 
     Task<int> CountByStatusAsync(Guid userId, FeedImportDecisionStatus status, CancellationToken cancellationToken = default);
 
-    // The number of decisions of the user in each status; a status without decision is left out.
-    Task<IReadOnlyDictionary<FeedImportDecisionStatus, int>> CountPerStatusAsync(Guid userId, CancellationToken cancellationToken = default);
+    // The number of decisions of the user in each status, on a host when one is given; a status without decision is left out.
+    Task<IReadOnlyDictionary<FeedImportDecisionStatus, int>> CountPerStatusAsync(Guid userId, string? host, CancellationToken cancellationToken = default);
+
+    // The number of decisions of the user on each host, in a status when one is given.
+    Task<FeedImportHostCounts> CountPerHostAsync(Guid userId, FeedImportDecisionStatus? status, CancellationToken cancellationToken = default);
 }

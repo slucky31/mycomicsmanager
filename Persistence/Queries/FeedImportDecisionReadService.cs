@@ -1,3 +1,4 @@
+using Application.FeedImports.List;
 using Application.Interfaces;
 using Domain.FeedImports;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ public class FeedImportDecisionReadService(ApplicationDbContext context) : IFeed
     public async Task<IPagedList<FeedImportDecision>> GetPagedAsync(
         Guid userId,
         FeedImportDecisionStatus? status,
+        string? host,
         string? searchTerm,
         int page,
         int pageSize,
@@ -21,6 +23,7 @@ public class FeedImportDecisionReadService(ApplicationDbContext context) : IFeed
             .AsSplitQuery()
             .Where(d => d.UserId == userId);
 
+        query = OnHost(query, host);
         if (status.HasValue)
         {
             query = query.Where(d => d.Status == status.Value);
@@ -69,11 +72,36 @@ public class FeedImportDecisionReadService(ApplicationDbContext context) : IFeed
             .AsNoTracking()
             .CountAsync(d => d.UserId == userId && d.Status == status, cancellationToken);
 
-    public async Task<IReadOnlyDictionary<FeedImportDecisionStatus, int>> CountPerStatusAsync(Guid userId, CancellationToken cancellationToken = default)
-        => await context.FeedImportDecisions
-            .AsNoTracking()
-            .Where(d => d.UserId == userId)
+    public async Task<IReadOnlyDictionary<FeedImportDecisionStatus, int>> CountPerStatusAsync(Guid userId, string? host, CancellationToken cancellationToken = default)
+        => await OnHost(context.FeedImportDecisions.AsNoTracking().Where(d => d.UserId == userId), host)
             .GroupBy(d => d.Status)
             .Select(g => new { Status = g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.Status, g => g.Count, cancellationToken);
+
+    public async Task<FeedImportHostCounts> CountPerHostAsync(Guid userId, FeedImportDecisionStatus? status, CancellationToken cancellationToken = default)
+    {
+        var decisions = context.FeedImportDecisions.AsNoTracking().Where(d => d.UserId == userId);
+        if (status.HasValue)
+        {
+            decisions = decisions.Where(d => d.Status == status.Value);
+        }
+
+        var hosts = await decisions
+            .SelectMany(d => d.Hosts)
+            .GroupBy(h => h)
+            .Select(g => new FeedImportHostCount(g.Key, g.Count()))
+            .ToListAsync(cancellationToken);
+        var noHost = await decisions.CountAsync(d => d.Hosts.Count == 0, cancellationToken);
+        var all = await decisions.CountAsync(cancellationToken);
+
+        return new FeedImportHostCounts(all, [.. hosts.OrderByDescending(h => h.Count).ThenBy(h => h.Host, StringComparer.Ordinal)], noHost);
+    }
+
+    // A host of the links, or the decisions without link (FeedImportConstants.NoHost); all of them without a host.
+    private static IQueryable<FeedImportDecision> OnHost(IQueryable<FeedImportDecision> query, string? host) => host switch
+    {
+        null => query,
+        FeedImportConstants.NoHost => query.Where(d => d.Hosts.Count == 0),
+        _ => query.Where(d => d.Hosts.Contains(host)),
+    };
 }

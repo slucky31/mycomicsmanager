@@ -33,6 +33,52 @@ public sealed class FeedImportDecisionViewModelTests
         evt.Description.Should().Be(FeedImportDecision.CreatedReason);
     }
 
+    private static readonly DownloadCandidate s_threeHosts = new("Blacksad T3", null, null,
+    [
+        new DownloadMirror("https://1fichier.com/?abc", "1fichier.com"),
+        new DownloadMirror("https://turbobit.net/abc.html", "turbobit.net"),
+        new DownloadMirror("https://rapidgator.net/file/abc", "rapidgator.net"),
+    ]);
+
+    private static FeedImportDecision WithLinks(params DownloadCandidate[] candidates)
+    {
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 12, "Blacksad T3", "https://planete-bd.org/12", null).Value!;
+        decision.RecordLinks(candidates, new ParsedComicTitle("Blacksad", null, 3), "Links found", FeedImportDecidedBy.Auto);
+        return decision;
+    }
+
+    [Fact]
+    public void HostDisplay_Should_BeEmpty_WhenTheDecisionHasNoLink()
+    {
+        var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 12, "Blacksad T3", "https://planete-bd.org/12", null).Value!;
+
+        FeedImportDecisionViewModel.From(decision).HostDisplay.Should().BeNull();
+    }
+
+    [Fact]
+    public void HostDisplay_Should_ShowTheHost_WhenTheLinksHaveOnlyOne()
+    {
+        var decision = WithLinks(s_threeHosts with { Mirrors = [s_threeHosts.Mirrors[1]] });
+
+        FeedImportDecisionViewModel.From(decision).HostDisplay.Should().Be("turbobit.net");
+    }
+
+    [Fact]
+    public void HostDisplay_Should_ShowTheFirstHostAndHowManyOthers_BeforeTheDownload()
+    {
+        FeedImportDecisionViewModel.From(WithLinks(s_threeHosts)).HostDisplay.Should().Be("1fichier.com +2");
+    }
+
+    [Fact]
+    public void HostDisplay_Should_ShowTheHostUsed_WhenTheFileWasDownloaded()
+    {
+        var decision = WithLinks(s_threeHosts);
+        decision.StartDownload();
+        decision.MarkDownloaded("https://turbobit.net/abc.html", Guid.CreateVersion7(), "Imported");
+
+        FeedImportDecisionViewModel.From(decision).HostDisplay.Should().Be("turbobit.net +2");
+    }
+
     [Fact]
     public void SummaryDisplay_Should_ShowTheError_WhenDecisionFailed()
     {

@@ -11,6 +11,7 @@ namespace Web.Components.Pages;
 public partial class FeedImportsPage : IAsyncDisposable
 {
     private const int PageSize = 20;
+    private const string HostFilterButtonId = "feeds-host-filter";
 
     // Under the h2 of the side panel the sections are level 3; inline, the title of the card is a button, not a heading.
     private static int SectionLevel(bool inPanel) => inPanel ? 3 : 2;
@@ -20,17 +21,23 @@ public partial class FeedImportsPage : IAsyncDisposable
     [Inject] private FeedImportNotifier Notifier { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ILogger<FeedImportsPage> Logger { get; set; } = default!;
+    [Inject] private PopupAnchorLocator PopupAnchorLocator { get; set; } = default!;
 
     private readonly CancellationTokenSource _disposeCts = new();
     private FeedImportFilter _filter = FeedImportFilter.All;
     private string? _searchTerm;
+    // The host of the links shown (FeedImportConstants.NoHost: the decisions without link); all of them when null.
+    private string? _host;
+    private FeedImportHostOptions _hostOptions = FeedImportHostOptions.Empty;
+    private bool _isHostSheetOpen;
+    private PopupAnchor? _hostSheetAnchor;
     private bool _showSearch;
     private bool _isSyncRequested;
     private Guid? _busyDecisionId;
     private CorrectionForm? _correction;
     private bool _isDeleting;
 
-    // The decisions loaded so far (pages appended by "Show more"), in the order of the query.
+    // The decisions loaded so far (pages appended by the infinite scroll), in the order of the query.
     private readonly List<FeedImportDecisionViewModel> _items = [];
     private int _totalCount;
     private int _page;
@@ -75,6 +82,7 @@ public partial class FeedImportsPage : IAsyncDisposable
         // A reload of the list makes any load still running for the previous filters stale.
         var version = firstPage == 1 ? ++_loadVersion : _loadVersion;
         var status = FeedImportFilters.StatusOf(_filter);
+        var host = _host;
         var searchTerm = _searchTerm;
         var pages = new List<FeedImportDecisionPageViewModel>();
 
@@ -83,9 +91,9 @@ public partial class FeedImportsPage : IAsyncDisposable
         {
             for (var page = firstPage; page <= lastPage; page++)
             {
-                var result = await FeedImportService.GetDecisionsAsync(status, searchTerm, page, PageSize, _disposeCts.Token);
+                var result = await FeedImportService.GetDecisionsAsync(status, host, searchTerm, page, PageSize, _disposeCts.Token);
 
-                if (version != _loadVersion || status != FeedImportFilters.StatusOf(_filter) || searchTerm != _searchTerm)
+                if (version != _loadVersion || status != FeedImportFilters.StatusOf(_filter) || host != _host || searchTerm != _searchTerm)
                 {
                     return;
                 }
@@ -145,18 +153,43 @@ public partial class FeedImportsPage : IAsyncDisposable
         }
     }
 
+    // The counts of the status chips follow the host chosen, those of the hosts the status chosen.
     private async Task LoadCountsAsync()
     {
-        var result = await FeedImportService.GetStatusCountsAsync(_disposeCts.Token);
+        await LoadStatusCountsAsync();
+        await LoadHostOptionsAsync();
+    }
+
+    private async Task LoadStatusCountsAsync()
+    {
+        var result = await FeedImportService.GetStatusCountsAsync(_host, _disposeCts.Token);
         if (result.IsSuccess)
         {
             _counts = result.Value!;
         }
         else if (result.IsFailure)
         {
-            Snackbar.Add("Unable to count the import decisions.", Severity.Error);
-            Logger.LogError("FeedImports: failed to count decisions: {ErrorDescription}", result.Error!.Description);
+            ShowCountError(result.Error!);
         }
+    }
+
+    private async Task LoadHostOptionsAsync()
+    {
+        var result = await FeedImportService.GetHostOptionsAsync(FeedImportFilters.StatusOf(_filter), _disposeCts.Token);
+        if (result.IsSuccess)
+        {
+            _hostOptions = result.Value!;
+        }
+        else if (result.IsFailure)
+        {
+            ShowCountError(result.Error!);
+        }
+    }
+
+    private void ShowCountError(Domain.Primitives.TError error)
+    {
+        Snackbar.Add("Unable to count the import decisions.", Severity.Error);
+        Logger.LogError("FeedImports: failed to count decisions: {ErrorDescription}", error.Description);
     }
 
     internal async Task SelectFilterAsync(FeedImportFilter filter)
@@ -168,6 +201,29 @@ public partial class FeedImportsPage : IAsyncDisposable
 
         _filter = filter;
         await LoadFirstPageAsync();
+        await LoadHostOptionsAsync();
+    }
+
+    // The menu opens under the button on a tablet, as a bottom sheet on a phone.
+    internal async Task OpenHostSheetAsync()
+    {
+        _hostSheetAnchor = await PopupAnchorLocator.AnchorOfAsync(HostFilterButtonId, _disposeCts.Token);
+        _isHostSheetOpen = true;
+    }
+
+    private void CloseHostSheet() => _isHostSheetOpen = false;
+
+    internal async Task SelectHostAsync(string? host)
+    {
+        _isHostSheetOpen = false;
+        if (host == _host)
+        {
+            return;
+        }
+
+        _host = host;
+        await LoadFirstPageAsync();
+        await LoadStatusCountsAsync();
     }
 
     private async Task OnSearchChangedAsync(string? searchTerm)

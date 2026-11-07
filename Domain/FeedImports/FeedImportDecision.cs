@@ -30,6 +30,10 @@ public class FeedImportDecision : Entity<Guid>
 
     public string? Links { get; private set; }
 
+    // The hosts of the links (every mirror of every candidate; a host comes from Uri.Host, so in lower case), each once
+    // and sorted: the Feeds page filters on them.
+    public IReadOnlyList<string> Hosts { get; private set; } = [];
+
     public string? ChosenMirror { get; private set; }
 
     public Guid? MatchedBookId { get; private set; }
@@ -459,10 +463,19 @@ public class FeedImportDecision : Entity<Guid>
     private void SetAnalysis(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed)
     {
         Links = JsonSerializer.Serialize(candidates, s_linksJsonOptions);
+        Hosts = HostsOf(candidates);
         ParsedSerie = TruncateOrNull(parsed.Serie, FeedImportConstants.MaxParsedSerieLength);
         ParsedTitle = TruncateOrNull(parsed.Title, FeedImportConstants.MaxParsedTitleLength);
         ParsedVolume = parsed.Volume;
     }
+
+    private static string[] HostsOf(IReadOnlyList<DownloadCandidate> candidates) =>
+        [.. candidates
+            .SelectMany(c => c.Mirrors)
+            .Select(m => m.Host.Trim())
+            .Where(h => h.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)];
 
     private void Transition(FeedImportDecisionStatus newStatus, string reason, FeedImportDecidedBy decidedBy)
     {

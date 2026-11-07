@@ -182,6 +182,10 @@ namespace Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.PrimitiveCollection<string[]>("Hosts")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<Guid?>("ImportJobId")
                         .HasColumnType("uuid");
 

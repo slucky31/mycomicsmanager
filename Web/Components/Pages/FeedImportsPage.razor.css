@@ -73,6 +73,48 @@
     color: #ffffff;
 }
 
+/* The host filter: under the status chips, it opens the list of the hosts. */
+.feeds-host-row {
+    display: flex;
+    align-items: center;
+    gap: var(--mcm-space-2);
+    padding: 0 16px 12px;
+}
+
+.feeds-host {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    height: 36px;
+    padding: 0 8px 0 12px;
+    border: 1px solid var(--mcm-border);
+    border-radius: 18px;
+    background: var(--mcm-surface);
+    color: var(--mcm-text);
+    font: inherit;
+    font-size: var(--mcm-font-label);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.feeds-host.active {
+    border-color: var(--mud-palette-primary);
+    background: var(--mcm-primary-soft);
+    color: var(--mcm-primary-strong);
+}
+
+.feeds-host:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+.feeds-host-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .feeds-chip:focus-visible {
     outline: 2px solid var(--mud-palette-primary);
     outline-offset: 2px;
@@ -201,7 +243,8 @@
     margin-top: 6px;
 }
 
-.feed-card-date {
+.feed-card-date,
+.feed-card-host {
     font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
 }
@@ -494,7 +537,8 @@
         display: inline-flex;
     }
 
-    .feeds-chips {
+    .feeds-chips,
+    .feeds-host-row {
         padding: 0 28px 12px;
     }
 
