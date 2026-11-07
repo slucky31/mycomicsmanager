@@ -8,6 +8,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages.Reading;
+using Web.Components.SharedComponents;
 using Web.Services;
 using Xunit;
 
@@ -151,8 +152,11 @@ public sealed class ReadingPageComponentTests
         cut.Markup.Should().Contain("No book in progress").And.Contain("No reading yet");
     }
 
+    private static Task LoadMoreAsync(IRenderedComponent<ReadingPage> cut) =>
+        cut.InvokeAsync(() => cut.FindComponent<InfiniteScrollSentinel>().Instance.LoadMoreAsync());
+
     [Fact]
-    public async Task LoadMoreAsync_Should_AddTheNextReadings_WhenShowMoreIsClicked()
+    public async Task LoadMoreAsync_Should_AddTheNextReadings_WhenTheEndOfTheListIsReached()
     {
         GivenInProgress();
         GivenReadings(1, Page(21, FirstPage()));
@@ -160,14 +164,14 @@ public sealed class ReadingPageComponentTests
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.Find(".reading-more").TextContent.Should().Contain("Show 1 more reading"));
+        cut.WaitForAssertion(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
 
-        await cut.Find(".reading-more").ClickAsync(new());
+        await LoadMoreAsync(cut);
 
         cut.WaitForAssertion(() => cut.FindAll(".reading-recent-title").Should().HaveCount(21));
         cut.FindAll(".reading-month").Select(m => m.TextContent).Should().Equal("October 2026", "September 2026");
         cut.FindAll(".reading-recent-title")[^1].TextContent.Should().Be("La Magicienne trahie");
-        cut.FindAll(".reading-more").Should().BeEmpty();
+        cut.FindComponents<InfiniteScrollSentinel>().Should().BeEmpty();
     }
 
     [Fact]
@@ -180,13 +184,40 @@ public sealed class ReadingPageComponentTests
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.FindAll(".reading-more").Should().ContainSingle());
+        cut.WaitForAssertion(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
 
-        await cut.Find(".reading-more").ClickAsync(new());
+        await LoadMoreAsync(cut);
 
         cut.WaitForAssertion(() =>
             _snackbar.Received(1).Add("Failed to load more readings", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
         cut.FindAll(".reading-recent-title").Should().HaveCount(ReadingPage.ReadingsPageSize);
+    }
+
+    [Fact]
+    public async Task OnBookGone_Should_LoadAgainThePagesShown_WhenABookOfTheSecondPageIsMoved()
+    {
+        GivenInProgress();
+        var first = FirstPage();
+        var last = Reading("La Magicienne trahie", new DateTime(2026, 9, 1, 20, 0, 0, DateTimeKind.Utc));
+        GivenReadings(1, Page(21, first));
+        GivenReadings(2, Page(21, last));
+        var reloaded = Page(20, first);
+        _readingService.GetRecentReadings(1, 2 * ReadingPage.ReadingsPageSize, Arg.Any<CancellationToken>())
+            .Returns(Result<IPagedList<BookReadingDto>>.Success(reloaded));
+        _moveWorkflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        var (ctx, cut) = Render();
+        await using var _ = ctx;
+        cut.WaitForAssertion(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
+        await LoadMoreAsync(cut);
+        cut.WaitForAssertion(() => cut.FindAll(".reading-recent-title").Should().HaveCount(21));
+
+        await cut.FindAll(".reading-recent-actions")[^1].ClickAsync(new());
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
+
+        cut.WaitForAssertion(() => cut.FindAll(".reading-recent-title").Should().HaveCount(20));
+        cut.FindAll(".reading-recent-title").Should().NotContain(t => t.TextContent == "La Magicienne trahie");
+        await _readingService.Received(1).GetRecentReadings(1, 2 * ReadingPage.ReadingsPageSize, Arg.Any<CancellationToken>());
     }
 
     [Theory]

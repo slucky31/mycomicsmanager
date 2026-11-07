@@ -56,8 +56,6 @@ public static class ReadingPageDisplay
     public static string Subtitle(int inProgressCount, int readingCount) =>
         $"{inProgressCount} in progress · {(readingCount == 1 ? "1 reading" : $"{readingCount} readings")}";
 
-    public static string MoreLabel(int remaining) => remaining == 1 ? "Show 1 more reading" : $"Show {remaining} more readings";
-
     // The readings come the last one first: the months keep that order.
     public static IReadOnlyList<ReadingMonthViewModel> ByMonth(IEnumerable<BookReadingViewModel> readings)
     {

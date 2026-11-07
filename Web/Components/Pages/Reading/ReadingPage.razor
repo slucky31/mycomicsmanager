@@ -13,7 +13,8 @@
         }
     </header>
 
-    @if (_isLoading)
+    @* A reload (a book gone) keeps the readings on screen, and the scroll with them. *@
+    @if (_isLoading && !_loaded)
     {
         <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="reading-loading" />
     }
@@ -95,11 +96,15 @@
                     </ul>
                 }
 
+                @if (_isLoadingMore)
+                {
+                    <div class="reading-more">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
+                    </div>
+                }
                 @if (RemainingReadings > 0)
                 {
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="LoadMoreAsync" Disabled="_isLoadingMore" Class="reading-more">
-                        @ReadingPageDisplay.MoreLabel(RemainingReadings)
-                    </MudButton>
+                    <InfiniteScrollSentinel OnLoadMore="LoadMoreAsync" ItemCount="_readings.Count" />
                 }
             }
             else

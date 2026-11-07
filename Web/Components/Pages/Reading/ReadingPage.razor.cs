@@ -49,7 +49,10 @@ public partial class ReadingPage : IAsyncDisposable
                 return;
             }
 
-            var readings = await ReadingService.GetRecentReadings(1, ReadingsPageSize, _disposalCts.Token);
+            // A reload (a book gone) loads again, in one query, the pages of readings shown, so that the page keeps
+            // its scroll position; the next page still starts after them.
+            var pageCount = Math.Max(1, (_readings.Count + ReadingsPageSize - 1) / ReadingsPageSize);
+            var readings = await ReadingService.GetRecentReadings(1, pageCount * ReadingsPageSize, _disposalCts.Token);
             if (readings.IsFailure)
             {
                 ShowLoadError(readings.Error);
@@ -72,9 +75,10 @@ public partial class ReadingPage : IAsyncDisposable
         }
     }
 
-    private async Task LoadMoreAsync()
+    // Asked by the end of the list coming near the screen (infinite scroll).
+    internal async Task LoadMoreAsync()
     {
-        if (_isLoadingMore)
+        if (_isLoading || _isLoadingMore || RemainingReadings == 0)
         {
             return;
         }

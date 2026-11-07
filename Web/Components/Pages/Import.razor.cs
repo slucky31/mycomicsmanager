@@ -24,7 +24,12 @@ public partial class Import : IAsyncDisposable
     private Guid _selectedLibraryId = Guid.Empty;
     private Guid _lastLoadedLibraryId = Guid.Empty;
 
+    // The jobs of the library are all loaded (polled while some run), but shown a page at a time (infinite scroll):
+    // a long history does not render hundreds of cards at once.
+    internal const int JobsPageSize = 20;
+
     private List<ImportJobViewModel> _jobs = [];
+    private int _shownJobCount = JobsPageSize;
     private readonly List<string> _uploadErrors = [];
 
     private bool _isLoadingJobs;
@@ -117,9 +122,15 @@ public partial class Import : IAsyncDisposable
         }
     }
 
+    private IEnumerable<ImportJobViewModel> ShownJobs => _jobs.Take(_shownJobCount);
+
+    // Asked by the end of the list coming near the screen.
+    internal void ShowMoreJobs() => _shownJobCount += JobsPageSize;
+
     private async Task OnLibraryChangedAsync(Guid newLibraryId)
     {
         _selectedLibraryId = newLibraryId;
+        _shownJobCount = JobsPageSize;
         StopPolling();
         await LoadJobsAsync(newLibraryId);
     }

@@ -49,44 +49,63 @@ public partial class FeedImportsPage : IAsyncDisposable
 
     private FeedImportDecisionViewModel? SelectedDecision => _items.Find(d => d.Id == _selectedId);
 
-    protected override Task OnInitializedAsync() => ReloadAsync();
-
-    // Reloads the first page, then the counts of the filters: both queries share the circuit's DbContext,
-    // which does not support concurrent operations.
-    private async Task ReloadAsync()
+    protected override async Task OnInitializedAsync()
     {
-        await LoadPageAsync(1);
+        await LoadFirstPageAsync();
         await LoadCountsAsync();
     }
 
-    private Task LoadMoreAsync() => LoadPageAsync(_page + 1);
-
-    internal async Task LoadPageAsync(int page)
+    // After an action: the pages shown are loaded again, then the counts of the filters, so that the list keeps
+    // its length and the scroll its position. One query after the other: the circuit's DbContext does not
+    // support concurrent operations.
+    private async Task RefreshAsync()
     {
-        // A first page replaces the list: any load still running for the previous filters becomes stale.
-        var version = page == 1 ? ++_loadVersion : _loadVersion;
+        await LoadPagesAsync(1, Math.Max(_page, 1));
+        await LoadCountsAsync();
+    }
+
+    private Task LoadFirstPageAsync() => LoadPagesAsync(1, 1);
+
+    // Asked by the end of the list coming near the screen (infinite scroll).
+    internal Task LoadMoreAsync() => _isLoading || !HasMore ? Task.CompletedTask : LoadPagesAsync(_page + 1, _page + 1);
+
+    // From the first page, the pages replace the list; after it, they are added to it.
+    private async Task LoadPagesAsync(int firstPage, int lastPage)
+    {
+        // A reload of the list makes any load still running for the previous filters stale.
+        var version = firstPage == 1 ? ++_loadVersion : _loadVersion;
         var status = FeedImportFilters.StatusOf(_filter);
         var searchTerm = _searchTerm;
+        var pages = new List<FeedImportDecisionPageViewModel>();
 
         _isLoading = true;
         try
         {
-            var result = await FeedImportService.GetDecisionsAsync(status, searchTerm, page, PageSize, _disposeCts.Token);
+            for (var page = firstPage; page <= lastPage; page++)
+            {
+                var result = await FeedImportService.GetDecisionsAsync(status, searchTerm, page, PageSize, _disposeCts.Token);
 
-            if (version != _loadVersion || status != FeedImportFilters.StatusOf(_filter) || searchTerm != _searchTerm)
-            {
-                return;
+                if (version != _loadVersion || status != FeedImportFilters.StatusOf(_filter) || searchTerm != _searchTerm)
+                {
+                    return;
+                }
+
+                if (result.IsFailure)
+                {
+                    // The list shown is kept as it was.
+                    Snackbar.Add("Unable to load the import decisions.", Severity.Error);
+                    Logger.LogError("FeedImports: failed to load decisions: {ErrorDescription}", result.Error!.Description);
+                    return;
+                }
+
+                pages.Add(result.Value!);
+                if (page * PageSize >= result.Value!.TotalCount)
+                {
+                    break;
+                }
             }
 
-            if (result.IsSuccess)
-            {
-                ApplyPage(page, result.Value!);
-            }
-            else if (result.IsFailure)
-            {
-                Snackbar.Add("Unable to load the import decisions.", Severity.Error);
-                Logger.LogError("FeedImports: failed to load decisions: {ErrorDescription}", result.Error!.Description);
-            }
+            ApplyPages(firstPage, pages);
         }
         catch (OperationCanceledException) when (_disposeCts.IsCancellationRequested)
         {
@@ -101,21 +120,26 @@ public partial class FeedImportsPage : IAsyncDisposable
         }
     }
 
-    private void ApplyPage(int page, FeedImportDecisionPageViewModel decisions)
+    private void ApplyPages(int firstPage, List<FeedImportDecisionPageViewModel> pages)
     {
-        if (page == 1)
+        if (firstPage == 1)
         {
             _items.Clear();
-            _checkedIds.Clear();
         }
 
         // A decision created meanwhile shifts the pages: skip the ones already shown.
         var shown = _items.Select(d => d.Id).ToHashSet();
-        _items.AddRange(decisions.Items.Where(d => !shown.Contains(d.Id)));
-        _totalCount = decisions.TotalCount;
-        _page = page;
+        foreach (var page in pages)
+        {
+            _items.AddRange(page.Items.Where(d => shown.Add(d.Id)));
+        }
 
-        if (_selectedId is { } selectedId && !_items.Exists(d => d.Id == selectedId))
+        _totalCount = pages[^1].TotalCount;
+        _page = firstPage + pages.Count - 1;
+
+        // Only the decisions still shown stay checked or selected.
+        _checkedIds.IntersectWith(shown);
+        if (_selectedId is { } selectedId && !shown.Contains(selectedId))
         {
             _selectedId = null;
         }
@@ -143,13 +167,13 @@ public partial class FeedImportsPage : IAsyncDisposable
         }
 
         _filter = filter;
-        await LoadPageAsync(1);
+        await LoadFirstPageAsync();
     }
 
     private async Task OnSearchChangedAsync(string? searchTerm)
     {
         _searchTerm = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm.Trim();
-        await LoadPageAsync(1);
+        await LoadFirstPageAsync();
     }
 
     private void ToggleSearch() => _showSearch = !_showSearch;
@@ -188,7 +212,7 @@ public partial class FeedImportsPage : IAsyncDisposable
                 Logger.LogError("FeedImports: failed to trigger sync: {ErrorDescription}", result.Error!.Description);
             }
 
-            await ReloadAsync();
+            await RefreshAsync();
         }
         finally
         {
@@ -245,7 +269,7 @@ public partial class FeedImportsPage : IAsyncDisposable
             if (result.IsSuccess)
             {
                 Snackbar.Add("Decision updated.", Severity.Success);
-                await ReloadAsync();
+                await RefreshAsync();
                 Notifier.NotifyChanged();
                 return true;
             }
@@ -324,7 +348,7 @@ public partial class FeedImportsPage : IAsyncDisposable
                 Snackbar.Add($"{result.Value} decision(s) deleted, {notDeleted} not deleted (download or import in progress).", Severity.Warning);
             }
 
-            await ReloadAsync();
+            await RefreshAsync();
             Notifier.NotifyChanged();
         }
         finally
@@ -370,7 +394,7 @@ public partial class FeedImportsPage : IAsyncDisposable
                 Snackbar.Add($"{summary.Deleted} decision(s) deleted, {summary.Kept} kept (import running or failed).", Severity.Info);
             }
 
-            await ReloadAsync();
+            await RefreshAsync();
             Notifier.NotifyChanged();
         }
         finally

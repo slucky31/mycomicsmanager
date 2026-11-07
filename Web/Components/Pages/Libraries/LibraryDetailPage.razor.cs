@@ -209,7 +209,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
             if (!_observerInitialized && !_isLoading && _displayedBooks.Count > 0)
             {
                 // Observed again after each page: a sentinel still on screen asks for the next one.
-                await JS.InvokeVoidAsync("infiniteScroll.observe", _disposalCts.Token, _dotNetRef, "scroll-sentinel", ".library-detail-content");
+                await JS.InvokeVoidAsync("infiniteScroll.observe", _disposalCts.Token, _dotNetRef, "scroll-sentinel", ".library-detail-content", nameof(LoadMoreBooksAsync));
                 _observerInitialized = true;
             }
         }
@@ -241,7 +241,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         try
         {
             await JS.InvokeVoidAsync("bodyScroll.enable", CancellationToken.None);
-            await JS.InvokeVoidAsync("infiniteScroll.dispose", CancellationToken.None);
+            await JS.InvokeVoidAsync("infiniteScroll.dispose", CancellationToken.None, "scroll-sentinel");
             if (_module is not null)
             {
                 await _module.InvokeVoidAsync("detach", CancellationToken.None, _content);
@@ -310,14 +310,17 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     // ── Loading ────────────────────────────────────────────────────────
 
-    // Replaces the books on screen by the first page of the current sort and search.
-    private async Task LoadFirstPageAsync(CancellationToken cancellationToken)
+    // Replaces the books on screen by the first pages of the current sort and search, in one query: after books
+    // left the library, as many pages as shown are loaded again, so that the scroll keeps its position.
+    private Task LoadFirstPageAsync(CancellationToken cancellationToken) => LoadFirstPagesAsync(1, cancellationToken);
+
+    private async Task LoadFirstPagesAsync(int pageCount, CancellationToken cancellationToken)
     {
         var version = ++_loadVersion;
         var sortOrder = _currentSortOrder;
         var search = SearchTerm;
 
-        var result = await BooksService.GetPagedByLibrary(_libraryGuid, 1, PageSize, sortOrder, search, cancellationToken);
+        var result = await BooksService.GetPagedByLibrary(_libraryGuid, 1, pageCount * PageSize, sortOrder, search, cancellationToken);
 
         // A newer load, sort or search started meanwhile: its own results will be shown.
         if (version != _loadVersion || sortOrder != _currentSortOrder || search != SearchTerm)
@@ -329,7 +332,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         {
             _displayedBooks.Clear();
             _displayedBooks.AddRange(result.Value.Items.Select(BookListItemViewModel.From));
-            _currentPage = 1;
+            _currentPage = pageCount;
             _hasNextPage = result.Value.HasNextPage;
             _resultCount = result.Value.TotalCount;
             _shownSearch = search;
@@ -675,7 +678,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         {
             _libraryBookCount = Math.Max(count - booksGone, 0);
         }
-        await LoadFirstPageAsync(_disposalCts.Token);
+        await LoadFirstPagesAsync(_currentPage, _disposalCts.Token);
     }
 
     // ── Several books (#1150) ──────────────────────────────────────────
