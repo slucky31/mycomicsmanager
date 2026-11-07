@@ -3,6 +3,7 @@ using Application.Books;
 using Application.Helpers;
 using Application.Interfaces;
 using Domain.Books;
+using Domain.Errors;
 using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Primitives;
@@ -15,12 +16,12 @@ public sealed class ProcessImportJobCommandHandler(
     ProcessImportJobFileProcessors fileProcessors,
     ProcessImportJobExternalServices externalServices,
     ILogger<ProcessImportJobCommandHandler> logger)
-    : ICommandHandler<ProcessImportJobCommand, DigitalBook>
+    : ICommandHandler<ProcessImportJobCommand, ImportJobOutcome>
 {
     private const string CompletedStatus = "Completed";
     private const string ExtractingStatus = "Extracting";
 
-    public async Task<Result<DigitalBook>> Handle(ProcessImportJobCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ImportJobOutcome>> Handle(ProcessImportJobCommand request, CancellationToken cancellationToken)
     {
         if (request.ImportJobId == Guid.Empty)
         {
@@ -57,7 +58,7 @@ public sealed class ProcessImportJobCommandHandler(
 
         var (tempDir, rawDir, convertedDir) = externalServices.TempWorkspace.CreateScratch(importJob.Id);
 
-        Result<DigitalBook>? pipelineResult = null;
+        Result<ImportJobOutcome>? pipelineResult = null;
         try
         {
             pipelineResult = await ExecutePipelineAsync(importJob, library, tempDir, rawDir, convertedDir, cancellationToken);
@@ -72,7 +73,7 @@ public sealed class ProcessImportJobCommandHandler(
 
     // ── Pipeline execution ────────────────────────────────────────────────────
 
-    private async Task<Result<DigitalBook>> ExecutePipelineAsync(
+    private async Task<Result<ImportJobOutcome>> ExecutePipelineAsync(
         ImportJob importJob, Library library,
         string tempDir, string rawDir, string convertedDir,
         CancellationToken ct)
@@ -86,10 +87,14 @@ public sealed class ProcessImportJobCommandHandler(
             var extractResult = await ExtractStepAsync(importJob, rawDir, ct);
             if (extractResult.IsFailure)
             { return extractResult.Error!; }
+            var (comicInfo, nestedArchives) = extractResult.Value!;
+
+            if (nestedArchives.Count > 0)
+            { return await SplitStepAsync(importJob, library, nestedArchives, ct); }
 
             // Checked before the conversion, and before the cover named after the ISBN is uploaded.
             var declaredIsbn = TextOrNull(FileNameIsbnExtractor.ExtractIsbn(importJob.OriginalFileName))
-                ?? TextOrNull(extractResult.Value?.Isbn);
+                ?? TextOrNull(comicInfo?.Isbn);
             var duplicateError = await EnsureIsbnNotOwnedAsync(importJob, declaredIsbn, ct);
             if (duplicateError is not null)
             { return duplicateError; }
@@ -102,7 +107,7 @@ public sealed class ProcessImportJobCommandHandler(
             var webpFiles = externalServices.TempWorkspace.GetWebpFiles(convertedDir);
 
             var metaResult = await SearchMetadataStepAsync(
-                importJob, extractResult.Value, declaredIsbn, convertResult.Value!, webpFiles, convertedDir, ct);
+                importJob, comicInfo, declaredIsbn, convertResult.Value!, webpFiles, convertedDir, ct);
             if (metaResult.IsFailure)
             { return metaResult.Error!; }
             var (meta, isbnScan) = metaResult.Value;
@@ -203,7 +208,10 @@ public sealed class ProcessImportJobCommandHandler(
 
     // ── Step 2: Extracting ────────────────────────────────────────────────────
 
-    private async Task<Result<ComicInfoData?>> ExtractStepAsync(
+    // The ComicInfo.xml shipped with the file, or the archives found inside an archive without pages.
+    private sealed record ExtractedContent(ComicInfoData? ComicInfo, IReadOnlyList<string> NestedArchives);
+
+    private async Task<Result<ExtractedContent>> ExtractStepAsync(
         ImportJob importJob, string rawDir, CancellationToken ct)
     {
         var advanceResult = await AdvanceAndSaveAsync(importJob, ImportJobStatus.Extracting, ct);
@@ -231,7 +239,19 @@ public sealed class ProcessImportJobCommandHandler(
             {
                 return await FailJobAsync(importJob, ExtractingStatus, archiveResult.Error!, ct);
             }
-            comicInfoXmlPath = archiveResult.Value!.ComicInfoXmlPath;
+
+            var extraction = archiveResult.Value!;
+            if (extraction.NestedArchives.Count > 0)
+            {
+                return new ExtractedContent(null, extraction.NestedArchives);
+            }
+
+            // Without this check, an archive without pages only failed later, on a misleading error.
+            if (extraction.ExtractedFiles.Count == 0)
+            {
+                return await FailJobAsync(importJob, ExtractingStatus, FileProcessingError.ArchiveWithoutPages, ct);
+            }
+            comicInfoXmlPath = extraction.ComicInfoXmlPath;
         }
 
         ComicInfoData? comicInfo = null;
@@ -244,7 +264,65 @@ public sealed class ProcessImportJobCommandHandler(
             }
         }
 
-        return Result<ComicInfoData?>.Success(comicInfo);
+        return new ExtractedContent(comicInfo, []);
+    }
+
+    // ── Split: an archive of archives ─────────────────────────────────────────
+
+    // Each archive found inside is deposited in the import directory of the library, where the watcher
+    // imports it on its own; this import ends as Split and its file is deleted like after a success.
+    private async Task<Result<ImportJobOutcome>> SplitStepAsync(
+        ImportJob importJob, Library library, IReadOnlyList<string> nestedArchives, CancellationToken ct)
+    {
+        var importStorage = externalServices.ImportStorage;
+        var ensureResult = importStorage.EnsureExists(library.ImportDirectoryName);
+        if (ensureResult.IsFailure)
+        {
+            return await FailJobAsync(importJob, ExtractingStatus, ensureResult.Error!, ct);
+        }
+
+        // Every destination is resolved before the first file is moved.
+        var destinations = new List<(string Source, string Destination)>();
+        foreach (var nestedArchive in nestedArchives)
+        {
+            var pathResult = importStorage.GetAvailableFilePath(library.ImportDirectoryName, Path.GetFileName(nestedArchive));
+            if (pathResult.IsFailure)
+            {
+                return await FailJobAsync(importJob, ExtractingStatus, pathResult.Error!, ct);
+            }
+            destinations.Add((nestedArchive, pathResult.Value!));
+        }
+
+        var depositedFileNames = new List<string>();
+        foreach (var (source, destination) in destinations)
+        {
+            var depositResult = importStorage.DepositFile(source, destination);
+            if (depositResult.IsFailure)
+            {
+                logger.LogError("Import job {JobId}: could not deposit {FileName}: {Error}",
+                    importJob.Id, Path.GetFileName(destination), depositResult.Error?.Description);
+                var error = depositedFileNames.Count == 0
+                    ? depositResult.Error!
+                    : ImportJobError.SplitPartiallyDeposited(depositedFileNames.Count, destinations.Count);
+                return await FailJobAsync(importJob, ExtractingStatus, error, ct);
+            }
+            depositedFileNames.Add(Path.GetFileName(destination));
+        }
+
+        importJob.Split(depositedFileNames);
+        repositories.ImportJobs.Update(importJob);
+        var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
+        if (saveResult.IsFailure)
+        {
+            // The archives are already in the import directory and will be imported: the job stays in Extracting,
+            // where the "stuck job" recovery marks it failed.
+            logger.LogError("Failed to persist split import job {JobId}: {Error}",
+                importJob.Id, saveResult.Error?.Description);
+            return saveResult.Error!;
+        }
+
+        logger.LogInformation("Import job {JobId} split into {Count} imports", importJob.Id, depositedFileNames.Count);
+        return ImportJobOutcome.Split(depositedFileNames);
     }
 
     // ── Step 3: Converting ────────────────────────────────────────────────────
@@ -469,7 +547,7 @@ public sealed class ProcessImportJobCommandHandler(
 
     // ── Step 7: Completed ─────────────────────────────────────────────────────
 
-    private async Task<Result<DigitalBook>> CompleteStepAsync(
+    private async Task<Result<ImportJobOutcome>> CompleteStepAsync(
         ImportJob importJob,
         Library library,
         BookMetadata meta,
@@ -536,12 +614,12 @@ public sealed class ProcessImportJobCommandHandler(
             return saveResult.Error!;
         }
 
-        return digitalBook;
+        return ImportJobOutcome.Imported(digitalBook);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private async Task<Result<DigitalBook>> HandleUnexpectedExceptionAsync(
+    private async Task<Result<ImportJobOutcome>> HandleUnexpectedExceptionAsync(
         ImportJob importJob, Exception ex, CancellationToken ct)
     {
         logger.LogError(ex, "Unhandled exception in import pipeline for job {JobId} at step {Status}",

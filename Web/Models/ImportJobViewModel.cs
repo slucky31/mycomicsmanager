@@ -32,6 +32,7 @@ public record ImportJobViewModel(
         TotalImagesToConvert: job.TotalImagesToConvert)
     {
         DigitalBookId = job.DigitalBookId,
+        SplitFileNames = job.SplitFileNames,
     };
 
     // The steps of an import in progress, from waiting to building the book (Completed and Failed are not steps).
@@ -39,6 +40,14 @@ public record ImportJobViewModel(
 
     // The book created by the import, once it is completed.
     public Guid? DigitalBookId { get; init; }
+
+    // The archives found inside a split archive, each imported on its own.
+    public IReadOnlyList<string> SplitFileNames { get; init; } = [];
+
+    // "Split into 4 imports".
+    public string? SplitDisplay => IsSplit ? $"Split into {SplitFileNames.Count} {ImportsWord}" : null;
+
+    private string ImportsWord => SplitFileNames.Count == 1 ? "import" : "imports";
 
     public string? BookHref => Status == nameof(ImportJobStatus.Completed) && DigitalBookId is { } bookId
         ? $"/books/{bookId}"
@@ -71,9 +80,14 @@ public record ImportJobViewModel(
     private static string StepName(string step) =>
         Enum.TryParse<ImportJobStatus>(step, out var status) ? GetStatusDisplay(status) : step;
 
-    public bool IsTerminal => Status is "Completed" or "Failed";
+    public bool IsTerminal => Status is nameof(ImportJobStatus.Completed) or nameof(ImportJobStatus.Failed) or nameof(ImportJobStatus.Split);
 
     public bool IsCompleted => Status == nameof(ImportJobStatus.Completed);
+
+    public bool IsSplit => Status == nameof(ImportJobStatus.Split);
+
+    // A split archive is cleared with the successful imports: each archive found inside has its own import.
+    public bool IsSucceeded => IsCompleted || IsSplit;
 
     // A failed import is retried or abandoned, never deleted with the successful ones.
     public bool IsFailed => Status == nameof(ImportJobStatus.Failed);
@@ -107,6 +121,7 @@ public record ImportJobViewModel(
     {
         "Pending" => "status-pending",
         "Completed" => "status-completed",
+        "Split" => "status-split",
         "Failed" => "status-failed",
         _ => "status-processing"
     };
@@ -134,6 +149,7 @@ public record ImportJobViewModel(
         ImportJobStatus.BuildingArchive => "Building the book",
         ImportJobStatus.Completed => "Imported",
         ImportJobStatus.Failed => "Failed",
+        ImportJobStatus.Split => "Split",
         _ => status.ToString()
     };
 
@@ -158,7 +174,7 @@ public record ImportJobViewModel(
         ImportJobStatus.SearchingMetadata => 55,
         ImportJobStatus.UploadingCover => 70,
         ImportJobStatus.BuildingArchive => 85,
-        ImportJobStatus.Completed => 100,
+        ImportJobStatus.Completed or ImportJobStatus.Split => 100,
         ImportJobStatus.Failed => 0,
         _ => 0
     };

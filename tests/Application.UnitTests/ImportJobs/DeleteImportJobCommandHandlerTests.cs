@@ -70,6 +70,21 @@ public class DeleteImportJobCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_Should_ReturnSuccess_WhenTheArchiveWasSplit()
+    {
+        var job = CreatePendingJob();
+        job.Advance(ImportJobStatus.Extracting);
+        job.Split(["T01.cbz", "T02.cbz"]);
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        _libraryRepository.GetByIdAsync(s_libraryId).Returns(CreateLibrary());
+
+        var result = await _handler.Handle(new DeleteImportJobCommand(job.Id, s_userId), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        _importJobRepository.Received(1).Remove(job);
+    }
+
+    [Fact]
     public async Task Handle_Should_ReturnNotCompleted_WhenJobIsFailed()
     {
         // Arrange

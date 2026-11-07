@@ -1,7 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
-using Domain.Books;
 
 namespace Web.Services;
 
@@ -10,7 +9,7 @@ public class ImportOrchestrator(IServiceScopeFactory scopeFactory, ILogger<Impor
     public async Task ProcessAsync(Guid importJobId, CancellationToken ct = default)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
-        var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<ProcessImportJobCommand, DigitalBook>>();
+        var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<ProcessImportJobCommand, ImportJobOutcome>>();
 
         var result = await handler.Handle(new ProcessImportJobCommand(importJobId), ct);
 
@@ -19,10 +18,15 @@ public class ImportOrchestrator(IServiceScopeFactory scopeFactory, ILogger<Impor
             logger.LogError("Import job {ImportJobId} failed: [{Code}] {Description}",
                 importJobId, result.Error!.Code, result.Error.Description);
         }
-        else
+        else if (result.Value!.Book is { } book)
         {
             logger.LogInformation("Import job {ImportJobId} completed. DigitalBook {BookId} created.",
-                importJobId, result.Value!.Id);
+                importJobId, book.Id);
+        }
+        else
+        {
+            logger.LogInformation("Import job {ImportJobId} split into {Count} imports.",
+                importJobId, result.Value.SplitFileNames.Count);
         }
     }
 }

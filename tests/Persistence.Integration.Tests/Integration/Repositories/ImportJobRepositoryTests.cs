@@ -33,4 +33,29 @@ public class ImportJobRepositoryTests(IntegrationTestWebAppFactory factory) : Ba
         jobs.Select(j => j.Id).Should().BeEquivalentTo([first.Id, second.Id]);
         none.Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task ExistsActiveForFilePathAsync_Should_IgnoreASplitArchive_WhoseArchivesAreKept()
+    {
+        // Arrange
+        var split = CreateJob("volumes.rar");
+        split.Advance(ImportJobStatus.Extracting);
+        split.Split(["Serie - T01.cbz", "Serie - T02.cbz"]);
+        Repository.Add(split);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var exists = await Repository.ExistsActiveForFilePathAsync(split.OriginalFilePath, TestContext.Current.CancellationToken);
+        // The unique index on the file path only covers the imports still running: the same file can come again.
+        Repository.Add(CreateJob("volumes.rar"));
+        var saveAgain = await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        Context.ChangeTracker.Clear();
+        var reloaded = await Repository.GetByIdAsync(split.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        exists.Should().BeFalse();
+        saveAgain.IsSuccess.Should().BeTrue();
+        reloaded!.Status.Should().Be(ImportJobStatus.Split);
+        reloaded.SplitFileNames.Should().Equal("Serie - T01.cbz", "Serie - T02.cbz");
+    }
 }

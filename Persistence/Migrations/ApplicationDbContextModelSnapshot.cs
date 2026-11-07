@@ -334,6 +334,10 @@ namespace Persistence.Migrations
                     b.Property<long>("OriginalFileSize")
                         .HasColumnType("bigint");
 
+                    b.PrimitiveCollection<string[]>("SplitFileNames")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -352,7 +356,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("OriginalFilePath")
                         .IsUnique()
-                        .HasFilter("\"Status\" NOT IN (6, 7)");
+                        .HasFilter("\"Status\" NOT IN (6, 7, 8)");
 
                     b.HasIndex("Status");
 

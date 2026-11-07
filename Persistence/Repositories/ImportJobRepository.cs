@@ -40,7 +40,8 @@ public class ImportJobRepository(ApplicationDbContext context) : IImportJobRepos
         => await context.ImportJobs
             .AnyAsync(j => j.OriginalFilePath == filePath
                         && j.Status != ImportJobStatus.Completed
-                        && j.Status != ImportJobStatus.Failed, ct);
+                        && j.Status != ImportJobStatus.Failed
+                        && j.Status != ImportJobStatus.Split, ct);
 
     public void Update(ImportJob importJob) => context.ImportJobs.Update(importJob);
 }

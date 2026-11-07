@@ -240,7 +240,7 @@ public partial class Import : IAsyncDisposable
     // Only the successful imports: a failed one is retried or abandoned from its card.
     internal async Task DeleteCompletedJobsAsync()
     {
-        var completedJobIds = _jobs.Where(j => j.IsCompleted).Select(j => j.Id).ToList();
+        var completedJobIds = _jobs.Where(j => j.IsSucceeded).Select(j => j.Id).ToList();
         if (completedJobIds.Count == 0 || _isDeletingCompleted)
         {
             return;

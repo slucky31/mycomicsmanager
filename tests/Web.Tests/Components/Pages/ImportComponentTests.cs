@@ -368,6 +368,21 @@ public sealed class ImportComponentTests
     }
 
     [Fact]
+    public async Task DeleteCompletedJobsAsync_Should_AlsoRemoveTheSplitArchives()
+    {
+        var splitJob = CreateJob(status: "Split", fileName: "volumes.rar");
+        var activeJob = CreateJob(status: "Extracting", fileName: "active.cbz");
+        await using var setup = await SetupAsync(initialJobs: [splitJob, activeJob]);
+        setup.GivenConfirmation(true);
+        setup.ImportService.DeleteImportJobAsync(splitJob.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        await setup.Cut.InvokeAsync(setup.Cut.Instance.DeleteCompletedJobsAsync);
+
+        setup.Cut.Markup.Should().NotContain("volumes.rar");
+        setup.Cut.Markup.Should().Contain("active.cbz");
+    }
+
+    [Fact]
     public async Task DeleteCompletedJobsAsync_Should_DeleteNothing_WhenNotConfirmed()
     {
         var completedJob = CreateJob(status: "Completed", fileName: "done.cbz");

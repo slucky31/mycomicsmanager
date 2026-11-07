@@ -42,6 +42,13 @@ public class DeleteDownloadedFeedImportDecisionsCommandHandlerTests
         job.Complete(Guid.CreateVersion7());
     }
 
+    // Several volumes in one archive: each one is imported on its own (a success, like Completed).
+    private static void Split(ImportJob job)
+    {
+        job.Advance(ImportJobStatus.Extracting);
+        job.Split(["Blacksad T03.cbz", "Blacksad T04.cbz"]);
+    }
+
     private static FeedImportDecision Downloaded(long entryId, ImportJob job)
     {
         var decision = FeedImportDecision.Create(s_userId, entryId, "Blacksad - Tome 3", $"https://planete-bd.org/{entryId}", null).Value!;
@@ -88,17 +95,20 @@ public class DeleteDownloadedFeedImportDecisionsCommandHandlerTests
         var removedJob = CreateJob();
         var runningJob = CreateJob();
         var failedJob = CreateJob(j => j.Fail("Extraction", "Archive corrompue"));
+        var splitJob = CreateJob(Split);
         var completed = Downloaded(1, completedJob);
         var removed = Downloaded(2, removedJob);
         var running = Downloaded(3, runningJob);
         var failed = Downloaded(4, failedJob);
-        Given([completed, removed, running, failed], completedJob, runningJob, failedJob);
+        var split = Downloaded(5, splitJob);
+        Given([completed, removed, running, failed, split], completedJob, runningJob, failedJob, splitJob);
 
         var result = await HandleAsync();
 
-        result.Value.Should().Be(new DeleteDownloadedFeedImportDecisionsResult(2, 2));
+        result.Value.Should().Be(new DeleteDownloadedFeedImportDecisionsResult(3, 2));
         _repository.Received(1).Remove(completed);
         _repository.Received(1).Remove(removed);
+        _repository.Received(1).Remove(split);
         _repository.DidNotReceive().Remove(running);
         _repository.DidNotReceive().Remove(failed);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());

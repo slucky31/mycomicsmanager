@@ -46,6 +46,20 @@ public sealed class ImportJobCardComponentTests : IAsyncDisposable
     }
 
     [Fact]
+    public void Render_Should_ListTheArchivesFoundInside_AndOfferDelete_WhenTheArchiveWasSplit()
+    {
+        var cut = _ctx.Render<ImportJobCard>(p => p
+            .Add(c => c.Job, Job("Split", "Split", 100) with { SplitFileNames = ["Serie - T01.cbz", "Serie - T02.cbz"] })
+            .Add(c => c.OnDelete, (Guid _) => { }));
+
+        cut.Find(".import-job").ClassList.Should().Contain("status-split");
+        cut.Find(".import-job-split").TextContent.Should().StartWith("Split into 2 imports");
+        cut.FindAll(".import-job-split-files li").Select(li => li.TextContent).Should().Equal("Serie - T01.cbz", "Serie - T02.cbz");
+        cut.FindAll(".import-job-link").Should().BeEmpty();
+        cut.FindAll("[aria-label='Delete this import']").Should().ContainSingle();
+    }
+
+    [Fact]
     public void Render_Should_ShowTheError_WhenTheImportFailed()
     {
         var cut = _ctx.Render<ImportJobCard>(p => p.Add(c => c.Job,

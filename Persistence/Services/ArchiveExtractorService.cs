@@ -17,6 +17,12 @@ public class ArchiveExtractorService(ILogger<ArchiveExtractorService> logger) : 
     private static readonly HashSet<string> s_allowedFileExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".jpeg", ".jpg", ".png", ".gif", ".webp", ".xml" };
 
+    private static readonly HashSet<string> s_imageExtensions =
+        new(StringComparer.OrdinalIgnoreCase) { ".jpeg", ".jpg", ".png", ".gif", ".webp" };
+
+    private static readonly HashSet<string> s_nestedArchiveExtensions =
+        new(StringComparer.OrdinalIgnoreCase) { ".cbz", ".zip", ".cbr", ".rar", ".pdf" };
+
     private const int MaxArchiveEntries = 5_000;
     private const long MaxUncompressedBytes = 5L * 1024 * 1024 * 1024; // 5 GB
 
@@ -55,8 +61,6 @@ public class ArchiveExtractorService(ILogger<ArchiveExtractorService> logger) : 
 
     private Result<ArchiveExtractionResult> ExtractInternal(string archivePath, string destinationPath)
     {
-        var extractedFiles = new List<string>();
-        string? comicInfoXmlPath = null;
         var normalizedDest = PathContainment.NormalizeRoot(destinationPath);
 
         using var fileStream = File.OpenRead(archivePath);
@@ -77,37 +81,25 @@ public class ArchiveExtractorService(ILogger<ArchiveExtractorService> logger) : 
             return FileProcessingError.CorruptArchive;
         }
 
-        foreach (var entry in relevantEntries)
+        var pageEntries = relevantEntries.Where(e => HasExtension(e, s_allowedFileExtensions)).ToList();
+        if (!pageEntries.Exists(e => HasExtension(e, s_imageExtensions)))
         {
-            var entryName = Path.GetFileName(entry.Key ?? string.Empty);
-            if (string.IsNullOrEmpty(entryName))
+            // No page: several volumes downloaded as one archive. Their archives are extracted to be imported one by one.
+            var nestedEntries = relevantEntries.Where(e => HasExtension(e, s_nestedArchiveExtensions)).ToList();
+            if (nestedEntries.Count > 0)
             {
-                continue;
-            }
-
-            var ext = Path.GetExtension(entryName);
-            if (!s_allowedFileExtensions.Contains(ext))
-            {
-                continue;
-            }
-
-            var destFilePath = Path.GetFullPath(Path.Combine(destinationPath, entryName));
-            if (!PathContainment.IsWithinNormalizedRoot(normalizedDest, destFilePath, StringComparison.Ordinal))
-            {
-                logger.LogWarning("Path traversal attempt blocked: {Entry}", entry.Key);
-                continue;
-            }
-
-            // PreserveFileTime disabled: NTFS mounted via ntfs-3g only lets the fstab-configured
-            // uid change file timestamps, so setting mtime throws EPERM for the app's process.
-            entry.WriteToFile(destFilePath, new ExtractionOptions { Overwrite = true, PreserveFileTime = false });
-            extractedFiles.Add(destFilePath);
-
-            if (entryName.Equals("ComicInfo.xml", StringComparison.OrdinalIgnoreCase))
-            {
-                comicInfoXmlPath = destFilePath;
+                // Sorted by name, so the volumes are listed and imported in their order.
+                var nestedArchives = WriteEntries(nestedEntries, destinationPath, normalizedDest)
+                    .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                logger.LogInformation("Archive without pages, {Count} archives found inside", nestedArchives.Count);
+                return new ArchiveExtractionResult([], null) { NestedArchives = nestedArchives };
             }
         }
+
+        var extractedFiles = WriteEntries(pageEntries, destinationPath, normalizedDest);
+        var comicInfoXmlPath = extractedFiles.LastOrDefault(f =>
+            Path.GetFileName(f).Equals("ComicInfo.xml", StringComparison.OrdinalIgnoreCase));
 
         var sortedImageFiles = extractedFiles
             .Where(f => !f.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
@@ -118,5 +110,39 @@ public class ArchiveExtractorService(ILogger<ArchiveExtractorService> logger) : 
             sortedImageFiles.Count, comicInfoXmlPath is not null);
 
         return new ArchiveExtractionResult(sortedImageFiles, comicInfoXmlPath);
+    }
+
+    // Hidden files (e.g. macOS "._" resource forks) are not pages nor volumes.
+    private static bool HasExtension(IArchiveEntry entry, HashSet<string> extensions)
+    {
+        var entryName = Path.GetFileName(entry.Key ?? string.Empty);
+        return !string.IsNullOrEmpty(entryName)
+            && !entryName.StartsWith('.')
+            && extensions.Contains(Path.GetExtension(entryName));
+    }
+
+    private List<string> WriteEntries(List<IArchiveEntry> entries, string destinationPath, string normalizedDest)
+    {
+        var writtenFiles = new List<string>();
+        foreach (var entry in entries)
+        {
+            var entryName = Path.GetFileName(entry.Key ?? string.Empty);
+            var destFilePath = Path.GetFullPath(Path.Combine(destinationPath, entryName));
+            if (!PathContainment.IsWithinNormalizedRoot(normalizedDest, destFilePath, StringComparison.Ordinal))
+            {
+                logger.LogWarning("Path traversal attempt blocked: {Entry}", entry.Key);
+                continue;
+            }
+
+            // PreserveFileTime disabled: NTFS mounted via ntfs-3g only lets the fstab-configured
+            // uid change file timestamps, so setting mtime throws EPERM for the app's process.
+            entry.WriteToFile(destFilePath, new ExtractionOptions { Overwrite = true, PreserveFileTime = false });
+            if (!writtenFiles.Contains(destFilePath))
+            {
+                writtenFiles.Add(destFilePath);
+            }
+        }
+
+        return writtenFiles;
     }
 }

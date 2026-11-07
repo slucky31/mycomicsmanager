@@ -75,7 +75,7 @@
                     <MudTooltip Text="Clear successful imports">
                         <MudIconButton Icon="@Icons.Material.Outlined.DeleteSweep"
                                        Size="Size.Small"
-                                       Disabled="@(_isDeletingCompleted || !_jobs.Exists(j => j.IsCompleted))"
+                                       Disabled="@(_isDeletingCompleted || !_jobs.Exists(j => j.IsSucceeded))"
                                        OnClick="DeleteCompletedJobsAsync"
                                        aria-label="Clear successful imports" />
                     </MudTooltip>

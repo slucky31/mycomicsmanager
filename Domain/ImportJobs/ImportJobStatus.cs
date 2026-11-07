@@ -9,5 +9,6 @@ public enum ImportJobStatus
     UploadingCover,    // Upload de la couverture sur Cloudinary
     BuildingArchive,   // Construction de l'archive CBZ finale (avec ComicInfo.xml mis a jour)
     Completed,         // Import termine avec succes
-    Failed             // Import echoue
+    Failed,            // Import echoue
+    Split              // Archive de plusieurs archives : chacune deposee comme un import separe
 }
