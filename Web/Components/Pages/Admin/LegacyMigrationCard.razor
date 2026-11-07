@@ -4,6 +4,18 @@
 <p class="legacy-migration-hint">
     Moves the first books of the old library folder into the import folder of the "Imported" library, where they are imported. The files are moved in the background.
 </p>
+<div class="legacy-migration-remaining" aria-live="polite">
+    @if (_isCounting)
+    {
+        <span>Counting…</span>
+    }
+    else if (_remaining is int remaining)
+    {
+        <span><strong>@remaining</strong> @(remaining == 1 ? "file" : "files") left to import in the old library</span>
+    }
+    <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" aria-label="Refresh the number of files left"
+                   Disabled="@_isCounting" OnClick="CountRemainingAsync" Class="legacy-migration-refresh" />
+</div>
 
 <div class="legacy-migration">
     <label class="legacy-migration-label" for="legacy-migration-count">Books to move</label>

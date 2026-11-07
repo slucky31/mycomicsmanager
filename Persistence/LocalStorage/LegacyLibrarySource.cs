@@ -28,4 +28,14 @@ internal sealed class LegacyLibrarySource(string directory) : ILegacyLibrarySour
 
         return new LegacyLibraryBatch([.. files.Take(Math.Max(count, 0))], files.Count);
     }
+
+    public Result<int> CountFiles()
+    {
+        if (!Directory.Exists(directory))
+        {
+            return LegacyMigrationError.SourceNotFound;
+        }
+
+        return Directory.EnumerateFiles(directory).Count();
+    }
 }

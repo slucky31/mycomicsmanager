@@ -52,4 +52,33 @@ public sealed class LegacyLibrarySourceTests : IDisposable
 
         result.Error.Should().Be(LegacyMigrationError.SourceEmpty);
     }
+
+    [Fact]
+    public void CountFiles_Should_ReturnSourceNotFound_WhenTheFolderDoesNotExist()
+    {
+        var result = CreateSut(Path.Combine(_root, "missing")).CountFiles();
+
+        result.Error.Should().Be(LegacyMigrationError.SourceNotFound);
+    }
+
+    [Fact]
+    public void CountFiles_Should_CountTheTopLevelFilesOnly()
+    {
+        File.WriteAllText(Path.Combine(_root, "a.cbz"), "x");
+        File.WriteAllText(Path.Combine(_root, "b.cbz"), "x");
+        Directory.CreateDirectory(Path.Combine(_root, "sub"));
+        File.WriteAllText(Path.Combine(_root, "sub", "0.cbz"), "x");
+
+        var result = CreateSut(_root).CountFiles();
+
+        result.Value.Should().Be(2);
+    }
+
+    [Fact]
+    public void CountFiles_Should_ReturnZero_WhenTheFolderIsEmpty()
+    {
+        var result = CreateSut(_root).CountFiles();
+
+        result.Value.Should().Be(0);
+    }
 }

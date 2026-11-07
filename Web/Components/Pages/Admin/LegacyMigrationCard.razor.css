@@ -13,6 +13,14 @@
     color: var(--mcm-text-muted);
 }
 
+.legacy-migration-remaining {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 4px;
+    font-size: var(--mcm-font-body-l);
+}
+
 .legacy-migration {
     display: flex;
     flex-wrap: wrap;

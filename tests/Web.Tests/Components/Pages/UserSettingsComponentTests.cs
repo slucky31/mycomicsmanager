@@ -33,7 +33,9 @@ public sealed class UserSettingsComponentTests
         ctx.Services.AddSingleton(healthCheckService);
         ctx.Services.AddSingleton(snackbar);
         ctx.Services.AddSingleton(Substitute.For<IFeatureToggleService>());
-        ctx.Services.AddSingleton(Substitute.For<ILegacyMigrationService>());
+        var legacyMigrationService = Substitute.For<ILegacyMigrationService>();
+        legacyMigrationService.CountRemainingAsync(Arg.Any<CancellationToken>()).Returns(0);
+        ctx.Services.AddSingleton(legacyMigrationService);
         ctx.Services.AddSingleton(Substitute.For<IComicInfoSyncService>());
         ctx.Services.AddSingleton(Substitute.For<IArchiveRefreshService>());
         ctx.Services.AddSingleton(librariesService ?? HidingLibraries(show: false));
