@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.74.2"></a>
+## [10.74.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.74.2) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* **scroll:** keep the list position after an action and use infinite scroll everywhere ([#1296](https://www.github.com/slucky31/mycomicsmanager/issues/1296)) ([36a32ba](https://www.github.com/slucky31/mycomicsmanager/commit/36a32bac0ba365bb544b4e7df958e31037c41daf))
+
 <a name="10.74.1"></a>
 ## [10.74.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.74.1) (2026-11-07)
 
