@@ -57,5 +57,5 @@ public sealed class DeleteDownloadedFeedImportDecisionsCommandHandler(
     private static bool IsImportSucceededOrRemoved(FeedImportDecision decision, Dictionary<Guid, ImportJobStatus> importJobStatuses) =>
         decision.ImportJobId is not { } importJobId
         || !importJobStatuses.TryGetValue(importJobId, out var status)
-        || status == ImportJobStatus.Completed;
+        || status.IsSucceeded();
 }

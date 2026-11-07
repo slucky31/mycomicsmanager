@@ -471,4 +471,87 @@ public class ImportJobTests
         result.Error.Should().Be(ImportJobError.BadRequest);
         job.Status.Should().Be(ImportJobStatus.Failed);
     }
+
+    // -------------------------------------------------------
+    // Split
+    // -------------------------------------------------------
+
+    [Fact]
+    public void Split_Should_EndTheImportWithTheArchivesFoundInside()
+    {
+        var job = CreateValidJob();
+        job.Advance(ImportJobStatus.Extracting);
+
+        var result = job.Split(["T01.cbz", "T02.cbz"]);
+
+        result.IsSuccess.Should().BeTrue();
+        job.Status.Should().Be(ImportJobStatus.Split);
+        job.SplitFileNames.Should().Equal("T01.cbz", "T02.cbz");
+        job.CompletedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Split_Should_ReturnInvalidStatusTransition_WhenNotExtracting()
+    {
+        var job = CreateValidJob();
+
+        var result = job.Split(["T01.cbz"]);
+
+        result.Error.Should().Be(ImportJobError.InvalidStatusTransition);
+        job.Status.Should().Be(ImportJobStatus.Pending);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Split_Should_ReturnBadRequest_WhenAFileNameIsMissing(int validNames)
+    {
+        var job = CreateValidJob();
+        job.Advance(ImportJobStatus.Extracting);
+        string[] fileNames = validNames == 0 ? [] : ["T01.cbz", " "];
+
+        var result = job.Split(fileNames);
+
+        result.Error.Should().Be(ImportJobError.BadRequest);
+        job.Status.Should().Be(ImportJobStatus.Extracting);
+    }
+
+    [Fact]
+    public void Split_Should_ReturnAlreadyFailed_WhenTheImportFailed()
+    {
+        var job = CreateValidJob();
+        job.Fail("Extracting", "Archive corrupted");
+
+        var result = job.Split(["T01.cbz"]);
+
+        result.Error.Should().Be(ImportJobError.AlreadyFailed);
+    }
+
+    [Fact]
+    public void Fail_Should_ReturnAlreadyCompleted_WhenTheArchiveWasSplit()
+    {
+        var job = CreateValidJob();
+        job.Advance(ImportJobStatus.Extracting);
+        job.Split(["T01.cbz"]);
+
+        var failResult = job.Fail("Extracting", "late error");
+        var advanceResult = job.Advance(ImportJobStatus.Converting);
+
+        failResult.Error.Should().Be(ImportJobError.AlreadyCompleted);
+        advanceResult.Error.Should().Be(ImportJobError.AlreadyCompleted);
+        job.Status.Should().Be(ImportJobStatus.Split);
+    }
+
+    [Theory]
+    [InlineData(ImportJobStatus.Pending, false, false)]
+    [InlineData(ImportJobStatus.Extracting, false, false)]
+    [InlineData(ImportJobStatus.Completed, true, true)]
+    [InlineData(ImportJobStatus.Split, true, true)]
+    [InlineData(ImportJobStatus.Failed, true, false)]
+    public void IsTerminal_Should_TellWhetherTheImportEnded_AndIsSucceeded_WhetherItSucceeded(
+        ImportJobStatus status, bool terminal, bool succeeded)
+    {
+        status.IsTerminal().Should().Be(terminal);
+        status.IsSucceeded().Should().Be(succeeded);
+    }
 }

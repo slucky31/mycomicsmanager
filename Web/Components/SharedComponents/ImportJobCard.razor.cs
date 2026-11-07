@@ -25,7 +25,7 @@ public partial class ImportJobCard
     private bool IsStuck => Job is { IsTerminal: false, Status: not "Pending" };
 
     private bool HasActions =>
-        (Job.IsCompleted && OnDelete.HasDelegate)
+        (Job.IsSucceeded && OnDelete.HasDelegate)
         || (Job.IsFailed && (OnRetry.HasDelegate || OnAbandon.HasDelegate))
         || (IsStuck && OnForceFail.HasDelegate);
 
@@ -33,6 +33,7 @@ public partial class ImportJobCard
     {
         "status-pending" => Icons.Material.Outlined.HourglassEmpty,
         "status-completed" => Icons.Material.Filled.Check,
+        "status-split" => Icons.Material.Filled.CallSplit,
         "status-failed" => Icons.Material.Filled.PriorityHigh,
         _ => Icons.Material.Filled.Sync
     };

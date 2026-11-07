@@ -16,6 +16,19 @@
         <div class="import-job-step">@BookText.Join(step, Job.ConversionDetail)</div>
     }
 
+    @if (Job.SplitDisplay is { } split)
+    {
+        <div class="import-job-split">
+            @split
+            <ul class="import-job-split-files">
+                @foreach (var fileName in Job.SplitFileNames)
+                {
+                    <li title="@fileName">@fileName</li>
+                }
+            </ul>
+        </div>
+    }
+
     @if (Job.FailureDisplay is { } failure)
     {
         <div class="import-job-error">@failure</div>
@@ -66,7 +79,7 @@
                                    aria-label="Retry this import" />
                 </MudTooltip>
             }
-            @if (Job.IsCompleted && OnDelete.HasDelegate)
+            @if (Job.IsSucceeded && OnDelete.HasDelegate)
             {
                 <MudIconButton Icon="@Icons.Material.Outlined.Delete"
                                OnClick="@(() => OnDelete.InvokeAsync(Job.Id))"

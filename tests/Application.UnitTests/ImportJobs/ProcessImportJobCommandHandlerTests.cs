@@ -2,6 +2,7 @@ using Application.ImportJobs;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
 using Domain.Books;
+using Domain.Errors;
 using Domain.ImportJobs;
 using Domain.Libraries;
 using Domain.Primitives;
@@ -93,13 +94,20 @@ public class ProcessImportJobCommandHandlerTests
         return lib;
     }
 
+    // An archive always has pages here (an archive without any is refused at the extraction): the pages
+    // themselves are not read by these tests, the image processor and the workspace are substitutes.
     private void SetupArchiveExtractor(ImportJob job, string[] imageFiles, string? comicInfoPath = null)
+    {
+        var pages = imageFiles.Length == 0 ? new[] { "page001.jpg" } : imageFiles;
+        SetupArchiveExtraction(job, new ArchiveExtractionResult(pages, comicInfoPath));
+    }
+
+    private void SetupArchiveExtraction(ImportJob job, ArchiveExtractionResult extraction)
     {
         _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
         _archiveExtractor.CanHandle(job.OriginalFilePath).Returns(true);
         _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ArchiveExtractionResult>.Success(
-                new ArchiveExtractionResult(imageFiles, comicInfoPath)));
+            .Returns(Result<ArchiveExtractionResult>.Success(extraction));
     }
 
     private void SetupPdfExtractor(ImportJob job, string[] imageFiles)
@@ -216,6 +224,133 @@ public class ProcessImportJobCommandHandlerTests
             .ExtractImagesAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task Handle_Should_FailAtTheExtraction_WhenTheArchiveHasNoPage()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtraction(job, new ArchiveExtractionResult([], null));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FileProcessingError.ArchiveWithoutPages);
+        job.Status.Should().Be(ImportJobStatus.Failed);
+        job.ErrorStep.Should().Be("Extracting");
+        job.ErrorMessage.Should().Be("The archive contains no page.");
+        await _imageProcessor.DidNotReceiveWithAnyArgs().ProcessImagesAsync(default!, default!, ct: TestContext.Current.CancellationToken);
+    }
+
+    // ── Split: an archive of archives ─────────────────────────────────────────
+
+    private (ImportJob Job, Library Library) SetupArchiveOfArchives(params string[] nestedArchives)
+    {
+        var job = CreatePendingJob("zzSerie.T01.T02.rar", "/import/lib/zzSerie.T01.T02.rar");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        var library = CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtraction(job, new ArchiveExtractionResult([], null) { NestedArchives = nestedArchives });
+        _importDirectoryStorage.EnsureExists(Arg.Any<string>()).Returns(Result.Success());
+        _importDirectoryStorage.GetAvailableFilePath(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(callInfo => Result<string>.Success("/import/lib/" + callInfo.ArgAt<string>(1)));
+        _importDirectoryStorage.DepositFile(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
+        return (job, library);
+    }
+
+    [Fact]
+    public async Task Handle_Should_DepositEachInnerArchive_AndSplitTheImport_WhenTheArchiveHoldsArchives()
+    {
+        var (job, library) = SetupArchiveOfArchives("/tmp/raw/Serie - T01.cbz", "/tmp/raw/Serie - T02 (2).cbz");
+        _importDirectoryStorage.GetAvailableFilePath(library.ImportDirectoryName, "Serie - T02 (2).cbz")
+            .Returns(Result<string>.Success("/import/lib/Serie - T02 (3).cbz"));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Book.Should().BeNull();
+        result.Value.SplitFileNames.Should().Equal("Serie - T01.cbz", "Serie - T02 (3).cbz");
+        job.Status.Should().Be(ImportJobStatus.Split);
+        job.SplitFileNames.Should().Equal("Serie - T01.cbz", "Serie - T02 (3).cbz");
+        _importDirectoryStorage.Received(1).EnsureExists(library.ImportDirectoryName);
+        _importDirectoryStorage.Received(1).DepositFile("/tmp/raw/Serie - T01.cbz", "/import/lib/Serie - T01.cbz");
+        _importDirectoryStorage.Received(1).DepositFile("/tmp/raw/Serie - T02 (2).cbz", "/import/lib/Serie - T02 (3).cbz");
+        // The archive is gone like after a success, and nothing else of the pipeline runs.
+        _importDirectoryStorage.Received(1).DeleteOriginalFile(job.OriginalFilePath);
+        _importDirectoryStorage.DidNotReceive().MoveOriginalFileToError(Arg.Any<string>());
+        await _imageProcessor.DidNotReceiveWithAnyArgs().ProcessImagesAsync(default!, default!, ct: TestContext.Current.CancellationToken);
+        _bookRepository.DidNotReceiveWithAnyArgs().Add(default!);
+    }
+
+    [Fact]
+    public async Task Handle_Should_FailWithoutMovingAnyFile_WhenTheImportDirectoryCannotBeCreated()
+    {
+        var (job, _) = SetupArchiveOfArchives("/tmp/raw/T01.cbz");
+        _importDirectoryStorage.EnsureExists(Arg.Any<string>()).Returns(ImportDirectoryStorageError.InvalidPath);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(ImportDirectoryStorageError.InvalidPath);
+        job.Status.Should().Be(ImportJobStatus.Failed);
+        _importDirectoryStorage.DidNotReceiveWithAnyArgs().DepositFile(default!, default!);
+    }
+
+    [Fact]
+    public async Task Handle_Should_FailWithoutMovingAnyFile_WhenAnInnerArchiveNameIsInvalid()
+    {
+        var (job, _) = SetupArchiveOfArchives("/tmp/raw/T01.cbz", "/tmp/raw/T02.cbz");
+        _importDirectoryStorage.GetAvailableFilePath(Arg.Any<string>(), "T02.cbz")
+            .Returns(ImportDirectoryStorageError.InvalidFileName);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(ImportDirectoryStorageError.InvalidFileName);
+        job.Status.Should().Be(ImportJobStatus.Failed);
+        job.ErrorStep.Should().Be("Extracting");
+        _importDirectoryStorage.DidNotReceiveWithAnyArgs().DepositFile(default!, default!);
+        _importDirectoryStorage.Received(1).MoveOriginalFileToError(job.OriginalFilePath);
+    }
+
+    [Fact]
+    public async Task Handle_Should_FailWithTheStorageError_WhenTheFirstInnerArchiveCannotBeMoved()
+    {
+        var (job, _) = SetupArchiveOfArchives("/tmp/raw/T01.cbz", "/tmp/raw/T02.cbz");
+        _importDirectoryStorage.DepositFile("/tmp/raw/T01.cbz", Arg.Any<string>())
+            .Returns(ImportDirectoryStorageError.DepositFailed);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(ImportDirectoryStorageError.DepositFailed);
+        job.Status.Should().Be(ImportJobStatus.Failed);
+        _importDirectoryStorage.DidNotReceive().DepositFile("/tmp/raw/T02.cbz", Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_SayHowManyArchivesWereMoved_WhenALaterInnerArchiveCannotBeMoved()
+    {
+        var (job, _) = SetupArchiveOfArchives("/tmp/raw/T01.cbz", "/tmp/raw/T02.cbz", "/tmp/raw/T03.cbz");
+        _importDirectoryStorage.DepositFile("/tmp/raw/T02.cbz", Arg.Any<string>())
+            .Returns(ImportDirectoryStorageError.DepositFailed);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Error!.Code.Should().Be("IMP507B");
+        job.ErrorMessage.Should().Be("Only 1 of the 3 archives found inside could be moved to the import folder.");
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnTheSaveError_WhenTheSplitCannotBeSaved()
+    {
+        var (job, _) = SetupArchiveOfArchives("/tmp/raw/T01.cbz");
+        var saveError = new TError("DB500", "save failed");
+        // The first save (status Extracting) succeeds, the one of the split fails.
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<int>.Success(1), Result<int>.Failure(saveError));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(saveError);
+        _importDirectoryStorage.Received(1).DepositFile("/tmp/raw/T01.cbz", "/import/lib/T01.cbz");
+    }
+
     // ── Conversion ────────────────────────────────────────────────────────────
 
     [Fact]
@@ -328,10 +463,10 @@ public class ProcessImportJobCommandHandlerTests
 
         await _isbnScanner.Received(1).ScanPagesAsync(
             Arg.Is<IReadOnlyList<string>>(pages => pages.Count == 1 && pages[0] == "cover.webp"), Arg.Any<CancellationToken>());
-        result.Value!.ISBN.Should().Be("9782075162869");
-        result.Value.Title.Should().Be("Title");
-        result.Value.IsbnCandidates.Should().BeEmpty();
-        result.Value.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
+        result.Value!.Book!.ISBN.Should().Be("9782075162869");
+        result.Value!.Book!.Title.Should().Be("Title");
+        result.Value!.Book!.IsbnCandidates.Should().BeEmpty();
+        result.Value!.Book!.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
         _tempWorkspace.Received(1).MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), "9782075162869.cbz");
     }
 
@@ -344,8 +479,8 @@ public class ProcessImportJobCommandHandlerTests
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
-        result.Value!.ISBN.Should().BeNull();
-        result.Value.IsbnCandidates.Should().Equal("9782075162869", "2205056174");
+        result.Value!.Book!.ISBN.Should().BeNull();
+        result.Value!.Book!.IsbnCandidates.Should().Equal("9782075162869", "2205056174");
         await _comicSearchService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -358,8 +493,8 @@ public class ProcessImportJobCommandHandlerTests
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
-        result.Value!.ISBN.Should().BeNull();
-        result.Value.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
+        result.Value!.Book!.ISBN.Should().BeNull();
+        result.Value!.Book!.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
     }
 
     [Fact]
@@ -370,7 +505,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.IsbnScannedAt.Should().BeNull();
+        result.Value!.Book!.IsbnScannedAt.Should().BeNull();
     }
 
     [Fact]
@@ -431,8 +566,8 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.ISBN.Should().BeNull();
-        result.Value.IsbnCandidates.Should().Equal("9782075162869");
+        result.Value!.Book!.ISBN.Should().BeNull();
+        result.Value!.Book!.IsbnCandidates.Should().Equal("9782075162869");
         await _comicSearchService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -496,7 +631,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeOfType<DigitalBook>();
+        result.Value!.Book.Should().BeOfType<DigitalBook>();
         _bookRepository.Received(1).Add(Arg.Any<DigitalBook>());
     }
 
@@ -518,7 +653,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
+        result.Value!.Book.Should().NotBeNull();
     }
 
     [Fact]
@@ -537,9 +672,9 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Serie.Should().Be("Ashita no Joe");
-        result.Value.Title.Should().Be("Ashita no Joe");
-        result.Value.VolumeNumber.Should().Be(8);
+        result.Value!.Book!.Serie.Should().Be("Ashita no Joe");
+        result.Value!.Book!.Title.Should().Be("Ashita no Joe");
+        result.Value!.Book!.VolumeNumber.Should().Be(8);
     }
 
     // ── Failure paths ─────────────────────────────────────────────────────────
@@ -746,7 +881,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.ImageLink.Should().BeEmpty();
+        result.Value!.Book!.ImageLink.Should().BeEmpty();
     }
 
     private const string CatalogueCover = "https://res.cloudinary.com/demo/covers/9782075162869.jpg";
@@ -773,8 +908,8 @@ public class ProcessImportJobCommandHandlerTests
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
-        result.Value!.ImageLink.Should().Be("https://cdn.example.com/cover.webp");
-        result.Value.NumberOfPages.Should().Be(48);
+        result.Value!.Book!.ImageLink.Should().Be("https://cdn.example.com/cover.webp");
+        result.Value!.Book!.NumberOfPages.Should().Be(48);
     }
 
     [Fact]
@@ -787,8 +922,8 @@ public class ProcessImportJobCommandHandlerTests
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
-        result.Value!.ImageLink.Should().Be(CatalogueCover);
-        result.Value.NumberOfPages.Should().Be(48);
+        result.Value!.Book!.ImageLink.Should().Be(CatalogueCover);
+        result.Value!.Book!.NumberOfPages.Should().Be(48);
     }
 
     // ── Cover upload skipped when no webp files ───────────────────────────────
@@ -1123,8 +1258,8 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Serie.Should().Be("Existing Serie");
-        result.Value.Title.Should().Be("Existing Title");
+        result.Value!.Book!.Serie.Should().Be("Existing Serie");
+        result.Value!.Book!.Title.Should().Be("Existing Title");
     }
 
     [Fact]
@@ -1150,8 +1285,8 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Serie.Should().Be("Existing Serie");
-        result.Value.Title.Should().Be("Existing Title");
+        result.Value!.Book!.Serie.Should().Be("Existing Serie");
+        result.Value!.Book!.Title.Should().Be("Existing Title");
         _comicInfoXmlService.Received(1).Write(Arg.Any<string>(), Arg.Is<ComicInfoData>(d =>
             d.Series == "Existing Serie" && d.Title == "Existing Title" && d.Number == 4
             && d.Writer == "Catalogue Author" && d.Publisher == "Catalogue Publisher" && d.Year == 2021));
@@ -1180,7 +1315,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.VolumeNumber.Should().Be(7);
+        result.Value!.Book!.VolumeNumber.Should().Be(7);
     }
 
     // ── Conversion progress reporting ─────────────────────────────────────────

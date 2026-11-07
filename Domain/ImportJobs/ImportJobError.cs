@@ -17,6 +17,9 @@ public static class ImportJobError
     public static readonly TError AlreadyQueued = new("IMP409B", "An active import job already exists for this file.");
     public static readonly TError DestinationFileExists = new("IMP409C", "A file already exists at the destination path.");
 
+    public static TError SplitPartiallyDeposited(int deposited, int total) => new("IMP507B",
+        $"Only {deposited} of the {total} archives found inside could be moved to the import folder.");
+
     public static TError IsbnAlreadyOwned(string isbn, string? libraryName) => new("IMP409D", libraryName is null
         ? $"ISBN {isbn} is already used by a digital book."
         : $"ISBN {isbn} is already used by a book of the digital library {libraryName}.");

@@ -28,7 +28,7 @@ public sealed class DeleteImportJobCommandHandler(
             return ImportJobError.NotFound;
         }
 
-        if (job.Status != ImportJobStatus.Completed)
+        if (!job.Status.IsSucceeded())
         {
             return ImportJobError.NotCompleted;
         }

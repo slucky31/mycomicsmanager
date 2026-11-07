@@ -42,6 +42,9 @@ public class ImportJob : Entity<Guid>
 
     public int TotalImagesToConvert { get; private set; }
 
+    // The archives found inside a split archive, as deposited in the import directory.
+    public IReadOnlyList<string> SplitFileNames { get; private set; } = [];
+
     protected ImportJob() { }
 
     public static Result<ImportJob> Create(
@@ -80,14 +83,9 @@ public class ImportJob : Entity<Guid>
 
     public Result Advance(ImportJobStatus newStatus)
     {
-        if (Status == ImportJobStatus.Completed)
+        if (TerminalError() is { } terminalError)
         {
-            return ImportJobError.AlreadyCompleted;
-        }
-
-        if (Status == ImportJobStatus.Failed)
-        {
-            return ImportJobError.AlreadyFailed;
+            return terminalError;
         }
 
         var currentIndex = Array.IndexOf(s_orderedStatuses, Status);
@@ -104,14 +102,9 @@ public class ImportJob : Entity<Guid>
 
     public Result Fail(string step, string errorMessage)
     {
-        if (Status == ImportJobStatus.Completed)
+        if (TerminalError() is { } terminalError)
         {
-            return ImportJobError.AlreadyCompleted;
-        }
-
-        if (Status == ImportJobStatus.Failed)
-        {
-            return ImportJobError.AlreadyFailed;
+            return terminalError;
         }
 
         Status = ImportJobStatus.Failed;
@@ -137,6 +130,39 @@ public class ImportJob : Entity<Guid>
         CompletedAt = DateTime.UtcNow;
         return Result.Success();
     }
+
+    // An archive holding other archives instead of pages (several volumes in one download): each one was
+    // deposited in the import directory to be imported on its own, and this import ends there.
+    public Result Split(IReadOnlyList<string> fileNames)
+    {
+        if (TerminalError() is { } terminalError)
+        {
+            return terminalError;
+        }
+
+        if (Status != ImportJobStatus.Extracting)
+        {
+            return ImportJobError.InvalidStatusTransition;
+        }
+
+        if (fileNames is null || fileNames.Count == 0 || fileNames.Any(string.IsNullOrWhiteSpace))
+        {
+            return ImportJobError.BadRequest;
+        }
+
+        Status = ImportJobStatus.Split;
+        SplitFileNames = [.. fileNames];
+        CompletedAt = DateTime.UtcNow;
+        return Result.Success();
+    }
+
+    // Completed and Split both end an import that succeeded.
+    private TError? TerminalError() => Status switch
+    {
+        ImportJobStatus.Completed or ImportJobStatus.Split => ImportJobError.AlreadyCompleted,
+        ImportJobStatus.Failed => ImportJobError.AlreadyFailed,
+        _ => null
+    };
 
     public void RecordErrorFile(string errorFilePath)
     {

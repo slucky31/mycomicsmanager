@@ -49,6 +49,6 @@ public sealed class DeleteFeedImportDecisionCommandHandler(
         }
 
         var job = await importJobRepository.GetByIdAsync(importJobId, cancellationToken);
-        return job is not null && job.Status is not (ImportJobStatus.Completed or ImportJobStatus.Failed);
+        return job is not null && !job.Status.IsTerminal();
     }
 }

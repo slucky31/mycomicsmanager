@@ -63,7 +63,8 @@
     color: var(--mcm-info);
 }
 
-.status-completed .import-job-status {
+.status-completed .import-job-status,
+.status-split .import-job-status {
     background: var(--mcm-success-soft);
     color: var(--mcm-success-strong);
 }
@@ -91,6 +92,24 @@
     margin-top: 6px;
     font-size: var(--mcm-font-caption);
     color: var(--mcm-text-muted);
+}
+
+.import-job-split {
+    margin-top: 8px;
+    font-size: var(--mcm-font-small);
+}
+
+.import-job-split-files {
+    margin: 4px 0 0;
+    padding-left: 18px;
+    font-size: var(--mcm-font-caption);
+    color: var(--mcm-text-muted);
+}
+
+.import-job-split-files li {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .import-job-error {

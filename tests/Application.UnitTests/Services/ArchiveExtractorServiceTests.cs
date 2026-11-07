@@ -214,4 +214,57 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
         var names = result.Value!.ExtractedFiles.Select(Path.GetFileName).ToList();
         names.Should().BeInAscendingOrder();
     }
+
+    // -------------------------------------------------------
+    // ExtractAsync — archive of archives
+    // -------------------------------------------------------
+
+    [Fact]
+    public async Task ExtractAsync_Should_ExtractTheInnerArchives_WhenTheArchiveHasNoPage()
+    {
+        var archivePath = CreateZipArchive(
+        [
+            ("Serie - T02.cbz", "volume 2"),
+            ("folder/Serie - T01.cbz", "volume 1"),
+            ("Serie - T03.pdf", "volume 3"),
+            ("._Serie - T04.cbz", "macOS resource fork"),
+            ("readme.txt", "text")
+        ], "volumes.zip");
+        var destDir = CreateDestDir();
+
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ExtractedFiles.Should().BeEmpty();
+        result.Value.ComicInfoXmlPath.Should().BeNull();
+        result.Value.NestedArchives.Select(Path.GetFileName)
+            .Should().Equal("Serie - T01.cbz", "Serie - T02.cbz", "Serie - T03.pdf");
+        result.Value.NestedArchives.Should().OnlyContain(f => File.Exists(f));
+    }
+
+    [Fact]
+    public async Task ExtractAsync_Should_IgnoreTheInnerArchives_WhenTheArchiveHasPages()
+    {
+        var archivePath = CreateZipArchive([("page01.jpg", "img"), ("bonus.cbz", "volume")]);
+        var destDir = CreateDestDir();
+
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
+
+        result.Value!.ExtractedFiles.Select(Path.GetFileName).Should().Equal("page01.jpg");
+        result.Value.NestedArchives.Should().BeEmpty();
+        File.Exists(Path.Combine(destDir, "bonus.cbz")).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExtractAsync_Should_ReturnNoFile_WhenTheArchiveHasNeitherPageNorArchive()
+    {
+        var archivePath = CreateZipArchive([("ComicInfo.xml", "<ComicInfo/>"), ("readme.txt", "text")]);
+        var destDir = CreateDestDir();
+
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.ExtractedFiles.Should().BeEmpty();
+        result.Value.NestedArchives.Should().BeEmpty();
+    }
 }

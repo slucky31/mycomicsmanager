@@ -88,10 +88,10 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
             modelBuilder.Entity<ImportJob>().Property(j => j.ErrorFilePath).HasMaxLength(ImportJobConstants.MaxFilePathLength);
             modelBuilder.Entity<ImportJob>().HasIndex(j => j.LibraryId);
             modelBuilder.Entity<ImportJob>().HasIndex(j => j.Status);
-            // ponytail: filter references the numeric ordinals of Completed (6) and Failed (7); update if the enum is reordered
+            // ponytail: filter references the numeric ordinals of Completed (6), Failed (7) and Split (8); update if the enum is reordered
             modelBuilder.Entity<ImportJob>().HasIndex(j => j.OriginalFilePath)
                 .IsUnique()
-                .HasFilter("\"Status\" NOT IN (6, 7)");
+                .HasFilter("\"Status\" NOT IN (6, 7, 8)");
             modelBuilder.Entity<ImportJob>().Property<uint>("xmin")
                 .HasColumnName("xmin")
                 .HasColumnType("xid")

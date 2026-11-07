@@ -58,6 +58,7 @@ public sealed class ImportJobViewModelTests
     [InlineData(ImportJobStatus.Converting, false)]
     [InlineData(ImportJobStatus.Completed, true)]
     [InlineData(ImportJobStatus.Failed, true)]
+    [InlineData(ImportJobStatus.Split, true)]
     public void IsTerminal_Should_ReflectStatus(ImportJobStatus status, bool expected)
     {
         var viewModel = ViewModelWithStatus(status);
@@ -166,6 +167,7 @@ public sealed class ImportJobViewModelTests
     [InlineData(ImportJobStatus.Extracting, "status-processing")]
     [InlineData(ImportJobStatus.Completed, "status-completed")]
     [InlineData(ImportJobStatus.Failed, "status-failed")]
+    [InlineData(ImportJobStatus.Split, "status-split")]
     public void StatusCssClass_Should_MapStatus(ImportJobStatus status, string expected)
     {
         var viewModel = ViewModelWithStatus(status);
@@ -184,6 +186,7 @@ public sealed class ImportJobViewModelTests
     [InlineData(ImportJobStatus.BuildingArchive, "Building the book", 85, "Step 6 of 6 · 85%")]
     [InlineData(ImportJobStatus.Completed, "Imported", 100, null)]
     [InlineData(ImportJobStatus.Failed, "Failed", 0, null)]
+    [InlineData(ImportJobStatus.Split, "Split", 100, null)]
     public void From_Should_MapStatusDisplayProgressAndStep(
         ImportJobStatus status, string expectedDisplay, int expectedProgress, string? expectedStep)
     {
@@ -192,6 +195,39 @@ public sealed class ImportJobViewModelTests
         viewModel.StatusDisplay.Should().Be(expectedDisplay);
         viewModel.ProgressPercent.Should().Be(expectedProgress);
         viewModel.StepDisplay.Should().Be(expectedStep);
+    }
+
+    // ── Split ─────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void SplitDisplay_Should_CountTheImports_AndListTheArchives_WhenTheArchiveWasSplit()
+    {
+        var viewModel = ViewModelWithStatus(ImportJobStatus.Split);
+
+        viewModel.SplitDisplay.Should().Be("Split into 2 imports");
+        viewModel.SplitFileNames.Should().Equal("T01.cbz", "T02.cbz");
+        viewModel.IsSucceeded.Should().BeTrue();
+        viewModel.BookHref.Should().BeNull();
+    }
+
+    [Fact]
+    public void SplitDisplay_Should_UseTheSingular_ForASingleArchive()
+    {
+        var viewModel = ViewModelWithStatus(ImportJobStatus.Split) with { SplitFileNames = ["T01.cbz"] };
+
+        viewModel.SplitDisplay.Should().Be("Split into 1 import");
+    }
+
+    [Theory]
+    [InlineData(ImportJobStatus.Completed, true)]
+    [InlineData(ImportJobStatus.Failed, false)]
+    [InlineData(ImportJobStatus.Converting, false)]
+    public void SplitDisplay_Should_BeNull_WhenTheArchiveWasNotSplit(ImportJobStatus status, bool succeeded)
+    {
+        var viewModel = ViewModelWithStatus(status);
+
+        viewModel.SplitDisplay.Should().BeNull();
+        viewModel.IsSucceeded.Should().Be(succeeded);
     }
 
     // ── BookHref ──────────────────────────────────────────────────────────────
@@ -292,6 +328,10 @@ public sealed class ImportJobViewModelTests
                 break;
             case ImportJobStatus.Failed:
                 job.Fail("Init", "error");
+                break;
+            case ImportJobStatus.Split:
+                job.Advance(ImportJobStatus.Extracting);
+                job.Split(["T01.cbz", "T02.cbz"]);
                 break;
             default:
                 foreach (var step in new[]
