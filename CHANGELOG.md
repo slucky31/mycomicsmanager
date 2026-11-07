@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.75.0"></a>
+## [10.75.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.75.0) (2026-11-07)
+
+### ✨ Features
+
+* **feeds:** filter the feed imports by file host ([#1297](https://www.github.com/slucky31/mycomicsmanager/issues/1297)) ([1c71b07](https://www.github.com/slucky31/mycomicsmanager/commit/1c71b07920b3a68ebba16179a65b7228555c2289))
+
 <a name="10.74.2"></a>
 ## [10.74.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.74.2) (2026-11-07)
 
