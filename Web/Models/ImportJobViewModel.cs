@@ -45,9 +45,9 @@ public record ImportJobViewModel(
     public IReadOnlyList<string> SplitFileNames { get; init; } = [];
 
     // "Split into 4 imports".
-    public string? SplitDisplay => IsSplit
-        ? $"Split into {SplitFileNames.Count} {(SplitFileNames.Count == 1 ? "import" : "imports")}"
-        : null;
+    public string? SplitDisplay => IsSplit ? $"Split into {SplitFileNames.Count} {ImportsWord}" : null;
+
+    private string ImportsWord => SplitFileNames.Count == 1 ? "import" : "imports";
 
     public string? BookHref => Status == nameof(ImportJobStatus.Completed) && DigitalBookId is { } bookId
         ? $"/books/{bookId}"

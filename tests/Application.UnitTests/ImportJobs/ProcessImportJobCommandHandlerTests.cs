@@ -32,6 +32,7 @@ public class ProcessImportJobCommandHandlerTests
     private static readonly DateTimeOffset s_now = new(2026, 10, 10, 8, 0, 0, TimeSpan.Zero);
 
     private static readonly Guid s_userId = Guid.CreateVersion7();
+    private static readonly string[] s_defaultPages = ["page001.jpg"];
     private static readonly TError s_processingError = new("FP500", "Processing failed");
 
     public ProcessImportJobCommandHandlerTests()
@@ -98,7 +99,7 @@ public class ProcessImportJobCommandHandlerTests
     // themselves are not read by these tests, the image processor and the workspace are substitutes.
     private void SetupArchiveExtractor(ImportJob job, string[] imageFiles, string? comicInfoPath = null)
     {
-        var pages = imageFiles.Length == 0 ? new[] { "page001.jpg" } : imageFiles;
+        var pages = imageFiles.Length == 0 ? s_defaultPages : imageFiles;
         SetupArchiveExtraction(job, new ArchiveExtractionResult(pages, comicInfoPath));
     }
 
