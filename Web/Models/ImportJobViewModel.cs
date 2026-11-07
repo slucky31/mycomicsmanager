@@ -78,6 +78,9 @@ public record ImportJobViewModel(
     // A failed import is retried or abandoned, never deleted with the successful ones.
     public bool IsFailed => Status == nameof(ImportJobStatus.Failed);
 
+    // The file of a failed import can be downloaded to be analysed (#1291).
+    public string? FileHref => IsFailed ? $"/api/import-jobs/{Id}/file" : null;
+
     // Same format as the other dates of the app (#1246): "03/10/2026 19:23", in local time.
     public string CreatedAtDisplay =>
         CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
