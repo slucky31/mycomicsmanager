@@ -1,0 +1,757 @@
+{
+    "Domain_Model": {
+        "path": "Domain",
+        "components": [
+            "Domain/Primitives/Result.cs::Result",
+            "Domain/Primitives/ResultBase.cs::IResult",
+            "Domain/Primitives/ResultBase.cs::IResultBase",
+            "Domain/Interfaces/IAuditable.cs::IAuditable",
+            "Domain/Users/User.cs::User",
+            "Domain/Settings/FeatureToggleOverride.cs::FeatureToggleOverride",
+            "Domain/Libraries/Library.cs::Library",
+            "Domain/ImportJobs/ImportJob.cs::ImportJob",
+            "Domain/Books/DigitalBook.cs::DigitalBook",
+            "Domain/Books/IsbnBedethequeUrl.cs::IsbnBedethequeUrl",
+            "Domain/Books/PhysicalBook.cs::PhysicalBook",
+            "Domain/Books/ReadingDate.cs::ReadingDate",
+            "Domain/FeedImports/FeedImportDecision.cs::FeedImportDecision",
+            "Domain/FeedImports/FeedImportDecisionEvent.cs::FeedImportDecisionEvent"
+        ],
+        "children": {
+            "Domain_Core": {
+                "path": "Domain",
+                "components": [
+                    "Domain/Primitives/Result.cs::Result",
+                    "Domain/Primitives/ResultBase.cs::IResult",
+                    "Domain/Primitives/ResultBase.cs::IResultBase",
+                    "Domain/Interfaces/IAuditable.cs::IAuditable",
+                    "Domain/Users/User.cs::User",
+                    "Domain/Settings/FeatureToggleOverride.cs::FeatureToggleOverride",
+                    "Domain/Libraries/Library.cs::Library",
+                    "Domain/ImportJobs/ImportJob.cs::ImportJob"
+                ],
+                "children": {}
+            },
+            "Domain_Books": {
+                "path": "Domain/Books",
+                "components": [
+                    "Domain/Books/DigitalBook.cs::DigitalBook",
+                    "Domain/Books/IsbnBedethequeUrl.cs::IsbnBedethequeUrl",
+                    "Domain/Books/PhysicalBook.cs::PhysicalBook",
+                    "Domain/Books/ReadingDate.cs::ReadingDate"
+                ],
+                "children": {}
+            },
+            "Domain_FeedImports": {
+                "path": "Domain/FeedImports",
+                "components": [
+                    "Domain/FeedImports/FeedImportDecision.cs::FeedImportDecision",
+                    "Domain/FeedImports/FeedImportDecisionEvent.cs::FeedImportDecisionEvent"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "Application_Contracts___CQRS_Foundation": {
+        "path": "Application",
+        "components": [
+            "Application/Abstractions/Messaging/ICommand.cs::IBaseCommand",
+            "Application/Abstractions/Messaging/ICommand.cs::ICommand",
+            "Application/Abstractions/Messaging/ICommandHandler.cs::ICommandHandler",
+            "Application/Abstractions/Messaging/IQuery.cs::IQuery",
+            "Application/Abstractions/Messaging/IQueryHandler.cs::IQueryHandler",
+            "Application/Interfaces/IArchiveExtractor.cs::IArchiveExtractor",
+            "Application/Interfaces/IBedethequeService.cs::IBedethequeService",
+            "Application/Interfaces/IBnfCatalogueService.cs::IBnfCatalogueService",
+            "Application/Interfaces/IBookFileService.cs::IBookFileService",
+            "Application/Interfaces/IBookReadService.cs::IBookReadService",
+            "Application/Interfaces/IBookRepository.cs::IBookRepository",
+            "Application/Interfaces/IBookSearchResult.cs::IBookSearchResult",
+            "Application/Interfaces/IBubbleService.cs::IBubbleService",
+            "Application/Interfaces/ICloudinaryService.cs::ICloudinaryService",
+            "Application/Interfaces/IComicArchiveBuilder.cs::IComicArchiveBuilder",
+            "Application/Interfaces/IComicInfoXmlService.cs::IComicInfoXmlService",
+            "Application/Interfaces/IComicPageReader.cs::IComicPageReader",
+            "Application/Interfaces/IComicSearchService.cs::IComicSearchService",
+            "Application/Interfaces/ICurrentUserService.cs::ICurrentUserService",
+            "Application/Interfaces/IFeatureToggleOverrideRepository.cs::IFeatureToggleOverrideRepository",
+            "Application/Interfaces/IFeatureToggles.cs::IFeatureToggles",
+            "Application/Interfaces/IFeedImportDecisionReadService.cs::IFeedImportDecisionReadService",
+            "Application/Interfaces/IFeedImportDecisionRepository.cs::IFeedImportDecisionRepository",
+            "Application/Interfaces/IGoogleBooksService.cs::IGoogleBooksService",
+            "Application/Interfaces/IImageProcessor.cs::IImageProcessor",
+            "Application/Interfaces/IImportJobEnqueuer.cs::IImportJobEnqueuer",
+            "Application/Interfaces/IImportJobRepository.cs::IImportJobRepository",
+            "Application/Interfaces/IImportOrchestrator.cs::IImportOrchestrator",
+            "Application/Interfaces/IIsbnBedethequeCacheRepository.cs::IIsbnBedethequeCacheRepository",
+            "Application/Interfaces/IIsbnPageScanner.cs::IIsbnPageScanner",
+            "Application/Interfaces/IIsbnScanJobEnqueuer.cs::IIsbnScanJobEnqueuer",
+            "Application/Interfaces/IIsbnScanOrchestrator.cs::IIsbnScanOrchestrator",
+            "Application/Interfaces/IOpenLibraryService.cs::IOpenLibraryService",
+            "Application/Interfaces/IPagedList.cs::IPagedList",
+            "Application/Interfaces/IPdfImageExtractor.cs::IPdfImageExtractor",
+            "Application/Interfaces/IRepository.cs::IRepository",
+            "Application/Interfaces/IStatisticsReadService.cs::IStatisticsReadService",
+            "Application/Interfaces/IStructuredBookResult.cs::IStructuredBookResult",
+            "Application/Interfaces/ITempWorkspace.cs::ITempWorkspace",
+            "Application/Interfaces/IUnitOfWork.cs::IUnitOfWork"
+        ],
+        "children": {
+            "Messaging_Abstractions": {
+                "path": "Application/Abstractions/Messaging",
+                "components": [
+                    "Application/Abstractions/Messaging/ICommand.cs::IBaseCommand",
+                    "Application/Abstractions/Messaging/ICommand.cs::ICommand",
+                    "Application/Abstractions/Messaging/ICommandHandler.cs::ICommandHandler",
+                    "Application/Abstractions/Messaging/IQuery.cs::IQuery",
+                    "Application/Abstractions/Messaging/IQueryHandler.cs::IQueryHandler"
+                ],
+                "children": {}
+            },
+            "Application_Interfaces": {
+                "path": "Application/Interfaces",
+                "components": [
+                    "Application/Interfaces/IArchiveExtractor.cs::IArchiveExtractor",
+                    "Application/Interfaces/IBedethequeService.cs::IBedethequeService",
+                    "Application/Interfaces/IBnfCatalogueService.cs::IBnfCatalogueService",
+                    "Application/Interfaces/IBookFileService.cs::IBookFileService",
+                    "Application/Interfaces/IBookReadService.cs::IBookReadService",
+                    "Application/Interfaces/IBookRepository.cs::IBookRepository",
+                    "Application/Interfaces/IBookSearchResult.cs::IBookSearchResult",
+                    "Application/Interfaces/IBubbleService.cs::IBubbleService",
+                    "Application/Interfaces/ICloudinaryService.cs::ICloudinaryService",
+                    "Application/Interfaces/IComicArchiveBuilder.cs::IComicArchiveBuilder",
+                    "Application/Interfaces/IComicInfoXmlService.cs::IComicInfoXmlService",
+                    "Application/Interfaces/IComicPageReader.cs::IComicPageReader",
+                    "Application/Interfaces/IComicSearchService.cs::IComicSearchService",
+                    "Application/Interfaces/ICurrentUserService.cs::ICurrentUserService",
+                    "Application/Interfaces/IFeatureToggleOverrideRepository.cs::IFeatureToggleOverrideRepository",
+                    "Application/Interfaces/IFeatureToggles.cs::IFeatureToggles",
+                    "Application/Interfaces/IFeedImportDecisionReadService.cs::IFeedImportDecisionReadService",
+                    "Application/Interfaces/IFeedImportDecisionRepository.cs::IFeedImportDecisionRepository",
+                    "Application/Interfaces/IGoogleBooksService.cs::IGoogleBooksService",
+                    "Application/Interfaces/IImageProcessor.cs::IImageProcessor",
+                    "Application/Interfaces/IImportJobEnqueuer.cs::IImportJobEnqueuer",
+                    "Application/Interfaces/IImportJobRepository.cs::IImportJobRepository",
+                    "Application/Interfaces/IImportOrchestrator.cs::IImportOrchestrator",
+                    "Application/Interfaces/IIsbnBedethequeCacheRepository.cs::IIsbnBedethequeCacheRepository",
+                    "Application/Interfaces/IIsbnPageScanner.cs::IIsbnPageScanner",
+                    "Application/Interfaces/IIsbnScanJobEnqueuer.cs::IIsbnScanJobEnqueuer",
+                    "Application/Interfaces/IIsbnScanOrchestrator.cs::IIsbnScanOrchestrator",
+                    "Application/Interfaces/IOpenLibraryService.cs::IOpenLibraryService",
+                    "Application/Interfaces/IPagedList.cs::IPagedList",
+                    "Application/Interfaces/IPdfImageExtractor.cs::IPdfImageExtractor",
+                    "Application/Interfaces/IRepository.cs::IRepository",
+                    "Application/Interfaces/IStatisticsReadService.cs::IStatisticsReadService",
+                    "Application/Interfaces/IStructuredBookResult.cs::IStructuredBookResult",
+                    "Application/Interfaces/ITempWorkspace.cs::ITempWorkspace",
+                    "Application/Interfaces/IUnitOfWork.cs::IUnitOfWork"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "Book___Library_Use_Cases": {
+        "path": "Application",
+        "components": [
+            "Application/Books/AddReadingDate/AddReadingDateCommandHandler.cs::AddReadingDateCommandHandler",
+            "Application/Books/Create/CreateBookCommandHandler.cs::CreateBookCommandHandler",
+            "Application/Books/Delete/DeleteBookCommandHandler.cs::DeleteBookCommandHandler",
+            "Application/Books/DeleteReadingDate/DeleteReadingDateCommandHandler.cs::DeleteReadingDateCommandHandler",
+            "Application/Books/GetById/GetBookQueryHandler.cs::GetBookQueryHandler",
+            "Application/Books/List/BookSummaryDto.cs::BookSummaryDto",
+            "Application/Books/List/GetBooksQueryHandler.cs::GetBooksQueryHandler",
+            "Application/Books/List/GetPagedBooksQueryHandler.cs::GetPagedBooksQueryHandler",
+            "Application/Books/Move/MoveBookCommandHandler.cs::MoveBookCommandHandler",
+            "Application/Books/MoveTargets/GetBookMoveTargetsQueryHandler.cs::GetBookMoveTargetsQueryHandler",
+            "Application/Books/Update/UpdateBookCommandHandler.cs::UpdateBookCommandHandler",
+            "Application/Books/Read/GetBookPageQueryHandler.cs::GetBookPageQueryHandler",
+            "Application/Books/Read/GetBookReaderInfoQueryHandler.cs::GetBookReaderInfoQueryHandler",
+            "Application/Books/ReaderDisplay/UpdateReaderSettingsCommandHandler.cs::UpdateReaderSettingsCommandHandler",
+            "Application/Books/ReadingProgress/UpdateReadingProgressCommandHandler.cs::UpdateReadingProgressCommandHandler",
+            "Application/Books/IsbnScan/IsbnOcrSettings.cs::IsbnOcrSettings",
+            "Application/Books/IsbnScan/ScanBookIsbnCommandHandler.cs::ScanBookIsbnCommandHandler",
+            "Application/Books/IsbnScan/ScanLibraryIsbnsCommandHandler.cs::ScanLibraryIsbnsCommandHandler",
+            "Application/Books/IsbnScan/StartLibraryIsbnScanCommandHandler.cs::StartLibraryIsbnScanCommandHandler",
+            "Application/Libraries/Create/CreateLibraryCommandHandler.cs::CreateLibraryCommandHandler",
+            "Application/Libraries/Delete/DeleteLibraryCommandHandler.cs::DeleteLibraryCommandHandler",
+            "Application/Libraries/GetById/GetLibraryQueryHandler.cs::GetLibraryQueryHandler",
+            "Application/Libraries/ILibraryLocalStorage.cs::ILibraryLocalStorage",
+            "Application/Libraries/ILibraryReadService.cs::ILibraryReadService",
+            "Application/Libraries/List/GetLibrariesQueryHandler.cs::GetLibrariesQueryHandler",
+            "Application/Libraries/Summaries/GetLibrarySummariesQueryHandler.cs::GetLibrarySummariesQueryHandler",
+            "Application/Libraries/Update/UpdateLibraryCommandHandler.cs::UpdateLibraryCommandHandler",
+            "Application/Settings/FeatureToggleDefaults.cs::FeatureToggleDefaults",
+            "Application/Settings/FeatureToggles.cs::FeatureToggles",
+            "Application/Settings/SetFeatureToggle/SetFeatureToggleCommandHandler.cs::SetFeatureToggleCommandHandler",
+            "Application/Statistics/Get/GetStatisticsQueryHandler.cs::GetStatisticsQueryHandler",
+            "Application/Users/Create/CreateUserCommandHandler.cs::CreateUserCommandHandler",
+            "Application/Users/IUserReadService.cs::IUserReadService"
+        ],
+        "children": {
+            "Books_Management": {
+                "path": "Application/Books",
+                "components": [
+                    "Application/Books/AddReadingDate/AddReadingDateCommandHandler.cs::AddReadingDateCommandHandler",
+                    "Application/Books/Create/CreateBookCommandHandler.cs::CreateBookCommandHandler",
+                    "Application/Books/Delete/DeleteBookCommandHandler.cs::DeleteBookCommandHandler",
+                    "Application/Books/DeleteReadingDate/DeleteReadingDateCommandHandler.cs::DeleteReadingDateCommandHandler",
+                    "Application/Books/GetById/GetBookQueryHandler.cs::GetBookQueryHandler",
+                    "Application/Books/List/BookSummaryDto.cs::BookSummaryDto",
+                    "Application/Books/List/GetBooksQueryHandler.cs::GetBooksQueryHandler",
+                    "Application/Books/List/GetPagedBooksQueryHandler.cs::GetPagedBooksQueryHandler",
+                    "Application/Books/Move/MoveBookCommandHandler.cs::MoveBookCommandHandler",
+                    "Application/Books/MoveTargets/GetBookMoveTargetsQueryHandler.cs::GetBookMoveTargetsQueryHandler",
+                    "Application/Books/Update/UpdateBookCommandHandler.cs::UpdateBookCommandHandler"
+                ],
+                "children": {}
+            },
+            "Book_Reader_Application": {
+                "path": "Application/Books/Read",
+                "components": [
+                    "Application/Books/Read/GetBookPageQueryHandler.cs::GetBookPageQueryHandler",
+                    "Application/Books/Read/GetBookReaderInfoQueryHandler.cs::GetBookReaderInfoQueryHandler",
+                    "Application/Books/ReaderDisplay/UpdateReaderSettingsCommandHandler.cs::UpdateReaderSettingsCommandHandler",
+                    "Application/Books/ReadingProgress/UpdateReadingProgressCommandHandler.cs::UpdateReadingProgressCommandHandler"
+                ],
+                "children": {}
+            },
+            "Isbn_Scan_Application": {
+                "path": "Application/Books/IsbnScan",
+                "components": [
+                    "Application/Books/IsbnScan/IsbnOcrSettings.cs::IsbnOcrSettings",
+                    "Application/Books/IsbnScan/ScanBookIsbnCommandHandler.cs::ScanBookIsbnCommandHandler",
+                    "Application/Books/IsbnScan/ScanLibraryIsbnsCommandHandler.cs::ScanLibraryIsbnsCommandHandler",
+                    "Application/Books/IsbnScan/StartLibraryIsbnScanCommandHandler.cs::StartLibraryIsbnScanCommandHandler"
+                ],
+                "children": {}
+            },
+            "Libraries_Application": {
+                "path": "Application/Libraries",
+                "components": [
+                    "Application/Libraries/Create/CreateLibraryCommandHandler.cs::CreateLibraryCommandHandler",
+                    "Application/Libraries/Delete/DeleteLibraryCommandHandler.cs::DeleteLibraryCommandHandler",
+                    "Application/Libraries/GetById/GetLibraryQueryHandler.cs::GetLibraryQueryHandler",
+                    "Application/Libraries/ILibraryLocalStorage.cs::ILibraryLocalStorage",
+                    "Application/Libraries/ILibraryReadService.cs::ILibraryReadService",
+                    "Application/Libraries/List/GetLibrariesQueryHandler.cs::GetLibrariesQueryHandler",
+                    "Application/Libraries/Summaries/GetLibrarySummariesQueryHandler.cs::GetLibrarySummariesQueryHandler",
+                    "Application/Libraries/Update/UpdateLibraryCommandHandler.cs::UpdateLibraryCommandHandler"
+                ],
+                "children": {}
+            },
+            "Settings_Statistics_Users_Application": {
+                "path": "Application",
+                "components": [
+                    "Application/Settings/FeatureToggleDefaults.cs::FeatureToggleDefaults",
+                    "Application/Settings/FeatureToggles.cs::FeatureToggles",
+                    "Application/Settings/SetFeatureToggle/SetFeatureToggleCommandHandler.cs::SetFeatureToggleCommandHandler",
+                    "Application/Statistics/Get/GetStatisticsQueryHandler.cs::GetStatisticsQueryHandler",
+                    "Application/Users/Create/CreateUserCommandHandler.cs::CreateUserCommandHandler",
+                    "Application/Users/IUserReadService.cs::IUserReadService"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "Comic_Info_Search": {
+        "path": "Application/ComicInfoSearch",
+        "components": [
+            "Application/ComicInfoSearch/BedethequeCircuit.cs::BedethequeCircuit",
+            "Application/ComicInfoSearch/BedethequeService.cs::BedethequeService",
+            "Application/ComicInfoSearch/BedethequeSettings.cs::BedethequeSettings",
+            "Application/ComicInfoSearch/BnfCatalogueService.cs::BnfCatalogueService",
+            "Application/ComicInfoSearch/BnfCatalogueSettings.cs::BnfCatalogueSettings",
+            "Application/ComicInfoSearch/BubbleService.cs::BubbleService",
+            "Application/ComicInfoSearch/BubbleSettings.cs::BubbleSettings",
+            "Application/ComicInfoSearch/CloudinarySettings.cs::CloudinarySettings",
+            "Application/ComicInfoSearch/ComicSearchService.cs::ComicSearchService",
+            "Application/ComicInfoSearch/GoogleBooksService.cs::GoogleBooksService",
+            "Application/ComicInfoSearch/GoogleBooksSettings.cs::GoogleBooksSettings",
+            "Application/ComicInfoSearch/OpenLibraryService.cs::OpenLibraryService",
+            "Application/ComicInfoSearch/OpenLibrarySettings.cs::OpenLibrarySettings"
+        ],
+        "children": {}
+    },
+    "Feed_Import_Pipeline": {
+        "path": "",
+        "components": [
+            "Application/FeedImports/Analysis/GenericDownloadLinkExtractor.cs::GenericDownloadLinkExtractor",
+            "Application/FeedImports/Analysis/IDownloadLinkExtractor.cs::IDownloadLinkExtractor",
+            "Application/FeedImports/Analysis/Sites/PlaneteBdLinkExtractor.cs::PlaneteBdLinkExtractor",
+            "Application/FeedImports/Analysis/Sites/ZoneEbookLinkExtractor.cs::ZoneEbookLinkExtractor",
+            "Application/FeedImports/Analyze/AnalyzeFeedImportDecisionCommandHandler.cs::AnalyzeFeedImportDecisionCommandHandler",
+            "Application/FeedImports/Arbitrate/ResolveFeedImportArbitrationCommandHandler.cs::ResolveFeedImportArbitrationCommandHandler",
+            "Application/FeedImports/DebridLinkSettings.cs::DebridLinkSettings",
+            "Application/FeedImports/Delete/DeleteDownloadedFeedImportDecisionsCommandHandler.cs::DeleteDownloadedFeedImportDecisionsCommandHandler",
+            "Application/FeedImports/Delete/DeleteFeedImportDecisionCommandHandler.cs::DeleteFeedImportDecisionCommandHandler",
+            "Application/FeedImports/Download/DownloadFeedImportDecisionCommandHandler.cs::DownloadFeedImportDecisionCommandHandler",
+            "Application/FeedImports/FeedImportSettings.cs::FeedImportSettings",
+            "Application/FeedImports/IArticlePageFetcher.cs::IArticlePageFetcher",
+            "Application/FeedImports/IDebridLinkClient.cs::IDebridLinkClient",
+            "Application/FeedImports/IFeedImportFileDownloader.cs::IFeedImportFileDownloader",
+            "Application/FeedImports/IMinifluxClient.cs::IMinifluxClient",
+            "Application/FeedImports/List/GetPagedFeedImportDecisionsQueryHandler.cs::GetPagedFeedImportDecisionsQueryHandler",
+            "Application/FeedImports/Manage/CorrectFeedImportDecisionCommandHandler.cs::CorrectFeedImportDecisionCommandHandler",
+            "Application/FeedImports/Manage/ManageFeedImportDecisionCommandHandler.cs::ManageFeedImportDecisionCommandHandler",
+            "Application/FeedImports/MinifluxSettings.cs::MinifluxSettings",
+            "Application/FeedImports/Sync/SyncFeedImportsCommandHandler.cs::SyncFeedImportsCommandHandler",
+            "Web/Services/FeedImportDownloadJob.cs::FeedImportDownloadJob",
+            "Web/Services/FeedImportNotifier.cs::FeedImportNotifier",
+            "Web/Services/FeedImportService.cs::FeedImportService",
+            "Web/Services/FeedImportSyncJob.cs::FeedImportSyncJob",
+            "Web/Services/IFeedImportService.cs::IFeedImportService"
+        ],
+        "children": {
+            "Feed_Link_Extraction": {
+                "path": "Application/FeedImports/Analysis",
+                "components": [
+                    "Application/FeedImports/Analysis/GenericDownloadLinkExtractor.cs::GenericDownloadLinkExtractor",
+                    "Application/FeedImports/Analysis/IDownloadLinkExtractor.cs::IDownloadLinkExtractor",
+                    "Application/FeedImports/Analysis/Sites/PlaneteBdLinkExtractor.cs::PlaneteBdLinkExtractor",
+                    "Application/FeedImports/Analysis/Sites/ZoneEbookLinkExtractor.cs::ZoneEbookLinkExtractor"
+                ],
+                "children": {}
+            },
+            "Feed_Imports_Application": {
+                "path": "Application/FeedImports",
+                "components": [
+                    "Application/FeedImports/Analyze/AnalyzeFeedImportDecisionCommandHandler.cs::AnalyzeFeedImportDecisionCommandHandler",
+                    "Application/FeedImports/Arbitrate/ResolveFeedImportArbitrationCommandHandler.cs::ResolveFeedImportArbitrationCommandHandler",
+                    "Application/FeedImports/DebridLinkSettings.cs::DebridLinkSettings",
+                    "Application/FeedImports/Delete/DeleteDownloadedFeedImportDecisionsCommandHandler.cs::DeleteDownloadedFeedImportDecisionsCommandHandler",
+                    "Application/FeedImports/Delete/DeleteFeedImportDecisionCommandHandler.cs::DeleteFeedImportDecisionCommandHandler",
+                    "Application/FeedImports/Download/DownloadFeedImportDecisionCommandHandler.cs::DownloadFeedImportDecisionCommandHandler",
+                    "Application/FeedImports/FeedImportSettings.cs::FeedImportSettings",
+                    "Application/FeedImports/IArticlePageFetcher.cs::IArticlePageFetcher",
+                    "Application/FeedImports/IDebridLinkClient.cs::IDebridLinkClient",
+                    "Application/FeedImports/IFeedImportFileDownloader.cs::IFeedImportFileDownloader",
+                    "Application/FeedImports/IMinifluxClient.cs::IMinifluxClient",
+                    "Application/FeedImports/List/GetPagedFeedImportDecisionsQueryHandler.cs::GetPagedFeedImportDecisionsQueryHandler",
+                    "Application/FeedImports/Manage/CorrectFeedImportDecisionCommandHandler.cs::CorrectFeedImportDecisionCommandHandler",
+                    "Application/FeedImports/Manage/ManageFeedImportDecisionCommandHandler.cs::ManageFeedImportDecisionCommandHandler",
+                    "Application/FeedImports/MinifluxSettings.cs::MinifluxSettings",
+                    "Application/FeedImports/Sync/SyncFeedImportsCommandHandler.cs::SyncFeedImportsCommandHandler"
+                ],
+                "children": {}
+            },
+            "Web_Feed_Import_Services": {
+                "path": "Web/Services",
+                "components": [
+                    "Web/Services/FeedImportDownloadJob.cs::FeedImportDownloadJob",
+                    "Web/Services/FeedImportNotifier.cs::FeedImportNotifier",
+                    "Web/Services/FeedImportService.cs::FeedImportService",
+                    "Web/Services/FeedImportSyncJob.cs::FeedImportSyncJob",
+                    "Web/Services/IFeedImportService.cs::IFeedImportService"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "File_Import_Pipeline": {
+        "path": "",
+        "components": [
+            "Application/ImportJobs/Create/CreateImportJobCommandHandler.cs::CreateImportJobCommandHandler",
+            "Application/ImportJobs/Delete/DeleteImportJobCommandHandler.cs::DeleteImportJobCommandHandler",
+            "Application/ImportJobs/ForceFail/ForceFailImportJobCommandHandler.cs::ForceFailImportJobCommandHandler",
+            "Application/ImportJobs/GetById/GetImportJobQueryHandler.cs::GetImportJobQueryHandler",
+            "Application/ImportJobs/IImportDirectoryStorage.cs::IImportDirectoryStorage",
+            "Application/ImportJobs/ImportSettings.cs::ImportSettings",
+            "Application/ImportJobs/List/ListImportJobsQueryHandler.cs::ListImportJobsQueryHandler",
+            "Application/ImportJobs/Process/ProcessImportJobCommandHandler.cs::ProcessImportJobCommandHandler",
+            "Web/Services/FileWatcherService.cs::FileWatcherService",
+            "Web/Services/HangfireImportJobEnqueuer.cs::HangfireImportJobEnqueuer",
+            "Web/Services/IImportService.cs::IImportService",
+            "Web/Services/ImportOrchestrator.cs::ImportOrchestrator",
+            "Web/Services/ImportService.cs::ImportService"
+        ],
+        "children": {
+            "Import_Jobs_Application": {
+                "path": "Application/ImportJobs",
+                "components": [
+                    "Application/ImportJobs/Create/CreateImportJobCommandHandler.cs::CreateImportJobCommandHandler",
+                    "Application/ImportJobs/Delete/DeleteImportJobCommandHandler.cs::DeleteImportJobCommandHandler",
+                    "Application/ImportJobs/ForceFail/ForceFailImportJobCommandHandler.cs::ForceFailImportJobCommandHandler",
+                    "Application/ImportJobs/GetById/GetImportJobQueryHandler.cs::GetImportJobQueryHandler",
+                    "Application/ImportJobs/IImportDirectoryStorage.cs::IImportDirectoryStorage",
+                    "Application/ImportJobs/ImportSettings.cs::ImportSettings",
+                    "Application/ImportJobs/List/ListImportJobsQueryHandler.cs::ListImportJobsQueryHandler",
+                    "Application/ImportJobs/Process/ProcessImportJobCommandHandler.cs::ProcessImportJobCommandHandler"
+                ],
+                "children": {}
+            },
+            "Web_Import_Services": {
+                "path": "Web/Services",
+                "components": [
+                    "Web/Services/FileWatcherService.cs::FileWatcherService",
+                    "Web/Services/HangfireImportJobEnqueuer.cs::HangfireImportJobEnqueuer",
+                    "Web/Services/IImportService.cs::IImportService",
+                    "Web/Services/ImportOrchestrator.cs::ImportOrchestrator",
+                    "Web/Services/ImportService.cs::ImportService"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "Data_Persistence___Queries": {
+        "path": "Persistence",
+        "components": [
+            "Persistence/ApplicationDbContext.cs::ApplicationDbContext",
+            "Persistence/ApplicationDbContextFactory.cs::ApplicationDbContextFactory",
+            "Persistence/UnitOfWork.cs::UnitOfWork",
+            "Persistence/Repositories/BookRepository.cs::BookRepository",
+            "Persistence/Repositories/FeatureToggleOverrideRepository.cs::FeatureToggleOverrideRepository",
+            "Persistence/Repositories/FeedImportDecisionRepository.cs::FeedImportDecisionRepository",
+            "Persistence/Repositories/ImportJobRepository.cs::ImportJobRepository",
+            "Persistence/Repositories/IsbnBedethequeCacheRepository.cs::IsbnBedethequeCacheRepository",
+            "Persistence/Repositories/LibraryRepository.cs::LibraryRepository",
+            "Persistence/Repositories/UserRepository.cs::UserRepository",
+            "Persistence/Queries/BookReadService.cs::BookReadService",
+            "Persistence/Queries/FeedImportDecisionReadService.cs::FeedImportDecisionReadService",
+            "Persistence/Queries/Helpers/PagedList.cs::PagedList",
+            "Persistence/Queries/LibraryReadService.cs::LibraryReadService",
+            "Persistence/Queries/StatisticsReadService.cs::StatisticsReadService",
+            "Persistence/Queries/UserReadService.cs::UserReadService"
+        ],
+        "children": {
+            "Persistence_Core": {
+                "path": "Persistence",
+                "components": [
+                    "Persistence/ApplicationDbContext.cs::ApplicationDbContext",
+                    "Persistence/ApplicationDbContextFactory.cs::ApplicationDbContextFactory",
+                    "Persistence/UnitOfWork.cs::UnitOfWork",
+                    "Persistence/Repositories/BookRepository.cs::BookRepository",
+                    "Persistence/Repositories/FeatureToggleOverrideRepository.cs::FeatureToggleOverrideRepository",
+                    "Persistence/Repositories/FeedImportDecisionRepository.cs::FeedImportDecisionRepository",
+                    "Persistence/Repositories/ImportJobRepository.cs::ImportJobRepository",
+                    "Persistence/Repositories/IsbnBedethequeCacheRepository.cs::IsbnBedethequeCacheRepository",
+                    "Persistence/Repositories/LibraryRepository.cs::LibraryRepository",
+                    "Persistence/Repositories/UserRepository.cs::UserRepository"
+                ],
+                "children": {}
+            },
+            "Persistence_Read_Services": {
+                "path": "Persistence/Queries",
+                "components": [
+                    "Persistence/Queries/BookReadService.cs::BookReadService",
+                    "Persistence/Queries/FeedImportDecisionReadService.cs::FeedImportDecisionReadService",
+                    "Persistence/Queries/Helpers/PagedList.cs::PagedList",
+                    "Persistence/Queries/LibraryReadService.cs::LibraryReadService",
+                    "Persistence/Queries/StatisticsReadService.cs::StatisticsReadService",
+                    "Persistence/Queries/UserReadService.cs::UserReadService"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "File_Storage___Media_Processing": {
+        "path": "Persistence",
+        "components": [
+            "Persistence/LocalStorage/ImportDirectoryStorage.cs::ImportDirectoryStorage",
+            "Persistence/LocalStorage/LibraryLocalStorage.cs::LibraryLocalStorage",
+            "Persistence/LocalStorage/TempWorkspace.cs::TempWorkspace",
+            "Persistence/Services/ArchiveExtractorService.cs::ArchiveExtractorService",
+            "Persistence/Services/BookFileService.cs::BookFileService",
+            "Persistence/Services/CloudinaryService.cs::CloudinaryService",
+            "Persistence/Services/ComicArchiveBuilderService.cs::ComicArchiveBuilderService",
+            "Persistence/Services/ComicInfoXmlService.cs::ComicInfoDocument",
+            "Persistence/Services/ComicInfoXmlService.cs::ComicInfoXmlService",
+            "Persistence/Services/ComicPageReaderService.cs::ComicPageReaderService",
+            "Persistence/Services/IPageTextRecognizer.cs::IPageTextRecognizer",
+            "Persistence/Services/ImageProcessorService.cs::ImageProcessorService",
+            "Persistence/Services/IsbnPageScanner.cs::IsbnPageScanner",
+            "Persistence/Services/NaturalStringComparer.cs::NaturalStringComparer",
+            "Persistence/Services/PdfImageExtractorService.cs::PdfImageExtractorService",
+            "Persistence/Services/TesseractPageTextRecognizer.cs::TesseractPageTextRecognizer"
+        ],
+        "children": {
+            "Persistence_Local_Storage": {
+                "path": "Persistence/LocalStorage",
+                "components": [
+                    "Persistence/LocalStorage/ImportDirectoryStorage.cs::ImportDirectoryStorage",
+                    "Persistence/LocalStorage/LibraryLocalStorage.cs::LibraryLocalStorage",
+                    "Persistence/LocalStorage/TempWorkspace.cs::TempWorkspace"
+                ],
+                "children": {}
+            },
+            "Persistence_File_Services": {
+                "path": "Persistence/Services",
+                "components": [
+                    "Persistence/Services/ArchiveExtractorService.cs::ArchiveExtractorService",
+                    "Persistence/Services/BookFileService.cs::BookFileService",
+                    "Persistence/Services/CloudinaryService.cs::CloudinaryService",
+                    "Persistence/Services/ComicArchiveBuilderService.cs::ComicArchiveBuilderService",
+                    "Persistence/Services/ComicInfoXmlService.cs::ComicInfoDocument",
+                    "Persistence/Services/ComicInfoXmlService.cs::ComicInfoXmlService",
+                    "Persistence/Services/ComicPageReaderService.cs::ComicPageReaderService",
+                    "Persistence/Services/IPageTextRecognizer.cs::IPageTextRecognizer",
+                    "Persistence/Services/ImageProcessorService.cs::ImageProcessorService",
+                    "Persistence/Services/IsbnPageScanner.cs::IsbnPageScanner",
+                    "Persistence/Services/NaturalStringComparer.cs::NaturalStringComparer",
+                    "Persistence/Services/PdfImageExtractorService.cs::PdfImageExtractorService",
+                    "Persistence/Services/TesseractPageTextRecognizer.cs::TesseractPageTextRecognizer"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "Web_Application_Services": {
+        "path": "Web/Services",
+        "components": [
+            "Web/Services/BookMoveService.cs::BookMoveService",
+            "Web/Services/BookMoveWorkflow.cs::BookMoveWorkflow",
+            "Web/Services/BookReaderService.cs::BookReaderService",
+            "Web/Services/BooksService.cs::BooksService",
+            "Web/Services/IBookMoveService.cs::IBookMoveService",
+            "Web/Services/IBookMoveWorkflow.cs::IBookMoveWorkflow",
+            "Web/Services/IBookReaderService.cs::IBookReaderService",
+            "Web/Services/IBooksService.cs::IBooksService",
+            "Web/Services/IIsbnScanService.cs::IIsbnScanService",
+            "Web/Services/IsbnScanOrchestrator.cs::IsbnScanOrchestrator",
+            "Web/Services/IsbnScanService.cs::IsbnScanService",
+            "Web/Services/HangfireIsbnScanJobEnqueuer.cs::HangfireIsbnScanJobEnqueuer",
+            "Web/Services/ILibrariesService.cs::ILibrariesService",
+            "Web/Services/LibrariesService.cs::LibrariesService",
+            "Web/Services/LibraryIconsWarmupService.cs::LibraryIconsWarmupService",
+            "Web/Services/LibraryStateService.cs::LibraryStateService",
+            "Web/Services/IStatisticsService.cs::IStatisticsService",
+            "Web/Services/StatisticsService.cs::StatisticsService",
+            "Web/Services/IFeatureToggleService.cs::IFeatureToggleService",
+            "Web/Services/FeatureToggleService.cs::FeatureToggleService",
+            "Web/Services/PopupAnchorLocator.cs::PopupAnchorLocator"
+        ],
+        "children": {
+            "Web_Book_Services": {
+                "path": "Web/Services",
+                "components": [
+                    "Web/Services/BookMoveService.cs::BookMoveService",
+                    "Web/Services/BookMoveWorkflow.cs::BookMoveWorkflow",
+                    "Web/Services/BookReaderService.cs::BookReaderService",
+                    "Web/Services/BooksService.cs::BooksService",
+                    "Web/Services/IBookMoveService.cs::IBookMoveService",
+                    "Web/Services/IBookMoveWorkflow.cs::IBookMoveWorkflow",
+                    "Web/Services/IBookReaderService.cs::IBookReaderService",
+                    "Web/Services/IBooksService.cs::IBooksService",
+                    "Web/Services/IIsbnScanService.cs::IIsbnScanService",
+                    "Web/Services/IsbnScanOrchestrator.cs::IsbnScanOrchestrator",
+                    "Web/Services/IsbnScanService.cs::IsbnScanService",
+                    "Web/Services/HangfireIsbnScanJobEnqueuer.cs::HangfireIsbnScanJobEnqueuer"
+                ],
+                "children": {}
+            },
+            "Web_Library_And_Statistics_Services": {
+                "path": "Web/Services",
+                "components": [
+                    "Web/Services/ILibrariesService.cs::ILibrariesService",
+                    "Web/Services/LibrariesService.cs::LibrariesService",
+                    "Web/Services/LibraryIconsWarmupService.cs::LibraryIconsWarmupService",
+                    "Web/Services/LibraryStateService.cs::LibraryStateService",
+                    "Web/Services/IStatisticsService.cs::IStatisticsService",
+                    "Web/Services/StatisticsService.cs::StatisticsService",
+                    "Web/Services/IFeatureToggleService.cs::IFeatureToggleService",
+                    "Web/Services/FeatureToggleService.cs::FeatureToggleService",
+                    "Web/Services/PopupAnchorLocator.cs::PopupAnchorLocator"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "Web_Platform,_Security___External_Integrations": {
+        "path": "Web",
+        "components": [
+            "Web/Configuration/Auth0Configuration.cs::Auth0Configuration",
+            "Web/Configuration/LocalStorageConfiguration.cs::LocalStorageConfiguration",
+            "Web/CustomAuthenticationStateProvider.cs::CustomAuthenticationStateProvider",
+            "Web/GlobalExceptionHandler.cs::GlobalExceptionHandler",
+            "Web/Infrastructure/HangfireAuthorizationFilter.cs::HangfireAuthorizationFilter",
+            "Web/Infrastructure/LogLevelSwitches.cs::LogLevelSwitches",
+            "Web/Infrastructure/LogLevelSwitches.cs::Node",
+            "Web/Services/CurrentUserService.cs::CurrentUserService",
+            "Web/Infrastructure/ArticlePageFetcher.cs::ArticlePageFetcher",
+            "Web/Infrastructure/CloudinaryHealthCheck.cs::CloudinaryHealthCheck",
+            "Web/Infrastructure/DebridLinkClient.cs::DebridLinkClient",
+            "Web/Infrastructure/DebridLinkHealthCheck.cs::DebridLinkHealthCheck",
+            "Web/Infrastructure/FeedImportFileDownloader.cs::FeedImportFileDownloader",
+            "Web/Infrastructure/HealthCheckResultCache.cs::HealthCheckResultCache",
+            "Web/Infrastructure/ImportDirectoryHealthCheck.cs::ImportDirectoryHealthCheck",
+            "Web/Infrastructure/MinifluxClient.cs::MinifluxClient",
+            "Web/Infrastructure/MinifluxHealthCheck.cs::MinifluxHealthCheck",
+            "Web/Infrastructure/SsrfGuardHandler.cs::SsrfGuardHandler",
+            "Web/Models/FormErrors.cs::FormErrors",
+            "Web/Models/ReaderPageWindow.cs::ReaderPageWindow",
+            "Web/Models/ReaderSpreads.cs::ReaderSpreads",
+            "Web/Validators/AddBookValidator.cs::AddBookValidator",
+            "Web/Validators/BookUiDto.cs::BookUiDto",
+            "Web/Validators/BookValidator.cs::BookValidator",
+            "Web/Validators/LibraryUiDto.cs::LibraryUiDto",
+            "Web/Validators/LibraryValidator.cs::LibraryValidator"
+        ],
+        "children": {
+            "Web_Configuration_And_Auth": {
+                "path": "Web",
+                "components": [
+                    "Web/Configuration/Auth0Configuration.cs::Auth0Configuration",
+                    "Web/Configuration/LocalStorageConfiguration.cs::LocalStorageConfiguration",
+                    "Web/CustomAuthenticationStateProvider.cs::CustomAuthenticationStateProvider",
+                    "Web/GlobalExceptionHandler.cs::GlobalExceptionHandler",
+                    "Web/Infrastructure/HangfireAuthorizationFilter.cs::HangfireAuthorizationFilter",
+                    "Web/Infrastructure/LogLevelSwitches.cs::LogLevelSwitches",
+                    "Web/Infrastructure/LogLevelSwitches.cs::Node",
+                    "Web/Services/CurrentUserService.cs::CurrentUserService"
+                ],
+                "children": {}
+            },
+            "Web_External_Clients_And_Health": {
+                "path": "Web/Infrastructure",
+                "components": [
+                    "Web/Infrastructure/ArticlePageFetcher.cs::ArticlePageFetcher",
+                    "Web/Infrastructure/CloudinaryHealthCheck.cs::CloudinaryHealthCheck",
+                    "Web/Infrastructure/DebridLinkClient.cs::DebridLinkClient",
+                    "Web/Infrastructure/DebridLinkHealthCheck.cs::DebridLinkHealthCheck",
+                    "Web/Infrastructure/FeedImportFileDownloader.cs::FeedImportFileDownloader",
+                    "Web/Infrastructure/HealthCheckResultCache.cs::HealthCheckResultCache",
+                    "Web/Infrastructure/ImportDirectoryHealthCheck.cs::ImportDirectoryHealthCheck",
+                    "Web/Infrastructure/MinifluxClient.cs::MinifluxClient",
+                    "Web/Infrastructure/MinifluxHealthCheck.cs::MinifluxHealthCheck",
+                    "Web/Infrastructure/SsrfGuardHandler.cs::SsrfGuardHandler"
+                ],
+                "children": {}
+            },
+            "Web_Models_And_Validators": {
+                "path": "Web/Models",
+                "components": [
+                    "Web/Models/FormErrors.cs::FormErrors",
+                    "Web/Models/ReaderPageWindow.cs::ReaderPageWindow",
+                    "Web/Models/ReaderSpreads.cs::ReaderSpreads",
+                    "Web/Validators/AddBookValidator.cs::AddBookValidator",
+                    "Web/Validators/BookUiDto.cs::BookUiDto",
+                    "Web/Validators/BookValidator.cs::BookValidator",
+                    "Web/Validators/LibraryUiDto.cs::LibraryUiDto",
+                    "Web/Validators/LibraryValidator.cs::LibraryValidator"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "Blazor_UI_Layer": {
+        "path": "Web/Components",
+        "components": [
+            "Web/Components/Layout/MainLayout.razor.cs::MainLayout",
+            "Web/Components/Layout/NavBar.razor.cs::NavBar",
+            "Web/Components/Pages/Dialogs/ConfirmationDialog.razor.cs::ConfirmationDialog",
+            "Web/Components/Pages/Dialogs/MoveBookDialog.razor.cs::MoveBookDialog",
+            "Web/Components/Pages/Error.razor.cs::ErrorPage",
+            "Web/Components/Pages/Login.razor.cs::Login",
+            "Web/Components/SharedComponents/ActionSheet.razor.cs::ActionSheet",
+            "Web/Components/SharedComponents/ActionSheetItem.razor.cs::ActionSheetItem",
+            "Web/Components/SharedComponents/FormButton.razor.cs::FormButton",
+            "Web/Components/SharedComponents/FormField.razor.cs::FormField",
+            "Web/Components/SharedComponents/FormFooter.razor.cs::FormFooter",
+            "Web/Components/SharedComponents/FormHeader.razor.cs::FormHeader",
+            "Web/Components/SharedComponents/FormPage.razor.cs::FormPage",
+            "Web/Components/SharedComponents/FormSection.razor.cs::FormSection",
+            "Web/Components/SharedComponents/FormState.razor.cs::FormState",
+            "Web/Components/SharedComponents/ImportJobCard.razor.cs::ImportJobCard",
+            "Web/Components/SharedComponents/IsbnScanStateIcon.razor.cs::IsbnScanStateIcon",
+            "Web/Components/SharedComponents/LibraryIcon.razor.cs::LibraryIcon",
+            "Web/Components/SharedComponents/StarRating.razor.cs::StarRating",
+            "Web/Components/Pages/Books/AddBookForm.razor.cs::AddBookForm",
+            "Web/Components/Pages/Books/AddBookManual.razor.cs::AddBookManual",
+            "Web/Components/Pages/Books/AddBookScan.razor.cs::AddBookScan",
+            "Web/Components/Pages/Books/BookDetail.razor.cs::BookDetail",
+            "Web/Components/Pages/Books/BookFields.razor.cs::BookFields",
+            "Web/Components/Pages/Books/BookFormLayout.razor.cs::BookFormLayout",
+            "Web/Components/Pages/Books/BookReader.razor.cs::BookReader",
+            "Web/Components/Pages/Books/EditBook.razor.cs::EditBook",
+            "Web/Components/Pages/Books/FindBookDetails.razor.cs::FindBookDetails",
+            "Web/Components/Pages/Books/LibrarySelect.razor.cs::LibrarySelect",
+            "Web/Components/Pages/Libraries/AddLibrary.razor.cs::AddLibrary",
+            "Web/Components/Pages/Libraries/EditLibrary.razor.cs::EditLibrary",
+            "Web/Components/Pages/Libraries/IconChooser.razor.cs::IconChooser",
+            "Web/Components/Pages/Libraries/LibrariesList.razor.cs::LibrariesList",
+            "Web/Components/Pages/Libraries/LibraryCard.razor.cs::LibraryCard",
+            "Web/Components/Pages/Libraries/LibraryDetailPage.razor.cs::LibraryDetailPage",
+            "Web/Components/Pages/Libraries/LibraryForm.razor.cs::LibraryForm",
+            "Web/Components/Pages/Libraries/Views/BooksCoversView.razor.cs::BooksCoversView",
+            "Web/Components/Pages/Libraries/Views/BooksListView.razor.cs::BooksListView",
+            "Web/Components/Pages/Admin/FeatureTogglesCard.razor.cs::FeatureTogglesCard",
+            "Web/Components/Pages/Admin/LogLevels.razor.cs::LogLevels",
+            "Web/Components/Pages/FeedImportsPage.razor.cs::CorrectionForm",
+            "Web/Components/Pages/FeedImportsPage.razor.cs::FeedImportsPage",
+            "Web/Components/Pages/Import.razor.cs::Import",
+            "Web/Components/Pages/Statistics.razor.cs::Statistics",
+            "Web/Components/Pages/UserSettings.razor.cs::UserSettings"
+        ],
+        "children": {
+            "Web_Layout_And_Shared_Components": {
+                "path": "Web/Components/SharedComponents",
+                "components": [
+                    "Web/Components/Layout/MainLayout.razor.cs::MainLayout",
+                    "Web/Components/Layout/NavBar.razor.cs::NavBar",
+                    "Web/Components/Pages/Dialogs/ConfirmationDialog.razor.cs::ConfirmationDialog",
+                    "Web/Components/Pages/Dialogs/MoveBookDialog.razor.cs::MoveBookDialog",
+                    "Web/Components/Pages/Error.razor.cs::ErrorPage",
+                    "Web/Components/Pages/Login.razor.cs::Login",
+                    "Web/Components/SharedComponents/ActionSheet.razor.cs::ActionSheet",
+                    "Web/Components/SharedComponents/ActionSheetItem.razor.cs::ActionSheetItem",
+                    "Web/Components/SharedComponents/FormButton.razor.cs::FormButton",
+                    "Web/Components/SharedComponents/FormField.razor.cs::FormField",
+                    "Web/Components/SharedComponents/FormFooter.razor.cs::FormFooter",
+                    "Web/Components/SharedComponents/FormHeader.razor.cs::FormHeader",
+                    "Web/Components/SharedComponents/FormPage.razor.cs::FormPage",
+                    "Web/Components/SharedComponents/FormSection.razor.cs::FormSection",
+                    "Web/Components/SharedComponents/FormState.razor.cs::FormState",
+                    "Web/Components/SharedComponents/ImportJobCard.razor.cs::ImportJobCard",
+                    "Web/Components/SharedComponents/IsbnScanStateIcon.razor.cs::IsbnScanStateIcon",
+                    "Web/Components/SharedComponents/LibraryIcon.razor.cs::LibraryIcon",
+                    "Web/Components/SharedComponents/StarRating.razor.cs::StarRating"
+                ],
+                "children": {}
+            },
+            "Web_Book_Pages": {
+                "path": "Web/Components/Pages/Books",
+                "components": [
+                    "Web/Components/Pages/Books/AddBookForm.razor.cs::AddBookForm",
+                    "Web/Components/Pages/Books/AddBookManual.razor.cs::AddBookManual",
+                    "Web/Components/Pages/Books/AddBookScan.razor.cs::AddBookScan",
+                    "Web/Components/Pages/Books/BookDetail.razor.cs::BookDetail",
+                    "Web/Components/Pages/Books/BookFields.razor.cs::BookFields",
+                    "Web/Components/Pages/Books/BookFormLayout.razor.cs::BookFormLayout",
+                    "Web/Components/Pages/Books/BookReader.razor.cs::BookReader",
+                    "Web/Components/Pages/Books/EditBook.razor.cs::EditBook",
+                    "Web/Components/Pages/Books/FindBookDetails.razor.cs::FindBookDetails",
+                    "Web/Components/Pages/Books/LibrarySelect.razor.cs::LibrarySelect"
+                ],
+                "children": {}
+            },
+            "Web_Library_Pages": {
+                "path": "Web/Components/Pages/Libraries",
+                "components": [
+                    "Web/Components/Pages/Libraries/AddLibrary.razor.cs::AddLibrary",
+                    "Web/Components/Pages/Libraries/EditLibrary.razor.cs::EditLibrary",
+                    "Web/Components/Pages/Libraries/IconChooser.razor.cs::IconChooser",
+                    "Web/Components/Pages/Libraries/LibrariesList.razor.cs::LibrariesList",
+                    "Web/Components/Pages/Libraries/LibraryCard.razor.cs::LibraryCard",
+                    "Web/Components/Pages/Libraries/LibraryDetailPage.razor.cs::LibraryDetailPage",
+                    "Web/Components/Pages/Libraries/LibraryForm.razor.cs::LibraryForm",
+                    "Web/Components/Pages/Libraries/Views/BooksCoversView.razor.cs::BooksCoversView",
+                    "Web/Components/Pages/Libraries/Views/BooksListView.razor.cs::BooksListView"
+                ],
+                "children": {}
+            },
+            "Web_Admin_And_Other_Pages": {
+                "path": "Web/Components/Pages",
+                "components": [
+                    "Web/Components/Pages/Admin/FeatureTogglesCard.razor.cs::FeatureTogglesCard",
+                    "Web/Components/Pages/Admin/LogLevels.razor.cs::LogLevels",
+                    "Web/Components/Pages/FeedImportsPage.razor.cs::CorrectionForm",
+                    "Web/Components/Pages/FeedImportsPage.razor.cs::FeedImportsPage",
+                    "Web/Components/Pages/Import.razor.cs::Import",
+                    "Web/Components/Pages/Statistics.razor.cs::Statistics",
+                    "Web/Components/Pages/UserSettings.razor.cs::UserSettings"
+                ],
+                "children": {}
+            }
+        }
+    }
+}

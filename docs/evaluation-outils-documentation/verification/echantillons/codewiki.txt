@@ -1,0 +1,60 @@
+### codewiki-01
+[codewiki/Book___Library_Use_Cases/Libraries_Application.md] | `GetLibraryQueryHandler` | `IQueryHandler<GetLibraryQuery, Library>` | Lit une bibliothèque appartenant à l'utilisateur |
+
+### codewiki-02
+[codewiki/File_Import_Pipeline/Web_Import_Services.md] Le fichier déposé dans le répertoire surveillé peut ensuite être détecté par le `FileWatcherService` ; la protection `AlreadyQueued` empêche alors un doublon.
+
+### codewiki-03
+[codewiki/Data_Persistence___Queries/Persistence_Core.md] - **Pas de transaction implicite** : sauf `IsbnBedethequeCacheRepository`, qui est un cache autonome et appelle directement `SaveChangesAsync`.
+
+### codewiki-04
+[codewiki/Web_Platform,_Security___External_Integrations/Web_Models_And_Validators.md] Calcule les lignes d'affichage du lecteur selon `ReaderSettings` (voir [Book_Reader_Application](../Book___Library_Use_Cases/Book_Reader_Application.md)) :
+
+### codewiki-05
+[codewiki/Domain_Model/Domain_FeedImports.md] | Téléchargement | `StartDownload`, `NoteMirrorFailure`, `MarkDownloaded` | Suivi du téléchargement via Debrid-Link ; un échec de miroir est tracé sans changer le statut. |
+
+### codewiki-06
+[codewiki/Blazor_UI_Layer.md] - **Accessibilité**: `aria-label` sur les boutons icône seule, `AriaLabel` obligatoire sur `ActionSheet`, gestion du focus dans les dialogues.
+
+### codewiki-07
+[codewiki/Comic_Info_Search.md] | `BedethequeCircuit` | Disjoncteur singleton suspendant Bedetheque après un défi Cloudflare | `Interlocked`, `TimeProvider` |
+
+### codewiki-08
+[codewiki/Book___Library_Use_Cases/Books_Management.md] | `BooksError.BadRequest` | Paramètres manquants ou invalides |
+
+### codewiki-09
+[codewiki/Feed_Import_Pipeline/Feed_Imports_Application.md] - La bibliothèque cible (`TargetLibraryName`, par défaut « À trier ») est créée si besoin via `CreateLibraryCommandHandler` (type `Digital`) ; voir [Libraries_Application](../Book___Library_Use_Cases/Libraries_Application.md).
+
+### codewiki-10
+[codewiki/Web_Application_Services/Web_Book_Services.md] Le module `Web_Book_Services` regroupe les services de la couche `Web` (namespace `Web.Services`) qui servent de façade entre les composants Blazor et la couche Application (CQRS) pour tout ce qui concerne les livres : CRUD et dates de lecture, déplacement entre bibliothèques, lecteur de bande dessinée et scan d'ISBN par OCR.
+
+### codewiki-11
+[codewiki/Web_Application_Services/Web_Book_Services.md] - Entités `Book`, `ReadingDate` : [Domain_Books](../Domain_Model/Domain_Books.md)
+
+### codewiki-12
+[codewiki/Blazor_UI_Layer/Web_Book_Pages.md] - `_searchedFor` (livre + ISBN) évite de relancer des recherches coûteuses (quotas SerpApi/Google) et ignore les résultats périmés (voir la règle « Async Operations and Stale Results »).
+
+### codewiki-13
+[codewiki/Application_Contracts___CQRS_Foundation/Application_Interfaces.md] | `ICloudinaryService` | Envoi d'images (URL, fichier, flux) et `PingAsync`. |
+
+### codewiki-14
+[codewiki/Feed_Import_Pipeline/Feed_Link_Extraction.md] - Autre type de site : implémenter `IDownloadLinkExtractor` avec `IsFallback = false` ; `ExtractedLink.GroupKey` permet d'indiquer les liens appartenant au même livre (par ex. un bloc « Tome 3 »).
+
+### codewiki-15
+[codewiki/Domain_Model/Domain_FeedImports.md] - **Fabrique `internal`** : `FeedImportDecisionEvent.Create` n'est appelable que depuis l'agrégat, ce qui garantit qu'aucun événement n'est créé hors d'une transition.
+
+### codewiki-16
+[codewiki/Blazor_UI_Layer/Web_Library_Pages.md] `LibraryForm` est un composant de présentation : il reçoit le `LibraryUiDto` (`Model`), les `FormErrors`, l'indicateur `IsNew` (le type de bibliothèque n'est choisissable qu'à la création), et expose `OnChanged` / `OnSubmit`. Il affiche un aperçu `LibraryCardViewModel.Preview` (nombre de livres et couvertures fournis par la page) et délègue le choix d'icône à `IconChooser`, qui s'appuie sur `LibraryIcons.Search` pour filtrer les suggestions.
+
+### codewiki-17
+[codewiki/File_Storage___Media_Processing/Persistence_File_Services.md] Le module `Persistence_File_Services` regroupe les implémentations concrètes, situées dans `Persistence/Services/`, des interfaces de traitement de fichiers déclarées dans la couche Application (voir [Application_Interfaces](../Application_Contracts___CQRS_Foundation/Application_Interfaces.md)). Il couvre :
+
+### codewiki-18
+[codewiki/Domain_Model.md] - **Erreurs sans exception** : les cas d'erreur connus renvoient un `Result` / `Result<T>`, avec des erreurs typées (`LibrariesError`, `BooksError`, `ImportJobError`, `FeedImportError`).
+
+### codewiki-19
+[codewiki/File_Storage___Media_Processing/Persistence_Local_Storage.md] Remarque : `Create` n'applique pas `RemoveDiacritics()` alors que `Move`, `MoveFile` et `Delete` le font ; les appelants doivent donc fournir un nom déjà normalisé à la création.
+
+### codewiki-20
+[codewiki/File_Import_Pipeline.md] - **Résilience** : l'upload de la couverture est *best-effort*. Un job resté bloqué dans un état intermédiaire est passé en `Failed` à la reprise.
+

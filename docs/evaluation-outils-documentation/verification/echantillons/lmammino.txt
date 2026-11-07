@@ -1,0 +1,60 @@
+### lmammino-01
+[c4-lmammino/01-contexte.md] | Sources ISBN | `Application/ComicInfoSearch/*Service.cs`, `appsettings.json` (BnF, GoogleBooks, OpenLibrary, Bubble, SerpApi) |
+
+### lmammino-02
+[c4-lmammino/03-composants-web.md] | Stockage et traitement de fichiers | Rangement, extraction d'archives et PDF, conversion WebP, CBZ, ComicInfo.xml, OCR | `Persistence/LocalStorage`, `Persistence/Services` |
+
+### lmammino-03
+[c4-lmammino/03-composants-web.md] `Web → Application → Domain` ; `Persistence → Application, Domain` ; `Domain` sans dépendance. Les types EF Core ne remontent pas.
+
+### lmammino-04
+[c4-lmammino/03-composants-web.md] | Services de présentation | Façade entre l'UI et les handlers, ViewModels pré-calculés | `Web/Services/`, `Web/Models/` |
+
+### lmammino-05
+[c4-lmammino/01-contexte.md] | Miniflux / Debrid-Link / sites | `Web/Infrastructure/MinifluxClient.cs`, `DebridLinkClient.cs`, `ArticlePageFetcher.cs`, `docs/FEED-IMPORT.md`, ADR-0019 |
+
+### lmammino-06
+[c4-lmammino/README.md] - (inféré) Un seul utilisateur réel, d'après l'ADR-0001 (« application personnelle mono-utilisateur »), alors que le modèle gère plusieurs comptes et un rôle `Admin`.
+
+### lmammino-07
+[c4-lmammino/02-conteneurs.md] | Interface Blazor Server | ASP.NET Core 10, MudBlazor, Auth0 | UI interactive, endpoints de téléchargement/pages, health check, dashboard `/hangfire` | `Web/Program.cs`, `Web/EndPoints/*`, ADR-0006/0007 |
+
+### lmammino-08
+[c4-lmammino/04-questions-ouvertes.md] 10. Les hôtes autorisés (`AllowedSourceHosts`, `AllowedDownloadHosts`) désignent des sites de téléchargement : le cadre d'usage doit-il être précisé dans l'ADR-0019 ?
+
+### lmammino-09
+[c4-lmammino/03-composants-web.md] | Endpoints minimaux | `GET /api/books/{id}/download`, `/api/books/{id}/pages/{n}`, comptes ; sous autorisation | `Web/EndPoints/` |
+
+### lmammino-10
+[c4-lmammino/README.md] - Appels sortants HTTP protégés par `SsrfGuardHandler` (liste d'hôtes autorisés, ADR-0015).
+
+### lmammino-11
+[c4-lmammino/04-questions-ouvertes.md] 3. Comment le conteneur est-il déployé sur le Raspberry Pi (docker compose, Watchtower, autre) ? Aucun descripteur de déploiement n'est dans le dépôt, seulement l'image publiée sur `ghcr.io`.
+
+### lmammino-12
+[c4-lmammino/01-contexte.md] | Cloudinary | `Persistence/Services/CloudinaryService.cs`, `Web/Infrastructure/CloudinaryHealthCheck.cs` |
+
+### lmammino-13
+[c4-lmammino/03-composants-web.md] | Recherche d'ISBN | Interroge BnF → Google Books → OpenLibrary → Bubble → Bedetheque, garde le premier résultat ; chaque source désactivable | `Application/ComicInfoSearch/` |
+
+### lmammino-14
+[c4-lmammino/README.md] - Une seule application déployable : `Web` (Blazor Server, port 8080, image Docker `linux/arm64`, `Web/Dockerfile`), qui héberge aussi le serveur Hangfire et deux `IHostedService` (`FileWatcherService`, `LibraryIconsWarmupService`).
+
+### lmammino-15
+[c4-lmammino/02-conteneurs.md] | Serveur Hangfire | Hangfire 1.8, stockage PostgreSQL | Exécution séquentielle (`WorkerCount = 1`) des traitements longs | `Web/Program.cs` (AddHangfire/AddHangfireServer), ADR-0016 |
+
+### lmammino-16
+[c4-lmammino/README.md] - Système de fichiers local : bibliothèques de BD (`LocalStorage:RootPath`), dossier d'import (`Import:ImportDirectory`), espace temporaire.
+
+### lmammino-17
+[c4-lmammino/03-composants-web.md] | Adaptateurs de jobs | Mise en file Hangfire, orchestrateurs ouvrant un scope DI par job, surveillance du dossier d'import | `Web/Services/Hangfire*`, `*Orchestrator`, `FileWatcherService` |
+
+### lmammino-18
+[c4-lmammino/04-questions-ouvertes.md] 8. Faut-il une vue de composants dédiée au module `FeedImports` (analyse par site, regroupement de liens, arbitrage) ?
+
+### lmammino-19
+[c4-lmammino/04-questions-ouvertes.md] 6. Répartition entre `FileWatcherService` (polling) et Hangfire : l'ADR-0016 la signale comme question ouverte. Faut-il unifier ?
+
+### lmammino-20
+[c4-lmammino/04-questions-ouvertes.md] 7. Pourquoi les services de recherche ISBN (HTTP) sont-ils dans `Application` et les clients Miniflux/Debrid-Link dans `Web/Infrastructure`, plutôt que dans une couche d'infrastructure unique ? Choix voulu ou dette ?
+
