@@ -47,28 +47,30 @@
             }
         };
 
+        // One observer per sentinel: a page that is being left cannot stop the one of the page shown.
         window.infiniteScroll = {
-            _observer: null,
-            observe: function (dotNetRef, sentinelId, scrollContainerSelector) {
-                if (this._observer) { this._observer.disconnect(); }
+            _observers: {},
+            observe: function (dotNetRef, sentinelId, scrollContainerSelector, methodName) {
+                this.dispose(sentinelId);
                 var sentinel = document.getElementById(sentinelId);
                 if (!sentinel || !dotNetRef) return;
-                var root = document.querySelector(scrollContainerSelector) || null;
-                var self = this;
-                this._observer = new IntersectionObserver(
+                var root = scrollContainerSelector ? document.querySelector(scrollContainerSelector) : null;
+                var observer = new IntersectionObserver(
                     function (entries) {
                         if (entries[0].isIntersecting) {
-                            dotNetRef.invokeMethodAsync('LoadMoreBooksAsync');
+                            dotNetRef.invokeMethodAsync(methodName);
                         }
                     },
                     { root: root, rootMargin: '300px', threshold: 0 }
                 );
-                this._observer.observe(sentinel);
+                observer.observe(sentinel);
+                this._observers[sentinelId] = observer;
             },
-            dispose: function () {
-                if (this._observer) {
-                    this._observer.disconnect();
-                    this._observer = null;
+            dispose: function (sentinelId) {
+                var observer = this._observers[sentinelId];
+                if (observer) {
+                    observer.disconnect();
+                    delete this._observers[sentinelId];
                 }
             }
         };

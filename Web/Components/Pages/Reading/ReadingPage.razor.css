@@ -219,8 +219,10 @@
     color: var(--mcm-star);
 }
 
-::deep .reading-more {
-    align-self: flex-start;
+.reading-more {
+    display: flex;
+    justify-content: center;
+    padding: var(--mcm-space-4);
 }
 
 /* ── Load failure ── */

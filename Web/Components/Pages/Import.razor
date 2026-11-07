@@ -81,12 +81,16 @@
                     </MudTooltip>
                 </div>
                 <div class="import-jobs">
-                    @foreach (var job in _jobs)
+                    @foreach (var job in ShownJobs)
                     {
                         <ImportJobCard @key="job.Id" Job="@job" OnDelete="DeleteJobAsync" OnForceFail="ForceFailJobAsync"
                                        OnRetry="RetryJobAsync" OnAbandon="AbandonJobAsync" />
                     }
                 </div>
+                @if (_jobs.Count > _shownJobCount)
+                {
+                    <InfiniteScrollSentinel OnLoadMore="ShowMoreJobs" ItemCount="_shownJobCount" />
+                }
             }
             else if (_selectedLibraryId != Guid.Empty)
             {

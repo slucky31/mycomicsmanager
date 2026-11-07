@@ -11,6 +11,7 @@ using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages;
 using Web.Components.Pages.Dialogs;
+using Web.Components.SharedComponents;
 using Web.Models;
 using Web.Services;
 using Xunit;
@@ -425,8 +426,11 @@ public sealed class FeedImportsComponentTests
         snackbar.Received(1).Add(FeedImportError.BadRequest.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 
+    private static FeedImportDecisionPageViewModel CreateFullPage(string prefix, int totalCount) =>
+        CreatePage([.. Enumerable.Range(1, 20).Select(i => $"{prefix} {i}")]) with { TotalCount = totalCount };
+
     [Fact]
-    public async Task LoadMoreAsync_Should_AppendTheNextPage_WhenMoreDecisionsExist()
+    public async Task LoadMoreAsync_Should_AppendTheNextPage_WhenTheEndOfTheListIsReached()
     {
         var service = CreateService();
         var first = CreatePage("Blacksad T3");
@@ -438,12 +442,87 @@ public sealed class FeedImportsComponentTests
 
         var (ctx, cut, _) = await RenderAsync(service);
         await using var _ = ctx;
-        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+        await cut.WaitForAssertionAsync(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
 
-        await Button(cut, "Show more").ClickAsync(new());
+        await cut.InvokeAsync(() => cut.FindComponent<InfiniteScrollSentinel>().Instance.LoadMoreAsync());
 
         await cut.WaitForAssertionAsync(() => cut.FindAll(".feed-card-title").Select(t => t.TextContent).Should().Equal("Blacksad T3", "Largo Winch T20"));
-        cut.FindAll("button").Should().NotContain(b => b.TextContent.Contains("Show more", StringComparison.Ordinal));
+        cut.FindComponents<InfiniteScrollSentinel>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task LoadMoreAsync_Should_AskForTheNextPageOnce_WhileItIsLoading()
+    {
+        var service = CreateService();
+        var nextPage = new TaskCompletionSource<Result<FeedImportDecisionPageViewModel>>();
+        service.GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Blacksad T3") with { TotalCount = 2 }));
+        service.GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>()).Returns(nextPage.Task);
+
+        var (ctx, cut, _) = await RenderAsync(service);
+        try
+        {
+            await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+            var sentinel = cut.FindComponent<InfiniteScrollSentinel>().Instance;
+
+            var loading = cut.InvokeAsync(sentinel.LoadMoreAsync);
+            await cut.InvokeAsync(sentinel.LoadMoreAsync);
+            nextPage.SetResult(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Largo Winch T20") with { TotalCount = 2 }));
+            await loading;
+
+            await service.Received(1).GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>());
+            await cut.WaitForAssertionAsync(() => cut.FindAll(".feed-card-title").Should().HaveCount(2));
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_LoadAgainThePagesShown_WhenTheListWasScrolled()
+    {
+        var service = CreateService();
+        var refreshed = CreateFullPage("Tome", 20);
+        service.GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>()).Returns(
+            Result<FeedImportDecisionPageViewModel>.Success(CreateFullPage("Tome", 21)),
+            Result<FeedImportDecisionPageViewModel>.Success(refreshed));
+        service.GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>())
+            .Returns(Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Largo Winch T20") with { TotalCount = 21 }));
+        service.DeleteAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+
+        var (ctx, cut, _) = await RenderAsync(service, CreateDialogService(confirmed: true));
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Tome 1"));
+        await cut.InvokeAsync(() => cut.FindComponent<InfiniteScrollSentinel>().Instance.LoadMoreAsync());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".feed-card-title").Should().HaveCount(21));
+
+        await DeleteFirstAsync(cut);
+
+        // The page after the first one is not asked again: the 20 decisions left fit in it.
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".feed-card-title").Should().HaveCount(20));
+        await service.Received(2).GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>());
+        await service.Received(1).GetDecisionsAsync(null, null, 2, 20, Arg.Any<CancellationToken>());
+        cut.FindComponents<InfiniteScrollSentinel>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ApplyActionAsync_Should_KeepTheDecisionsShownAndShowAnError_WhenTheReloadFails()
+    {
+        var service = CreateService();
+        service.GetDecisionsAsync(null, null, 1, 20, Arg.Any<CancellationToken>()).Returns(
+            Result<FeedImportDecisionPageViewModel>.Success(CreatePage("Blacksad T3", "Largo Winch T20")),
+            Result<FeedImportDecisionPageViewModel>.Failure(new TError("feed:err", "boom")));
+        service.ApplyActionAsync(Arg.Any<Guid>(), FeedImportDecisionAction.Ignore, Arg.Any<CancellationToken>()).Returns(Result.Success());
+
+        var (ctx, cut, snackbar) = await RenderAsync(service);
+        await using var _ = ctx;
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+
+        await cut.InvokeAsync(() => cut.Instance.ApplyActionAsync(Guid.CreateVersion7(), FeedImportDecisionAction.Ignore));
+
+        snackbar.Received(1).Add("Unable to load the import decisions.", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        cut.FindAll(".feed-card-title").Select(t => t.TextContent).Should().Equal("Blacksad T3", "Largo Winch T20");
     }
 
     [Fact]

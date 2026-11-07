@@ -348,11 +348,15 @@
                 </article>
             }
 
+            @if (_isLoading && _items.Count > 0)
+            {
+                <div class="feeds-more">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
+                </div>
+            }
             @if (HasMore)
             {
-                <MudButton Variant="Variant.Outlined" Class="feed-pill feeds-more" Disabled="_isLoading" OnClick="LoadMoreAsync">
-                    @(_isLoading ? "Loading…" : "Show more")
-                </MudButton>
+                <InfiniteScrollSentinel OnLoadMore="LoadMoreAsync" ItemCount="_items.Count" />
             }
         </div>
 

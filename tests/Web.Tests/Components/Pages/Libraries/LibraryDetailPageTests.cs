@@ -418,6 +418,30 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task MoveAsync_Should_LoadAgainThePagesShown_SoThatTheScrollKeepsItsPlace()
+    {
+        var cut = await RenderAsync();
+        GivenPage(1, string.Empty, Page(4, true, _blacksad, _hiver));
+        await ChooseAsync(cut, "Sort and view", "Oldest first");
+        var chaos = Book("Elementa Chaos", "Sophia", 2);
+        GivenPage(2, string.Empty, Page(4, true, chaos));
+        await cut.InvokeAsync(cut.Instance.LoadMoreBooksAsync);
+        await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(chaos.Id.ToString(), PopupAnchor.At(1, 1, 1024, 768)));
+        _workflow.ChooseAndMoveAsync(chaos.Id, Arg.Any<CancellationToken>()).Returns(true);
+        var reloaded = Page(3, true, _blacksad, _hiver);
+        _booksService.GetPagedByLibrary(_library.Id, 1, 2 * LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
+            .Returns(Result<IPagedList<BookSummaryDto>>.Success(reloaded));
+
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
+
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item").Should().HaveCount(2));
+        // The next page comes after the two pages loaded again.
+        GivenPage(3, string.Empty, Page(3, false, Book("Thorgal", "Thorgal", 1)));
+        await cut.InvokeAsync(cut.Instance.LoadMoreBooksAsync);
+        cut.FindAll(".cover-item").Should().HaveCount(3);
+    }
+
+    [Fact]
     public async Task LoadMoreBooksAsync_Should_DropTheNextPage_WhenTheBooksWereReloadedMeanwhile()
     {
         var cut = await RenderAsync();

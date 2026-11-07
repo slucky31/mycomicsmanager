@@ -219,6 +219,35 @@ public sealed class ImportComponentTests
         await setup.ImportService.Received(2).GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>());
     }
 
+    // ── ShowMoreJobs ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ShowMoreJobs_Should_ShowTheNextJobs_WhenTheEndOfTheListIsReached()
+    {
+        var jobs = Enumerable.Range(1, Import.JobsPageSize + 5).Select(i => CreateJob("Completed", $"comic-{i}.cbz")).ToList();
+        await using var setup = await SetupAsync(jobs);
+        var cut = setup.Cut;
+        cut.FindComponents<ImportJobCard>().Should().HaveCount(Import.JobsPageSize);
+
+        await cut.InvokeAsync(() => cut.FindComponent<InfiniteScrollSentinel>().Instance.LoadMoreAsync());
+
+        cut.FindComponents<ImportJobCard>().Should().HaveCount(Import.JobsPageSize + 5);
+        cut.FindComponents<InfiniteScrollSentinel>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task OnLibraryChangedAsync_Should_ShowTheFirstJobsOnly_OfTheNewLibrary()
+    {
+        var jobs = Enumerable.Range(1, Import.JobsPageSize + 5).Select(i => CreateJob("Completed", $"comic-{i}.cbz")).ToList();
+        await using var setup = await SetupAsync(jobs);
+        var cut = setup.Cut;
+        await cut.InvokeAsync(cut.Instance.ShowMoreJobs);
+
+        await cut.ChooseLibraryAsync("import-library", setup.Library.Name);
+
+        cut.WaitForAssertion(() => cut.FindComponents<ImportJobCard>().Should().HaveCount(Import.JobsPageSize));
+    }
+
     // ── OnFilesSelectedAsync ──────────────────────────────────────────────────
 
     [Fact]

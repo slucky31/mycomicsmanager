@@ -64,12 +64,6 @@ public sealed class ReadingPageViewModelTests
     }
 
     [Theory]
-    [InlineData(1, "Show 1 more reading")]
-    [InlineData(20, "Show 20 more readings")]
-    public void MoreLabel_Should_CountTheReadingsLeft(int remaining, string expected) =>
-        ReadingPageDisplay.MoreLabel(remaining).Should().Be(expected);
-
-    [Theory]
     [InlineData(0, 1, "0 in progress · 1 reading")]
     [InlineData(3, 48, "3 in progress · 48 readings")]
     public void Subtitle_Should_CountTheBooksInProgressAndTheReadings(int inProgress, int readings, string expected) =>

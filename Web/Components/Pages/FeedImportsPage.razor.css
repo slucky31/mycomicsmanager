@@ -133,8 +133,10 @@
     color: var(--mcm-text-muted);
 }
 
-::deep .feeds-more {
-    align-self: center;
+.feeds-more {
+    display: flex;
+    justify-content: center;
+    padding: var(--mcm-space-4);
 }
 
 .feed-card {
