@@ -3,7 +3,20 @@
 <PageTitle>@(_serie?.Name ?? "Series") — MyComicsManager</PageTitle>
 
 <div class="serie-page" @ref="_content">
-    <PageBar BackHref="@SerieDisplay.SeriesHref(LibraryId)" BackLabel="Back to the series" Title="@(_serie?.Name ?? Name)" Subtitle="@_serie?.Subtitle" />
+    @if (_serie is not null && _selection.IsActive)
+    {
+        <BookSelectionBar Selection="@_selection" Subtitle="@_serie.Name" IsDigital="@_serie.IsDigital"
+                          OnStop="StopSelecting" OnSelectAll="CheckEveryBook" OnBooksGone="BooksGoneAsync" />
+    }
+    else
+    {
+        <PageBar BackHref="@SerieDisplay.SeriesHref(LibraryId)" BackLabel="Back to the series" Title="@(_serie?.Name ?? Name)" Subtitle="@_serie?.Subtitle">
+            @if (_serie?.Slots.Any(s => !s.IsMissing) == true)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Checklist" OnClick="() => StartSelecting()" aria-label="Select books" />
+            }
+        </PageBar>
+    }
 
     @if (_isLoading)
     {
@@ -71,7 +84,8 @@
                 else
                 {
                     <BookCover @key="slot.Key" BookId="@slot.Book!.Id" Title="@(slot.Title!)" Label="@slot.Label" ImageLink="@slot.ImageLink" Badge="@slot.Badge"
-                               Href="@slot.Href" OnActions="() => OpenBookActionsAsync(slot.Book)" />
+                               Href="@slot.Href" OnActions="() => OpenBookActionsAsync(slot.Book)"
+                               Selecting="@_selection.IsActive" Checked="@_selection.IsChecked(slot.Book.Id)" OnToggle="() => ToggleBook(slot.Book.Id)" />
                 }
             }
         </div>
@@ -82,5 +96,6 @@
 {
     <BookActionsSheet Book="@book" Open="@_isActionsOpen" IsDigital="@(_serie?.IsDigital ?? false)"
                       Anchor="@_actionsAnchor" AlignEnd="@_actionsAlignEnd" OnClose="CloseActions" OnBookGone="ReloadAfterBookGoneAsync"
+                      OnSelect="() => StartSelecting(book.Id)"
                       From="@SerieDisplay.SerieHref(LibraryId, Name ?? string.Empty)" />
 }

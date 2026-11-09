@@ -1,0 +1,13 @@
+@* Books being chosen to move or delete them at once (#1150, #1194), in a library or a series: the bar says how many and offers both. *@
+<header class="@(Responsive ? "selection-bar selection-bar-responsive" : "selection-bar")">
+    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="OnStop" aria-label="Stop choosing books" Class="selection-bar-close" />
+    <div class="selection-bar-title">
+        <h1 aria-live="polite">@Selection.Label</h1>
+        <div class="selection-bar-subtitle">in @Subtitle</div>
+    </div>
+    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="OnSelectAll" Class="selection-bar-select-all">Select all</MudButton>
+    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Disabled="@IsDisabled"
+                   OnClick="DeleteCheckedBooksAsync" aria-label="Delete the selected books" Class="selection-bar-delete" />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.DriveFileMove"
+               Disabled="@IsDisabled" OnClick="MoveCheckedBooksAsync" Class="selection-bar-move">Move</MudButton>
+</header>

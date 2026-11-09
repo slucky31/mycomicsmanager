@@ -32,7 +32,9 @@ public sealed class BookSelection
         _ => $"{Count} selected",
     };
 
-    public bool IsChecked(BookListItemViewModel book) => book is not null && _ids.Contains(book.Id);
+    public bool IsChecked(BookListItemViewModel book) => book is not null && IsChecked(book.Id);
+
+    public bool IsChecked(Guid bookId) => _ids.Contains(bookId);
 
     public string AriaChecked(BookListItemViewModel book) => IsChecked(book) ? "true" : "false";
 
