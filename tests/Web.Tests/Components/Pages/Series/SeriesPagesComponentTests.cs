@@ -1,3 +1,4 @@
+using Application.Books.Delete;
 using Application.Series;
 using Application.Series.Detail;
 using Application.Series.Missing;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
+using Web.Components.Pages.Dialogs;
 using Web.Components.Pages.Series;
 using Web.Models;
 using Web.Services;
@@ -28,6 +30,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     private readonly ILibrariesService _librariesService = Substitute.For<ILibrariesService>();
     private readonly ISnackbar _snackbar = Substitute.For<ISnackbar>();
     private readonly IBookMoveWorkflow _moveWorkflow = Substitute.For<IBookMoveWorkflow>();
+    private readonly IBooksService _booksService = Substitute.For<IBooksService>();
 
     public SeriesPagesComponentTests()
     {
@@ -37,7 +40,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_librariesService);
         _ctx.Services.AddSingleton(_snackbar);
         _ctx.Services.AddScoped<PopupAnchorLocator>();
-        _ctx.Services.AddSingleton(Substitute.For<IBooksService>());
+        _ctx.Services.AddSingleton(_booksService);
         _ctx.Services.AddSingleton(_moveWorkflow);
         _librariesService.GetById(s_libraryId.ToString())
             .Returns(Library.Create("BD", "#594AE2", "Book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!);
@@ -232,7 +235,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         cut.FindAll("[role=dialog] .action-sheet-item").Select(i => i.TextContent.Trim());
 
     [Fact]
-    public async Task OpenBookActionsAsync_Should_OpenTheActionsOfAnOwnedBook_WithoutTheSelection()
+    public async Task OpenBookActionsAsync_Should_OpenTheActionsOfAnOwnedBook()
     {
         var cut = RenderThorgal(LibraryBookType.Physical);
 
@@ -242,7 +245,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         cut.Find("[role=dialog]").GetAttribute("aria-label").Should().Be("Actions for Thorgal 3");
         cut.Find(".book-actions-serie").TextContent.Should().Be("Thorgal · #3");
-        Actions(cut).Should().Equal("Edit", "Import info from the web", "Move to another library", "Delete");
+        Actions(cut).Should().Equal("Edit", "Import info from the web", "Move to another library", "Select several books", "Delete");
     }
 
     [Fact]
@@ -255,7 +258,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         cut.FindAll("[role=dialog]").Should().BeEmpty();
 
         await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(bookId, PopupAnchor.At(120, 200, 1024, 768)));
-        Actions(cut).Should().Equal("Read", "Edit", "Import info from the web", "Find ISBN", "Download CBZ", "Move to another library", "Delete");
+        Actions(cut).Should().Equal("Read", "Edit", "Import info from the web", "Find ISBN", "Download CBZ", "Move to another library", "Select several books", "Delete");
     }
 
     [Fact]
@@ -284,6 +287,86 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/libraries/{s_libraryId}/series");
         _snackbar.DidNotReceive().Add(Arg.Any<string>(), Arg.Any<Severity>(), Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+    }
+
+    // ── Several books ──────────────────────────────────────────────────
+
+    private static string Heading(IRenderedComponent<SeriePage> cut) => cut.Find("h1").TextContent;
+
+    private static List<string> BookIds(IRenderedComponent<SeriePage> cut) =>
+        [.. cut.FindAll(".cover-item").Select(i => i.GetAttribute("data-book-id")!)];
+
+    [Fact]
+    public async Task StartSelecting_Should_CheckTheOwnedVolumes_ThenMoveThemAtOnce()
+    {
+        var left = new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [3]), [SeriesTestData.Book("Thorgal", 3)]);
+        var cut = RenderThorgal(LibraryBookType.Physical, left);
+        var ids = BookIds(cut);
+        _moveWorkflow.ChooseAndMoveAsync(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>()).Returns(1);
+
+        await cut.Find("button[aria-label='Select books']").ClickAsync(new());
+        Heading(cut).Should().Be("Choose books");
+        cut.Find(".selection-bar-subtitle").TextContent.Should().Be("in Thorgal");
+        cut.FindAll("button[role=checkbox]").Should().HaveCount(2);
+        cut.Find(".selection-bar-move").HasAttribute("disabled").Should().BeTrue();
+        await cut.Find(".selection-bar-select-all").ClickAsync(new());
+        Heading(cut).Should().Be("2 selected");
+        await cut.Find("button[role=checkbox][aria-label='Thorgal 3']").ClickAsync(new());
+        Heading(cut).Should().Be("1 selected");
+
+        await cut.Find(".selection-bar-move").ClickAsync(new());
+
+        await _moveWorkflow.Received(1).ChooseAndMoveAsync(
+            Arg.Is<IReadOnlyList<Guid>>(b => b.Count == 1 && b[0] == Guid.Parse(ids[0])), Arg.Any<CancellationToken>());
+        cut.WaitForAssertion(() => cut.FindAll(".serie-slot-missing-number").Select(m => m.TextContent).Should().Equal("#1–2"));
+        Heading(cut).Should().Be("Thorgal");
+        cut.FindAll("button[role=checkbox]").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task StartSelecting_Should_CheckTheBookOfItsActions_AndALongPressShouldCheckOthers()
+    {
+        var cut = RenderThorgal(LibraryBookType.Physical);
+        var ids = BookIds(cut);
+        await cut.FindAll(".cover-actions")[1].ClickAsync(new());
+
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Select several books')").ClickAsync(new());
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
+        Heading(cut).Should().Be("1 selected");
+        cut.Find(".cover-item-checked").GetAttribute("data-book-id").Should().Be(ids[1]);
+
+        await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(ids[0], PopupAnchor.At(1, 1, 1024, 768)));
+        Heading(cut).Should().Be("2 selected");
+        cut.FindAll("[role=dialog]").Should().BeEmpty();
+
+        await cut.Find("button[aria-label='Stop choosing books']").ClickAsync(new());
+        Heading(cut).Should().Be("Thorgal");
+        cut.FindAll("button[role=checkbox]").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task DeleteCheckedBooksAsync_Should_GoBackToTheSeries_WhenEveryVolumeIsDeleted()
+    {
+        var dialogs = Substitute.For<IDialogService>();
+        var dialog = Substitute.For<IDialogReference>();
+        dialog.Result.Returns(DialogResult.Ok(true));
+        dialogs.ShowAsync<ConfirmationDialog>(Arg.Any<string>(), Arg.Any<DialogParameters>(), Arg.Any<DialogOptions>()).Returns(dialog);
+        _ctx.Services.AddSingleton(dialogs);
+        var cut = RenderThorgal(LibraryBookType.Digital);
+        _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>()).Returns(SeriesError.NotFound);
+        _booksService.Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DeleteBooksResult>.Success(new DeleteBooksResult(2, 0)));
+        await cut.Find("button[aria-label='Select books']").ClickAsync(new());
+        await cut.Find(".selection-bar-select-all").ClickAsync(new());
+
+        await cut.Find(".selection-bar-delete").ClickAsync(new());
+
+        await dialogs.Received(1).ShowAsync<ConfirmationDialog>("Delete 2 books",
+            Arg.Is<DialogParameters>(p => (string)p[nameof(ConfirmationDialog.ConfirmationMessage)]! == BookDeleteText.Confirmation(2, true)),
+            Arg.Any<DialogOptions>());
+        _snackbar.Received(1).Add("2 books deleted", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        _snackbar.DidNotReceive().Add(SeriesError.NotFound.Description!, Arg.Any<Severity>(), Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
+        _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/libraries/{s_libraryId}/series");
     }
 
     [Fact]

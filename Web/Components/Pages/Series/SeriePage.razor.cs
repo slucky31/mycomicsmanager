@@ -10,7 +10,7 @@ using Web.Services;
 namespace Web.Components.Pages.Series;
 
 // A series of a library: how complete it is, and its volumes with the missing ones in their place (#1205),
-// each book with the actions it has among the covers of its library (#1220).
+// each book with the actions it has among the covers of its library (#1220), and several chosen to move or delete them at once.
 public partial class SeriePage : IAsyncDisposable
 {
     [Inject] private ISeriesService SeriesService { get; set; } = default!;
@@ -42,6 +42,8 @@ public partial class SeriePage : IAsyncDisposable
     private PopupAnchor? _actionsAnchor;
     private bool _actionsAlignEnd;
 
+    private BookSelection _selection = BookSelection.None;
+
     private ElementReference _content;
     private IJSObjectReference? _module;
     private DotNetObjectReference<SeriePage>? _dotNetRef;
@@ -55,6 +57,7 @@ public partial class SeriePage : IAsyncDisposable
 
         _shown = (LibraryId, Name);
         _isEditing = false;
+        _selection = BookSelection.None;
         _serie = null;
         await RetryAsync();
     }
@@ -168,7 +171,15 @@ public partial class SeriePage : IAsyncDisposable
             return;
         }
 
-        ShowBookActions(book, anchor, alignEnd: false);
+        // While books are chosen, a long press checks the book like a tap.
+        if (_selection.IsActive)
+        {
+            ToggleBook(book.Id);
+        }
+        else
+        {
+            ShowBookActions(book, anchor, alignEnd: false);
+        }
         StateHasChanged();
     }
 
@@ -184,6 +195,30 @@ public partial class SeriePage : IAsyncDisposable
 
     // A book moved or deleted leaves its place to a missing volume, or the series when it was the last one.
     private Task ReloadAfterBookGoneAsync() => LoadAsync(bookGone: true);
+
+    // ── Several books ──────────────────────────────────────────────────
+
+    // From the bar, or from the actions of a book, which is then the first one checked.
+    private void StartSelecting(Guid? bookId = null)
+    {
+        CloseActions();
+        _selection = BookSelection.Start(bookId);
+    }
+
+    private void StopSelecting() => _selection = BookSelection.None;
+
+    private void ToggleBook(Guid bookId) => _selection = _selection.Toggle(bookId);
+
+    // Every volume of the series in the library: the missing ones cannot be chosen.
+    private void CheckEveryBook() =>
+        _selection = _selection.With(_serie?.Slots.Where(s => s.Book is not null).Select(s => s.Book!.Id) ?? []);
+
+    // Books checked were moved or deleted: they leave their place to missing volumes, or the series is gone.
+    private async Task BooksGoneAsync(int booksGone)
+    {
+        _selection = BookSelection.None;
+        await LoadAsync(bookGone: true);
+    }
 
     // ── Number of volumes published ────────────────────────────────────
 

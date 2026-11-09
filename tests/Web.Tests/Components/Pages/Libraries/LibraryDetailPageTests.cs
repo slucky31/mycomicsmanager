@@ -490,14 +490,14 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
 
         await cut.Find("button[aria-label='Select books']").ClickAsync(new());
         Heading(cut).Should().Be("Choose books");
-        cut.Find(".library-bar-move").HasAttribute("disabled").Should().BeTrue();
+        cut.Find(".selection-bar-move").HasAttribute("disabled").Should().BeTrue();
         cut.FindAll("a.cover-link").Should().BeEmpty();
         await CheckAsync(cut, "Âme rouge");
         Heading(cut).Should().Be("1 selected");
         cut.Find("button[role=checkbox][aria-label='Âme rouge']").GetAttribute("aria-checked").Should().Be("true");
-        await cut.Find(".library-bar-select-all").ClickAsync(new());
+        await cut.Find(".selection-bar-select-all").ClickAsync(new());
         Heading(cut).Should().Be("2 selected");
-        await cut.Find(".library-bar-move").ClickAsync(new());
+        await cut.Find(".selection-bar-move").ClickAsync(new());
 
         await _workflow.Received(1).ChooseAndMoveAsync(
             Arg.Is<IReadOnlyList<Guid>>(ids => ids.Count == 2 && ids.Contains(_blacksad.Id) && ids.Contains(_hiver.Id)), Arg.Any<CancellationToken>());
@@ -513,10 +513,10 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         await cut.Find("button[aria-label='Select books']").ClickAsync(new());
         await CheckAsync(cut, "Hiver nucléaire");
 
-        await cut.Find(".library-bar-move").ClickAsync(new());
+        await cut.Find(".selection-bar-move").ClickAsync(new());
 
         Heading(cut).Should().Be("1 selected");
-        await cut.InvokeAsync(cut.Instance.MoveCheckedBooksAsync);
+        await cut.Find(".selection-bar-move").ClickAsync(new());
         await _workflow.Received(2).ChooseAndMoveAsync(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>());
     }
 
@@ -552,7 +552,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         await cut.Find("button[aria-label='Select books']").ClickAsync(new());
 
         var stop = cut.Find("button[aria-label='Stop choosing books']");
-        stop.ClassList.Should().Contain("library-bar-close").And.NotContain("library-bar-back");
+        stop.ClassList.Should().Contain("selection-bar-close").And.NotContain("library-bar-back");
     }
 
     // ── Several books deleted (#1194) ──────────────────────────────────
@@ -567,7 +567,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     private static async Task CheckEveryBookAsync(IRenderedComponent<LibraryDetailPage> cut)
     {
         await cut.Find("button[aria-label='Select books']").ClickAsync(new());
-        await cut.Find(".library-bar-select-all").ClickAsync(new());
+        await cut.Find(".selection-bar-select-all").ClickAsync(new());
     }
 
     [Fact]
@@ -578,11 +578,11 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         _booksService.Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeleteBooksResult>.Success(new DeleteBooksResult(2, 0)));
         await cut.Find("button[aria-label='Select books']").ClickAsync(new());
-        cut.Find(".library-bar-delete").HasAttribute("disabled").Should().BeTrue();
-        await cut.Find(".library-bar-select-all").ClickAsync(new());
+        cut.Find(".selection-bar-delete").HasAttribute("disabled").Should().BeTrue();
+        await cut.Find(".selection-bar-select-all").ClickAsync(new());
         GivenPage(1, string.Empty, Page(22, false));
 
-        await cut.Find(".library-bar-delete").ClickAsync(new());
+        await cut.Find(".selection-bar-delete").ClickAsync(new());
 
         await _dialogService.Received(1).ShowAsync<ConfirmationDialog>("Delete 2 books",
             Arg.Is<DialogParameters>(p => (string)p[nameof(ConfirmationDialog.ConfirmationMessage)]! == BookDeleteText.Confirmation(2, true)),
@@ -601,7 +601,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         GivenConfirmation(confirmed: false);
         await CheckEveryBookAsync(cut);
 
-        await cut.Find(".library-bar-delete").ClickAsync(new());
+        await cut.Find(".selection-bar-delete").ClickAsync(new());
 
         await _booksService.DidNotReceive().Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>());
         Heading(cut).Should().Be("2 selected");
@@ -616,7 +616,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
             .Returns(Result<DeleteBooksResult>.Success(new DeleteBooksResult(0, 2, BooksError.NotFound)));
         await CheckEveryBookAsync(cut);
 
-        await cut.Find(".library-bar-delete").ClickAsync(new());
+        await cut.Find(".selection-bar-delete").ClickAsync(new());
 
         _snackbar.Received(1).Add($"No book was deleted. {BooksError.NotFound.Description}", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
         Heading(cut).Should().Be("2 selected");
@@ -631,7 +631,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
             .Returns(Result<DeleteBooksResult>.Failure(BooksError.BadRequest));
         await CheckEveryBookAsync(cut);
 
-        await cut.Find(".library-bar-delete").ClickAsync(new());
+        await cut.Find(".selection-bar-delete").ClickAsync(new());
 
         _snackbar.Received(1).Add(BooksError.BadRequest.Description!, Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
         Heading(cut).Should().Be("2 selected");

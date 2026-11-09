@@ -1,0 +1,86 @@
+/* Books being chosen (#1150): the bar is tinted, and offers the move. */
+.selection-bar {
+    flex-shrink: 0;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    padding: var(--mcm-top-inset) 2px 0;
+    background: var(--mcm-primary-soft);
+}
+
+.selection-bar-title {
+    flex-grow: 1;
+    min-width: 0;
+    padding-left: 4px;
+}
+
+.selection-bar-title h1 {
+    margin: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--mcm-font-title);
+    font-weight: 500;
+    line-height: 24px;
+}
+
+.selection-bar-subtitle {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--mcm-font-small);
+    color: var(--mcm-text-muted);
+}
+
+::deep .selection-bar-select-all,
+::deep .selection-bar-move {
+    flex-shrink: 0;
+    height: 40px;
+    border-radius: 20px;
+    text-transform: none;
+}
+
+::deep .selection-bar-move {
+    margin: 0 8px 0 4px;
+}
+
+/* ── In a library: 72 px from the tablet on, 96 px on a large screen (the close stays, #1172) ── */
+@media (min-width: 600px) {
+    .selection-bar-responsive {
+        min-height: 72px;
+        gap: 4px;
+        padding: 0 16px 0 12px;
+    }
+
+    .selection-bar-responsive .selection-bar-title h1 {
+        font-size: var(--mcm-font-title-l);
+        line-height: 28px;
+    }
+
+    .selection-bar-responsive .selection-bar-subtitle {
+        font-size: var(--mcm-font-label);
+    }
+}
+
+@media (min-width: 1440px) {
+    .selection-bar-responsive {
+        min-height: 96px;
+        gap: 12px;
+        padding: 0 48px;
+    }
+
+    .selection-bar-responsive .selection-bar-title {
+        padding-left: 0;
+    }
+
+    .selection-bar-responsive .selection-bar-title h1 {
+        font-size: var(--mcm-font-page-l);
+        font-weight: 700;
+        line-height: 38px;
+    }
+
+    .selection-bar-responsive .selection-bar-subtitle {
+        margin-top: 2px;
+        font-size: var(--mcm-font-body);
+    }
+}
