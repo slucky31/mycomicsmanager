@@ -42,9 +42,9 @@ public partial class BookSelectionBar : IAsyncDisposable
 
     private readonly CancellationTokenSource _disposalCts = new();
     // Checked books being moved or deleted: neither can start again until it is done.
-    private bool _isChangingBooks;
+    private bool IsChangingBooks { get; set; }
 
-    private bool IsDisabled => Selection.Count == 0 || _isChangingBooks;
+    private bool IsDisabled => Selection.Count == 0 || IsChangingBooks;
 
     private async Task MoveCheckedBooksAsync()
     {
@@ -53,7 +53,7 @@ public partial class BookSelectionBar : IAsyncDisposable
             return;
         }
 
-        _isChangingBooks = true;
+        IsChangingBooks = true;
         try
         {
             var moved = await BookMoveWorkflow.ChooseAndMoveAsync(Selection.BookIds, _disposalCts.Token);
@@ -68,7 +68,7 @@ public partial class BookSelectionBar : IAsyncDisposable
         }
         finally
         {
-            _isChangingBooks = false;
+            IsChangingBooks = false;
         }
     }
 
@@ -87,7 +87,7 @@ public partial class BookSelectionBar : IAsyncDisposable
             return;
         }
 
-        _isChangingBooks = true;
+        IsChangingBooks = true;
         try
         {
             var result = await BooksService.Delete(bookIds, _disposalCts.Token);
@@ -111,7 +111,7 @@ public partial class BookSelectionBar : IAsyncDisposable
         }
         finally
         {
-            _isChangingBooks = false;
+            IsChangingBooks = false;
         }
     }
 
