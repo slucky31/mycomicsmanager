@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.76.4"></a>
+## [10.76.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.76.4) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **web:** block zoom on mobile except pinching in the book reader ([#1303](https://www.github.com/slucky31/mycomicsmanager/issues/1303)) ([c1b812d](https://www.github.com/slucky31/mycomicsmanager/commit/c1b812d2ffd21264109f454d276dd7835c3113ce))
+
 <a name="10.76.3"></a>
 ## [10.76.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.76.3) (2026-11-11)
 
