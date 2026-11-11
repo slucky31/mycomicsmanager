@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.76.1"></a>
+## [10.76.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.76.1) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **deps:** update nuget (autres) ([#1299](https://www.github.com/slucky31/mycomicsmanager/issues/1299)) ([abbb77a](https://www.github.com/slucky31/mycomicsmanager/commit/abbb77adbcaa5cd11bda3f5e4c93127817623508))
+
 <a name="10.76.0"></a>
 ## [10.76.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.76.0) (2026-11-09)
 
