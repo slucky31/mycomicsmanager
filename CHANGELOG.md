@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.76.3"></a>
+## [10.76.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.76.3) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **feed-imports:** stop a stuck download from blocking Hangfire ([#1302](https://www.github.com/slucky31/mycomicsmanager/issues/1302)) ([b4a2047](https://www.github.com/slucky31/mycomicsmanager/commit/b4a20472c7cb94f79605a4b36ae24bcf07e7c2c5))
+
 <a name="10.76.2"></a>
 ## [10.76.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.76.2) (2026-11-11)
 
