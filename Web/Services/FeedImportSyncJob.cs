@@ -35,6 +35,8 @@ public class FeedImportSyncJob(
             return;
         }
 
+        DiscardStaleDownloads();
+
         var userId = await ResolveUserIdAsync(settings.UserEmail, cancellationToken);
         if (userId is null)
         {
@@ -47,6 +49,18 @@ public class FeedImportSyncJob(
         await AnalyzePendingAsync(userId.Value, cancellationToken);
 
         await EnqueueDownloadsAsync(userId.Value, cancellationToken);
+    }
+
+    // A killed process (docker restart) leaves its partial .download behind. A running download writes at least
+    // every FeedImport:DownloadIdleTimeout, far below StaleDownloadDelay: it is never deleted.
+    private void DiscardStaleDownloads()
+    {
+        using var scope = scopeFactory.CreateScope();
+        var deleted = scope.ServiceProvider.GetRequiredService<IFeedImportFileDownloader>().DiscardStale(FeedImportConstants.StaleDownloadDelay);
+        if (deleted > 0)
+        {
+            logger.LogInformation("Feed import sync: {Count} partial download(s) left by an interrupted download deleted", deleted);
+        }
     }
 
     private async Task<Guid?> ResolveUserIdAsync(string userEmail, CancellationToken cancellationToken)

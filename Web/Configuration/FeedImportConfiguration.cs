@@ -1,5 +1,6 @@
 using Application.FeedImports;
 using Application.Interfaces;
+using Domain.FeedImports;
 using Domain.Settings;
 using Hangfire;
 using Microsoft.Extensions.Options;
@@ -16,6 +17,9 @@ public static class FeedImportConfiguration
             .Bind(configuration.GetSection("FeedImport"))
             .Validate(cfg => !cfg.Enabled || !string.IsNullOrWhiteSpace(cfg.UserEmail), "FeedImport:UserEmail is required when FeedImport:Enabled is true")
             .Validate(cfg => FeedImportSyncJob.IsValidInterval(cfg.SyncIntervalMinutes), "FeedImport:SyncIntervalMinutes must be between 1 and 59, or a multiple of 60 up to 1440")
+            .Validate(cfg => cfg.DownloadIdleTimeout > TimeSpan.Zero, "FeedImport:DownloadIdleTimeout must be positive")
+            .Validate(cfg => cfg.DownloadTimeout > TimeSpan.Zero && cfg.DownloadTimeout < FeedImportConstants.StaleDownloadDelay,
+                $"FeedImport:DownloadTimeout must be positive and shorter than {FeedImportConstants.StaleDownloadDelay.TotalMinutes} minutes")
             .ValidateOnStart();
 
         services.AddOptions<MinifluxSettings>()
@@ -93,8 +97,9 @@ public static class FeedImportConfiguration
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
         // Unlocked files: hoster domains (FeedImport:AllowedDownloadHosts) and Debrid-Link file servers
-        // (DebridLink:DownloadHosts), subdomains included, HTTPS only. Large files: long timeout.
-        services.AddHttpClient<IFeedImportFileDownloader, FeedImportFileDownloader>(client => client.Timeout = TimeSpan.FromMinutes(30))
+        // (DebridLink:DownloadHosts), subdomains included, HTTPS only. HttpClient.Timeout only covers the headers
+        // (ResponseHeadersRead): the body is bounded by FeedImport:DownloadIdleTimeout and FeedImport:DownloadTimeout.
+        services.AddHttpClient<IFeedImportFileDownloader, FeedImportFileDownloader>(client => client.Timeout = TimeSpan.FromMinutes(5))
             .AddHttpMessageHandler(sp =>
             {
                 var hosts = sp.GetRequiredService<IOptions<FeedImportSettings>>().Value.AllowedDownloadHosts

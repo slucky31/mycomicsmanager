@@ -12,4 +12,11 @@ public class FeedImportSettings
     public IReadOnlyList<string> AllowedSourceHosts { get; set; } = [];
 
     public IReadOnlyList<string> AllowedDownloadHosts { get; set; } = [];
+
+    // A file server that keeps the connection open but stops sending data fails the download after this delay.
+    public TimeSpan DownloadIdleTimeout { get; set; } = TimeSpan.FromSeconds(60);
+
+    // Maximum duration of one file download (HttpClient.Timeout does not cover the body).
+    // Shorter than FeedImportConstants.StaleDownloadDelay, so a running download is never retried.
+    public TimeSpan DownloadTimeout { get; set; } = TimeSpan.FromMinutes(20);
 }

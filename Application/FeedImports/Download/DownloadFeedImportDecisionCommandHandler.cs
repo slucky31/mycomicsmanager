@@ -152,9 +152,22 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
             }
 
             decision.NoteMirrorFailure(mirror.Host, lastError.Description ?? lastError.Code);
+            await SaveMirrorFailureAsync(decision, cancellationToken);
         }
 
         return lastError;
+    }
+
+    // Saved before the next mirror: UpdatedAt tells a running download from an interrupted one
+    // (FeedImportConstants.StaleDownloadDelay), and the history shows the failure while the next mirror downloads.
+    private async Task SaveMirrorFailureAsync(FeedImportDecision decision, CancellationToken cancellationToken)
+    {
+        var saved = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saved.IsFailure)
+        {
+            logger.LogWarning("Feed import: mirror failure of decision {DecisionId} not saved: [{Code}] {Description}",
+                decision.Id, saved.Error!.Code, saved.Error.Description);
+        }
     }
 
     // Mirrors Debrid-Link can unlock, by FeedImport priority. If the domain list is unavailable, all are tried.

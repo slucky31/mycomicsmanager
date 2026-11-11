@@ -195,6 +195,40 @@ public class DownloadFeedImportDecisionCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_Should_SaveMirrorFailureBeforeTryingNextMirror_WhenFirstMirrorFails()
+    {
+        _debridLink.UnlockAsync(FichierUrl, Arg.Any<CancellationToken>())
+            .Returns(Result<DebridLinkFile>.Failure(FeedImportError.DebridLinkFileUnavailable));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        Received.InOrder(() =>
+        {
+            _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()); // StartDownload
+            _debridLink.UnlockAsync(FichierUrl, Arg.Any<CancellationToken>());
+            _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()); // mirror failure
+            _debridLink.UnlockAsync(RapidgatorUrl, Arg.Any<CancellationToken>());
+            _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()); // MarkDownloaded
+        });
+    }
+
+    [Fact]
+    public async Task Handle_Should_StillTryNextMirror_WhenMirrorFailureCannotBeSaved()
+    {
+        _debridLink.UnlockAsync(FichierUrl, Arg.Any<CancellationToken>())
+            .Returns(Result<DebridLinkFile>.Failure(FeedImportError.DebridLinkFileUnavailable));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<int>.Success(1), Result<int>.Failure(new TError("DB500", "down")), Result<int>.Success(1));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
+        decision.ChosenMirror.Should().Be(RapidgatorUrl);
+    }
+
+    [Fact]
     public async Task Handle_Should_StopWithoutTryingOtherMirrors_WhenQuotaIsReached()
     {
         _debridLink.UnlockAsync(FichierUrl, Arg.Any<CancellationToken>())
