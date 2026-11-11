@@ -4,7 +4,8 @@
 
 <PageTitle>@(_info is null ? "Reader" : _info.Title)</PageTitle>
 
-<div class="book-reader">
+@* data-allow-zoom: the only place of the app where pinching zooms (js/zoomLock.js). *@
+<div class="book-reader" data-allow-zoom>
     @if (_isLoading)
     {
         <div class="reader-center">

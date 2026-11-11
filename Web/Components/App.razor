@@ -5,7 +5,9 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    @* maximum-scale=1: iOS no longer zooms on a focused field. iOS ignores it for the pinch, which js/zoomLock.js
+       handles (allowed in the book reader only). *@
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
     <base href="/" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,6 +30,7 @@
     @* The app added to the iPhone Home Screen (navigator.standalone): its pages start lower, out of the blur
        iOS draws under the status bar (--mcm-top-inset, theme.css, #1250). Set before the first paint. *@
     <script>if (navigator.standalone) { document.documentElement.classList.add('ios-standalone'); }</script>
+    <script src="@AppVersion.Versioned("js/zoomLock.js")"></script>
     <HeadOutlet />
 </head>
 
