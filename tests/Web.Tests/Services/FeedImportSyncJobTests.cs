@@ -34,6 +34,7 @@ public sealed class FeedImportSyncJobTests
     private readonly FeedImportSettings _settings = new() { Enabled = true, UserEmail = UserEmail };
     private readonly DebridLinkSettings _debridLinkSettings = new() { ApiKey = "key" };
     private readonly IFeatureToggles _featureToggles = Substitute.For<IFeatureToggles>();
+    private readonly IFeedImportFileDownloader _downloader = Substitute.For<IFeedImportFileDownloader>();
 
     public FeedImportSyncJobTests()
     {
@@ -50,6 +51,7 @@ public sealed class FeedImportSyncJobTests
         serviceProvider.GetService(typeof(IUserReadService)).Returns(_userReadService);
         serviceProvider.GetService(typeof(IFeedImportDecisionRepository)).Returns(_decisionRepository);
         serviceProvider.GetService(typeof(ICommandHandler<AnalyzeFeedImportDecisionCommand>)).Returns(_analyzeHandler);
+        serviceProvider.GetService(typeof(IFeedImportFileDownloader)).Returns(_downloader);
 
         var scope = Substitute.For<IServiceScope>();
         scope.ServiceProvider.Returns(serviceProvider);
@@ -84,6 +86,17 @@ public sealed class FeedImportSyncJobTests
             Arg.Is<Job>(j => j.Type == typeof(FeedImportDownloadJob) && (Guid)j.Args[0] == first), Arg.Any<IState>());
         _backgroundJobClient.Received(1).Create(
             Arg.Is<Job>(j => j.Type == typeof(FeedImportDownloadJob) && (Guid)j.Args[0] == second), Arg.Any<IState>());
+    }
+
+    [Fact]
+    public async Task SyncAsync_Should_DiscardStalePartialDownloads_WhenRun()
+    {
+        ArrangeUserWithFailedSync();
+        _downloader.DiscardStale(FeedImportConstants.StaleDownloadDelay).Returns(2);
+
+        await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
+
+        _downloader.Received(1).DiscardStale(FeedImportConstants.StaleDownloadDelay);
     }
 
     [Fact]

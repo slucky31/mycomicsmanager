@@ -17,6 +17,7 @@ public static class FeedImportConstants
     public const string NoHost = "-";
 
     // A download still "Downloading" after this delay was interrupted (restart, crash): it can be retried.
-    // Longer than the download timeout, so a running download is never retried.
-    public static readonly TimeSpan StaleDownloadDelay = TimeSpan.FromHours(1);
+    // Longer than the download timeout of one mirror (FeedImport:DownloadTimeout, 20 min), and the decision
+    // is saved after each failed mirror, so a running download is never retried.
+    public static readonly TimeSpan StaleDownloadDelay = TimeSpan.FromMinutes(30);
 }

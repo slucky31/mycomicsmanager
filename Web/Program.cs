@@ -61,6 +61,15 @@ builder.Services.AddHangfireServer(options =>
     options.Queues = ["import", "default"];
 });
 
+// Feed import downloads: their own server, so a long (or stuck) download never blocks the sync and the imports.
+// One worker: the downloads stay sequential (bandwidth, Debrid-Link quota).
+builder.Services.AddHangfireServer(options =>
+{
+    options.ServerName = $"{Environment.MachineName}:{FeedImportDownloadJob.Queue}";
+    options.WorkerCount = 1;
+    options.Queues = [FeedImportDownloadJob.Queue];
+});
+
 // Config LocalStorage
 var localStorageSection = builder.Configuration.GetSection("LocalStorage");
 builder.Services.AddOptions<LocalStorageConfiguration>()

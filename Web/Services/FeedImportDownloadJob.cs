@@ -4,9 +4,13 @@ using Hangfire;
 
 namespace Web.Services;
 
-// One Hangfire job per decision: a long download never blocks the sync, and a failure only affects its own book.
+// One Hangfire job per decision: a failure only affects its own book. The downloads have their own queue and
+// Hangfire server (one worker), so a long or stuck download never blocks the sync or the imports.
 public class FeedImportDownloadJob(ICommandHandler<DownloadFeedImportDecisionCommand> handler, ILogger<FeedImportDownloadJob> logger)
 {
+    public const string Queue = "feed_download";
+
+    [Queue(Queue)]
     [AutomaticRetry(Attempts = 0)]
     [JobDisplayName("Feed import download {0}")]
     public async Task DownloadAsync(Guid decisionId, CancellationToken cancellationToken = default)
