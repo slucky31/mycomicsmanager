@@ -97,12 +97,12 @@ internal sealed class FeedImportFileDownloader(
         {
             return await DownloadToAsync(downloadUrl, tempPath, maxBytes, new IdleTimeout(idle, settings.DownloadIdleTimeout));
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && idle.IsCancellationRequested)
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested && idle.IsCancellationRequested)
         {
             var reason = deadline.IsCancellationRequested
                 ? $"took longer than {Format(settings.DownloadTimeout)}"
                 : $"no data received for {Format(settings.DownloadIdleTimeout)}";
-            logger.LogWarning("Download from {Host} aborted: {Reason}", downloadUrl.Host, reason);
+            logger.LogWarning(ex, "Download from {Host} aborted: {Reason}", downloadUrl.Host, reason);
             return new TError(FeedImportError.DownloadFailed.Code, $"{FeedImportError.DownloadFailed.Description} ({reason})");
         }
     }
