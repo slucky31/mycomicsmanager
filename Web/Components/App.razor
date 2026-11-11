@@ -5,7 +5,9 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    @* maximum-scale=1: iOS no longer zooms on a focused field. iOS ignores it for the pinch, which the script below
+       handles (allowed in the book reader only). *@
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
     <base href="/" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,6 +30,32 @@
     @* The app added to the iPhone Home Screen (navigator.standalone): its pages start lower, out of the blur
        iOS draws under the status bar (--mcm-top-inset, theme.css, #1250). Set before the first paint. *@
     <script>if (navigator.standalone) { document.documentElement.classList.add('ios-standalone'); }</script>
+    @* No zoom in the app: pinching is blocked everywhere but inside an element marked data-allow-zoom (the book
+       reader, where pinching is the only way to read a small balloon). Double-tap zoom is turned off by
+       touch-action in theme.css and the zoom on a focused field by maximum-scale above. *@
+    <script>
+        (function () {
+            const isZoomAllowed = (event) => {
+                // Already zoomed (pinched in the reader, then left it): pinching back out must stay possible.
+                if (window.visualViewport && window.visualViewport.scale > 1) {
+                    return true;
+                }
+                return event.target instanceof Element && event.target.closest('[data-allow-zoom]') !== null;
+            };
+            // Safari and the app added to the iPhone Home Screen ignore user-scalable=no: the pinch is stopped here.
+            document.addEventListener('gesturestart', (event) => {
+                if (!isZoomAllowed(event)) {
+                    event.preventDefault();
+                }
+            }, { passive: false });
+            // Other browsers: a move with two fingers is a pinch.
+            document.addEventListener('touchmove', (event) => {
+                if (event.touches.length > 1 && !isZoomAllowed(event)) {
+                    event.preventDefault();
+                }
+            }, { passive: false });
+        })();
+    </script>
     <HeadOutlet />
 </head>
 
