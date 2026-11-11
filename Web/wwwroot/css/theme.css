@@ -99,7 +99,7 @@
     --mcm-top-inset: calc(env(safe-area-inset-top, 0px) + 28px);
 }
 
-/* No double-tap zoom anywhere (pinching is handled by js/zoomLock.js); taps no longer wait for a second one. */
+/* No double-tap zoom anywhere (pinching is handled by the script of App.razor); taps no longer wait for a second one. */
 html {
     touch-action: manipulation;
 }
