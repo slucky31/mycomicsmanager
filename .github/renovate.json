@@ -61,6 +61,11 @@
       "groupName": "Tests et analyseurs"
     },
     {
+      "description": "MockQueryable 11 ne cible que net11.0 : bloqué tant que MCM est en .NET 10 (migration : #1304)",
+      "matchPackageNames": ["MockQueryable.*"],
+      "allowedVersions": "<11.0.0"
+    },
+    {
       "description": "GitHub Actions",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch", "digest"],
