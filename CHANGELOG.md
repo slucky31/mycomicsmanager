@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.76.5"></a>
+## [10.76.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.76.5) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **renovate:** hold MockQueryable 11 until the .NET 11 migration ([#1305](https://www.github.com/slucky31/mycomicsmanager/issues/1305)) ([32bb2fe](https://www.github.com/slucky31/mycomicsmanager/commit/32bb2fe6564afccce4bbb9062fec0c5f135bacc4))
+
 <a name="10.76.4"></a>
 ## [10.76.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.76.4) (2026-11-11)
 
