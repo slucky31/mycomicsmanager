@@ -1,0 +1,319 @@
+openapi: 3.1.0
+info:
+  title: API HTTP du conteneur MyComicsManager Web
+  description: |
+    Endpoints HTTP "classiques" exposés par l'application Blazor Server / ASP.NET Core
+    (hors circuit SignalR Blazor et pages Razor interactives, qui ne sont pas décrits ici).
+    Sources : Web/EndPoints/AccountsEndpoints.cs, Web/EndPoints/BooksEndpoints.cs, Web/Program.cs.
+    Deux mécanismes d'authentification coexistent : Auth0 (OpenID Connect) puis cookie de session.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Exécution locale ou conteneur (port 8080 exposé par le Dockerfile)
+  - url: https://{hote}
+    description: Déploiement derrière un reverse proxy TLS (hôte non défini dans le dépôt)
+    variables:
+      hote:
+        default: mcm.example.org
+security:
+  - cookieAuth: []
+tags:
+  - name: Compte
+    description: Connexion et déconnexion via Auth0
+  - name: Livres
+    description: Accès aux fichiers et pages des livres numériques
+  - name: Exploitation
+    description: Supervision et tâches de fond
+paths:
+  /Account/Login:
+    get:
+      tags: [Compte]
+      summary: Démarre la connexion Auth0
+      description: |
+        Lance un défi d'authentification OpenID Connect (Auth0) avec un cookie persistant,
+        puis redirige le navigateur vers Auth0. Le schéma HTTPS est forcé pour permettre le
+        déchargement SSL en amont (issue Auth0 #522).
+      operationId: login
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/RedirectUri'
+      responses:
+        '302':
+          description: Redirection vers la page de connexion Auth0.
+          headers:
+            Location:
+              description: URL d'autorisation Auth0.
+              schema:
+                type: string
+                format: uri
+  /Account/Logout:
+    get:
+      tags: [Compte]
+      summary: Termine la session
+      description: Déconnecte l'utilisateur d'Auth0 et supprime le cookie de session locale.
+      operationId: logout
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/RedirectUri'
+      responses:
+        '302':
+          description: Redirection vers Auth0 (fin de session) puis vers l'URI de retour.
+          headers:
+            Location:
+              description: URL de déconnexion Auth0.
+              schema:
+                type: string
+                format: uri
+  /api/books/{bookId}/download:
+    get:
+      tags: [Livres]
+      summary: Télécharge le fichier CBZ d'un livre numérique
+      description: |
+        Retourne l'archive du livre numérique appartenant à l'utilisateur connecté.
+        La propriété est vérifiée par la requête GetBookByIdQuery (filtrée sur l'utilisateur).
+        Le chemin du fichier doit se trouver sous la racine LocalStorage:RootPath, sinon 403.
+        Les requêtes partielles (Range) sont prises en charge.
+        La route déclarée dans le code est /api/books/{bookId}/download sans contrainte de type
+        sur bookId, alors que le paramètre C# est un Guid (voir incertitudes dans c4-container.md).
+      operationId: downloadBook
+      parameters:
+        - $ref: '#/components/parameters/BookId'
+        - name: Range
+          in: header
+          required: false
+          description: Plage d'octets demandée (traitement des plages activé).
+          schema:
+            type: string
+            examples: ['bytes=0-1023']
+      responses:
+        '200':
+          description: Contenu complet de l'archive.
+          headers:
+            Content-Disposition:
+              description: Nom du fichier proposé au téléchargement.
+              schema:
+                type: string
+          content:
+            application/x-cbz:
+              schema:
+                type: string
+                format: binary
+        '206':
+          description: Contenu partiel (requête Range).
+          content:
+            application/x-cbz:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Le livre n'est pas un livre numérique.
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples: ['Only digital books can be downloaded.']
+        '401':
+          $ref: '#/components/responses/NonAuthentifie'
+        '403':
+          description: Le chemin du fichier sort de la racine de stockage (protection contre la traversée de répertoires).
+        '404':
+          description: Livre introuvable, non possédé par l'utilisateur, ou fichier absent du serveur.
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples: ['File not found on server.']
+        '416':
+          description: Plage demandée non satisfaisable (comportement standard ASP.NET Core).
+  /api/books/{bookId}/pages/{pageIndex}:
+    get:
+      tags: [Livres]
+      summary: Retourne une page d'image d'un livre numérique
+      description: |
+        Décompresse la page demandée en mémoire à chaque requête (rien n'est stocké côté serveur).
+        La réponse est mise en cache côté navigateur 24 h (Cache-Control privé) et porte un ETag
+        qui change dès que l'archive est remplacée. Le type d'image est déduit de l'extension :
+        webp, jpeg, png, gif.
+      operationId: getBookPage
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          description: Identifiant du livre (GUID, contrainte de route).
+          schema:
+            type: string
+            format: uuid
+        - name: pageIndex
+          in: path
+          required: true
+          description: Index de la page dans l'archive (entier, contrainte de route).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - name: If-None-Match
+          in: header
+          required: false
+          description: ETag précédemment reçu (traitement conditionnel standard ASP.NET Core).
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image de la page.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                examples: ['private, max-age=86400']
+            ETag:
+              description: Dérivé de la date de modification de l'archive et de l'index de page.
+              schema:
+                type: string
+            Last-Modified:
+              schema:
+                type: string
+          content:
+            image/webp:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/gif:
+              schema:
+                type: string
+                format: binary
+        '304':
+          description: Page inchangée (ETag ou date de modification identique).
+        '400':
+          description: Paramètres invalides (erreur de domaine BooksError.BadRequest, code BOK400), par exemple index hors bornes.
+        '401':
+          $ref: '#/components/responses/NonAuthentifie'
+        '404':
+          description: Livre ou page introuvable, ou livre non possédé par l'utilisateur.
+  /health:
+    get:
+      tags: [Exploitation]
+      summary: État de santé de l'application
+      description: |
+        Agrège les contrôles : statut applicatif, PostgreSQL (Npgsql), répertoire d'import
+        (écriture d'un fichier .healthcheck), Cloudinary, Debrid-Link et Miniflux
+        (résultats mis en cache). Utilisé par le HEALTHCHECK du Dockerfile
+        (curl http://localhost:8080/health toutes les 30 s). Aucune autorisation n'est exigée.
+        Le format de réponse est celui de HealthChecks.UI.Client (UIResponseWriter).
+        Les codes HTTP suivent le comportement standard : 200 si sain ou dégradé, 503 si défaillant.
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Application saine ou dégradée.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RapportSante'
+        '503':
+          description: Au moins un contrôle est défaillant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RapportSante'
+  /hangfire:
+    get:
+      tags: [Exploitation]
+      summary: Tableau de bord Hangfire (interface HTML)
+      description: |
+        Tableau de bord des tâches de fond (imports, scan ISBN, synchronisation de flux).
+        Accès réservé aux utilisateurs authentifiés ayant le rôle Admin
+        (HangfireAuthorizationFilter). La bibliothèque expose aussi des sous-chemins
+        (/hangfire/jobs, /hangfire/recurring, etc.), non détaillés ici.
+        Il est servi par le même processus que l'application : ce n'est pas un conteneur distinct.
+      operationId: hangfireDashboard
+      responses:
+        '200':
+          description: Page HTML du tableau de bord.
+          content:
+            text/html:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/NonAuthentifie'
+        '403':
+          description: Utilisateur authentifié sans le rôle Admin (refus du filtre d'autorisation Hangfire).
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: .AspNetCore.Cookies
+      description: |
+        Cookie de session ASP.NET Core délivré après l'authentification Auth0.
+        Le nom est celui par défaut du schéma Cookies (non surchargé dans le code lu).
+    auth0:
+      type: openIdConnect
+      openIdConnectUrl: https://example.auth0.com/.well-known/openid-configuration
+      description: Fournisseur d'identité Auth0 (le domaine réel vient de la configuration Auth0:Domain).
+  parameters:
+    RedirectUri:
+      name: redirectUri
+      in: query
+      required: false
+      description: Chemin de retour après l'opération.
+      schema:
+        type: string
+        default: /
+    BookId:
+      name: bookId
+      in: path
+      required: true
+      description: Identifiant du livre.
+      schema:
+        type: string
+        format: uuid
+  responses:
+    NonAuthentifie:
+      description: |
+        Utilisateur non authentifié, ou utilisateur Auth0 inconnu de la base
+        (résolution par claim sub puis par e-mail). Selon le schéma de défi par défaut,
+        un appel sans cookie peut aussi provoquer une redirection vers /Account/Login
+        (voir incertitudes dans c4-container.md).
+  schemas:
+    RapportSante:
+      type: object
+      description: Rapport de santé au format HealthChecks.UI.Client.
+      required: [status, entries]
+      properties:
+        status:
+          $ref: '#/components/schemas/StatutSante'
+        totalDuration:
+          type: string
+          description: Durée totale (format TimeSpan).
+        entries:
+          type: object
+          description: Résultat par contrôle (import-directory, cloudinary, debrid-link, miniflux, npgsql, applicationstatus).
+          additionalProperties:
+            $ref: '#/components/schemas/EntreeSante'
+    EntreeSante:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/StatutSante'
+        description:
+          type: [string, 'null']
+        duration:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+    StatutSante:
+      type: string
+      enum: [Healthy, Degraded, Unhealthy]

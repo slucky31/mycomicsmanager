@@ -1,0 +1,60 @@
+### tbls-01
+public.FeedImportDecisions.DecidedBy : "Auteur de la dernière décision : 0 = Automatique, 1 = Utilisateur."
+
+### tbls-02
+public.FeedImportDecisions.UserId : Utilisateur pour lequel l'article a été enregistré.
+
+### tbls-03
+public.DigitalBooks.tableComment : Spécialisation d'un livre numérique (fichier dans une bibliothèque numérique) ; même Id que la ligne de Books.
+
+### tbls-04
+public.PhysicalBooks.tableComment : Spécialisation d'un livre physique (possédé sur papier) ; même Id que la ligne de Books, sans colonne propre.
+
+### tbls-05
+public.ImportJobs.DigitalBookId : Livre numérique créé par l'import ; renseigné une fois l'import terminé.
+
+### tbls-06
+public.ImportJobs.CreatedAt : Date de création de l'import.
+
+### tbls-07
+public.ImportJobs.ConvertedImagesCount : Nombre d'images déjà converties (progression de la conversion).
+
+### tbls-08
+public.FeedImportDecisions.EntryUrl : URL de l'article.
+
+### tbls-09
+public.FeedImportDecisionEvents.Status : "Nouvel état (mêmes valeurs que FeedImportDecisions.Status : 0 = En attente d'analyse, 1 = Liens extraits, 2 = En attente d'arbitrage, 3 = Doublon ignoré, 4 = Téléchargement en cours, 5 = Téléchargé, 6 = Importé (non utilisé), 7 = Ignoré, 8 = Échec)."
+
+### tbls-10
+public.FeedImportDecisions.ParsedTitle : Titre du livre déduit du titre de l'article.
+
+### tbls-11
+public.ImportJobs.LibraryId : Bibliothèque de destination de l'import.
+
+### tbls-12
+public.ImportJobs.TotalImagesToConvert : Nombre total d'images à convertir.
+
+### tbls-13
+public.Books.ISBN : ISBN du livre. Peut être vide pour une BD numérique dont l'ISBN n'est pas encore connu ; obligatoire pour une BD physique.
+
+### tbls-14
+public.ReadingDates.tableComment : Lecture d'un livre par l'utilisateur, avec la note donnée à cette occasion.
+
+### tbls-15
+public.DigitalBooks.FilePath : Chemin du fichier de la BD dans le stockage de la bibliothèque.
+
+### tbls-16
+public.FeedImportDecisionEvents.PreviousStatus : "État précédent (mêmes valeurs que FeedImportDecisions.Status) ; vide pour l'événement de création."
+
+### tbls-17
+public.DigitalBooks.IsbnScannedAt : Date de la dernière recherche d'ISBN dans les pages du livre ; vide si elle n'a jamais été faite.
+
+### tbls-18
+public.DigitalBooks.LastReadPage : Index (à partir de 0) de la dernière page affichée dans le lecteur.
+
+### tbls-19
+public.Libraries.BookType : "Type de BD contenues : 0 = Physique, 1 = Numérique."
+
+### tbls-20
+public.ReadingDates.Date : Date de la lecture.
+

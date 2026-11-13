@@ -1,0 +1,157 @@
+{
+    "generation_info": {
+        "timestamp": "2026-10-17T17:41:13.775955+00:00",
+        "provider": "claude-code",
+        "main_model": "claude-sonnet-5-5",
+        "generator_version": "2.0.0",
+        "repo_path": "/tmp/claude-0/-home-user-mycomicsmanager/b704bbcf-a583-5d0b-89ae-1874ac40746e/scratchpad/targets/codewiki",
+        "commit_id": "631720b92a58d61a0eb09343f7cbfc2f14a5f1ce",
+        "language": "French",
+        "layout": "hierarchical"
+    },
+    "statistics": {
+        "total_components": 1680,
+        "leaf_nodes": 262,
+        "max_depth": 2
+    },
+    "files_generated": [
+        "overview.md",
+        "module_tree.json",
+        "first_module_tree.json",
+        "Application_Contracts___CQRS_Foundation.md",
+        "Application_Contracts___CQRS_Foundation/Application_Interfaces.md",
+        "Application_Contracts___CQRS_Foundation/Messaging_Abstractions.md",
+        "Blazor_UI_Layer.md",
+        "Blazor_UI_Layer/Web_Admin_And_Other_Pages.md",
+        "Blazor_UI_Layer/Web_Book_Pages.md",
+        "Blazor_UI_Layer/Web_Layout_And_Shared_Components.md",
+        "Blazor_UI_Layer/Web_Library_Pages.md",
+        "Book___Library_Use_Cases.md",
+        "Book___Library_Use_Cases/Book_Reader_Application.md",
+        "Book___Library_Use_Cases/Books_Management.md",
+        "Book___Library_Use_Cases/Isbn_Scan_Application.md",
+        "Book___Library_Use_Cases/Libraries_Application.md",
+        "Book___Library_Use_Cases/Settings_Statistics_Users_Application.md",
+        "Comic_Info_Search.md",
+        "Data_Persistence___Queries.md",
+        "Data_Persistence___Queries/Persistence_Core.md",
+        "Data_Persistence___Queries/Persistence_Read_Services.md",
+        "Domain_Model.md",
+        "Domain_Model/Domain_Books.md",
+        "Domain_Model/Domain_Core.md",
+        "Domain_Model/Domain_FeedImports.md",
+        "Feed_Import_Pipeline.md",
+        "Feed_Import_Pipeline/Feed_Imports_Application.md",
+        "Feed_Import_Pipeline/Feed_Link_Extraction.md",
+        "Feed_Import_Pipeline/Web_Feed_Import_Services.md",
+        "File_Import_Pipeline.md",
+        "File_Import_Pipeline/Import_Jobs_Application.md",
+        "File_Import_Pipeline/Web_Import_Services.md",
+        "File_Storage___Media_Processing.md",
+        "File_Storage___Media_Processing/Persistence_File_Services.md",
+        "File_Storage___Media_Processing/Persistence_Local_Storage.md",
+        "Web_Application_Services.md",
+        "Web_Application_Services/Web_Book_Services.md",
+        "Web_Application_Services/Web_Library_And_Statistics_Services.md",
+        "Web_Platform,_Security___External_Integrations.md",
+        "Web_Platform,_Security___External_Integrations/Web_Configuration_And_Auth.md",
+        "Web_Platform,_Security___External_Integrations/Web_External_Clients_And_Health.md",
+        "Web_Platform,_Security___External_Integrations/Web_Models_And_Validators.md"
+    ],
+    "usage": {
+        "scope": "this run only (modules resumed from disk cost nothing)",
+        "n_calls": 4,
+        "totals": {
+            "input_tokens": 20,
+            "output_tokens": 16625,
+            "total_tokens": 16645,
+            "cache_read_tokens": 404020,
+            "cache_write_tokens": 210998,
+            "cost_usd": 1.0583283
+        },
+        "by_phase": {
+            "modules": {
+                "calls": 2,
+                "input_tokens": 12,
+                "output_tokens": 10446,
+                "total_tokens": 10458,
+                "cache_read_tokens": 307320,
+                "cache_write_tokens": 133917,
+                "cost_usd": 0.6777272000000001
+            },
+            "parent_modules": {
+                "calls": 1,
+                "input_tokens": 4,
+                "output_tokens": 3249,
+                "total_tokens": 3253,
+                "cache_read_tokens": 36371,
+                "cache_write_tokens": 57830,
+                "cost_usd": 0.2678264
+            },
+            "overview": {
+                "calls": 1,
+                "input_tokens": 4,
+                "output_tokens": 2930,
+                "total_tokens": 2934,
+                "cache_read_tokens": 60329,
+                "cache_write_tokens": 19251,
+                "cost_usd": 0.1127747
+            }
+        },
+        "unpriced_models": [],
+        "calls": [
+            {
+                "phase": "modules",
+                "kind": "module_agent",
+                "target": "Web_Library_Pages",
+                "model": "claude-sonnet-5-5",
+                "seconds": 39.89,
+                "input_tokens": 6,
+                "output_tokens": 4978,
+                "total_tokens": 4984,
+                "cache_read_tokens": 142613,
+                "cache_write_tokens": 80131,
+                "cost_usd": 0.3880636
+            },
+            {
+                "phase": "modules",
+                "kind": "module_agent",
+                "target": "Web_Admin_And_Other_Pages",
+                "model": "claude-sonnet-5-5",
+                "seconds": 39.62,
+                "input_tokens": 6,
+                "output_tokens": 5468,
+                "total_tokens": 5474,
+                "cache_read_tokens": 164707,
+                "cache_write_tokens": 53786,
+                "cost_usd": 0.2896636
+            },
+            {
+                "phase": "parent_modules",
+                "kind": "complete",
+                "target": "Blazor_UI_Layer",
+                "model": "claude-sonnet-5-5",
+                "seconds": 25.4,
+                "input_tokens": 4,
+                "output_tokens": 3249,
+                "total_tokens": 3253,
+                "cache_read_tokens": 36371,
+                "cache_write_tokens": 57830,
+                "cost_usd": 0.2678264
+            },
+            {
+                "phase": "overview",
+                "kind": "complete",
+                "target": "codewiki",
+                "model": "claude-sonnet-5-5",
+                "seconds": 21.14,
+                "input_tokens": 4,
+                "output_tokens": 2930,
+                "total_tokens": 2934,
+                "cache_read_tokens": 60329,
+                "cache_write_tokens": 19251,
+                "cost_usd": 0.1127747
+            }
+        ]
+    }
+}
