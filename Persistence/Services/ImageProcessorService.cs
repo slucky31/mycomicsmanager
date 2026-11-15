@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using System.Runtime.InteropServices;
+using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;
 using Microsoft.Extensions.Logging;
@@ -32,6 +33,7 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
     private static readonly HashSet<string> s_inputExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".jpeg", ".jpg", ".png", ".gif", ".webp" };
 
+    [StructLayout(LayoutKind.Auto)]
     private readonly record struct ImageSize(int Width, int Height)
     {
         public bool IsDoublePage => Width > Height;

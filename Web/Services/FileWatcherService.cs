@@ -49,7 +49,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         {
             var task = Task.Run(() => RunStartupScanAsync(_lifetime.ApplicationStopping), cancellationToken);
             StartupScanTask = task;
-            task.ContinueWith(t => _logger.LogError(t.Exception, "Startup scan failed"),
+            _ = task.ContinueWith(t => _logger.LogError(t.Exception, "Startup scan failed"),
                 CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
         });
 

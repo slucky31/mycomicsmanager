@@ -18,7 +18,7 @@ public class CloudinaryUploadResultTests
         // Assert
         result.Success.Should().BeTrue();
         result.Url.Should().NotBeNull();
-        result.Url!.ToString().Should().Contain("cloudinary.com");
+        result.Url.ToString().Should().Contain("cloudinary.com");
         result.PublicId.Should().Be("covers/123");
         result.Error.Should().BeNull();
     }

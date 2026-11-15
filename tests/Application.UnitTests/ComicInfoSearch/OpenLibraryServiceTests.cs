@@ -68,7 +68,7 @@ public class OpenLibraryServiceTests
         result.PublishDate.Should().Be(new DateOnly(2021, 4, 23));
         result.NumberOfPages.Should().Be(96);
         result.CoverUrl.Should().NotBeNull();
-        result.CoverUrl!.ToString().Should().Be("https://covers.openlibrary.org/b/id/10874957-L.jpg");
+        result.CoverUrl.ToString().Should().Be("https://covers.openlibrary.org/b/id/10874957-L.jpg");
     }
 
     [Fact]

@@ -24,7 +24,7 @@ public class SeriesInfoRepositoryTests(IntegrationTestWebAppFactory factory) : B
 
         // Assert
         stored.Should().NotBeNull();
-        stored!.TotalVolumes.Should().Be(41);
+        stored.TotalVolumes.Should().Be(41);
         elsewhere.Should().BeNull();
     }
 }

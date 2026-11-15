@@ -193,18 +193,5 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             return "***CONNECTION_STRING_PARSE_ERROR***";
         }
     }
-
-    private static string GetHostFromConnectionString(string connectionString)
-    {
-        try
-        {
-            var builder = new NpgsqlConnectionStringBuilder(connectionString);
-            return builder.Host ?? "unknown";
-        }
-        catch (ArgumentException)
-        {
-            return "unknown";
-        }
-    }
 }
 

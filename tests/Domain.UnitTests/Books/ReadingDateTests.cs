@@ -8,7 +8,7 @@ public class ReadingDateTests
     public void Create_Should_CreateReadingDateWithRequiredProperties()
     {
         // Arrange
-        var date = new DateTime(2024, 1, 15, 10, 30, 0);
+        var date = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Unspecified);
         var bookId = Guid.NewGuid();
         const int rating = 4;
 
@@ -27,7 +27,7 @@ public class ReadingDateTests
     public void Create_Should_CreateUniqueIds_WhenCalledMultipleTimes()
     {
         // Arrange
-        var date = new DateTime(2024, 1, 15);
+        var date = new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Unspecified);
         var bookId = Guid.NewGuid();
 
         // Act
@@ -42,11 +42,11 @@ public class ReadingDateTests
     public void Update_Should_UpdateDateAndRating()
     {
         // Arrange
-        var originalDate = new DateTime(2024, 1, 15);
+        var originalDate = new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Unspecified);
         var bookId = Guid.NewGuid();
         var readingDate = ReadingDate.Create(originalDate, 3, bookId);
         var originalId = readingDate.Id;
-        var newDate = new DateTime(2024, 2, 20);
+        var newDate = new DateTime(2024, 2, 20, 0, 0, 0, DateTimeKind.Unspecified);
 
         // Act
         readingDate.Update(newDate, 5);

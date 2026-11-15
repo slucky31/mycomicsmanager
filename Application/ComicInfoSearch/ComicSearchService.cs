@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Application.Helpers;
 using Application.Interfaces;
@@ -361,7 +362,7 @@ public partial class ComicSearchService : IComicSearchService
             if (match.Success)
             {
                 serie = match.Groups[1].Value.Trim();
-                if (int.TryParse(match.Groups[2].Value, out var vol))
+                if (int.TryParse(match.Groups[2].Value, CultureInfo.InvariantCulture, out var vol))
                 {
                     volumeNumber = vol;
                 }

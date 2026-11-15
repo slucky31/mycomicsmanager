@@ -198,7 +198,7 @@ public partial class Import : IAsyncDisposable
         }
 
         _pollTimer = new System.Threading.Timer(
-            _ => InvokeAsync(PollJobsAsync),
+            state => _ = InvokeAsync(PollJobsAsync),
             null,
             TimeSpan.FromSeconds(3),
             TimeSpan.FromSeconds(3));

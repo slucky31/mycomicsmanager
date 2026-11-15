@@ -363,7 +363,7 @@ public class ImportJobTests
 
         // Assert
         job.CompletedAt.Should().NotBeNull();
-        job.CompletedAt!.Value.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
+        job.CompletedAt.Value.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -475,7 +476,7 @@ public partial class BedethequeService : IBedethequeService
         var authors = ParseAuthors(sheet);
         var publisher = GetSheetText(sheet, "diteur");
         var publishDate = ParsePublishDate(sheet);
-        var numberOfPages = int.TryParse(GetSheetText(sheet, "Planches"), out var pages) ? pages : (int?)null;
+        var numberOfPages = int.TryParse(GetSheetText(sheet, "Planches"), CultureInfo.InvariantCulture, out var pages) ? pages : (int?)null;
         var coverUrl = BuildCoverUrl(pageUrl, coversBaseUrl);
 
         _logger.LogInformation("Parsed Bedetheque page: {Serie} T{Volume} - {Title}", serie, volumeNumber, title);
@@ -532,14 +533,14 @@ public partial class BedethequeService : IBedethequeService
         WhitespaceRegex().Replace(HtmlEntity.DeEntitize(node.InnerText), " ").Trim();
 
     private static int ParseVolumeNumber(List<(string Label, HtmlNode Value)> sheet) =>
-        int.TryParse(GetSheetText(sheet, "Tome"), out var volume) ? volume : 1;
+        int.TryParse(GetSheetText(sheet, "Tome"), CultureInfo.InvariantCulture, out var volume) ? volume : 1;
 
     private static List<string> ParseAuthors(List<(string Label, HtmlNode Value)> sheet) =>
         GetSheetValues(sheet, "Scénario").Concat(GetSheetValues(sheet, "Dessin"))
             .SelectMany(dd => dd.SelectNodes(".//a") ?? Enumerable.Empty<HtmlNode>())
             .Select(CleanText)
             .Where(name => name.Length > 0)
-            .Distinct()
+            .Distinct(StringComparer.Ordinal)
             .ToList();
 
     // Matches "parution 03/01/2007" (new pages) and "Parution le 03/01/2007" (older ones)
@@ -570,8 +571,8 @@ public partial class BedethequeService : IBedethequeService
         // Strategy 2: the month of the legal deposit, "08/2014"
         var mmYyyy = MonthYearRegex().Match(text);
         if (mmYyyy.Success &&
-            int.TryParse(mmYyyy.Groups[1].Value, out var month) &&
-            int.TryParse(mmYyyy.Groups[2].Value, out var year) &&
+            int.TryParse(mmYyyy.Groups[1].Value, CultureInfo.InvariantCulture, out var month) &&
+            int.TryParse(mmYyyy.Groups[2].Value, CultureInfo.InvariantCulture, out var year) &&
             month is >= 1 and <= 12 &&
             year is >= 1900 and <= 2100)
         {

@@ -117,7 +117,9 @@ public class BookIntegrationTest : BaseIntegrationTest
         var libraryRepository = _scope.ServiceProvider.GetRequiredService<IRepository<Library, Guid>>();
         DefaultLibrary = Library.Create("Default", "#000000", "book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
         libraryRepository.Add(DefaultLibrary);
+#pragma warning disable VSTHRD002 // A constructor cannot await, and xUnit runs tests without a SynchronizationContext
         UnitOfWork.SaveChangesAsync(CancellationToken.None).GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
     }
 
 }

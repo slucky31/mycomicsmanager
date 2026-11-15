@@ -306,7 +306,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Assert
         result.Items.Should().NotBeNull();
-        result.Items!.ToDictionary(b => b.Id, b => b.IsbnScanState).Should().BeEquivalentTo(new Dictionary<Guid, IsbnScanState>
+        result.Items.ToDictionary(b => b.Id, b => b.IsbnScanState).Should().BeEquivalentTo(new Dictionary<Guid, IsbnScanState>
         {
             [physical.Id] = IsbnScanState.HasIsbn,
             [withIsbn.Id] = IsbnScanState.HasIsbn,

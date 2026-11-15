@@ -591,7 +591,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
             Arg.Is<IReadOnlyList<Guid>>(ids => ids.Count == 2 && ids.Contains(_blacksad.Id) && ids.Contains(_hiver.Id)), Arg.Any<CancellationToken>());
         _snackbar.Received(1).Add("2 books deleted", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
         Heading(cut).Should().Be("Read Books");
-        cut.WaitForAssertion(() => Subtitle(cut).Should().StartWith("22 books"));
+        await cut.WaitForAssertionAsync(() => Subtitle(cut).Should().StartWith("22 books"));
     }
 
     [Fact]

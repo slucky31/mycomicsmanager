@@ -399,7 +399,7 @@ public partial class FindBookDetails
             }
         }
 
-        var volumeNumber = int.TryParse(GetResolvedValue(BookFieldKeys.VolumeNumber), out var vol)
+        var volumeNumber = int.TryParse(GetResolvedValue(BookFieldKeys.VolumeNumber), CultureInfo.InvariantCulture, out var vol)
             ? vol
             : _currentBook.VolumeNumber;
 
@@ -413,7 +413,7 @@ public partial class FindBookDetails
 
         var numberOfPages = _currentBook.NumberOfPages;
         var pagesStr = GetResolvedValue(BookFieldKeys.NumberOfPages);
-        if (!string.IsNullOrEmpty(pagesStr) && int.TryParse(pagesStr, out var pages))
+        if (!string.IsNullOrEmpty(pagesStr) && int.TryParse(pagesStr, CultureInfo.InvariantCulture, out var pages))
         {
             numberOfPages = pages;
         }

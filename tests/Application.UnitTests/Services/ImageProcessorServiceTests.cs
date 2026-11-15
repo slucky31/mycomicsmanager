@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using System.Runtime.InteropServices;
+using Application.Interfaces;
 using Domain.Errors;
 using Persistence.Services;
 using SkiaSharp;
@@ -50,6 +51,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await File.WriteAllBytesAsync(path, data.ToArray());
     }
 
+    [StructLayout(LayoutKind.Auto)]
     private readonly record struct PixelSize(int Width, int Height);
 
     // A PNG whose header declares the given size, without the pixels: enough to be identified, too big to allocate in a test.
@@ -256,7 +258,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
 
         // Assert
         var files = Directory.GetFiles(destDir, "*.webp").Select(Path.GetFileName).OrderBy(f => f).ToList();
-        files.Should().BeEquivalentTo(["page-001.webp", "page-002.webp", "page-003.webp"]);
+        files.Should().BeEquivalentTo("page-001.webp", "page-002.webp", "page-003.webp");
     }
 
     [Fact]

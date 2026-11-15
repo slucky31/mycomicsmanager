@@ -32,8 +32,8 @@ public sealed class LibraryIconsTests
     [Fact]
     public void Search_Should_GiveTheSuggestions_WithTheChosenIconFirst_WhenItIsNotOneOfThem()
     {
-        LibraryIcons.Search(null, "AutoStories").Select(c => c.Name).Should()
-            .Equal(["AutoStories", .. LibraryIcons.Suggested.Select(c => c.Name)]);
+        string[] expected = ["AutoStories", .. LibraryIcons.Suggested.Select(c => c.Name)];
+        LibraryIcons.Search(null, "AutoStories").Select(c => c.Name).Should().Equal(expected);
         LibraryIcons.Search(" ", "Star").Should().Equal(LibraryIcons.Suggested);
         LibraryIcons.Search("", "NoSuchIcon").Should().Equal(LibraryIcons.Suggested);
     }

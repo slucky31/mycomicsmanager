@@ -53,8 +53,8 @@ public class GetMissingVolumesQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.Select(l => l.LibraryName).Should().Equal("BD", "Comics");
         result.Value![0].Series.Select(s => s.Name).Should().Equal("Thorgal");
-        result.Value![0].MissingCount.Should().Be(2);
-        result.Value![1].Series.Select(s => s.Name).Should().Equal("Saga");
+        result.Value[0].MissingCount.Should().Be(2);
+        result.Value[1].Series.Select(s => s.Name).Should().Equal("Saga");
     }
 
     [Fact]

@@ -31,6 +31,8 @@ public partial class NavBar : IDisposable
         await RefreshAsync();
     }
 
+    // async void: the event signatures impose it; RefreshAsync catches and logs its own failures.
+#pragma warning disable VSTHRD100
     private async void OnLocationChangedAsync(object? sender, LocationChangedEventArgs e)
     {
         await InvokeAsync(async () =>
@@ -49,6 +51,7 @@ public partial class NavBar : IDisposable
             StateHasChanged();
         });
     }
+#pragma warning restore VSTHRD100
 
     private string RelativePath => NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
 
