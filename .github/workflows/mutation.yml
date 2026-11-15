@@ -8,6 +8,8 @@ name: Mutation Testing
 on:
   schedule:
     - cron: '0 2 * * *' # 02:00 UTC, 03:00 or 04:00 in Paris
+  pull_request: # TEMPORARY, to check the workflow on PR #1312's branch
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       since:
