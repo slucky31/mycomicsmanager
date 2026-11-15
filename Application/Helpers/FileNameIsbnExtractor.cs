@@ -5,23 +5,23 @@ namespace Application.Helpers;
 public static partial class FileNameIsbnExtractor
 {
     // Matches: ISBN-9781234567890  ISBN_9781234567890  ISBN 9781234567890
-    [GeneratedRegex(@"ISBN[-_ ](\d[\d\-]{8,17}\d)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"ISBN[-_ ](\d[\d\-]{8,17}\d)", RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 1000)]
     private static partial Regex IsbnPrefixPattern();
 
     // Matches: (978-1-23-456789-0) or (9781234567890) — parentheses with optional dashes
-    [GeneratedRegex(@"\((\d[\d\-]{8,17}\d)\)")]
+    [GeneratedRegex(@"\((\d[\d\-]{8,17}\d)\)", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex IsbnInParenthesesPattern();
 
     // Matches: [9781234567890] — brackets
-    [GeneratedRegex(@"\[(\d[\d\-]{8,17}\d)\]")]
+    [GeneratedRegex(@"\[(\d[\d\-]{8,17}\d)\]", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex IsbnInBracketsPattern();
 
     // Matches a raw 13-digit sequence starting with 978 or 979
-    [GeneratedRegex(@"\b(97[89]\d{10})\b")]
+    [GeneratedRegex(@"\b(97[89]\d{10})\b", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Isbn13SequencePattern();
 
     // Matches a raw 10-digit sequence
-    [GeneratedRegex(@"\b(\d{9}[\dXx])\b")]
+    [GeneratedRegex(@"\b(\d{9}[\dXx])\b", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Isbn10SequencePattern();
 
     public static string? ExtractIsbn(string fileName)

@@ -25,15 +25,15 @@ public static partial class TextIsbnExtractor
 
     // "ISBN", "ISBN-13 :", "ISBN 10", "I S B N" followed by up to 24 digit-like characters and separators.
     // The "10"/"13" of the label is only skipped when a separator follows, so it is never read as the ISBN's first digits.
-    [GeneratedRegex(@"[Ii]\s?[Ss]\s?[Bb]\s?[Nn](?:[\s\-]?1[03](?=[\s:]))?[\s\-:.]*(?<number>[\dOoDIl|ZSBXx][\dOoDIl|ZSBXx\s\-\u2010-\u2015.]{8,24})")]
+    [GeneratedRegex(@"[Ii]\s?[Ss]\s?[Bb]\s?[Nn](?:[\s\-]?1[03](?=[\s:]))?[\s\-:.]*(?<number>[\dOoDIl|ZSBXx][\dOoDIl|ZSBXx\s\-\u2010-\u2015.]{8,24})", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex LabelledIsbnPattern();
 
     // A bare ISBN-13, with at most one separator between digits (e.g. "9 782800 112343" under the barcode).
-    [GeneratedRegex(@"(?<!\d)9[\s\-\u2010-\u2015.]?7[\s\-\u2010-\u2015.]?[89](?:[\s\-\u2010-\u2015.]?\d){10}(?!\d)")]
+    [GeneratedRegex(@"(?<!\d)9[\s\-\u2010-\u2015.]?7[\s\-\u2010-\u2015.]?[89](?:[\s\-\u2010-\u2015.]?\d){10}(?!\d)", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex BareIsbn13Pattern();
 
     // A bare ISBN-10 is only trusted when hyphenated, otherwise any 10-digit number would match.
-    [GeneratedRegex(@"(?<![\d\-])\d{1,5}-\d{1,7}-\d{1,7}-[\dXx](?![\d\-])")]
+    [GeneratedRegex(@"(?<![\d\-])\d{1,5}-\d{1,7}-\d{1,7}-[\dXx](?![\d\-])", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex BareHyphenatedIsbn10Pattern();
 
     /// <summary>

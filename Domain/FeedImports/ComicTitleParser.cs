@@ -10,40 +10,40 @@ public static partial class ComicTitleParser
     private static readonly string[] s_fileExtensions = [".cbz", ".cbr", ".zip", ".rar", ".pdf", ".epub", ".cb7", ".7z"];
 
     // "Tomes 1 à 5", "T01-T05", "Tome 1 à 3": a range, not a single volume.
-    [GeneratedRegex(@"\b(?:tomes?|t|vol(?:ume)?s?\.?)\s*\d{1,4}\s*(?:à|a|-|–|au)\s*(?:t\s*)?\d{1,4}\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\b(?:tomes?|t|vol(?:ume)?s?\.?)\s*\d{1,4}\s*(?:à|a|-|–|au)\s*(?:t\s*)?\d{1,4}\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex VolumeRangePattern();
 
     // "Tome 3", "T03", "T.3", "Vol. 105", "Volume 2", "#40", "n°12", "n56"
-    [GeneratedRegex(@"(?:\b(?:tome|vol(?:ume)?\.?|t\.?)\s*|#\s*|\bn°\s*|\bn(?=\d))0*(\d{1,4})\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"(?:\b(?:tome|vol(?:ume)?\.?|t\.?)\s*|#\s*|\bn°\s*|\bn(?=\d))0*(\d{1,4})\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex VolumePattern();
 
     // "Largo Winch - 20 - Le prix de l'argent", "Largo Winch – 20"
-    [GeneratedRegex(@"\s[-–—:]\s*0*(\d{1,4})(?=\s*(?:[-–—:]|$))", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\s[-–—:]\s*0*(\d{1,4})(?=\s*(?:[-–—:]|$))", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex DashedNumberPattern();
 
     // "XIII 01 - Le jour du soleil noir", "Les Vieux Fourneaux 08": at most 3 digits, so a year is not a volume.
-    [GeneratedRegex(@"(?<=\s)0*(\d{1,3})(?=\s+[-–—:]|$)", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"(?<=\s)0*(\d{1,3})(?=\s+[-–—:]|$)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex TrailingNumberPattern();
 
     // "Ashita_no_Joe_T08@BD_fr": what follows '@' is the tag of whoever shared the file.
-    [GeneratedRegex(@"@.*$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"@.*$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex ReleaseTagPattern();
 
     // "Blacksad T03 zz", "zzmurenaT03": "zz" is a release marker, as a word of its own or glued to the start.
-    [GeneratedRegex(@"^zz(?!z)|\bzz\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^zz(?!z)|\bzz\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex ReleaseMarkerPattern();
 
     // "murenaT03LaMeilleure", "ALatelier": a space before each word of a camelCase name.
-    [GeneratedRegex(@"(?<=\p{Ll})(?=\p{Lu})|(?<=\d)(?=\p{L})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"(?<=\p{Ll})(?=\p{Lu})|(?<=\d)(?=\p{L})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex CamelCaseBoundaryPattern();
 
-    [GeneratedRegex(@"[\[(]([^\])]*)[\])]", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"[\[(]([^\])]*)[\])]", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex BracketGroupPattern();
 
-    [GeneratedRegex(@"\s[-–—:]\s", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\s[-–—:]\s", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex SeparatorPattern();
 
-    [GeneratedRegex(@"\s{2,}", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\s{2,}", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex MultiSpacePattern();
 
     private static readonly char[] s_trimChars = [' ', '-', '–', '—', ':', ',', '.', '_', '|'];

@@ -8,11 +8,11 @@ public static partial class LinkMetadataParser
     private static readonly string[] s_fileExtensions = [".cbz", ".cbr", ".zip", ".rar", ".pdf", ".epub", ".cb7", ".7z"];
 
     // "125 Mo", "1,2 Go", "300MB", "1.5 GB"
-    [GeneratedRegex(@"(\d+(?:[.,]\d+)?)\s*(Go|Mo|Ko|GB|MB|KB|GiB|MiB|KiB)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"(\d+(?:[.,]\d+)?)\s*(Go|Mo|Ko|GB|MB|KB|GiB|MiB|KiB)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex SizePattern();
 
     // "Blacksad T03.cbz" inside a longer text
-    [GeneratedRegex(@"[^\s/\\:*?""<>|][^/\\:*?""<>|]*?\.(?:cbz|cbr|zip|rar|pdf|epub|cb7|7z)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"[^\s/\\:*?""<>|][^/\\:*?""<>|]*?\.(?:cbz|cbr|zip|rar|pdf|epub|cb7|7z)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex FileNameInTextPattern();
 
     // Returns a file name (with extension) found in the link text or in the URL path, never a path.

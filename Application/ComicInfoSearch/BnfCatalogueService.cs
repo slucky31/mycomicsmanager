@@ -35,10 +35,10 @@ public partial class BnfCatalogueService : IBnfCatalogueService
         _logger = logger;
     }
 
-    [GeneratedRegex(@"(?<pages>\d+)\s*p\.")]
+    [GeneratedRegex(@"(?<pages>\d+)\s*p\.", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex PagesPattern();
 
-    [GeneratedRegex(@"\d{4}")]
+    [GeneratedRegex(@"\d{4}", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex YearPattern();
 
     public bool IsEnabled => _featureToggles.IsEnabled(FeatureToggle.Bnf);
