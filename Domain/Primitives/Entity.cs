@@ -19,3 +19,5 @@ public abstract class Entity<TEntityId> : IAuditable
 
 
 }
+
+internal static class TmpWarn { internal static int M() { var unused = 1; return 0; } }
