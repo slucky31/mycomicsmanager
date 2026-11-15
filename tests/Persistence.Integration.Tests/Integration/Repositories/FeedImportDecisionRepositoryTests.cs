@@ -1,5 +1,6 @@
 using Base.Integration.Tests;
 using Domain.FeedImports;
+using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Tests.Integration.Repositories;
@@ -221,5 +222,31 @@ public class FeedImportDecisionRepositoryTests(IntegrationTestWebAppFactory fact
             .Where(e => e.FeedImportDecisionId == decision.Id)
             .ToListAsync(TestContext.Current.CancellationToken);
         events.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_Should_ReturnConcurrencyConflictAndForgetTrackedDecisions_WhenDecisionChangedElsewhere()
+    {
+        // Arrange: the decision stays tracked, then a job of another scope updates its row (new xmin).
+        var ct = TestContext.Current.CancellationToken;
+        var decision = CreateDecision(Guid.CreateVersion7(), 4004);
+        FeedImportDecisionRepository.Add(decision);
+        (await UnitOfWork.SaveChangesAsync(ct)).IsSuccess.Should().BeTrue();
+        await Context.Database.ExecuteSqlAsync($"UPDATE \"FeedImportDecisions\" SET \"Reason\" = 'changed by a job' WHERE \"Id\" = {decision.Id}", ct);
+        decision.Ignore().IsSuccess.Should().BeTrue();
+
+        // Act
+        var conflict = await UnitOfWork.SaveChangesAsync(ct);
+        var reloaded = await FeedImportDecisionRepository.GetByIdAsync(decision.Id, ct);
+        var reloadedReason = reloaded!.Reason;
+        var retried = reloaded.Ignore();
+        var saved = await UnitOfWork.SaveChangesAsync(ct);
+
+        // Assert: the stale change is dropped, so the next action works on the row as it is in the database.
+        conflict.Error.Should().Be(PersistenceError.ConcurrencyConflict);
+        reloaded.Should().NotBeSameAs(decision);
+        retried.IsSuccess.Should().BeTrue();
+        saved.IsSuccess.Should().BeTrue();
+        reloadedReason.Should().Be("changed by a job");
     }
 }
