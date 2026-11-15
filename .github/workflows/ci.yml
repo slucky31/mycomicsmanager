@@ -116,7 +116,7 @@ jobs:
       - name: Install Betterleaks
         run: |
           archive="betterleaks_${BETTERLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -sSfL -o "$RUNNER_TEMP/$archive" \
+          curl -sSfL --proto "=https" --tlsv1.2 -o "$RUNNER_TEMP/$archive" \
             "https://github.com/betterleaks/betterleaks/releases/download/v${BETTERLEAKS_VERSION}/$archive"
           echo "$BETTERLEAKS_SHA256  $RUNNER_TEMP/$archive" | sha256sum --check --strict
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" betterleaks
