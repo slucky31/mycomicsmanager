@@ -100,8 +100,10 @@ jobs:
           /v:"${{ steps.version.outputs.version }}"
           /d:sonar.cs.cobertura.reportsPaths="**/*.cobertura.xml"
           /d:sonar.coverage.exclusions="**/wwwroot/js/**"
+      # -warnaserror is an MSBuild switch: it still fails the build on a warning even though
+      # the SonarScanner targets force TreatWarningsAsErrors=false during the analysis build.
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore -warnaserror
       # Checked over TCP: while initializing, the image runs a temporary server on the Unix
       # socket only, which reports ready before the restart. The log shows why on a timeout.
       - name: Wait for PostgreSQL
