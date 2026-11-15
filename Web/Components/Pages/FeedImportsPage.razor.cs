@@ -1,5 +1,6 @@
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Manage;
+using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Web.Extensions;
@@ -70,6 +71,10 @@ public partial class FeedImportsPage : IAsyncDisposable
         await LoadPagesAsync(1, Math.Max(_page, 1));
         await LoadCountsAsync();
     }
+
+    // A decision changed in the meantime (download or import job): the list shows its real state again.
+    private Task RefreshAfterConflictAsync(TError? error) =>
+        error == PersistenceError.ConcurrencyConflict ? RefreshAsync() : Task.CompletedTask;
 
     private Task LoadFirstPageAsync() => LoadPagesAsync(1, 1);
 
@@ -333,6 +338,7 @@ public partial class FeedImportsPage : IAsyncDisposable
             Snackbar.Add(result.Error?.Description ?? "Unable to update the decision.", Severity.Error);
             Logger.LogError("FeedImports: action {Action} on decision {DecisionId} failed: {ErrorDescription}",
                 actionName, decisionId, result.Error?.Description);
+            await RefreshAfterConflictAsync(result.Error);
             return false;
         }
         finally
@@ -386,6 +392,7 @@ public partial class FeedImportsPage : IAsyncDisposable
             {
                 Snackbar.Add(result.Error?.Description ?? "Unable to delete the decisions.", Severity.Error);
                 Logger.LogError("FeedImports: failed to delete decisions: {ErrorDescription}", result.Error!.Description);
+                await RefreshAfterConflictAsync(result.Error);
                 return;
             }
 
@@ -437,6 +444,7 @@ public partial class FeedImportsPage : IAsyncDisposable
             {
                 Snackbar.Add(result.Error?.Description ?? "Unable to delete the downloaded decisions.", Severity.Error);
                 Logger.LogError("FeedImports: failed to delete downloaded decisions: {ErrorDescription}", result.Error!.Description);
+                await RefreshAfterConflictAsync(result.Error);
                 return;
             }
 

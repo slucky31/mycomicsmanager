@@ -15,6 +15,12 @@ public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
             var changesNb = await dbContext.SaveChangesAsync(cancellationToken);
             return changesNb;
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            // The tracked entities are stale: keeping them would make every later save of this context fail too.
+            dbContext.ChangeTracker.Clear();
+            return PersistenceError.ConcurrencyConflict;
+        }
         catch (DbUpdateException ex)
         {
             return new TError("DB_UPDATE_ERROR", ex.Message);

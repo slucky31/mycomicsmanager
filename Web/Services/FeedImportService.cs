@@ -15,9 +15,11 @@ using Web.Models;
 
 namespace Web.Services;
 
+// Each handler runs in its own DI scope, so with a fresh DbContext: the circuit scope lives as long as the page,
+// and its tracked decisions would go stale while the Hangfire jobs update them (#1307).
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107", Justification = "Distinct collaborators; the handlers are already grouped in FeedImportHandlers, bundling the rest would only hide them.")]
 public class FeedImportService(
-    FeedImportHandlers handlers,
+    IServiceScopeFactory scopeFactory,
     ICurrentUserService currentUserService,
     ILibraryReadService libraryReadService,
     IFeedImportDecisionReadService decisionReadService,
@@ -43,7 +45,7 @@ public class FeedImportService(
         }
 
         var query = new GetPagedFeedImportDecisionsQuery(userIdResult.Value, status, host, searchTerm, page, pageSize);
-        var result = await handlers.GetDecisions.Handle(query, cancellationToken);
+        var result = await RunAsync(h => h.GetDecisions.Handle(query, cancellationToken));
         if (result.IsFailure)
         {
             return result.Error!;
@@ -89,8 +91,8 @@ public class FeedImportService(
             return userIdResult.Error!;
         }
 
-        var result = await handlers.ResolveArbitration.Handle(
-            new ResolveFeedImportArbitrationCommand(decisionId, userIdResult.Value, action, candidateIndex), cancellationToken);
+        var result = await RunAsync(h => h.ResolveArbitration.Handle(
+            new ResolveFeedImportArbitrationCommand(decisionId, userIdResult.Value, action, candidateIndex), cancellationToken));
         if (result.IsSuccess)
         {
             // Resolved towards a download: start it now (the job does nothing if the decision is not LinksExtracted).
@@ -108,7 +110,7 @@ public class FeedImportService(
             return userIdResult.Error!;
         }
 
-        var result = await handlers.Manage.Handle(new ManageFeedImportDecisionCommand(decisionId, userIdResult.Value, action), cancellationToken);
+        var result = await RunAsync(h => h.Manage.Handle(new ManageFeedImportDecisionCommand(decisionId, userIdResult.Value, action), cancellationToken));
         return StartNextStep(decisionId, result);
     }
 
@@ -120,8 +122,8 @@ public class FeedImportService(
             return userIdResult.Error!;
         }
 
-        var result = await handlers.Correct.Handle(
-            new CorrectFeedImportDecisionCommand(decisionId, userIdResult.Value, serie, title, volume), cancellationToken);
+        var result = await RunAsync(h => h.Correct.Handle(
+            new CorrectFeedImportDecisionCommand(decisionId, userIdResult.Value, serie, title, volume), cancellationToken));
         return StartNextStep(decisionId, result);
     }
 
@@ -138,7 +140,7 @@ public class FeedImportService(
         TError? lastError = null;
         foreach (var decisionId in decisionIds)
         {
-            var result = await handlers.Delete.Handle(new DeleteFeedImportDecisionCommand(decisionId, userIdResult.Value), cancellationToken);
+            var result = await RunAsync(h => h.Delete.Handle(new DeleteFeedImportDecisionCommand(decisionId, userIdResult.Value), cancellationToken));
             if (result.IsSuccess)
             {
                 deleted++;
@@ -163,7 +165,7 @@ public class FeedImportService(
             return userIdResult.Error!;
         }
 
-        return await handlers.DeleteDownloaded.Handle(new DeleteDownloadedFeedImportDecisionsCommand(userIdResult.Value), cancellationToken);
+        return await RunAsync(h => h.DeleteDownloaded.Handle(new DeleteDownloadedFeedImportDecisionsCommand(userIdResult.Value), cancellationToken));
     }
 
     // Badge of the navigation bar: 0 when the user cannot be resolved (not signed in yet).
@@ -197,6 +199,12 @@ public class FeedImportService(
 
         var counts = await decisionReadService.CountPerHostAsync(userIdResult.Value, status, cancellationToken);
         return FeedImportHostOptions.From(counts);
+    }
+
+    private async Task<T> RunAsync<T>(Func<FeedImportHandlers, Task<T>> handle)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        return await handle(scope.ServiceProvider.GetRequiredService<FeedImportHandlers>());
     }
 
     private Result StartNextStep(Guid decisionId, Result<FeedImportDecisionStatus> result)

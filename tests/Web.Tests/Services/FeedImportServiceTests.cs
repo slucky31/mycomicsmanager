@@ -15,6 +15,7 @@ using Domain.Users;
 using Hangfire;
 using Hangfire.Common;
 using Hangfire.States;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -24,7 +25,7 @@ using Xunit;
 
 namespace Web.Tests.Services;
 
-public sealed class FeedImportServiceTests
+public sealed class FeedImportServiceTests : IDisposable
 {
     private static readonly Guid s_userId = Guid.CreateVersion7();
 
@@ -44,7 +45,9 @@ public sealed class FeedImportServiceTests
         Substitute.For<ICommandHandler<DeleteDownloadedFeedImportDecisionsCommand, DeleteDownloadedFeedImportDecisionsResult>>();
     private readonly IFeatureToggles _featureToggles = Substitute.For<IFeatureToggles>();
     private readonly DebridLinkSettings _debridLinkSettings = new() { ApiKey = "key" };
+    private readonly ServiceProvider _provider;
     private readonly FeedImportService _service;
+    private int _handlerScopes;
 
     public FeedImportServiceTests()
     {
@@ -54,10 +57,32 @@ public sealed class FeedImportServiceTests
         _currentUserService = Substitute.For<ICurrentUserService>();
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
         _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
+        var services = new ServiceCollection();
+        services.AddScoped(_ =>
+        {
+            _handlerScopes++;
+            return new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler, _deleteHandler, _deleteDownloadedHandler);
+        });
+        _provider = services.BuildServiceProvider();
         _service = new FeedImportService(
-            new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler, _deleteHandler, _deleteDownloadedHandler),
+            _provider.GetRequiredService<IServiceScopeFactory>(),
             _currentUserService, _libraryReadService, _decisionReadService, _backgroundJobClient,
             _featureToggles, Options.Create(_debridLinkSettings), NullLogger<FeedImportService>.Instance);
+    }
+
+    public void Dispose() => _provider.Dispose();
+
+    [Fact]
+    public async Task ApplyActionAsync_Should_RunEachActionInANewScope_WhenCalledTwice()
+    {
+        _manageHandler.Handle(Arg.Any<ManageFeedImportDecisionCommand>(), Arg.Any<CancellationToken>())
+            .Returns(FeedImportDecisionStatus.Ignored);
+
+        await _service.ApplyActionAsync(Guid.CreateVersion7(), FeedImportDecisionAction.Ignore, TestContext.Current.CancellationToken);
+        await _service.ApplyActionAsync(Guid.CreateVersion7(), FeedImportDecisionAction.Ignore, TestContext.Current.CancellationToken);
+
+        // A fresh DbContext per action: decisions tracked by a previous action cannot go stale (#1307).
+        _handlerScopes.Should().Be(2);
     }
 
     [Fact]
