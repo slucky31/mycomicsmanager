@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Build
 dotnet restore
 dotnet build MyComicsManager.slnx
+dotnet build MyComicsManager.slnx -c Release -warnaserror   # Same as the CI: any warning fails the build
 
 # Run locally (port 8080)
 dotnet run --project Web/Web.csproj
@@ -91,7 +92,7 @@ Enforced via `.editorconfig`:
 - Prefer `var` when type is clear
 - Sorted `using` directives
 
-Analyzers run on every project through `GlobalPackageReference` in `Directory.Packages.props`: SonarAnalyzer, Meziantou, VS Threading, NSubstitute and BannedApi (APIs listed in `BannedSymbols.txt`). `dotnet build -warnaserror` must pass. To turn a rule off, set it to `none` in `.editorconfig` with a one-line reason; to silence a single false positive, use a `#pragma` or `[SuppressMessage]` with a justification.
+Analyzers run on every project through `GlobalPackageReference` in `Directory.Packages.props`: SonarAnalyzer, Meziantou, VS Threading, NSubstitute and BannedApi (APIs listed in `BannedSymbols.txt`). `dotnet build -warnaserror` must pass: the CI builds with `-warnaserror`, so a new warning fails the PR. To turn a rule off, set it to `none` in `.editorconfig` with a one-line reason; to silence a single false positive, use a `#pragma` or `[SuppressMessage]` with a justification.
 
 ## Commit & PR Guidelines
 
