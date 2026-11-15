@@ -52,7 +52,7 @@ public sealed class AddBookScanComponentTests : IAsyncDisposable
         var cut = Render();
 
         await cut.WaitForAssertionAsync(() => _scanner.Invocations["startScan"].Should().ContainSingle());
-        cut.WaitForAssertion(() => cut.Find(".scan-hint").TextContent.Should().Contain("Point the camera at the ISBN barcode"));
+        await cut.WaitForAssertionAsync(() => cut.Find(".scan-hint").TextContent.Should().Contain("Point the camera at the ISBN barcode"));
         cut.Find(".scan-target").TextContent.Should().Be("Adding to Read Books");
         cut.Find("a[aria-label='Close scanner']").GetAttribute("href").Should().Be($"/libraries/{_library.Id}");
         cut.Find(".scan-footer a").GetAttribute("href").Should().Be($"/books/add/manual?libraryId={_library.Id}");

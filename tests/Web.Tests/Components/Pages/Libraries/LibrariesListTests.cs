@@ -147,11 +147,11 @@ public sealed class LibrariesListTests : IAsyncDisposable
         GivenSearch("astérix", LibrariesList.SearchPageSize * 2, new BookSearchResult([], [.. page, Hit("Book 21", 21)], 21));
         var cut = Render(_readBooks);
         Type(cut, "astérix");
-        cut.WaitForAssertion(() => cut.Find(".search-more").TextContent.Should().Be("Show 1 more book"));
+        await cut.WaitForAssertionAsync(() => cut.Find(".search-more").TextContent.Should().Be("Show 1 more book"));
 
         await cut.Find(".search-more").ClickAsync(new());
 
-        cut.WaitForAssertion(() => cut.FindAll(".search-row").Should().HaveCount(21));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".search-row").Should().HaveCount(21));
         cut.FindAll(".search-more").Should().BeEmpty();
     }
 
@@ -161,11 +161,11 @@ public sealed class LibrariesListTests : IAsyncDisposable
         GivenSearch("zorglub", LibrariesList.SearchPageSize, BookSearchResult.Empty);
         var cut = Render(_readBooks);
         Type(cut, "zorglub");
-        cut.WaitForAssertion(() => cut.Find(".search-results").TextContent.Should().Contain("No results for “zorglub”"));
+        await cut.WaitForAssertionAsync(() => cut.Find(".search-results").TextContent.Should().Contain("No results for “zorglub”"));
 
         await cut.FindAll(".search-results button").Single(b => b.TextContent.Contains("Clear search", StringComparison.Ordinal)).ClickAsync(new());
 
-        cut.WaitForAssertion(() => cut.FindAll(".search-results").Should().BeEmpty());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".search-results").Should().BeEmpty());
         cut.FindAll(".library-card").Should().ContainSingle();
         cut.Find(".libraries-search-field input").GetAttribute("value").Should().BeNullOrEmpty();
     }
@@ -311,7 +311,7 @@ public sealed class LibrariesListTests : IAsyncDisposable
 
         await _dialogService.Received(1).ShowAsync<ConfirmationDialog>("Delete library", Arg.Any<DialogParameters>(), Arg.Any<DialogOptions>());
         _snackbar.Received(1).Add(LibrariesList.Msg_LibCorrectlyDeleted, Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
-        cut.WaitForAssertion(() => cut.FindAll(".library-name").Select(n => n.TextContent).Should().Equal("Read Books"));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".library-name").Select(n => n.TextContent).Should().Equal("Read Books"));
         cut.FindAll("[role=dialog]").Should().BeEmpty();
     }
 

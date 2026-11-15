@@ -457,7 +457,8 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     private static async Task FindIsbnOnThePageAsync(IRenderedComponent<BookReader> cut, IRenderedComponent<MudPopoverProvider> provider)
     {
         await ClickAsync(cut, "More actions");
-        await provider.WaitForElement(".mud-menu-item:contains('Find the ISBN on this page')").ClickAsync(new());
+        var menuItem = await provider.WaitForElementAsync(".mud-menu-item:contains('Find the ISBN on this page')");
+        await menuItem.ClickAsync(new());
     }
 
     private async Task<IRenderedComponent<BookReader>> ExtractIsbnAsync(string recognizedText)

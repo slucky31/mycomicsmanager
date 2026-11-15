@@ -69,9 +69,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         await _service.BuildAsync(webpFiles, null, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
-#pragma warning disable CA1849 // ZipFile has no OpenReadAsync overload
-        using var zip = ZipFile.OpenRead(outputPath);
-#pragma warning restore CA1849
+        await using var zip = await ZipFile.OpenReadAsync(outputPath, TestContext.Current.CancellationToken);
         zip.Entries.Where(e => e.Name.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)).Should().HaveCount(3);
     }
 
@@ -87,9 +85,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         await _service.BuildAsync(webpFiles, comicInfoXmlPath, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
-#pragma warning disable CA1849 // ZipFile has no OpenReadAsync overload
-        using var zip = ZipFile.OpenRead(outputPath);
-#pragma warning restore CA1849
+        await using var zip = await ZipFile.OpenReadAsync(outputPath, TestContext.Current.CancellationToken);
         zip.Entries.Should().Contain(e => e.Name == "ComicInfo.xml");
     }
 
@@ -104,9 +100,7 @@ public sealed class ComicArchiveBuilderServiceTests : IDisposable
         await _service.BuildAsync(webpFiles, null, outputPath, TestContext.Current.CancellationToken);
 
         // Assert
-#pragma warning disable CA1849 // ZipFile has no OpenReadAsync overload
-        using var zip = ZipFile.OpenRead(outputPath);
-#pragma warning restore CA1849
+        await using var zip = await ZipFile.OpenReadAsync(outputPath, TestContext.Current.CancellationToken);
         zip.Entries.Should().NotContain(e => e.Name == "ComicInfo.xml");
     }
 

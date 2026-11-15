@@ -245,7 +245,7 @@ public sealed class ImportComponentTests
 
         await cut.ChooseLibraryAsync("import-library", setup.Library.Name);
 
-        cut.WaitForAssertion(() => cut.FindComponents<ImportJobCard>().Should().HaveCount(Import.JobsPageSize));
+        await cut.WaitForAssertionAsync(() => cut.FindComponents<ImportJobCard>().Should().HaveCount(Import.JobsPageSize));
     }
 
     // ── OnFilesSelectedAsync ──────────────────────────────────────────────────
