@@ -133,7 +133,7 @@ public class GetBooksQueryHandlerTests
         Guard.Against.Null(result.Value);
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(1);
-        result.Value.First().Should().Be(singleBook);
+        result.Value[0].Should().Be(singleBook);
     }
 
     [Fact]

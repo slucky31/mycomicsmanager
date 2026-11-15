@@ -14,4 +14,8 @@
          get published into the Docker image. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- APIs banned by the coding rules of CLAUDE.md (RS0030, Microsoft.CodeAnalysis.BannedApiAnalyzers). -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" Link="BannedSymbols.txt" Visible="false" />
+  </ItemGroup>
 </Project>

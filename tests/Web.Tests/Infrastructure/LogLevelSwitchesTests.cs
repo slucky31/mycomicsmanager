@@ -203,7 +203,9 @@ namespace Web.Tests.Infrastructure.LogLevelSwitchesFixtures
 
     internal sealed class ComponentWithInjectedLogger
     {
+#pragma warning disable S1144, S3459 // Only read through reflection: LogLevelSwitches discovers the logger it injects
         private ILogger<ComponentWithInjectedLogger>? Logger { get; set; }
+#pragma warning restore S1144, S3459
 
         public bool HasLogger => Logger is not null;
     }

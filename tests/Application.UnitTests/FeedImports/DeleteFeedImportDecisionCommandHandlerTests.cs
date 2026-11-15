@@ -41,13 +41,12 @@ public class DeleteFeedImportDecisionCommandHandlerTests
         d.StartDownload();
     }
 
-    private ImportJob GivenDownloadedWith(FeedImportDecision decision, Action<ImportJob> arrangeJob)
+    private void GivenDownloadedWith(FeedImportDecision decision, Action<ImportJob> arrangeJob)
     {
         var job = ImportJob.Create("Blacksad T03.cbz", "/imports/Blacksad T03.cbz", 1_000, Guid.CreateVersion7()).Value!;
         arrangeJob(job);
         decision.MarkDownloaded("https://1fichier.com/?a", job.Id, "À trier");
         _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
-        return job;
     }
 
     private Task<Result> HandleAsync(Guid decisionId, Guid? userId = null) =>

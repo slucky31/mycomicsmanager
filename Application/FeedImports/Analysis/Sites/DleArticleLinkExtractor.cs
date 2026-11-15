@@ -13,7 +13,7 @@ namespace Application.FeedImports.Analysis.Sites;
 public abstract partial class DleArticleLinkExtractor(ILogger logger) : IDownloadLinkExtractor
 {
     // "ISBN : 9782203211582", "ISBN ‏ : ‎ 978-2-203-21158-2"
-    [GeneratedRegex(@"ISBN\D{0,12}((?:97[89][\d\- ]{10,16})|(?:\d[\d\- ]{8,12}[\dXx]))", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"ISBN\D{0,12}((?:97[89][\d\- ]{10,16})|(?:\d[\d\- ]{8,12}[\dXx]))", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex IsbnPattern();
 
     protected abstract string SiteDomain { get; }

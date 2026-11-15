@@ -382,25 +382,6 @@ public sealed class BookValidatorTests
         result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Volume number must be greater than 0.");
     }
 
-    [Fact]
-    public void Validate_ShouldPass_WhenVolumeNumberIsOne()
-    {
-        // Arrange
-        var dto = new BookUiDto
-        {
-            Title = "Test Title",
-            ISBN = "0306406152",
-            Serie = "Test Serie",
-            VolumeNumber = 1,
-            Rating = 1
-        };
-
-        // Act
-        var result = _validator.Validate(dto);
-
-        // Assert
-        result.IsValid.Should().BeTrue();
-    }
 
     [Fact]
     public void Validate_ShouldPass_WhenVolumeNumberIsLarge()
@@ -1172,25 +1153,6 @@ public sealed class BookValidatorTests
         result.Errors.Should().ContainSingle(e => e.ErrorMessage == "The rating must be between 1 and 5 stars.");
     }
 
-    [Fact]
-    public void Validate_ShouldPass_WhenRatingIsOne()
-    {
-        // Arrange
-        var dto = new BookUiDto
-        {
-            Title = "Test Title",
-            ISBN = "0306406152",
-            Serie = "Test Serie",
-            VolumeNumber = 1,
-            Rating = 1
-        };
-
-        // Act
-        var result = _validator.Validate(dto);
-
-        // Assert
-        result.IsValid.Should().BeTrue();
-    }
 
     [Fact]
     public void Validate_ShouldPass_WhenRatingIsFive()

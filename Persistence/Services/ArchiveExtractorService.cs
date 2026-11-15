@@ -90,7 +90,7 @@ public class ArchiveExtractorService(ILogger<ArchiveExtractorService> logger) : 
             {
                 // Sorted by name, so the volumes are listed and imported in their order.
                 var nestedArchives = WriteEntries(nestedEntries, destinationPath, normalizedDest)
-                    .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+                    .Order(StringComparer.OrdinalIgnoreCase)
                     .ToList();
                 logger.LogInformation("Archive without pages, {Count} archives found inside", nestedArchives.Count);
                 return new ArchiveExtractionResult([], null) { NestedArchives = nestedArchives };
@@ -103,7 +103,7 @@ public class ArchiveExtractorService(ILogger<ArchiveExtractorService> logger) : 
 
         var sortedImageFiles = extractedFiles
             .Where(f => !f.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         logger.LogInformation("Extracted {Count} files from archive, ComicInfo.xml: {HasXml}",

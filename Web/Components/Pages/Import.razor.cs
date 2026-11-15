@@ -44,7 +44,7 @@ public partial class Import : IAsyncDisposable
         await LoadLibrariesAsync();
 
         if (Guid.TryParse(LibraryId, out var preselectedId)
-            && _digitalLibraries.Any(l => l.Id == preselectedId))
+            && _digitalLibraries.Exists(l => l.Id == preselectedId))
         {
             _selectedLibraryId = preselectedId;
         }
@@ -185,7 +185,7 @@ public partial class Import : IAsyncDisposable
 
     private void StartPollingIfNeeded()
     {
-        var hasActiveJobs = _jobs.Any(j => !j.IsTerminal);
+        var hasActiveJobs = _jobs.Exists(j => !j.IsTerminal);
         if (!hasActiveJobs)
         {
             StopPolling();
@@ -198,7 +198,7 @@ public partial class Import : IAsyncDisposable
         }
 
         _pollTimer = new System.Threading.Timer(
-            _ => InvokeAsync(PollJobsAsync),
+            state => _ = InvokeAsync(PollJobsAsync),
             null,
             TimeSpan.FromSeconds(3),
             TimeSpan.FromSeconds(3));
@@ -226,7 +226,7 @@ public partial class Import : IAsyncDisposable
         {
             _jobs = result.Value!.OrderByDescending(j => j.CreatedAt).ToList();
 
-            if (!_jobs.Any(j => !j.IsTerminal))
+            if (!_jobs.Exists(j => !j.IsTerminal))
             {
                 StopPolling();
             }

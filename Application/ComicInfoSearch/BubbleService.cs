@@ -53,11 +53,11 @@ public partial class BubbleService : IBubbleService
     }
 
     // "07 mai 2021", "1er juin 2019", "mai 2021" or "2021".
-    [GeneratedRegex(@"^(?:(?<day>\d{1,2})(?:er)?\s+)?(?:(?<month>\p{L}+)\s+)?(?<year>\d{4})$")]
+    [GeneratedRegex(@"^(?:(?<day>\d{1,2})(?:er)?\s+)?(?:(?<month>\p{L}+)\s+)?(?<year>\d{4})$", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex ReleaseDatePattern();
 
     // Permalinks and object ids of the search, put in the album URL.
-    [GeneratedRegex("^[A-Za-z0-9-]+$")]
+    [GeneratedRegex("^[A-Za-z0-9-]+$", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex UrlSegmentPattern();
 
     public bool IsEnabled => _featureToggles.IsEnabled(FeatureToggle.Bubble) && _settings.HasApiKey;

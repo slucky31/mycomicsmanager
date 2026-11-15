@@ -56,7 +56,7 @@ public sealed class IsbnBedethequeCacheRepositoryTests(IntegrationTestWebAppFact
 
         // Act
         await CacheRepository.SaveAsync(isbn, TestUrl, TestContext.Current.CancellationToken);
-        var action = async () => await CacheRepository.SaveAsync(isbn, TestUrl);
+        var action = async () => await CacheRepository.SaveAsync(isbn, TestUrl, TestContext.Current.CancellationToken);
 
         // Assert — duplicate key must be silently ignored
         await action.Should().NotThrowAsync();

@@ -67,7 +67,7 @@ public sealed class StatisticsComponentTests
         var (ctx, cut, _) = await RenderAsync(statisticsService);
         await using var _ = ctx;
 
-        cut.WaitForAssertion(() => cut.FindAll(".stats-card").Should().NotBeEmpty());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".stats-card").Should().NotBeEmpty());
         cut.Markup.Should().Contain("42");
         cut.Markup.Should().Contain("Libraries");
         cut.Markup.Should().Contain("Readings per month");
@@ -84,7 +84,7 @@ public sealed class StatisticsComponentTests
         var (ctx, cut, _) = await RenderAsync(statisticsService);
         await using var _ = ctx;
 
-        cut.WaitForAssertion(() => cut.Markup.Should().Contain("No books yet"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("No books yet"));
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public sealed class StatisticsComponentTests
         var (ctx, cut, snackbar) = await RenderAsync(statisticsService);
         await using var _ = ctx;
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(() =>
             snackbar.Received(1).Add("Failed to load statistics", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
         cut.FindAll(".stats-card").Should().BeEmpty();
     }
@@ -110,11 +110,11 @@ public sealed class StatisticsComponentTests
 
         var (ctx, cut, _) = await RenderAsync(statisticsService);
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.FindAll(".stats-card").Should().NotBeEmpty());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".stats-card").Should().NotBeEmpty());
 
         await cut.ChooseLibraryAsync("stats-library", "Comics");
 
         await statisticsService.Received(1).Get(s_library.Id, Arg.Any<CancellationToken>());
-        cut.WaitForAssertion(() => cut.Markup.Should().NotContain(">Libraries<"));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().NotContain(">Libraries<"));
     }
 }

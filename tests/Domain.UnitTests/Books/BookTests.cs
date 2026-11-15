@@ -191,7 +191,7 @@ public class BookTests
     {
         // Arrange
         var book = PhysicalBook.Create(new BookMetadata("Batman", "Year One", "9781401207526"), DefaultLibraryId).Value!;
-        var date = new DateTime(2024, 1, 15);
+        var date = new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Unspecified);
 
         // Act
         var readingDate = book.AddReadingDate(date, 4);
@@ -211,8 +211,8 @@ public class BookTests
     {
         // Arrange
         var book = PhysicalBook.Create(new BookMetadata("V for Vendetta", "V for Vendetta", "9781401207922"), DefaultLibraryId).Value!;
-        var date1 = new DateTime(2023, 6, 1);
-        var date2 = new DateTime(2024, 1, 15);
+        var date1 = new DateTime(2023, 6, 1, 0, 0, 0, DateTimeKind.Unspecified);
+        var date2 = new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Unspecified);
 
         // Act
         book.AddReadingDate(date1, 3);
@@ -231,7 +231,7 @@ public class BookTests
     {
         // Arrange
         var book = PhysicalBook.Create(new BookMetadata("Saga", "Volume 1", "9781607066017"), DefaultLibraryId).Value!;
-        book.AddReadingDate(new DateTime(2024, 1, 15), 4);
+        book.AddReadingDate(new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Unspecified), 4);
         var readingDateId = book.ReadingDates[0].Id;
 
         // Act
@@ -246,7 +246,7 @@ public class BookTests
     {
         // Arrange
         var book = PhysicalBook.Create(new BookMetadata("Fables", "Volume 1", "9781563899423"), DefaultLibraryId).Value!;
-        book.AddReadingDate(new DateTime(2024, 1, 15), 3);
+        book.AddReadingDate(new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Unspecified), 3);
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -261,8 +261,8 @@ public class BookTests
     {
         // Arrange
         var book = PhysicalBook.Create(new BookMetadata("Y: The Last Man", "Volume 1", "9781401219512"), DefaultLibraryId).Value!;
-        var date1 = new DateTime(2023, 6, 1);
-        var date2 = new DateTime(2024, 1, 15);
+        var date1 = new DateTime(2023, 6, 1, 0, 0, 0, DateTimeKind.Unspecified);
+        var date2 = new DateTime(2024, 1, 15, 0, 0, 0, DateTimeKind.Unspecified);
         book.AddReadingDate(date1, 3);
         book.AddReadingDate(date2, 5);
         var firstReadingDateId = book.ReadingDates[0].Id;

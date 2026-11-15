@@ -91,6 +91,8 @@ Enforced via `.editorconfig`:
 - Prefer `var` when type is clear
 - Sorted `using` directives
 
+Analyzers run on every project through `GlobalPackageReference` in `Directory.Packages.props`: SonarAnalyzer, Meziantou, VS Threading, NSubstitute and BannedApi (APIs listed in `BannedSymbols.txt`). `dotnet build -warnaserror` must pass. To turn a rule off, set it to `none` in `.editorconfig` with a one-line reason; to silence a single false positive, use a `#pragma` or `[SuppressMessage]` with a justification.
+
 ## Commit & PR Guidelines
 
 - Conventional commits: `type(scope): summary` (e.g., `feat(books): add ISBN validation`)

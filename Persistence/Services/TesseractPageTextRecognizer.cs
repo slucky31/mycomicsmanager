@@ -65,8 +65,8 @@ public sealed class TesseractPageTextRecognizer(
 
     private static SKBitmap Enlarge(SKBitmap page, double scale)
     {
-        var width = (int)Math.Round(page.Width * scale);
-        var height = (int)Math.Round(page.Height * scale);
+        var width = (int)Math.Round(page.Width * scale, MidpointRounding.ToEven);
+        var height = (int)Math.Round(page.Height * scale, MidpointRounding.ToEven);
         return page.Resize(new SKImageInfo(width, height, page.ColorType, page.AlphaType), s_upscaleSampling)
             ?? throw new InvalidOperationException($"Resize to {width}×{height} failed");
     }

@@ -157,7 +157,7 @@ public sealed class BedethequeServiceTests : IDisposable
 
     private static string SerpApiJson(params string[] links)
     {
-        var items = string.Join(",", links.Select(l => $$"""{"link":"{{l}}"}"""));
+        var items = string.Join(',', links.Select(l => $$"""{"link":"{{l}}"}"""));
         return $$"""{"organic_results":[{{items}}]}""";
     }
 
@@ -1015,7 +1015,9 @@ public sealed class BedethequeServiceTests : IDisposable
             browserRunHandler: Track(new FakeHttpMessageHandler(req =>
             {
                 sent = req;
+#pragma warning disable VSTHRD002 // The fake handler callback is synchronous; the content is an in-memory buffer
                 sentBody = req.Content!.ReadAsStringAsync(TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
                 return BrowserRunResponse(FullAlbumHtml);
             })));
         var service = CreateService(factory, CacheWithUrl(ValidIsbn, PageUrl), BrowserRunSettings);
@@ -1240,9 +1242,9 @@ public sealed class BedethequeServiceTests : IDisposable
             => _exception = exception;
 
         protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request, CancellationToken ct)
+            HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            ct.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
             if (_exception is not null)
             {
                 throw _exception;

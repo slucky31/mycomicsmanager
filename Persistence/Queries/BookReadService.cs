@@ -54,7 +54,7 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
             ImageLink = b.ImageLink,
             Authors = b.Authors,
             Publishers = b.Publishers,
-            ReadCount = b.ReadingDates.Count(),
+            ReadCount = b.ReadingDates.Count,
             LastRead = b.ReadingDates
                 .OrderByDescending(rd => rd.Date)
                 .Select(rd => (DateTime?)rd.Date)

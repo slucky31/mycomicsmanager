@@ -37,7 +37,6 @@
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
-    <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
     <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.25" />
     <PackageVersion Include="Hangfire.Core" Version="1.8.25" />
     <PackageVersion Include="Hangfire.InMemory" Version="1.0.0" />
@@ -48,9 +47,16 @@
     <PackageVersion Include="SkiaSharp" Version="4.155.0" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.155.0" />
     <PackageVersion Include="PdfPig" Version="0.1.16" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.35.0.4138" />
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
     <PackageVersion Include="xunit.v3.extensibility.core" Version="4.0.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
+  </ItemGroup>
+  <!-- Analyzers applied to every project of the solution (tests and scripts included). -->
+  <ItemGroup>
+    <GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.340" />
+    <GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
+    <GlobalPackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="18.12.1" />
+    <GlobalPackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
+    <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.36.0.15337" />
   </ItemGroup>
 </Project>

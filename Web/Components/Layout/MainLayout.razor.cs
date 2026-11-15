@@ -22,7 +22,7 @@ public partial class MainLayout : IDisposable
         UpdateNavigationVisibility();
         if (showBottomBar != _showBottomBar)
         {
-            InvokeAsync(StateHasChanged);
+            _ = InvokeAsync(StateHasChanged);
         }
     }
 

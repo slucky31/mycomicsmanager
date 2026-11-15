@@ -51,8 +51,7 @@ public class UpdateBookCommandHandlerTests
     {
         var book = PhysicalBook.Create(new BookMetadata(serie, title, isbn, volumeNumber, imageLink), s_testLibraryId).Value!;
 
-        // Use reflection to set the Id property
-        // TODO :  Consider adding a test-specific factory method or constructor in the test project (e.g., via internal visibility or a test helper) to create Book instances with specific IDs for testing purposes.
+        // Book.Id has a private setter: reflection is the only way to give a test book a known id.
         var idProperty = typeof(Book).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance);
         idProperty?.SetValue(book, id);
 
@@ -531,7 +530,7 @@ public class UpdateBookCommandHandlerTests
 
     private const string DigitalFilePath = "/library/comics/book.cbz";
 
-    private DigitalBook ArrangeDigitalBook()
+    private void ArrangeDigitalBook()
     {
         var book = DigitalBook.Create(
             new BookMetadata("Original Serie", "Original Title", "978-3-16-148410-0", 1, Authors: "Original Author"),
@@ -539,7 +538,6 @@ public class UpdateBookCommandHandlerTests
         typeof(Book).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance)?.SetValue(book, s_bookId);
         _bookRepositoryMock.GetByIdAsync(s_bookId).Returns(book);
         _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Digital, s_userId).Value!);
-        return book;
     }
 
     [Fact]

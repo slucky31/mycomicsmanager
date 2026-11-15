@@ -106,7 +106,7 @@ public sealed class GoogleBooksServiceTests
         result.Categories.Should().ContainSingle().Which.Should().Be("Comics & Graphic Novels");
         result.Language.Should().Be("fr");
         result.CoverUrl.Should().NotBeNull();
-        result.CoverUrl!.ToString().Should().StartWith("https://");
+        result.CoverUrl.ToString().Should().StartWith("https://");
     }
 
     [Fact]
@@ -377,7 +377,7 @@ public sealed class GoogleBooksServiceTests
         // Assert
         result.Found.Should().BeTrue();
         result.CoverUrl.Should().NotBeNull();
-        result.CoverUrl!.ToString().Should().Contain("large");
+        result.CoverUrl.ToString().Should().Contain("large");
         result.CoverUrl.ToString().Should().StartWith("https://");
     }
 
@@ -412,7 +412,7 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.CoverUrl.Should().NotBeNull();
-        result.CoverUrl!.ToString().Should().StartWith("https://");
+        result.CoverUrl.ToString().Should().StartWith("https://");
         result.CoverUrl.ToString().Should().NotContain("edge=curl");
         result.CoverUrl.ToString().Should().Contain("id=123");
         result.CoverUrl.ToString().Should().Contain("source=gbs_api");
@@ -449,7 +449,7 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.CoverUrl.Should().NotBeNull();
-        result.CoverUrl!.ToString().Should().StartWith("https://");
+        result.CoverUrl.ToString().Should().StartWith("https://");
         result.CoverUrl.ToString().Should().NotContain("edge=curl");
         result.CoverUrl.ToString().Should().Contain("id=123");
     }
@@ -485,7 +485,7 @@ public sealed class GoogleBooksServiceTests
 
         // Assert
         result.CoverUrl.Should().NotBeNull();
-        result.CoverUrl!.ToString().Should().StartWith("https://");
+        result.CoverUrl.ToString().Should().StartWith("https://");
         result.CoverUrl.ToString().Should().NotContain("edge");
         result.CoverUrl.ToString().Should().NotEndWith("?");
     }
@@ -860,7 +860,7 @@ public sealed class GoogleBooksServiceTests
         // Assert
         result.Found.Should().BeTrue();
         result.CoverUrl.Should().NotBeNull();
-        result.CoverUrl!.ToString().Should().Contain("extralarge");
+        result.CoverUrl.ToString().Should().Contain("extralarge");
         result.CoverUrl.ToString().Should().StartWith("https://");
     }
 

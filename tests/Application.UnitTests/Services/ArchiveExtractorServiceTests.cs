@@ -18,7 +18,9 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
     public void Dispose()
     {
         // Force GC to release any native file handles held by SharpCompress on Windows
+#pragma warning disable S1215 // The finalizers of SharpCompress streams are the only way to release their file handles
         GC.Collect();
+#pragma warning restore S1215
         GC.WaitForPendingFinalizers();
         if (Directory.Exists(_tempDir))
         {

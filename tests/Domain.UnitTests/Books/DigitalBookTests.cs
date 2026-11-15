@@ -20,7 +20,7 @@ public class DigitalBookTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Serie.Should().Be(DefaultSerie);
+        result.Value.Serie.Should().Be(DefaultSerie);
         result.Value.Title.Should().Be(DefaultTitle);
         result.Value.ISBN.Should().Be(DefaultIsbn);
         result.Value.LibraryId.Should().Be(DefaultLibraryId);

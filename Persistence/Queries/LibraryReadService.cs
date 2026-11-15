@@ -45,10 +45,12 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 #pragma warning disable CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
 #pragma warning disable CA1304 // Specify CultureInfo
 #pragma warning disable CA1311 // Specify a culture or use an invariant version
+#pragma warning disable MA0011 // EF Core translates ToUpper() to SQL upper(); a culture overload cannot be translated
         return await context.Libraries.AsNoTracking()
             .Where(l => l.UserId == userId && l.Name.ToUpper() == normalizedName)
             .OrderBy(l => l.Id)
             .FirstOrDefaultAsync(cancellationToken);
+#pragma warning restore MA0011
 #pragma warning restore CA1311 // Specify a culture or use an invariant version
 #pragma warning restore CA1304 // Specify CultureInfo
 #pragma warning restore CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
@@ -100,10 +102,12 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 #pragma warning disable CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
 #pragma warning disable CA1304 // Specify CultureInfo
 #pragma warning disable CA1311 // Specify a culture or use an invariant version
+#pragma warning disable MA0011 // EF Core translates ToUpper() to SQL upper(); a culture overload cannot be translated
         return await context.Libraries.AsNoTracking()
             .Where(l => l.Name.ToUpper() == normalizedName)
             .OrderBy(l => l.Id)
             .ToListAsync(cancellationToken);
+#pragma warning restore MA0011
 #pragma warning restore CA1311 // Specify a culture or use an invariant version
 #pragma warning restore CA1304 // Specify CultureInfo
 #pragma warning restore CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
@@ -116,8 +120,10 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 #pragma warning disable CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
 #pragma warning disable CA1304 // Specify CultureInfo
 #pragma warning disable CA1311 // Specify a culture or use an invariant version
+#pragma warning disable MA0011 // EF Core translates ToUpper() to SQL upper(); a culture overload cannot be translated
         var query = context.Libraries.AsNoTracking()
             .Where(l => l.UserId == userId && l.Name.ToUpper() == normalizedName); // ✅ Sinon cela plante dans EFCore
+#pragma warning restore MA0011
 #pragma warning restore CA1311 // Specify a culture or use an invariant version
 #pragma warning restore CA1304 // Specify CultureInfo
 #pragma warning restore CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons

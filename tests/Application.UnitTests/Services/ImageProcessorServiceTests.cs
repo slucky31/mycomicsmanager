@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using System.Runtime.InteropServices;
+using Application.Interfaces;
 using Domain.Errors;
 using Persistence.Services;
 using SkiaSharp;
@@ -47,9 +48,10 @@ public sealed class ImageProcessorServiceTests : IDisposable
         using var bitmap = new SKBitmap(width, height);
         bitmap.Erase(color ?? SKColors.Black);
         using var data = bitmap.Encode(format, 90);
-        await File.WriteAllBytesAsync(path, data.ToArray());
+        await File.WriteAllBytesAsync(path, data.ToArray(), TestContext.Current.CancellationToken);
     }
 
+    [StructLayout(LayoutKind.Auto)]
     private readonly record struct PixelSize(int Width, int Height);
 
     // A PNG whose header declares the given size, without the pixels: enough to be identified, too big to allocate in a test.
@@ -255,8 +257,8 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await Service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 140, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
-        var files = Directory.GetFiles(destDir, "*.webp").Select(Path.GetFileName).OrderBy(f => f).ToList();
-        files.Should().BeEquivalentTo(["page-001.webp", "page-002.webp", "page-003.webp"]);
+        var files = Directory.GetFiles(destDir, "*.webp").Select(Path.GetFileName).Order().ToList();
+        files.Should().BeEquivalentTo("page-001.webp", "page-002.webp", "page-003.webp");
     }
 
     [Fact]
@@ -573,7 +575,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         var destDir = CreateSourceDir("dest");
         await SaveAsync(Path.Combine(sourceDir, "page-001.jpg"), width, height, SKEncodedImageFormat.Jpeg, new SKColor(10, 120, 200));
         var expectedWidth = width > height ? 2800 : 1400;
-        var expectedHeight = (int)Math.Round((double)height * expectedWidth / width);
+        var expectedHeight = (int)Math.Round((double)height * expectedWidth / width, MidpointRounding.ToEven);
 
         // Act
         var result = await Service.ProcessImagesAsync(sourceDir, destDir, 1400, null, TestContext.Current.CancellationToken);

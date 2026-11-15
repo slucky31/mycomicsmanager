@@ -285,7 +285,7 @@ var app = builder.Build();
 
 // Apply pending EF Core migrations automatically on startup
 // ponytail: no distributed lock, fine for a single instance; add one (e.g. pg_advisory_lock) if this ever runs with multiple replicas
-using (var migrationScope = app.Services.CreateScope())
+await using (var migrationScope = app.Services.CreateAsyncScope())
 {
     await migrationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
 
@@ -309,7 +309,7 @@ app.Services.ScheduleFeedImportSync();
 // Refuse to start if a dependency (database, Cloudinary, import directory, ...) is unreachable,
 // rather than accepting traffic and failing later on the first request that needs it.
 // Degraded checks (optional feed import services: Debrid-Link, Miniflux) only log a warning.
-using (var healthScope = app.Services.CreateScope())
+await using (var healthScope = app.Services.CreateAsyncScope())
 {
     var healthCheckService = healthScope.ServiceProvider.GetRequiredService<HealthCheckService>();
     var startupHealthReport = await healthCheckService.CheckHealthAsync();

@@ -165,11 +165,11 @@ public class OpenLibraryService : IOpenLibraryService
 
         var authorNames = new List<string>();
 
-        foreach (var authorRef in authorRefs)
+        foreach (var authorKey in authorRefs.Select(authorRef => authorRef.Key))
         {
             try
             {
-                var authorUrl = new Uri(_settings.BaseUrl, $"{authorRef.Key}.json");
+                var authorUrl = new Uri(_settings.BaseUrl, $"{authorKey}.json");
                 var authorData = await _httpClient.GetFromJsonAsync<OpenLibraryAuthor>(
                     authorUrl, JsonOptions, cancellationToken);
 
@@ -180,15 +180,15 @@ public class OpenLibraryService : IOpenLibraryService
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogWarning(ex, "HTTP error fetching author data for key: {AuthorKey}", authorRef.Key);
+                _logger.LogWarning(ex, "HTTP error fetching author data for key: {AuthorKey}", authorKey);
             }
             catch (JsonException ex)
             {
-                _logger.LogWarning(ex, "JSON error parsing author data for key: {AuthorKey}", authorRef.Key);
+                _logger.LogWarning(ex, "JSON error parsing author data for key: {AuthorKey}", authorKey);
             }
             catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
             {
-                _logger.LogWarning(ex, "Timeout fetching author data for key: {AuthorKey}", authorRef.Key);
+                _logger.LogWarning(ex, "Timeout fetching author data for key: {AuthorKey}", authorKey);
             }
         }
 

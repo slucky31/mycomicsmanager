@@ -101,7 +101,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>())
             .Returns(Library.Create("BD", "#594AE2", "Book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!);
         var cut = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
-        cut.WaitForAssertion(() => cut.Find("button[aria-label='View']").HasAttribute("disabled").Should().BeFalse());
+        await cut.WaitForAssertionAsync(() => cut.Find("button[aria-label='View']").HasAttribute("disabled").Should().BeFalse());
 
         await cut.Find("button[aria-label='View']").ClickAsync(new());
         await cut.Find("[role=dialog] .action-sheet-item:contains('List')").ClickAsync(new());
@@ -119,7 +119,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         var navigation = _ctx.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo($"/libraries/{s_libraryId}/series");
         var cut = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
-        cut.WaitForAssertion(() => cut.Find("button[aria-label='View']").HasAttribute("disabled").Should().BeFalse());
+        await cut.WaitForAssertionAsync(() => cut.Find("button[aria-label='View']").HasAttribute("disabled").Should().BeFalse());
 
         await cut.Find("button[aria-label='View']").ClickAsync(new());
         await cut.Find("[role=dialog] .action-sheet-item:contains('Covers')").ClickAsync(new());
@@ -208,11 +208,11 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
             Result<SerieDetail>.Success(new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [1]), [SeriesTestData.Book("Thorgal", 1)])));
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/libraries/{s_libraryId}/serie?name=Thorgal");
         var cut = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
-        cut.WaitForAssertion(() => cut.Find("[role=alert]"));
+        await cut.WaitForAssertionAsync(() => cut.Find("[role=alert]"));
 
         await cut.Find("[role=alert] button").ClickAsync(new());
 
-        cut.WaitForAssertion(() => cut.FindAll(".serie-slot, .cover-item").Should().HaveCount(1));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".serie-slot, .cover-item").Should().HaveCount(1));
         cut.FindAll("[role=alert]").Should().BeEmpty();
     }
 
@@ -271,7 +271,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
 
-        cut.WaitForAssertion(() => cut.FindAll(".serie-slot-missing-number").Select(m => m.TextContent).Should().Equal("#1–2"));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".serie-slot-missing-number").Select(m => m.TextContent).Should().Equal("#1–2"));
         cut.FindAll("[role=dialog]").Should().BeEmpty();
     }
 
@@ -318,7 +318,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         await _moveWorkflow.Received(1).ChooseAndMoveAsync(
             Arg.Is<IReadOnlyList<Guid>>(b => b.Count == 1 && b[0] == Guid.Parse(ids[0])), Arg.Any<CancellationToken>());
-        cut.WaitForAssertion(() => cut.FindAll(".serie-slot-missing-number").Select(m => m.TextContent).Should().Equal("#1–2"));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".serie-slot-missing-number").Select(m => m.TextContent).Should().Equal("#1–2"));
         Heading(cut).Should().Be("Thorgal");
         cut.FindAll("button[role=checkbox]").Should().BeEmpty();
     }

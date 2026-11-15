@@ -33,7 +33,7 @@ public sealed class MainLayoutComponentTests
 
         navigation.NavigateTo("/libraries/list");
 
-        cut.WaitForAssertion(() => cut.FindAll("nav.bottom-nav").Should().ContainSingle());
+        await cut.WaitForAssertionAsync(() => cut.FindAll("nav.bottom-nav").Should().ContainSingle());
         cut.FindAll("nav.side-nav").Should().ContainSingle();
         cut.Find("main.page-body").ClassList.Should().Contain("with-bottom-bar");
     }

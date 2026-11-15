@@ -81,7 +81,7 @@ public sealed class LogLevelsComponentTests
 
         await cut.Find("input").InputAsync(new() { Value = " feedimportsync " });
 
-        cut.WaitForAssertion(() => cut.FindAll(".logger-name").Select(e => e.TextContent)
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".logger-name").Select(e => e.TextContent)
             .Should().Equal(LoggerName));
     }
 

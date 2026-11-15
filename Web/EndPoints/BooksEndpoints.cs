@@ -89,7 +89,7 @@ internal static class BooksEndpoints
         var page = result.Value;
         httpContext.Response.Headers.CacheControl = "private, max-age=86400";
         var etag = new EntityTagHeaderValue($"\"{page.LastModifiedUtc.Ticks:x}-{pageIndex}\"");
-        return Results.Bytes(page.Content, page.ContentType, lastModified: page.LastModifiedUtc, entityTag: etag);
+        return Results.Bytes(page.Content, page.ContentType, lastModified: new DateTimeOffset(DateTime.SpecifyKind(page.LastModifiedUtc, DateTimeKind.Utc)), entityTag: etag);
     }
 
     // Resolves the application user id from the Auth0 "sub" claim, falling back to the email

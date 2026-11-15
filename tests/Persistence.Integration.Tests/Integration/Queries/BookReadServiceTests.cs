@@ -105,7 +105,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         // Assert
         var ids = result.Items!.Select(b => b.Id).ToList();
         ids.Should().ContainInOrder(
-            [.. new[] { book1.Id, book2.Id, book3.Id }.OrderByDescending(id => id)]);
+            [.. new[] { book1.Id, book2.Id, book3.Id }.OrderDescending()]);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         // Assert
         var ids = result.Items!.Select(b => b.Id).ToList();
         ids.Should().ContainInOrder(
-            [.. new[] { book1.Id, book2.Id, book3.Id }.OrderBy(id => id)]);
+            [.. new[] { book1.Id, book2.Id, book3.Id }.Order()]);
     }
 
     [Fact]
@@ -306,7 +306,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
 
         // Assert
         result.Items.Should().NotBeNull();
-        result.Items!.ToDictionary(b => b.Id, b => b.IsbnScanState).Should().BeEquivalentTo(new Dictionary<Guid, IsbnScanState>
+        result.Items.ToDictionary(b => b.Id, b => b.IsbnScanState).Should().BeEquivalentTo(new Dictionary<Guid, IsbnScanState>
         {
             [physical.Id] = IsbnScanState.HasIsbn,
             [withIsbn.Id] = IsbnScanState.HasIsbn,

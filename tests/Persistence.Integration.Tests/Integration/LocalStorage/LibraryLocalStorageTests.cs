@@ -386,7 +386,7 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         var result = LibraryLocalStorage.MoveFile(sourceFile, target);
 
         // Assert
-        var expected = Path.Combine(LibraryLocalStorage.rootPath, target.Replace("é", "e", StringComparison.Ordinal), "Blacksad T03.cbz");
+        var expected = Path.Combine(LibraryLocalStorage.rootPath, target.Replace('é', 'e'), "Blacksad T03.cbz");
         result.Value.Should().Be(expected);
         File.Exists(expected).Should().BeTrue();
         File.Exists(sourceFile).Should().BeFalse();

@@ -26,7 +26,7 @@ public class LibraryStateServiceTests
         var result = _service.Load(libraryId);
 
         result.Should().NotBeNull();
-        result!.Search.Should().Be("batman");
+        result.Search.Should().Be("batman");
     }
 
     [Fact]

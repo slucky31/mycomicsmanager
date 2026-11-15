@@ -44,27 +44,28 @@ string? cloudinaryFolder = null;
 var delayMs = 500;
 var dryRun = false;
 
-for (var i = 0; i < args.Length; i++)
+var argIndex = 0;
+while (argIndex < args.Length)
 {
-    switch (args[i])
+    switch (args[argIndex++])
     {
         case "--connection":
-            connectionString = args[++i];
+            connectionString = args[argIndex++];
             break;
         case "--cloudinary-cloud":
-            cloudinaryCloud = args[++i];
+            cloudinaryCloud = args[argIndex++];
             break;
         case "--cloudinary-key":
-            cloudinaryKey = args[++i];
+            cloudinaryKey = args[argIndex++];
             break;
         case "--cloudinary-secret":
-            cloudinarySecret = args[++i];
+            cloudinarySecret = args[argIndex++];
             break;
         case "--cloudinary-folder":
-            cloudinaryFolder = args[++i];
+            cloudinaryFolder = args[argIndex++];
             break;
         case "--delay":
-            delayMs = int.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture);
+            delayMs = int.Parse(args[argIndex++], System.Globalization.CultureInfo.InvariantCulture);
             break;
         case "--dry-run":
             dryRun = true;
@@ -116,7 +117,7 @@ var provider = services.BuildServiceProvider();
 const string cloudinaryHost = "res.cloudinary.com";
 
 List<(Guid Id, string ISBN, string ImageLink)> books;
-using (var scope = provider.CreateScope())
+await using (var scope = provider.CreateAsyncScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var rawBooks = await context.Books
@@ -124,7 +125,7 @@ using (var scope = provider.CreateScope())
                     !b.ImageLink.Contains(cloudinaryHost))
         .Select(b => new { b.Id, b.ISBN, b.ImageLink })
         .ToListAsync();
-    books = rawBooks.Select(b => (b.Id, b.ISBN!, b.ImageLink!)).ToList();
+    books = rawBooks.Select(b => (b.Id, b.ISBN!, b.ImageLink)).ToList();
 }
 
 Console.WriteLine($"{books.Count} book(s) with non-Cloudinary covers to process.");
@@ -154,7 +155,7 @@ for (var i = 0; i < books.Count; i++)
 
     try
     {
-        using var scope = provider.CreateScope();
+        await using var scope = provider.CreateAsyncScope();
         var cloudinaryService = scope.ServiceProvider.GetRequiredService<ICloudinaryService>();
         var cloudinarySettings = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<CloudinarySettings>>().Value;
 

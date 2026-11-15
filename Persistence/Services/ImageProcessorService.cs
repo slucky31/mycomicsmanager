@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using System.Runtime.InteropServices;
+using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;
 using Microsoft.Extensions.Logging;
@@ -32,6 +33,7 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
     private static readonly HashSet<string> s_inputExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".jpeg", ".jpg", ".png", ".gif", ".webp" };
 
+    [StructLayout(LayoutKind.Auto)]
     private readonly record struct ImageSize(int Width, int Height)
     {
         public bool IsDoublePage => Width > Height;
@@ -85,7 +87,7 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
         Directory.GetFiles(sourceDirectory)
             .Where(f => !Path.GetFileName(f).StartsWith('.') &&
                         s_inputExtensions.Contains(Path.GetExtension(f)))
-            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
     private async Task<Result<(int ProcessedCount, int SkippedCount)>> ProcessAllImagesAsync(
@@ -214,7 +216,7 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
         var size = new ImageSize(codec.Info.Width, codec.Info.Height);
 
         var effectiveWidth = EffectiveWidth(size, targetWidth);
-        var targetHeight = (int)Math.Round((double)size.Height * effectiveWidth / size.Width);
+        var targetHeight = (int)Math.Round((double)size.Height * effectiveWidth / size.Width, MidpointRounding.ToEven);
 
         using var decoded = Decode(codec, effectiveWidth);
         ct.ThrowIfCancellationRequested();

@@ -49,7 +49,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
         {
             var task = Task.Run(() => RunStartupScanAsync(_lifetime.ApplicationStopping), cancellationToken);
             StartupScanTask = task;
-            task.ContinueWith(t => _logger.LogError(t.Exception, "Startup scan failed"),
+            _ = task.ContinueWith(t => _logger.LogError(t.Exception, "Startup scan failed"),
                 CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
         });
 
@@ -272,7 +272,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             {
                 // FileShare.Read, not None: a writer is still refused, but an import job already reading the archive
                 // (FileShare.Read too) no longer makes every polling scan of the file fail.
-                using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                await using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var size = stream.Length;
                 if (size > 0 && size == lastSize)
                 {

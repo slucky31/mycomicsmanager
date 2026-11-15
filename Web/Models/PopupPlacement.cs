@@ -41,5 +41,5 @@ public static class PopupPlacement
 
     private static string Css(double left, string verticalVariable, double vertical, double maxHeight) =>
         string.Create(CultureInfo.InvariantCulture,
-            $"--popup-left: {Math.Round(left)}px; {verticalVariable}: {Math.Round(vertical)}px; --popup-max-height: {Math.Round(Math.Max(maxHeight, 0))}px;");
+            $"--popup-left: {Math.Round(left, MidpointRounding.ToEven)}px; {verticalVariable}: {Math.Round(vertical, MidpointRounding.ToEven)}px; --popup-max-height: {Math.Round(Math.Max(maxHeight, 0), MidpointRounding.ToEven)}px;");
 }

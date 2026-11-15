@@ -465,9 +465,9 @@ public class ProcessImportJobCommandHandlerTests
         await _isbnScanner.Received(1).ScanPagesAsync(
             Arg.Is<IReadOnlyList<string>>(pages => pages.Count == 1 && pages[0] == "cover.webp"), Arg.Any<CancellationToken>());
         result.Value!.Book!.ISBN.Should().Be("9782075162869");
-        result.Value!.Book!.Title.Should().Be("Title");
-        result.Value!.Book!.IsbnCandidates.Should().BeEmpty();
-        result.Value!.Book!.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
+        result.Value.Book.Title.Should().Be("Title");
+        result.Value.Book.IsbnCandidates.Should().BeEmpty();
+        result.Value.Book.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
         _tempWorkspace.Received(1).MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), "9782075162869.cbz");
     }
 
@@ -481,7 +481,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.Value!.Book!.ISBN.Should().BeNull();
-        result.Value!.Book!.IsbnCandidates.Should().Equal("9782075162869", "2205056174");
+        result.Value.Book.IsbnCandidates.Should().Equal("9782075162869", "2205056174");
         await _comicSearchService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -495,7 +495,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.Value!.Book!.ISBN.Should().BeNull();
-        result.Value!.Book!.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
+        result.Value.Book.IsbnScannedAt.Should().Be(s_now.UtcDateTime);
     }
 
     [Fact]
@@ -568,7 +568,7 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Book!.ISBN.Should().BeNull();
-        result.Value!.Book!.IsbnCandidates.Should().Equal("9782075162869");
+        result.Value.Book.IsbnCandidates.Should().Equal("9782075162869");
         await _comicSearchService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -674,8 +674,8 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Book!.Serie.Should().Be("Ashita no Joe");
-        result.Value!.Book!.Title.Should().Be("Ashita no Joe");
-        result.Value!.Book!.VolumeNumber.Should().Be(8);
+        result.Value.Book.Title.Should().Be("Ashita no Joe");
+        result.Value.Book.VolumeNumber.Should().Be(8);
     }
 
     // ── Failure paths ─────────────────────────────────────────────────────────
@@ -910,7 +910,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.Value!.Book!.ImageLink.Should().Be("https://cdn.example.com/cover.webp");
-        result.Value!.Book!.NumberOfPages.Should().Be(48);
+        result.Value.Book.NumberOfPages.Should().Be(48);
     }
 
     [Fact]
@@ -924,7 +924,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.Value!.Book!.ImageLink.Should().Be(CatalogueCover);
-        result.Value!.Book!.NumberOfPages.Should().Be(48);
+        result.Value.Book.NumberOfPages.Should().Be(48);
     }
 
     // ── Cover upload skipped when no webp files ───────────────────────────────
@@ -1260,7 +1260,7 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Book!.Serie.Should().Be("Existing Serie");
-        result.Value!.Book!.Title.Should().Be("Existing Title");
+        result.Value.Book.Title.Should().Be("Existing Title");
     }
 
     [Fact]
@@ -1287,7 +1287,7 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Book!.Serie.Should().Be("Existing Serie");
-        result.Value!.Book!.Title.Should().Be("Existing Title");
+        result.Value.Book.Title.Should().Be("Existing Title");
         _comicInfoXmlService.Received(1).Write(Arg.Any<string>(), Arg.Is<ComicInfoData>(d =>
             d.Series == "Existing Serie" && d.Title == "Existing Title" && d.Number == 4
             && d.Writer == "Catalogue Author" && d.Publisher == "Catalogue Publisher" && d.Year == 2021));

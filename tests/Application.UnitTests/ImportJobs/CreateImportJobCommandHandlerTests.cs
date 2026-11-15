@@ -36,9 +36,6 @@ public class CreateImportJobCommandHandlerTests
         libraryId ?? s_libraryId,
         userId ?? s_userId);
 
-    private void SetupLibrary(Library library) =>
-        _libraryRepository.GetByIdAsync(library.Id).Returns(library);
-
     // ── Happy path ────────────────────────────────────────────────────────────
 
     [Fact]

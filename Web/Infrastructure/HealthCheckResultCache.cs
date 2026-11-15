@@ -12,7 +12,7 @@ namespace Web.Infrastructure;
 internal sealed class HealthCheckResultCache<TCheck> where TCheck : IHealthCheck
 #pragma warning restore S2326
 {
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
+    private static TimeSpan CacheDuration => TimeSpan.FromSeconds(30);
 
     // ponytail: plain fields, no lock; a concurrent cache miss can fire two checks at once,
     // fine at this traffic level - add a lock/SemaphoreSlim if that changes.

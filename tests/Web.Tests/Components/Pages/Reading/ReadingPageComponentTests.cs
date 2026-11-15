@@ -70,7 +70,7 @@ public sealed class ReadingPageComponentTests
         var (ctx, cut) = Render();
         await using var _ = ctx;
 
-        cut.WaitForAssertion(() => cut.Find(".reading-bar-subtitle").TextContent.Should().Be("1 in progress · 2 readings"));
+        await cut.WaitForAssertionAsync(() => cut.Find(".reading-bar-subtitle").TextContent.Should().Be("1 in progress · 2 readings"));
         var progress = cut.Find("a.cover-link");
         progress.GetAttribute("href").Should().Be($"/books/{amarillo.Id}/read?from=%2Freading");
         progress.GetAttribute("aria-label").Should().Be("Continue Amarillo, Page 34 of 56");
@@ -91,7 +91,7 @@ public sealed class ReadingPageComponentTests
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.FindAll(".cover-actions").Should().ContainSingle());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-actions").Should().ContainSingle());
 
         cut.Find(".cover-actions").GetAttribute("aria-label").Should().Be("More actions for Amarillo");
         await cut.Find(".cover-actions").ClickAsync(new());
@@ -111,7 +111,7 @@ public sealed class ReadingPageComponentTests
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.FindAll(".reading-recent-actions").Should().ContainSingle());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reading-recent-actions").Should().ContainSingle());
 
         cut.Find(".reading-recent-actions").Id.Should().Be($"reading-actions-{reading.ReadingDateId}");
         await cut.Find(".reading-recent-actions").ClickAsync(new());
@@ -129,13 +129,13 @@ public sealed class ReadingPageComponentTests
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.FindAll(".cover-actions").Should().ContainSingle());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-actions").Should().ContainSingle());
         GivenInProgress();
         await cut.Find(".cover-actions").ClickAsync(new());
 
         await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
 
-        cut.WaitForAssertion(() => cut.FindAll(".cover-item").Should().BeEmpty());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item").Should().BeEmpty());
         cut.FindAll("[role=dialog]").Should().BeEmpty();
     }
 
@@ -148,7 +148,7 @@ public sealed class ReadingPageComponentTests
         var (ctx, cut) = Render();
         await using var _ = ctx;
 
-        cut.WaitForAssertion(() => cut.FindAll(".reading-section-empty").Should().HaveCount(2));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reading-section-empty").Should().HaveCount(2));
         cut.Markup.Should().Contain("No book in progress").And.Contain("No reading yet");
     }
 
@@ -164,11 +164,11 @@ public sealed class ReadingPageComponentTests
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
+        await cut.WaitForAssertionAsync(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
 
         await LoadMoreAsync(cut);
 
-        cut.WaitForAssertion(() => cut.FindAll(".reading-recent-title").Should().HaveCount(21));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reading-recent-title").Should().HaveCount(21));
         cut.FindAll(".reading-month").Select(m => m.TextContent).Should().Equal("October 2026", "September 2026");
         cut.FindAll(".reading-recent-title")[^1].TextContent.Should().Be("La Magicienne trahie");
         cut.FindComponents<InfiniteScrollSentinel>().Should().BeEmpty();
@@ -184,11 +184,11 @@ public sealed class ReadingPageComponentTests
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
+        await cut.WaitForAssertionAsync(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
 
         await LoadMoreAsync(cut);
 
-        cut.WaitForAssertion(() =>
+        await cut.WaitForAssertionAsync(() =>
             _snackbar.Received(1).Add("Failed to load more readings", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>()));
         cut.FindAll(".reading-recent-title").Should().HaveCount(ReadingPage.ReadingsPageSize);
     }
@@ -208,14 +208,14 @@ public sealed class ReadingPageComponentTests
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
+        await cut.WaitForAssertionAsync(() => cut.FindComponents<InfiniteScrollSentinel>().Should().ContainSingle());
         await LoadMoreAsync(cut);
-        cut.WaitForAssertion(() => cut.FindAll(".reading-recent-title").Should().HaveCount(21));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reading-recent-title").Should().HaveCount(21));
 
         await cut.FindAll(".reading-recent-actions")[^1].ClickAsync(new());
         await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
 
-        cut.WaitForAssertion(() => cut.FindAll(".reading-recent-title").Should().HaveCount(20));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reading-recent-title").Should().HaveCount(20));
         cut.FindAll(".reading-recent-title").Should().NotContain(t => t.TextContent == "La Magicienne trahie");
         await _readingService.Received(1).GetRecentReadings(1, 2 * ReadingPage.ReadingsPageSize, Arg.Any<CancellationToken>());
     }
@@ -244,12 +244,12 @@ public sealed class ReadingPageComponentTests
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
-        cut.WaitForAssertion(() => cut.Find("[role=alert]").TextContent.Should().Contain("Couldn't load your readings"));
+        await cut.WaitForAssertionAsync(() => cut.Find("[role=alert]").TextContent.Should().Contain("Couldn't load your readings"));
         _snackbar.Received(1).Add("Failed to load your readings", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
 
         await cut.Find("[role=alert] button").ClickAsync(new());
 
-        cut.WaitForAssertion(() => cut.FindAll(".reading-section-empty").Should().HaveCount(2));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".reading-section-empty").Should().HaveCount(2));
         cut.FindAll("[role=alert]").Should().BeEmpty();
     }
 }
