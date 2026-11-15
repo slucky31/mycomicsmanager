@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.79.0"></a>
+## [10.79.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.79.0) (2026-11-15)
+
+### ✨ Features
+
+* **ci:** scan PRs for secrets and the Docker image for CVEs ([#1320](https://www.github.com/slucky31/mycomicsmanager/issues/1320)) ([c8e3828](https://www.github.com/slucky31/mycomicsmanager/commit/c8e38288c1605a371620817e00d1135d0a17ac67))
+
 <a name="10.78.0"></a>
 ## [10.78.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.78.0) (2026-11-15)
 
