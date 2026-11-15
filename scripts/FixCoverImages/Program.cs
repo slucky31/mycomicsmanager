@@ -117,7 +117,7 @@ var provider = services.BuildServiceProvider();
 const string cloudinaryHost = "res.cloudinary.com";
 
 List<(Guid Id, string ISBN, string ImageLink)> books;
-using (var scope = provider.CreateScope())
+await using (var scope = provider.CreateAsyncScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var rawBooks = await context.Books
@@ -155,7 +155,7 @@ for (var i = 0; i < books.Count; i++)
 
     try
     {
-        using var scope = provider.CreateScope();
+        await using var scope = provider.CreateAsyncScope();
         var cloudinaryService = scope.ServiceProvider.GetRequiredService<ICloudinaryService>();
         var cloudinarySettings = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<CloudinarySettings>>().Value;
 

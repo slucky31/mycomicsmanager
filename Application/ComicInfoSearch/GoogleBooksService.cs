@@ -246,7 +246,7 @@ public class GoogleBooksService : IGoogleBooksService
                     var key = eqIdx >= 0 ? param[..eqIdx] : param;
                     return !key.Equals("edge", StringComparison.OrdinalIgnoreCase);
                 });
-            builder.Query = string.Join("&", filtered);
+            builder.Query = string.Join('&', filtered);
         }
 
         return new Uri(builder.ToString());

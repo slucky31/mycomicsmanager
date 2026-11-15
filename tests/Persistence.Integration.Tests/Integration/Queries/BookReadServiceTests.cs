@@ -105,7 +105,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         // Assert
         var ids = result.Items!.Select(b => b.Id).ToList();
         ids.Should().ContainInOrder(
-            [.. new[] { book1.Id, book2.Id, book3.Id }.OrderByDescending(id => id)]);
+            [.. new[] { book1.Id, book2.Id, book3.Id }.OrderDescending()]);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class BookReadServiceTests(IntegrationTestWebAppFactory factory) : BookRe
         // Assert
         var ids = result.Items!.Select(b => b.Id).ToList();
         ids.Should().ContainInOrder(
-            [.. new[] { book1.Id, book2.Id, book3.Id }.OrderBy(id => id)]);
+            [.. new[] { book1.Id, book2.Id, book3.Id }.Order()]);
     }
 
     [Fact]

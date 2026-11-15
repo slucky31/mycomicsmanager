@@ -385,6 +385,34 @@ dotnet_diagnostic.IDE0060.severity = error
 # RS0030: Banned API (BannedSymbols.txt lists the APIs the coding rules of CLAUDE.md forbid)
 dotnet_diagnostic.RS0030.severity = error
 
+# Meziantou and VS Threading rules whose default severity is a suggestion: the build never shows them, but
+# SonarCloud imports them. Each one is either enforced (warning) or off (none), never left in between.
+# MA0003: Name the literal argument (style: the call sites read well without it)
+dotnet_diagnostic.MA0003.severity = none
+# MA0007: Add a comma after the last value (style)
+dotnet_diagnostic.MA0007.severity = none
+# MA0020: Use the direct method instead of the LINQ extension (List.Exists, Find...)
+dotnet_diagnostic.MA0020.severity = warning
+# MA0040: Forward the CancellationToken
+dotnet_diagnostic.MA0040.severity = warning
+# MA0042: Do not use blocking calls in an async method
+dotnet_diagnostic.MA0042.severity = warning
+# MA0076: Culture-sensitive ToString in interpolated strings (the values are integers and identifiers, and user-facing
+# text is formatted in the user culture on purpose)
+dotnet_diagnostic.MA0076.severity = none
+# MA0089: Use the char overload
+dotnet_diagnostic.MA0089.severity = warning
+# MA0159: Use Order instead of OrderBy(x => x)
+dotnet_diagnostic.MA0159.severity = warning
+# MA0190: Use a partial property for GeneratedRegex (partial methods stay the convention of the repository)
+dotnet_diagnostic.MA0190.severity = none
+# MA0193: Pass a MidpointRounding to Math.Round
+dotnet_diagnostic.MA0193.severity = warning
+# MA0206: Remove unnecessary braces in a type declaration
+dotnet_diagnostic.MA0206.severity = warning
+# VSTHRD202: Return the Task directly instead of async/await (async/await keeps the stack traces and the using scopes)
+dotnet_diagnostic.VSTHRD202.severity = none
+
 # MA0004: Use ConfigureAwait(false) (same trade-off as CA2007: ASP.NET Core has no SynchronizationContext,
 # and Blazor components must resume on theirs)
 dotnet_diagnostic.MA0004.severity = none
@@ -482,6 +510,10 @@ dotnet_diagnostic.IDE0055.severity = none
 
 # Code-behind files for Blazor components
 csharp_style_namespace_declarations = file_scoped:warning
+
+# MA0040: Forward the CancellationToken (a component holds several CancellationTokenSource fields for unrelated
+# operations, and the analyzer offers them for any JS interop call)
+dotnet_diagnostic.MA0040.severity = none
 
 ###############################
 # SQL Files                   #

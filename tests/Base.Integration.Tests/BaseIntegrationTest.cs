@@ -12,9 +12,7 @@ using Xunit;
 namespace Base.Integration.Tests;
 
 [CollectionDefinition("DatabaseCollectionTests")]
-public class DatabaseCollectionTests : ICollectionFixture<IntegrationTestWebAppFactory>
-{
-}
+public class DatabaseCollectionTests : ICollectionFixture<IntegrationTestWebAppFactory>;
 
 public abstract class BaseIntegrationTest : IDisposable
 {

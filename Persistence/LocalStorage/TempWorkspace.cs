@@ -47,7 +47,7 @@ internal sealed class TempWorkspace : ITempWorkspace
         {
             return [];
         }
-        return [.. Directory.GetFiles(directory, "*.webp").OrderBy(f => f, StringComparer.OrdinalIgnoreCase)];
+        return [.. Directory.GetFiles(directory, "*.webp").Order(StringComparer.OrdinalIgnoreCase)];
     }
 
     public Result<string> MoveToLibrary(string sourcePath, string libraryRelativePath, string fileName)

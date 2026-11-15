@@ -311,7 +311,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsNull()
     {
         // Act
-        var action = async () => await BookRepository.GetByIsbnAsync(null!, DefaultLibrary.Id);
+        var action = async () => await BookRepository.GetByIsbnAsync(null!, DefaultLibrary.Id, TestContext.Current.CancellationToken);
 
         // Assert
         await action.Should().ThrowAsync<ArgumentException>()
@@ -322,7 +322,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsEmpty()
     {
         // Act
-        var action = async () => await BookRepository.GetByIsbnAsync(string.Empty, DefaultLibrary.Id);
+        var action = async () => await BookRepository.GetByIsbnAsync(string.Empty, DefaultLibrary.Id, TestContext.Current.CancellationToken);
 
         // Assert
         await action.Should().ThrowAsync<ArgumentException>()
@@ -333,7 +333,7 @@ public sealed class BookRepositoryTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetByIsbnAsync_ShouldThrowArgumentException_WhenIsbnIsWhitespace()
     {
         // Act
-        var action = async () => await BookRepository.GetByIsbnAsync("   ", DefaultLibrary.Id);
+        var action = async () => await BookRepository.GetByIsbnAsync("   ", DefaultLibrary.Id, TestContext.Current.CancellationToken);
 
         // Assert
         await action.Should().ThrowAsync<ArgumentException>()

@@ -157,7 +157,7 @@ public sealed class BedethequeServiceTests : IDisposable
 
     private static string SerpApiJson(params string[] links)
     {
-        var items = string.Join(",", links.Select(l => $$"""{"link":"{{l}}"}"""));
+        var items = string.Join(',', links.Select(l => $$"""{"link":"{{l}}"}"""));
         return $$"""{"organic_results":[{{items}}]}""";
     }
 

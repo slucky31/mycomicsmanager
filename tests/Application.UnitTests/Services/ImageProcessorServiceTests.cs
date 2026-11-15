@@ -48,7 +48,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         using var bitmap = new SKBitmap(width, height);
         bitmap.Erase(color ?? SKColors.Black);
         using var data = bitmap.Encode(format, 90);
-        await File.WriteAllBytesAsync(path, data.ToArray());
+        await File.WriteAllBytesAsync(path, data.ToArray(), TestContext.Current.CancellationToken);
     }
 
     [StructLayout(LayoutKind.Auto)]
@@ -257,7 +257,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         await Service.ProcessImagesAsync(sourceDir, destDir, targetWidth: 140, onProgressAsync: null, TestContext.Current.CancellationToken);
 
         // Assert
-        var files = Directory.GetFiles(destDir, "*.webp").Select(Path.GetFileName).OrderBy(f => f).ToList();
+        var files = Directory.GetFiles(destDir, "*.webp").Select(Path.GetFileName).Order().ToList();
         files.Should().BeEquivalentTo("page-001.webp", "page-002.webp", "page-003.webp");
     }
 
@@ -575,7 +575,7 @@ public sealed class ImageProcessorServiceTests : IDisposable
         var destDir = CreateSourceDir("dest");
         await SaveAsync(Path.Combine(sourceDir, "page-001.jpg"), width, height, SKEncodedImageFormat.Jpeg, new SKColor(10, 120, 200));
         var expectedWidth = width > height ? 2800 : 1400;
-        var expectedHeight = (int)Math.Round((double)height * expectedWidth / width);
+        var expectedHeight = (int)Math.Round((double)height * expectedWidth / width, MidpointRounding.ToEven);
 
         // Act
         var result = await Service.ProcessImagesAsync(sourceDir, destDir, 1400, null, TestContext.Current.CancellationToken);
