@@ -1,0 +1,12 @@
+{
+  "stryker-config": {
+    "test-runner": "mtp",
+    "reporters": [ "progress", "html", "json", "markdown" ],
+    "mutate": [ "!**/Migrations/**/*.cs" ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 50
+    }
+  }
+}

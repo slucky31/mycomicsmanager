@@ -372,3 +372,6 @@ Web/wwwroot/temp/
 
 # Coverage reports
 coverage-report/
+
+# Stryker.NET mutation reports
+StrykerOutput/
