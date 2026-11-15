@@ -1,0 +1,5 @@
+# Findings of Betterleaks to ignore, one fingerprint per line: <commit>:<file>:<rule>:<line>.
+# Add one only for a false positive, with a comment that says why.
+
+# Fake GitHub token added on purpose to check that the Secret Scan job fails (PR #1320).
+2bc24f48c1ae3d9d67f7e9a8316205651995ede4:secret-scan-test.txt:github-pat:2

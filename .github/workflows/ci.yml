@@ -159,7 +159,9 @@ jobs:
       # Pinned by commit SHA, never by tag: tags of this action were hijacked in a 2026
       # supply-chain incident. The Trivy version is pinned too.
       # Unfixed CVEs are left out: no update could clear them, they would block every PR.
-      - name: Scan the image for vulnerabilities
+      # First the SARIF report for the Security tab, then the same scan as a table in the log,
+      # which is the step that fails the job.
+      - name: Scan the image for vulnerabilities (SARIF)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           version: v0.76.2
@@ -167,13 +169,21 @@ jobs:
           image-ref: mycomicsmanager-web:ci
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          exit-code: '1'
           format: sarif
           output: trivy-results.sarif
           limit-severities-for-sarif: true
       - name: Upload the Trivy results to the Security tab
-        if: ${{ !cancelled() && hashFiles('trivy-results.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: trivy-results.sarif
           category: trivy
+      - name: Fail on a fixable HIGH or CRITICAL vulnerability
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          skip-setup-trivy: true
+          scan-type: image
+          image-ref: mycomicsmanager-web:ci
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          format: table
