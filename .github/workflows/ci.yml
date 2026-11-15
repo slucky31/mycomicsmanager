@@ -104,7 +104,7 @@ jobs:
           pipx run --spec diff-cover==11.0.0 diff-cover "${reports[@]}" \
             --compare-branch=origin/main --fail-under=80 \
             --exclude '*.razor' '*.razor.cs' \
-            --markdown-report "$RUNNER_TEMP/diff-cover.md"
+            --format "markdown:$RUNNER_TEMP/diff-cover.md"
       - name: Publish the coverage of the changed lines
         if: ${{ !cancelled() }}
         run: |
