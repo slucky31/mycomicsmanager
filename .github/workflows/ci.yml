@@ -64,6 +64,11 @@ jobs:
       - name: Read project version
         id: version
         run: echo "version=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props)" >> "$GITHUB_OUTPUT"
+      # Same build as `dotnet build -c Release -warnaserror` in local: any warning fails the build.
+      # It runs before the SonarScanner, whose analysis build forces TreatWarningsAsErrors=false
+      # and adds the rules of the SonarCloud quality profile, left to its quality gate.
+      - name: Build (warnings as errors)
+        run: dotnet build --configuration Release --no-restore -warnaserror
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -74,10 +79,8 @@ jobs:
           /v:"${{ steps.version.outputs.version }}"
           /d:sonar.cs.cobertura.reportsPaths="**/*.cobertura.xml"
           /d:sonar.coverage.exclusions="**/wwwroot/js/**"
-      # -warnaserror is an MSBuild switch: it still fails the build on a warning even though
-      # the SonarScanner targets force TreatWarningsAsErrors=false during the analysis build.
       - name: Build
-        run: dotnet build --configuration Release --no-restore -warnaserror
+        run: dotnet build --configuration Release --no-restore --no-incremental
       # Checked over TCP: while initializing, the image runs a temporary server on the Unix
       # socket only, which reports ready before the restart. The log shows why on a timeout.
       - name: Wait for PostgreSQL
