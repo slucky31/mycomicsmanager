@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.77.0"></a>
+## [10.77.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.77.0) (2026-11-15)
+
+### ✨ Features
+
+* **quality:** run Roslyn analyzers on every project ([#1315](https://www.github.com/slucky31/mycomicsmanager/issues/1315)) ([5fafeb2](https://www.github.com/slucky31/mycomicsmanager/commit/5fafeb29ecc3830c762a40427c299531907469cf))
+
 <a name="10.76.6"></a>
 ## [10.76.6](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.76.6) (2026-11-15)
 
