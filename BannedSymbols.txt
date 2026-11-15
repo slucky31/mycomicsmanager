@@ -1,0 +1,4 @@
+M:System.Convert.ToByte(System.String,System.Int32);Parse with byte.TryParse and NumberStyles.HexNumber, falling back to a safe default
+M:System.Convert.ToInt16(System.String,System.Int32);Parse with short.TryParse and NumberStyles.HexNumber, falling back to a safe default
+M:System.Convert.ToInt32(System.String,System.Int32);Parse with int.TryParse and NumberStyles.HexNumber, falling back to a safe default
+M:System.Convert.ToInt64(System.String,System.Int32);Parse with long.TryParse and NumberStyles.HexNumber, falling back to a safe default
