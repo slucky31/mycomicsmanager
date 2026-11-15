@@ -13,6 +13,11 @@
          (ca, de, es, fr, zh, ...) that NuGet dependencies ship for every culture, so they don't
          get published into the Docker image. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Report every known vulnerability (NU1901 to NU1904) at restore, direct and transitive
+         packages alike. The CI builds with -warnaserror, so a vulnerable package fails the PR. -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
   </PropertyGroup>
   <ItemGroup>
     <!-- APIs banned by the coding rules of CLAUDE.md (RS0030, Microsoft.CodeAnalysis.BannedApiAnalyzers). -->
