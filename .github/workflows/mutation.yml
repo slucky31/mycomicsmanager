@@ -9,7 +9,6 @@ name: Mutation Testing
 on:
   schedule:
     - cron: '0 2 * * 1' # Mondays, 02:00 UTC (03:00 or 04:00 in Paris)
-  pull_request: # TEMPORARY, to be reverted
   workflow_dispatch:
     inputs:
       since:
