@@ -35,8 +35,9 @@ jobs:
             tests: tests/Domain.UnitTests
           - project: Application
             tests: tests/Application.UnitTests
+          # The Persistence services (images, OCR, PDF, ComicInfo) are tested in Application.UnitTests.
           - project: Persistence
-            tests: tests/Persistence.Integration.Tests
+            tests: tests/Persistence.Integration.Tests tests/Application.UnitTests
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -51,7 +52,8 @@ jobs:
           PROJECT: ${{ matrix.project }}
           TESTS: ${{ matrix.tests }}
         run: |
-          if [ "$EVENT" != "schedule" ] || [ -n "$(git log --since='7 days ago' --format=%H -- "$PROJECT" "$TESTS")" ]; then
+          read -ra tests <<< "$TESTS"
+          if [ "$EVENT" != "schedule" ] || [ -n "$(git log --since='7 days ago' --format=%H -- "$PROJECT" "${tests[@]}")" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "No change in $PROJECT or $TESTS in the last 7 days: nothing to mutate."
@@ -80,13 +82,20 @@ jobs:
       # The break threshold of stryker-config.json (50 %) fails the job below that score.
       - name: Run Stryker
         if: ${{ steps.changes.outputs.run == 'true' }}
-        working-directory: ${{ matrix.tests }}
         env:
           ConnectionStrings__NeonConnectionUnitTests: Host=localhost;Port=5432;Database=mcm_tests;Username=postgres
           SINCE: ${{ inputs.since }}
           PROJECT: ${{ matrix.project }}
+          TESTS: ${{ matrix.tests }}
+        # Stryker runs from the first test folder: started from the repository root, it exits silently.
         run: |
-          args=(--config-file "$GITHUB_WORKSPACE/stryker-config.json" --project "$PROJECT.csproj")
+          read -ra tests <<< "$TESTS"
+          cd "${tests[0]}"
+          args=(--config-file "$GITHUB_WORKSPACE/stryker-config.json" --project "$PROJECT.csproj"
+            --output "$GITHUB_WORKSPACE/StrykerOutput/$PROJECT")
+          for dir in "${tests[@]}"; do
+            args+=(--test-project "$(find "$GITHUB_WORKSPACE/$dir" -maxdepth 1 -name '*.csproj' | head -n 1)")
+          done
           if [ -n "$SINCE" ]; then
             git fetch --no-tags origin "$SINCE"
             args+=("--since:origin/$SINCE")
@@ -94,15 +103,16 @@ jobs:
           dotnet stryker "${args[@]}"
       - name: Publish the summary
         if: ${{ !cancelled() && steps.changes.outputs.run == 'true' }}
-        working-directory: ${{ matrix.tests }}
+        env:
+          PROJECT: ${{ matrix.project }}
         run: |
-          report=$(find StrykerOutput -name 'mutation-report.md' 2>/dev/null | head -n 1)
+          report=$(find "StrykerOutput/$PROJECT" -name 'mutation-report.md' 2>/dev/null | head -n 1)
           if [ -n "$report" ]; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
       - name: Upload the HTML report
         if: ${{ !cancelled() && steps.changes.outputs.run == 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: mutation-report-${{ matrix.project }}
-          path: ${{ matrix.tests }}/StrykerOutput/**/reports/
+          path: StrykerOutput/${{ matrix.project }}/reports/
           if-no-files-found: ignore
           retention-days: 14
