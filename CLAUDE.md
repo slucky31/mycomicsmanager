@@ -31,6 +31,8 @@ npx jscpd@5.4.2 .                              # Duplication, settings in .jscpd
 # Mutation testing (Stryker.NET, run from the test project; the Persistence tests need PostgreSQL)
 dotnet tool restore
 cd tests/Domain.UnitTests && dotnet stryker --config-file ../../stryker-config.json --project Domain.csproj [--since:origin/main]
+# Run it from the test folder (from the repository root it exits silently). The Persistence services are tested in Application.UnitTests:
+cd tests/Persistence.Integration.Tests && dotnet stryker --config-file ../../stryker-config.json --project Persistence.csproj --test-project Persistence.Tests.csproj --test-project ../Application.UnitTests/Application.UnitTests.csproj
 
 # Database migrations
 dotnet ef migrations add MigrationName --project Persistence
