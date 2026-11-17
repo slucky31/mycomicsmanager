@@ -1,0 +1,118 @@
+name: Mutation Testing
+
+# Stryker.NET mutates the code of Domain, Application and Persistence and checks that the tests
+# catch each mutant. Too slow for every PR: it runs every week on main, only for the projects
+# whose code or tests changed during the week, and on demand on any branch
+# (Actions > Mutation Testing > Run workflow).
+# The MTP test runner is required: with the default VSTest runner, no test runs and every
+# mutant survives, since the solution runs its tests on Microsoft.Testing.Platform.
+on:
+  schedule:
+    - cron: '0 2 * * 1' # Mondays, 02:00 UTC (03:00 or 04:00 in Paris)
+  workflow_dispatch:
+    inputs:
+      since:
+        description: 'Only mutate the code changed since this branch (e.g. main). Empty: everything.'
+        required: false
+        default: ''
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stryker:
+    name: Stryker (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: Domain
+            tests: tests/Domain.UnitTests
+          - project: Application
+            tests: tests/Application.UnitTests
+          # The Persistence services (images, OCR, PDF, ComicInfo) are tested in Application.UnitTests.
+          - project: Persistence
+            tests: tests/Persistence.Integration.Tests tests/Application.UnitTests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # --since compares with another branch, and the weekly run reads the log
+      # The weekly run skips a project whose code and tests did not change in the last 7 days.
+      # A run started by hand always goes on.
+      - name: Look for changes in the last 7 days
+        id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+          PROJECT: ${{ matrix.project }}
+          TESTS: ${{ matrix.tests }}
+        run: |
+          read -ra tests <<< "$TESTS"
+          if [ "$EVENT" != "schedule" ] || [ -n "$(git log --since='7 days ago' --format=%H -- "$PROJECT" "${tests[@]}")" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No change in $PROJECT or $TESTS in the last 7 days: nothing to mutate."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      # Only the Persistence tests need a database, as in the CI workflow.
+      - name: Start PostgreSQL
+        if: ${{ steps.changes.outputs.run == 'true' && matrix.project == 'Persistence' }}
+        run: >
+          nohup docker run --rm --name postgres -p 5432:5432
+          -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=mcm_tests
+          postgres:18 > "$RUNNER_TEMP/postgres.log" 2>&1 &
+      - name: Setup .NET Core
+        if: ${{ steps.changes.outputs.run == 'true' }}
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore the tools
+        if: ${{ steps.changes.outputs.run == 'true' }}
+        run: dotnet tool restore
+      - name: Wait for PostgreSQL
+        if: ${{ steps.changes.outputs.run == 'true' && matrix.project == 'Persistence' }}
+        run: |
+          timeout 120 bash -c 'until docker exec postgres pg_isready -h 127.0.0.1 -U postgres -q 2>/dev/null; do sleep 1; done' \
+            || { cat "$RUNNER_TEMP/postgres.log"; exit 1; }
+      # The break threshold of stryker-config.json (80 %, like the coverage target) fails the job below that score.
+      - name: Run Stryker
+        if: ${{ steps.changes.outputs.run == 'true' }}
+        env:
+          ConnectionStrings__NeonConnectionUnitTests: Host=localhost;Port=5432;Database=mcm_tests;Username=postgres
+          SINCE: ${{ inputs.since }}
+          PROJECT: ${{ matrix.project }}
+          TESTS: ${{ matrix.tests }}
+        # Stryker runs from the first test folder: started from the repository root, it exits silently.
+        run: |
+          read -ra tests <<< "$TESTS"
+          cd "${tests[0]}"
+          args=(--config-file "$GITHUB_WORKSPACE/stryker-config.json" --project "$PROJECT.csproj"
+            --output "$GITHUB_WORKSPACE/StrykerOutput/$PROJECT")
+          for dir in "${tests[@]}"; do
+            args+=(--test-project "$(find "$GITHUB_WORKSPACE/$dir" -maxdepth 1 -name '*.csproj' | head -n 1)")
+          done
+          if [ -n "$SINCE" ]; then
+            git fetch --no-tags origin "$SINCE"
+            args+=("--since:origin/$SINCE")
+          fi
+          dotnet stryker "${args[@]}"
+      - name: Publish the summary
+        if: ${{ !cancelled() && steps.changes.outputs.run == 'true' }}
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: |
+          report=$(find "StrykerOutput/$PROJECT" -name 'mutation-report.md' 2>/dev/null | head -n 1)
+          if [ -n "$report" ]; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Upload the HTML report
+        if: ${{ !cancelled() && steps.changes.outputs.run == 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-report-${{ matrix.project }}
+          path: StrykerOutput/${{ matrix.project }}/reports/
+          if-no-files-found: ignore
+          retention-days: 14

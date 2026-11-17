@@ -1,0 +1,8 @@
+{
+  "format": ["csharp"],
+  "minTokens": 70,
+  "threshold": 3,
+  "ignore": ["**/obj/**", "**/bin/**", "**/Migrations/**", "tests/**", "**/node_modules/**"],
+  "reporters": ["console"],
+  "silent": true
+}

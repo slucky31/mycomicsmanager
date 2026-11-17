@@ -22,6 +22,18 @@ dotnet test MyComicsManager.slnx --collect:"XPlat Code Coverage"
 dotnet format --verify-no-changes            # Check compliance
 dotnet format                                 # Auto-fix
 
+# Quality checks (same as the CI)
+dotnet test MyComicsManager.slnx --coverage --coverage-output-format cobertura --results-directory test-results
+pipx run --spec diff-cover==11.0.0 diff-cover $(find test-results tests -name '*.cobertura.xml' -not -path '*/obj/*') \
+  --compare-branch=origin/main --fail-under=80 --exclude '*.razor' '*.razor.cs'   # Coverage of the changed lines
+npx jscpd@5.4.2 .                              # Duplication, settings in .jscpd.json (fails above 3 %)
+
+# Mutation testing (Stryker.NET, run from the test project; the Persistence tests need PostgreSQL)
+dotnet tool restore
+cd tests/Domain.UnitTests && dotnet stryker --config-file ../../stryker-config.json --project Domain.csproj [--since:origin/main]
+# Run it from the test folder (from the repository root it exits silently). The Persistence services are tested in Application.UnitTests:
+cd tests/Persistence.Integration.Tests && dotnet stryker --config-file ../../stryker-config.json --project Persistence.csproj --test-project Persistence.Tests.csproj --test-project ../Application.UnitTests/Application.UnitTests.csproj
+
 # Database migrations
 dotnet ef migrations add MigrationName --project Persistence
 dotnet ef database update --project Persistence

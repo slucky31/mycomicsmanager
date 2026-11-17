@@ -1,0 +1,18 @@
+{
+  "stryker-config": {
+    "test-runner": "mtp",
+    "reporters": [ "progress", "html", "json", "markdown" ],
+    "mutate": [
+      "!**/Migrations/**/*.cs",
+      "!**/*Error.cs",
+      "!**/ApplicationDependencyInjection.cs",
+      "!**/ApplicationDbContextFactory.cs"
+    ],
+    "ignore-methods": [ "Log*" ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 80
+    }
+  }
+}

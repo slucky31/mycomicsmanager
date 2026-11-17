@@ -95,6 +95,20 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: dotnet-sonarscanner end
+      # Same rule as SonarCloud, on this runner: at least 80 % of the changed lines are covered,
+      # UI code (Razor components and their code-behind) excepted, as CLAUDE.md says. After the
+      # SonarCloud analysis, so that a failure here still leaves its report.
+      - name: Coverage of the changed lines
+        run: |
+          mapfile -t reports < <(find test-results tests -name '*.cobertura.xml' -not -path '*/obj/*' 2>/dev/null | sort -u)
+          pipx run --spec diff-cover==11.0.0 diff-cover "${reports[@]}" \
+            --compare-branch=origin/main --fail-under=80 \
+            --exclude '*.razor' '*.razor.cs' \
+            --format "markdown:$RUNNER_TEMP/diff-cover.md"
+      - name: Publish the coverage of the changed lines
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -f "$RUNNER_TEMP/diff-cover.md" ]; then cat "$RUNNER_TEMP/diff-cover.md" >> "$GITHUB_STEP_SUMMARY"; fi
 
   # Runs alongside the build job instead of after it: it only checks that the image still
   # builds and pushes no image (hence no registry login).
