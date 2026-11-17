@@ -79,7 +79,7 @@ jobs:
         run: |
           timeout 120 bash -c 'until docker exec postgres pg_isready -h 127.0.0.1 -U postgres -q 2>/dev/null; do sleep 1; done' \
             || { cat "$RUNNER_TEMP/postgres.log"; exit 1; }
-      # The break threshold of stryker-config.json (50 %) fails the job below that score.
+      # The break threshold of stryker-config.json (80 %, like the coverage target) fails the job below that score.
       - name: Run Stryker
         if: ${{ steps.changes.outputs.run == 'true' }}
         env:
