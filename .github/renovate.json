@@ -22,7 +22,7 @@
       "groupName": "NuGet (autres)"
     },
     {
-      "description": ".NET, ASP.NET Core, EF Core, Npgsql et images Docker dotnet",
+      "description": ".NET, ASP.NET Core (dont Mvc.Testing, lié à la version du runtime), EF Core, Npgsql et images Docker dotnet",
       "matchUpdateTypes": ["minor", "patch"],
       "matchPackageNames": [
         "Microsoft.*",
@@ -55,7 +55,6 @@
         "NetArchTest.Rules",
         "Microsoft.NET.Test.Sdk",
         "Microsoft.Testing.*",
-        "Microsoft.AspNetCore.Mvc.Testing",
         "SonarAnalyzer.CSharp"
       ],
       "groupName": "Tests et analyseurs"
