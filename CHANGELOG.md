@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.80.2"></a>
+## [10.80.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.80.2) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* **deps:** update .net et ef core to 10.0.15 ([#1323](https://www.github.com/slucky31/mycomicsmanager/issues/1323)) ([8827ef4](https://www.github.com/slucky31/mycomicsmanager/commit/8827ef4c9f49a7963e3f6f0583dc35e2a23a34a4))
+
 <a name="10.80.1"></a>
 ## [10.80.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.80.1) (2026-11-18)
 
