@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.82.3"></a>
+## [10.82.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.82.3) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* **quality:** clear the 47 remaining SonarCloud code smells ([#1333](https://www.github.com/slucky31/mycomicsmanager/issues/1333)) ([#1336](https://www.github.com/slucky31/mycomicsmanager/issues/1336)) ([6fd9e6f](https://www.github.com/slucky31/mycomicsmanager/commit/6fd9e6f07be8e08b6aa3c1decb2c37a364dad18d))
+
 <a name="10.82.2"></a>
 ## [10.82.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.82.2) (2026-11-21)
 
