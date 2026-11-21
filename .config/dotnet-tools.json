@@ -8,6 +8,13 @@
         "dotnet-stryker"
       ],
       "rollForward": false
+    },
+    "powershell": {
+      "version": "7.6.10",
+      "commands": [
+        "pwsh"
+      ],
+      "rollForward": false
     }
   }
 }

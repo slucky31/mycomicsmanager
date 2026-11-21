@@ -56,6 +56,7 @@ Uses `Result<T>` pattern from `Domain/Primitives/` instead of exceptions for kno
 - Prefer `var` when the type is clear, keep `using` directives sorted, and embrace object or collection initializers when analyzers suggest them.
 - Follow standard .NET naming (PascalCase for types and constants, camelCase for locals and private fields).
 - Run `dotnet format --verify-no-changes` before committing; run `dotnet format` to auto-fix stylistic nits.
+- Before declaring a task done or pushing, run `dotnet tool restore` once, then `dotnet tool run pwsh scripts/verify.ps1` (`-Fast` for the build, unit tests and changed-lines coverage; `-Mutation` adds Stryker). It must exit 0. The Claude Code Stop hook (`.claude/settings.json`) runs `-Fast` on its own whenever C# files changed.
 
 ## Testing Guidelines
 
