@@ -168,7 +168,7 @@ public sealed class LogLevelSwitches
 
     private static Node? FindParent(string name, Dictionary<string, Node> nodes)
     {
-        for (var dot = name.LastIndexOf('.'); dot > 0; dot = name.LastIndexOf('.', dot - 1))
+        for (var dot = name.LastIndexOf('.', StringComparison.Ordinal); dot > 0; dot = name.LastIndexOf('.', dot - 1, StringComparison.Ordinal))
         {
             if (nodes.TryGetValue(name[..dot], out var parent))
             {
@@ -183,7 +183,7 @@ public sealed class LogLevelSwitches
     private static IEnumerable<string> WithParentNamespaces(string name)
     {
         yield return name;
-        for (var dot = name.LastIndexOf('.'); dot > 0; dot = name.LastIndexOf('.', dot - 1))
+        for (var dot = name.LastIndexOf('.', StringComparison.Ordinal); dot > 0; dot = name.LastIndexOf('.', dot - 1, StringComparison.Ordinal))
         {
             yield return name[..dot];
         }

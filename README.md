@@ -2,10 +2,10 @@
 
 [![.NET Core Build](https://github.com/slucky31/mycomicsmanager/actions/workflows/dotnet-core-build.yml/badge.svg)](https://github.com/slucky31/mycomicsmanager/actions/workflows/dotnet-core-build.yml)
 
-[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-11.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![Blazor](https://img.shields.io/badge/Blazor-Server-512BD4?logo=blazor)](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor)
 [![MudBlazor](https://img.shields.io/badge/MudBlazor-9.0.0-594AE2?logo=blazor)](https://mudblazor.com/)
-[![Entity Framework Core](https://img.shields.io/badge/EF_Core-10.0.3-512BD4?logo=dotnet)](https://docs.microsoft.com/ef/core/)
+[![Entity Framework Core](https://img.shields.io/badge/EF_Core-11.0.0-512BD4?logo=dotnet)](https://docs.microsoft.com/ef/core/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Self--hosted-4169E1?logo=postgresql)](https://www.postgresql.org/)
 [![Auth0](https://img.shields.io/badge/Auth0-1.6.1-EB5424?logo=auth0)](https://auth0.com/)
 [![Serilog](https://img.shields.io/badge/Serilog-10.0.0-0099A0?logo=serilog)](https://serilog.net/)
@@ -41,10 +41,10 @@ Les règles d'architecture sont vérifiées automatiquement via `tests/Architect
 
 | Technologie | Version | Rôle |
 |---|---|---|
-| [.NET](https://dotnet.microsoft.com/) | 10.0 | Framework principal |
-| [Blazor Server](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor) | 10.0 | Interface utilisateur |
+| [.NET](https://dotnet.microsoft.com/) | 11.0 | Framework principal |
+| [Blazor Server](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor) | 11.0 | Interface utilisateur |
 | [MudBlazor](https://mudblazor.com/) | 9.0.0 | Composants UI Material Design |
-| [Entity Framework Core](https://docs.microsoft.com/ef/core/) | 10.0.3 | ORM / accès aux données |
+| [Entity Framework Core](https://docs.microsoft.com/ef/core/) | 11.0.0 | ORM / accès aux données |
 | [PostgreSQL](https://www.postgresql.org/) | — | Base de données (auto-hébergée) |
 | [Auth0](https://auth0.com/) | 1.6.1 | Authentification |
 | [Serilog](https://serilog.net/) | 10.0.0 | Journalisation structurée |
@@ -71,7 +71,7 @@ Les règles d'architecture sont vérifiées automatiquement via `tests/Architect
 
 ### Prérequis
 
-- [.NET SDK 10.0](https://dotnet.microsoft.com/download)
+- [.NET SDK 11.0](https://dotnet.microsoft.com/download)
 - [Docker](https://www.docker.com/) (optionnel)
 - Une base de données [PostgreSQL](https://www.postgresql.org/) (auto-hébergée)
 - Un tenant [Auth0](https://auth0.com/)

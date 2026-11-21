@@ -249,7 +249,7 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     // and legacy plain GUID format for backward compatibility.
     private static bool TryExtractLibraryId(string directoryName, out Guid libraryId)
     {
-        var lastUnderscore = directoryName.LastIndexOf('_');
+        var lastUnderscore = directoryName.LastIndexOf('_', StringComparison.Ordinal);
         if (lastUnderscore >= 0 && Guid.TryParse(directoryName[(lastUnderscore + 1)..], out libraryId))
         {
             return true;

@@ -54,7 +54,15 @@ public partial class BookActionsSheet : IAsyncDisposable
     private async Task DownloadAsync()
     {
         await OnClose.InvokeAsync();
-        await JS.InvokeVoidAsync("open", $"/api/books/{Book.Id}/download", "_blank");
+        try
+        {
+            await JS.InvokeVoidAsync("open", $"/api/books/{Book.Id}/download", "_blank");
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException)
+        {
+            Snackbar.Add("Unable to start the download", Severity.Error);
+            Logger.LogError(ex, "Unable to start the download of book {BookId}", Book.Id);
+        }
     }
 
     internal async Task MoveAsync()

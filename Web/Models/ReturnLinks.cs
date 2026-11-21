@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 
 namespace Web.Models;
 
@@ -21,7 +22,9 @@ public static class ReturnLinks
 
         var queryStart = from.IndexOf('?', StringComparison.Ordinal);
         var path = queryStart < 0 ? from : from[..queryStart];
-        var query = queryStart < 0 ? [] : QueryHelpers.ParseQuery(from[queryStart..]);
+        var query = queryStart < 0
+            ? new Dictionary<string, StringValues>(StringComparer.OrdinalIgnoreCase)
+            : QueryHelpers.ParseQuery(from[queryStart..]);
         string? Query(string name) => query.TryGetValue(name, out var value) ? value.ToString() : null;
 
         return path.Split('/', StringSplitOptions.RemoveEmptyEntries) switch

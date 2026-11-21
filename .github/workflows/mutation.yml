@@ -70,7 +70,10 @@ jobs:
         if: ${{ steps.changes.outputs.run == 'true' }}
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          # Stryker and pwsh only ship for net10.0: the 10 runtime runs them, the 11 SDK builds MCM.
+          dotnet-version: |
+            10.0.x
+            11.0.x
       - name: Restore the tools
         if: ${{ steps.changes.outputs.run == 'true' }}
         run: dotnet tool restore

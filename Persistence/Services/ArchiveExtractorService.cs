@@ -117,7 +117,7 @@ public class ArchiveExtractorService(ILogger<ArchiveExtractorService> logger) : 
     {
         var entryName = Path.GetFileName(entry.Key ?? string.Empty);
         return !string.IsNullOrEmpty(entryName)
-            && !entryName.StartsWith('.')
+            && !entryName.StartsWith('.', StringComparison.Ordinal)
             && extensions.Contains(Path.GetExtension(entryName));
     }
 

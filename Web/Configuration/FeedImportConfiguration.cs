@@ -132,7 +132,7 @@ public static class FeedImportConfiguration
     private static Uri WithTrailingSlash(Uri uri)
     {
         var builder = new UriBuilder(uri);
-        if (!builder.Path.EndsWith('/'))
+        if (!builder.Path.EndsWith('/', StringComparison.Ordinal))
         {
             builder.Path += '/';
         }

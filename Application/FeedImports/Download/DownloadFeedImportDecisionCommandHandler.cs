@@ -32,13 +32,13 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
     public const string TargetLibraryIcon = "CollectionsBookmark";
 
     // These failures would be the same on every mirror: trying the next one would only burn the quota.
-    private static readonly HashSet<string> s_stopCodes =
-    [
+    private static readonly HashSet<string> s_stopCodes = new(StringComparer.Ordinal)
+    {
         FeedImportError.DebridLinkUnauthorized.Code,
         FeedImportError.DebridLinkQuotaReached.Code,
         FeedImportError.FileTooLarge.Code,
         FeedImportError.UnsupportedFileType.Code
-    ];
+    };
 
     public async Task<Result> Handle(DownloadFeedImportDecisionCommand command, CancellationToken cancellationToken)
     {

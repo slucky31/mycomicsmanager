@@ -85,7 +85,7 @@ public class ImageProcessorService(ILogger<ImageProcessorService> logger) : IIma
 
     private static List<string> GetSortedImageFiles(string sourceDirectory) =>
         Directory.GetFiles(sourceDirectory)
-            .Where(f => !Path.GetFileName(f).StartsWith('.') &&
+            .Where(f => !Path.GetFileName(f).StartsWith('.', StringComparison.Ordinal) &&
                         s_inputExtensions.Contains(Path.GetExtension(f)))
             .Order(StringComparer.OrdinalIgnoreCase)
             .ToList();

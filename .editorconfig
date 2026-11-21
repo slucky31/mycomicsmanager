@@ -473,6 +473,10 @@ dotnet_diagnostic.IDE0290.severity = none
 # IDE0305: Collection initialization can be simplified
 dotnet_diagnostic.IDE0305.severity = none
 
+# BL0012: StateHasChanged is unnecessary (new in .NET 11; the flagged calls also serve callers that are not event
+# handlers, such as lifecycle methods, other handlers and bUnit InvokeAsync, which get no automatic render)
+dotnet_diagnostic.BL0012.severity = none
+
 ###############################
 # EF Core Migrations          #
 ###############################
@@ -520,6 +524,10 @@ dotnet_diagnostic.S4144.severity = none
 
 # S4581: Use Guid.Empty instead of default (default is the placeholder argument of NSubstitute ...WithAnyArgs())
 dotnet_diagnostic.S4581.severity = none
+
+# BL0013 / BL0016: Blazor auth state and JS interop guards (test doubles call these APIs directly on purpose)
+dotnet_diagnostic.BL0013.severity = none
+dotnet_diagnostic.BL0016.severity = none
 
 ###############################
 # Blazor Specific             #
