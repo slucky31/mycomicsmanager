@@ -28,7 +28,8 @@ public static class FeedImportAnalysisRules
         DownloadCandidate candidate,
         ParsedComicTitle parsed,
         IReadOnlyList<BookIdentityDto> books,
-        FeedImportDecidedBy decidedBy)
+        FeedImportDecidedBy decidedBy,
+        TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(decision);
         ArgumentNullException.ThrowIfNull(candidate);
@@ -37,17 +38,17 @@ public static class FeedImportAnalysisRules
         return match.Kind switch
         {
             DuplicateMatchKind.Certain => decision.MarkDuplicate(
-                [candidate], parsed, match.Book!.Id, $"Duplicate: \"{Describe(match.Book)}\" in \"{match.Book.LibraryName}\".", decidedBy),
+                [candidate], parsed, match.Book!.Id, $"Duplicate: \"{Describe(match.Book)}\" in \"{match.Book.LibraryName}\".", decidedBy, timeProvider),
             DuplicateMatchKind.Probable => decision.RequestArbitration(
                 FeedImportArbitrationKind.ProbableDuplicate, [candidate], parsed, match.Book!.Id,
-                $"Probable duplicate: \"{Describe(match.Book)}\" in \"{match.Book.LibraryName}\".", decidedBy),
-            _ => decision.RecordLinks([candidate], parsed, DescribeLinks(candidate), decidedBy)
+                $"Probable duplicate: \"{Describe(match.Book)}\" in \"{match.Book.LibraryName}\".", decidedBy, timeProvider),
+            _ => decision.RecordLinks([candidate], parsed, DescribeLinks(candidate), decidedBy, timeProvider)
         };
     }
 
     // A decision reopened by the user (retry, correction): same rules as the automatic analysis, on the stored links.
     // Without any link the decision stays Pending and the next sync analyzes the article again.
-    public static Result Reapply(FeedImportDecision decision, IReadOnlyList<BookIdentityDto> books, FeedImportDecidedBy decidedBy)
+    public static Result Reapply(FeedImportDecision decision, IReadOnlyList<BookIdentityDto> books, FeedImportDecidedBy decidedBy, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(decision);
 
@@ -61,10 +62,10 @@ public static class FeedImportAnalysisRules
         {
             return decision.RequestArbitration(
                 FeedImportArbitrationKind.AmbiguousLinks, candidates, StoredParsed(decision, candidates[0]), matchedBookId: null,
-                "Several files: choose the right link.", decidedBy);
+                "Several files: choose the right link.", decidedBy, timeProvider);
         }
 
-        return ApplyDuplicateCheck(decision, candidates[0], StoredParsed(decision, candidates[0]), books, decidedBy);
+        return ApplyDuplicateCheck(decision, candidates[0], StoredParsed(decision, candidates[0]), books, decidedBy, timeProvider);
     }
 
     // Keeps the user's corrections; parses the file again only when nothing was stored.

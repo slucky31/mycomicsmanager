@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
 
-public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
+public class UnitOfWork(ApplicationDbContext dbContext, TimeProvider timeProvider) : IUnitOfWork
 {
     public async Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken)
     {
@@ -35,12 +35,12 @@ public class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Property(p => p.CreatedOnUtc).CurrentValue = DateTime.UtcNow;
+                entry.Property(p => p.CreatedOnUtc).CurrentValue = timeProvider.GetUtcNow().UtcDateTime;
             }
 
             if (entry.State == EntityState.Modified)
             {
-                entry.Property(p => p.ModifiedOnUtc).CurrentValue = DateTime.UtcNow;
+                entry.Property(p => p.ModifiedOnUtc).CurrentValue = timeProvider.GetUtcNow().UtcDateTime;
             }
         }
     }

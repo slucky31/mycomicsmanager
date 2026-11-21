@@ -1,3 +1,4 @@
+using Domain.Primitives;
 using System.Globalization;
 using Domain.FeedImports;
 
@@ -82,9 +83,10 @@ public sealed record FeedImportDecisionViewModel(
 
     // isPartOfMultiBookArticle: the article was split into several books, so the first one is labelled too.
     // importLibraryId: library the downloads are deposited in, preselected on the Import page.
-    public static FeedImportDecisionViewModel From(FeedImportDecision decision, bool isPartOfMultiBookArticle = false, Guid? importLibraryId = null)
+    public static FeedImportDecisionViewModel From(FeedImportDecision decision, bool isPartOfMultiBookArticle = false, Guid? importLibraryId = null, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(decision);
+        var utcNow = Clock.UtcNow(timeProvider);
 
         return new(
             Id: decision.Id,
@@ -121,13 +123,13 @@ public sealed record FeedImportDecisionViewModel(
             ImportPageUrl: GetImportPageUrl(decision.Status, importLibraryId),
             Actions: new FeedImportDecisionActions(
                 decision.CanForceDownload,
-                decision.CanRetry(DateTime.UtcNow),
+                decision.CanRetry(utcNow),
                 decision.CanCorrect,
                 decision.CanIgnore,
                 decision.ParsedSerie,
                 decision.ParsedTitle,
                 decision.ParsedVolume),
-            CanDelete: decision.CanDelete(DateTime.UtcNow),
+            CanDelete: decision.CanDelete(utcNow),
             HostDisplay: GetHostDisplay(decision));
     }
 

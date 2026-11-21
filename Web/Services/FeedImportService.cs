@@ -26,7 +26,8 @@ public class FeedImportService(
     IBackgroundJobClient backgroundJobClient,
     IFeatureToggles featureToggles,
     IOptions<DebridLinkSettings> debridLinkSettings,
-    ILogger<FeedImportService> logger) : IFeedImportService
+    ILogger<FeedImportService> logger,
+    TimeProvider timeProvider) : IFeedImportService
 {
     public bool IsSyncEnabled => featureToggles.IsEnabled(FeatureToggle.FeedImport);
 
@@ -63,7 +64,7 @@ public class FeedImportService(
         }
 
         var items = decisions
-            .Select(d => FeedImportDecisionViewModel.From(d, decisionPage.MultiBookEntryIds.Contains(d.MinifluxEntryId), importLibraryId))
+            .Select(d => FeedImportDecisionViewModel.From(d, decisionPage.MultiBookEntryIds.Contains(d.MinifluxEntryId), importLibraryId, timeProvider))
             .ToList();
         return new FeedImportDecisionPageViewModel(items, decisionPage.Decisions.TotalCount);
     }

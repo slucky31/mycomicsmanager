@@ -9,7 +9,8 @@ namespace Application.Series.SetTotal;
 public sealed class SetSerieTotalCommandHandler(
     ISeriesInfoRepository seriesInfoRepository,
     IRepository<Library, Guid> libraryRepository,
-    IUnitOfWork unitOfWork) : ICommandHandler<SetSerieTotalCommand>
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider) : ICommandHandler<SetSerieTotalCommand>
 {
     public async Task<Result> Handle(SetSerieTotalCommand command, CancellationToken cancellationToken)
     {
@@ -43,7 +44,7 @@ public sealed class SetSerieTotalCommandHandler(
 
     private Result Add(SetSerieTotalCommand command)
     {
-        var created = SeriesInfo.Create(command.LibraryId, command.Name, command.TotalVolumes, command.IsFinished);
+        var created = SeriesInfo.Create(command.LibraryId, command.Name, command.TotalVolumes, command.IsFinished, timeProvider);
         if (created.IsFailure)
         {
             return created.Error!;

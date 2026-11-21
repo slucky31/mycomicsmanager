@@ -12,7 +12,8 @@ public sealed class SetFeatureToggleCommandHandler(
     IFeatureToggleOverrideRepository repository,
     IUnitOfWork unitOfWork,
     FeatureToggleDefaults defaults,
-    FeatureToggles featureToggles) : ICommandHandler<SetFeatureToggleCommand>
+    FeatureToggles featureToggles,
+    TimeProvider timeProvider) : ICommandHandler<SetFeatureToggleCommand>
 {
     public async Task<Result> Handle(SetFeatureToggleCommand command, CancellationToken cancellationToken)
     {
@@ -41,7 +42,7 @@ public sealed class SetFeatureToggleCommandHandler(
         }
         else if (existing is null)
         {
-            repository.Add(FeatureToggleOverride.Create(command.Toggle, command.Enabled));
+            repository.Add(FeatureToggleOverride.Create(command.Toggle, command.Enabled, timeProvider));
         }
         else
         {

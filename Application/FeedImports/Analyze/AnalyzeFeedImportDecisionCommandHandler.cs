@@ -20,7 +20,8 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
     IBookReadService bookReadService,
     IUnitOfWork unitOfWork,
     IOptions<FeedImportSettings> feedImportSettings,
-    ILogger<AnalyzeFeedImportDecisionCommandHandler> logger) : ICommandHandler<AnalyzeFeedImportDecisionCommand>
+    ILogger<AnalyzeFeedImportDecisionCommandHandler> logger,
+    TimeProvider timeProvider) : ICommandHandler<AnalyzeFeedImportDecisionCommand>
 {
     public const string SourceStep = "Source";
     public const string FetchStep = "Page fetch";
@@ -62,7 +63,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         var pageUri = new Uri(decision.EntryUrl);
         if (!pageUri.Host.IsSameOrSubdomainOf(settings.AllowedSourceHosts))
         {
-            return decision.Fail(SourceStep, $"{FeedImportError.SourceHostNotAllowed.Description} ({pageUri.Host})");
+            return decision.Fail(SourceStep, $"{FeedImportError.SourceHostNotAllowed.Description} ({pageUri.Host})", timeProvider);
         }
 
         // Feed links are often plain http://: the page is always fetched over HTTPS.
@@ -72,7 +73,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         {
             logger.LogWarning("Feed import: page {Url} could not be fetched: [{Code}] {Description}",
                 pageUri, htmlResult.Error!.Code, htmlResult.Error.Description);
-            return decision.Fail(FetchStep, htmlResult.Error.Description ?? FeedImportError.PageUnavailable.Description!);
+            return decision.Fail(FetchStep, htmlResult.Error.Description ?? FeedImportError.PageUnavailable.Description!, timeProvider);
         }
 
         var extractor = extractors.FirstOrDefault(e => !e.IsFallback && e.CanHandle(pageUri))
@@ -81,7 +82,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         var unsupported = GroupUnsupportedLinks(extraction, decision.EntryTitle);
         if (extraction.Links.Count == 0 && unsupported.Count == 0)
         {
-            return decision.Fail(ExtractionStep, "No link to an allowed host (FeedImport:AllowedDownloadHosts).");
+            return decision.Fail(ExtractionStep, "No link to an allowed host (FeedImport:AllowedDownloadHosts).", timeProvider);
         }
 
         var grouping = extraction.Links.Count == 0 ? null : DownloadLinkGrouper.Group(extraction.Links, decision.EntryTitle);
@@ -133,7 +134,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         var decisions = new List<FeedImportDecision> { decision };
         for (var i = 1; i < count; i++)
         {
-            var sibling = decision.CreateSibling(i);
+            var sibling = decision.CreateSibling(i, timeProvider);
             if (sibling.IsFailure)
             {
                 return sibling.Error!;
@@ -162,7 +163,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
             var parsed = ComicTitleParser.Parse(decisions[0].EntryTitle);
             return decisions[0].RequestArbitration(
                 FeedImportArbitrationKind.AmbiguousLinks, grouping.Candidates, parsed, matchedBookId: null,
-                grouping.AmbiguityReason!, FeedImportDecidedBy.Auto);
+                grouping.AmbiguityReason!, FeedImportDecidedBy.Auto, timeProvider);
         }
 
         var books = await bookReadService.ListIdentitiesByUserAsync(decisions[0].UserId, cancellationToken);
@@ -170,7 +171,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
         {
             var candidate = grouping.Candidates[i];
             var parsed = FeedImportAnalysisRules.ParseCandidate(candidate, decisions[i].EntryTitle, isOnlyBook, pageIsbn);
-            var applied = FeedImportAnalysisRules.ApplyDuplicateCheck(decisions[i], candidate, parsed, books, FeedImportDecidedBy.Auto);
+            var applied = FeedImportAnalysisRules.ApplyDuplicateCheck(decisions[i], candidate, parsed, books, FeedImportDecidedBy.Auto, timeProvider);
             if (applied.IsFailure)
             {
                 return applied;
@@ -194,7 +195,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
             var parsed = FeedImportAnalysisRules.ParseCandidate(candidate, articleTitle, isOnlyBook, pageIsbn);
             var hosts = string.Join(", ", candidate.Mirrors.Select(m => m.Host).Distinct(StringComparer.OrdinalIgnoreCase));
             var failed = decisions[i].FailWithLinks(
-                [candidate], parsed, ExtractionStep, $"{FeedImportError.DownloadHostNotSupported.Description}: {hosts}.");
+                [candidate], parsed, ExtractionStep, $"{FeedImportError.DownloadHostNotSupported.Description}: {hosts}.", timeProvider);
             if (failed.IsFailure)
             {
                 return failed;

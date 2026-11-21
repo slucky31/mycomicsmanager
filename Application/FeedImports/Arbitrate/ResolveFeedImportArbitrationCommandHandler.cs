@@ -10,7 +10,8 @@ namespace Application.FeedImports.Arbitrate;
 public sealed class ResolveFeedImportArbitrationCommandHandler(
     IFeedImportDecisionRepository decisionRepository,
     IBookReadService bookReadService,
-    IUnitOfWork unitOfWork) : ICommandHandler<ResolveFeedImportArbitrationCommand>
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider) : ICommandHandler<ResolveFeedImportArbitrationCommand>
 {
     public async Task<Result> Handle(ResolveFeedImportArbitrationCommand command, CancellationToken cancellationToken)
     {
@@ -29,8 +30,8 @@ public sealed class ResolveFeedImportArbitrationCommandHandler(
 
         var result = command.Action switch
         {
-            FeedImportArbitrationAction.NotDuplicate => decision.ConfirmNotDuplicate(),
-            FeedImportArbitrationAction.ConfirmDuplicate => decision.ConfirmDuplicate(),
+            FeedImportArbitrationAction.NotDuplicate => decision.ConfirmNotDuplicate(timeProvider),
+            FeedImportArbitrationAction.ConfirmDuplicate => decision.ConfirmDuplicate(timeProvider),
             _ => await ResolveLinksAsync(decision, command, cancellationToken)
         };
         if (result.IsFailure)
@@ -71,6 +72,6 @@ public sealed class ResolveFeedImportArbitrationCommandHandler(
 
         var books = await bookReadService.ListIdentitiesByUserAsync(decision.UserId, cancellationToken);
         var parsed = FeedImportAnalysisRules.ParseCandidate(chosen, decision.EntryTitle, isOnlyBookOfArticle: true);
-        return FeedImportAnalysisRules.ApplyDuplicateCheck(decision, chosen, parsed, books, FeedImportDecidedBy.User);
+        return FeedImportAnalysisRules.ApplyDuplicateCheck(decision, chosen, parsed, books, FeedImportDecidedBy.User, timeProvider);
     }
 }

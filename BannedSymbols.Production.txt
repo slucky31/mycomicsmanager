@@ -1,0 +1,4 @@
+P:System.DateTime.Now;Use the injected TimeProvider (timeProvider.GetUtcNow()), FakeTimeProvider in the tests
+P:System.DateTime.UtcNow;Use the injected TimeProvider (timeProvider.GetUtcNow().UtcDateTime), FakeTimeProvider in the tests
+P:System.DateTimeOffset.Now;Use the injected TimeProvider (timeProvider.GetLocalNow()), FakeTimeProvider in the tests
+P:System.DateTimeOffset.UtcNow;Use the injected TimeProvider (timeProvider.GetUtcNow()), FakeTimeProvider in the tests

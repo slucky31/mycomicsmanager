@@ -8,7 +8,7 @@ using Domain.Primitives;
 
 namespace Application.Books.Create;
 
-public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork, IRepository<Library, Guid> libraryRepository) : ICommandHandler<CreateBookCommand, Book>
+public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork, IRepository<Library, Guid> libraryRepository, TimeProvider timeProvider) : ICommandHandler<CreateBookCommand, Book>
 {
     public async Task<Result<Book>> Handle(CreateBookCommand request, CancellationToken cancellationToken)
     {
@@ -77,7 +77,7 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         // A rated book was read: its reading is dated today
         if (request.Rating > 0)
         {
-            book.AddReadingDate(DateTime.UtcNow, request.Rating);
+            book.AddReadingDate(timeProvider.GetUtcNow().UtcDateTime, request.Rating);
         }
 
         bookRepository.Add(book);

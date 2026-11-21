@@ -12,7 +12,8 @@ internal sealed class FeedImportFileDownloader(
     HttpClient httpClient,
     IOptions<ImportSettings> importSettings,
     IOptions<FeedImportSettings> feedImportSettings,
-    ILogger<FeedImportFileDownloader> logger) : IFeedImportFileDownloader
+    ILogger<FeedImportFileDownloader> logger,
+    TimeProvider timeProvider) : IFeedImportFileDownloader
 {
     private const int BufferSize = 81920;
     private const string PartialFilePattern = "*.download";
@@ -71,7 +72,7 @@ internal sealed class FeedImportFileDownloader(
             return 0;
         }
 
-        var limit = DateTime.UtcNow - olderThan;
+        var limit = timeProvider.GetUtcNow().UtcDateTime - olderThan;
         var stale = new DirectoryInfo(DownloadDirectory).EnumerateFiles(PartialFilePattern)
             .Where(file => file.LastWriteTimeUtc < limit)
             .ToList();
