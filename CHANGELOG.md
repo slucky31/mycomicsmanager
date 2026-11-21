@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.82.1"></a>
+## [10.82.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.82.1) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* **tests:** kill the surviving Stryker mutants ([#1332](https://www.github.com/slucky31/mycomicsmanager/issues/1332)) ([0d4d3e8](https://www.github.com/slucky31/mycomicsmanager/commit/0d4d3e894cc83f2595e62651324d09b7be842bef))
+
 <a name="10.82.0"></a>
 ## [10.82.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.82.0) (2026-11-21)
 
