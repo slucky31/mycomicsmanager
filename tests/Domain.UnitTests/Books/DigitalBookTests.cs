@@ -420,4 +420,14 @@ public class DigitalBookTests
         result.Error.Should().Be(BooksError.BadRequest);
         book.NumberOfPages.Should().Be(48);
     }
+
+    [Fact]
+    public void AssignIsbn_Should_AcceptAnIsbn_AtTheMaxLength()
+    {
+        var book = CreateBookWithoutIsbn();
+        var isbn = new string('9', BookConstants.MaxIsbnLength);
+
+        book.AssignIsbn(isbn).IsSuccess.Should().BeTrue();
+        book.ISBN.Should().Be(isbn);
+    }
 }
