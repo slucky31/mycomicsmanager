@@ -1617,7 +1617,7 @@ public sealed class ComicSearchServiceWithLocalCoverTests
 
         result.Found.Should().BeFalse();
         result.ImageUrl.Should().BeEmpty();
-        await _cloudinaryService.DidNotReceiveWithAnyArgs().UploadImageFromStreamAsync(default!, default!, default!, default!, default);
+        await _cloudinaryService.DidNotReceiveWithAnyArgs().UploadImageFromStreamAsync(default!, default!, default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1631,7 +1631,7 @@ public sealed class ComicSearchServiceWithLocalCoverTests
 
         result.Found.Should().BeTrue();
         result.ImageUrl.Should().BeEmpty();
-        await _cloudinaryService.DidNotReceiveWithAnyArgs().UploadImageFromStreamAsync(default!, default!, default!, default!, default);
+        await _cloudinaryService.DidNotReceiveWithAnyArgs().UploadImageFromStreamAsync(default!, default!, default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]

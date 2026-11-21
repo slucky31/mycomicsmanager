@@ -374,7 +374,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
         var result = await _handler.Handle(new DownloadFeedImportDecisionCommand(Guid.Empty), TestContext.Current.CancellationToken);
 
         result.Error.Should().Be(FeedImportError.BadRequest);
-        await _repository.DidNotReceiveWithAnyArgs().GetByIdAsync(default, default);
+        await _repository.DidNotReceiveWithAnyArgs().GetByIdAsync(default, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -520,7 +520,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
         decision.ErrorStep.Should().Be(DownloadFeedImportDecisionCommandHandler.ImportStep);
         decision.ErrorMessage.Should().Be("No free name");
         _downloader.Received(1).Discard(TempPath);
-        await _createImportJob.DidNotReceiveWithAnyArgs().Handle(default!, default);
+        await _createImportJob.DidNotReceiveWithAnyArgs().Handle(default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]

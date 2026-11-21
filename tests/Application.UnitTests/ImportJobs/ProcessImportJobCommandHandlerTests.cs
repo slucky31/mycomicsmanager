@@ -442,7 +442,7 @@ public class ProcessImportJobCommandHandlerTests
 
         await _comicSearchService.DidNotReceive()
             .SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        await _bookRepository.DidNotReceiveWithAnyArgs().GetByIsbnAsync(default!, default, default);
+        await _bookRepository.DidNotReceiveWithAnyArgs().GetByIsbnAsync(default!, default, TestContext.Current.CancellationToken);
     }
 
     // ── ISBN read on the pages (OCR) ──────────────────────────────────────────
