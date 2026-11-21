@@ -1,5 +1,6 @@
-using Application.FeedImports.Arbitrate;
+﻿using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Delete;
+using Application.FeedImports.HostStatus;
 using Application.FeedImports.Manage;
 using Domain.FeedImports;
 using Domain.Primitives;
@@ -45,4 +46,13 @@ public interface IFeedImportService
 
     // The hosts offered by the host filter of the Feeds page, counted in the status chosen.
     Task<Result<FeedImportHostOptions>> GetHostOptionsAsync(FeedImportDecisionStatus? status, CancellationToken cancellationToken = default);
+
+    // The failed decisions whose host is back up on Debrid-Link (or whose quota delay is over): the "Retry these" banner.
+    Task<int> CountRetryableAsync(CancellationToken cancellationToken = default);
+
+    // Retries them all and starts their next step: returns how many were retried.
+    Task<Result<int>> RetryWaitingAsync(CancellationToken cancellationToken = default);
+
+    // The Debrid-Link hosts with their state and recorded changes (Settings, Debrid-Link hosts).
+    Task<Result<HostStatusOverview>> GetHostStatusOverviewAsync(CancellationToken cancellationToken = default);
 }

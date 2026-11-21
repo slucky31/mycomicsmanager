@@ -1,4 +1,4 @@
-using Application.Abstractions.Messaging;
+﻿using Application.Abstractions.Messaging;
 using Application.ImportJobs.Create;
 using Application.Interfaces;
 using Application.Libraries.Create;
@@ -25,7 +25,8 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
     TimeProvider timeProvider) : ICommandHandler<DownloadFeedImportDecisionCommand>
 {
     public const string LibraryStep = "Library";
-    public const string DownloadStep = "Download";
+    public const string DownloadStep = FeedImportConstants.DownloadStep;
+    public const string HostDownStep = FeedImportConstants.HostDownStep;
     public const string ImportStep = "Import";
 
     public const string TargetLibraryColor = "#5C6BC0";
@@ -93,7 +94,9 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
         var download = await DownloadFromMirrorsAsync(decision, candidate, cancellationToken);
         if (download.IsFailure)
         {
-            return await FailAsync(decision, DownloadStep, download.Error!.Description ?? download.Error.Code, cancellationToken);
+            // Every mirror on a host down: the sync retries the decision once one is back up (FeedImportRetryKind.HostDown).
+            var step = download.Error!.Code == FeedImportError.DebridLinkHostDown.Code ? HostDownStep : DownloadStep;
+            return await FailAsync(decision, step, download.Error.Description ?? download.Error.Code, cancellationToken);
         }
 
         return await DepositAsync(decision, library.Value!, download.Value!, cancellationToken);
@@ -129,10 +132,17 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
     private async Task<Result<MirrorDownload>> DownloadFromMirrorsAsync(
         FeedImportDecision decision, DownloadCandidate candidate, CancellationToken cancellationToken)
     {
-        var mirrors = await GetUsableMirrorsAsync(decision, candidate.Mirrors, cancellationToken);
-        if (mirrors.Count == 0)
+        var supported = await GetUsableMirrorsAsync(decision, candidate.Mirrors, cancellationToken);
+        if (supported.Count == 0)
         {
             return FeedImportError.DebridLinkHostNotSupported;
+        }
+
+        var mirrors = await SkipHostsDownAsync(decision, supported, cancellationToken);
+        if (mirrors.Count == 0)
+        {
+            var hosts = string.Join(", ", supported.Select(m => m.Host).Distinct(StringComparer.OrdinalIgnoreCase));
+            return new TError(FeedImportError.DebridLinkHostDown.Code, $"{FeedImportError.DebridLinkHostDown.Description} ({hosts})");
         }
 
         var lastError = FeedImportError.DownloadFailed;
@@ -186,6 +196,21 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
         foreach (var skipped in ordered.Except(usable))
         {
             decision.NoteMirrorFailure(skipped.Host, FeedImportError.DebridLinkHostNotSupported.Description!, timeProvider);
+        }
+
+        return usable;
+    }
+
+    // Mirrors on a host down on the Debrid-Link status page would fail (and may burn the quota): skipped.
+    // If the state is unavailable, none is skipped.
+    private async Task<IReadOnlyList<DownloadMirror>> SkipHostsDownAsync(
+        FeedImportDecision decision, IReadOnlyList<DownloadMirror> mirrors, CancellationToken cancellationToken)
+    {
+        var statuses = await downloadServices.DebridLinkClient.GetHostStatusesAsync(cancellationToken);
+        var usable = mirrors.Where(m => !statuses.IsKnownDown(m.Host)).ToList();
+        foreach (var skipped in mirrors.Except(usable))
+        {
+            decision.NoteMirrorFailure(skipped.Host, FeedImportError.DebridLinkHostDown.Description!, timeProvider);
         }
 
         return usable;

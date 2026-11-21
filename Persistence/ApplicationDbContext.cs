@@ -1,4 +1,4 @@
-using Domain.Books;
+﻿using Domain.Books;
 using Domain.FeedImports;
 using Domain.ImportJobs;
 using Domain.Libraries;
@@ -32,6 +32,8 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<FeedImportDecision> FeedImportDecisions => Set<FeedImportDecision>();
 
     public DbSet<FeedImportDecisionEvent> FeedImportDecisionEvents => Set<FeedImportDecisionEvent>();
+
+    public DbSet<HostStatusChange> HostStatusChanges => Set<HostStatusChange>();
 
     public DbSet<FeatureToggleOverride> FeatureToggleOverrides => Set<FeatureToggleOverride>();
 
@@ -153,5 +155,11 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
         // Client-generated key: without this, an event added to a tracked decision is saved as an UPDATE.
         decisionEvent.Property(e => e.Id).ValueGeneratedNever();
         decisionEvent.Property(e => e.Description).HasMaxLength(FeedImportConstants.MaxEventDescriptionLength);
+
+        var hostStatusChange = modelBuilder.Entity<HostStatusChange>();
+        hostStatusChange.ToTable("HostStatusChanges");
+        hostStatusChange.Property(c => c.Id).ValueGeneratedNever();
+        hostStatusChange.Property(c => c.Host).HasMaxLength(FeedImportConstants.MaxHostLength);
+        hostStatusChange.HasIndex(c => new { c.Host, c.ChangedAt });
     }
 }

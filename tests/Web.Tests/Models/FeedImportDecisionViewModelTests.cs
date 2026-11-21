@@ -1,4 +1,4 @@
-using AwesomeAssertions;
+﻿using AwesomeAssertions;
 using Domain.FeedImports;
 using Web.Models;
 using Xunit;
@@ -83,12 +83,12 @@ public sealed class FeedImportDecisionViewModelTests
     public void SummaryDisplay_Should_ShowTheError_WhenDecisionFailed()
     {
         var decision = FeedImportDecision.Create(Guid.CreateVersion7(), 12, "Blacksad T3", "https://planete-bd.org/12", null).Value!;
-        decision.Fail("Download", "Host not supported by Debrid-Link.");
+        decision.Fail("Download", "File unavailable on the host (dead or deleted link).");
 
         var viewModel = FeedImportDecisionViewModel.From(decision);
 
         viewModel.StatusCssClass.Should().Be("feed-status-failed");
-        viewModel.SummaryDisplay.Should().Be("Download: Host not supported by Debrid-Link.");
+        viewModel.SummaryDisplay.Should().Be("Download: File unavailable on the host (dead or deleted link).");
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-using Application.FeedImports;
+﻿using Application.FeedImports;
 using Application.FeedImports.Analyze;
 using Application.Interfaces;
 using Domain.FeedImports;
@@ -110,6 +110,8 @@ public static class FeedImportConfiguration
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
         services.AddScoped<FeedImportSyncJob>();
+        services.AddScoped<HostStatusJob>();
+        services.AddSingleton<DebridLinkHostCache>();
         services.AddScoped<FeedImportDownloadJob>();
         services.AddScoped<FeedImportHandlers>();
         services.AddScoped<ArticleLinkSources>();

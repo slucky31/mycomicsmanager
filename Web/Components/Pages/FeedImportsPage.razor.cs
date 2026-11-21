@@ -1,4 +1,4 @@
-using Application.FeedImports.Arbitrate;
+﻿using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Manage;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
@@ -16,6 +16,14 @@ public partial class FeedImportsPage : IAsyncDisposable
 
     // Under the h2 of the side panel the sections are level 3; inline, the title of the card is a button, not a heading.
     private static int SectionLevel(bool inPanel) => inPanel ? 3 : 2;
+
+    // The icon of a host in the host filter: green when up on Debrid-Link, red when down, plain when unknown.
+    internal static string? HostStateColor(bool? isUp) => isUp switch
+    {
+        true => "var(--mcm-success)",
+        false => "var(--mcm-error)",
+        null => null,
+    };
 
     [Inject] private IFeedImportService FeedImportService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -37,6 +45,9 @@ public partial class FeedImportsPage : IAsyncDisposable
     private Guid? _busyDecisionId;
     private CorrectionForm? _correction;
     private bool _isDeleting;
+    private bool _isRetryingWaiting;
+    // Failed decisions whose host is back up (or whose quota delay is over): the "Retry these" banner.
+    private int _retryableCount;
 
     // The decisions loaded so far (pages appended by the infinite scroll), in the order of the query.
     private readonly List<FeedImportDecisionViewModel> _items = [];
@@ -163,6 +174,7 @@ public partial class FeedImportsPage : IAsyncDisposable
     {
         await LoadStatusCountsAsync();
         await LoadHostOptionsAsync();
+        _retryableCount = await FeedImportService.CountRetryableAsync(_disposeCts.Token);
     }
 
     private async Task LoadStatusCountsAsync()
@@ -464,6 +476,46 @@ public partial class FeedImportsPage : IAsyncDisposable
         finally
         {
             _isDeleting = false;
+        }
+    }
+
+    internal async Task RetryWaitingAsync()
+    {
+        if (_isRetryingWaiting || _retryableCount == 0)
+        {
+            return;
+        }
+
+        var confirmed = await DialogService.ShowConfirmationAsync(
+            "Retry failed items",
+            _retryableCount == 1
+                ? "Retry the failed item whose host is back up on Debrid-Link (or whose quota delay is over)?"
+                : $"Retry the {_retryableCount} failed items whose host is back up on Debrid-Link (or whose quota delay is over)?",
+            "Retry");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        _isRetryingWaiting = true;
+        try
+        {
+            var result = await FeedImportService.RetryWaitingAsync(_disposeCts.Token);
+            if (result.IsFailure)
+            {
+                Snackbar.Add(result.Error?.Description ?? "Unable to retry the failed items.", Severity.Error);
+                Logger.LogError("FeedImports: failed to retry the waiting decisions: {ErrorDescription}", result.Error!.Description);
+                await RefreshAfterConflictAsync(result.Error);
+                return;
+            }
+
+            Snackbar.Add($"{result.Value} item(s) retried.", Severity.Success);
+            await RefreshAsync();
+            Notifier.NotifyChanged();
+        }
+        finally
+        {
+            _isRetryingWaiting = false;
         }
     }
 

@@ -1,9 +1,11 @@
-using Application.Abstractions.Messaging;
+﻿using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Delete;
+using Application.FeedImports.HostStatus;
 using Application.FeedImports.List;
 using Application.FeedImports.Manage;
+using Application.FeedImports.Retry;
 using Application.Interfaces;
 using Application.Libraries;
 using AwesomeAssertions;
@@ -43,6 +45,12 @@ public sealed class FeedImportServiceTests : IDisposable
         Substitute.For<ICommandHandler<DeleteFeedImportDecisionCommand>>();
     private readonly ICommandHandler<DeleteDownloadedFeedImportDecisionsCommand, DeleteDownloadedFeedImportDecisionsResult> _deleteDownloadedHandler =
         Substitute.For<ICommandHandler<DeleteDownloadedFeedImportDecisionsCommand, DeleteDownloadedFeedImportDecisionsResult>>();
+    private readonly ICommandHandler<RetryWaitingFeedImportDecisionsCommand, IReadOnlyList<RetriedFeedImportDecision>> _retryWaitingHandler =
+        Substitute.For<ICommandHandler<RetryWaitingFeedImportDecisionsCommand, IReadOnlyList<RetriedFeedImportDecision>>>();
+    private readonly IQueryHandler<CountRetryableFeedImportDecisionsQuery, int> _countRetryableHandler =
+        Substitute.For<IQueryHandler<CountRetryableFeedImportDecisionsQuery, int>>();
+    private readonly IQueryHandler<GetHostStatusOverviewQuery, HostStatusOverview> _hostOverviewHandler =
+        Substitute.For<IQueryHandler<GetHostStatusOverviewQuery, HostStatusOverview>>();
     private readonly IFeatureToggles _featureToggles = Substitute.For<IFeatureToggles>();
     private readonly DebridLinkSettings _debridLinkSettings = new() { ApiKey = "key" };
     private readonly ServiceProvider _provider;
@@ -57,11 +65,13 @@ public sealed class FeedImportServiceTests : IDisposable
         _currentUserService = Substitute.For<ICurrentUserService>();
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(s_userId);
         _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
+        _hostOverviewHandler.Handle(Arg.Any<GetHostStatusOverviewQuery>(), Arg.Any<CancellationToken>()).Returns(HostStatusOverview.Empty);
         var services = new ServiceCollection();
         services.AddScoped(_ =>
         {
             _handlerScopes++;
-            return new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler, _deleteHandler, _deleteDownloadedHandler);
+            return new FeedImportHandlers(_handler, _resolveHandler, _manageHandler, _correctHandler, _deleteHandler, _deleteDownloadedHandler,
+                _retryWaitingHandler, _countRetryableHandler, _hostOverviewHandler);
         });
         _provider = services.BuildServiceProvider();
         _service = new FeedImportService(
@@ -368,5 +378,80 @@ public sealed class FeedImportServiceTests : IDisposable
 
         result.Error.Should().Be(UsersError.NotFound);
         await _resolveHandler.DidNotReceive().Handle(Arg.Any<ResolveFeedImportArbitrationCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetHostOptionsAsync_Should_AddTheStateOfEachHost_WhenDebridLinkKnowsIt()
+    {
+        _decisionReadService.CountPerHostAsync(s_userId, null, Arg.Any<CancellationToken>())
+            .Returns(new FeedImportHostCounts(3, [new FeedImportHostCount("ddl.to", 3)], 0));
+        _hostOverviewHandler.Handle(Arg.Any<GetHostStatusOverviewQuery>(), Arg.Any<CancellationToken>())
+            .Returns(new HostStatusOverview([new HostStatusRow("ddl", false, ["ddl.to"], null, false, 0)], [], true));
+
+        var result = await _service.GetHostOptionsAsync(null, TestContext.Current.CancellationToken);
+
+        result.Value!.Options[1].IsUp.Should().BeFalse();
+        result.Value.Options[1].StateDisplay.Should().Be("Down");
+    }
+
+    [Fact]
+    public async Task CountRetryableAsync_Should_ReturnTheCount_OrZeroOnFailure()
+    {
+        _countRetryableHandler.Handle(new CountRetryableFeedImportDecisionsQuery(s_userId), Arg.Any<CancellationToken>()).Returns(2);
+
+        (await _service.CountRetryableAsync(TestContext.Current.CancellationToken)).Should().Be(2);
+
+        _countRetryableHandler.Handle(new CountRetryableFeedImportDecisionsQuery(s_userId), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<int>(FeedImportError.BadRequest));
+        (await _service.CountRetryableAsync(TestContext.Current.CancellationToken)).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task CountRetryableAsync_Should_ReturnZero_WhenUserNotResolved()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
+
+        (await _service.CountRetryableAsync(TestContext.Current.CancellationToken)).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task RetryWaitingAsync_Should_DownloadEachRetriedDecision_AndSyncOnceForThePendingOnes()
+    {
+        _retryWaitingHandler.Handle(new RetryWaitingFeedImportDecisionsCommand(s_userId, FeedImportDecidedBy.User), Arg.Any<CancellationToken>())
+            .Returns(Result.Success<IReadOnlyList<RetriedFeedImportDecision>>(
+            [
+                new RetriedFeedImportDecision(Guid.CreateVersion7(), FeedImportDecisionStatus.LinksExtracted),
+                new RetriedFeedImportDecision(Guid.CreateVersion7(), FeedImportDecisionStatus.Pending),
+                new RetriedFeedImportDecision(Guid.CreateVersion7(), FeedImportDecisionStatus.Pending),
+                new RetriedFeedImportDecision(Guid.CreateVersion7(), FeedImportDecisionStatus.SkippedDuplicate)
+            ]));
+
+        var result = await _service.RetryWaitingAsync(TestContext.Current.CancellationToken);
+
+        result.Value.Should().Be(4);
+        _backgroundJobClient.Received(1).Create(Arg.Is<Job>(j => j.Type == typeof(FeedImportDownloadJob)), Arg.Any<IState>());
+        _backgroundJobClient.Received(1).Create(Arg.Is<Job>(j => j.Type == typeof(FeedImportSyncJob)), Arg.Any<IState>());
+    }
+
+    [Fact]
+    public async Task RetryWaitingAsync_Should_ReturnTheError_WhenTheRetryFails()
+    {
+        _retryWaitingHandler.Handle(Arg.Any<RetryWaitingFeedImportDecisionsCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<IReadOnlyList<RetriedFeedImportDecision>>(FeedImportError.BadRequest));
+
+        var result = await _service.RetryWaitingAsync(TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FeedImportError.BadRequest);
+        _backgroundJobClient.DidNotReceiveWithAnyArgs().Create(default!, default!);
+    }
+
+    [Fact]
+    public async Task RetryWaitingAsync_Should_ReturnError_WhenUserNotResolved()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
+
+        var result = await _service.RetryWaitingAsync(TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(UsersError.NotFound);
     }
 }

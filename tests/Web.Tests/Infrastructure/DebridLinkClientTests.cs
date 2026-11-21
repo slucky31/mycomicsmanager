@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using AwesomeAssertions;
 using Domain.FeedImports;
@@ -17,7 +17,7 @@ public sealed class DebridLinkClientTests
     {
         var handler = new RecordingHandler(responder);
         var httpClient = new HttpClient(handler) { BaseAddress = s_baseAddress };
-        return (new DebridLinkClient(httpClient, NullLogger<DebridLinkClient>.Instance), handler, httpClient);
+        return (new DebridLinkClient(httpClient, new DebridLinkHostCache(TimeProvider.System), NullLogger<DebridLinkClient>.Instance), handler, httpClient);
     }
 
     private static HttpResponseMessage Json(string json, HttpStatusCode status = HttpStatusCode.OK) =>
@@ -131,6 +131,54 @@ public sealed class DebridLinkClientTests
 
         result.Value.Should().Equal("1fichier.com", "rapidgator.net");
         handler.Requests.Should().ContainSingle().Which.Should().Be("GET /api/v2/downloader/domains");
+    }
+
+    [Fact]
+    public async Task GetHostsAsync_Should_ReadTheStatusPage_AndCacheIt()
+    {
+        var (client, handler, httpClient) = Build(_ => Json("""
+            {"success":true,"value":[
+              {"name":"1fichier","type":"host","status":1,"domains":["1fichier.com","alterupload.com"]},
+              {"name":"ddl","type":"host","status":0,"domains":["ddl.to",""]},
+              {"name":"broken","status":"x","domains":["a.b"]},
+              {"name":"nodomain","status":1,"domains":[]},
+              "garbage"
+            ]}
+            """));
+        using var _ = httpClient;
+
+        var first = await client.GetHostsAsync(TestContext.Current.CancellationToken);
+        var second = await client.GetHostsAsync(TestContext.Current.CancellationToken);
+
+        first.Value.Should().BeEquivalentTo(new[]
+        {
+            new Application.FeedImports.DebridLinkHost("1fichier", true, ["1fichier.com", "alterupload.com"]),
+            new Application.FeedImports.DebridLinkHost("ddl", false, ["ddl.to"])
+        });
+        second.Value.Should().BeSameAs(first.Value);
+        handler.Requests.Should().ContainSingle().Which.Should().Be("GET /api/v2/downloader/hosts");
+    }
+
+    [Fact]
+    public async Task GetHostsAsync_Should_ReturnUnavailable_WhenTheValueIsNotAList()
+    {
+        var (client, _, httpClient) = Build(_ => Json("""{"success":true,"value":{}}"""));
+        using var _ = httpClient;
+
+        var result = await client.GetHostsAsync(TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FeedImportError.DebridLinkUnavailable);
+    }
+
+    [Fact]
+    public async Task GetHostsAsync_Should_ReturnTheError_WhenDebridLinkFails()
+    {
+        var (client, _, httpClient) = Build(_ => Json("""{"success":false,"error":"server_error"}""", HttpStatusCode.InternalServerError));
+        using var _ = httpClient;
+
+        var result = await client.GetHostsAsync(TestContext.Current.CancellationToken);
+
+        result.Error!.Code.Should().Be(FeedImportError.DebridLinkUnavailable.Code);
     }
 
     [Theory]

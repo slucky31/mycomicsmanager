@@ -1,4 +1,4 @@
-/* Feeds (S2, S3, T9, D6): status chips, compact cards, the detail under the card on a phone and beside the list from 960px. */
+﻿/* Feeds (S2, S3, T9, D6): status chips, compact cards, the detail under the card on a phone and beside the list from 960px. */
 .feeds-page {
     min-height: 100dvh;
     background: var(--mcm-surface-muted);
@@ -127,6 +127,24 @@
     background: var(--mcm-info-soft);
     color: var(--mcm-info);
     font-size: var(--mcm-font-label);
+}
+
+/* Failed items that can be retried now (#1318). */
+.feeds-retry-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 0 16px 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--mcm-info-soft);
+    color: var(--mcm-info);
+    font-size: var(--mcm-font-label);
+}
+
+.feeds-retry-banner span {
+    flex: 1 1 200px;
 }
 
 .feeds-selection {
@@ -476,6 +494,22 @@
     font-weight: 500;
 }
 
+/* State of the host on Debrid-Link (#1318): the label says it for screen readers. */
+.host-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--mcm-radius-pill);
+    flex-shrink: 0;
+}
+
+.host-dot.up {
+    background: var(--mcm-success);
+}
+
+.host-dot.down {
+    background: var(--mcm-error);
+}
+
 .feed-timeline {
     margin: 0;
     padding: 0;
@@ -543,6 +577,7 @@
     }
 
     .feeds-note,
+    .feeds-retry-banner,
     .feeds-selection {
         margin: 0 28px 12px;
     }

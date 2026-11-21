@@ -1,4 +1,4 @@
-@page "/settings"
+﻿@page "/settings"
 
 @using Web.Infrastructure
 @using Web.Models
@@ -88,6 +88,11 @@
                 <a class="settings-row" href="/admin/log-levels">
                     <MudIcon Icon="@Icons.Material.Filled.Tune" Class="settings-row-icon" />
                     <span class="settings-row-text">Log levels</span>
+                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="settings-row-end" />
+                </a>
+                <a class="settings-row" href="/admin/hosts">
+                    <MudIcon Icon="@Icons.Material.Outlined.Dns" Class="settings-row-icon" />
+                    <span class="settings-row-text">Debrid-Link hosts</span>
                     <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="settings-row-end" />
                 </a>
                 @* Hangfire is served outside Blazor: open it as a regular page, not through the Blazor router *@

@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Libraries;
 using Application.Users;
 using Ardalis.GuardClauses;
@@ -164,5 +164,15 @@ public class FeedImportDecisionIntegrationTest : BaseIntegrationTest
     {
         FeedImportDecisionRepository = _scope.ServiceProvider.GetRequiredService<IFeedImportDecisionRepository>();
         FeedImportDecisionReadService = _scope.ServiceProvider.GetRequiredService<IFeedImportDecisionReadService>();
+    }
+}
+
+public class HostStatusChangeIntegrationTest : BaseIntegrationTest
+{
+    protected IHostStatusChangeRepository HostStatusChangeRepository { get; }
+
+    public HostStatusChangeIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        HostStatusChangeRepository = _scope.ServiceProvider.GetRequiredService<IHostStatusChangeRepository>();
     }
 }

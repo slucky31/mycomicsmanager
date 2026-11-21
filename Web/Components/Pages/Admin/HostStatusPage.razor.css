@@ -1,0 +1,189 @@
+﻿/* Debrid-Link hosts (Settings, Administration): the state of each host, then the changes by day. */
+.hosts-page {
+    min-height: 100dvh;
+    background: var(--mcm-surface-muted);
+    color: var(--mcm-text);
+}
+
+@media (max-width: 959.98px) {
+    .hosts-page {
+        min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+.hosts-bar {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: var(--mcm-top-inset) 4px 0;
+}
+
+.hosts-bar h1 {
+    flex-grow: 1;
+    margin: 0;
+    font-size: var(--mcm-font-page);
+    font-weight: 700;
+}
+
+::deep .hosts-back,
+::deep .hosts-refresh {
+    color: var(--mcm-text);
+}
+
+.hosts-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mcm-space-3);
+    max-width: 960px;
+    padding: 0 var(--mcm-space-4) var(--mcm-space-4);
+}
+
+.hosts-hint {
+    margin: 0;
+    font-size: var(--mcm-font-label);
+    color: var(--mcm-text-muted);
+}
+
+.hosts-note {
+    padding: 10px 14px;
+    border-radius: var(--mcm-radius-l);
+    background: var(--mcm-info-soft);
+    color: var(--mcm-info);
+    font-size: var(--mcm-font-label);
+}
+
+.hosts-chips {
+    display: flex;
+    gap: var(--mcm-space-2);
+}
+
+.hosts-chip {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--mcm-border);
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface);
+    color: var(--mcm-text);
+    font: inherit;
+    font-size: var(--mcm-font-label);
+    cursor: pointer;
+}
+
+.hosts-chip[aria-pressed="true"] {
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-primary);
+    color: var(--mcm-surface);
+}
+
+.hosts-chip:focus-visible,
+.hosts-row:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+.hosts-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--mcm-border);
+    border-radius: var(--mcm-radius-xl);
+    background: var(--mcm-surface);
+    overflow: hidden;
+}
+
+.hosts-list > li + li {
+    border-top: 1px solid var(--mcm-border);
+}
+
+.hosts-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--mcm-space-3);
+    padding: 10px 14px;
+    border: 0;
+    background: none;
+    color: var(--mcm-text);
+    font: inherit;
+    font-size: var(--mcm-font-body);
+    text-align: left;
+}
+
+button.hosts-row {
+    cursor: pointer;
+}
+
+button.hosts-row:hover,
+.hosts-row.selected {
+    background: var(--mcm-primary-soft);
+}
+
+.hosts-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.hosts-meta {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    font-size: var(--mcm-font-caption);
+    color: var(--mcm-text-muted);
+}
+
+.hosts-meta strong {
+    font-weight: 600;
+    color: var(--mcm-text);
+}
+
+.host-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--mcm-radius-pill);
+    flex-shrink: 0;
+}
+
+.host-dot.up {
+    background: var(--mcm-success);
+}
+
+.host-dot.down {
+    background: var(--mcm-error);
+}
+
+.hosts-history {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mcm-space-2);
+    margin-top: var(--mcm-space-2);
+}
+
+.hosts-history-head {
+    display: flex;
+    align-items: center;
+    gap: var(--mcm-space-2);
+}
+
+.hosts-history-head h2 {
+    margin: 0;
+    font-size: var(--mcm-font-subtitle);
+    font-weight: 600;
+}
+
+.hosts-day {
+    margin-top: var(--mcm-space-1);
+    font-size: var(--mcm-font-caption);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--mcm-text-muted);
+}
+
+.hosts-empty {
+    padding: var(--mcm-space-4) 0;
+    font-size: var(--mcm-font-label);
+    color: var(--mcm-text-muted);
+}

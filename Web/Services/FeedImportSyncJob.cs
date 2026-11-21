@@ -1,7 +1,8 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Analyze;
+using Application.FeedImports.Retry;
 using Application.FeedImports.Sync;
 using Application.Interfaces;
 using Application.Users;
@@ -44,6 +45,9 @@ public class FeedImportSyncJob(
         }
 
         await SyncStarredEntriesAsync(userId.Value, cancellationToken);
+
+        // Before the analysis: a retried decision without links goes back to Pending and is analyzed right after.
+        await RetryWaitingAsync(userId.Value, cancellationToken);
 
         // Also picks up decisions left Pending by an earlier run (Miniflux down, crash...).
         await AnalyzePendingAsync(userId.Value, cancellationToken);
@@ -93,6 +97,23 @@ public class FeedImportSyncJob(
         logger.LogInformation(
             "Feed import sync done: {Starred} starred entries, {Created} created, {AlreadyKnown} already known, {Rejected} rejected, {UnstarFailures} unstar failures.",
             summary.StarredEntries, summary.Created, summary.AlreadyKnown, summary.Rejected, summary.UnstarFailures);
+    }
+
+    // Failed decisions waiting for a host back up or for the quota (#1318); downloaded below like the others.
+    private async Task RetryWaitingAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(debridLinkSettings.Value.ApiKey))
+        {
+            return;
+        }
+
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<RetryWaitingFeedImportDecisionsCommand, IReadOnlyList<RetriedFeedImportDecision>>>();
+        var result = await handler.Handle(new RetryWaitingFeedImportDecisionsCommand(userId, FeedImportDecidedBy.Auto), cancellationToken);
+        if (result.IsFailure)
+        {
+            logger.LogError("Feed import automatic retry failed: [{Code}] {Description}", result.Error!.Code, result.Error.Description);
+        }
     }
 
     // Each decision is analyzed in its own scope (own DbContext): one failure never blocks the others.
@@ -168,8 +189,14 @@ public class FeedImportSyncJob(
         if (!enabled)
         {
             recurringJobManager.RemoveIfExists(RecurringJobId);
+            recurringJobManager.RemoveIfExists(HostStatusJob.RecurringJobId);
             return;
         }
+
+        recurringJobManager.AddOrUpdate<HostStatusJob>(
+            HostStatusJob.RecurringJobId,
+            job => job.RecordAsync(CancellationToken.None),
+            HostStatusJob.Cron);
 
         recurringJobManager.AddOrUpdate<FeedImportSyncJob>(
             RecurringJobId,

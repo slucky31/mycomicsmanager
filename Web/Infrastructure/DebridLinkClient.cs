@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Application.FeedImports;
 using Domain.FeedImports;
 using Domain.Primitives;
@@ -6,11 +6,12 @@ using Domain.Primitives;
 namespace Web.Infrastructure;
 
 // Debrid-Link API v2 (https://debrid-link.com/api_doc/v2): every answer is {"success": bool, "value" | "error"}.
-internal sealed class DebridLinkClient(HttpClient httpClient, ILogger<DebridLinkClient> logger) : IDebridLinkClient
+internal sealed class DebridLinkClient(HttpClient httpClient, DebridLinkHostCache hostCache, ILogger<DebridLinkClient> logger) : IDebridLinkClient
 {
     private static readonly Uri s_domainsUri = new("downloader/domains", UriKind.Relative);
     private static readonly Uri s_addUri = new("downloader/add", UriKind.Relative);
     private static readonly Uri s_accountUri = new("account/infos", UriKind.Relative);
+    private static readonly Uri s_hostsUri = new("downloader/hosts", UriKind.Relative);
 
     public async Task<Result<IReadOnlyList<string>>> GetSupportedDomainsAsync(CancellationToken cancellationToken = default)
     {
@@ -31,6 +32,50 @@ internal sealed class DebridLinkClient(HttpClient httpClient, ILogger<DebridLink
             .Where(d => !string.IsNullOrWhiteSpace(d))
             .ToList();
         return Result.Success<IReadOnlyList<string>>(domains);
+    }
+
+    // Status page: {"name": "ddl", "type": "host", "status": 0 | 1, "domains": [...]}, 1 = up.
+    public async Task<Result<IReadOnlyList<DebridLinkHost>>> GetHostsAsync(CancellationToken cancellationToken = default)
+    {
+        if (hostCache.Get() is { } cached)
+        {
+            return Result.Success(cached);
+        }
+
+        var value = await SendAsync(() => httpClient.GetAsync(s_hostsUri, cancellationToken), cancellationToken);
+        if (value.IsFailure)
+        {
+            return value.Error!;
+        }
+
+        if (value.Value.ValueKind != JsonValueKind.Array)
+        {
+            return FeedImportError.DebridLinkUnavailable;
+        }
+
+        IReadOnlyList<DebridLinkHost> hosts = value.Value.EnumerateArray().Select(ToHost).OfType<DebridLinkHost>().ToList();
+        hostCache.Set(hosts);
+        return Result.Success(hosts);
+    }
+
+    internal static DebridLinkHost? ToHost(JsonElement host)
+    {
+        if (host.ValueKind != JsonValueKind.Object ||
+            !host.TryGetProperty("status", out var status) || status.ValueKind != JsonValueKind.Number || !status.TryGetInt32(out var state) ||
+            !host.TryGetProperty("domains", out var domains) || domains.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        var name = host.TryGetProperty("name", out var nameElement) && nameElement.ValueKind == JsonValueKind.String
+            ? nameElement.GetString() ?? string.Empty
+            : string.Empty;
+        var hostDomains = domains.EnumerateArray()
+            .Where(d => d.ValueKind == JsonValueKind.String)
+            .Select(d => d.GetString()!)
+            .Where(d => !string.IsNullOrWhiteSpace(d))
+            .ToList();
+        return hostDomains.Count == 0 ? null : new DebridLinkHost(name, state == 1, hostDomains);
     }
 
     public async Task<Result> CheckAccountAsync(CancellationToken cancellationToken = default)

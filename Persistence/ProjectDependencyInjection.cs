@@ -1,4 +1,4 @@
-using Application.Books.IsbnScan;
+﻿using Application.Books.IsbnScan;
 using Application.ComicInfoSearch;
 using Application.ImportJobs;
 using Application.Interfaces;
@@ -42,6 +42,7 @@ public static class ProjectDependencyInjection
         services.AddScoped<IBookRepository, BookRepository>();
         services.AddScoped<IImportJobRepository, ImportJobRepository>();
         services.AddScoped<IFeedImportDecisionRepository, FeedImportDecisionRepository>();
+        services.AddScoped<IHostStatusChangeRepository, HostStatusChangeRepository>();
         services.AddScoped<IFeatureToggleOverrideRepository, FeatureToggleOverrideRepository>();
         services.AddScoped<ISeriesInfoRepository, SeriesInfoRepository>();
 
