@@ -15,8 +15,7 @@ namespace Application.FeedImports.Analyze;
 // Each file only offered on a host outside FeedImport:AllowedDownloadHosts becomes a Failed decision keeping its links.
 public sealed class AnalyzeFeedImportDecisionCommandHandler(
     IFeedImportDecisionRepository decisionRepository,
-    IArticlePageFetcher pageFetcher,
-    IEnumerable<IDownloadLinkExtractor> extractors,
+    ArticleLinkSources linkSources,
     IBookReadService bookReadService,
     IUnitOfWork unitOfWork,
     IOptions<FeedImportSettings> feedImportSettings,
@@ -68,7 +67,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
 
         // Feed links are often plain http://: the page is always fetched over HTTPS.
         pageUri = ToHttps(pageUri);
-        var htmlResult = await pageFetcher.GetHtmlAsync(pageUri, cancellationToken);
+        var htmlResult = await linkSources.PageFetcher.GetHtmlAsync(pageUri, cancellationToken);
         if (htmlResult.IsFailure)
         {
             logger.LogWarning("Feed import: page {Url} could not be fetched: [{Code}] {Description}",
@@ -76,8 +75,8 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
             return decision.Fail(FetchStep, htmlResult.Error.Description ?? FeedImportError.PageUnavailable.Description!, timeProvider);
         }
 
-        var extractor = extractors.FirstOrDefault(e => !e.IsFallback && e.CanHandle(pageUri))
-                        ?? extractors.First(e => e.IsFallback);
+        var extractor = linkSources.Extractors.FirstOrDefault(e => !e.IsFallback && e.CanHandle(pageUri))
+                        ?? linkSources.Extractors.First(e => e.IsFallback);
         var extraction = extractor.Extract(htmlResult.Value!, pageUri, settings.AllowedDownloadHosts);
         var unsupported = GroupUnsupportedLinks(extraction, decision.EntryTitle);
         if (extraction.Links.Count == 0 && unsupported.Count == 0)

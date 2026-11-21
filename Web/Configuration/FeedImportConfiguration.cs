@@ -1,4 +1,5 @@
 using Application.FeedImports;
+using Application.FeedImports.Analyze;
 using Application.Interfaces;
 using Domain.FeedImports;
 using Domain.Settings;
@@ -111,6 +112,7 @@ public static class FeedImportConfiguration
         services.AddScoped<FeedImportSyncJob>();
         services.AddScoped<FeedImportDownloadJob>();
         services.AddScoped<FeedImportHandlers>();
+        services.AddScoped<ArticleLinkSources>();
         services.AddScoped<FeedImportNotifier>();
         services.AddScoped<IFeedImportService, FeedImportService>();
 

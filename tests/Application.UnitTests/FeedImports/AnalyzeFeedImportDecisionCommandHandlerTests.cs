@@ -31,8 +31,9 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _bookReadService.ListIdentitiesByUserAsync(s_userId, Arg.Any<CancellationToken>()).Returns([]);
         _handler = new AnalyzeFeedImportDecisionCommandHandler(
-            _repository, _pageFetcher,
-            [new PlaneteBdLinkExtractor(NullLogger<PlaneteBdLinkExtractor>.Instance), new ZoneEbookLinkExtractor(NullLogger<ZoneEbookLinkExtractor>.Instance), new GenericDownloadLinkExtractor()],
+            _repository,
+            new ArticleLinkSources(_pageFetcher,
+                [new PlaneteBdLinkExtractor(NullLogger<PlaneteBdLinkExtractor>.Instance), new ZoneEbookLinkExtractor(NullLogger<ZoneEbookLinkExtractor>.Instance), new GenericDownloadLinkExtractor()]),
             _bookReadService, _unitOfWork, Options.Create(_settings), NullLogger<AnalyzeFeedImportDecisionCommandHandler>.Instance, TimeProvider.System);
     }
 
