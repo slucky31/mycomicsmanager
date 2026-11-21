@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Components.Server;
 
 namespace Web;
 
-internal class CustomAuthenticationStateProvider(
+internal sealed class CustomAuthenticationStateProvider(
     IUserReadService userReadService,
     IRepository<User, Guid> userRepository,
     IUnitOfWork unitOfWork) : ServerAuthenticationStateProvider

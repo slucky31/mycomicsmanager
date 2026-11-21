@@ -1,6 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
-using Application.Statistics.Get;
+using Application.Statistics.GetStatistics;
 using AwesomeAssertions;
 using Domain.Primitives;
 using Domain.Users;
@@ -27,13 +27,13 @@ public sealed class StatisticsServiceTests
     }
 
     [Fact]
-    public async Task Get_Should_ReturnError_WhenUserNotResolved()
+    public async Task GetStatistics_Should_ReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
-        var result = await _service.Get(null, TestContext.Current.CancellationToken);
+        var result = await _service.GetStatistics(null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -42,7 +42,7 @@ public sealed class StatisticsServiceTests
     }
 
     [Fact]
-    public async Task Get_Should_ForwardUserIdAndLibraryId_WhenUserResolved()
+    public async Task GetStatistics_Should_ForwardUserIdAndLibraryId_WhenUserResolved()
     {
         // Arrange
         var libraryId = Guid.CreateVersion7();
@@ -50,7 +50,7 @@ public sealed class StatisticsServiceTests
         _getStatisticsHandler.Handle(Arg.Any<GetStatisticsQuery>(), Arg.Any<CancellationToken>()).Returns(statistics);
 
         // Act
-        var result = await _service.Get(libraryId, TestContext.Current.CancellationToken);
+        var result = await _service.GetStatistics(libraryId, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

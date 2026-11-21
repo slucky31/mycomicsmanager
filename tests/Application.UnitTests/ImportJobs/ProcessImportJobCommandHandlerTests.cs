@@ -52,8 +52,8 @@ public class ProcessImportJobCommandHandlerTests
         _importDirectoryStorage = Substitute.For<IImportDirectoryStorage>();
 
         _importDirectoryStorage.DeleteOriginalFile(Arg.Any<string>()).Returns(Result.Success());
-        _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>()).Returns(Result<string?>.Success(null));
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(0));
+        _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>()).Returns(Result.Success<string?>(null));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(0));
 
         _tempWorkspace.HasFreeSpace(Arg.Any<long>()).Returns(true);
         _tempWorkspace.CreateScratch(Arg.Any<Guid>()).Returns(callInfo =>
@@ -67,7 +67,7 @@ public class ProcessImportJobCommandHandlerTests
         _isbnScanner.ScanPagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>()).Returns(IsbnScanResult.NotScanned);
         _clock.GetUtcNow().Returns(s_now);
         _tempWorkspace.MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-            .Returns(callInfo => Result<string>.Success(
+            .Returns(callInfo => Result.Success<string>(
                 Path.Combine(Path.GetTempPath(), "library", callInfo.ArgAt<string>(2))));
 
         _handler = new ProcessImportJobCommandHandler(
@@ -108,14 +108,14 @@ public class ProcessImportJobCommandHandlerTests
         _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
         _archiveExtractor.CanHandle(job.OriginalFilePath).Returns(true);
         _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ArchiveExtractionResult>.Success(extraction));
+            .Returns(Result.Success<ArchiveExtractionResult>(extraction));
     }
 
     private void SetupPdfExtractor(ImportJob job, string[] imageFiles)
     {
         _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(true);
         _pdfImageExtractor.ExtractImagesAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PdfExtractionResult>.Success(
+            .Returns(Result.Success<PdfExtractionResult>(
                 new PdfExtractionResult(imageFiles, imageFiles.Length)));
     }
 
@@ -124,7 +124,7 @@ public class ProcessImportJobCommandHandlerTests
         _imageProcessor.ProcessImagesAsync(
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
             Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result<ImageProcessingResult>.Success(
+            .Returns(Task.FromResult(Result.Success<ImageProcessingResult>(
                 new ImageProcessingResult(processedCount, skippedCount, allAlreadyWebp))));
     }
 
@@ -134,7 +134,7 @@ public class ProcessImportJobCommandHandlerTests
             .Returns(info =>
             {
                 var destPath = info.ArgAt<string>(2);
-                return Task.FromResult(Result<ComicArchiveResult>.Success(
+                return Task.FromResult(Result.Success<ComicArchiveResult>(
                     new ComicArchiveResult(destPath, fileSize, pageCount)));
             });
     }
@@ -259,7 +259,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveExtraction(job, new ArchiveExtractionResult([], null) { NestedArchives = nestedArchives });
         _importDirectoryStorage.EnsureExists(Arg.Any<string>()).Returns(Result.Success());
         _importDirectoryStorage.GetAvailableFilePath(Arg.Any<string>(), Arg.Any<string>())
-            .Returns(callInfo => Result<string>.Success("/import/lib/" + callInfo.ArgAt<string>(1)));
+            .Returns(callInfo => Result.Success<string>("/import/lib/" + callInfo.ArgAt<string>(1)));
         _importDirectoryStorage.DepositFile(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
         return (job, library);
     }
@@ -269,7 +269,7 @@ public class ProcessImportJobCommandHandlerTests
     {
         var (job, library) = SetupArchiveOfArchives("/tmp/raw/Serie - T01.cbz", "/tmp/raw/Serie - T02 (2).cbz");
         _importDirectoryStorage.GetAvailableFilePath(library.ImportDirectoryName, "Serie - T02 (2).cbz")
-            .Returns(Result<string>.Success("/import/lib/Serie - T02 (3).cbz"));
+            .Returns(Result.Success<string>("/import/lib/Serie - T02 (3).cbz"));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -352,7 +352,7 @@ public class ProcessImportJobCommandHandlerTests
         var saveError = new TError("DB500", "save failed");
         // The first save (status Extracting) succeeds, the one of the split fails.
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<int>.Success(1), Result<int>.Failure(saveError));
+            .Returns(Result.Success<int>(1), Result.Failure<int>(saveError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -711,7 +711,7 @@ public class ProcessImportJobCommandHandlerTests
 
         _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
         _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+            .Returns(Result.Failure<ArchiveExtractionResult>(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -730,7 +730,7 @@ public class ProcessImportJobCommandHandlerTests
         _imageProcessor.ProcessImagesAsync(
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
             Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImageProcessingResult>.Failure(s_processingError));
+            .Returns(Result.Failure<ImageProcessingResult>(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -755,7 +755,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupNoMetadataSearch();
 
         _archiveBuilder.BuildAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<string?>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ComicArchiveResult>.Failure(s_processingError));
+            .Returns(Result.Failure<ComicArchiveResult>(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -808,7 +808,7 @@ public class ProcessImportJobCommandHandlerTests
 
             _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
             _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+                .Returns(Result.Failure<ArchiveExtractionResult>(s_processingError));
 
             var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1041,7 +1041,7 @@ public class ProcessImportJobCommandHandlerTests
 
         _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(true);
         _pdfImageExtractor.ExtractImagesAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<PdfExtractionResult>.Failure(s_processingError));
+            .Returns(Result.Failure<PdfExtractionResult>(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1059,7 +1059,7 @@ public class ProcessImportJobCommandHandlerTests
         CreateDigitalLibrary(job.LibraryId);
 
         SetupArchiveExtractor(job, [], comicInfoPath: "/tmp/ComicInfo.xml");
-        _comicInfoXmlService.Read(Arg.Any<string>()).Returns(Result<ComicInfoData>.Failure(s_processingError));
+        _comicInfoXmlService.Read(Arg.Any<string>()).Returns(Result.Failure<ComicInfoData>(s_processingError));
         SetupImageProcessor();
         SetupComicInfoXml();
         SetupCloudinary();
@@ -1103,10 +1103,10 @@ public class ProcessImportJobCommandHandlerTests
 
         _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
         _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+            .Returns(Result.Failure<ArchiveExtractionResult>(s_processingError));
 
         _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>())
-            .Returns(Result<string?>.Failure(s_processingError));
+            .Returns(Result.Failure<string?>(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1122,9 +1122,9 @@ public class ProcessImportJobCommandHandlerTests
         CreateDigitalLibrary(job.LibraryId);
         _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
         _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+            .Returns(Result.Failure<ArchiveExtractionResult>(s_processingError));
         _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>())
-            .Returns(Result<string?>.Success("/import/lib/errors/comic_1.cbz"));
+            .Returns(Result.Success<string?>("/import/lib/errors/comic_1.cbz"));
 
         await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1142,10 +1142,10 @@ public class ProcessImportJobCommandHandlerTests
         CreateDigitalLibrary(job.LibraryId);
         _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
         _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+            .Returns(Result.Failure<ArchiveExtractionResult>(s_processingError));
         _importDirectoryStorage.MoveOriginalFileToError(Arg.Any<string>())
-            .Returns(Result<string?>.Success("/import/lib/errors/comic.cbz"));
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(s_processingError));
+            .Returns(Result.Success<string?>("/import/lib/errors/comic.cbz"));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1163,11 +1163,11 @@ public class ProcessImportJobCommandHandlerTests
 
         _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
         _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ArchiveExtractionResult>.Failure(s_processingError));
+            .Returns(Result.Failure<ArchiveExtractionResult>(s_processingError));
 
         // First call = AdvanceAndSaveAsync (Extracting), second call = FailJobAsync
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<int>.Success(0), Result<int>.Failure(new TError("DB500", "save failed")));
+            .Returns(Result.Success<int>(0), Result.Failure<int>(new TError("DB500", "save failed")));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1206,7 +1206,7 @@ public class ProcessImportJobCommandHandlerTests
         CreateDigitalLibrary(job.LibraryId);
 
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<int>.Failure(s_processingError), Result<int>.Success(0));
+            .Returns(Result.Failure<int>(s_processingError), Result.Success<int>(0));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1223,7 +1223,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveExtractor(job, []);
 
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<int>.Success(0), Result<int>.Failure(s_processingError), Result<int>.Success(0));
+            .Returns(Result.Success<int>(0), Result.Failure<int>(s_processingError), Result.Success<int>(0));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1241,7 +1241,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupImageProcessor();
 
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<int>.Success(0), Result<int>.Success(0), Result<int>.Failure(s_processingError), Result<int>.Success(0));
+            .Returns(Result.Success<int>(0), Result.Success<int>(0), Result.Failure<int>(s_processingError), Result.Success<int>(0));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1260,8 +1260,8 @@ public class ProcessImportJobCommandHandlerTests
         SetupComicInfoXml();
 
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<int>.Success(0), Result<int>.Success(0), Result<int>.Success(0),
-                Result<int>.Failure(s_processingError), Result<int>.Success(0));
+            .Returns(Result.Success<int>(0), Result.Success<int>(0), Result.Success<int>(0),
+                Result.Failure<int>(s_processingError), Result.Success<int>(0));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1281,8 +1281,8 @@ public class ProcessImportJobCommandHandlerTests
         SetupCloudinary();
 
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<int>.Success(0), Result<int>.Success(0), Result<int>.Success(0),
-                Result<int>.Success(0), Result<int>.Failure(s_processingError), Result<int>.Success(0));
+            .Returns(Result.Success<int>(0), Result.Success<int>(0), Result.Success<int>(0),
+                Result.Success<int>(0), Result.Failure<int>(s_processingError), Result.Success<int>(0));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1300,7 +1300,7 @@ public class ProcessImportJobCommandHandlerTests
         CreateDigitalLibrary(job.LibraryId);
         SetupArchiveExtractor(job, [], comicInfoPath: "/tmp/ComicInfo.xml");
         _comicInfoXmlService.Read(Arg.Any<string>())
-            .Returns(Result<ComicInfoData>.Success(new ComicInfoData(
+            .Returns(Result.Success<ComicInfoData>(new ComicInfoData(
                 Title: "Existing Title", Series: "Existing Serie", Number: 2, Summary: null,
                 Year: 2020, Month: 6, Day: 15, Writer: "Someone", Penciller: null, Publisher: "Someone Else",
                 Isbn: null, PageCount: null)));
@@ -1327,7 +1327,7 @@ public class ProcessImportJobCommandHandlerTests
         CreateDigitalLibrary(job.LibraryId);
         SetupArchiveExtractor(job, [], comicInfoPath: "/tmp/ComicInfo.xml");
         _comicInfoXmlService.Read(Arg.Any<string>())
-            .Returns(Result<ComicInfoData>.Success(new ComicInfoData(
+            .Returns(Result.Success<ComicInfoData>(new ComicInfoData(
                 Title: "Existing Title", Series: "Existing Serie", Number: null, Summary: null,
                 Year: null, Month: null, Day: null, Writer: null, Penciller: null, Publisher: " ",
                 Isbn: "9782075162869", PageCount: null)));
@@ -1357,7 +1357,7 @@ public class ProcessImportJobCommandHandlerTests
         CreateDigitalLibrary(job.LibraryId);
         SetupArchiveExtractor(job, [], comicInfoPath: "/tmp/ComicInfo.xml");
         _comicInfoXmlService.Read(Arg.Any<string>())
-            .Returns(Result<ComicInfoData>.Success(new ComicInfoData(
+            .Returns(Result.Success<ComicInfoData>(new ComicInfoData(
                 Title: "Existing Title", Series: "Existing Serie", Number: 7, Summary: null,
                 Year: null, Month: null, Day: null, Writer: null, Penciller: null, Publisher: null,
                 Isbn: "9782075162869", PageCount: null)));
@@ -1399,7 +1399,7 @@ public class ProcessImportJobCommandHandlerTests
                 {
                     await onProgress(new ImageConversionProgress(10, 10));
                 }
-                return Result<ImageProcessingResult>.Success(new ImageProcessingResult(10, 0, false));
+                return Result.Success<ImageProcessingResult>(new ImageProcessingResult(10, 0, false));
             });
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
@@ -1446,7 +1446,7 @@ public class ProcessImportJobCommandHandlerTests
         SetupNoMetadataSearch();
 
         _tempWorkspace.MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-            .Returns(Result<string>.Failure(s_processingError));
+            .Returns(Result.Failure<string>(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1470,7 +1470,7 @@ public class ProcessImportJobCommandHandlerTests
         // An empty final path passes the pre-validation above but still fails DigitalBook.Create,
         // exercising the "should be unreachable in practice" defensive compensation branch.
         _tempWorkspace.MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-            .Returns(Result<string>.Success(string.Empty));
+            .Returns(Result.Success<string>(string.Empty));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1492,8 +1492,8 @@ public class ProcessImportJobCommandHandlerTests
         SetupNoMetadataSearch();
 
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<int>.Success(0), Result<int>.Success(0), Result<int>.Success(0),
-                Result<int>.Success(0), Result<int>.Success(0), Result<int>.Failure(s_processingError));
+            .Returns(Result.Success<int>(0), Result.Success<int>(0), Result.Success<int>(0),
+                Result.Success<int>(0), Result.Success<int>(0), Result.Failure<int>(s_processingError));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -1524,7 +1524,7 @@ public class ProcessImportJobCommandHandlerTests
                 {
                     await onProgress(report);
                 }
-                return Result<ImageProcessingResult>.Success(new ImageProcessingResult(20, 0, false));
+                return Result.Success<ImageProcessingResult>(new ImageProcessingResult(20, 0, false));
             });
         return job;
     }
@@ -1576,7 +1576,7 @@ public class ProcessImportJobCommandHandlerTests
     private void SetupComicInfo(ImportJob job, ComicInfoData comicInfo)
     {
         SetupArchiveExtractor(job, [], comicInfoPath: "/tmp/ComicInfo.xml");
-        _comicInfoXmlService.Read(Arg.Any<string>()).Returns(Result<ComicInfoData>.Success(comicInfo));
+        _comicInfoXmlService.Read(Arg.Any<string>()).Returns(Result.Success<ComicInfoData>(comicInfo));
         SetupImageProcessor();
         SetupComicInfoXml();
         SetupCloudinary();
@@ -1595,7 +1595,12 @@ public class ProcessImportJobCommandHandlerTests
         CreateDigitalLibrary(job.LibraryId);
         SetupComicInfo(job, EmptyComicInfo() with
         {
-            Series = "Blacksad", Title = "Âme rouge", Writer = "Juan Díaz Canales", Publisher = "Dargaud", Year = 2005, Isbn = "9782075162869"
+            Series = "Blacksad",
+            Title = "Âme rouge",
+            Writer = "Juan Díaz Canales",
+            Publisher = "Dargaud",
+            Year = 2005,
+            Isbn = "9782075162869"
         });
         _comicSearchService.SearchByIsbnAsync("9782075162869", Arg.Any<CancellationToken>())
             .Returns(new ComicSearchResult("Catalogue Title", "Catalogue Serie", "9782075162869", 4, "",

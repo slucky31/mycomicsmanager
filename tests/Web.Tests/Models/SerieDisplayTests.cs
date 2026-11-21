@@ -35,7 +35,7 @@ public sealed class SerieDisplayTests
     [Fact]
     public void SerieHref_Should_EscapeTheNameInTheQuery()
     {
-        var libraryId = Guid.Parse("0193f3a8-0000-7000-8000-000000000001");
+        var libraryId = new Guid(0x0193f3a8, 0x0000, 0x7000, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01) /* 0193f3a8-0000-7000-8000-000000000001 */;
 
         SerieDisplay.SerieHref(libraryId, "Tintin & Milou / 2")
             .Should().Be("/libraries/0193f3a8-0000-7000-8000-000000000001/serie?name=Tintin%20%26%20Milou%20%2F%202");

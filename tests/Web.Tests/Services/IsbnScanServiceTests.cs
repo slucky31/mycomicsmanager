@@ -28,7 +28,7 @@ public sealed class IsbnScanServiceTests
     public async Task StartLibraryScanAsync_Should_StartTheScanForTheCurrentUser()
     {
         var libraryId = Guid.CreateVersion7();
-        _handler.Handle(new StartLibraryIsbnScanCommand(libraryId, s_userId), Arg.Any<CancellationToken>()).Returns(Result<int>.Success(4));
+        _handler.Handle(new StartLibraryIsbnScanCommand(libraryId, s_userId), Arg.Any<CancellationToken>()).Returns(Result.Success<int>(4));
 
         var result = await _service.StartLibraryScanAsync(libraryId, TestContext.Current.CancellationToken);
 
@@ -39,7 +39,7 @@ public sealed class IsbnScanServiceTests
     public async Task StartLibraryScanAsync_Should_NotStartTheScan_WhenTheUserIsUnknown()
     {
         var userError = new TError("USR404", "User not found");
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(userError));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(userError));
 
         var result = await _service.StartLibraryScanAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
@@ -52,7 +52,7 @@ public sealed class IsbnScanServiceTests
     {
         var bookId = Guid.CreateVersion7();
         _scanBookHandler.Handle(new ScanBookIsbnCommand(bookId, s_userId), Arg.Any<CancellationToken>())
-            .Returns(Result<IsbnScanOutcome>.Success(IsbnScanOutcome.WithCandidates));
+            .Returns(Result.Success<IsbnScanOutcome>(IsbnScanOutcome.WithCandidates));
 
         var result = await _service.ScanBookAsync(bookId, TestContext.Current.CancellationToken);
 
@@ -63,7 +63,7 @@ public sealed class IsbnScanServiceTests
     public async Task ScanBookAsync_Should_NotScan_WhenTheUserIsUnknown()
     {
         var userError = new TError("USR404", "User not found");
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(userError));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(userError));
 
         var result = await _service.ScanBookAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 

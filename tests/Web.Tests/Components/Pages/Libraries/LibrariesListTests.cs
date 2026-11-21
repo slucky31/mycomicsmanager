@@ -54,7 +54,7 @@ public sealed class LibrariesListTests : IAsyncDisposable
     }
 
     private void GivenLibraries(params LibrarySummary[] libraries) =>
-        _librariesService.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<LibrarySummary>>.Success(libraries));
+        _librariesService.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<LibrarySummary>>(libraries));
 
     private void GivenConfirmation(bool confirmed)
     {
@@ -173,7 +173,7 @@ public sealed class LibrariesListTests : IAsyncDisposable
     [Fact]
     public void SearchTerm_Should_ReportTheError_WhenTheSearchFails()
     {
-        GivenSearch("astérix", LibrariesList.SearchPageSize, Result<BookSearchResult>.Failure(BooksError.BadRequest));
+        GivenSearch("astérix", LibrariesList.SearchPageSize, Result.Failure<BookSearchResult>(BooksError.BadRequest));
         var cut = Render(_readBooks);
 
         Type(cut, "astérix");
@@ -208,7 +208,7 @@ public sealed class LibrariesListTests : IAsyncDisposable
     [Fact]
     public void Render_Should_ReportTheError_WhenTheLibrariesCannotBeLoaded()
     {
-        _librariesService.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<LibrarySummary>>.Failure(LibrariesError.ValidationError));
+        _librariesService.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result.Failure<IReadOnlyList<LibrarySummary>>(LibrariesError.ValidationError));
 
         var cut = _ctx.Render<LibrariesList>();
 
@@ -223,7 +223,7 @@ public sealed class LibrariesListTests : IAsyncDisposable
     [Fact]
     public async Task RetryAsync_Should_ShowTheLibraries_WhenTheyCanBeLoadedAgain()
     {
-        _librariesService.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<LibrarySummary>>.Failure(LibrariesError.ValidationError));
+        _librariesService.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result.Failure<IReadOnlyList<LibrarySummary>>(LibrariesError.ValidationError));
         var cut = _ctx.Render<LibrariesList>();
         GivenLibraries(_readBooks);
 

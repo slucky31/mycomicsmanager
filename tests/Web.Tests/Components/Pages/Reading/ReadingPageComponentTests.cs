@@ -40,10 +40,10 @@ public sealed class ReadingPageComponentTests
             .Select(i => Reading(i == 0 ? "Le Fils" : $"Tome {i}", new DateTime(2026, 10, 25 - i, 20, 0, 0, DateTimeKind.Utc)))];
 
     private void GivenInProgress(params BookInProgressDto[] books) =>
-        _readingService.GetInProgress(Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<BookInProgressDto>>.Success(books));
+        _readingService.GetInProgress(Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<BookInProgressDto>>(books));
 
     private void GivenReadings(int page, IPagedList<BookReadingDto> readings) =>
-        _readingService.GetRecentReadings(page, ReadingPage.ReadingsPageSize, Arg.Any<CancellationToken>()).Returns(Result<IPagedList<BookReadingDto>>.Success(readings));
+        _readingService.GetRecentReadings(page, ReadingPage.ReadingsPageSize, Arg.Any<CancellationToken>()).Returns(Result.Success<IPagedList<BookReadingDto>>(readings));
 
     private (BunitContext Ctx, IRenderedComponent<ReadingPage> Cut) Render()
     {
@@ -180,7 +180,7 @@ public sealed class ReadingPageComponentTests
         GivenInProgress();
         GivenReadings(1, Page(21, FirstPage()));
         _readingService.GetRecentReadings(2, ReadingPage.ReadingsPageSize, Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<BookReadingDto>>.Failure(new TError("DB500", "boom")));
+            .Returns(Result.Failure<IPagedList<BookReadingDto>>(new TError("DB500", "boom")));
 
         var (ctx, cut) = Render();
         await using var _ = ctx;
@@ -203,7 +203,7 @@ public sealed class ReadingPageComponentTests
         GivenReadings(2, Page(21, last));
         var reloaded = Page(20, first);
         _readingService.GetRecentReadings(1, 2 * ReadingPage.ReadingsPageSize, Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<BookReadingDto>>.Success(reloaded));
+            .Returns(Result.Success<IPagedList<BookReadingDto>>(reloaded));
         _moveWorkflow.ChooseAndMoveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
 
         var (ctx, cut) = Render();
@@ -229,8 +229,8 @@ public sealed class ReadingPageComponentTests
         if (inProgressFails)
         {
             _readingService.GetInProgress(Arg.Any<CancellationToken>()).Returns(
-                Result<IReadOnlyList<BookInProgressDto>>.Failure(failure),
-                Result<IReadOnlyList<BookInProgressDto>>.Success([]));
+                Result.Failure<IReadOnlyList<BookInProgressDto>>(failure),
+                Result.Success<IReadOnlyList<BookInProgressDto>>([]));
             GivenReadings(1, Page(0));
         }
         else
@@ -238,8 +238,8 @@ public sealed class ReadingPageComponentTests
             GivenInProgress();
             var noReadings = Page(0);
             _readingService.GetRecentReadings(1, ReadingPage.ReadingsPageSize, Arg.Any<CancellationToken>()).Returns(
-                Result<IPagedList<BookReadingDto>>.Failure(failure),
-                Result<IPagedList<BookReadingDto>>.Success(noReadings));
+                Result.Failure<IPagedList<BookReadingDto>>(failure),
+                Result.Success<IPagedList<BookReadingDto>>(noReadings));
         }
 
         var (ctx, cut) = Render();

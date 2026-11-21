@@ -54,7 +54,7 @@ public sealed class NavBarComponentTests
         var current = new LibrarySummary(Guid.CreateVersion7(), "Read Books", "#2E7D32", "Star", LibraryBookType.Physical, 24);
         var other = new LibrarySummary(Guid.CreateVersion7(), "MesEbooks", "#5C6BC0", "Bookmark", LibraryBookType.Digital, 1);
         var libraries = Substitute.For<ILibrariesService>();
-        libraries.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<LibrarySummary>>.Success([current, other]));
+        libraries.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<LibrarySummary>>([current, other]));
         await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddMudServices();
@@ -79,7 +79,7 @@ public sealed class NavBarComponentTests
     public async Task RefreshLibrariesAsync_Should_HideTheLibraries_WhenTheyCannotBeLoaded()
     {
         var libraries = Substitute.For<ILibrariesService>();
-        libraries.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<LibrarySummary>>.Failure(LibrariesError.ValidationError));
+        libraries.GetSummaries(Arg.Any<CancellationToken>()).Returns(Result.Failure<IReadOnlyList<LibrarySummary>>(LibrariesError.ValidationError));
         var feeds = Substitute.For<IFeedImportService>();
         feeds.CountAwaitingArbitrationAsync(Arg.Any<CancellationToken>()).Returns(1);
         await using var ctx = new BunitContext();

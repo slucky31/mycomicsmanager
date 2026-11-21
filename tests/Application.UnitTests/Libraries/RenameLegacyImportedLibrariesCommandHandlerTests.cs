@@ -17,7 +17,7 @@ public class RenameLegacyImportedLibrariesCommandHandlerTests
     public RenameLegacyImportedLibrariesCommandHandlerTests()
     {
         _updateHandler.Handle(Arg.Any<UpdateLibraryCommand>(), Arg.Any<CancellationToken>())
-            .Returns(call => Result<Library>.Success(Library.Create("Imported", "#5C6BC0", "Inbox", LibraryBookType.Digital, call.Arg<UpdateLibraryCommand>().UserId).Value!));
+            .Returns(call => Result.Success<Library>(Library.Create("Imported", "#5C6BC0", "Inbox", LibraryBookType.Digital, call.Arg<UpdateLibraryCommand>().UserId).Value!));
         _handler = new RenameLegacyImportedLibrariesCommandHandler(_readService, _updateHandler, NullLogger<RenameLegacyImportedLibrariesCommandHandler>.Instance);
     }
 
@@ -33,7 +33,7 @@ public class RenameLegacyImportedLibrariesCommandHandlerTests
         _readService.ListByNameAsync("À trier", Arg.Any<CancellationToken>()).Returns([renamed, kept, failed]);
         _readService.ExistsByNameAsync("Imported", kept.UserId, kept.Id, Arg.Any<CancellationToken>()).Returns(true);
         _updateHandler.Handle(Arg.Is<UpdateLibraryCommand>(c => c.Id == failed.Id), Arg.Any<CancellationToken>())
-            .Returns(Result<Library>.Failure(LibrariesError.FolderNotMoved));
+            .Returns(Result.Failure<Library>(LibrariesError.FolderNotMoved));
 
         // Act
         var result = await _handler.Handle(new RenameLegacyImportedLibrariesCommand(), TestContext.Current.CancellationToken);

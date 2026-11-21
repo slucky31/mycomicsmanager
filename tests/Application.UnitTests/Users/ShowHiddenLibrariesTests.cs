@@ -18,7 +18,7 @@ public class ShowHiddenLibrariesTests
 
     public ShowHiddenLibrariesTests()
     {
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _getHandler = new GetShowHiddenLibrariesQueryHandler(_userRepository);
         _setHandler = new SetShowHiddenLibrariesCommandHandler(_userRepository, _unitOfWork);
     }
@@ -92,7 +92,7 @@ public class ShowHiddenLibrariesTests
     public async Task SetShowHiddenLibraries_Should_ReturnTheError_WhenTheSettingCannotBeSaved()
     {
         var user = GivenUser(showHiddenLibraries: false);
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(s_saveError));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(s_saveError));
 
         var result = await _setHandler.Handle(new SetShowHiddenLibrariesCommand(user.Id, true), TestContext.Current.CancellationToken);
 

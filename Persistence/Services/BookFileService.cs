@@ -14,29 +14,29 @@ public sealed partial class BookFileService(ILogger<BookFileService> logger) : I
 
         if (!File.Exists(filePath))
         {
-            LogFileNotFound(filePath);
+            LogFileNotFound(logger, filePath);
             return Task.CompletedTask;
         }
 
         try
         {
             File.Delete(filePath);
-            LogFileDeleted(filePath);
+            LogFileDeleted(logger, filePath);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            LogFileDeletionFailed(ex, filePath);
+            LogFileDeletionFailed(logger, ex, filePath);
         }
 
         return Task.CompletedTask;
     }
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Digital book file not found, skipping deletion: {FilePath}")]
-    private partial void LogFileNotFound(string filePath);
+    private static partial void LogFileNotFound(ILogger logger, string filePath);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Deleted digital book file: {FilePath}")]
-    private partial void LogFileDeleted(string filePath);
+    private static partial void LogFileDeleted(ILogger logger, string filePath);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete digital book file: {FilePath}")]
-    private partial void LogFileDeletionFailed(Exception ex, string filePath);
+    private static partial void LogFileDeletionFailed(ILogger logger, Exception ex, string filePath);
 }

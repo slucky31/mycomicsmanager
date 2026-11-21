@@ -25,10 +25,10 @@ public sealed class EditLibraryComponentTests : IAsyncDisposable
 
     public EditLibraryComponentTests()
     {
-        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result<Library>.Success(_library));
-        _librariesService.GetSummaries(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(_ => Result<IReadOnlyList<LibrarySummary>>.Success(
+        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result.Success<Library>(_library));
+        _librariesService.GetSummaries(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(_ => Result.Success<IReadOnlyList<LibrarySummary>>(
             [new LibrarySummary(_library.Id, "Mangas", "#26A69A", "AutoStories", LibraryBookType.Physical, 38) { Covers = ["/a.webp", "/b.webp"] }]));
-        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result<Library>.Success(_library));
+        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result.Success<Library>(_library));
 
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
@@ -69,7 +69,7 @@ public sealed class EditLibraryComponentTests : IAsyncDisposable
     public async Task EditLibrary_Should_KeepTheNameOfTheImportedLibrary_AndSaveItsColor()
     {
         var imported = Library.Create("Imported", "#5C6BC0", "Inbox", LibraryBookType.Digital, Guid.CreateVersion7()).Value!;
-        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result<Library>.Success(imported));
+        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result.Success<Library>(imported));
         var cut = Render();
 
         var name = cut.Find("#library-name");
@@ -156,7 +156,7 @@ public sealed class EditLibraryComponentTests : IAsyncDisposable
     {
         var library = Library.Create("Old", "#5C6BC0", "Star", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
         library.Update("red", "Star");
-        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result<Library>.Success(library));
+        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result.Success<Library>(library));
         var cut = Render();
 
         await cut.Find("form").SubmitAsync();
@@ -175,7 +175,7 @@ public sealed class EditLibraryComponentTests : IAsyncDisposable
     public async Task SaveAsync_Should_SayWhyTheChangesWereNotSaved(bool duplicate, string message)
     {
         _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>())
-            .Returns(_ => Result<Library>.Failure(duplicate ? LibrariesError.Duplicate : LibrariesError.NotFound));
+            .Returns(_ => Result.Failure<Library>(duplicate ? LibrariesError.Duplicate : LibrariesError.NotFound));
         var cut = Render();
 
         await cut.Find("form").SubmitAsync();

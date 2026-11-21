@@ -246,6 +246,8 @@ builder.Services.AddMudServices(config =>
 
 // Config Services
 builder.Services.AddScoped<ILibrariesService, LibrariesService>();
+builder.Services.AddScoped<BookQueryHandlers>();
+builder.Services.AddScoped<BookCommandHandlers>();
 builder.Services.AddScoped<IBooksService, BooksService>();
 builder.Services.AddScoped<IBookMoveService, BookMoveService>();
 builder.Services.AddScoped<IBookMoveWorkflow, BookMoveWorkflow>();

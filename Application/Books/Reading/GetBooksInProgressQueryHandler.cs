@@ -25,6 +25,6 @@ public sealed class GetBooksInProgressQueryHandler(
         var includeHidden = await userRepository.ShowsHiddenLibrariesAsync(request.UserId);
         var books = await bookReadService.ListInProgressAsync(request.UserId, includeHidden, cancellationToken);
 
-        return Result<IReadOnlyList<BookInProgressDto>>.Success(books);
+        return Result.Success<IReadOnlyList<BookInProgressDto>>(books);
     }
 }

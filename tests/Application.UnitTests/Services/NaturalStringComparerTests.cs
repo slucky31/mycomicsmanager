@@ -1,4 +1,4 @@
-﻿using Persistence.Services;
+using Persistence.Services;
 
 namespace Application.UnitTests.Services;
 

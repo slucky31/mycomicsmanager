@@ -25,10 +25,10 @@ public class SyncFeedImportsCommandHandlerTests
         _minifluxClient = Substitute.For<IMinifluxClient>();
         _repository = Substitute.For<IFeedImportDecisionRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
 
         _minifluxClient.GetCategoriesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<MinifluxCategory>>.Success([new MinifluxCategory(1, "Tech"), new MinifluxCategory(CategoryId, " bd ")]));
+            .Returns(Result.Success<IReadOnlyList<MinifluxCategory>>([new MinifluxCategory(1, "Tech"), new MinifluxCategory(CategoryId, " bd ")]));
         _minifluxClient.UnstarAsync(Arg.Any<long>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
         _handler = new SyncFeedImportsCommandHandler(_minifluxClient, _repository, _unitOfWork, Options.Create(_settings), NullLogger<SyncFeedImportsCommandHandler>.Instance, TimeProvider.System);
@@ -39,7 +39,7 @@ public class SyncFeedImportsCommandHandlerTests
 
     private void GivenStarredEntries(params MinifluxEntry[] entries) =>
         _minifluxClient.GetStarredEntriesAsync(CategoryId, Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<MinifluxEntry>>.Success(entries));
+            .Returns(Result.Success<IReadOnlyList<MinifluxEntry>>(entries));
 
     [Fact]
     public async Task Handle_Should_ReturnBadRequest_WhenUserIdIsEmpty()
@@ -67,7 +67,7 @@ public class SyncFeedImportsCommandHandlerTests
     public async Task Handle_Should_ReturnMinifluxError_WhenStarredEntriesCannotBeFetched()
     {
         _minifluxClient.GetStarredEntriesAsync(CategoryId, Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<MinifluxEntry>>.Failure(FeedImportError.MinifluxUnavailable));
+            .Returns(Result.Failure<IReadOnlyList<MinifluxEntry>>(FeedImportError.MinifluxUnavailable));
 
         var result = await _handler.Handle(new SyncFeedImportsCommand(s_userId), TestContext.Current.CancellationToken);
 
@@ -139,7 +139,7 @@ public class SyncFeedImportsCommandHandlerTests
     {
         var entry = CreateEntry(105);
         GivenStarredEntries(entry);
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(new TError("DB_UPDATE_ERROR", "duplicate key")));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(new TError("DB_UPDATE_ERROR", "duplicate key")));
 
         var result = await _handler.Handle(new SyncFeedImportsCommand(s_userId), TestContext.Current.CancellationToken);
 

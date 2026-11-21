@@ -36,8 +36,8 @@ public sealed class ArchiveRefreshOrchestratorTests
         var userId = Guid.CreateVersion7();
         _handler.Handle(Arg.Any<RefreshFromArchiveCommand>(), Arg.Any<CancellationToken>())
             .Returns(succeeds
-                ? Result<ArchiveRefreshSummary>.Success(new ArchiveRefreshSummary(3, 2, 1))
-                : Result<ArchiveRefreshSummary>.Failure(new TError("BOK400", "Bad request")));
+                ? Result.Success<ArchiveRefreshSummary>(new ArchiveRefreshSummary(3, 2, 1))
+                : Result.Failure<ArchiveRefreshSummary>(new TError("BOK400", "Bad request")));
 
         var act = () => _orchestrator.RefreshAsync(userId, TestContext.Current.CancellationToken);
 

@@ -67,7 +67,7 @@ public sealed class FeedImportSyncJobTests
         var user = User.Create(UserEmail, "auth0|1");
         _userReadService.GetUserByEmail(UserEmail, Arg.Any<CancellationToken>()).Returns(user);
         _handler.Handle(Arg.Any<SyncFeedImportsCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<SyncFeedImportsResult>.Failure(new TError("FEED502", "Miniflux down")));
+            .Returns(Result.Failure<SyncFeedImportsResult>(new TError("FEED502", "Miniflux down")));
         return user;
     }
 
@@ -131,7 +131,7 @@ public sealed class FeedImportSyncJobTests
         var user = User.Create(UserEmail, "auth0|1");
         _userReadService.GetUserByEmail(UserEmail, Arg.Any<CancellationToken>()).Returns(user);
         _handler.Handle(Arg.Any<SyncFeedImportsCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<SyncFeedImportsResult>.Failure(new TError("FEED502", "Miniflux down")));
+            .Returns(Result.Failure<SyncFeedImportsResult>(new TError("FEED502", "Miniflux down")));
         var first = Guid.CreateVersion7();
         var second = Guid.CreateVersion7();
         _decisionRepository.GetPendingIdsAsync(user.Id, Arg.Any<CancellationToken>()).Returns([first, second]);
@@ -158,7 +158,7 @@ public sealed class FeedImportSyncJobTests
     [Fact]
     public async Task SyncAsync_Should_NotRunSync_WhenConfiguredUserIsUnknown()
     {
-        _userReadService.GetUserByEmail(UserEmail, Arg.Any<CancellationToken>()).Returns(Result<User>.Failure(UsersError.NotFound));
+        _userReadService.GetUserByEmail(UserEmail, Arg.Any<CancellationToken>()).Returns(Result.Failure<User>(UsersError.NotFound));
 
         await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
 

@@ -31,7 +31,7 @@ public sealed class GetIsbnCandidateOwnersQueryHandler(
 
         if (book is not DigitalBook digitalBook)
         {
-            return Result<IReadOnlyList<IsbnOwnerDto>>.Success([]);
+            return Result.Success<IReadOnlyList<IsbnOwnerDto>>([]);
         }
 
         // A handful of ISBNs at most are read on the pages: one lookup each.
@@ -45,6 +45,6 @@ public sealed class GetIsbnCandidateOwnersQueryHandler(
             }
         }
 
-        return Result<IReadOnlyList<IsbnOwnerDto>>.Success(owners);
+        return Result.Success<IReadOnlyList<IsbnOwnerDto>>(owners);
     }
 }

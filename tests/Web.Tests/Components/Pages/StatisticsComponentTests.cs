@@ -1,5 +1,5 @@
 using Application.Interfaces;
-using Application.Statistics.Get;
+using Application.Statistics.GetStatistics;
 using AwesomeAssertions;
 using Bunit;
 using Domain.Libraries;
@@ -35,11 +35,11 @@ public sealed class StatisticsComponentTests
         var librariesService = Substitute.For<ILibrariesService>();
         librariesService
             .FilterBy(Arg.Any<string?>(), Arg.Any<LibrariesColumn?>(), Arg.Any<SortOrder?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
         return librariesService;
     }
 
-    private static async Task<(BunitContext Ctx, IRenderedComponent<Statistics> Cut, ISnackbar Snackbar)> RenderAsync(
+    private static async Task<(BunitContext Ctx, IRenderedComponent<StatisticsPage> Cut, ISnackbar Snackbar)> RenderAsync(
         IStatisticsService statisticsService)
     {
         var snackbar = Substitute.For<ISnackbar>();
@@ -52,7 +52,7 @@ public sealed class StatisticsComponentTests
         ctx.Services.AddSingleton(snackbar);
 
         ctx.Render<MudPopoverProvider>();
-        var cut = ctx.Render<Statistics>();
+        var cut = ctx.Render<StatisticsPage>();
         await Task.Yield();
 
         return (ctx, cut, snackbar);
@@ -62,7 +62,7 @@ public sealed class StatisticsComponentTests
     public async Task OnInitializedAsync_Should_RenderKeyFiguresForAllLibraries_WhenLoadSucceeds()
     {
         var statisticsService = Substitute.For<IStatisticsService>();
-        statisticsService.Get(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(CreateStatistics(totalBooks: 42));
+        statisticsService.GetStatistics(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(CreateStatistics(totalBooks: 42));
 
         var (ctx, cut, _) = await RenderAsync(statisticsService);
         await using var _ = ctx;
@@ -72,14 +72,14 @@ public sealed class StatisticsComponentTests
         cut.Markup.Should().Contain("Libraries");
         cut.Markup.Should().Contain("Readings per month");
         cut.Markup.Should().NotContain("No books yet");
-        await statisticsService.Received(1).Get(null, Arg.Any<CancellationToken>());
+        await statisticsService.Received(1).GetStatistics(null, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task OnInitializedAsync_Should_ShowEmptyState_WhenUserHasNoBook()
     {
         var statisticsService = Substitute.For<IStatisticsService>();
-        statisticsService.Get(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(CreateStatistics(totalBooks: 0));
+        statisticsService.GetStatistics(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(CreateStatistics(totalBooks: 0));
 
         var (ctx, cut, _) = await RenderAsync(statisticsService);
         await using var _ = ctx;
@@ -91,8 +91,8 @@ public sealed class StatisticsComponentTests
     public async Task OnInitializedAsync_Should_ShowSnackbarError_WhenLoadFails()
     {
         var statisticsService = Substitute.For<IStatisticsService>();
-        statisticsService.Get(Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
-            .Returns(Result<StatisticsDto>.Failure(new TError("sta:err", "boom")));
+        statisticsService.GetStatistics(Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<StatisticsDto>(new TError("sta:err", "boom")));
 
         var (ctx, cut, snackbar) = await RenderAsync(statisticsService);
         await using var _ = ctx;
@@ -106,7 +106,7 @@ public sealed class StatisticsComponentTests
     public async Task OnLibraryChangedAsync_Should_ReloadStatisticsForLibrary_WhenLibrarySelected()
     {
         var statisticsService = Substitute.For<IStatisticsService>();
-        statisticsService.Get(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(CreateStatistics(totalBooks: 5));
+        statisticsService.GetStatistics(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(CreateStatistics(totalBooks: 5));
 
         var (ctx, cut, _) = await RenderAsync(statisticsService);
         await using var _ = ctx;
@@ -114,7 +114,7 @@ public sealed class StatisticsComponentTests
 
         await cut.ChooseLibraryAsync("stats-library", "Comics");
 
-        await statisticsService.Received(1).Get(s_library.Id, Arg.Any<CancellationToken>());
+        await statisticsService.Received(1).GetStatistics(s_library.Id, Arg.Any<CancellationToken>());
         await cut.WaitForAssertionAsync(() => cut.Markup.Should().NotContain(">Libraries<"));
     }
 }

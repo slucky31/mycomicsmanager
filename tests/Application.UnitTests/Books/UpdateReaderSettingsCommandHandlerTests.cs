@@ -1,4 +1,4 @@
-using Application.Books.ReaderDisplay;
+using Application.Books.UpdateReaderSettings;
 using Application.Interfaces;
 using Domain.Books;
 using Domain.Libraries;
@@ -24,7 +24,7 @@ public class UpdateReaderSettingsCommandHandlerTests
         _libraryRepository.GetByIdAsync(library.Id).Returns(library);
         _book = DigitalBook.Create(new BookMetadata("One Piece", "Romance Dawn", null), library.Id, "/library/Mangas/one-piece-01.cbz", 1_000).Value!;
         _bookRepository.GetByIdAsync(_book.Id).Returns(_book);
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _handler = new UpdateReaderSettingsCommandHandler(_bookRepository, _libraryRepository, _unitOfWork);
     }
 
@@ -96,7 +96,7 @@ public class UpdateReaderSettingsCommandHandlerTests
     public async Task Handle_Should_ReturnSaveError_WhenSaveFails()
     {
         var saveError = new TError("DB500", "Save failed");
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(saveError));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(saveError));
 
         var result = await _handler.Handle(new UpdateReaderSettingsCommand(_book.Id, s_userId, s_manga), TestContext.Current.CancellationToken);
 

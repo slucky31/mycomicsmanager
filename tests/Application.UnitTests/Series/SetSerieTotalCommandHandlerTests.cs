@@ -22,7 +22,7 @@ public class SetSerieTotalCommandHandlerTests
     {
         _handler = new SetSerieTotalCommandHandler(_repository, _libraryRepository, _unitOfWork, TimeProvider.System);
         _libraryRepository.GetByIdAsync(_library.Id).Returns(_library);
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
     }
 
     private Task<Result> HandleAsync(string name, int? total, Guid? userId = null) =>
@@ -84,7 +84,7 @@ public class SetSerieTotalCommandHandlerTests
     public async Task Handle_Should_ReturnTheSaveError_WhenSavingFails()
     {
         var error = new TError("DB500", "Database down");
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(error));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(error));
 
         var result = await HandleAsync("Thorgal", 3);
 

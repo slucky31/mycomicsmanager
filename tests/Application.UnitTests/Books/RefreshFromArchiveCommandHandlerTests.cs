@@ -23,10 +23,10 @@ public sealed class RefreshFromArchiveCommandHandlerTests
 
     public RefreshFromArchiveCommandHandlerTests()
     {
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _comicInfoWriter.WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
         _pageReader.ReadPageAsync(Arg.Any<string>(), 0, Arg.Any<CancellationToken>())
-            .Returns(Result<ComicPage>.Success(new ComicPage(new byte[] { 1, 2, 3 }, "image/webp", DateTime.UtcNow)));
+            .Returns(Result.Success<ComicPage>(new ComicPage(new byte[] { 1, 2, 3 }, "image/webp", DateTime.UtcNow)));
         _cloudinary.UploadImageFromStreamAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new CloudinaryUploadResult(s_uploadedCover, "new", true, null));
         _handler = new RefreshFromArchiveCommandHandler(_bookRepository, _pageReader, _cloudinary,
@@ -47,7 +47,7 @@ public sealed class RefreshFromArchiveCommandHandlerTests
     {
         var replaced = BookWithPages("/data/a.cbz", "9782205050196", WebCover, 56, 48);
         var upToDate = BookWithPages("/data/b.cbz", null, ArchiveCover, 48, 48);
-        var unreadable = BookWithPages("/data/c.cbz", null, ArchiveCover, 48, Result<int>.Failure(BooksError.FileNotFound));
+        var unreadable = BookWithPages("/data/c.cbz", null, ArchiveCover, 48, Result.Failure<int>(BooksError.FileNotFound));
         var empty = BookWithPages("/data/d.cbz", null, ArchiveCover, 48, 0);
         var physical = PhysicalBook.Create(new BookMetadata("Blacksad", "Arctic Nation", "9782205050197", ImageLink: WebCover, NumberOfPages: 56), Guid.CreateVersion7()).Value!;
         _bookRepository.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns([replaced, physical, upToDate, unreadable, empty]);
@@ -77,7 +77,7 @@ public sealed class RefreshFromArchiveCommandHandlerTests
         }
         else
         {
-            _pageReader.ReadPageAsync("/data/a.cbz", 0, Arg.Any<CancellationToken>()).Returns(Result<ComicPage>.Failure(BooksError.PageNotFound));
+            _pageReader.ReadPageAsync("/data/a.cbz", 0, Arg.Any<CancellationToken>()).Returns(Result.Failure<ComicPage>(BooksError.PageNotFound));
         }
 
         var result = await _handler.Handle(new RefreshFromArchiveCommand(s_userId), TestContext.Current.CancellationToken);
@@ -93,7 +93,7 @@ public sealed class RefreshFromArchiveCommandHandlerTests
         var book = BookWithPages("/data/a.cbz", null, string.Empty, 48, 48);
         _bookRepository.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns([book]);
         _pageReader.ReadPageAsync("/data/a.cbz", 0, Arg.Any<CancellationToken>())
-            .Returns(Result<ComicPage>.Success(new ComicPage(new byte[] { 1 }, "image/jpeg", DateTime.UtcNow)));
+            .Returns(Result.Success<ComicPage>(new ComicPage(new byte[] { 1 }, "image/jpeg", DateTime.UtcNow)));
 
         await _handler.Handle(new RefreshFromArchiveCommand(s_userId), TestContext.Current.CancellationToken);
 
@@ -105,7 +105,7 @@ public sealed class RefreshFromArchiveCommandHandlerTests
     {
         var book = BookWithPages("/data/a.cbz", null, ArchiveCover, 56, 48);
         _bookRepository.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns([book]);
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(BooksError.BadRequest));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(BooksError.BadRequest));
 
         var result = await _handler.Handle(new RefreshFromArchiveCommand(s_userId), TestContext.Current.CancellationToken);
 

@@ -1,7 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.Books.Read;
-using Application.Books.ReaderDisplay;
 using Application.Books.ReadingProgress;
+using Application.Books.UpdateReaderSettings;
 using Application.Interfaces;
 using Domain.Books;
 using Domain.Primitives;

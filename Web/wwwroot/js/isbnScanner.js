@@ -46,7 +46,7 @@ async function ensureZXingLoaded() {
                 script.onload = resolve;
                 script.onerror = (error) => {
                     console.error('[ISBN Scanner] Failed to load ZXing library', error);
-                    reject(error);
+                    reject(new Error('Failed to load the ZXing library', { cause: error }));
                 };
                 document.head.appendChild(script);
             });
@@ -64,7 +64,7 @@ export function stopScan() {
         codeReader.reset();
         codeReader = null;
     }
-    if (video && video.srcObject) {
+    if (video?.srcObject) {
         var stream = video.srcObject;
         stream.getTracks().forEach(function (track) { 
             track.stop();
@@ -88,9 +88,9 @@ export async function startScan(videoElementId, dotNetObjectRef) {
 
         video = document.getElementById(videoElementId);
         if (!video) {
-            var error = 'Video element not found: ' + videoElementId;
-            console.error('[ISBN Scanner]', error);
-            throw new Error(error);
+            const message = 'Video element not found: ' + videoElementId;
+            console.error('[ISBN Scanner]', message);
+            throw new Error(message);
         }
         
         scanning = true;
@@ -105,11 +105,11 @@ export async function startScan(videoElementId, dotNetObjectRef) {
         });
         
         // Re-verify video element is still in DOM and scanning hasn't been stopped
-        if (!scanning || !video || !video.isConnected) {
+        if (!scanning || !video?.isConnected) {
             stream.getTracks().forEach(function (track) { track.stop(); });
-            var error = 'Video element removed or scan stopped during initialization';
-            console.error('[ISBN Scanner]', error);
-            throw new Error(error);
+            const message = 'Video element removed or scan stopped during initialization';
+            console.error('[ISBN Scanner]', message);
+            throw new Error(message);
         }
 
         video.srcObject = stream;
@@ -119,7 +119,7 @@ export async function startScan(videoElementId, dotNetObjectRef) {
         videoTrack = stream.getVideoTracks()[0];
         var capabilities = videoTrack.getCapabilities();
         
-        if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+        if (capabilities.focusMode?.includes('continuous')) {
             await videoTrack.applyConstraints({
                 advanced: [{ focusMode: 'continuous' }]
             });

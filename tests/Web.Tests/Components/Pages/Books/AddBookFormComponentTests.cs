@@ -42,9 +42,9 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
         var page = Substitute.For<IPagedList<Library>>();
         page.Items.Returns([_readBooks, _wishlist, _ebooks]);
         _librariesService.FilterBy(Arg.Any<string?>(), Arg.Any<LibrariesColumn?>(), Arg.Any<SortOrder?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(_ => Result<IPagedList<Library>>.Success(page));
+            .Returns(_ => Result.Success<IPagedList<Library>>(page));
         _booksService.Create(Arg.Any<CreateBookRequest>(), Arg.Any<CancellationToken>())
-            .Returns(_ => Result<Book>.Success(PhysicalBook.Create(new BookMetadata("Extremity", "Extremity", Isbn), _readBooks.Id).Value!));
+            .Returns(_ => Result.Success<Book>(PhysicalBook.Create(new BookMetadata("Extremity", "Extremity", Isbn), _readBooks.Id).Value!));
         _searchService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Extremity);
 
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
@@ -185,7 +185,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
     [Fact]
     public async Task SaveAsync_Should_SayTheBookIsAlreadyThere_WhenItsIsbnIsKnown()
     {
-        _booksService.Create(Arg.Any<CreateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result<Book>.Failure(BooksError.Duplicate));
+        _booksService.Create(Arg.Any<CreateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result.Failure<Book>(BooksError.Duplicate));
         var cut = RenderFound();
 
         await cut.Find(".found-actions .form-button-primary").ClickAsync(new());
@@ -211,7 +211,7 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
     public void AddBookForm_Should_SayTheLibrariesCouldNotBeLoaded()
     {
         _librariesService.FilterBy(Arg.Any<string?>(), Arg.Any<LibrariesColumn?>(), Arg.Any<SortOrder?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(_ => Result<IPagedList<Library>>.Failure(LibrariesError.NotFound));
+            .Returns(_ => Result.Failure<IPagedList<Library>>(LibrariesError.NotFound));
 
         Render(string.Empty);
 

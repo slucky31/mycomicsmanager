@@ -5,7 +5,7 @@ namespace Web.Tests.Models;
 
 internal static class SeriesTestData
 {
-    public static readonly Guid LibraryId = Guid.Parse("0193f3a8-0000-7000-8000-000000000001");
+    public static readonly Guid LibraryId = new Guid(0x0193f3a8, 0x0000, 0x7000, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01) /* 0193f3a8-0000-7000-8000-000000000001 */;
 
     public static SerieBookRow Book(string serie, int volume, string imageLink = "") =>
         new(Guid.CreateVersion7(), LibraryId, "BD", serie, $"{serie} {volume}", volume, imageLink);

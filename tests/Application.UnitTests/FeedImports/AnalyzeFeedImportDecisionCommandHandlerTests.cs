@@ -28,7 +28,7 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
 
     public AnalyzeFeedImportDecisionCommandHandlerTests()
     {
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _bookReadService.ListIdentitiesByUserAsync(s_userId, Arg.Any<CancellationToken>()).Returns([]);
         _handler = new AnalyzeFeedImportDecisionCommandHandler(
             _repository,
@@ -45,7 +45,7 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
     }
 
     private void GivenPage(string html) =>
-        _pageFetcher.GetHtmlAsync(Arg.Any<Uri>(), Arg.Any<CancellationToken>()).Returns(Result<string>.Success(html));
+        _pageFetcher.GetHtmlAsync(Arg.Any<Uri>(), Arg.Any<CancellationToken>()).Returns(Result.Success<string>(html));
 
     private Task<Result> HandleAsync(FeedImportDecision decision) =>
         _handler.Handle(new AnalyzeFeedImportDecisionCommand(decision.Id), TestContext.Current.CancellationToken);
@@ -77,7 +77,7 @@ public class AnalyzeFeedImportDecisionCommandHandlerTests
     public async Task Handle_Should_Fail_WhenPageCannotBeFetched()
     {
         var decision = GivenDecision();
-        _pageFetcher.GetHtmlAsync(Arg.Any<Uri>(), Arg.Any<CancellationToken>()).Returns(Result<string>.Failure(FeedImportError.PageUnavailable));
+        _pageFetcher.GetHtmlAsync(Arg.Any<Uri>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<string>(FeedImportError.PageUnavailable));
 
         await HandleAsync(decision);
 

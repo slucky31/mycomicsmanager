@@ -36,10 +36,10 @@ public sealed class EditBookComponentTests : IAsyncDisposable
         _book.AddReadingDate(new DateTime(2024, 8, 2, 0, 0, 0, DateTimeKind.Utc), 5);
         _recentReading = _book.AddReadingDate(new DateTime(2026, 3, 12, 0, 0, 0, DateTimeKind.Utc), 4);
 
-        _booksService.GetById(Arg.Any<string?>()).Returns(_ => Result<Book>.Success(_book));
-        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result<Book>.Success(_book));
+        _booksService.GetById(Arg.Any<string?>()).Returns(_ => Result.Success<Book>(_book));
+        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result.Success<Book>(_book));
         _booksService.DeleteReadingDate(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
-        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result<Library>.Success(_library));
+        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result.Success<Library>(_library));
         ConfirmDialogsWith(DialogResult.Ok(true));
 
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
@@ -124,7 +124,7 @@ public sealed class EditBookComponentTests : IAsyncDisposable
     public void EditBook_Should_NameTheLibraryLibrary_WhenItCannotBeLoaded_AndSayThereIsNoReading()
     {
         var book = DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null, 4), _library.Id, "/data/A/b.cbz", 1).Value!;
-        _booksService.GetById(Arg.Any<string?>()).Returns(_ => Result<Book>.Success(book));
+        _booksService.GetById(Arg.Any<string?>()).Returns(_ => Result.Success<Book>(book));
         _librariesService.GetById(Arg.Any<string?>()).Returns(LibrariesError.NotFound);
 
         var cut = Render();
@@ -174,7 +174,7 @@ public sealed class EditBookComponentTests : IAsyncDisposable
     public async Task EditBook_Should_ShowAOneShotChecked_AndLetItsSerieBeTypedOnceUnchecked()
     {
         var oneShot = PhysicalBook.Create(new BookMetadata("One Shot", "Extremity", Isbn, 1, "", "", "", null, null), _library.Id).Value!;
-        _booksService.GetById(Arg.Any<string?>()).Returns(_ => Result<Book>.Success(oneShot));
+        _booksService.GetById(Arg.Any<string?>()).Returns(_ => Result.Success<Book>(oneShot));
         var cut = Render();
         cut.Find("#book-one-shot").HasAttribute("checked").Should().BeTrue();
 
@@ -208,7 +208,7 @@ public sealed class EditBookComponentTests : IAsyncDisposable
     [InlineData(false, "Unable to save the changes")]
     public async Task SaveAsync_Should_SayWhyTheChangesWereNotSaved_AndStayOnTheForm(bool duplicate, string message)
     {
-        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result<Book>.Failure(duplicate ? BooksError.Duplicate : BooksError.NotFound));
+        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result.Failure<Book>(duplicate ? BooksError.Duplicate : BooksError.NotFound));
         var cut = Render();
 
         await cut.Find("form").SubmitAsync();

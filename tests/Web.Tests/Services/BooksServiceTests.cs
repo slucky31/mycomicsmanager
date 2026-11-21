@@ -61,18 +61,8 @@ public sealed class BooksServiceTests
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(DefaultUserId);
 
         _service = new BooksService(
-            _getBookByIdHandler,
-            _getBooksHandler,
-            _getPagedBooksHandler,
-            _searchBooksHandler,
-            _createBookHandler,
-            _updateBookHandler,
-            _deleteBookHandler,
-            _deleteBooksHandler,
-            _addReadingDateHandler,
-            _deleteReadingDateHandler,
-            _isIsbnAvailableHandler,
-            _getIsbnCandidateOwnersHandler,
+            new BookQueryHandlers(_getBookByIdHandler, _getBooksHandler, _getPagedBooksHandler, _searchBooksHandler, _isIsbnAvailableHandler, _getIsbnCandidateOwnersHandler),
+            new BookCommandHandlers(_createBookHandler, _updateBookHandler, _deleteBookHandler, _deleteBooksHandler, _addReadingDateHandler, _deleteReadingDateHandler),
             _currentUserService);
     }
 
@@ -152,7 +142,7 @@ public sealed class BooksServiceTests
     public async Task GetById_ShouldReturnError_WhenUserNotAuthenticated()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
         var bookId = Guid.CreateVersion7();
 
         // Act
@@ -550,7 +540,7 @@ public sealed class BooksServiceTests
     public async Task Create_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
         var request = new CreateBookRequest("Series", "Title", "978-3-16-148410-0", DefaultLibraryId);
 
         // Act
@@ -570,7 +560,7 @@ public sealed class BooksServiceTests
     public async Task Update_ShouldReturnError_WhenUserNotAuthenticated()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
         var request = new UpdateBookRequest(Guid.CreateVersion7().ToString(), "Series", "Title", "978-3-16-148410-0", 1, "");
 
         // Act
@@ -886,7 +876,7 @@ public sealed class BooksServiceTests
     public async Task GetAll_ShouldReturnError_WhenUserNotAuthenticated()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(Domain.Users.UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(Domain.Users.UsersError.NotFound));
 
         // Act
         var result = await _service.GetAll();
@@ -1001,7 +991,7 @@ public sealed class BooksServiceTests
     public async Task Delete_ShouldReturnError_WhenUserNotAuthenticated()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
         var result = await _service.Delete(Guid.CreateVersion7().ToString(), TestContext.Current.CancellationToken);
@@ -1035,7 +1025,7 @@ public sealed class BooksServiceTests
         IReadOnlyList<Guid> bookIds = [Guid.CreateVersion7(), Guid.CreateVersion7()];
         var expected = new DeleteBooksResult(2, 0);
         _deleteBooksHandler.Handle(Arg.Is<DeleteBooksCommand>(c => c.BookIds == bookIds && c.UserId == DefaultUserId), Arg.Any<CancellationToken>())
-            .Returns(Result<DeleteBooksResult>.Success(expected));
+            .Returns(Result.Success<DeleteBooksResult>(expected));
 
         var result = await _service.Delete(bookIds, TestContext.Current.CancellationToken);
 
@@ -1045,7 +1035,7 @@ public sealed class BooksServiceTests
     [Fact]
     public async Task Delete_Should_ReturnTheError_WhenSeveralBooksAreGivenAndTheUserIsNotAuthenticated()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.Delete([Guid.CreateVersion7()], TestContext.Current.CancellationToken);
 
@@ -1073,7 +1063,7 @@ public sealed class BooksServiceTests
     public async Task AddReadingDate_ShouldReturnError_WhenUserNotAuthenticated()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
         var result = await _service.AddReadingDate(Guid.CreateVersion7().ToString(), 3, TestContext.Current.CancellationToken);
@@ -1136,7 +1126,7 @@ public sealed class BooksServiceTests
     public async Task DeleteReadingDate_ShouldReturnError_WhenUserNotAuthenticated()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
         var result = await _service.DeleteReadingDate(Guid.CreateVersion7().ToString(), Guid.CreateVersion7().ToString(), TestContext.Current.CancellationToken);
@@ -1186,7 +1176,7 @@ public sealed class BooksServiceTests
     public async Task GetByLibrary_ShouldReturnError_WhenUserNotAuthenticated()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
         var result = await _service.GetByLibrary(DefaultLibraryId, TestContext.Current.CancellationToken);
@@ -1223,7 +1213,7 @@ public sealed class BooksServiceTests
     public async Task Search_Should_ReturnError_WhenUserNotAuthenticated()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
         var result = await _service.Search("astérix", 20, TestContext.Current.CancellationToken);
@@ -1239,7 +1229,7 @@ public sealed class BooksServiceTests
     {
         // Arrange
         _searchBooksHandler.Handle(Arg.Any<SearchBooksQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<BookSearchResult>.Success(BookSearchResult.Empty));
+            .Returns(Result.Success<BookSearchResult>(BookSearchResult.Empty));
 
         // Act
         var result = await _service.Search("astérix", 20, TestContext.Current.CancellationToken);
@@ -1270,7 +1260,7 @@ public sealed class BooksServiceTests
     public async Task GetPagedByLibrary_ShouldReturnError_WhenUserNotAuthenticated()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
         var result = await _service.GetPagedByLibrary(DefaultLibraryId, 1, 24, BookSortOrder.IdDesc, null, TestContext.Current.CancellationToken);
@@ -1291,7 +1281,7 @@ public sealed class BooksServiceTests
         const string searchTerm = "naruto";
         var pagedList = Substitute.For<IPagedList<BookSummaryDto>>();
         _getPagedBooksHandler.Handle(Arg.Any<GetPagedBooksQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<BookSummaryDto>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<BookSummaryDto>>(pagedList));
 
         // Act
         var result = await _service.GetPagedByLibrary(DefaultLibraryId, page, pageSize, sortOrder, searchTerm, TestContext.Current.CancellationToken);
@@ -1325,7 +1315,7 @@ public sealed class BooksServiceTests
     [Fact]
     public async Task IsIsbnAvailable_Should_ReturnError_WhenUserNotAuthenticated()
     {
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.IsIsbnAvailable(Guid.CreateVersion7().ToString(), "9782012101333", TestContext.Current.CancellationToken);
 
@@ -1337,7 +1327,7 @@ public sealed class BooksServiceTests
     public async Task IsIsbnAvailable_Should_AskTheHandlerForTheBookOfTheUser_WhenBookIdIsValid()
     {
         var bookId = Guid.CreateVersion7();
-        _isIsbnAvailableHandler.Handle(Arg.Any<IsIsbnAvailableQuery>(), Arg.Any<CancellationToken>()).Returns(Result<bool>.Success(false));
+        _isIsbnAvailableHandler.Handle(Arg.Any<IsIsbnAvailableQuery>(), Arg.Any<CancellationToken>()).Returns(Result.Success<bool>(false));
 
         var result = await _service.IsIsbnAvailable(bookId.ToString(), "9782012101333", TestContext.Current.CancellationToken);
 
@@ -1353,7 +1343,7 @@ public sealed class BooksServiceTests
     [Fact]
     public async Task GetIsbnCandidateOwners_Should_ReturnError_WhenUserNotAuthenticated()
     {
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.GetIsbnCandidateOwners(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
@@ -1367,7 +1357,7 @@ public sealed class BooksServiceTests
         var bookId = Guid.CreateVersion7();
         IReadOnlyList<IsbnOwnerDto> owners = [new("9782012101333", Guid.CreateVersion7(), "Astérix", "Le Tour de Gaule", 5, string.Empty, "BD")];
         _getIsbnCandidateOwnersHandler.Handle(new GetIsbnCandidateOwnersQuery(bookId, DefaultUserId), Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<IsbnOwnerDto>>.Success(owners));
+            .Returns(Result.Success<IReadOnlyList<IsbnOwnerDto>>(owners));
 
         var result = await _service.GetIsbnCandidateOwners(bookId, TestContext.Current.CancellationToken);
 

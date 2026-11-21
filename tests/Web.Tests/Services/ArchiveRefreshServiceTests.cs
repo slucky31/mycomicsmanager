@@ -26,7 +26,7 @@ public sealed class ArchiveRefreshServiceTests
     [Fact]
     public async Task StartAsync_Should_StartTheRefreshForTheCurrentUser()
     {
-        _handler.Handle(new StartArchiveRefreshCommand(s_userId), Arg.Any<CancellationToken>()).Returns(Result<int>.Success(12));
+        _handler.Handle(new StartArchiveRefreshCommand(s_userId), Arg.Any<CancellationToken>()).Returns(Result.Success<int>(12));
 
         var result = await _service.StartAsync(TestContext.Current.CancellationToken);
 
@@ -37,7 +37,7 @@ public sealed class ArchiveRefreshServiceTests
     public async Task StartAsync_Should_NotStartTheRefresh_WhenTheUserIsUnknown()
     {
         var userError = new TError("USR404", "User not found");
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(userError));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(userError));
 
         var result = await _service.StartAsync(TestContext.Current.CancellationToken);
 

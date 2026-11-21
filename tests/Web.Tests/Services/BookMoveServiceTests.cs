@@ -45,7 +45,7 @@ public sealed class BookMoveServiceTests
     {
         var bookId = Guid.CreateVersion7();
         var libraryId = Guid.CreateVersion7();
-        _moveHandler.Handle(Arg.Any<MoveBookCommand>(), Arg.Any<CancellationToken>()).Returns(Result<Book>.Failure(BooksError.AlreadyInLibrary));
+        _moveHandler.Handle(Arg.Any<MoveBookCommand>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<Book>(BooksError.AlreadyInLibrary));
 
         var result = await _service.MoveAsync(bookId, libraryId, TestContext.Current.CancellationToken);
 
@@ -56,7 +56,7 @@ public sealed class BookMoveServiceTests
     [Fact]
     public async Task MoveAsync_And_GetTargetsAsync_Should_ReturnError_WhenUserIsUnknown()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         (await _service.GetTargetsAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken)).Error.Should().Be(UsersError.NotFound);
         (await _service.MoveAsync(Guid.CreateVersion7(), Guid.CreateVersion7(), TestContext.Current.CancellationToken)).Error.Should().Be(UsersError.NotFound);

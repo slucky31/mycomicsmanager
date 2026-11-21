@@ -41,7 +41,7 @@ public sealed class PopupAnchorLocatorTests : IAsyncDisposable
         first.Should().Be(_module.Anchor);
         second.Should().Be(_module.Anchor);
         _module.Requests.Should().Equal("book-actions", "book-actions");
-        await _js.Received(1).InvokeAsync<IJSObjectReference>("import", Arg.Any<CancellationToken>(), Arg.Any<object?[]?>());
+        _ = await _js.Received(1).InvokeAsync<IJSObjectReference>("import", Arg.Any<CancellationToken>(), Arg.Any<object?[]?>());
     }
 
     [Fact]

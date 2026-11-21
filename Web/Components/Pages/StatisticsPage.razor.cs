@@ -6,14 +6,14 @@ using Web.Validators;
 
 namespace Web.Components.Pages;
 
-public partial class Statistics : IAsyncDisposable
+public partial class StatisticsPage : IAsyncDisposable
 {
     private const int MaxLibraries = 200;
 
     [Inject] private IStatisticsService StatisticsService { get; set; } = default!;
     [Inject] private ILibrariesService LibrariesService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private ILogger<Statistics> Logger { get; set; } = default!;
+    [Inject] private ILogger<StatisticsPage> Logger { get; set; } = default!;
 
     private List<LibraryUiDto> _libraries = [];
     private Guid _selectedLibraryId = Guid.Empty;
@@ -59,7 +59,7 @@ public partial class Statistics : IAsyncDisposable
         _isLoading = true;
         try
         {
-            var result = await StatisticsService.Get(libraryId == Guid.Empty ? null : libraryId, cancellationToken);
+            var result = await StatisticsService.GetStatistics(libraryId == Guid.Empty ? null : libraryId, cancellationToken);
 
             if (cancellationToken.IsCancellationRequested || libraryId != _selectedLibraryId)
             {

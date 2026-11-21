@@ -1,6 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.Interfaces;
-using Application.Statistics.Get;
+using Application.Statistics.GetStatistics;
 using Domain.Primitives;
 
 namespace Web.Services;
@@ -9,7 +9,7 @@ public class StatisticsService(
     IQueryHandler<GetStatisticsQuery, StatisticsDto> getStatisticsHandler,
     ICurrentUserService currentUserService) : IStatisticsService
 {
-    public async Task<Result<StatisticsDto>> Get(Guid? libraryId, CancellationToken cancellationToken = default)
+    public async Task<Result<StatisticsDto>> GetStatistics(Guid? libraryId, CancellationToken cancellationToken = default)
     {
         var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
         if (userIdResult.IsFailure)

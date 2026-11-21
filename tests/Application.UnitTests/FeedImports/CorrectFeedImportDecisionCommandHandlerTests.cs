@@ -21,7 +21,7 @@ public class CorrectFeedImportDecisionCommandHandlerTests
 
     public CorrectFeedImportDecisionCommandHandlerTests()
     {
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _bookReadService.ListIdentitiesByUserAsync(s_userId, Arg.Any<CancellationToken>())
             .Returns([new BookIdentityDto(s_bookId, "Blacksad", "Âme rouge", 3, null, "BD")]);
         _handler = new CorrectFeedImportDecisionCommandHandler(_repository, _bookReadService, _unitOfWork, TimeProvider.System);

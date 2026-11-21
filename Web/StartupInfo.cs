@@ -58,16 +58,15 @@ internal static class StartupInfo
         {
             return $"{size} bytes";
         }
-        else if (size < Gibi)
+
+        if (size < Gibi)
         {
             var mebibytes = size / Mebi;
             return $"{mebibytes.ToString("F", CultureInfo.InvariantCulture)} MiB";
         }
-        else
-        {
-            var gibibytes = size / Gibi;
-            return $"{gibibytes.ToString("F", CultureInfo.InvariantCulture)} GiB";
-        }
+
+        var gibibytes = size / Gibi;
+        return $"{gibibytes.ToString("F", CultureInfo.InvariantCulture)} GiB";
     }
 
 }

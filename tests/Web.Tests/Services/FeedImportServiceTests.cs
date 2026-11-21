@@ -88,7 +88,7 @@ public sealed class FeedImportServiceTests : IDisposable
     [Fact]
     public async Task GetDecisionsAsync_Should_ReturnError_WhenUserNotResolved()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.GetDecisionsAsync(null, null, null, 1, 20, TestContext.Current.CancellationToken);
 
@@ -106,7 +106,7 @@ public sealed class FeedImportServiceTests : IDisposable
         pagedList.Items.Returns([multiBook, singleBook]);
         pagedList.TotalCount.Returns(41);
         _handler.Handle(new GetPagedFeedImportDecisionsQuery(s_userId, FeedImportDecisionStatus.Pending, null, "black", 3, 20), Arg.Any<CancellationToken>())
-            .Returns(Result<FeedImportDecisionPage>.Success(new FeedImportDecisionPage(pagedList, new HashSet<long> { 1 })));
+            .Returns(Result.Success<FeedImportDecisionPage>(new FeedImportDecisionPage(pagedList, new HashSet<long> { 1 })));
 
         var result = await _service.GetDecisionsAsync(FeedImportDecisionStatus.Pending, null, "black", 3, 20, TestContext.Current.CancellationToken);
 
@@ -130,7 +130,7 @@ public sealed class FeedImportServiceTests : IDisposable
         var pagedList = Substitute.For<IPagedList<FeedImportDecision>>();
         pagedList.Items.Returns([decision]);
         _handler.Handle(Arg.Any<GetPagedFeedImportDecisionsQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<FeedImportDecisionPage>.Success(new FeedImportDecisionPage(pagedList, new HashSet<long>())));
+            .Returns(Result.Success<FeedImportDecisionPage>(new FeedImportDecisionPage(pagedList, new HashSet<long>())));
         var library = Library.Create("À trier", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Digital, s_userId).Value!;
         _libraryReadService.GetByNameAsync(LibraryConstants.ImportedName, s_userId, Arg.Any<CancellationToken>()).Returns(library);
 
@@ -219,7 +219,7 @@ public sealed class FeedImportServiceTests : IDisposable
     public async Task ApplyActionAsync_Should_ReturnErrorWithoutEnqueuing_WhenActionFails()
     {
         _manageHandler.Handle(Arg.Any<ManageFeedImportDecisionCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<FeedImportDecisionStatus>.Failure(FeedImportError.InvalidStatusTransition));
+            .Returns(Result.Failure<FeedImportDecisionStatus>(FeedImportError.InvalidStatusTransition));
 
         var result = await _service.ApplyActionAsync(Guid.CreateVersion7(), FeedImportDecisionAction.Ignore, TestContext.Current.CancellationToken);
 
@@ -270,7 +270,7 @@ public sealed class FeedImportServiceTests : IDisposable
     [Fact]
     public async Task DeleteAsync_Should_ReturnError_WhenUserNotResolved()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.DeleteAsync([Guid.CreateVersion7()], TestContext.Current.CancellationToken);
 
@@ -283,7 +283,7 @@ public sealed class FeedImportServiceTests : IDisposable
     {
         var summary = new DeleteDownloadedFeedImportDecisionsResult(3, 1);
         _deleteDownloadedHandler.Handle(new DeleteDownloadedFeedImportDecisionsCommand(s_userId), Arg.Any<CancellationToken>())
-            .Returns(Result<DeleteDownloadedFeedImportDecisionsResult>.Success(summary));
+            .Returns(Result.Success<DeleteDownloadedFeedImportDecisionsResult>(summary));
 
         var result = await _service.DeleteDownloadedAsync(TestContext.Current.CancellationToken);
 
@@ -293,7 +293,7 @@ public sealed class FeedImportServiceTests : IDisposable
     [Fact]
     public async Task DeleteDownloadedAsync_Should_ReturnError_WhenUserNotResolved()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.DeleteDownloadedAsync(TestContext.Current.CancellationToken);
 
@@ -308,7 +308,7 @@ public sealed class FeedImportServiceTests : IDisposable
 
         (await _service.CountAwaitingArbitrationAsync(TestContext.Current.CancellationToken)).Should().Be(3);
 
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
         (await _service.CountAwaitingArbitrationAsync(TestContext.Current.CancellationToken)).Should().Be(0);
     }
 
@@ -329,7 +329,7 @@ public sealed class FeedImportServiceTests : IDisposable
     [Fact]
     public async Task GetStatusCountsAsync_Should_ReturnError_WhenUserNotResolved()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.GetStatusCountsAsync(null, TestContext.Current.CancellationToken);
 
@@ -351,7 +351,7 @@ public sealed class FeedImportServiceTests : IDisposable
     [Fact]
     public async Task GetHostOptionsAsync_Should_ReturnError_WhenUserNotResolved()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.GetHostOptionsAsync(null, TestContext.Current.CancellationToken);
 
@@ -362,7 +362,7 @@ public sealed class FeedImportServiceTests : IDisposable
     [Fact]
     public async Task ResolveArbitrationAsync_Should_ReturnError_WhenUserNotResolved()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.ResolveArbitrationAsync(Guid.CreateVersion7(), FeedImportArbitrationAction.NotDuplicate, null, TestContext.Current.CancellationToken);
 

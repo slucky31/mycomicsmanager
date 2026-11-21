@@ -73,14 +73,14 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
             .Returns(page);
 
     private void GivenPage(int pageNumber, string search, IPagedList<BookSummaryDto> page) =>
-        GivenPage(pageNumber, search, Task.FromResult(Result<IPagedList<BookSummaryDto>>.Success(page)));
+        GivenPage(pageNumber, search, Task.FromResult(Result.Success<IPagedList<BookSummaryDto>>(page)));
 
     private void GivenLibrary(LibraryBookType bookType, LibraryView defaultView)
     {
         _library = Library.Create("Read Books", "#5C6BC0", "Bookmark", bookType, Guid.CreateVersion7()).Value!;
         _library.UpdateDefaultView(defaultView);
-        _librariesService.GetById(_library.Id.ToString()).Returns(Result<Library>.Success(_library));
-        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Library>.Success(_library));
+        _librariesService.GetById(_library.Id.ToString()).Returns(Result.Success<Library>(_library));
+        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result.Success<Library>(_library));
         GivenPage(1, string.Empty, Page(24, false, _blacksad, _hiver));
     }
 
@@ -122,10 +122,10 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         await TypeSearchAsync(cut, "Blacksad");
         await cut.Find("button[aria-label='Sort and view']").ClickAsync(new());
         var other = Library.Create("Comics", "#2E7D32", "Star", LibraryBookType.Digital, Guid.CreateVersion7()).Value!;
-        _librariesService.GetById(other.Id.ToString()).Returns(Result<Library>.Success(other));
+        _librariesService.GetById(other.Id.ToString()).Returns(Result.Success<Library>(other));
         var otherPage = Page(1, false, _hiver);
         _booksService.GetPagedByLibrary(other.Id, 1, LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<BookSummaryDto>>.Success(otherPage));
+            .Returns(Result.Success<IPagedList<BookSummaryDto>>(otherPage));
 
         cut.Render(p => p.Add(c => c.LibraryId, other.Id.ToString()));
 
@@ -155,10 +155,10 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         await ChooseAsync(cut, "Sort and view", "Oldest first");
         _module.SetupVoid("scrollToTop", _ => true).SetException(new Microsoft.JSInterop.JSException("gone"));
         var other = Library.Create("Comics", "#2E7D32", "Star", LibraryBookType.Digital, Guid.CreateVersion7()).Value!;
-        _librariesService.GetById(other.Id.ToString()).Returns(Result<Library>.Success(other));
+        _librariesService.GetById(other.Id.ToString()).Returns(Result.Success<Library>(other));
         var otherPage = Page(0, false);
         _booksService.GetPagedByLibrary(other.Id, 1, LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<BookSummaryDto>>.Success(otherPage));
+            .Returns(Result.Success<IPagedList<BookSummaryDto>>(otherPage));
 
         cut.Render(p => p.Add(c => c.LibraryId, other.Id.ToString()));
 
@@ -210,7 +210,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     public async Task ChooseSortOrderAsync_Should_KeepTheSort_WhenItCannotBeSaved()
     {
         var cut = await RenderAsync();
-        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Library>.Failure(LibrariesError.NotFound));
+        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<Library>(LibrariesError.NotFound));
 
         await ChooseAsync(cut, "Sort and view", "Series & volume");
 
@@ -237,7 +237,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     public async Task ChooseViewAsync_Should_KeepTheView_WhenItCannotBeSaved()
     {
         var cut = await RenderAsync();
-        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Library>.Failure(LibrariesError.NotFound));
+        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<Library>(LibrariesError.NotFound));
 
         await ChooseAsync(cut, "Sort and view", "List");
 
@@ -308,7 +308,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         await olderSearchAsked.Task.WaitAsync(TimeSpan.FromSeconds(5), Xunit.TestContext.Current.CancellationToken);
         await TypeSearchAsync(cut, "hiver");
         await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item").Should().HaveCount(1));
-        await cut.InvokeAsync(() => olderSearch.SetResult(Result<IPagedList<BookSummaryDto>>.Success(Page(2, false, _blacksad, _hiver))));
+        await cut.InvokeAsync(() => olderSearch.SetResult(Result.Success<IPagedList<BookSummaryDto>>(Page(2, false, _blacksad, _hiver))));
 
         cut.FindAll(".cover-item").Should().HaveCount(1);
         cut.Find(".library-search-results").TextContent.Should().Be("1 book matches “hiver”");
@@ -334,7 +334,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     public async Task LibraryDetailPage_Should_InviteToAddABook_WhenTheLibraryIsEmpty()
     {
         _library = Library.Create("Read Books", "#5C6BC0", "Bookmark", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
-        _librariesService.GetById(_library.Id.ToString()).Returns(Result<Library>.Success(_library));
+        _librariesService.GetById(_library.Id.ToString()).Returns(Result.Success<Library>(_library));
         GivenPage(1, string.Empty, Page(0, false));
 
         var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
@@ -430,7 +430,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         _workflow.ChooseAndMoveAsync(chaos.Id, Arg.Any<CancellationToken>()).Returns(true);
         var reloaded = Page(3, true, _blacksad, _hiver);
         _booksService.GetPagedByLibrary(_library.Id, 1, 2 * LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<BookSummaryDto>>.Success(reloaded));
+            .Returns(Result.Success<IPagedList<BookSummaryDto>>(reloaded));
 
         await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
 
@@ -452,7 +452,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
 
         var loadMore = cut.InvokeAsync(cut.Instance.LoadMoreBooksAsync);
         await ChooseAsync(cut, "Sort and view", "Newest first");
-        nextPage.SetResult(Result<IPagedList<BookSummaryDto>>.Success(Page(3, false, Book("Elementa Chaos", "Sophia", 2))));
+        nextPage.SetResult(Result.Success<IPagedList<BookSummaryDto>>(Page(3, false, Book("Elementa Chaos", "Sophia", 2))));
         await loadMore;
 
         cut.FindAll(".cover-item").Should().HaveCount(2);
@@ -468,7 +468,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         GivenPage(1, string.Empty, firstPage.Task);
 
         var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
-        firstPage.SetResult(Result<IPagedList<BookSummaryDto>>.Success(Page(24, true, _blacksad, _hiver)));
+        firstPage.SetResult(Result.Success<IPagedList<BookSummaryDto>>(Page(24, true, _blacksad, _hiver)));
         await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item").Should().HaveCount(2));
 
         var observe = _ctx.JSInterop.VerifyInvoke("infiniteScroll.observe");
@@ -576,7 +576,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         var cut = await RenderAsync(LibraryBookType.Digital);
         GivenConfirmation(confirmed: true);
         _booksService.Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(Result<DeleteBooksResult>.Success(new DeleteBooksResult(2, 0)));
+            .Returns(Result.Success<DeleteBooksResult>(new DeleteBooksResult(2, 0)));
         await cut.Find("button[aria-label='Select books']").ClickAsync(new());
         cut.Find(".selection-bar-delete").HasAttribute("disabled").Should().BeTrue();
         await cut.Find(".selection-bar-select-all").ClickAsync(new());
@@ -613,7 +613,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         var cut = await RenderAsync();
         GivenConfirmation(confirmed: true);
         _booksService.Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(Result<DeleteBooksResult>.Success(new DeleteBooksResult(0, 2, BooksError.NotFound)));
+            .Returns(Result.Success<DeleteBooksResult>(new DeleteBooksResult(0, 2, BooksError.NotFound)));
         await CheckEveryBookAsync(cut);
 
         await cut.Find(".selection-bar-delete").ClickAsync(new());
@@ -628,7 +628,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         var cut = await RenderAsync();
         GivenConfirmation(confirmed: true);
         _booksService.Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(Result<DeleteBooksResult>.Failure(BooksError.BadRequest));
+            .Returns(Result.Failure<DeleteBooksResult>(BooksError.BadRequest));
         await CheckEveryBookAsync(cut);
 
         await cut.Find(".selection-bar-delete").ClickAsync(new());

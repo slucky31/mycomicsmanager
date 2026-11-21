@@ -44,7 +44,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
         _ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
         _ctx.Services.AddSingleton(_readerService);
         _ctx.Services.AddScoped<PopupAnchorLocator>();
-        _librariesService.GetById(Arg.Any<string?>()).Returns(Result<Library>.Success(_library));
+        _librariesService.GetById(Arg.Any<string?>()).Returns(Result.Success<Library>(_library));
     }
 
     public async ValueTask DisposeAsync()
@@ -61,7 +61,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
 
     private async Task<IRenderedComponent<BookDetail>> RenderAsync(Book book)
     {
-        _booksService.GetById(book.Id.ToString()).Returns(Result<Book>.Success(book));
+        _booksService.GetById(book.Id.ToString()).Returns(Result.Success<Book>(book));
         var cut = _ctx.Render<BookDetail>(p => p.Add(c => c.BookId, book.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.Find("h1").TextContent.Should().Be(book.Title));
         return cut;
@@ -89,7 +89,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
     [Fact]
     public async Task LoadBookAsync_Should_ShowAnError_WhenTheBookCannotBeLoaded()
     {
-        _booksService.GetById(Arg.Any<string?>()).Returns(Result<Book>.Failure(BooksError.NotFound));
+        _booksService.GetById(Arg.Any<string?>()).Returns(Result.Failure<Book>(BooksError.NotFound));
 
         var cut = _ctx.Render<BookDetail>(p => p.Add(c => c.BookId, Guid.CreateVersion7().ToString()));
 
@@ -218,7 +218,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
     [Fact]
     public async Task LoadLibraryNameAsync_Should_ShowLibrary_WhenTheLibraryCannotBeLoaded()
     {
-        _librariesService.GetById(Arg.Any<string?>()).Returns(Result<Library>.Failure(LibrariesError.NotFound));
+        _librariesService.GetById(Arg.Any<string?>()).Returns(Result.Failure<Library>(LibrariesError.NotFound));
 
         var cut = await RenderAsync(PaperBook());
 
@@ -229,7 +229,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
     public async Task AddReadingDateAsync_Should_SaveTheChosenRating_AndReloadTheBook()
     {
         var book = PaperBook();
-        _booksService.AddReadingDate(book.Id.ToString(), 4, Arg.Any<CancellationToken>()).Returns(Result<ReadingDate>.Success(ReadingDate.Create(DateTime.UtcNow, 4, book.Id)));
+        _booksService.AddReadingDate(book.Id.ToString(), 4, Arg.Any<CancellationToken>()).Returns(Result.Success<ReadingDate>(ReadingDate.Create(DateTime.UtcNow, 4, book.Id)));
         var cut = await RenderAsync(book);
 
         await cut.Find("button.book-primary-button").ClickAsync(new());
@@ -248,7 +248,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
     public async Task AddReadingDateAsync_Should_KeepTheFormAndShowAnError_WhenSavingFails()
     {
         var book = PaperBook();
-        _booksService.AddReadingDate(book.Id.ToString(), 1, Arg.Any<CancellationToken>()).Returns(Result<ReadingDate>.Failure(BooksError.BadRequest));
+        _booksService.AddReadingDate(book.Id.ToString(), 1, Arg.Any<CancellationToken>()).Returns(Result.Failure<ReadingDate>(BooksError.BadRequest));
         var cut = await RenderAsync(book);
 
         await ClickAsync(cut, "button.book-history-add", "Add a reading");

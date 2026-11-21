@@ -1,5 +1,5 @@
 using Application.Interfaces;
-using Application.Statistics.Get;
+using Application.Statistics.GetStatistics;
 using Domain.Books;
 using Domain.Libraries;
 using Microsoft.EntityFrameworkCore;

@@ -36,8 +36,8 @@ public sealed class ComicInfoSyncOrchestratorTests
         var userId = Guid.CreateVersion7();
         _handler.Handle(Arg.Any<SyncComicInfoCommand>(), Arg.Any<CancellationToken>())
             .Returns(succeeds
-                ? Result<ComicInfoSyncSummary>.Success(new ComicInfoSyncSummary(3, 1))
-                : Result<ComicInfoSyncSummary>.Failure(new TError("BOK400", "Bad request")));
+                ? Result.Success<ComicInfoSyncSummary>(new ComicInfoSyncSummary(3, 1))
+                : Result.Failure<ComicInfoSyncSummary>(new TError("BOK400", "Bad request")));
 
         var act = () => _orchestrator.SyncAsync(userId, TestContext.Current.CancellationToken);
 

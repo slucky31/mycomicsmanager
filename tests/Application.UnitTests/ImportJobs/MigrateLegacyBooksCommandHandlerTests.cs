@@ -24,7 +24,7 @@ public sealed class MigrateLegacyBooksCommandHandlerTests
         _libraryReadService.GetByNameAsync(LibraryConstants.ImportedName, s_userId, Arg.Any<CancellationToken>()).Returns(s_imported);
         _storage.EnsureExists(s_imported.ImportDirectoryName).Returns(Result.Success());
         _storage.GetAvailableFilePath(s_imported.ImportDirectoryName, Arg.Any<string>())
-            .Returns(call => Result<string>.Success(Path.Combine(s_importDirectory, call.ArgAt<string>(1))));
+            .Returns(call => Result.Success<string>(Path.Combine(s_importDirectory, call.ArgAt<string>(1))));
         _storage.DepositFile(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
         _handler = new MigrateLegacyBooksCommandHandler(_source, _libraryReadService, _storage, NullLogger<MigrateLegacyBooksCommandHandler>.Instance);
     }

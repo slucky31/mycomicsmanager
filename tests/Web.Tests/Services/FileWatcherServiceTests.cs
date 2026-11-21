@@ -221,7 +221,7 @@ public sealed class FileWatcherServiceTests : IDisposable
     public async Task ProcessFileAsync_Should_NotEnqueue_WhenCreateImportJobFails()
     {
         _createHandler.Handle(Arg.Any<CreateImportJobCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJob>.Failure(new TError("ERR", "Fail")));
+            .Returns(Result.Failure<ImportJob>(new TError("ERR", "Fail")));
 
         var libDir = Path.Combine(_importDir, _libraryId.ToString());
         Directory.CreateDirectory(libDir);

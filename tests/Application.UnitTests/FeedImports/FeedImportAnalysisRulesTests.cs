@@ -1,4 +1,4 @@
-﻿using Application.Books;
+using Application.Books;
 using Application.FeedImports.Analysis;
 using Domain.FeedImports;
 

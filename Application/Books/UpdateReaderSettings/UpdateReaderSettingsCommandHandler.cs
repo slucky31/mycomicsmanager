@@ -5,7 +5,7 @@ using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
 
-namespace Application.Books.ReaderDisplay;
+namespace Application.Books.UpdateReaderSettings;
 
 public sealed class UpdateReaderSettingsCommandHandler(
     IBookRepository bookRepository,

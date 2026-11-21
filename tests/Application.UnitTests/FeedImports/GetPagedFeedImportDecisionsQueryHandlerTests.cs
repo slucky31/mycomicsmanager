@@ -29,7 +29,7 @@ public class GetPagedFeedImportDecisionsQueryHandlerTests
     };
 
     [Theory]
-    [MemberData(nameof(InvalidQueries))]
+    [MemberData(nameof(InvalidQueries), DisableDiscoveryEnumeration = true)]
     public async Task Handle_Should_ReturnBadRequest_WhenQueryIsInvalid(GetPagedFeedImportDecisionsQuery query)
     {
         var result = await _handler.Handle(query, TestContext.Current.CancellationToken);

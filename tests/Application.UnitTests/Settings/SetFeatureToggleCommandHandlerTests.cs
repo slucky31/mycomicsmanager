@@ -19,7 +19,7 @@ public class SetFeatureToggleCommandHandlerTests
     {
         var defaults = _data.CreateDefaults();
         _toggles = new FeatureToggles(defaults);
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _handler = new SetFeatureToggleCommandHandler(_repository, _unitOfWork, defaults, _toggles, TimeProvider.System);
     }
 
@@ -101,7 +101,7 @@ public class SetFeatureToggleCommandHandlerTests
     [Fact]
     public async Task Handle_Should_KeepPreviousValue_WhenSaveFails()
     {
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(FeatureToggleError.Unknown));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(FeatureToggleError.Unknown));
 
         var result = await HandleAsync(FeatureToggle.Bedetheque, false);
 

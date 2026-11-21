@@ -1,6 +1,6 @@
-using Domain.Primitives;
 using Application.Helpers;
 using Domain.Books;
+using Domain.Primitives;
 using FluentValidation;
 
 namespace Web.Validators;

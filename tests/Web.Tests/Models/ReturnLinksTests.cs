@@ -6,7 +6,7 @@ namespace Web.Tests.Models;
 
 public sealed class ReturnLinksTests
 {
-    private static readonly Guid BookId = Guid.Parse("0199e0a4-5f6b-7c8d-9e0f-112233445566");
+    private static readonly Guid BookId = new Guid(0x0199e0a4, 0x5f6b, 0x7c8d, 0x9e, 0x0f, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66) /* 0199e0a4-5f6b-7c8d-9e0f-112233445566 */;
 
     [Theory]
     [InlineData("/reading")]

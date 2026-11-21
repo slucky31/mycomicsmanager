@@ -24,7 +24,7 @@ public sealed class AddLibraryComponentTests : IAsyncDisposable
     public AddLibraryComponentTests()
     {
         _librariesService.Create(Arg.Any<CreateLibraryRequest>(), Arg.Any<CancellationToken>())
-            .Returns(_ => Result<Library>.Success(Library.Create("Mangas", "#26A69A", "MenuBook", LibraryBookType.Physical, Guid.CreateVersion7()).Value!));
+            .Returns(_ => Result.Success<Library>(Library.Create("Mangas", "#26A69A", "MenuBook", LibraryBookType.Physical, Guid.CreateVersion7()).Value!));
 
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
@@ -101,7 +101,7 @@ public sealed class AddLibraryComponentTests : IAsyncDisposable
     [Fact]
     public async Task SaveAsync_Should_SayTheNameIsTaken_AndStayOnTheForm()
     {
-        _librariesService.Create(Arg.Any<CreateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result<Library>.Failure(LibrariesError.Duplicate));
+        _librariesService.Create(Arg.Any<CreateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result.Failure<Library>(LibrariesError.Duplicate));
         var cut = Render();
         await cut.Find("#library-name").InputAsync(new() { Value = "Mangas" });
 

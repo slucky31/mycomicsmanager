@@ -30,7 +30,7 @@ public sealed class ArchiveRefreshCardComponentTests
     public async Task StartAsync_Should_StartTheRefresh_AndShowHowManyBooksItRefreshes(int count, string message, Severity severity)
     {
         var service = Substitute.For<IArchiveRefreshService>();
-        service.StartAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(count));
+        service.StartAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(count));
         var (ctx, cut, snackbar) = Render(service);
         await using var _ = ctx;
 
@@ -43,7 +43,7 @@ public sealed class ArchiveRefreshCardComponentTests
     public async Task StartAsync_Should_ShowTheError_WhenTheRefreshCannotStart()
     {
         var service = Substitute.For<IArchiveRefreshService>();
-        service.StartAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(BooksError.BadRequest));
+        service.StartAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(BooksError.BadRequest));
         var (ctx, cut, snackbar) = Render(service);
         await using var _ = ctx;
 

@@ -1,7 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.Books.Read;
-using Application.Books.ReaderDisplay;
 using Application.Books.ReadingProgress;
+using Application.Books.UpdateReaderSettings;
 using Application.Interfaces;
 using AwesomeAssertions;
 using Domain.Books;
@@ -56,7 +56,7 @@ public sealed class BookReaderServiceTests
     public async Task SaveProgressAsync_Should_NotSendCommand_WhenUserIsUnknown()
     {
         var userError = new TError("USR404", "User not found");
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(userError));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(userError));
 
         var result = await _service.SaveProgressAsync(Guid.CreateVersion7(), 12, TestContext.Current.CancellationToken);
 
@@ -81,7 +81,7 @@ public sealed class BookReaderServiceTests
     public async Task SaveSettingsAsync_Should_NotSendCommand_WhenUserIsUnknown()
     {
         var userError = new TError("USR404", "User not found");
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(userError));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(userError));
 
         var result = await _service.SaveSettingsAsync(Guid.CreateVersion7(), ReaderSettings.Default, TestContext.Current.CancellationToken);
 

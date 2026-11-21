@@ -79,11 +79,7 @@ public class StatisticsReadServiceTests(IntegrationTestWebAppFactory factory) : 
         result.AverageRating.Should().Be(3);
         result.TotalPages.Should().Be(380);
         result.DigitalStorageBytes.Should().Be(2048);
-        result.ReadingsPerMonth.Should().BeEquivalentTo(new[]
-        {
-            new { Year = 2025, Month = 3, Count = 2 },
-            new { Year = 2025, Month = 5, Count = 1 }
-        });
+        result.ReadingsPerMonth.Select(m => (m.Year, m.Month, m.Count)).Should().BeEquivalentTo([(2025, 3, 2), (2025, 5, 1)]);
     }
 
     [Fact]

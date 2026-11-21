@@ -26,8 +26,8 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
 
     public BookDetailIsbnScanTests()
     {
-        _booksService.GetById(_book.Id.ToString()).Returns(Result<Book>.Success(_book));
-        OwnersReturn(Result<IReadOnlyList<IsbnOwnerDto>>.Success([]));
+        _booksService.GetById(_book.Id.ToString()).Returns(Result.Success<Book>(_book));
+        OwnersReturn(Result.Success<IReadOnlyList<IsbnOwnerDto>>([]));
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
         _ctx.Services.AddSingleton(_booksService);
@@ -36,7 +36,7 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
         _ctx.Services.AddSingleton(Substitute.For<IBookReaderService>());
         _ctx.Services.AddSingleton(_snackbar);
         var librariesService = Substitute.For<ILibrariesService>();
-        librariesService.GetById(Arg.Any<string?>()).Returns(Result<Domain.Libraries.Library>.Failure(Domain.Libraries.LibrariesError.NotFound));
+        librariesService.GetById(Arg.Any<string?>()).Returns(Result.Failure<Domain.Libraries.Library>(Domain.Libraries.LibrariesError.NotFound));
         _ctx.Services.AddSingleton(librariesService);
         _ctx.Services.AddScoped<PopupAnchorLocator>();
     }
@@ -184,7 +184,7 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
     {
         _book.RecordIsbnScan(["9782800112343"], DateTime.UtcNow);
         var owner = OwnerOf("9782800112343");
-        OwnersReturn(Result<IReadOnlyList<IsbnOwnerDto>>.Success([owner]));
+        OwnersReturn(Result.Success<IReadOnlyList<IsbnOwnerDto>>([owner]));
 
         var cut = await RenderAsync();
 
@@ -199,7 +199,7 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
     public async Task LoadIsbnCandidatesAsync_Should_StillOfferTheIsbns_WhenTheirBooksCannotBeFound()
     {
         _book.RecordIsbnScan(["9782800112343", "2205056174"], DateTime.UtcNow);
-        OwnersReturn(Result<IReadOnlyList<IsbnOwnerDto>>.Failure(BooksError.NotFound));
+        OwnersReturn(Result.Failure<IReadOnlyList<IsbnOwnerDto>>(BooksError.NotFound));
 
         var cut = await RenderAsync();
 
@@ -213,9 +213,9 @@ public sealed class BookDetailIsbnScanTests : IAsyncDisposable
         _isbnScanService.ScanBookAsync(_book.Id, Arg.Any<CancellationToken>()).Returns(_ =>
         {
             _book.RecordIsbnScan(["9782800112343"], DateTime.UtcNow);
-            return Result<IsbnScanOutcome>.Success(IsbnScanOutcome.WithCandidates);
+            return Result.Success<IsbnScanOutcome>(IsbnScanOutcome.WithCandidates);
         });
-        OwnersReturn(Result<IReadOnlyList<IsbnOwnerDto>>.Success([OwnerOf("9782800112343")]));
+        OwnersReturn(Result.Success<IReadOnlyList<IsbnOwnerDto>>([OwnerOf("9782800112343")]));
         var cut = await RenderAsync();
 
         await ClickAsync(cut, "Scan the pages");

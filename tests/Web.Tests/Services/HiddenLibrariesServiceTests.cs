@@ -29,7 +29,7 @@ public sealed class HiddenLibrariesServiceTests
     public async Task GetShowHiddenLibraries_Should_QueryTheSettingOfTheCurrentUser()
     {
         // Arrange
-        _getHandler.Handle(Arg.Any<GetShowHiddenLibrariesQuery>(), Arg.Any<CancellationToken>()).Returns(Result<bool>.Success(true));
+        _getHandler.Handle(Arg.Any<GetShowHiddenLibrariesQuery>(), Arg.Any<CancellationToken>()).Returns(Result.Success<bool>(true));
 
         // Act
         var result = await _service.GetShowHiddenLibraries(TestContext.Current.CancellationToken);
@@ -57,7 +57,7 @@ public sealed class HiddenLibrariesServiceTests
     public async Task ShowHiddenLibraries_Should_ReturnTheUserError_WhenTheCurrentUserIsUnknown()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
         var read = await _service.GetShowHiddenLibraries(TestContext.Current.CancellationToken);

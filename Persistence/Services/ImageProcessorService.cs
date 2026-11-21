@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Application.Interfaces;
 using Domain.Errors;
 using Domain.Primitives;

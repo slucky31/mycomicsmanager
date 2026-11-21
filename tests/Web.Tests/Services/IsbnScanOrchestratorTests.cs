@@ -36,8 +36,8 @@ public sealed class IsbnScanOrchestratorTests
         var libraryId = Guid.CreateVersion7();
         _handler.Handle(Arg.Any<ScanLibraryIsbnsCommand>(), Arg.Any<CancellationToken>())
             .Returns(succeeds
-                ? Result<LibraryIsbnScanSummary>.Success(new LibraryIsbnScanSummary(1, 2, 3, 4))
-                : Result<LibraryIsbnScanSummary>.Failure(new TError("LIB400", "Bad request")));
+                ? Result.Success<LibraryIsbnScanSummary>(new LibraryIsbnScanSummary(1, 2, 3, 4))
+                : Result.Failure<LibraryIsbnScanSummary>(new TError("LIB400", "Bad request")));
 
         var act = () => _orchestrator.ScanLibraryAsync(libraryId, TestContext.Current.CancellationToken);
 

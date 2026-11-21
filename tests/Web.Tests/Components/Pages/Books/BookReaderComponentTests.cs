@@ -155,7 +155,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     [Fact]
     public async Task MarkAsReadAsync_Should_AddReadingDateAndRestartTheBook_WhenLastPageIsPassed()
     {
-        _booksService.AddReadingDate(_bookId.ToString(), 3, Arg.Any<CancellationToken>()).Returns(Result<ReadingDate>.Success(null!));
+        _booksService.AddReadingDate(_bookId.ToString(), 3, Arg.Any<CancellationToken>()).Returns(Result.Success<ReadingDate>(null!));
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/books/{_bookId}/read?from=%2Freading");
         var cut = await RenderAttachedReaderAsync(pageCount: 3, lastReadPage: 2);
 
@@ -183,7 +183,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     public async Task OnInitializedAsync_Should_ShowAnError_WhenTheBookCannotBeOpened()
     {
         _readerService.GetReaderInfoAsync(_bookId, Arg.Any<CancellationToken>())
-            .Returns(Result<BookReaderInfoDto>.Failure(FileProcessingError.CorruptArchive));
+            .Returns(Result.Failure<BookReaderInfoDto>(FileProcessingError.CorruptArchive));
 
         var cut = _ctx.Render<BookReader>(p => p.Add(c => c.BookId, _bookId.ToString()));
 
@@ -262,7 +262,7 @@ public sealed class BookReaderComponentTests : IAsyncDisposable
     public async Task MarkAsReadAsync_Should_ShowAnErrorAndStayOnTheBook_WhenAddingTheReadingDateFails()
     {
         _booksService.AddReadingDate(_bookId.ToString(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ReadingDate>.Failure(BooksError.NotFound));
+            .Returns(Result.Failure<ReadingDate>(BooksError.NotFound));
         var cut = await RenderAttachedReaderAsync(pageCount: 3, lastReadPage: 2);
         await ClickAsync(cut, "Next page");
 

@@ -46,7 +46,7 @@ public class ImportService(
             .Select(ImportJobViewModel.From)
             .ToList();
 
-        return Result<IReadOnlyList<ImportJobViewModel>>.Success(viewModels);
+        return Result.Success<IReadOnlyList<ImportJobViewModel>>(viewModels);
     }
 
     public async Task<Result<ImportJobViewModel>> GetImportJobAsync(
