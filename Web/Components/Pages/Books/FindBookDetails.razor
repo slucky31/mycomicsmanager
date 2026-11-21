@@ -41,7 +41,12 @@
             <form class="find-details-card find-details-query" @onsubmit="SearchByTextAsync">
                 <div class="find-details-query-hint">
                     <MudIcon Icon="@Icons.Material.Outlined.Info" />
-                    @if (_keptIsbn is not null)
+                    @if (_otherEditionOf is not null)
+                    {
+                        <span class="find-details-picked"><strong>Not the right edition of ISBN @_otherEditionOf?</strong> Search the sources by title, series and volume, then pick the edition: its ISBN replaces the one of the book.</span>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="BackToIsbnAsync" Class="find-details-back-to-isbn">Back to ISBN</MudButton>
+                    }
+                    else if (_keptIsbn is not null)
                     {
                         <span><strong>No source found ISBN @_keptIsbn.</strong> Search the sources by title, series and volume instead, then pick the matching edition.</span>
                     }
@@ -149,6 +154,14 @@
                     <strong>@_comparison.DifferencesSummary</strong> <span class="find-details-muted">The book already has the values found on the web.</span>
                 }
             </div>
+
+            @if (_edition is null && _searchStates.Count > 0 && !IsSearching)
+            {
+                <div class="find-details-card find-details-isbn find-details-other-edition">
+                    <span class="find-details-picked find-details-muted">Not the right edition?</span>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="SearchAnotherEditionAsync" Class="find-details-search-by-title">Search by title</MudButton>
+                </div>
+            }
 
             @if (_edition is { } picked)
             {

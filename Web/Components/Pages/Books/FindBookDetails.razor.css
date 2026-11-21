@@ -256,6 +256,10 @@
     flex-grow: 1;
 }
 
+.find-details-other-edition {
+    align-items: center;
+}
+
 /* ── Fields that already match, sources checked ── */
 .find-details-match {
     display: flex;
