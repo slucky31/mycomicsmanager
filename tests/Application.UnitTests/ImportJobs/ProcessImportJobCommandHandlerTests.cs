@@ -183,6 +183,10 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.InvalidStatusTransition);
+        // A job stuck in an intermediate step is marked failed and its file goes to the errors.
+        job.Status.Should().Be(ImportJobStatus.Failed);
+        _importDirectoryStorage.Received(1).MoveOriginalFileToError(job.OriginalFilePath);
+        _importDirectoryStorage.DidNotReceive().DeleteOriginalFile(Arg.Any<string>());
     }
 
     // ── Extraction ────────────────────────────────────────────────────────────
@@ -200,10 +204,13 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder();
         SetupNoMetadataSearch();
 
-        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _archiveExtractor.Received(1)
             .ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>());
+        // No page converted nor skipped: the page count stays unknown.
+        result.Value!.Book!.NumberOfPages.Should().BeNull();
+        _comicInfoXmlService.Received(1).Write(Arg.Any<string>(), Arg.Is<ComicInfoData>(d => d.PageCount == null));
     }
 
     [Fact]
@@ -271,6 +278,7 @@ public class ProcessImportJobCommandHandlerTests
         result.Value.SplitFileNames.Should().Equal("Serie - T01.cbz", "Serie - T02 (3).cbz");
         job.Status.Should().Be(ImportJobStatus.Split);
         job.SplitFileNames.Should().Equal("Serie - T01.cbz", "Serie - T02 (3).cbz");
+        _importJobRepository.Received(2).Update(job);
         _importDirectoryStorage.Received(1).EnsureExists(library.ImportDirectoryName);
         _importDirectoryStorage.Received(1).DepositFile("/tmp/raw/Serie - T01.cbz", "/import/lib/Serie - T01.cbz");
         _importDirectoryStorage.Received(1).DepositFile("/tmp/raw/Serie - T02 (2).cbz", "/import/lib/Serie - T02 (3).cbz");
@@ -434,6 +442,7 @@ public class ProcessImportJobCommandHandlerTests
 
         await _comicSearchService.DidNotReceive()
             .SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _bookRepository.DidNotReceiveWithAnyArgs().GetByIsbnAsync(default!, default, default);
     }
 
     // ── ISBN read on the pages (OCR) ──────────────────────────────────────────
@@ -525,6 +534,7 @@ public class ProcessImportJobCommandHandlerTests
         await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         await _isbnScanner.DidNotReceive().ScanPagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>());
+        _tempWorkspace.Received(1).MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), "9782075162869.cbz");
     }
 
     // ── ISBN already owned in Digital (#1217) ────────────────────────────────
@@ -610,8 +620,13 @@ public class ProcessImportJobCommandHandlerTests
 
         await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
-        await _archiveBuilder.Received(1)
-            .BuildAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<string?>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        // Without an ISBN the archive is named after the job, with the ComicInfo.xml written beside the pages.
+        await _archiveBuilder.Received(1).BuildAsync(Arg.Any<IReadOnlyList<string>>(),
+            Arg.Is<string?>(p => p != null && p.EndsWith(Path.DirectorySeparatorChar + "ComicInfo.xml", StringComparison.Ordinal)),
+            Arg.Is<string>(p => p.EndsWith(Path.DirectorySeparatorChar + $"{job.Id}.cbz", StringComparison.Ordinal)), Arg.Any<CancellationToken>());
+        _comicInfoXmlService.Received(1).Write(
+            Arg.Is<string>(p => p.EndsWith(Path.DirectorySeparatorChar + "ComicInfo.xml", StringComparison.Ordinal)),
+            Arg.Is<ComicInfoData>(d => d.PageCount == 3));
     }
 
     // ── DigitalBook creation ──────────────────────────────────────────────────
@@ -633,6 +648,9 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Book.Should().BeOfType<DigitalBook>();
+        result.Value.Book!.NumberOfPages.Should().Be(3);
+        result.Value.Book.Authors.Should().BeEmpty();
+        result.Value.Book.Publishers.Should().BeEmpty();
         _bookRepository.Received(1).Add(Arg.Any<DigitalBook>());
     }
 
@@ -655,6 +673,10 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Book.Should().NotBeNull();
+        job.Status.Should().Be(ImportJobStatus.Completed);
+        job.DigitalBookId.Should().Be(result.Value.Book!.Id);
+        // One update for each of the 5 steps, then the completion.
+        _importJobRepository.Received(6).Update(job);
     }
 
     [Fact]
@@ -714,6 +736,10 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+        job.ErrorStep.Should().Be("Converting");
+        // The scratch directory is removed and the file goes to the errors, even after a failure.
+        _tempWorkspace.Received(1).CleanupDirectory(Path.Combine(Path.GetTempPath(), job.Id.ToString()));
+        _importDirectoryStorage.Received(1).MoveOriginalFileToError(job.OriginalFilePath);
     }
 
     [Fact]
@@ -733,8 +759,8 @@ public class ProcessImportJobCommandHandlerTests
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
-        result.IsFailure.Should().BeTrue();
-        _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+        result.Error.Should().Be(s_processingError);
+        job.ErrorStep.Should().Be("BuildingArchive");
     }
 
     // ── Original file management ──────────────────────────────────────────────
@@ -857,8 +883,9 @@ public class ProcessImportJobCommandHandlerTests
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
-        result.IsFailure.Should().BeTrue();
-        _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+        result.Error.Should().Be(s_processingError);
+        job.Status.Should().Be(ImportJobStatus.Failed);
+        job.ErrorStep.Should().Be("SearchingMetadata");
     }
 
     // ── Cover upload failure (best-effort) ────────────────────────────────────
@@ -877,7 +904,7 @@ public class ProcessImportJobCommandHandlerTests
 
         _cloudinaryService.UploadImageFromFileAsync(
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new CloudinaryUploadResult(null, null, false, "upload error"));
+            .Returns(new CloudinaryUploadResult(new Uri("https://cdn.example.com/partial.webp"), null, false, "upload error"));
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
@@ -946,6 +973,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
+        result.Value!.Book!.ImageLink.Should().BeEmpty();
         await _cloudinaryService.DidNotReceive()
             .UploadImageFromFileAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
@@ -965,8 +993,24 @@ public class ProcessImportJobCommandHandlerTests
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
-        result.IsFailure.Should().BeTrue();
-        _importJobRepository.Received().Update(Arg.Is<ImportJob>(j => j.Status == ImportJobStatus.Failed));
+        result.Error.Should().Be(new TError("IMP500", "Disk read error"));
+        job.Status.Should().Be(ImportJobStatus.Failed);
+        job.ErrorStep.Should().Be("Extracting");
+    }
+
+    [Fact]
+    public async Task Handle_Should_CutTheMessageOfTheException_At500Characters()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        _pdfImageExtractor.CanHandle(job.OriginalFilePath).Returns(false);
+        _archiveExtractor.ExtractAsync(job.OriginalFilePath, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new IOException(new string('x', 501)));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Error!.Description.Should().Be(new string('x', 500));
     }
 
     [Fact]
@@ -1086,7 +1130,8 @@ public class ProcessImportJobCommandHandlerTests
 
         job.Status.Should().Be(ImportJobStatus.Failed);
         job.ErrorFilePath.Should().Be("/import/lib/errors/comic_1.cbz");
-        _importJobRepository.Received().Update(job);
+        // The extraction step, the failure, then the error file.
+        _importJobRepository.Received(3).Update(job);
     }
 
     [Fact]
@@ -1145,6 +1190,10 @@ public class ProcessImportJobCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ImportJobError.InsufficientDiskSpace);
         job.Status.Should().Be(ImportJobStatus.Failed);
+        job.ErrorStep.Should().Be("Init");
+        // Three times the size of the file: the extracted pages, the converted ones and the new archive.
+        _tempWorkspace.Received(1).HasFreeSpace(3 * job.OriginalFileSize);
+        _importJobRepository.Received(1).Update(job);
     }
 
     // ── AdvanceAndSaveAsync failure at each step ──────────────────────────────
@@ -1179,6 +1228,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
+        job.ErrorStep.Should().Be("Converting");
     }
 
     [Fact]
@@ -1196,6 +1246,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
+        job.ErrorStep.Should().Be("SearchingMetadata");
     }
 
     [Fact]
@@ -1215,6 +1266,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
+        job.ErrorStep.Should().Be("UploadingCover");
     }
 
     [Fact]
@@ -1235,6 +1287,7 @@ public class ProcessImportJobCommandHandlerTests
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
+        job.ErrorStep.Should().Be("BuildingArchive");
     }
 
     // ── ComicInfo.xml read success (metadata carried over) ────────────────────
@@ -1249,7 +1302,7 @@ public class ProcessImportJobCommandHandlerTests
         _comicInfoXmlService.Read(Arg.Any<string>())
             .Returns(Result<ComicInfoData>.Success(new ComicInfoData(
                 Title: "Existing Title", Series: "Existing Serie", Number: 2, Summary: null,
-                Year: 2020, Month: 1, Day: 1, Writer: "Someone", Penciller: null, Publisher: "Someone Else",
+                Year: 2020, Month: 6, Day: 15, Writer: "Someone", Penciller: null, Publisher: "Someone Else",
                 Isbn: null, PageCount: null)));
         SetupImageProcessor();
         SetupComicInfoXml();
@@ -1261,6 +1314,9 @@ public class ProcessImportJobCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.Book!.Serie.Should().Be("Existing Serie");
         result.Value.Book.Title.Should().Be("Existing Title");
+        result.Value.Book.Authors.Should().Be("Someone");
+        result.Value.Book.Publishers.Should().Be("Someone Else");
+        result.Value.Book.PublishDate.Should().Be(new DateOnly(2020, 6, 15));
     }
 
     [Fact]
@@ -1372,6 +1428,8 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(BooksError.BadRequest);
+        // Refused before any file is moved into the library.
+        _tempWorkspace.DidNotReceiveWithAnyArgs().MoveToLibrary(default!, default!, default!);
     }
 
     [Fact]
@@ -1392,7 +1450,7 @@ public class ProcessImportJobCommandHandlerTests
 
         var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
-        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(s_processingError);
         job.Status.Should().Be(ImportJobStatus.Failed);
     }
 
@@ -1442,5 +1500,157 @@ public class ProcessImportJobCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(s_processingError);
         _tempWorkspace.Received(1).TryDeleteFile(Arg.Any<string>());
+    }
+
+    // ── Conversion progress: saved every 10 % and at the end ─────────────────
+
+    private ImportJob SetupJobReportingProgress(params ImageConversionProgress[] reports)
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupArchiveExtractor(job, []);
+        SetupComicInfoXml();
+        SetupCloudinary();
+        SetupArchiveBuilder();
+        SetupNoMetadataSearch();
+        _imageProcessor.ProcessImagesAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(),
+            Arg.Any<Func<ImageConversionProgress, Task>?>(), Arg.Any<CancellationToken>())
+            .Returns(async callInfo =>
+            {
+                var onProgress = callInfo.ArgAt<Func<ImageConversionProgress, Task>?>(3)!;
+                foreach (var report in reports)
+                {
+                    await onProgress(report);
+                }
+                return Result<ImageProcessingResult>.Success(new ImageProcessingResult(20, 0, false));
+            });
+        return job;
+    }
+
+    // The converted counts persisted while the job is converting (the first one is the step itself).
+    private List<int> RecordConvertingSaves(ImportJob job)
+    {
+        var saves = new List<int>();
+        _importJobRepository.When(r => r.Update(job)).Do(_ =>
+        {
+            if (job.Status == ImportJobStatus.Converting)
+            {
+                saves.Add(job.ConvertedImagesCount);
+            }
+        });
+        return saves;
+    }
+
+    [Fact]
+    public async Task Handle_Should_SaveTheConversionProgress_EveryTenPercentAndAtTheEnd()
+    {
+        var job = SetupJobReportingProgress(
+            new ImageConversionProgress(1, 20), new ImageConversionProgress(2, 20), new ImageConversionProgress(3, 20),
+            new ImageConversionProgress(4, 20), new ImageConversionProgress(19, 20), new ImageConversionProgress(20, 20));
+        var saves = RecordConvertingSaves(job);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        // 5 % is not saved, 10 % and 20 % are (10 points each time), 95 % too, and the end even 5 points later.
+        saves.Should().Equal(0, 2, 4, 19, 20);
+    }
+
+    [Fact]
+    public async Task Handle_Should_SaveTheConversionProgress_WhenThereIsNoImageToConvert()
+    {
+        var job = SetupJobReportingProgress(new ImageConversionProgress(0, 0));
+        var saves = RecordConvertingSaves(job);
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        saves.Should().Equal(0, 0);
+        job.TotalImagesToConvert.Should().Be(0);
+    }
+
+    // ── Metadata priority: ComicInfo.xml, then the catalogue, then the file name ──
+
+    private void SetupComicInfo(ImportJob job, ComicInfoData comicInfo)
+    {
+        SetupArchiveExtractor(job, [], comicInfoPath: "/tmp/ComicInfo.xml");
+        _comicInfoXmlService.Read(Arg.Any<string>()).Returns(Result<ComicInfoData>.Success(comicInfo));
+        SetupImageProcessor();
+        SetupComicInfoXml();
+        SetupCloudinary();
+        SetupArchiveBuilder();
+    }
+
+    private static ComicInfoData EmptyComicInfo() => new(
+        Title: null, Series: null, Number: null, Summary: null, Year: null, Month: null, Day: null,
+        Writer: null, Penciller: null, Publisher: null, Isbn: null, PageCount: null);
+
+    [Fact]
+    public async Task Handle_Should_KeepTheAuthorsThePublishersAndTheDateOfComicInfo_WhenTheCatalogueHasOthers()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupComicInfo(job, EmptyComicInfo() with
+        {
+            Series = "Blacksad", Title = "Âme rouge", Writer = "Juan Díaz Canales", Publisher = "Dargaud", Year = 2005, Isbn = "9782075162869"
+        });
+        _comicSearchService.SearchByIsbnAsync("9782075162869", Arg.Any<CancellationToken>())
+            .Returns(new ComicSearchResult("Catalogue Title", "Catalogue Serie", "9782075162869", 4, "",
+                "Catalogue Author", "Catalogue Publisher", new DateOnly(2021, 3, 5), null, true));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        var book = result.Value!.Book!;
+        book.Authors.Should().Be("Juan Díaz Canales");
+        book.Publishers.Should().Be("Dargaud");
+        // A year alone stands for the first of January.
+        book.PublishDate.Should().Be(new DateOnly(2005, 1, 1));
+    }
+
+    [Fact]
+    public async Task Handle_Should_TakeOnlyTheSerieFromTheFileName_WhenComicInfoHasTheTitleAndTheVolume()
+    {
+        var job = CreatePendingJob("Blacksad T03.cbz", "/srv/Blacksad T03.cbz");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupComicInfo(job, EmptyComicInfo() with { Title = "Âme rouge", Number = 7 });
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        var book = result.Value!.Book!;
+        book.Serie.Should().Be("Blacksad");
+        book.Title.Should().Be("Âme rouge");
+        book.VolumeNumber.Should().Be(7);
+    }
+
+    [Fact]
+    public async Task Handle_Should_PreferTheIsbnOfTheFileName_ToTheOneOfComicInfo()
+    {
+        var job = CreatePendingJob("Serie 9782075162869.cbz", "/srv/Serie 9782075162869.cbz");
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupComicInfo(job, EmptyComicInfo() with { Isbn = "9782205050196" });
+        SetupNoMetadataSearch();
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        result.Value!.Book!.ISBN.Should().Be("9782075162869");
+    }
+
+    [Fact]
+    public async Task Handle_Should_NameTheArchiveAfterTheJob_WhenTheIsbnIsNotValid()
+    {
+        var job = CreatePendingJob();
+        _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
+        CreateDigitalLibrary(job.LibraryId);
+        SetupComicInfo(job, EmptyComicInfo() with { Series = "Blacksad", Isbn = "1234" });
+        SetupNoMetadataSearch();
+
+        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        _tempWorkspace.Received(1).MoveToLibrary(Arg.Any<string>(), Arg.Any<string>(), $"{job.Id}.cbz");
     }
 }
