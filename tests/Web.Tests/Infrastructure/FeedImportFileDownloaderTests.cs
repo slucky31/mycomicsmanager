@@ -27,7 +27,7 @@ public sealed class FeedImportFileDownloaderTests : IDisposable
     private readonly FeedImportSettings _feedImportSettings = new();
 
     private FeedImportFileDownloader CreateDownloader(HttpClient httpClient) =>
-        new(httpClient, Options.Create(new ImportSettings { TempDirectory = _tempDirectory }), Options.Create(_feedImportSettings), NullLogger<FeedImportFileDownloader>.Instance);
+        new(httpClient, Options.Create(new ImportSettings { TempDirectory = _tempDirectory }), Options.Create(_feedImportSettings), NullLogger<FeedImportFileDownloader>.Instance, TimeProvider.System);
 
     private async Task<Domain.Primitives.Result<DownloadedFile>> DownloadAsync(
         Func<HttpResponseMessage> responder, long maxBytes = 1_000, CancellationToken? cancellationToken = null)
