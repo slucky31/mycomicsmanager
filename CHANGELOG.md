@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.0.0"></a>
+## [11.0.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.0.0) (2026-11-21)
+
+### ✨ Features
+
+* migrate to .NET 11 ([#1337](https://www.github.com/slucky31/mycomicsmanager/issues/1337)) ([3c61698](https://www.github.com/slucky31/mycomicsmanager/commit/3c6169837740ea53a9665101b00a2ffb1801f7b0))
+
+### Breaking Changes
+
+* migrate to .NET 11 ([#1337](https://www.github.com/slucky31/mycomicsmanager/issues/1337)) ([3c61698](https://www.github.com/slucky31/mycomicsmanager/commit/3c6169837740ea53a9665101b00a2ffb1801f7b0))
+
 <a name="10.82.3"></a>
 ## [10.82.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.82.3) (2026-11-21)
 
