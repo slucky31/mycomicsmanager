@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using Application.ComicInfoSearch;
 using Application.Interfaces;
 using Microsoft.Extensions.Options;
@@ -920,6 +920,7 @@ public sealed class GoogleBooksServiceTests
                 "industryIdentifiers": [{ "type": "ISBN_10", "identifier": "2012101356" }, { "type": "ISBN_13", "identifier": "9782012101357" }],
                 "imageLinks": { "thumbnail": "http://books.google.com/thumb.jpg?id=1&edge=curl" } } },
             { "volumeInfo": { "title": "Astérix, l'intégrale" } },
+            { "volumeInfo": { "title": "Astérix chez les Belges", "industryIdentifiers": [{ "type": "ISBN_10", "identifier": "2012101356" }] } },
             { "volumeInfo": { "title": " " } },
             {}
         ] }
@@ -935,6 +936,8 @@ public sealed class GoogleBooksServiceTests
         result.Candidates.Should().BeEquivalentTo(new BookCandidate[]
         {
             new("Astérix et les Goths", null, null, ["Hachette"], new DateOnly(2004, 6, 1), "9782012101357", new Uri("https://books.google.com/thumb.jpg?id=1")),
+            // Without an ISBN-13, the ISBN-10 is taken.
+            new("Astérix chez les Belges", null, null, [], null, "2012101356", null),
             new("Astérix, l'intégrale", null, null, [], null, null, null),
         }, options => options.WithStrictOrdering());
     }
@@ -1010,5 +1013,28 @@ public sealed class GoogleBooksServiceTests
 
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
         }
+    }
+
+    [Theory]
+    [InlineData("medium", "small")]
+    [InlineData("small", "thumbnail")]
+    [InlineData("thumbnail", "smallThumbnail")]
+    [InlineData("smallThumbnail", null)]
+    public async Task SearchByIsbnAsync_Should_TakeTheLargestCover_FromMediumToSmallThumbnail(string largest, string? smaller)
+    {
+        var smallerLink = smaller is null ? string.Empty : $$""", "{{smaller}}": "http://books.google.com/{{smaller}}.jpg" """;
+        var jsonResponse = $$"""
+        { "totalItems": 1, "items": [{ "volumeInfo": { "title": "Book With Images",
+            "imageLinks": { "{{largest}}": "http://books.google.com/{{largest}}.jpg"{{smallerLink}} } } }] }
+        """;
+        using var handler = new MockHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
+        {
+            [$"https://www.googleapis.com/books/v1/volumes?q=isbn:{ValidIsbn}"] = CreateJsonResponse(jsonResponse)
+        });
+        using var httpClient = new HttpClient(handler);
+
+        var result = await CreateService(httpClient).SearchByIsbnAsync(ValidIsbn, TestContext.Current.CancellationToken);
+
+        result.CoverUrl.Should().Be(new Uri($"https://books.google.com/{largest}.jpg"));
     }
 }

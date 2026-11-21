@@ -74,4 +74,20 @@ public class SeriesInfoTests
         info.TotalVolumes.Should().Be(41);
         info.IsFinished.Should().BeFalse();
     }
+
+    [Fact]
+    public void Create_Should_AcceptAName_AtTheMaxLengthOnceTrimmed()
+    {
+        var name = new string('a', SeriesConstants.MaxNameLength);
+
+        SeriesInfo.Create(s_libraryId, $"  {name}  ", 8, isFinished: false).Value!.Name.Should().Be(name);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(SeriesConstants.MaxTotalVolumes)]
+    public void Create_Should_AcceptTheTotal_AtTheBoundsOfTheRange(int totalVolumes)
+    {
+        SeriesInfo.Create(s_libraryId, "Thorgal", totalVolumes, isFinished: false).Value!.TotalVolumes.Should().Be(totalVolumes);
+    }
 }

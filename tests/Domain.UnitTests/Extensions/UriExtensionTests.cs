@@ -30,4 +30,12 @@ public class UriExtensionTests
     {
         new Uri(address).IsAllowedHost(s_allowedHosts, allowHttp: false, allowSubdomains).Should().Be(expected);
     }
+
+    [Theory]
+    [InlineData("https://miniflux/v1/entries", true)]
+    [InlineData("http://miniflux/v1/entries", false)]
+    public void IsAllowedHttpsHost_Should_AcceptHttpsOnly(string address, bool expected)
+    {
+        new Uri(address).IsAllowedHttpsHost(s_allowedHosts).Should().Be(expected);
+    }
 }

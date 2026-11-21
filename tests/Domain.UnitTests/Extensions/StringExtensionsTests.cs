@@ -11,4 +11,10 @@ public class StringExtensionsTests
     {
         input.RemoveDiacritics().Should().Be(expected);
     }
+
+    [Fact]
+    public void RemoveDiacritics_Should_ReturnNull_WhenTheInputIsNull()
+    {
+        ((string)null!).RemoveDiacritics().Should().BeNull();
+    }
 }
