@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.81.0"></a>
+## [10.81.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.81.0) (2026-11-21)
+
+### ✨ Features
+
+* **books:** clear buttons and another edition search on Import info from the web ([#1321](https://www.github.com/slucky31/mycomicsmanager/issues/1321)) ([#1329](https://www.github.com/slucky31/mycomicsmanager/issues/1329)) ([c0e177f](https://www.github.com/slucky31/mycomicsmanager/commit/c0e177f69a3355276f6eec9807799eebfa34c437))
+
 <a name="10.80.4"></a>
 ## [10.80.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.80.4) (2026-11-21)
 
