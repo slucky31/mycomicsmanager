@@ -450,7 +450,7 @@ public class FeedImportDecision : Entity<Guid>
 
         SetAnalysis(candidates, parsed);
         MatchedBookId = null;
-        return Fail(step, errorMessage);
+        return Fail(step, errorMessage, timeProvider);
     }
 
     private Result EnsureCanAnalyze(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed)

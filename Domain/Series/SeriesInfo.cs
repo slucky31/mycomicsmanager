@@ -38,7 +38,7 @@ public sealed class SeriesInfo : Entity<Guid>
         return updated.IsFailure ? updated.Error! : seriesInfo;
     }
 
-    public Result Update(int? totalVolumes, bool isFinished, TimeProvider? timeProvider = null)
+    public Result Update(int? totalVolumes, bool isFinished)
     {
         if (totalVolumes is < 1 or > SeriesConstants.MaxTotalVolumes)
         {
