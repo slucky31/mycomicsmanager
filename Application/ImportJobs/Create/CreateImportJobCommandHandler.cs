@@ -9,7 +9,8 @@ namespace Application.ImportJobs.Create;
 public sealed class CreateImportJobCommandHandler(
     IImportJobRepository importJobRepository,
     IRepository<Library, Guid> libraryRepository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateImportJobCommand, ImportJob>
 {
     private static readonly HashSet<string> s_allowedExtensions =
@@ -62,7 +63,7 @@ public sealed class CreateImportJobCommandHandler(
             request.OriginalFileName,
             request.OriginalFilePath,
             request.OriginalFileSize,
-            request.LibraryId);
+            request.LibraryId, timeProvider);
 
         if (jobResult.IsFailure)
         {

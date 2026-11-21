@@ -12,14 +12,14 @@ public sealed class IsbnBedethequeUrl : Entity<Guid>
 
     private IsbnBedethequeUrl() { }
 
-    public static IsbnBedethequeUrl Create(string isbn, string url)
+    public static IsbnBedethequeUrl Create(string isbn, string url, TimeProvider? timeProvider = null)
     {
         return new IsbnBedethequeUrl
         {
             Id = Guid.CreateVersion7(),
             ISBN = isbn,
             Url = url,
-            CreatedOnUtc = DateTime.UtcNow
+            CreatedOnUtc = Clock.UtcNow(timeProvider)
         };
     }
 }

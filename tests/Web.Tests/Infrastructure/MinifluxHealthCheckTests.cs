@@ -27,7 +27,7 @@ public sealed class MinifluxHealthCheckTests
         _client,
         FeatureToggles(enabled),
         Options.Create(new MinifluxSettings { CategoryName = "BD" }),
-        new HealthCheckResultCache<MinifluxHealthCheck>());
+        new HealthCheckResultCache<MinifluxHealthCheck>(TimeProvider.System));
 
     private void CategoriesAre(params string[] titles)
     {

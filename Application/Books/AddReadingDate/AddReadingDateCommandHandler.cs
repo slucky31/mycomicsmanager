@@ -10,7 +10,8 @@ namespace Application.Books.AddReadingDate;
 public sealed class AddReadingDateCommandHandler(
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
-    IRepository<Library, Guid> libraryRepository) : ICommandHandler<AddReadingDateCommand, ReadingDate>
+    IRepository<Library, Guid> libraryRepository,
+    TimeProvider timeProvider) : ICommandHandler<AddReadingDateCommand, ReadingDate>
 {
     public async Task<Result<ReadingDate>> Handle(AddReadingDateCommand request, CancellationToken cancellationToken)
     {
@@ -38,7 +39,7 @@ public sealed class AddReadingDateCommandHandler(
             return BooksError.NotFound;
         }
 
-        var readingDate = book.AddReadingDate(DateTime.UtcNow, request.Rating);
+        var readingDate = book.AddReadingDate(timeProvider.GetUtcNow().UtcDateTime, request.Rating);
 
         bookRepository.AddReadingDate(readingDate);
         bookRepository.Update(book);

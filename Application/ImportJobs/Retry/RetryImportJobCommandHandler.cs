@@ -13,7 +13,8 @@ public sealed class RetryImportJobCommandHandler(
     IImportDirectoryStorage importStorage,
     IImportJobEnqueuer enqueuer,
     IUnitOfWork unitOfWork,
-    ILogger<RetryImportJobCommandHandler> logger) : ICommandHandler<RetryImportJobCommand>
+    ILogger<RetryImportJobCommandHandler> logger,
+    TimeProvider timeProvider) : ICommandHandler<RetryImportJobCommand>
 {
     private const string RetryStep = "Retry";
 
@@ -50,7 +51,7 @@ public sealed class RetryImportJobCommandHandler(
 
         // Saved as pending on its new path before the file comes back, so that the watcher sees an active job
         // for that file and does not create a second one.
-        var retryResult = job.Retry(destinationPath);
+        var retryResult = job.Retry(destinationPath, timeProvider);
         if (retryResult.IsFailure)
         {
             return retryResult.Error!;

@@ -12,12 +12,12 @@ public sealed class FeatureToggleOverride : Entity<Guid>
 
     private FeatureToggleOverride() { }
 
-    public static FeatureToggleOverride Create(FeatureToggle toggle, bool enabled) => new()
+    public static FeatureToggleOverride Create(FeatureToggle toggle, bool enabled, TimeProvider? timeProvider = null) => new()
     {
         Id = Guid.CreateVersion7(),
         Toggle = toggle,
         Enabled = enabled,
-        CreatedOnUtc = DateTime.UtcNow
+        CreatedOnUtc = Clock.UtcNow(timeProvider)
     };
 
     public void Set(bool enabled) => Enabled = enabled;

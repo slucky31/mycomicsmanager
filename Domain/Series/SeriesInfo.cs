@@ -18,7 +18,7 @@ public sealed class SeriesInfo : Entity<Guid>
 
     private SeriesInfo() { }
 
-    public static Result<SeriesInfo> Create(Guid libraryId, string name, int? totalVolumes, bool isFinished)
+    public static Result<SeriesInfo> Create(Guid libraryId, string name, int? totalVolumes, bool isFinished, TimeProvider? timeProvider = null)
     {
         if (libraryId == Guid.Empty || string.IsNullOrWhiteSpace(name) || name.Trim().Length > SeriesConstants.MaxNameLength)
         {
@@ -31,7 +31,7 @@ public sealed class SeriesInfo : Entity<Guid>
             LibraryId = libraryId,
             Name = name.Trim(),
             NormalizedName = SerieNames.Normalize(name),
-            CreatedOnUtc = DateTime.UtcNow
+            CreatedOnUtc = Clock.UtcNow(timeProvider)
         };
 
         var updated = seriesInfo.Update(totalVolumes, isFinished);

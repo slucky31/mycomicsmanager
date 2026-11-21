@@ -15,7 +15,8 @@ public sealed class ProcessImportJobCommandHandler(
     ProcessImportJobRepositories repositories,
     ProcessImportJobFileProcessors fileProcessors,
     ProcessImportJobExternalServices externalServices,
-    ILogger<ProcessImportJobCommandHandler> logger)
+    ILogger<ProcessImportJobCommandHandler> logger,
+    TimeProvider timeProvider)
     : ICommandHandler<ProcessImportJobCommand, ImportJobOutcome>
 {
     private const string CompletedStatus = "Completed";
@@ -309,7 +310,7 @@ public sealed class ProcessImportJobCommandHandler(
             depositedFileNames.Add(Path.GetFileName(destination));
         }
 
-        importJob.Split(depositedFileNames);
+        importJob.Split(depositedFileNames, timeProvider);
         repositories.ImportJobs.Update(importJob);
         var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);
         if (saveResult.IsFailure)
@@ -596,7 +597,7 @@ public sealed class ProcessImportJobCommandHandler(
         }
 
         repositories.Books.Add(digitalBook);
-        importJob.Complete(digitalBook.Id);
+        importJob.Complete(digitalBook.Id, timeProvider);
         repositories.ImportJobs.Update(importJob);
 
         var saveResult = await repositories.UnitOfWork.SaveChangesAsync(ct);

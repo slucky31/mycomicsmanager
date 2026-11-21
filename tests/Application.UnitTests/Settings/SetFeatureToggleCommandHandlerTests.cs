@@ -20,7 +20,7 @@ public class SetFeatureToggleCommandHandlerTests
         var defaults = _data.CreateDefaults();
         _toggles = new FeatureToggles(defaults);
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
-        _handler = new SetFeatureToggleCommandHandler(_repository, _unitOfWork, defaults, _toggles);
+        _handler = new SetFeatureToggleCommandHandler(_repository, _unitOfWork, defaults, _toggles, TimeProvider.System);
     }
 
     private Task<Result> HandleAsync(FeatureToggle toggle, bool enabled) =>

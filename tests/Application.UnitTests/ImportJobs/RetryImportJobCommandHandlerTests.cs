@@ -43,7 +43,7 @@ public class RetryImportJobCommandHandlerTests
         _handler = new RetryImportJobCommandHandler(
             new FailedImportJobLoader(_importJobRepository, _libraryRepository),
             _importJobRepository, _storage, _enqueuer, _unitOfWork,
-            NullLogger<RetryImportJobCommandHandler>.Instance);
+            NullLogger<RetryImportJobCommandHandler>.Instance, TimeProvider.System);
     }
 
     private Task<Result> RetryAsync() =>

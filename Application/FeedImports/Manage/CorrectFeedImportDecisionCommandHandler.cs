@@ -10,7 +10,8 @@ namespace Application.FeedImports.Manage;
 public sealed class CorrectFeedImportDecisionCommandHandler(
     IFeedImportDecisionRepository decisionRepository,
     IBookReadService bookReadService,
-    IUnitOfWork unitOfWork) : ICommandHandler<CorrectFeedImportDecisionCommand, FeedImportDecisionStatus>
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider) : ICommandHandler<CorrectFeedImportDecisionCommand, FeedImportDecisionStatus>
 {
     public async Task<Result<FeedImportDecisionStatus>> Handle(CorrectFeedImportDecisionCommand command, CancellationToken cancellationToken)
     {
@@ -31,14 +32,14 @@ public sealed class CorrectFeedImportDecisionCommandHandler(
         }
 
         var parsed = new ParsedComicTitle(command.Serie.Trim(), string.IsNullOrWhiteSpace(command.Title) ? null : command.Title.Trim(), command.Volume);
-        var corrected = decision.Correct(parsed);
+        var corrected = decision.Correct(parsed, timeProvider);
         if (corrected.IsFailure)
         {
             return corrected.Error!;
         }
 
         var books = await bookReadService.ListIdentitiesByUserAsync(decision.UserId, cancellationToken);
-        var applied = FeedImportAnalysisRules.Reapply(decision, books, FeedImportDecidedBy.User);
+        var applied = FeedImportAnalysisRules.Reapply(decision, books, FeedImportDecidedBy.User, timeProvider);
         if (applied.IsFailure)
         {
             return applied.Error!;

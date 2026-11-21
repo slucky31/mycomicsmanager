@@ -9,7 +9,7 @@ namespace Web.Infrastructure;
 // transient services (ICloudinaryService, typed HttpClients), so they can't be singletons
 // themselves without a captive-dependency DI error.
 #pragma warning disable S2326 // TCheck only keys one singleton cache per health check type
-internal sealed class HealthCheckResultCache<TCheck> where TCheck : IHealthCheck
+internal sealed class HealthCheckResultCache<TCheck>(TimeProvider timeProvider) where TCheck : IHealthCheck
 #pragma warning restore S2326
 {
     private static TimeSpan CacheDuration => TimeSpan.FromSeconds(30);
@@ -21,14 +21,14 @@ internal sealed class HealthCheckResultCache<TCheck> where TCheck : IHealthCheck
 
     public async Task<HealthCheckResult> GetOrAddAsync(Func<CancellationToken, Task<HealthCheckResult>> check, CancellationToken cancellationToken)
     {
-        if (_cachedResult is { } cached && DateTimeOffset.UtcNow - _cachedAt < CacheDuration)
+        if (_cachedResult is { } cached && timeProvider.GetUtcNow() - _cachedAt < CacheDuration)
         {
             return cached;
         }
 
         var result = await check(cancellationToken);
         _cachedResult = result;
-        _cachedAt = DateTimeOffset.UtcNow;
+        _cachedAt = timeProvider.GetUtcNow();
         return result;
     }
 }

@@ -38,7 +38,7 @@ public class CreateBookCommandHandlerTests
         _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
 
-        _handler = new CreateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock);
+        _handler = new CreateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock, TimeProvider.System);
     }
 
     [Fact]

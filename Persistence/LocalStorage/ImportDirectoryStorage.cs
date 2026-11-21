@@ -7,14 +7,16 @@ namespace Persistence.LocalStorage;
 
 internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
 {
+    private readonly TimeProvider _timeProvider;
     private readonly string _rootPath;
     private static readonly char[] s_charsToTrim = ['/', '\\'];
     private const string PartialFileExtension = ".part";
     private const string ErrorsDirectoryName = "errors";
 
-    public ImportDirectoryStorage(IOptions<ImportSettings> settings)
+    public ImportDirectoryStorage(IOptions<ImportSettings> settings, TimeProvider timeProvider)
     {
         _rootPath = settings.Value.ImportDirectory;
+        _timeProvider = timeProvider;
     }
 
     private Result ValidatePath(string directoryName)
@@ -175,7 +177,7 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
 
         if (File.Exists(destPath))
         {
-            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", System.Globalization.CultureInfo.InvariantCulture);
+            var timestamp = _timeProvider.GetUtcNow().UtcDateTime.ToString("yyyyMMddHHmmssfff", System.Globalization.CultureInfo.InvariantCulture);
             var ext = Path.GetExtension(fileName);
             var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
             destPath = Path.Combine(errorsDir, $"{nameWithoutExt}_{timestamp}{ext}");

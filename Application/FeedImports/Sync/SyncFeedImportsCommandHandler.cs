@@ -13,7 +13,8 @@ public sealed class SyncFeedImportsCommandHandler(
     IFeedImportDecisionRepository decisionRepository,
     IUnitOfWork unitOfWork,
     IOptions<MinifluxSettings> minifluxSettings,
-    ILogger<SyncFeedImportsCommandHandler> logger) : ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult>
+    ILogger<SyncFeedImportsCommandHandler> logger,
+    TimeProvider timeProvider) : ICommandHandler<SyncFeedImportsCommand, SyncFeedImportsResult>
 {
     private enum EntryOutcome
     {
@@ -106,7 +107,7 @@ public sealed class SyncFeedImportsCommandHandler(
 
     private async Task<bool> TrySaveDecisionAsync(Guid userId, MinifluxEntry entry, CancellationToken cancellationToken)
     {
-        var createResult = FeedImportDecision.Create(userId, entry.Id, entry.Title, entry.Url, entry.PublishedAt?.UtcDateTime);
+        var createResult = FeedImportDecision.Create(userId, entry.Id, entry.Title, entry.Url, entry.PublishedAt?.UtcDateTime, timeProvider);
         if (createResult.IsFailure)
         {
             logger.LogWarning("Feed import: Miniflux entry {EntryId} rejected ({Url}): {Description}",

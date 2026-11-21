@@ -1,3 +1,4 @@
+using Domain.Primitives;
 using Application.Helpers;
 using Domain.Books;
 using FluentValidation;
@@ -6,7 +7,7 @@ namespace Web.Validators;
 
 public class BookValidator : AbstractValidator<BookUiDto>
 {
-    public BookValidator()
+    public BookValidator(TimeProvider? timeProvider = null)
     {
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Enter a title")
@@ -44,7 +45,7 @@ public class BookValidator : AbstractValidator<BookUiDto>
             .When(x => x.NumberOfPages.HasValue);
 
         RuleFor(x => x.PublishDate)
-            .Must(p => !p.HasValue || p.Value <= DateOnly.FromDateTime(DateTime.UtcNow)).WithMessage("Publish date must not be in the future.");
+            .Must(p => !p.HasValue || p.Value <= DateOnly.FromDateTime(Clock.UtcNow(timeProvider))).WithMessage("Publish date must not be in the future.");
     }
 
     private static bool BeValidISBN(string isbn)

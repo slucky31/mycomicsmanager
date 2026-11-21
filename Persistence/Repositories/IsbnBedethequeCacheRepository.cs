@@ -5,7 +5,7 @@ using Npgsql;
 
 namespace Persistence.Repositories;
 
-public class IsbnBedethequeCacheRepository(ApplicationDbContext dbContext) : IIsbnBedethequeCacheRepository
+public class IsbnBedethequeCacheRepository(ApplicationDbContext dbContext, TimeProvider timeProvider) : IIsbnBedethequeCacheRepository
 {
     public async Task<string?> GetUrlByIsbnAsync(string isbn, CancellationToken ct = default)
     {
@@ -17,7 +17,7 @@ public class IsbnBedethequeCacheRepository(ApplicationDbContext dbContext) : IIs
 
     public async Task SaveAsync(string isbn, string url, CancellationToken ct = default)
     {
-        var entity = IsbnBedethequeUrl.Create(isbn, url);
+        var entity = IsbnBedethequeUrl.Create(isbn, url, timeProvider);
         dbContext.IsbnBedethequeUrls.Add(entity);
         try
         {

@@ -23,4 +23,9 @@
     <!-- APIs banned by the coding rules of CLAUDE.md (RS0030, Microsoft.CodeAnalysis.BannedApiAnalyzers). -->
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" Link="BannedSymbols.txt" Visible="false" />
   </ItemGroup>
+  <!-- Production code reads the time from an injected TimeProvider (FakeTimeProvider in the tests); the tests
+       may still build their data from the system clock. -->
+  <ItemGroup Condition="!$(MSBuildProjectDirectory.Replace('\', '/').Contains('/tests/'))">
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.Production.txt" Link="BannedSymbols.Production.txt" Visible="false" />
+  </ItemGroup>
 </Project>

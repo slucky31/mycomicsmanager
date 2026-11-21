@@ -72,7 +72,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
             new FeedImportDownloadServices(_debridLink, _downloader),
             new FeedImportDepositServices(_libraryReadService, _createLibrary, _storage, _createImportJob, _enqueuer),
             new FeedImportDownloadOptions(Options.Create(_feedImportSettings), Options.Create(_debridLinkSettings), Options.Create(_importSettings)),
-            NullLogger<DownloadFeedImportDecisionCommandHandler>.Instance);
+            NullLogger<DownloadFeedImportDecisionCommandHandler>.Instance, TimeProvider.System);
     }
 
     private FeedImportDecision GivenDecision()

@@ -67,7 +67,7 @@ public sealed class FeedImportServiceTests : IDisposable
         _service = new FeedImportService(
             _provider.GetRequiredService<IServiceScopeFactory>(),
             _currentUserService, _libraryReadService, _decisionReadService, _backgroundJobClient,
-            _featureToggles, Options.Create(_debridLinkSettings), NullLogger<FeedImportService>.Instance);
+            _featureToggles, Options.Create(_debridLinkSettings), NullLogger<FeedImportService>.Instance, TimeProvider.System);
     }
 
     public void Dispose() => _provider.Dispose();

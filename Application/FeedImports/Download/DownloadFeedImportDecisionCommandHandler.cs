@@ -21,7 +21,8 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
     FeedImportDownloadServices downloadServices,
     FeedImportDepositServices depositServices,
     FeedImportDownloadOptions options,
-    ILogger<DownloadFeedImportDecisionCommandHandler> logger) : ICommandHandler<DownloadFeedImportDecisionCommand>
+    ILogger<DownloadFeedImportDecisionCommandHandler> logger,
+    TimeProvider timeProvider) : ICommandHandler<DownloadFeedImportDecisionCommand>
 {
     public const string LibraryStep = "Library";
     public const string DownloadStep = "Download";
@@ -77,7 +78,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
             return await FailAsync(decision, LibraryStep, library.Error!.Description ?? library.Error.Code, cancellationToken);
         }
 
-        var started = decision.StartDownload();
+        var started = decision.StartDownload(timeProvider);
         if (started.IsFailure)
         {
             return started;
@@ -151,7 +152,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
                 return lastError;
             }
 
-            decision.NoteMirrorFailure(mirror.Host, lastError.Description ?? lastError.Code);
+            decision.NoteMirrorFailure(mirror.Host, lastError.Description ?? lastError.Code, timeProvider);
             await SaveMirrorFailureAsync(decision, cancellationToken);
         }
 
@@ -184,7 +185,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
         var usable = ordered.Where(m => m.Host.IsSameOrSubdomainOf(supported.Value!)).ToList();
         foreach (var skipped in ordered.Except(usable))
         {
-            decision.NoteMirrorFailure(skipped.Host, FeedImportError.DebridLinkHostNotSupported.Description!);
+            decision.NoteMirrorFailure(skipped.Host, FeedImportError.DebridLinkHostNotSupported.Description!, timeProvider);
         }
 
         return usable;
@@ -282,7 +283,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
             return await DiscardAndFailAsync(decision, download, deposited.Error, cancellationToken);
         }
 
-        var marked = decision.MarkDownloaded(download.Mirror.Url, job.Value!.Id, library.Name);
+        var marked = decision.MarkDownloaded(download.Mirror.Url, job.Value!.Id, library.Name, timeProvider);
         if (marked.IsFailure)
         {
             return marked;
@@ -310,7 +311,7 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
     // The failure is recorded on the decision: the command itself succeeded.
     private async Task<Result> FailAsync(FeedImportDecision decision, string step, string message, CancellationToken cancellationToken)
     {
-        var failed = decision.Fail(step, message);
+        var failed = decision.Fail(step, message, timeProvider);
         if (failed.IsFailure)
         {
             return failed;

@@ -29,8 +29,8 @@ public sealed class ManageFeedImportDecisionCommandHandler(
 
         var result = command.Action switch
         {
-            FeedImportDecisionAction.ForceDownload => decision.ForceDownload(),
-            FeedImportDecisionAction.Ignore => decision.Ignore(),
+            FeedImportDecisionAction.ForceDownload => decision.ForceDownload(timeProvider),
+            FeedImportDecisionAction.Ignore => decision.Ignore(timeProvider),
             _ => await RetryAsync(decision, cancellationToken)
         };
         if (result.IsFailure)
@@ -51,6 +51,6 @@ public sealed class ManageFeedImportDecisionCommandHandler(
         }
 
         var books = await bookReadService.ListIdentitiesByUserAsync(decision.UserId, cancellationToken);
-        return FeedImportAnalysisRules.Reapply(decision, books, FeedImportDecidedBy.User);
+        return FeedImportAnalysisRules.Reapply(decision, books, FeedImportDecidedBy.User, timeProvider);
     }
 }
