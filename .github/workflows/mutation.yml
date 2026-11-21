@@ -108,6 +108,16 @@ jobs:
         run: |
           report=$(find "StrykerOutput/$PROJECT" -name 'mutation-report.md' 2>/dev/null | head -n 1)
           if [ -n "$report" ]; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
+      # TEMPORARY (issue 1327): lists the surviving mutants in the log, to be removed.
+      - name: List the surviving mutants
+        if: ${{ !cancelled() && steps.changes.outputs.run == 'true' }}
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: |
+          report=$(find "StrykerOutput/$PROJECT" -name 'mutation-report.json' 2>/dev/null | head -n 1)
+          [ -n "$report" ] && jq -r '.projectRoot as $r | .files | to_entries[] | .key as $f | .value.mutants[]
+            | select(.status == "Survived" or .status == "NoCoverage")
+            | "SURVIVOR \(.status) \($f | ltrimstr($r)):\(.location.start.line) \(.mutatorName) => \(.replacement // "" | gsub("\n"; " ") | .[0:120])"' "$report" || true
       - name: Upload the HTML report
         if: ${{ !cancelled() && steps.changes.outputs.run == 'true' }}
         uses: actions/upload-artifact@v7
