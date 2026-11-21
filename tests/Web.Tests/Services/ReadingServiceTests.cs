@@ -30,7 +30,7 @@ public sealed class ReadingServiceTests
     [Fact]
     public async Task GetInProgress_Should_ReturnError_WhenUserNotResolved()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.GetInProgress(TestContext.Current.CancellationToken);
 
@@ -42,7 +42,7 @@ public sealed class ReadingServiceTests
     public async Task GetInProgress_Should_AskForTheBooksOfTheCurrentUser_WhenUserResolved()
     {
         IReadOnlyList<BookInProgressDto> books = [];
-        _inProgressHandler.Handle(new GetBooksInProgressQuery(s_userId), Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<BookInProgressDto>>.Success(books));
+        _inProgressHandler.Handle(new GetBooksInProgressQuery(s_userId), Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<BookInProgressDto>>(books));
 
         var result = await _service.GetInProgress(TestContext.Current.CancellationToken);
 
@@ -52,7 +52,7 @@ public sealed class ReadingServiceTests
     [Fact]
     public async Task GetRecentReadings_Should_ReturnError_WhenUserNotResolved()
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await _service.GetRecentReadings(1, 20, TestContext.Current.CancellationToken);
 
@@ -64,7 +64,7 @@ public sealed class ReadingServiceTests
     public async Task GetRecentReadings_Should_AskForThePageOfTheCurrentUser_WhenUserResolved()
     {
         var readings = Substitute.For<IPagedList<BookReadingDto>>();
-        _recentReadingsHandler.Handle(new GetRecentReadingsQuery(s_userId, 2, 20), Arg.Any<CancellationToken>()).Returns(Result<IPagedList<BookReadingDto>>.Success(readings));
+        _recentReadingsHandler.Handle(new GetRecentReadingsQuery(s_userId, 2, 20), Arg.Any<CancellationToken>()).Returns(Result.Success<IPagedList<BookReadingDto>>(readings));
 
         var result = await _service.GetRecentReadings(2, 20, TestContext.Current.CancellationToken);
 

@@ -1,6 +1,6 @@
-using Domain.Primitives;
 using System.Globalization;
 using Domain.FeedImports;
+using Domain.Primitives;
 
 namespace Web.Models;
 
@@ -156,7 +156,7 @@ public sealed record FeedImportDecisionViewModel(
         }
 
         return importLibraryId is { } libraryId
-            ? string.Create(CultureInfo.InvariantCulture, $"/import?libraryId={libraryId}")
+            ? $"/import?libraryId={libraryId}"
             : "/import";
     }
 

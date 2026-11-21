@@ -32,7 +32,7 @@ public sealed class MinifluxHealthCheckTests
     private void CategoriesAre(params string[] titles)
     {
         IReadOnlyList<MinifluxCategory> categories = titles.Select((t, i) => new MinifluxCategory(i + 1, t)).ToList();
-        _client.GetCategoriesAsync(Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<MinifluxCategory>>.Success(categories));
+        _client.GetCategoriesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<MinifluxCategory>>(categories));
     }
 
     [Fact]

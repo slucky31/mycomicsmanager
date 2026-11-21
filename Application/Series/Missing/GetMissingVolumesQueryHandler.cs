@@ -48,6 +48,6 @@ public sealed class GetMissingVolumesQueryHandler(
             .ThenBy(l => l.LibraryId)
             .ToList();
 
-        return Result<IReadOnlyList<LibraryMissingVolumes>>.Success(libraries);
+        return Result.Success<IReadOnlyList<LibraryMissingVolumes>>(libraries);
     }
 }

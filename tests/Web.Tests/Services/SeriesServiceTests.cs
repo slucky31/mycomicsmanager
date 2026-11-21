@@ -47,7 +47,7 @@ public sealed class SeriesServiceTests
     [MemberData(nameof(Methods))]
     public async Task Methods_Should_ReturnTheUserError_WhenTheUserIsNotResolved(string method)
     {
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         var result = await CallAsync(method);
 
@@ -62,7 +62,7 @@ public sealed class SeriesServiceTests
     public async Task GetLibrarySeries_Should_AskForTheSeriesOfTheLibraryOfTheUser()
     {
         IReadOnlyList<SerieSummary> series = [];
-        _listHandler.Handle(new GetLibrarySeriesQuery(s_userId, s_libraryId), Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<SerieSummary>>.Success(series));
+        _listHandler.Handle(new GetLibrarySeriesQuery(s_userId, s_libraryId), Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<SerieSummary>>(series));
 
         var result = await _service.GetLibrarySeries(s_libraryId, TestContext.Current.CancellationToken);
 
@@ -83,7 +83,7 @@ public sealed class SeriesServiceTests
     public async Task GetMissingVolumes_Should_AskForTheMissingVolumesOfTheUser()
     {
         IReadOnlyList<LibraryMissingVolumes> missing = [];
-        _missingHandler.Handle(new GetMissingVolumesQuery(s_userId), Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<LibraryMissingVolumes>>.Success(missing));
+        _missingHandler.Handle(new GetMissingVolumesQuery(s_userId), Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<LibraryMissingVolumes>>(missing));
 
         var result = await _service.GetMissingVolumes(TestContext.Current.CancellationToken);
 

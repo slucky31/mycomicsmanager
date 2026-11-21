@@ -1,4 +1,4 @@
-﻿using Application.FeedImports.Analysis;
+using Application.FeedImports.Analysis;
 
 namespace Application.FeedImports.Analyze;
 

@@ -37,7 +37,7 @@ public class UpdateBookCommandHandlerTests
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _comicInfoWriterMock = Substitute.For<IComicInfoArchiveWriter>();
-        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _comicInfoWriterMock.WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
@@ -576,7 +576,7 @@ public class UpdateBookCommandHandlerTests
     {
         ArrangeDigitalBook();
         var saveError = new TError("DB500", "Save failed");
-        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(saveError));
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(saveError));
         _comicInfoWriterMock.WriteAsync(DigitalFilePath, Arg.Is<ComicInfoData>(d => d.Series == "Original Serie"), Arg.Any<CancellationToken>())
             .Returns(restoreSucceeds ? Result.Success() : Result.Failure(BooksError.FileNotFound));
 

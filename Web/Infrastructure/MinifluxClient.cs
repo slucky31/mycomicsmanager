@@ -23,7 +23,7 @@ internal sealed class MinifluxClient(HttpClient httpClient, ILogger<MinifluxClie
         IReadOnlyList<MinifluxCategory> result = categories.Value!
             .Select(c => new MinifluxCategory(c.Id, c.Title ?? string.Empty))
             .ToList();
-        return Result<IReadOnlyList<MinifluxCategory>>.Success(result);
+        return Result.Success<IReadOnlyList<MinifluxCategory>>(result);
     }
 
     public async Task<Result<IReadOnlyList<MinifluxEntry>>> GetStarredEntriesAsync(long categoryId, CancellationToken cancellationToken = default)
@@ -45,7 +45,7 @@ internal sealed class MinifluxClient(HttpClient httpClient, ILogger<MinifluxClie
 
             if (pageEntries.Count < PageSize || entries.Count >= page.Value.Total)
             {
-                return Result<IReadOnlyList<MinifluxEntry>>.Success(entries);
+                return Result.Success<IReadOnlyList<MinifluxEntry>>(entries);
             }
         }
     }
@@ -92,7 +92,7 @@ internal sealed class MinifluxClient(HttpClient httpClient, ILogger<MinifluxClie
             using var response = await httpClient.GetAsync(uri, cancellationToken);
             if (notFoundAsNull && response.StatusCode == HttpStatusCode.NotFound)
             {
-                return Result<T?>.Success(null);
+                return Result.Success<T?>(null);
             }
 
             if (!response.IsSuccessStatusCode)

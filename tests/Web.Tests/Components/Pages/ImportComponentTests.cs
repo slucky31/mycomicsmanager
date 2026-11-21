@@ -37,7 +37,7 @@ public sealed class ImportComponentTests
         librariesService
             .FilterBy(Arg.Any<string?>(), Arg.Any<LibrariesColumn?>(), Arg.Any<SortOrder?>(),
                 Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
 
         var importService = Substitute.For<IImportService>();
         importService
@@ -46,7 +46,7 @@ public sealed class ImportComponentTests
             {
                 capturedToken = callInfo.Arg<CancellationToken>();
                 return Task.FromResult(
-                    Result<IReadOnlyList<ImportJobViewModel>>.Success(
+                    Result.Success<IReadOnlyList<ImportJobViewModel>>(
                         (IReadOnlyList<ImportJobViewModel>)[]));
             });
 
@@ -145,12 +145,12 @@ public sealed class ImportComponentTests
             pagedList.Items.Returns(new List<Library> { library });
             librariesService.FilterBy(Arg.Any<string?>(), Arg.Any<LibrariesColumn?>(), Arg.Any<SortOrder?>(),
                     Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-                .Returns(Result<IPagedList<Library>>.Success(pagedList));
+                .Returns(Result.Success<IPagedList<Library>>(pagedList));
         }
 
         var importService = Substitute.For<IImportService>();
         importService.GetImportJobsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(jobsResult ?? Result<IReadOnlyList<ImportJobViewModel>>.Success(initialJobs ?? []));
+            .Returns(jobsResult ?? Result.Success<IReadOnlyList<ImportJobViewModel>>(initialJobs ?? []));
 
         var snackbar = Substitute.For<ISnackbar>();
         var dialogService = Substitute.For<IDialogService>();
@@ -178,7 +178,7 @@ public sealed class ImportComponentTests
     public async Task LoadLibrariesAsync_Should_SetLoadError_WhenServiceFails()
     {
         await using var setup = await SetupAsync(
-            librariesResult: Result<IPagedList<Library>>.Failure(new TError("lib:err", "boom")));
+            librariesResult: Result.Failure<IPagedList<Library>>(new TError("lib:err", "boom")));
 
         setup.Cut.Markup.Should().Contain("Unable to load the libraries.");
     }
@@ -191,7 +191,7 @@ public sealed class ImportComponentTests
         var pagedList = Substitute.For<IPagedList<Library>>();
         pagedList.Items.Returns(new List<Library> { comics, imported });
 
-        await using var setup = await SetupAsync(librariesResult: Result<IPagedList<Library>>.Success(pagedList));
+        await using var setup = await SetupAsync(librariesResult: Result.Success<IPagedList<Library>>(pagedList));
 
         setup.Cut.Find("#import-library .library-select-value").TextContent.Should().Be("Imported");
         await setup.ImportService.Received(1).GetImportJobsAsync(imported.Id, Arg.Any<CancellationToken>());
@@ -203,7 +203,7 @@ public sealed class ImportComponentTests
     public async Task LoadJobsAsync_Should_ShowSnackbarError_WhenServiceFails()
     {
         await using var setup = await SetupAsync(
-            jobsResult: Result<IReadOnlyList<ImportJobViewModel>>.Failure(new TError("job:err", "boom")));
+            jobsResult: Result.Failure<IReadOnlyList<ImportJobViewModel>>(new TError("job:err", "boom")));
 
         setup.Snackbar.Received().Add(Arg.Any<string>(), Severity.Error, Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
     }
@@ -267,7 +267,7 @@ public sealed class ImportComponentTests
         await using var setup = await SetupAsync();
         var newJob = CreateJob(fileName: "new.cbz");
         setup.ImportService.UploadAndCreateJobAsync(Arg.Any<IBrowserFile>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJobViewModel>.Success(newJob));
+            .Returns(Result.Success<ImportJobViewModel>(newJob));
 
         var fileUpload = setup.Cut.FindComponent<MudFileUpload<IReadOnlyList<IBrowserFile>>>();
         IReadOnlyList<IBrowserFile> files = [CreateBrowserFile("new.cbz")];
@@ -283,7 +283,7 @@ public sealed class ImportComponentTests
     {
         await using var setup = await SetupAsync();
         setup.ImportService.UploadAndCreateJobAsync(Arg.Any<IBrowserFile>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJobViewModel>.Failure(new TError("upl:err", "bad file")));
+            .Returns(Result.Failure<ImportJobViewModel>(new TError("upl:err", "bad file")));
 
         var fileUpload = setup.Cut.FindComponent<MudFileUpload<IReadOnlyList<IBrowserFile>>>();
         IReadOnlyList<IBrowserFile> files = [CreateBrowserFile("bad.cbz")];
@@ -461,7 +461,7 @@ public sealed class ImportComponentTests
         await using var setup = await SetupAsync(initialJobs: [failedJob]);
         setup.ImportService.RetryImportJobAsync(failedJob.Id, Arg.Any<CancellationToken>()).Returns(Result.Success());
         setup.ImportService.GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<ImportJobViewModel>>.Success([failedJob with { Status = "Pending", StatusDisplay = "Waiting" }]));
+            .Returns(Result.Success<IReadOnlyList<ImportJobViewModel>>([failedJob with { Status = "Pending", StatusDisplay = "Waiting" }]));
 
         await setup.Cut.InvokeAsync(() => setup.Cut.Instance.RetryJobAsync(failedJob.Id));
 
@@ -533,7 +533,7 @@ public sealed class ImportComponentTests
 
         var updatedJob = job with { Status = "Completed", StatusDisplay = "Completed" };
         setup.ImportService.GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<ImportJobViewModel>>.Success([updatedJob]));
+            .Returns(Result.Success<IReadOnlyList<ImportJobViewModel>>([updatedJob]));
 
         await setup.Cut.InvokeAsync(setup.Cut.Instance.PollJobsAsync);
 
@@ -546,7 +546,7 @@ public sealed class ImportComponentTests
         var job = CreateJob(status: "Extracting");
         await using var setup = await SetupAsync(initialJobs: [job]);
         setup.ImportService.GetImportJobsAsync(setup.Library.Id, Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<ImportJobViewModel>>.Failure(new TError("poll:err", "boom")));
+            .Returns(Result.Failure<IReadOnlyList<ImportJobViewModel>>(new TError("poll:err", "boom")));
 
         var act = () => setup.Cut.InvokeAsync(setup.Cut.Instance.PollJobsAsync);
 

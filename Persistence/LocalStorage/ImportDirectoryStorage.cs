@@ -165,7 +165,7 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
 
         if (!File.Exists(absoluteFilePath))
         {
-            return Result<string?>.Success(null);
+            return Result.Success<string?>(null);
         }
 
         var libraryDir = Path.GetDirectoryName(absoluteFilePath) ?? _rootPath;

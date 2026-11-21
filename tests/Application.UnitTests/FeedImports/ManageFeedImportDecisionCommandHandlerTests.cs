@@ -22,7 +22,7 @@ public class ManageFeedImportDecisionCommandHandlerTests
 
     public ManageFeedImportDecisionCommandHandlerTests()
     {
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _bookReadService.ListIdentitiesByUserAsync(s_userId, Arg.Any<CancellationToken>()).Returns([]);
         _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
         _handler = new ManageFeedImportDecisionCommandHandler(_repository, _bookReadService, _unitOfWork, _timeProvider);
@@ -30,7 +30,7 @@ public class ManageFeedImportDecisionCommandHandlerTests
 
     private FeedImportDecision Given(Action<FeedImportDecision> arrange)
     {
-        var decision = FeedImportDecision.Create(s_userId, 9, "Blacksad - Tome 3", "https://planete-bd.org/b3", null).Value!;
+        var decision = FeedImportDecision.Create(s_userId, 9, "Blacksad - Tome 3", "https://planete-bd.org/b3", null, TimeProvider.System).Value!;
         arrange(decision);
         _repository.GetByIdAsync(decision.Id, Arg.Any<CancellationToken>()).Returns(decision);
         return decision;
@@ -41,9 +41,9 @@ public class ManageFeedImportDecisionCommandHandlerTests
 
     private static void FailedDownload(FeedImportDecision d)
     {
-        d.RecordLinks([s_candidate], s_parsed, "1 lien", FeedImportDecidedBy.Auto);
-        d.StartDownload();
-        d.Fail("Téléchargement", "Quota Debrid-Link atteint.");
+        d.RecordLinks([s_candidate], s_parsed, "1 lien", FeedImportDecidedBy.Auto, TimeProvider.System);
+        d.StartDownload(TimeProvider.System);
+        d.Fail("Téléchargement", "Quota Debrid-Link atteint.", TimeProvider.System);
     }
 
     private Task<Result<FeedImportDecisionStatus>> HandleAsync(FeedImportDecision decision, FeedImportDecisionAction action, Guid? userId = null) =>
@@ -84,7 +84,7 @@ public class ManageFeedImportDecisionCommandHandlerTests
     [Fact]
     public async Task Handle_Should_ReturnErrorWithoutSaving_WhenTransitionIsNotAllowed()
     {
-        var decision = Given(d => d.RecordLinks([s_candidate], s_parsed, "1 lien", FeedImportDecidedBy.Auto));
+        var decision = Given(d => d.RecordLinks([s_candidate], s_parsed, "1 lien", FeedImportDecidedBy.Auto, TimeProvider.System));
 
         var result = await HandleAsync(decision, FeedImportDecisionAction.ForceDownload);
 
@@ -132,7 +132,7 @@ public class ManageFeedImportDecisionCommandHandlerTests
     [Fact]
     public async Task Handle_Should_LeaveRetriedArticlePendingForAnalysis_WhenItHasNoLinks()
     {
-        var decision = Given(d => d.Fail("Récupération de la page", "Page indisponible."));
+        var decision = Given(d => d.Fail("Récupération de la page", "Page indisponible.", TimeProvider.System));
 
         var result = await HandleAsync(decision, FeedImportDecisionAction.Retry);
 
@@ -145,8 +145,8 @@ public class ManageFeedImportDecisionCommandHandlerTests
         var decision = Given(d =>
         {
             d.RequestArbitration(FeedImportArbitrationKind.AmbiguousLinks, [s_candidate, s_candidate with { FileName = "Autre.cbz" }],
-                s_parsed, null, "Ambigu", FeedImportDecidedBy.Auto);
-            d.Ignore();
+                s_parsed, null, "Ambigu", FeedImportDecidedBy.Auto, TimeProvider.System);
+            d.Ignore(TimeProvider.System);
         });
 
         var result = await HandleAsync(decision, FeedImportDecisionAction.Retry);
@@ -160,8 +160,8 @@ public class ManageFeedImportDecisionCommandHandlerTests
     {
         var decision = Given(d =>
         {
-            d.RecordLinks([s_candidate], s_parsed, "1 lien", FeedImportDecidedBy.Auto);
-            d.StartDownload();
+            d.RecordLinks([s_candidate], s_parsed, "1 lien", FeedImportDecidedBy.Auto, TimeProvider.System);
+            d.StartDownload(TimeProvider.System);
         });
 
         (await HandleAsync(decision, FeedImportDecisionAction.Retry)).Error.Should().Be(FeedImportError.InvalidStatusTransition);

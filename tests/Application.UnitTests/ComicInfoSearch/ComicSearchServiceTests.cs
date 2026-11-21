@@ -1,4 +1,4 @@
-﻿using Application.ComicInfoSearch;
+using Application.ComicInfoSearch;
 using Application.Interfaces;
 using Microsoft.Extensions.Options;
 using NSubstitute;

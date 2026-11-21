@@ -53,7 +53,7 @@ public sealed class ImportServiceTests : IDisposable
         _library = Library.Create("My Comics", "#5C6BC0", "Bookmark", LibraryBookType.Digital, _userId).Value!;
 
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<Guid>.Success(_userId));
+            .Returns(Result.Success<Guid>(_userId));
 
         _getLibraryHandler.Handle(Arg.Any<GetLibraryQuery>(), Arg.Any<CancellationToken>())
             .Returns(_library);
@@ -130,7 +130,7 @@ public sealed class ImportServiceTests : IDisposable
     public async Task UploadAndCreateJobAsync_Should_ReturnError_WhenLibraryNotFound()
     {
         _getLibraryHandler.Handle(Arg.Any<GetLibraryQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<Library>.Failure(new TError("libraries:not-found", "Library not found")));
+            .Returns(Result.Failure<Library>(new TError("libraries:not-found", "Library not found")));
 
         var file = CreateBrowserFile("comic.cbz");
 
@@ -154,7 +154,7 @@ public sealed class ImportServiceTests : IDisposable
     public async Task UploadAndCreateJobAsync_Should_CleanUpFile_WhenJobCreationFails()
     {
         _createJobHandler.Handle(Arg.Any<CreateImportJobCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJob>.Failure(ImportJobError.BadRequest));
+            .Returns(Result.Failure<ImportJob>(ImportJobError.BadRequest));
 
         var file = CreateBrowserFile("comic.cbz");
 
@@ -171,7 +171,7 @@ public sealed class ImportServiceTests : IDisposable
     {
         var job = ImportJob.Create("comic.cbz", "/tmp/comic.cbz", 1024, _libraryId).Value!;
         _listJobsHandler.Handle(Arg.Any<ListImportJobsQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<ImportJob>>.Success([job]));
+            .Returns(Result.Success<IReadOnlyList<ImportJob>>([job]));
 
         var result = await _service.GetImportJobsAsync(_libraryId, TestContext.Current.CancellationToken);
 
@@ -183,7 +183,7 @@ public sealed class ImportServiceTests : IDisposable
     public async Task GetImportJobsAsync_Should_ReturnError_WhenCurrentUserResolutionFails()
     {
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<Guid>.Failure(new TError("auth:not-found", "No current user")));
+            .Returns(Result.Failure<Guid>(new TError("auth:not-found", "No current user")));
 
         var result = await _service.GetImportJobsAsync(_libraryId, TestContext.Current.CancellationToken);
 
@@ -195,7 +195,7 @@ public sealed class ImportServiceTests : IDisposable
     public async Task GetImportJobsAsync_Should_ReturnError_WhenHandlerFails()
     {
         _listJobsHandler.Handle(Arg.Any<ListImportJobsQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<ImportJob>>.Failure(ImportJobError.NotFound));
+            .Returns(Result.Failure<IReadOnlyList<ImportJob>>(ImportJobError.NotFound));
 
         var result = await _service.GetImportJobsAsync(_libraryId, TestContext.Current.CancellationToken);
 
@@ -221,7 +221,7 @@ public sealed class ImportServiceTests : IDisposable
     public async Task GetImportJobAsync_Should_ReturnError_WhenCurrentUserResolutionFails()
     {
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<Guid>.Failure(new TError("auth:not-found", "No current user")));
+            .Returns(Result.Failure<Guid>(new TError("auth:not-found", "No current user")));
 
         var result = await _service.GetImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
@@ -232,7 +232,7 @@ public sealed class ImportServiceTests : IDisposable
     public async Task GetImportJobAsync_Should_ReturnError_WhenJobNotFound()
     {
         _getJobHandler.Handle(Arg.Any<GetImportJobQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJob>.Failure(ImportJobError.NotFound));
+            .Returns(Result.Failure<ImportJob>(ImportJobError.NotFound));
 
         var result = await _service.GetImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
@@ -256,7 +256,7 @@ public sealed class ImportServiceTests : IDisposable
     public async Task DeleteImportJobAsync_Should_ReturnError_WhenCurrentUserResolutionFails()
     {
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<Guid>.Failure(new TError("auth:not-found", "No current user")));
+            .Returns(Result.Failure<Guid>(new TError("auth:not-found", "No current user")));
 
         var result = await _service.DeleteImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
@@ -281,7 +281,7 @@ public sealed class ImportServiceTests : IDisposable
     public async Task ForceFailImportJobAsync_Should_ReturnError_WhenCurrentUserResolutionFails()
     {
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<Guid>.Failure(new TError("auth:not-found", "No current user")));
+            .Returns(Result.Failure<Guid>(new TError("auth:not-found", "No current user")));
 
         var result = await _service.ForceFailImportJobAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 

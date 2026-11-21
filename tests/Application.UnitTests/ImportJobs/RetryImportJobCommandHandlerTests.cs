@@ -38,7 +38,7 @@ public class RetryImportJobCommandHandlerTests
         _storage.LocateFailedFile(_library.ImportDirectoryName, _job.OriginalFilePath, _errorFile).Returns(_errorFile);
         _storage.GetAvailableFilePath(_library.ImportDirectoryName, "comic.cbz").Returns(_job.OriginalFilePath);
         _storage.DepositFile(Arg.Any<string>(), Arg.Any<string>()).Returns(Result.Success());
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
 
         _handler = new RetryImportJobCommandHandler(
             new FailedImportJobLoader(_importJobRepository, _libraryRepository),
@@ -120,7 +120,7 @@ public class RetryImportJobCommandHandlerTests
     public async Task Handle_Should_NotMoveTheFile_WhenThePendingJobIsNotSaved()
     {
         var error = new TError("DB", "Save failed");
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(error));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(error));
 
         var result = await RetryAsync();
 
@@ -148,7 +148,7 @@ public class RetryImportJobCommandHandlerTests
     {
         _storage.DepositFile(_errorFile, Arg.Any<string>()).Returns(ImportDirectoryStorageError.DepositFailed);
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(Result<int>.Success(1), Result<int>.Failure(new TError("DB", "Save failed")));
+            .Returns(Result.Success<int>(1), Result.Failure<int>(new TError("DB", "Save failed")));
 
         var result = await RetryAsync();
 

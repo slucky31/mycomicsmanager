@@ -36,8 +36,8 @@ public sealed class LegacyMigrationOrchestratorTests
         var userId = Guid.CreateVersion7();
         _handler.Handle(Arg.Any<MigrateLegacyBooksCommand>(), Arg.Any<CancellationToken>())
             .Returns(succeeds
-                ? Result<MigrateLegacyBooksResult>.Success(new MigrateLegacyBooksResult(18, 1, 1, 80))
-                : Result<MigrateLegacyBooksResult>.Failure(new TError("LegacyMigration.SourceEmpty", "Empty")));
+                ? Result.Success<MigrateLegacyBooksResult>(new MigrateLegacyBooksResult(18, 1, 1, 80))
+                : Result.Failure<MigrateLegacyBooksResult>(new TError("LegacyMigration.SourceEmpty", "Empty")));
 
         var act = () => _orchestrator.MigrateAsync(20, userId, TestContext.Current.CancellationToken);
 

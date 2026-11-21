@@ -26,7 +26,7 @@ public sealed class ScanBookIsbnCommandHandlerTests
     public ScanBookIsbnCommandHandlerTests()
     {
         _clock.GetUtcNow().Returns(s_now);
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _libraryRepository.GetByIdAsync(_library.Id).Returns(_library);
         _comicInfoWriter.WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
         _handler = new ScanBookIsbnCommandHandler(_bookRepository, _libraryRepository, _scanner,
@@ -74,7 +74,7 @@ public sealed class ScanBookIsbnCommandHandlerTests
     {
         var book = AddBook(new IsbnScanResult(true, []));
         var saveError = new TError("DB500", "Database error");
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(saveError));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(saveError));
 
         var result = await ScanAsync(book.Id);
 

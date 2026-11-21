@@ -27,6 +27,6 @@ public sealed class GetLibrarySeriesQueryHandler(
         var books = await seriesReadService.ListBooksAsync(request.UserId, request.LibraryId, cancellationToken);
         var infos = await seriesReadService.ListInfosAsync(request.UserId, request.LibraryId, cancellationToken);
 
-        return Result<IReadOnlyList<SerieSummary>>.Success(SerieGrouping.Summarize(books, infos));
+        return Result.Success<IReadOnlyList<SerieSummary>>(SerieGrouping.Summarize(books, infos));
     }
 }

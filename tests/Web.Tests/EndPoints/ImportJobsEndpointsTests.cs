@@ -28,7 +28,7 @@ public sealed class ImportJobsEndpointsTests
     [Fact]
     public async Task DownloadFailedFileAsync_Should_ReturnUnauthorized_WhenUserIsUnknown()
     {
-        _userReadService.GetUserByAuthId(Arg.Any<string?>(), Arg.Any<CancellationToken>()).Returns(Result<User>.Failure(UsersError.NotFound));
+        _userReadService.GetUserByAuthId(Arg.Any<string?>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<User>(UsersError.NotFound));
 
         var result = await ImportJobsEndpoints.DownloadFailedFileAsync(Guid.CreateVersion7(), new ClaimsPrincipal(new ClaimsIdentity()), _handler, _userReadService, TestContext.Current.CancellationToken);
 
@@ -45,7 +45,7 @@ public sealed class ImportJobsEndpointsTests
     {
         TError[] errors = [ImportJobError.BadRequest, ImportJobError.NotFailed, ImportJobError.NotFound, ImportJobError.FailedFileNotFound];
         _handler.Handle(Arg.Any<GetFailedImportFileQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<FailedImportFile>.Failure(errors.Single(e => e.Code == errorCode)));
+            .Returns(Result.Failure<FailedImportFile>(errors.Single(e => e.Code == errorCode)));
 
         var result = await ImportJobsEndpoints.DownloadFailedFileAsync(Guid.CreateVersion7(), _principal, _handler, _userReadService, TestContext.Current.CancellationToken);
 

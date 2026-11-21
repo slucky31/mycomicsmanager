@@ -55,7 +55,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     [Fact]
     public void LibrarySeriesPage_Should_ShowACardPerSeries_AndFilterTheIncompleteOnes()
     {
-        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<SerieSummary>>.Success(
+        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<SerieSummary>>(
         [
             SeriesTestData.Summary("Blacksad", [1, 2], total: 2),
             SeriesTestData.Summary("Thorgal", [1, 3]),
@@ -87,7 +87,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     [Fact]
     public void LibrarySeriesPage_Should_GoBackToTheLibraries()
     {
-        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<SerieSummary>>.Success([]));
+        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<SerieSummary>>([]));
 
         var cut = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
 
@@ -97,7 +97,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     [Fact]
     public async Task ChooseViewAsync_Should_SaveTheView_AndOpenTheBooks()
     {
-        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<SerieSummary>>.Success([]));
+        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<SerieSummary>>([]));
         _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>())
             .Returns(Library.Create("BD", "#594AE2", "Book", LibraryBookType.Physical, Guid.CreateVersion7()).Value!);
         var cut = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
@@ -114,8 +114,8 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     [Fact]
     public async Task ChooseViewAsync_Should_StayOnTheSeries_WhenTheViewCannotBeSaved()
     {
-        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<SerieSummary>>.Success([]));
-        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Library>.Failure(LibrariesError.NotFound));
+        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<SerieSummary>>([]));
+        _librariesService.Update(Arg.Any<UpdateLibraryRequest>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<Library>(LibrariesError.NotFound));
         var navigation = _ctx.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo($"/libraries/{s_libraryId}/series");
         var cut = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
@@ -204,8 +204,8 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     public async Task RetryAsync_Should_ShowTheVolumes_WhenTheSeriesCanBeLoadedAgain()
     {
         _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>()).Returns(
-            Result<SerieDetail>.Failure(SeriesError.BadRequest),
-            Result<SerieDetail>.Success(new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [1]), [SeriesTestData.Book("Thorgal", 1)])));
+            Result.Failure<SerieDetail>(SeriesError.BadRequest),
+            Result.Success<SerieDetail>(new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [1]), [SeriesTestData.Book("Thorgal", 1)])));
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/libraries/{s_libraryId}/serie?name=Thorgal");
         var cut = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
         await cut.WaitForAssertionAsync(() => cut.Find("[role=alert]"));
@@ -223,7 +223,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         var books = new[] { SeriesTestData.Book("Thorgal", 1), SeriesTestData.Book("Thorgal", 3) };
         var first = new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [1, 3]), books, bookType);
         _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>())
-            .Returns(Result<SerieDetail>.Success(first), next.Select(d => Result<SerieDetail>.Success(d)).ToArray());
+            .Returns(Result.Success<SerieDetail>(first), next.Select(d => Result.Success<SerieDetail>(d)).ToArray());
         _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/libraries/{s_libraryId}/serie?name=Thorgal");
 
         var cut = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
@@ -355,7 +355,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         var cut = RenderThorgal(LibraryBookType.Digital);
         _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>()).Returns(SeriesError.NotFound);
         _booksService.Delete(Arg.Any<IReadOnlyList<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(Result<DeleteBooksResult>.Success(new DeleteBooksResult(2, 0)));
+            .Returns(Result.Success<DeleteBooksResult>(new DeleteBooksResult(2, 0)));
         await cut.Find("button[aria-label='Select books']").ClickAsync(new());
         await cut.Find(".selection-bar-select-all").ClickAsync(new());
 
@@ -373,7 +373,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     public void MissingVolumesPage_Should_ListTheMissingVolumes_AndFilterByLibrary()
     {
         var comics = Guid.CreateVersion7();
-        _seriesService.GetMissingVolumes(Arg.Any<CancellationToken>()).Returns(Result<IReadOnlyList<LibraryMissingVolumes>>.Success(
+        _seriesService.GetMissingVolumes(Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<LibraryMissingVolumes>>(
         [
             new LibraryMissingVolumes(s_libraryId, "BD", [SeriesTestData.Summary("Thorgal", [1, 3])]),
             new LibraryMissingVolumes(comics, "Comics", [SeriesTestData.Summary("Saga", [2])]),

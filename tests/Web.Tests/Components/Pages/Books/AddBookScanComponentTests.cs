@@ -28,7 +28,7 @@ public sealed class AddBookScanComponentTests : IAsyncDisposable
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _scanner = _ctx.JSInterop.SetupModule(AppVersion.Versioned("./js/isbnScanner.js"));
         _scanner.Mode = JSRuntimeMode.Loose;
-        _librariesService.GetById(_library.Id.ToString()).Returns(_ => Result<Library>.Success(_library));
+        _librariesService.GetById(_library.Id.ToString()).Returns(_ => Result.Success<Library>(_library));
         _ctx.Services.AddMudServices();
         _ctx.Services.AddSingleton(_snackbar);
         _ctx.Services.AddSingleton(_librariesService);

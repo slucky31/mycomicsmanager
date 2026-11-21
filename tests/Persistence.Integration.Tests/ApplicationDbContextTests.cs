@@ -1,4 +1,4 @@
-﻿using Base.Integration.Tests;
+using Base.Integration.Tests;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Tests;

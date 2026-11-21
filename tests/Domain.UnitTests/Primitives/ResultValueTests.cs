@@ -15,7 +15,7 @@ public class ResultValueTests
         const string value = "the tested value";
 
         // Act
-        var result = Result<string>.Success(value);
+        var result = Result.Success<string>(value);
 
         // Assert
         result.IsSuccess.Should().Be(true);
@@ -31,7 +31,7 @@ public class ResultValueTests
         var error = new TError("500", "BSOD");
 
         // Act
-        var result = Result<string>.Failure(error);
+        var result = Result.Failure<string>(error);
 
         // Assert
         result.IsSuccess.Should().Be(false);
@@ -70,38 +70,6 @@ public class ResultValueTests
         result.IsFailure.Should().Be(true);
         result.Error.Should().Be(error);
         result.Value.Should().BeNull();
-    }
-
-    [Fact]
-    public void ToResult_Should_ConvertFromTError()
-    {
-        // Arrange
-        var error = new TError("500", "BSOD");
-
-        // Act
-        var result = Result<string>.ToResult(error);
-
-        // Assert
-        result.IsSuccess.Should().Be(false);
-        result.IsFailure.Should().Be(true);
-        result.Error.Should().Be(error);
-        result.Value.Should().BeNull();
-    }
-
-    [Fact]
-    public void ToResult_Should_ConvertFromValue()
-    {
-        // Arrange
-        const string value = "the tested value";
-
-        // Act
-        var result = Result<string>.ToResult(value);
-
-        // Assert
-        result.IsSuccess.Should().Be(true);
-        result.IsFailure.Should().Be(false);
-        result.Value.Should().Be(value);
-        result.Error.Should().BeNull();
     }
 
 }

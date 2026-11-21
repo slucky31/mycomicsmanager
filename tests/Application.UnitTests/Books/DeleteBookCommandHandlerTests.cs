@@ -27,7 +27,7 @@ public class DeleteBookCommandHandlerTests
         _unitOfWorkMock = Substitute.For<IUnitOfWork>();
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _bookFileServiceMock = Substitute.For<IBookFileService>();
-        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
 
         _handler = new DeleteBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock, _bookFileServiceMock);
     }

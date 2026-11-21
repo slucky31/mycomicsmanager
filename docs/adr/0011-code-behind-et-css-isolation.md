@@ -16,7 +16,7 @@ Le projet suit la seconde approche. Sur 35 fichiers `.razor`, 26 ont un
 sont presque tous des fichiers d'infrastructure sans logique propre
 (`App.razor`, `_Imports.razor`, `Routes.razor`, `LoginLayout.razor`,
 `MainLayout.razor`, `ScannerLayout.razor`, `RedirectToLogin.razor`), à une
-exception près : `Web/Components/Pages/Statistics.razor` est une page avec
+exception près : `Web/Components/Pages/StatisticsPage.razor` est une page avec
 de la logique mais sans code-behind — un écart connu à la convention,
 plutôt qu'une remise en cause de la règle elle-même.
 
@@ -65,7 +65,7 @@ fichier `.razor.css`. Les fichiers `.razor` sans logique (layouts,
 
 ### Négatives
 
-- Écart connu non corrigé à ce jour : `Statistics.razor` contient de la
+- Écart connu non corrigé à ce jour : `StatisticsPage.razor` contient de la
   logique sans fichier `.razor.cs` dédié.
 - Trois fichiers par composant (au lieu d'un) à créer et nommer de façon
   cohérente pour chaque nouveau composant.
@@ -79,5 +79,5 @@ fichier `.razor.css`. Les fichiers `.razor` sans logique (layouts,
 
 ## Liens
 
-- `Web/Components/Pages/Statistics.razor` — écart connu à corriger
+- `Web/Components/Pages/StatisticsPage.razor` — écart connu à corriger
 - Skill `blazor-refactor` (audit/correction automatisée de la convention)

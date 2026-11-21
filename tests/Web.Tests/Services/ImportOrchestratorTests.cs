@@ -42,7 +42,7 @@ public sealed class ImportOrchestratorTests
     {
         var importJobId = Guid.CreateVersion7();
         _commandHandler.Handle(Arg.Any<ProcessImportJobCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJobOutcome>.Failure(new TError("TEST", "test")));
+            .Returns(Result.Failure<ImportJobOutcome>(new TError("TEST", "test")));
 
         await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
 
@@ -56,7 +56,7 @@ public sealed class ImportOrchestratorTests
     {
         var importJobId = Guid.CreateVersion7();
         _commandHandler.Handle(Arg.Any<ProcessImportJobCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJobOutcome>.Failure(new TError("FAIL", "Job failed")));
+            .Returns(Result.Failure<ImportJobOutcome>(new TError("FAIL", "Job failed")));
 
         var act = async () => await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
 
@@ -85,7 +85,7 @@ public sealed class ImportOrchestratorTests
             new BookMetadata("Serie", "Title", "9782075162869"),
             Guid.CreateVersion7(), "/library/comic.cbz", 1024).Value!;
         _commandHandler.Handle(Arg.Any<ProcessImportJobCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJobOutcome>.Success(ImportJobOutcome.Imported(digitalBook)));
+            .Returns(Result.Success<ImportJobOutcome>(ImportJobOutcome.Imported(digitalBook)));
 
         var act = async () => await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
 
@@ -97,7 +97,7 @@ public sealed class ImportOrchestratorTests
     {
         var importJobId = Guid.CreateVersion7();
         _commandHandler.Handle(Arg.Any<ProcessImportJobCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJobOutcome>.Success(ImportJobOutcome.Split(["T01.cbz", "T02.cbz"])));
+            .Returns(Result.Success<ImportJobOutcome>(ImportJobOutcome.Split(["T01.cbz", "T02.cbz"])));
 
         var act = async () => await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
 
@@ -109,7 +109,7 @@ public sealed class ImportOrchestratorTests
     {
         var importJobId = Guid.CreateVersion7();
         _commandHandler.Handle(Arg.Any<ProcessImportJobCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ImportJobOutcome>.Failure(new TError("FAIL", "fail")));
+            .Returns(Result.Failure<ImportJobOutcome>(new TError("FAIL", "fail")));
 
         await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);
         await _orchestrator.ProcessAsync(importJobId, TestContext.Current.CancellationToken);

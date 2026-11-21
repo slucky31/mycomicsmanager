@@ -41,7 +41,7 @@ public sealed class BookMoveWorkflowTests
     {
         SetupTargetsAndDialog(DialogResult.Ok(s_targetId));
         var book = DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", null), s_targetId, "/data/A/b.cbz", 1).Value!;
-        _moveService.MoveAsync(s_bookId, s_targetId, Arg.Any<CancellationToken>()).Returns(Result<Book>.Success(book));
+        _moveService.MoveAsync(s_bookId, s_targetId, Arg.Any<CancellationToken>()).Returns(Result.Success<Book>(book));
 
         var moved = await _workflow.ChooseAndMoveAsync(s_bookId, TestContext.Current.CancellationToken);
 
@@ -64,7 +64,7 @@ public sealed class BookMoveWorkflowTests
     [Fact]
     public async Task ChooseAndMoveAsync_Should_ShowError_WhenTargetsCannotBeLoaded()
     {
-        _moveService.GetTargetsAsync(s_bookId, Arg.Any<CancellationToken>()).Returns(Result<BookMoveTargets>.Failure(BooksError.NotFound));
+        _moveService.GetTargetsAsync(s_bookId, Arg.Any<CancellationToken>()).Returns(Result.Failure<BookMoveTargets>(BooksError.NotFound));
 
         var moved = await _workflow.ChooseAndMoveAsync(s_bookId, TestContext.Current.CancellationToken);
 
@@ -90,7 +90,7 @@ public sealed class BookMoveWorkflowTests
     public async Task ChooseAndMoveAsync_Should_ShowError_WhenMoveFails()
     {
         SetupTargetsAndDialog(DialogResult.Ok(s_targetId));
-        _moveService.MoveAsync(s_bookId, s_targetId, Arg.Any<CancellationToken>()).Returns(Result<Book>.Failure(BooksError.FileAlreadyExists));
+        _moveService.MoveAsync(s_bookId, s_targetId, Arg.Any<CancellationToken>()).Returns(Result.Failure<Book>(BooksError.FileAlreadyExists));
 
         var moved = await _workflow.ChooseAndMoveAsync(s_bookId, TestContext.Current.CancellationToken);
 
@@ -140,7 +140,7 @@ public sealed class BookMoveWorkflowTests
     public async Task ChooseAndMoveAsync_Should_ShowTheError_WhenTheBooksCannotBeMoved()
     {
         SetupTargetsOfSeveralBooksAndDialog(DialogResult.Ok(s_targetId));
-        _moveService.MoveAsync(s_bookIds, s_targetId, Arg.Any<CancellationToken>()).Returns(Result<MoveBooksResult>.Failure(BooksError.BadRequest));
+        _moveService.MoveAsync(s_bookIds, s_targetId, Arg.Any<CancellationToken>()).Returns(Result.Failure<MoveBooksResult>(BooksError.BadRequest));
 
         var result = await _workflow.ChooseAndMoveAsync(s_bookIds, TestContext.Current.CancellationToken);
 

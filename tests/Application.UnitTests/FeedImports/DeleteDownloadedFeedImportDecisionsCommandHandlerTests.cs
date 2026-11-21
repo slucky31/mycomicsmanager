@@ -21,7 +21,7 @@ public class DeleteDownloadedFeedImportDecisionsCommandHandlerTests
 
     public DeleteDownloadedFeedImportDecisionsCommandHandlerTests()
     {
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _handler = new DeleteDownloadedFeedImportDecisionsCommandHandler(_repository, _importJobRepository, _unitOfWork);
     }
 
@@ -132,7 +132,7 @@ public class DeleteDownloadedFeedImportDecisionsCommandHandlerTests
     {
         var completedJob = CreateJob(Completed);
         Given([Downloaded(1, completedJob)], completedJob);
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(FeedImportError.BadRequest));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(FeedImportError.BadRequest));
 
         var result = await HandleAsync();
 

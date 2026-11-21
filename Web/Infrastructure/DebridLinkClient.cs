@@ -30,7 +30,7 @@ internal sealed class DebridLinkClient(HttpClient httpClient, ILogger<DebridLink
             .Select(d => d.GetString()!)
             .Where(d => !string.IsNullOrWhiteSpace(d))
             .ToList();
-        return Result<IReadOnlyList<string>>.Success(domains);
+        return Result.Success<IReadOnlyList<string>>(domains);
     }
 
     public async Task<Result> CheckAccountAsync(CancellationToken cancellationToken = default)

@@ -105,7 +105,7 @@ public sealed class LibrariesServiceTests
     public async Task GetById_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
         var libraryId = Guid.CreateVersion7();
 
         // Act
@@ -206,7 +206,7 @@ public sealed class LibrariesServiceTests
     public async Task LibrariesService_Create_Should_ReturnValidationError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
         var request = new CreateLibraryRequest("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical);
 
         // Act
@@ -322,7 +322,7 @@ public sealed class LibrariesServiceTests
     public async Task Update_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
         var libraryId = Guid.CreateVersion7();
         var request = new UpdateLibraryRequest(libraryId.ToString(), "Name", "#5C6BC0", "Bookmark");
 
@@ -345,7 +345,7 @@ public sealed class LibrariesServiceTests
         // Arrange
         IReadOnlyList<LibrarySummary> summaries = [new(Guid.CreateVersion7(), "Read Books", "#5C6BC0", "Bookmark", LibraryBookType.Physical, 24)];
         _getLibrarySummariesHandler.Handle(Arg.Any<GetLibrarySummariesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IReadOnlyList<LibrarySummary>>.Success(summaries));
+            .Returns(Result.Success<IReadOnlyList<LibrarySummary>>(summaries));
 
         // Act
         var result = await _service.GetSummaries(TestContext.Current.CancellationToken);
@@ -374,7 +374,7 @@ public sealed class LibrariesServiceTests
     public async Task GetSummaries_Should_ReturnTheUserError_WhenTheCurrentUserIsUnknown()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
         var result = await _service.GetSummaries(TestContext.Current.CancellationToken);
@@ -400,7 +400,7 @@ public sealed class LibrariesServiceTests
         const int pageSize = 10;
         var pagedList = Substitute.For<IPagedList<Library>>();
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
 
         // Act
         var result = await _service.FilterBy(searchTerm, sortColumn, sortOrder, page, pageSize, TestContext.Current.CancellationToken);
@@ -429,7 +429,7 @@ public sealed class LibrariesServiceTests
         ]);
         pagedList.TotalCount.Returns(2);
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
 
         // Act
         var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, 10, TestContext.Current.CancellationToken);
@@ -448,7 +448,7 @@ public sealed class LibrariesServiceTests
         const string? searchTerm = null;
         var pagedList = Substitute.For<IPagedList<Library>>();
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
 
         // Act
         var result = await _service.FilterBy(searchTerm, LibrariesColumn.Name, SortOrder.Ascending, 1, 10, TestContext.Current.CancellationToken);
@@ -467,7 +467,7 @@ public sealed class LibrariesServiceTests
         LibrariesColumn? sortColumn = null;
         var pagedList = Substitute.For<IPagedList<Library>>();
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
 
         // Act
         var result = await _service.FilterBy("test", sortColumn, SortOrder.Ascending, 1, 10, TestContext.Current.CancellationToken);
@@ -486,7 +486,7 @@ public sealed class LibrariesServiceTests
         SortOrder? sortOrder = null;
         var pagedList = Substitute.For<IPagedList<Library>>();
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
 
         // Act
         var result = await _service.FilterBy("test", LibrariesColumn.Name, sortOrder, 1, 10, TestContext.Current.CancellationToken);
@@ -504,7 +504,7 @@ public sealed class LibrariesServiceTests
         // Arrange
         var pagedList = Substitute.For<IPagedList<Library>>();
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
 
         // Act
         var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Descending, 1, 10, TestContext.Current.CancellationToken);
@@ -523,7 +523,7 @@ public sealed class LibrariesServiceTests
         const int pageSize = 25;
         var pagedList = Substitute.For<IPagedList<Library>>();
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
 
         // Act
         var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, pageSize, TestContext.Current.CancellationToken);
@@ -542,7 +542,7 @@ public sealed class LibrariesServiceTests
         const int page = 3;
         var pagedList = Substitute.For<IPagedList<Library>>();
         _getLibrariesHandler.Handle(Arg.Any<GetLibrariesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<Library>>.Success(pagedList));
+            .Returns(Result.Success<IPagedList<Library>>(pagedList));
 
         // Act
         var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, page, 10, TestContext.Current.CancellationToken);
@@ -558,7 +558,7 @@ public sealed class LibrariesServiceTests
     public async Task FilterBy_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
 
         // Act
         var result = await _service.FilterBy("test", LibrariesColumn.Name, SortOrder.Ascending, 1, 10, TestContext.Current.CancellationToken);
@@ -672,7 +672,7 @@ public sealed class LibrariesServiceTests
     public async Task Delete_ShouldReturnError_WhenUserNotResolved()
     {
         // Arrange
-        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result<Guid>.Failure(UsersError.NotFound));
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
         var libraryId = Guid.CreateVersion7();
 
         // Act

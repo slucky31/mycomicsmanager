@@ -35,6 +35,6 @@ public sealed class GetPagedBooksQueryHandler(
             request.SearchTerm,
             cancellationToken);
 
-        return Result<IPagedList<BookSummaryDto>>.Success(pagedList);
+        return Result.Success<IPagedList<BookSummaryDto>>(pagedList);
     }
 }

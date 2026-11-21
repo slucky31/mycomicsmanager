@@ -25,6 +25,6 @@ public sealed class GetRecentReadingsQueryHandler(
         var includeHidden = await userRepository.ShowsHiddenLibrariesAsync(request.UserId);
         var readings = await bookReadService.GetRecentReadingsAsync(request.UserId, request.Page, request.PageSize, includeHidden, cancellationToken);
 
-        return Result<IPagedList<BookReadingDto>>.Success(readings);
+        return Result.Success<IPagedList<BookReadingDto>>(readings);
     }
 }

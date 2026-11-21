@@ -28,7 +28,7 @@ public sealed class IsbnPageScannerTests : IDisposable
         _featureToggles.IsEnabled(FeatureToggle.IsbnOcr).Returns(true);
         // Each page image is the index of the page, so the recognizer can tell which page it reads.
         _recognizer.RecognizeAsync(Arg.Any<ReadOnlyMemory<byte>>(), Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Success("Chapitre 1"));
+            .Returns(Result.Success<string>("Chapitre 1"));
     }
 
     public void Dispose()
@@ -53,7 +53,7 @@ public sealed class IsbnPageScannerTests : IDisposable
 
     private void PrintIsbnOnPage(int pageIndex, string text = $"ISBN {Isbn}") =>
         _recognizer.RecognizeAsync(Arg.Is<ReadOnlyMemory<byte>>(image => PageIndexOf(image) == pageIndex), Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Success(text));
+            .Returns(Result.Success<string>(text));
 
     private static int PageIndexOf(ReadOnlyMemory<byte> image) => image.Span[0];
 
@@ -100,7 +100,7 @@ public sealed class IsbnPageScannerTests : IDisposable
         var pages = CreatePages(20);
         File.Delete(pages[1]);
         _recognizer.RecognizeAsync(Arg.Is<ReadOnlyMemory<byte>>(image => PageIndexOf(image) == 2), Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Failure(OcrError.Timeout));
+            .Returns(Result.Failure<string>(OcrError.Timeout));
         PrintIsbnOnPage(19);
 
         var result = await CreateScanner().ScanPagesAsync(pages, TestContext.Current.CancellationToken);
@@ -114,7 +114,7 @@ public sealed class IsbnPageScannerTests : IDisposable
     {
         var pages = CreatePages(20);
         _recognizer.RecognizeAsync(Arg.Any<ReadOnlyMemory<byte>>(), Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Failure(OcrError.Unavailable));
+            .Returns(Result.Failure<string>(OcrError.Unavailable));
 
         var result = await CreateScanner().ScanPagesAsync(pages, TestContext.Current.CancellationToken);
 
@@ -136,12 +136,12 @@ public sealed class IsbnPageScannerTests : IDisposable
     [Fact]
     public async Task ScanArchiveAsync_Should_ReadThePagesFromTheArchive()
     {
-        _pageReader.CountPagesAsync(ArchivePath, Arg.Any<CancellationToken>()).Returns(Result<int>.Success(20));
+        _pageReader.CountPagesAsync(ArchivePath, Arg.Any<CancellationToken>()).Returns(Result.Success<int>(20));
         // Page 2 (index 1) cannot be read: the scan goes on with the next page.
         _pageReader.ReadPageAsync(ArchivePath, Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(call => call.ArgAt<int>(1) == 1
-                ? Result<ComicPage>.Failure(BooksError.PageNotFound)
-                : Result<ComicPage>.Success(new ComicPage(new[] { (byte)call.ArgAt<int>(1) }, "image/webp", DateTime.UtcNow)));
+                ? Result.Failure<ComicPage>(BooksError.PageNotFound)
+                : Result.Success<ComicPage>(new ComicPage(new[] { (byte)call.ArgAt<int>(1) }, "image/webp", DateTime.UtcNow)));
         PrintIsbnOnPage(2);
 
         var result = await CreateScanner().ScanArchiveAsync(ArchivePath, TestContext.Current.CancellationToken);
@@ -153,7 +153,7 @@ public sealed class IsbnPageScannerTests : IDisposable
     [Fact]
     public async Task ScanArchiveAsync_Should_ReturnNotScanned_WhenTheArchiveCannotBeRead()
     {
-        _pageReader.CountPagesAsync(ArchivePath, Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(FileProcessingError.CorruptArchive));
+        _pageReader.CountPagesAsync(ArchivePath, Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(FileProcessingError.CorruptArchive));
 
         var result = await CreateScanner().ScanArchiveAsync(ArchivePath, TestContext.Current.CancellationToken);
 

@@ -1,4 +1,4 @@
-namespace Application.Statistics.Get;
+namespace Application.Statistics.GetStatistics;
 
 public sealed record StatisticsDto
 {

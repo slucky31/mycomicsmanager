@@ -30,9 +30,9 @@ public class MoveBookCommandHandlerTests
         _bookRepository.GetByIdAsync(_book.Id).Returns(_book);
         _libraryRepository.GetByIdAsync(_source.Id).Returns(_source);
         _libraryRepository.GetByIdAsync(_target.Id).Returns(_target);
-        _storage.MoveFile(SourcePath, _target.RelativePath).Returns(Result<string>.Success(TargetPath));
-        _storage.MoveFile(TargetPath, _source.RelativePath).Returns(Result<string>.Success(SourcePath));
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _storage.MoveFile(SourcePath, _target.RelativePath).Returns(Result.Success<string>(TargetPath));
+        _storage.MoveFile(TargetPath, _source.RelativePath).Returns(Result.Success<string>(SourcePath));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _handler = new MoveBookCommandHandler(_bookRepository, _libraryRepository, _storage, _unitOfWork, NullLogger<MoveBookCommandHandler>.Instance);
     }
 
@@ -58,7 +58,7 @@ public class MoveBookCommandHandlerTests
     [Fact]
     public async Task Handle_Should_MoveFileBack_WhenSaveFails()
     {
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(new TError("DB", "boom")));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(new TError("DB", "boom")));
 
         var result = await HandleAsync(_target.Id);
 
@@ -69,7 +69,7 @@ public class MoveBookCommandHandlerTests
     [Fact]
     public async Task Handle_Should_KeepBookUnchanged_WhenFileCannotBeMoved()
     {
-        _storage.MoveFile(SourcePath, _target.RelativePath).Returns(Result<string>.Failure(BooksError.FileAlreadyExists));
+        _storage.MoveFile(SourcePath, _target.RelativePath).Returns(Result.Failure<string>(BooksError.FileAlreadyExists));
 
         var result = await HandleAsync(_target.Id);
 

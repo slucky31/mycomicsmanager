@@ -23,8 +23,8 @@ public sealed class BooksEndpointsTests
 
     public BooksEndpointsTests()
     {
-        _userReadService.GetUserByAuthId(Arg.Any<string?>(), Arg.Any<CancellationToken>()).Returns(Result<User>.Failure(UsersError.NotFound));
-        _userReadService.GetUserByEmail(Arg.Any<string?>(), Arg.Any<CancellationToken>()).Returns(Result<User>.Failure(UsersError.NotFound));
+        _userReadService.GetUserByAuthId(Arg.Any<string?>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<User>(UsersError.NotFound));
+        _userReadService.GetUserByEmail(Arg.Any<string?>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<User>(UsersError.NotFound));
     }
 
     private static ClaimsPrincipal Principal(string? sub, string? email)
@@ -87,7 +87,7 @@ public sealed class BooksEndpointsTests
     {
         _userReadService.GetUserByAuthId("auth0|42", Arg.Any<CancellationToken>()).Returns(_user);
         var error = errorCode == BooksError.BadRequest.Code ? BooksError.BadRequest : BooksError.PageNotFound;
-        _pageHandler.Handle(Arg.Any<GetBookPageQuery>(), Arg.Any<CancellationToken>()).Returns(Result<ComicPage>.Failure(error));
+        _pageHandler.Handle(Arg.Any<GetBookPageQuery>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<ComicPage>(error));
 
         var result = await BooksEndpoints.GetBookPageAsync(Guid.CreateVersion7(), 3, Principal("auth0|42", null), new DefaultHttpContext(), _pageHandler, _userReadService, TestContext.Current.CancellationToken);
 

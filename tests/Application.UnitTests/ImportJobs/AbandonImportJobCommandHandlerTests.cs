@@ -33,7 +33,7 @@ public class AbandonImportJobCommandHandlerTests
 
         _storage.LocateFailedFile(_library.ImportDirectoryName, _job.OriginalFilePath, ErrorFile).Returns(ErrorFile);
         _storage.DeleteOriginalFile(ErrorFile).Returns(Result.Success());
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
 
         _handler = new AbandonImportJobCommandHandler(
             new FailedImportJobLoader(_importJobRepository, _libraryRepository), _importJobRepository, _storage, _unitOfWork);
@@ -96,7 +96,7 @@ public class AbandonImportJobCommandHandlerTests
     public async Task Handle_Should_ReturnTheSaveError_WhenTheDeletionIsNotSaved()
     {
         var error = new TError("DB", "Save failed");
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(error));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(error));
 
         var result = await AbandonAsync();
 

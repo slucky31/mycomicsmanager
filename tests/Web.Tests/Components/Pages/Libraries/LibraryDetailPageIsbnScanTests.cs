@@ -25,12 +25,12 @@ public sealed class LibraryDetailPageIsbnScanTests : IAsyncDisposable
     public LibraryDetailPageIsbnScanTests()
     {
         var librariesService = Substitute.For<ILibrariesService>();
-        librariesService.GetById(_library.Id.ToString()).Returns(Result<Library>.Success(_library));
+        librariesService.GetById(_library.Id.ToString()).Returns(Result.Success<Library>(_library));
         var page = Substitute.For<IPagedList<BookSummaryDto>>();
         page.Items.Returns([]);
         var booksService = Substitute.For<IBooksService>();
         booksService.GetPagedByLibrary(_library.Id, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<BookSortOrder>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
-            .Returns(Result<IPagedList<BookSummaryDto>>.Success(page));
+            .Returns(Result.Success<IPagedList<BookSummaryDto>>(page));
 
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
@@ -62,7 +62,7 @@ public sealed class LibraryDetailPageIsbnScanTests : IAsyncDisposable
     [Fact]
     public async Task FindMissingIsbnsAsync_Should_TellHowManyBooksAreScanned()
     {
-        _isbnScanService.StartLibraryScanAsync(_library.Id, Arg.Any<CancellationToken>()).Returns(Result<int>.Success(3));
+        _isbnScanService.StartLibraryScanAsync(_library.Id, Arg.Any<CancellationToken>()).Returns(Result.Success<int>(3));
 
         await FindMissingIsbnsAsync();
 
@@ -72,7 +72,7 @@ public sealed class LibraryDetailPageIsbnScanTests : IAsyncDisposable
     [Fact]
     public async Task FindMissingIsbnsAsync_Should_TellNothingIsToScan_WhenEveryBookHasAnIsbn()
     {
-        _isbnScanService.StartLibraryScanAsync(_library.Id, Arg.Any<CancellationToken>()).Returns(Result<int>.Success(0));
+        _isbnScanService.StartLibraryScanAsync(_library.Id, Arg.Any<CancellationToken>()).Returns(Result.Success<int>(0));
 
         await FindMissingIsbnsAsync();
 
@@ -82,7 +82,7 @@ public sealed class LibraryDetailPageIsbnScanTests : IAsyncDisposable
     [Fact]
     public async Task FindMissingIsbnsAsync_Should_ShowAnError_WhenTheScanCannotStart()
     {
-        _isbnScanService.StartLibraryScanAsync(_library.Id, Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(LibrariesError.NotFound));
+        _isbnScanService.StartLibraryScanAsync(_library.Id, Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(LibrariesError.NotFound));
 
         await FindMissingIsbnsAsync();
 

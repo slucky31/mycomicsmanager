@@ -1,5 +1,5 @@
 using Application.Interfaces;
-using Application.Statistics.Get;
+using Application.Statistics.GetStatistics;
 using Domain.Libraries;
 using Domain.Statistics;
 using Domain.Users;

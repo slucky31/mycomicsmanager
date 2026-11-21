@@ -27,7 +27,7 @@ public sealed class ComicPageReaderService(string rootPath, ILogger<ComicPageRea
     private const long MaxPageBytes = 50L * 1024 * 1024; // 50 MB
 
     public Task<Result<int>> CountPagesAsync(string archivePath, CancellationToken ct = default) =>
-        RunOnArchiveAsync(archivePath, archive => Result<int>.Success(GetPageEntries(archive).Count), ct);
+        RunOnArchiveAsync(archivePath, archive => Result.Success<int>(GetPageEntries(archive).Count), ct);
 
     public Task<Result<ComicPage>> ReadPageAsync(string archivePath, int pageIndex, CancellationToken ct = default)
     {

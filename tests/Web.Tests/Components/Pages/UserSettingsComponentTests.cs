@@ -57,7 +57,7 @@ public sealed class UserSettingsComponentTests
     private static IHiddenLibrariesService HidingLibraries(bool show)
     {
         var librariesService = Substitute.For<IHiddenLibrariesService>();
-        librariesService.GetShowHiddenLibraries(Arg.Any<CancellationToken>()).Returns(Result<bool>.Success(show));
+        librariesService.GetShowHiddenLibraries(Arg.Any<CancellationToken>()).Returns(Result.Success<bool>(show));
         librariesService.SetShowHiddenLibraries(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
         return librariesService;
     }
@@ -86,7 +86,7 @@ public sealed class UserSettingsComponentTests
     public async Task LoadShowHiddenLibrariesAsync_Should_ShowAnError_WhenTheSettingCannotBeLoaded()
     {
         var librariesService = Substitute.For<IHiddenLibrariesService>();
-        librariesService.GetShowHiddenLibraries(Arg.Any<CancellationToken>()).Returns(Result<bool>.Failure(UsersError.NotFound));
+        librariesService.GetShowHiddenLibraries(Arg.Any<CancellationToken>()).Returns(Result.Failure<bool>(UsersError.NotFound));
 
         var (ctx, cut, snackbar) = await RenderAsync(Healthy(), librariesService: librariesService);
         await using var _ = ctx;

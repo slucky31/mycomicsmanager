@@ -21,7 +21,7 @@ public sealed class AddBookManualComponentTests : IAsyncDisposable
     public AddBookManualComponentTests()
     {
         var librariesService = Substitute.For<ILibrariesService>();
-        librariesService.GetById(_library.Id.ToString()).Returns(_ => Result<Library>.Success(_library));
+        librariesService.GetById(_library.Id.ToString()).Returns(_ => Result.Success<Library>(_library));
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
         _ctx.Services.AddSingleton(librariesService);

@@ -7,7 +7,7 @@ using Domain.Primitives;
 using Domain.Statistics;
 using Domain.Users;
 
-namespace Application.Statistics.Get;
+namespace Application.Statistics.GetStatistics;
 
 public sealed class GetStatisticsQueryHandler(
     IStatisticsReadService statisticsReadService,

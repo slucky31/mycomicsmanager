@@ -22,14 +22,14 @@ public class DeleteFeedImportDecisionCommandHandlerTests
 
     public DeleteFeedImportDecisionCommandHandlerTests()
     {
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
         _handler = new DeleteFeedImportDecisionCommandHandler(_repository, _importJobRepository, _unitOfWork, _timeProvider);
     }
 
     private FeedImportDecision Given(Action<FeedImportDecision>? arrange = null)
     {
-        var decision = FeedImportDecision.Create(s_userId, 9, "Blacksad - Tome 3", "https://planete-bd.org/b3", null).Value!;
+        var decision = FeedImportDecision.Create(s_userId, 9, "Blacksad - Tome 3", "https://planete-bd.org/b3", null, TimeProvider.System).Value!;
         arrange?.Invoke(decision);
         _repository.GetByIdAsync(decision.Id, Arg.Any<CancellationToken>()).Returns(decision);
         return decision;
@@ -37,15 +37,15 @@ public class DeleteFeedImportDecisionCommandHandlerTests
 
     private static void Downloading(FeedImportDecision d)
     {
-        d.RecordLinks([s_candidate], s_parsed, "1 lien", FeedImportDecidedBy.Auto);
-        d.StartDownload();
+        d.RecordLinks([s_candidate], s_parsed, "1 lien", FeedImportDecidedBy.Auto, TimeProvider.System);
+        d.StartDownload(TimeProvider.System);
     }
 
     private void GivenDownloadedWith(FeedImportDecision decision, Action<ImportJob> arrangeJob)
     {
-        var job = ImportJob.Create("Blacksad T03.cbz", "/imports/Blacksad T03.cbz", 1_000, Guid.CreateVersion7()).Value!;
+        var job = ImportJob.Create("Blacksad T03.cbz", "/imports/Blacksad T03.cbz", 1_000, Guid.CreateVersion7(), TimeProvider.System).Value!;
         arrangeJob(job);
-        decision.MarkDownloaded("https://1fichier.com/?a", job.Id, "À trier");
+        decision.MarkDownloaded("https://1fichier.com/?a", job.Id, "À trier", TimeProvider.System);
         _importJobRepository.GetByIdAsync(job.Id, Arg.Any<CancellationToken>()).Returns(job);
     }
 
@@ -76,7 +76,7 @@ public class DeleteFeedImportDecisionCommandHandlerTests
     [Fact]
     public async Task Handle_Should_RemoveAndSave_WhenDecisionIsNotInProgress()
     {
-        var decision = Given(d => d.Fail("Analyse", "Page introuvable"));
+        var decision = Given(d => d.Fail("Analyse", "Page introuvable", TimeProvider.System));
 
         var result = await HandleAsync(decision.Id);
 
@@ -124,7 +124,7 @@ public class DeleteFeedImportDecisionCommandHandlerTests
     public async Task Handle_Should_RemoveDecision_WhenImportJobWasDeleted()
     {
         var decision = Given(Downloading);
-        decision.MarkDownloaded("https://1fichier.com/?a", Guid.CreateVersion7(), "À trier");
+        decision.MarkDownloaded("https://1fichier.com/?a", Guid.CreateVersion7(), "À trier", TimeProvider.System);
 
         var result = await HandleAsync(decision.Id);
 
@@ -137,7 +137,7 @@ public class DeleteFeedImportDecisionCommandHandlerTests
     {
         var decision = Given();
         var error = new TError("DB_UPDATE_ERROR", "boom");
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(error));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<int>(error));
 
         var result = await HandleAsync(decision.Id);
 

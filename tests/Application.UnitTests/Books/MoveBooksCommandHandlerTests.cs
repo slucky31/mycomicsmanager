@@ -18,7 +18,7 @@ public class MoveBooksCommandHandlerTests
     public MoveBooksCommandHandlerTests()
     {
         _moveBook.Handle(Arg.Any<MoveBookCommand>(), Arg.Any<CancellationToken>())
-            .Returns(_ => Result<Book>.Success(PhysicalBook.Create(new BookMetadata("Blacksad", "Âme rouge", "9782205050134"), s_targetId).Value!));
+            .Returns(_ => Result.Success<Book>(PhysicalBook.Create(new BookMetadata("Blacksad", "Âme rouge", "9782205050134"), s_targetId).Value!));
         _handler = new MoveBooksCommandHandler(_moveBook, NullLogger<MoveBooksCommandHandler>.Instance);
     }
 
@@ -28,8 +28,8 @@ public class MoveBooksCommandHandlerTests
         var moved = Guid.CreateVersion7();
         var stayed = Guid.CreateVersion7();
         var alsoStayed = Guid.CreateVersion7();
-        _moveBook.Handle(new MoveBookCommand(stayed, s_targetId, s_userId), Arg.Any<CancellationToken>()).Returns(Result<Book>.Failure(BooksError.FileAlreadyExists));
-        _moveBook.Handle(new MoveBookCommand(alsoStayed, s_targetId, s_userId), Arg.Any<CancellationToken>()).Returns(Result<Book>.Failure(BooksError.FileNotFound));
+        _moveBook.Handle(new MoveBookCommand(stayed, s_targetId, s_userId), Arg.Any<CancellationToken>()).Returns(Result.Failure<Book>(BooksError.FileAlreadyExists));
+        _moveBook.Handle(new MoveBookCommand(alsoStayed, s_targetId, s_userId), Arg.Any<CancellationToken>()).Returns(Result.Failure<Book>(BooksError.FileNotFound));
 
         var result = await _handler.Handle(new MoveBooksCommand([moved, stayed, moved, alsoStayed], s_targetId, s_userId), TestContext.Current.CancellationToken);
 

@@ -6,7 +6,7 @@ namespace Web.Tests.Models;
 
 public sealed class NavigationRulesTests
 {
-    private static readonly Guid s_libraryId = Guid.Parse("01a10db7-5a64-73bc-91be-9aed30dcff5f");
+    private static readonly Guid s_libraryId = new Guid(0x01a10db7, 0x5a64, 0x73bc, 0x91, 0xbe, 0x9a, 0xed, 0x30, 0xdc, 0xff, 0x5f) /* 01a10db7-5a64-73bc-91be-9aed30dcff5f */;
 
     [Theory]
     [InlineData("statistics?year=2026", "statistics")]

@@ -15,7 +15,7 @@ public sealed class LibrariesServiceExtensionsTests
     public async Task NameOfAsync_Should_ReturnTheName_WhenTheLibraryIsFound()
     {
         var library = Library.Create("Read Books", "#2E7D32", "Star", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
-        _librariesService.GetById(library.Id.ToString()).Returns(_ => Result<Library>.Success(library));
+        _librariesService.GetById(library.Id.ToString()).Returns(_ => Result.Success<Library>(library));
 
         var name = await _librariesService.NameOfAsync(library.Id);
 
@@ -25,7 +25,7 @@ public sealed class LibrariesServiceExtensionsTests
     [Fact]
     public async Task NameOfAsync_Should_ReturnNull_WhenTheLibraryCannotBeRead()
     {
-        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result<Library>.Failure(LibrariesError.NotFound));
+        _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result.Failure<Library>(LibrariesError.NotFound));
 
         var name = await _librariesService.NameOfAsync(Guid.CreateVersion7());
 

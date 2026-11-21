@@ -23,6 +23,6 @@ public sealed class SearchBooksQueryHandler(IBookReadService bookReadService, IR
         var includeHidden = await userRepository.ShowsHiddenLibrariesAsync(request.UserId);
         var result = await bookReadService.SearchAsync(request.UserId, request.SearchTerm.Trim(), request.BookLimit, includeHidden, cancellationToken);
 
-        return Result<BookSearchResult>.Success(result);
+        return Result.Success<BookSearchResult>(result);
     }
 }

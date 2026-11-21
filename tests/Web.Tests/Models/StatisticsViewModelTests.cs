@@ -1,4 +1,4 @@
-using Application.Statistics.Get;
+using Application.Statistics.GetStatistics;
 using AwesomeAssertions;
 using Web.Models;
 using Xunit;

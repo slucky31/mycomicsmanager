@@ -1,5 +1,5 @@
 using System.Globalization;
-using Application.Statistics.Get;
+using Application.Statistics.GetStatistics;
 using MudBlazor;
 
 namespace Web.Models;

@@ -85,7 +85,7 @@ public sealed class CurrentUserServiceTests
         // Arrange — sub present but not in DB, no email claim either
         const string sub = "auth0|unknown";
         _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(sub));
-        _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(Result<User>.Failure(UsersError.NotFound));
+        _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(Result.Failure<User>(UsersError.NotFound));
 
         // Act
         var result = await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);
@@ -103,7 +103,7 @@ public sealed class CurrentUserServiceTests
         const string email = "existing@example.com";
         var user = User.Create(email, "old-sid");
         _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(sub, email));
-        _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(Result<User>.Failure(UsersError.NotFound));
+        _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(Result.Failure<User>(UsersError.NotFound));
         _userReadService.GetUserByEmail(email, TestContext.Current.CancellationToken).Returns(user);
 
         // Act
@@ -121,8 +121,8 @@ public sealed class CurrentUserServiceTests
         const string sub = "auth0|unknown";
         const string email = "unknown@example.com";
         _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(sub, email));
-        _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(Result<User>.Failure(UsersError.NotFound));
-        _userReadService.GetUserByEmail(email, TestContext.Current.CancellationToken).Returns(Result<User>.Failure(UsersError.NotFound));
+        _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(Result.Failure<User>(UsersError.NotFound));
+        _userReadService.GetUserByEmail(email, TestContext.Current.CancellationToken).Returns(Result.Failure<User>(UsersError.NotFound));
 
         // Act
         var result = await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);

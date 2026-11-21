@@ -39,8 +39,8 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_googleBooksService);
         _ctx.Services.AddSingleton(_comicSearchService);
 
-        _booksService.GetById(_book.Id.ToString()).Returns(Result<Book>.Success(_book));
-        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(Result<Book>.Success(_book));
+        _booksService.GetById(_book.Id.ToString()).Returns(Result.Success<Book>(_book));
+        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(Result.Success<Book>(_book));
         _bnfService.IsEnabled.Returns(true);
         _openLibraryService.IsEnabled.Returns(true);
         _googleBooksService.IsEnabled.Returns(true);
@@ -212,7 +212,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     private void UseBook(Book book)
     {
         _book = book;
-        _booksService.GetById(_book.Id.ToString()).Returns(Result<Book>.Success(_book));
+        _booksService.GetById(_book.Id.ToString()).Returns(Result.Success<Book>(_book));
     }
 
     private async Task<IRenderedComponent<FindBookDetails>> RenderOnceSearchedAsync()
@@ -297,7 +297,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     public async Task ApplyAndSaveAsync_Should_StayOnThePage_WhenTheBookCannotBeSaved()
     {
         _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Result<Book>.Failure(BooksError.NotFound));
+            .Returns(Result.Failure<Book>(BooksError.NotFound));
         var cut = await RenderOnceSearchedAsync();
 
         await ApplyAsync(cut);
@@ -346,7 +346,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
             .Returns(new BookCandidatesResult([s_editionWithIsbn with { Publishers = ["Dargaud Benelux"] }]));
         _bedethequeService.SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>()).Returns(BookCandidatesResult.Failure);
         _openLibraryService.SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>()).Returns(BookCandidatesResult.None);
-        _booksService.IsIsbnAvailable(_book.Id.ToString(), EditionIsbn, Arg.Any<CancellationToken>()).Returns(Result<bool>.Success(true));
+        _booksService.IsIsbnAvailable(_book.Id.ToString(), EditionIsbn, Arg.Any<CancellationToken>()).Returns(Result.Success<bool>(true));
     }
 
     private async Task<IRenderedComponent<FindBookDetails>> RenderEditionsFoundAsync()
@@ -413,7 +413,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     {
         var cut = await RenderEditionsFoundAsync();
         _booksService.IsIsbnAvailable(_book.Id.ToString(), EditionIsbn, Arg.Any<CancellationToken>())
-            .Returns(checkFails ? Result<bool>.Failure(BooksError.NotFound) : Result<bool>.Success(false));
+            .Returns(checkFails ? Result.Failure<bool>(BooksError.NotFound) : Result.Success<bool>(false));
 
         await PickTheBnfEditionAsync(cut);
 
@@ -621,7 +621,7 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     [Fact]
     public async Task LoadBookThenFetchAsync_Should_ShowBookNotFound_WhenTheBookDoesNotExist()
     {
-        _booksService.GetById(_book.Id.ToString()).Returns(Result<Book>.Failure(BooksError.NotFound));
+        _booksService.GetById(_book.Id.ToString()).Returns(Result.Failure<Book>(BooksError.NotFound));
 
         var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
 

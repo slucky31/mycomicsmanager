@@ -20,6 +20,6 @@ public sealed class GetLibrarySummariesQueryHandler(ILibraryReadService libraryR
         var includeHidden = request.IncludeHidden || await userRepository.ShowsHiddenLibrariesAsync(request.UserId);
         var summaries = await libraryReadService.GetSummariesAsync(request.UserId, includeHidden, cancellationToken);
 
-        return Result<IReadOnlyList<LibrarySummary>>.Success(summaries);
+        return Result.Success<IReadOnlyList<LibrarySummary>>(summaries);
     }
 }

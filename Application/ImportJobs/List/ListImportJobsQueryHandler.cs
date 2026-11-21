@@ -25,6 +25,6 @@ public sealed class ListImportJobsQueryHandler(
         }
 
         var jobs = await importJobRepository.GetByLibraryIdAsync(query.LibraryId, cancellationToken);
-        return Result<IReadOnlyList<ImportJob>>.Success(jobs);
+        return Result.Success<IReadOnlyList<ImportJob>>(jobs);
     }
 }

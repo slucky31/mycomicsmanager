@@ -22,7 +22,7 @@ public class ForceFailImportJobCommandHandlerTests
         _importJobRepository = Substitute.For<IImportJobRepository>();
         _libraryRepository = Substitute.For<IRepository<Library, Guid>>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _handler = new ForceFailImportJobCommandHandler(_importJobRepository, _libraryRepository, _unitOfWork);
     }
 

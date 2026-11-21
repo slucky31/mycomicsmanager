@@ -1,4 +1,3 @@
-using Application.Abstractions.Messaging;
 using Application.Books.AddReadingDate;
 using Application.Books.Create;
 using Application.Books.Delete;
@@ -17,18 +16,8 @@ using Domain.Primitives;
 namespace Web.Services;
 
 public class BooksService(
-    IQueryHandler<GetBookByIdQuery, Book> getBookByIdHandler,
-    IQueryHandler<GetBooksQuery, List<Book>> getBooksHandler,
-    IQueryHandler<GetPagedBooksQuery, IPagedList<BookSummaryDto>> getPagedBooksHandler,
-    IQueryHandler<SearchBooksQuery, BookSearchResult> searchBooksHandler,
-    ICommandHandler<CreateBookCommand, Book> createBookHandler,
-    ICommandHandler<UpdateBookCommand, Book> updateBookHandler,
-    ICommandHandler<DeleteBookCommand> deleteBookHandler,
-    ICommandHandler<DeleteBooksCommand, DeleteBooksResult> deleteBooksHandler,
-    ICommandHandler<AddReadingDateCommand, ReadingDate> addReadingDateHandler,
-    ICommandHandler<DeleteReadingDateCommand> deleteReadingDateHandler,
-    IQueryHandler<IsIsbnAvailableQuery, bool> isIsbnAvailableHandler,
-    IQueryHandler<GetIsbnCandidateOwnersQuery, IReadOnlyList<IsbnOwnerDto>> getIsbnCandidateOwnersHandler,
+    BookQueryHandlers queries,
+    BookCommandHandlers commands,
     ICurrentUserService currentUserService) : IBooksService
 {
     public async Task<Result<Book>> GetById(string? id)
@@ -46,7 +35,7 @@ public class BooksService(
 
         var query = new GetBookByIdQuery(guidId, UserId: userIdResult.Value);
 
-        return await getBookByIdHandler.Handle(query, CancellationToken.None);
+        return await queries.GetById.Handle(query, CancellationToken.None);
     }
 
     public async Task<Result<Book>> Create(CreateBookRequest request, CancellationToken cancellationToken = default)
@@ -71,7 +60,7 @@ public class BooksService(
             request.PublishDate,
             request.NumberOfPages);
 
-        return await createBookHandler.Handle(command, cancellationToken);
+        return await commands.Create.Handle(command, cancellationToken);
     }
 
     public async Task<Result<Book>> Update(UpdateBookRequest request, CancellationToken cancellationToken = default)
@@ -100,7 +89,7 @@ public class BooksService(
             request.PublishDate,
             request.NumberOfPages);
 
-        return await updateBookHandler.Handle(command, cancellationToken);
+        return await commands.Update.Handle(command, cancellationToken);
     }
 
     public async Task<Result<bool>> IsIsbnAvailable(string bookId, string isbn, CancellationToken cancellationToken = default)
@@ -116,7 +105,7 @@ public class BooksService(
             return userIdResult.Error!;
         }
 
-        return await isIsbnAvailableHandler.Handle(new IsIsbnAvailableQuery(guidId, isbn, userIdResult.Value), cancellationToken);
+        return await queries.IsIsbnAvailable.Handle(new IsIsbnAvailableQuery(guidId, isbn, userIdResult.Value), cancellationToken);
     }
 
     public async Task<Result<IReadOnlyList<IsbnOwnerDto>>> GetIsbnCandidateOwners(Guid bookId, CancellationToken cancellationToken = default)
@@ -127,7 +116,7 @@ public class BooksService(
             return userIdResult.Error!;
         }
 
-        return await getIsbnCandidateOwnersHandler.Handle(new GetIsbnCandidateOwnersQuery(bookId, userIdResult.Value), cancellationToken);
+        return await queries.GetIsbnCandidateOwners.Handle(new GetIsbnCandidateOwnersQuery(bookId, userIdResult.Value), cancellationToken);
     }
 
     public async Task<Result<ReadingDate>> AddReadingDate(string bookId, int rating, CancellationToken cancellationToken = default)
@@ -144,7 +133,7 @@ public class BooksService(
         }
 
         var command = new AddReadingDateCommand(guidId, rating, UserId: userIdResult.Value);
-        return await addReadingDateHandler.Handle(command, cancellationToken);
+        return await commands.AddReadingDate.Handle(command, cancellationToken);
     }
 
     public async Task<Result> DeleteReadingDate(string bookId, string readingDateId, CancellationToken cancellationToken = default)
@@ -161,7 +150,7 @@ public class BooksService(
         }
 
         var command = new DeleteReadingDateCommand(bookGuidId, readingDateGuidId, UserId: userIdResult.Value);
-        return await deleteReadingDateHandler.Handle(command, cancellationToken);
+        return await commands.DeleteReadingDate.Handle(command, cancellationToken);
     }
 
     public async Task<Result<List<Book>>> GetAll()
@@ -174,7 +163,7 @@ public class BooksService(
 
         var query = new GetBooksQuery(userIdResult.Value);
 
-        return await getBooksHandler.Handle(query, CancellationToken.None);
+        return await queries.GetBooks.Handle(query, CancellationToken.None);
     }
 
     public async Task<Result<List<Book>>> GetByLibrary(Guid libraryId, CancellationToken cancellationToken = default)
@@ -192,7 +181,7 @@ public class BooksService(
 
         var query = new GetBooksQuery(userIdResult.Value, LibraryId: libraryId);
 
-        return await getBooksHandler.Handle(query, cancellationToken);
+        return await queries.GetBooks.Handle(query, cancellationToken);
     }
 
     public async Task<Result<IPagedList<BookSummaryDto>>> GetPagedByLibrary(Guid libraryId, int page, int pageSize, BookSortOrder sortOrder, string? searchTerm = null, CancellationToken cancellationToken = default)
@@ -210,7 +199,7 @@ public class BooksService(
 
         var query = new GetPagedBooksQuery(userIdResult.Value, libraryId, page, pageSize, sortOrder, searchTerm);
 
-        return await getPagedBooksHandler.Handle(query, cancellationToken);
+        return await queries.GetPagedBooks.Handle(query, cancellationToken);
     }
 
     public async Task<Result<BookSearchResult>> Search(string searchTerm, int bookLimit, CancellationToken cancellationToken = default)
@@ -221,7 +210,7 @@ public class BooksService(
             return userIdResult.Error!;
         }
 
-        return await searchBooksHandler.Handle(new SearchBooksQuery(userIdResult.Value, searchTerm, bookLimit), cancellationToken);
+        return await queries.Search.Handle(new SearchBooksQuery(userIdResult.Value, searchTerm, bookLimit), cancellationToken);
     }
 
     public async Task<Result> Delete(string? id, CancellationToken cancellationToken = default)
@@ -239,7 +228,7 @@ public class BooksService(
 
         var command = new DeleteBookCommand(guidId, UserId: userIdResult.Value);
 
-        return await deleteBookHandler.Handle(command, cancellationToken);
+        return await commands.Delete.Handle(command, cancellationToken);
     }
 
     public async Task<Result<DeleteBooksResult>> Delete(IReadOnlyList<Guid> bookIds, CancellationToken cancellationToken = default)
@@ -250,6 +239,6 @@ public class BooksService(
             return userIdResult.Error!;
         }
 
-        return await deleteBooksHandler.Handle(new DeleteBooksCommand(bookIds, userIdResult.Value), cancellationToken);
+        return await commands.DeleteBooks.Handle(new DeleteBooksCommand(bookIds, userIdResult.Value), cancellationToken);
     }
 }

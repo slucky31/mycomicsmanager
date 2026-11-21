@@ -57,7 +57,7 @@ public static class DownloadLinkGrouper
         new(candidates, IsAmbiguous: true, AmbiguityReason: reason);
 
     private static bool HasDistinctHosts(List<ExtractedLink> links) =>
-        links.Select(l => l.Host).Distinct(StringComparer.OrdinalIgnoreCase).Count() == links.Count;
+        links.Select(l => l.Host).ToHashSet(StringComparer.OrdinalIgnoreCase).Count == links.Count;
 
     private static DownloadCandidate ToCandidate(List<ExtractedLink> links, string articleTitle)
     {

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Ardalis.GuardClauses;
 using Base.Integration.Tests;
 using Domain.Libraries;
@@ -17,7 +18,7 @@ public class PagedListTests(IntegrationTestWebAppFactory factory) : LibraryInteg
         var count = Context.Libraries.Count();
         for (var i = 0; i < nbItems; i++)
         {
-            var lib = Library.Create("lib-" + i, "#5C6BC0", "Bookmark", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
+            var lib = Library.Create("lib-" + i.ToString(CultureInfo.InvariantCulture), "#5C6BC0", "Bookmark", LibraryBookType.Physical, Guid.CreateVersion7()).Value!;
             Context.Libraries.Add(lib);
         }
         await UnitOfWork.SaveChangesAsync(CancellationToken.None);

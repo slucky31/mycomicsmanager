@@ -1,4 +1,4 @@
-using Application.Statistics.Get;
+using Application.Statistics.GetStatistics;
 
 namespace Application.Interfaces;
 
