@@ -305,4 +305,17 @@ public class BookTests
         book.LibraryId.Should().Be(targetLibraryId);
         book.MoveToLibrary(targetLibraryId).Error.Should().Be(BooksError.AlreadyInLibrary);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(" ")]
+    public void Update_Should_ReturnBadRequest_AndKeepTheMetadata_WhenAPhysicalBookLosesItsIsbn(string? isbn)
+    {
+        var book = PhysicalBook.Create(new BookMetadata("Old Series", "Old Title", "1234567890"), DefaultLibraryId).Value!;
+
+        book.Update(new BookMetadata("New Series", "New Title", isbn)).Error.Should().Be(BooksError.BadRequest);
+
+        book.Serie.Should().Be("Old Series");
+        book.ISBN.Should().Be("1234567890");
+    }
 }

@@ -443,4 +443,12 @@ public class LibraryTests
         library.UpdateName(name).IsSuccess.Should().Be(expected);
         library.Name.Should().Be(expected ? name : "Old Name");
     }
+
+    [Fact]
+    public void ImportDirectoryName_Should_JoinTheRelativePathAndTheId()
+    {
+        var library = Library.Create("Bandes dessinées", "#5C6BC0", "Book", LibraryBookType.Digital, DefaultUserId).Value!;
+
+        library.ImportDirectoryName.Should().Be($"BANDES DESSINEES_{library.Id}");
+    }
 }

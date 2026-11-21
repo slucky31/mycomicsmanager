@@ -94,4 +94,14 @@ public class UserTests
         // Assert
         user.ShowHiddenLibraries.Should().BeTrue();
     }
+
+    [Fact]
+    public void Create_Should_KeepTheEmailAndTheAuthId()
+    {
+        var user = User.Create("user@example.com", "auth0|42");
+
+        user.Id.Should().NotBe(Guid.Empty);
+        user.Email.Should().Be("user@example.com");
+        user.AuthId.Should().Be("auth0|42");
+    }
 }

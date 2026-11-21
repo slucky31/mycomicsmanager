@@ -82,6 +82,8 @@ public class FeedImportDecisionTransitionTests
         decision.Status.Should().Be(FeedImportDecisionStatus.AwaitingArbitration);
         decision.ArbitrationKind.Should().Be(FeedImportArbitrationKind.ProbableDuplicate);
         decision.MatchedBookId.Should().Be(s_bookId);
+        decision.ParsedSerie.Should().Be("Blacksad");
+        decision.GetCandidates().Should().ContainSingle();
     }
 
     [Fact]
@@ -124,6 +126,7 @@ public class FeedImportDecisionTransitionTests
         decision.Status.Should().Be(FeedImportDecisionStatus.LinksExtracted);
         decision.MatchedBookId.Should().BeNull();
         decision.DecidedBy.Should().Be(FeedImportDecidedBy.User);
+        decision.Reason.Should().Be("Not a duplicate (confirmed by the user).");
     }
 
     [Fact]
@@ -136,12 +139,13 @@ public class FeedImportDecisionTransitionTests
         result.IsSuccess.Should().BeTrue();
         decision.Status.Should().Be(FeedImportDecisionStatus.SkippedDuplicate);
         decision.MatchedBookId.Should().Be(s_bookId);
+        decision.Reason.Should().Be("Duplicate confirmed by the user.");
     }
 
     [Fact]
     public void ConfirmDuplicate_Should_ReturnInvalidTransition_WhenArbitrationIsAboutLinks()
     {
-        var decision = CreateAwaiting(FeedImportArbitrationKind.AmbiguousLinks);
+        var decision = CreateAwaiting(FeedImportArbitrationKind.AmbiguousLinks, s_bookId);
 
         decision.ConfirmDuplicate().Error.Should().Be(FeedImportError.InvalidStatusTransition);
         decision.ConfirmNotDuplicate().Error.Should().Be(FeedImportError.InvalidStatusTransition);
@@ -214,6 +218,7 @@ public class FeedImportDecisionTransitionTests
         sibling.EntryUrl.Should().Be(decision.EntryUrl);
         sibling.CreatedAt.Should().Be(decision.CreatedAt);
         sibling.Status.Should().Be(FeedImportDecisionStatus.Pending);
+        sibling.Reason.Should().Be("Book 3 found in the article.");
         sibling.Events.Should().ContainSingle();
     }
 
@@ -252,6 +257,7 @@ public class FeedImportDecisionTransitionTests
 
         result.IsSuccess.Should().BeTrue();
         decision.Status.Should().Be(FeedImportDecisionStatus.Downloading);
+        decision.Reason.Should().Be("Downloading through Debrid-Link.");
         decision.Events[^1].PreviousStatus.Should().Be(FeedImportDecisionStatus.LinksExtracted);
     }
 
@@ -335,6 +341,7 @@ public class FeedImportDecisionTransitionTests
 
         result.IsSuccess.Should().BeTrue();
         decision.Status.Should().Be(FeedImportDecisionStatus.Ignored);
+        decision.Reason.Should().Be("Ignored by the user.");
         decision.DecidedBy.Should().Be(FeedImportDecidedBy.User);
         decision.ArbitrationKind.Should().Be(FeedImportArbitrationKind.None);
     }
@@ -356,6 +363,16 @@ public class FeedImportDecisionTransitionTests
         decision.Status.Should().Be(FeedImportDecisionStatus.LinksExtracted);
         decision.MatchedBookId.Should().BeNull();
         decision.DecidedBy.Should().Be(FeedImportDecidedBy.User);
+        decision.Reason.Should().Be("Download forced by the user (duplicate ignored).");
+    }
+
+    [Fact]
+    public void ForceDownload_Should_ExtractLinks_WhenAwaitingAProbableDuplicate()
+    {
+        var decision = CreateAwaiting(FeedImportArbitrationKind.ProbableDuplicate, s_bookId);
+
+        decision.ForceDownload().IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.LinksExtracted);
     }
 
     [Fact]
@@ -439,5 +456,84 @@ public class FeedImportDecisionTransitionTests
             s_parsed, null, "Ambigu", FeedImportDecidedBy.Auto);
 
         ambiguous.Correct(s_parsed).Error.Should().Be(FeedImportError.InvalidStatusTransition);
+    }
+
+    [Fact]
+    public void ConfirmDuplicate_Should_ReturnInvalidTransition_WhenNoBookIsMatched()
+    {
+        var decision = CreateAwaiting(FeedImportArbitrationKind.ProbableDuplicate);
+
+        decision.ConfirmDuplicate().Error.Should().Be(FeedImportError.InvalidStatusTransition);
+        decision.Status.Should().Be(FeedImportDecisionStatus.AwaitingArbitration);
+    }
+
+    [Fact]
+    public void RequestArbitration_Should_ReturnBadRequest_WhenOneOfTheCandidatesHasNoMirror()
+    {
+        IReadOnlyList<DownloadCandidate> candidates = [s_candidate, s_candidate with { FileName = "Autre.cbz", Mirrors = [] }];
+        var decision = CreatePending();
+
+        decision.RequestArbitration(FeedImportArbitrationKind.AmbiguousLinks, candidates, s_parsed, null, "r", FeedImportDecidedBy.Auto)
+            .Error.Should().Be(FeedImportError.BadRequest);
+        decision.MarkDuplicate(candidates, s_parsed, s_bookId, "r", FeedImportDecidedBy.Auto).Error.Should().Be(FeedImportError.BadRequest);
+        decision.Status.Should().Be(FeedImportDecisionStatus.Pending);
+        decision.Links.Should().BeNull();
+    }
+
+    [Fact]
+    public void RecordLinks_Should_LeaveTheBlankHostsOut()
+    {
+        var decision = CreatePending();
+        var candidate = s_candidate with { Mirrors = [new DownloadMirror("https://1fichier.com/?abc", "1fichier.com"), new DownloadMirror("https://x.net/y", "  ")] };
+
+        decision.RecordLinks([candidate], s_parsed, "r", FeedImportDecidedBy.Auto);
+
+        decision.Hosts.Should().Equal("1fichier.com");
+    }
+
+    [Theory]
+    [InlineData(" ", "Quota atteint")]
+    [InlineData("Téléchargement", " ")]
+    public void Fail_Should_ReturnBadRequest_WhenTheStepOrTheMessageIsBlank(string step, string errorMessage)
+    {
+        var decision = CreatePending();
+
+        decision.Fail(step, errorMessage).Error.Should().Be(FeedImportError.BadRequest);
+        decision.FailWithLinks([s_candidate], s_parsed, step, errorMessage).Error.Should().Be(FeedImportError.BadRequest);
+        decision.Status.Should().Be(FeedImportDecisionStatus.Pending);
+    }
+
+    [Fact]
+    public void Fail_Should_TruncateTheStepTheMessageAndTheReason()
+    {
+        var decision = CreatePending();
+
+        decision.Fail(new string('s', FeedImportConstants.MaxErrorStepLength + 1), new string('m', FeedImportConstants.MaxErrorMessageLength + 1));
+
+        decision.ErrorStep.Should().HaveLength(FeedImportConstants.MaxErrorStepLength);
+        decision.ErrorMessage.Should().HaveLength(FeedImportConstants.MaxErrorMessageLength);
+        decision.Reason.Should().HaveLength(FeedImportConstants.MaxReasonLength);
+    }
+
+    [Fact]
+    public void CanDelete_Should_AcceptTheDownload_FromTheExactEndOfTheStaleDelay()
+    {
+        var decision = CreateDownloading();
+        var staleAt = decision.UpdatedAt + FeedImportConstants.StaleDownloadDelay;
+
+        decision.CanDelete(staleAt.AddTicks(-1)).Should().BeFalse();
+        decision.CanDelete(staleAt).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Correct_Should_LeaveTheVolumeAndTheTitleOutOfTheReason_WhenTheyAreUnknown()
+    {
+        var decision = CreateSkippedDuplicate();
+
+        decision.Correct(new ParsedComicTitle("Blacksad", " ", null)).IsSuccess.Should().BeTrue();
+
+        decision.ParsedTitle.Should().BeNull();
+        decision.ParsedVolume.Should().BeNull();
+        decision.Reason.Should().Be("Corrected by the user: Blacksad.");
     }
 }

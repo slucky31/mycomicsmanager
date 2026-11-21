@@ -430,4 +430,15 @@ public class DigitalBookTests
         book.AssignIsbn(isbn).IsSuccess.Should().BeTrue();
         book.ISBN.Should().Be(isbn);
     }
+
+    [Fact]
+    public void RecordIsbnScan_Should_ReplaceTheCandidatesOfThePreviousScan()
+    {
+        var book = CreateBookWithoutIsbn();
+        book.RecordIsbnScan(["9782800112343"], DateTime.UtcNow);
+
+        book.RecordIsbnScan(["2205056174"], DateTime.UtcNow);
+
+        book.IsbnCandidates.Should().Equal("2205056174");
+    }
 }

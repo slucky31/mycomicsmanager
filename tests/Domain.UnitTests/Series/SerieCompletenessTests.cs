@@ -86,4 +86,10 @@ public class SerieCompletenessTests
         SerieCompleteness.NotApplicable.Status.Should().Be(SerieCompletenessStatus.NotApplicable);
         SerieCompleteness.NotApplicable.MissingCount.Should().Be(0);
     }
+
+    [Fact]
+    public void Of_Should_MissTheLastVolume_WhenItIsTheOnlyOneNotOwned()
+    {
+        SerieCompleteness.Of([1, 2], totalVolumes: 3).Missing.Should().Equal(new VolumeRange(3, 3));
+    }
 }

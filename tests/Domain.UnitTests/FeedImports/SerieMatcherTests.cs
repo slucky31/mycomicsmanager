@@ -11,6 +11,13 @@ public class SerieMatcherTests
     [InlineData("Spirou & Fantasio", "SPIROU FANTASIO")]
     [InlineData("Guerre Des Magiciens La", "GUERRE DES MAGICIENS")]
     [InlineData("Les", "LES")]
+    [InlineData("Le Scorpion", "SCORPION")]
+    [InlineData("La Quête de l'oiseau du temps", "QUETE DE L OISEAU DU TEMPS")]
+    [InlineData("Un Ours", "OURS")]
+    [InlineData("Une Vie", "VIE")]
+    [InlineData("Des Dieux", "DIEUX")]
+    [InlineData("The Walking Dead", "WALKING DEAD")]
+    [InlineData("A Silent Voice", "SILENT VOICE")]
     [InlineData(null, "")]
     public void Normalize_Should_IgnoreCaseDiacriticsPunctuationAndLeadingArticle(string? serie, string expected)
     {
@@ -35,5 +42,22 @@ public class SerieMatcherTests
     {
         SerieMatcher.Similarity("Blacksad", "Largo Winch").Should().BeLessThan(SerieMatcher.ProbableMatchThreshold);
         SerieMatcher.Similarity("Blacksad", null).Should().Be(0);
+    }
+
+    // 1 - Levenshtein distance / length of the longer series.
+    [Theory]
+    [InlineData("Kitten", "Sitting", 3, 7)]
+    [InlineData("Sitting", "Kitten", 3, 7)]
+    [InlineData("Abcd", "Abc", 1, 4)]
+    [InlineData("Abc", "Xyz", 3, 3)]
+    public void Similarity_Should_BeTheNormalizedLevenshteinRatio(string left, string right, int distance, int longerLength)
+    {
+        SerieMatcher.Similarity(left, right).Should().BeApproximately(1 - ((double)distance / longerLength), 1e-9);
+    }
+
+    [Fact]
+    public void Similarity_Should_BeZero_WhenBothSeriesAreBlank()
+    {
+        SerieMatcher.Similarity(" ", null).Should().Be(0);
     }
 }
