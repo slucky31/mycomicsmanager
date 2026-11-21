@@ -554,4 +554,25 @@ public class ImportJobTests
         status.IsTerminal().Should().Be(terminal);
         status.IsSucceeded().Should().Be(succeeded);
     }
+
+    [Fact]
+    public void UpdateConversionProgress_Should_StoreTheCounts()
+    {
+        var job = CreateValidJob();
+
+        job.UpdateConversionProgress(3, 10);
+
+        job.ConvertedImagesCount.Should().Be(3);
+        job.TotalImagesToConvert.Should().Be(10);
+    }
+
+    [Fact]
+    public void RecordErrorFile_Should_StoreThePath()
+    {
+        var job = CreateValidJob();
+
+        job.RecordErrorFile("/data/import/errors/blacksad-t01.cbz");
+
+        job.ErrorFilePath.Should().Be("/data/import/errors/blacksad-t01.cbz");
+    }
 }

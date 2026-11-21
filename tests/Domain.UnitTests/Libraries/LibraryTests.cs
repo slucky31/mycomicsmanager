@@ -400,4 +400,55 @@ public class LibraryTests
         library.Books.Should().BeEmpty();
         library.Books.Should().BeAssignableTo<IReadOnlyList<Book>>();
     }
+
+    // -------------------------------------------------------
+    // Maximum lengths: accepted at the limit, refused one character above
+    // -------------------------------------------------------
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    public void Create_Should_AcceptTheMaxLengths_AndRefuseOneCharacterMore(int extra, bool expected)
+    {
+        var name = new string('N', LibraryConstants.MaxNameLength + extra);
+        var color = new string('C', LibraryConstants.MaxColorLength + extra);
+        var icon = new string('I', LibraryConstants.MaxIconLength + extra);
+
+        Library.Create(name, "#5C6BC0", "Book", LibraryBookType.Physical, DefaultUserId).IsSuccess.Should().Be(expected);
+        Library.Create("My Library", color, "Book", LibraryBookType.Physical, DefaultUserId).IsSuccess.Should().Be(expected);
+        Library.Create("My Library", "#5C6BC0", icon, LibraryBookType.Physical, DefaultUserId).IsSuccess.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    public void Update_Should_AcceptTheMaxLengths_AndRefuseOneCharacterMore(int extra, bool expected)
+    {
+        var library = Library.Create("My Library", "#5C6BC0", "Bookmark", LibraryBookType.Physical, DefaultUserId).Value!;
+        var color = new string('C', LibraryConstants.MaxColorLength + extra);
+        var icon = new string('I', LibraryConstants.MaxIconLength + extra);
+
+        library.Update(color, "MenuBook").IsSuccess.Should().Be(expected);
+        library.Update("#FF7043", icon).IsSuccess.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    public void UpdateName_Should_AcceptTheMaxLength_AndRefuseOneCharacterMore(int extra, bool expected)
+    {
+        var library = Library.Create("Old Name", "#5C6BC0", "Book", LibraryBookType.Physical, DefaultUserId).Value!;
+        var name = new string('N', LibraryConstants.MaxNameLength + extra);
+
+        library.UpdateName(name).IsSuccess.Should().Be(expected);
+        library.Name.Should().Be(expected ? name : "Old Name");
+    }
+
+    [Fact]
+    public void ImportDirectoryName_Should_JoinTheRelativePathAndTheId()
+    {
+        var library = Library.Create("Bandes dessinées", "#5C6BC0", "Book", LibraryBookType.Digital, DefaultUserId).Value!;
+
+        library.ImportDirectoryName.Should().Be($"BANDES DESSINEES_{library.Id}");
+    }
 }

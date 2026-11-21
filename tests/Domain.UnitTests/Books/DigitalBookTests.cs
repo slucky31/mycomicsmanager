@@ -420,4 +420,25 @@ public class DigitalBookTests
         result.Error.Should().Be(BooksError.BadRequest);
         book.NumberOfPages.Should().Be(48);
     }
+
+    [Fact]
+    public void AssignIsbn_Should_AcceptAnIsbn_AtTheMaxLength()
+    {
+        var book = CreateBookWithoutIsbn();
+        var isbn = new string('9', BookConstants.MaxIsbnLength);
+
+        book.AssignIsbn(isbn).IsSuccess.Should().BeTrue();
+        book.ISBN.Should().Be(isbn);
+    }
+
+    [Fact]
+    public void RecordIsbnScan_Should_ReplaceTheCandidatesOfThePreviousScan()
+    {
+        var book = CreateBookWithoutIsbn();
+        book.RecordIsbnScan(["9782800112343"], DateTime.UtcNow);
+
+        book.RecordIsbnScan(["2205056174"], DateTime.UtcNow);
+
+        book.IsbnCandidates.Should().Equal("2205056174");
+    }
 }

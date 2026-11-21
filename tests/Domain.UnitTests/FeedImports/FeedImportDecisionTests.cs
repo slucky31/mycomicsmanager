@@ -105,4 +105,15 @@ public class FeedImportDecisionTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.EntryTitle.Should().HaveLength(FeedImportConstants.MaxEntryTitleLength);
     }
+
+    [Fact]
+    public void Create_Should_AcceptAnUrl_AtTheMaxLength()
+    {
+        const string prefix = "https://planete-bd.org/";
+        var url = prefix + new string('a', FeedImportConstants.MaxEntryUrlLength - prefix.Length);
+
+        var result = FeedImportDecision.Create(s_userId, DefaultEntryId, DefaultTitle, url, s_publishedAt);
+
+        result.Value!.EntryUrl.Should().Be(url);
+    }
 }
