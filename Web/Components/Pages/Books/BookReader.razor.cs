@@ -551,6 +551,7 @@ public sealed partial class BookReader : IAsyncDisposable
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "BL0016", Justification = "ScanIsbnPagesAsync, the only caller, catches the JSException.")]
     private async Task<IReadOnlyList<string>> ReadIsbnsAsync(IJSObjectReference module, int pageIndex, CancellationToken token)
     {
         using var pageCts = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -559,6 +560,7 @@ public sealed partial class BookReader : IAsyncDisposable
         return TextIsbnExtractor.ExtractAll(text);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "BL0016", Justification = "Both callers run it inside a try that catches the JSException.")]
     private async Task<IJSObjectReference> GetOcrModuleAsync()
     {
         var module = _ocrModule ?? await JSRuntime.InvokeAsync<IJSObjectReference>("import", AppVersion.Versioned("./js/isbnOcr.js"));

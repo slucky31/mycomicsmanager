@@ -47,7 +47,7 @@ dotnet ef database update --project Persistence
 
 ## Architecture
 
-This is a .NET 10 application following Clean Architecture with CQRS pattern:
+This is a .NET 11 application following Clean Architecture with CQRS pattern:
 
 ```
 Domain/          → Entities, value objects, errors (no dependencies)

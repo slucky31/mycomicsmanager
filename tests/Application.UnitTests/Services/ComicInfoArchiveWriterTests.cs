@@ -161,6 +161,30 @@ public sealed class ComicInfoArchiveWriterTests : IDisposable
     }
 
     [Fact]
+    public async Task WriteAsync_Should_FailAndKeepTheFile_WhenAPageFailsItsCrcCheck()
+    {
+        var path = Path.Combine(_rootDir, "book.cbz");
+        await using (var archive = await ZipFile.OpenAsync(path, ZipArchiveMode.Create, TestContext.Current.CancellationToken))
+        {
+            await using var stream = await archive.CreateEntry("page-001.webp", CompressionLevel.NoCompression)
+                .OpenAsync(TestContext.Current.CancellationToken);
+            await stream.WriteAsync("RIFF"u8.ToArray(), TestContext.Current.CancellationToken);
+        }
+
+        // The page is stored uncompressed: changing one of its bytes leaves a readable archive whose CRC32 no
+        // longer matches, which .NET 11 now rejects when the entry is read.
+        var bytes = await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken);
+        bytes[bytes.AsSpan().IndexOf("RIFF"u8) + 3] = (byte)'X';
+        await File.WriteAllBytesAsync(path, bytes, TestContext.Current.CancellationToken);
+
+        var result = await _writer.WriteAsync(path, s_data, TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FileProcessingError.XmlWriteError);
+        (await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken)).Should().Equal(bytes);
+        Directory.GetFiles(_rootDir).Should().ContainSingle();
+    }
+
+    [Fact]
     public async Task WriteAsync_Should_RemoveTheTemporaryFile_WhenCancelled()
     {
         var path = CreateCbz(null);

@@ -22,6 +22,7 @@ internal sealed class CustomAuthenticationStateProvider(
     private string? _provisionedSub;
     private Task? _provisioning;
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "BL0013", Justification = "This is the provider itself: base.GetAuthenticationStateAsync reads its own current state.")]
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var authState = await base.GetAuthenticationStateAsync();
