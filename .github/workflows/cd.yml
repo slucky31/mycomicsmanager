@@ -32,7 +32,7 @@ jobs:
       # Integration tests run against a throwaway PostgreSQL on the runner itself: the
       # self-hosted server is too far from GitHub's runners, and its round-trip latency
       # made Persistence.Tests take ~2.5 min instead of ~10 s. Keep the major version in
-      # line with production (PostgreSQL 18).
+      # line with production (PostgreSQL 19).
       # Started in the background rather than as a job service, which held the first step
       # for ~15-20 s: the image pull and the start-up now overlap the restore and the build.
       # Throwaway database reachable only from this job: no password needed.
@@ -40,7 +40,7 @@ jobs:
         run: >
           nohup docker run --rm --name postgres -p 5432:5432
           -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=mcm_tests
-          postgres:18 > "$RUNNER_TEMP/postgres.log" 2>&1 &
+          postgres:19 > "$RUNNER_TEMP/postgres.log" 2>&1 &
       - name : Checkout
         uses: actions/checkout@v7
         with:
