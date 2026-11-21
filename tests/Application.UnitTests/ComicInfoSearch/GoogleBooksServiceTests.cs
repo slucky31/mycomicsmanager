@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using Application.ComicInfoSearch;
 using Application.Interfaces;
 using Microsoft.Extensions.Options;
@@ -936,9 +936,9 @@ public sealed class GoogleBooksServiceTests
         result.Candidates.Should().BeEquivalentTo(new BookCandidate[]
         {
             new("Astérix et les Goths", null, null, ["Hachette"], new DateOnly(2004, 6, 1), "9782012101357", new Uri("https://books.google.com/thumb.jpg?id=1")),
-            new("Astérix, l'intégrale", null, null, [], null, null, null),
             // Without an ISBN-13, the ISBN-10 is taken.
             new("Astérix chez les Belges", null, null, [], null, "2012101356", null),
+            new("Astérix, l'intégrale", null, null, [], null, null, null),
         }, options => options.WithStrictOrdering());
     }
 
