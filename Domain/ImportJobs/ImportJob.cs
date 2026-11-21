@@ -51,7 +51,8 @@ public class ImportJob : Entity<Guid>
         string originalFileName,
         string originalFilePath,
         long originalFileSize,
-        Guid libraryId)
+        Guid libraryId,
+        TimeProvider? timeProvider = null)
     {
         if (string.IsNullOrWhiteSpace(originalFileName) ||
             string.IsNullOrWhiteSpace(originalFilePath) ||
@@ -69,7 +70,7 @@ public class ImportJob : Entity<Guid>
             OriginalFileSize = originalFileSize,
             LibraryId = libraryId,
             Status = ImportJobStatus.Pending,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = Clock.UtcNow(timeProvider)
         };
 
         return job;
@@ -113,7 +114,7 @@ public class ImportJob : Entity<Guid>
         return Result.Success();
     }
 
-    public Result Complete(Guid digitalBookId)
+    public Result Complete(Guid digitalBookId, TimeProvider? timeProvider = null)
     {
         if (Status == ImportJobStatus.Failed)
         {
@@ -127,13 +128,13 @@ public class ImportJob : Entity<Guid>
 
         Status = ImportJobStatus.Completed;
         DigitalBookId = digitalBookId;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = Clock.UtcNow(timeProvider);
         return Result.Success();
     }
 
     // An archive holding other archives instead of pages (several volumes in one download): each one was
     // deposited in the import directory to be imported on its own, and this import ends there.
-    public Result Split(IReadOnlyList<string> fileNames)
+    public Result Split(IReadOnlyList<string> fileNames, TimeProvider? timeProvider = null)
     {
         if (TerminalError() is { } terminalError)
         {
@@ -152,7 +153,7 @@ public class ImportJob : Entity<Guid>
 
         Status = ImportJobStatus.Split;
         SplitFileNames = [.. fileNames];
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = Clock.UtcNow(timeProvider);
         return Result.Success();
     }
 
@@ -170,7 +171,7 @@ public class ImportJob : Entity<Guid>
     }
 
     // A failed import goes back to the queue, on the file put back at filePath.
-    public Result Retry(string filePath)
+    public Result Retry(string filePath, TimeProvider? timeProvider = null)
     {
         if (Status != ImportJobStatus.Failed)
         {
@@ -184,7 +185,7 @@ public class ImportJob : Entity<Guid>
 
         Status = ImportJobStatus.Pending;
         OriginalFilePath = filePath;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = Clock.UtcNow(timeProvider);
         CompletedAt = null;
         ErrorMessage = null;
         ErrorStep = null;

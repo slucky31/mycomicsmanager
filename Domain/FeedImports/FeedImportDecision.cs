@@ -74,7 +74,8 @@ public class FeedImportDecision : Entity<Guid>
         long minifluxEntryId,
         string entryTitle,
         string entryUrl,
-        DateTime? publishedAt)
+        DateTime? publishedAt,
+        TimeProvider? timeProvider = null)
     {
         if (userId == Guid.Empty ||
             minifluxEntryId <= 0 ||
@@ -93,7 +94,7 @@ public class FeedImportDecision : Entity<Guid>
             title = title[..FeedImportConstants.MaxEntryTitleLength];
         }
 
-        var now = DateTime.UtcNow;
+        var now = Clock.UtcNow(timeProvider);
         var decision = new FeedImportDecision
         {
             Id = Guid.CreateVersion7(),
@@ -133,7 +134,7 @@ public class FeedImportDecision : Entity<Guid>
     }
 
     // Another book found in the same article gets its own decision (same entry, next ItemIndex).
-    public Result<FeedImportDecision> CreateSibling(int itemIndex)
+    public Result<FeedImportDecision> CreateSibling(int itemIndex, TimeProvider? timeProvider = null)
     {
         if (itemIndex <= 0 || ItemIndex != 0)
         {
@@ -145,7 +146,7 @@ public class FeedImportDecision : Entity<Guid>
             return FeedImportError.InvalidStatusTransition;
         }
 
-        var now = DateTime.UtcNow;
+        var now = Clock.UtcNow(timeProvider);
         var reason = $"Book {itemIndex + 1} found in the article.";
         var sibling = new FeedImportDecision
         {
@@ -169,7 +170,7 @@ public class FeedImportDecision : Entity<Guid>
         return sibling;
     }
 
-    public Result RecordLinks(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed, string reason, FeedImportDecidedBy decidedBy)
+    public Result RecordLinks(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed, string reason, FeedImportDecidedBy decidedBy, TimeProvider? timeProvider = null)
     {
         var check = EnsureCanAnalyze(candidates, parsed);
         if (check.IsFailure)
@@ -180,7 +181,7 @@ public class FeedImportDecision : Entity<Guid>
         SetAnalysis(candidates, parsed);
         MatchedBookId = null;
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.LinksExtracted, reason, decidedBy);
+        Transition(FeedImportDecisionStatus.LinksExtracted, reason, decidedBy, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
@@ -190,7 +191,8 @@ public class FeedImportDecision : Entity<Guid>
         ParsedComicTitle parsed,
         Guid? matchedBookId,
         string reason,
-        FeedImportDecidedBy decidedBy)
+        FeedImportDecidedBy decidedBy,
+        TimeProvider? timeProvider = null)
     {
         if (kind == FeedImportArbitrationKind.None || !Enum.IsDefined(kind))
         {
@@ -206,7 +208,7 @@ public class FeedImportDecision : Entity<Guid>
         SetAnalysis(candidates, parsed);
         MatchedBookId = matchedBookId;
         ArbitrationKind = kind;
-        Transition(FeedImportDecisionStatus.AwaitingArbitration, reason, decidedBy);
+        Transition(FeedImportDecisionStatus.AwaitingArbitration, reason, decidedBy, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
@@ -215,7 +217,8 @@ public class FeedImportDecision : Entity<Guid>
         ParsedComicTitle parsed,
         Guid matchedBookId,
         string reason,
-        FeedImportDecidedBy decidedBy)
+        FeedImportDecidedBy decidedBy,
+        TimeProvider? timeProvider = null)
     {
         if (matchedBookId == Guid.Empty)
         {
@@ -231,11 +234,11 @@ public class FeedImportDecision : Entity<Guid>
         SetAnalysis(candidates, parsed);
         MatchedBookId = matchedBookId;
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.SkippedDuplicate, reason, decidedBy);
+        Transition(FeedImportDecisionStatus.SkippedDuplicate, reason, decidedBy, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
-    public Result ConfirmNotDuplicate()
+    public Result ConfirmNotDuplicate(TimeProvider? timeProvider = null)
     {
         if (Status != FeedImportDecisionStatus.AwaitingArbitration || ArbitrationKind != FeedImportArbitrationKind.ProbableDuplicate)
         {
@@ -244,11 +247,11 @@ public class FeedImportDecision : Entity<Guid>
 
         MatchedBookId = null;
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.LinksExtracted, "Not a duplicate (confirmed by the user).", FeedImportDecidedBy.User);
+        Transition(FeedImportDecisionStatus.LinksExtracted, "Not a duplicate (confirmed by the user).", FeedImportDecidedBy.User, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
-    public Result ConfirmDuplicate()
+    public Result ConfirmDuplicate(TimeProvider? timeProvider = null)
     {
         if (Status != FeedImportDecisionStatus.AwaitingArbitration ||
             ArbitrationKind != FeedImportArbitrationKind.ProbableDuplicate ||
@@ -258,30 +261,30 @@ public class FeedImportDecision : Entity<Guid>
         }
 
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.SkippedDuplicate, "Duplicate confirmed by the user.", FeedImportDecidedBy.User);
+        Transition(FeedImportDecisionStatus.SkippedDuplicate, "Duplicate confirmed by the user.", FeedImportDecidedBy.User, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
-    public Result StartDownload()
+    public Result StartDownload(TimeProvider? timeProvider = null)
     {
         if (Status != FeedImportDecisionStatus.LinksExtracted)
         {
             return FeedImportError.InvalidStatusTransition;
         }
 
-        Transition(FeedImportDecisionStatus.Downloading, "Downloading through Debrid-Link.", FeedImportDecidedBy.Auto);
+        Transition(FeedImportDecisionStatus.Downloading, "Downloading through Debrid-Link.", FeedImportDecidedBy.Auto, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
     // A mirror failed but others may still work: traced in the history, the status does not change.
-    public Result NoteMirrorFailure(string host, string error)
+    public Result NoteMirrorFailure(string host, string error, TimeProvider? timeProvider = null)
     {
         if (Status != FeedImportDecisionStatus.Downloading || string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(error))
         {
             return Status == FeedImportDecisionStatus.Downloading ? FeedImportError.BadRequest : FeedImportError.InvalidStatusTransition;
         }
 
-        var now = DateTime.UtcNow;
+        var now = Clock.UtcNow(timeProvider);
         UpdatedAt = now;
         _events.Add(FeedImportDecisionEvent.Create(
             Id, now, Status, Status, FeedImportDecidedBy.Auto,
@@ -289,7 +292,7 @@ public class FeedImportDecision : Entity<Guid>
         return Result.Success();
     }
 
-    public Result MarkDownloaded(string chosenMirror, Guid importJobId, string targetLibraryName)
+    public Result MarkDownloaded(string chosenMirror, Guid importJobId, string targetLibraryName, TimeProvider? timeProvider = null)
     {
         if (string.IsNullOrWhiteSpace(chosenMirror) || importJobId == Guid.Empty || string.IsNullOrWhiteSpace(targetLibraryName))
         {
@@ -304,7 +307,7 @@ public class FeedImportDecision : Entity<Guid>
         ChosenMirror = Truncate(chosenMirror, FeedImportConstants.MaxChosenMirrorLength);
         ImportJobId = importJobId;
         // Final state for the feed import: the import itself is followed on the Import page.
-        Transition(FeedImportDecisionStatus.Downloaded, $"File deposited in \"{targetLibraryName}\": follow the import on the Import page.", FeedImportDecidedBy.Auto);
+        Transition(FeedImportDecisionStatus.Downloaded, $"File deposited in \"{targetLibraryName}\": follow the import on the Import page.", FeedImportDecidedBy.Auto, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
@@ -346,7 +349,7 @@ public class FeedImportDecision : Entity<Guid>
 
     private bool HasSingleCandidate => GetCandidates().Count == 1;
 
-    public Result Ignore()
+    public Result Ignore(TimeProvider? timeProvider = null)
     {
         if (!CanIgnore)
         {
@@ -354,11 +357,11 @@ public class FeedImportDecision : Entity<Guid>
         }
 
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.Ignored, "Ignored by the user.", FeedImportDecidedBy.User);
+        Transition(FeedImportDecisionStatus.Ignored, "Ignored by the user.", FeedImportDecidedBy.User, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
-    public Result ForceDownload()
+    public Result ForceDownload(TimeProvider? timeProvider = null)
     {
         if (!CanForceDownload)
         {
@@ -367,7 +370,7 @@ public class FeedImportDecision : Entity<Guid>
 
         MatchedBookId = null;
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.LinksExtracted, "Download forced by the user (duplicate ignored).", FeedImportDecidedBy.User);
+        Transition(FeedImportDecisionStatus.LinksExtracted, "Download forced by the user (duplicate ignored).", FeedImportDecidedBy.User, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
@@ -379,11 +382,11 @@ public class FeedImportDecision : Entity<Guid>
             return FeedImportError.InvalidStatusTransition;
         }
 
-        Reopen("Retried by the user.");
+        Reopen("Retried by the user.", utcNow);
         return Result.Success();
     }
 
-    public Result Correct(ParsedComicTitle parsed)
+    public Result Correct(ParsedComicTitle parsed, TimeProvider? timeProvider = null)
     {
         if (parsed is null || !parsed.HasSerie)
         {
@@ -399,20 +402,20 @@ public class FeedImportDecision : Entity<Guid>
         ParsedTitle = TruncateOrNull(parsed.Title, FeedImportConstants.MaxParsedTitleLength);
         ParsedVolume = parsed.Volume;
         var volume = parsed.Volume is { } v ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $" T{v}") : string.Empty;
-        Reopen($"Corrected by the user: {ParsedSerie}{volume}{(ParsedTitle is null ? string.Empty : $" · {ParsedTitle}")}.");
+        Reopen($"Corrected by the user: {ParsedSerie}{volume}{(ParsedTitle is null ? string.Empty : $" · {ParsedTitle}")}.", Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
-    private void Reopen(string reason)
+    private void Reopen(string reason, DateTime now)
     {
         MatchedBookId = null;
         ArbitrationKind = FeedImportArbitrationKind.None;
         ErrorStep = null;
         ErrorMessage = null;
-        Transition(FeedImportDecisionStatus.Pending, reason, FeedImportDecidedBy.User);
+        Transition(FeedImportDecisionStatus.Pending, reason, FeedImportDecidedBy.User, now);
     }
 
-    public Result Fail(string step, string errorMessage)
+    public Result Fail(string step, string errorMessage, TimeProvider? timeProvider = null)
     {
         if (string.IsNullOrWhiteSpace(step) || string.IsNullOrWhiteSpace(errorMessage))
         {
@@ -427,12 +430,12 @@ public class FeedImportDecision : Entity<Guid>
         ErrorStep = Truncate(step, FeedImportConstants.MaxErrorStepLength);
         ErrorMessage = Truncate(errorMessage, FeedImportConstants.MaxErrorMessageLength);
         ArbitrationKind = FeedImportArbitrationKind.None;
-        Transition(FeedImportDecisionStatus.Failed, errorMessage, FeedImportDecidedBy.Auto);
+        Transition(FeedImportDecisionStatus.Failed, errorMessage, FeedImportDecidedBy.Auto, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
     // Links found but not downloadable automatically (e.g. host not supported): kept so the user can download the file by hand.
-    public Result FailWithLinks(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed, string step, string errorMessage)
+    public Result FailWithLinks(IReadOnlyList<DownloadCandidate> candidates, ParsedComicTitle parsed, string step, string errorMessage, TimeProvider? timeProvider = null)
     {
         if (string.IsNullOrWhiteSpace(step) || string.IsNullOrWhiteSpace(errorMessage))
         {
@@ -477,10 +480,9 @@ public class FeedImportDecision : Entity<Guid>
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Order(StringComparer.OrdinalIgnoreCase)];
 
-    private void Transition(FeedImportDecisionStatus newStatus, string reason, FeedImportDecidedBy decidedBy)
+    private void Transition(FeedImportDecisionStatus newStatus, string reason, FeedImportDecidedBy decidedBy, DateTime now)
     {
         var previousStatus = Status;
-        var now = DateTime.UtcNow;
         Status = newStatus;
         Reason = Truncate(reason, FeedImportConstants.MaxReasonLength);
         DecidedBy = decidedBy;
