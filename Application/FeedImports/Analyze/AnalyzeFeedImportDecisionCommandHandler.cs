@@ -182,7 +182,7 @@ public sealed class AnalyzeFeedImportDecisionCommandHandler(
     }
 
     // Failed with their links: the user downloads these files by hand.
-    private static Result FailUnsupported(
+    private Result FailUnsupported(
         List<FeedImportDecision> decisions,
         IReadOnlyList<DownloadCandidate> candidates,
         string articleTitle,
