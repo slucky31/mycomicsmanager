@@ -28,7 +28,11 @@ public partial class FindBookDetails
     // The ISBN of the book that no source knows (#1268): the sources are searched by title instead, and the book keeps it.
     private string? _keptIsbn;
 
-    private bool IsTextSearch => _edition is null && (_keptIsbn is not null || string.IsNullOrWhiteSpace(_isbn));
+    // The ISBN the sources found, but not the right edition of the book (#1321): another edition is searched by title,
+    // and its ISBN replaces this one.
+    private string? _otherEditionOf;
+
+    private bool IsTextSearch => _edition is null && (_keptIsbn is not null || _otherEditionOf is not null || string.IsNullOrWhiteSpace(_isbn));
 
     private bool IsTextSearching => _textSearchStates.ContainsValue(ProviderSearchState.Searching);
 
@@ -46,6 +50,7 @@ public partial class FindBookDetails
         _chosen = null;
         _edition = null;
         _keptIsbn = null;
+        _otherEditionOf = null;
         _candidates.Clear();
         _textSearchStates.Clear();
     }
@@ -63,6 +68,40 @@ public partial class FindBookDetails
         ClearSourceResults();
         RefreshComparison();
         await SearchByTextAsync();
+    }
+
+    // The sources found the ISBN, but not the right edition: the results of the ISBN are kept for the way back.
+    private async Task SearchAnotherEditionAsync()
+    {
+        if (_edition is not null || string.IsNullOrWhiteSpace(_isbn))
+        {
+            return;
+        }
+
+        _otherEditionOf = _isbn;
+        await SearchByTextAsync();
+    }
+
+    // Back to the comparison with the ISBN: it is searched again only when an edition was compared meanwhile.
+    private async Task BackToIsbnAsync()
+    {
+        if (_otherEditionOf is not { } isbn)
+        {
+            return;
+        }
+
+        _textSearchId++;
+        _otherEditionOf = null;
+        _chosen = null;
+        _candidates.Clear();
+        _textSearchStates.Clear();
+        _isbn = isbn;
+        if (_searchStates.Count == 0)
+        {
+            _selected.Clear();
+            RefreshComparison();
+            await FetchWebServicesAsync();
+        }
     }
 
     private void InitTextQuery(BookUiDto book)

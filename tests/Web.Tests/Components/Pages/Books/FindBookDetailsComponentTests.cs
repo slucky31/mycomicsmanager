@@ -436,6 +436,73 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         await _bnfService.Received(1).SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>());
     }
 
+    // ── Another edition than the one of the ISBN (#1321) ─────────────
+
+    // The book has an ISBN the sources know, but it is not the right edition: the user searches another one by title.
+    private async Task<IRenderedComponent<FindBookDetails>> RenderAnotherEditionSearchAsync()
+    {
+        UseBook(DigitalBook.Create(new BookMetadata("Blacksad", "Âme rouge", PageIsbn), Guid.CreateVersion7(), "/data/A/b.cbz", 1).Value!);
+        TheSourcesFindTheEditions();
+        var cut = _ctx.Render<FindBookDetails>(p => p.Add(c => c.BookId, _book.Id.ToString()));
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+
+        await cut.Find(".find-details-search-by-title").ClickAsync(new());
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Pick the edition of the book"));
+        return cut;
+    }
+
+    private static Task BackToIsbnAsync(IRenderedComponent<FindBookDetails> cut) =>
+        cut.Find(".find-details-back-to-isbn").ClickAsync(new());
+
+    [Fact]
+    public async Task SearchAnotherEditionAsync_Should_SaveTheIsbnOfTheEditionPicked_InPlaceOfTheOneOfTheBook()
+    {
+        var cut = await RenderAnotherEditionSearchAsync();
+
+        cut.Find(".find-details-query-hint").TextContent.Should().Contain($"Not the right edition of ISBN {PageIsbn}?");
+        await _bnfService.Received(1).SearchByTextAsync(s_bookQuery, Arg.Any<CancellationToken>());
+
+        await PickTheBnfEditionAsync(cut);
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+        await _booksService.Received(1).IsIsbnAvailable(_book.Id.ToString(), EditionIsbn, Arg.Any<CancellationToken>());
+        cut.Find(".find-details-picked").TextContent.Should().Contain($"Its ISBN {EditionIsbn} will be saved with the book.");
+        cut.FindAll(".find-details-search-by-title").Should().BeEmpty();
+
+        await ApplyAsync(cut);
+
+        await _booksService.Received(1).Update(Arg.Is<UpdateBookRequest>(r => r.Isbn == EditionIsbn), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task BackToIsbnAsync_Should_ShowTheComparisonOfTheIsbn_WithoutSearchingItAgain()
+    {
+        var cut = await RenderAnotherEditionSearchAsync();
+
+        await BackToIsbnAsync(cut);
+
+        cut.Markup.Should().Contain("Sources checked:").And.NotContain("Pick the edition of the book");
+        await _bnfService.Received(1).SearchByIsbnAsync(PageIsbn, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task BackToIsbnAsync_Should_SearchTheIsbnAgain_WhenAnEditionWasCompared()
+    {
+        var cut = await RenderAnotherEditionSearchAsync();
+        await PickTheBnfEditionAsync(cut);
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+        await cut.FindAll("button").Single(b => b.TextContent.Contains("Change edition", StringComparison.Ordinal)).ClickAsync(new());
+
+        await BackToIsbnAsync(cut);
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Sources checked:"));
+        await _bnfService.Received(2).SearchByIsbnAsync(PageIsbn, Arg.Any<CancellationToken>());
+        // The book keeps its ISBN: nothing is picked, nothing changes.
+        cut.Markup.Should().NotContain("Edition picked on");
+        cut.Find(".find-details-apply").HasAttribute("disabled").Should().BeTrue();
+        cut.FindAll(".find-details-search-by-title").Should().ContainSingle();
+    }
+
     // ── An ISBN no source knows (#1268) ──────────────────────────────
 
     // The book has an ISBN that every source searched without finding it.
@@ -505,6 +572,19 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         await cut.Find("form").SubmitAsync();
 
         await _bnfService.Received(1).SearchByTextAsync(new BookTextQuery("Une âme rouge", "Blacksad", 2), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchByTextAsync_Should_SearchWithoutTheTitle_WhenItIsCleared()
+    {
+        var cut = await RenderEditionsFoundAsync();
+
+        await cut.Find(".find-details-query-title .mud-input-clear-button").ClickAsync(new());
+        await cut.Find("form").SubmitAsync();
+
+        await _bnfService.Received(1).SearchByTextAsync(s_bookQuery with { Title = string.Empty }, Arg.Any<CancellationToken>());
+        cut.FindAll(".find-details-query-serie .mud-input-clear-button").Should().ContainSingle();
+        cut.FindAll(".find-details-query-volume .mud-input-clear-button").Should().ContainSingle();
     }
 
     [Fact]
