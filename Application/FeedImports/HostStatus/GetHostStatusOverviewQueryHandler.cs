@@ -23,7 +23,7 @@ public sealed class GetHostStatusOverviewQueryHandler(
         var hosts = await debridLinkClient.GetHostsAsync(cancellationToken);
 
         var history = new HostHistory(changes, utcNow - s_countWindow);
-        IEnumerable<HostStatusRow> rows = hosts.IsSuccess
+        var rows = hosts.IsSuccess
             ? hosts.Value!.Select(h => history.ToRow(h.Name, h.IsUp, h.Domains, latest))
             : latest.Values.Select(c => history.ToRow(c.Host, c.IsUp, [], latest));
 
