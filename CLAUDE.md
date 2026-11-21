@@ -43,7 +43,7 @@ dotnet ef database update --project Persistence
 ```
 
 **Environment Variables for Tests:**
-- `ConnectionStrings__NeonConnectionUnitTests` - PostgreSQL connection for integration tests (in GitHub Actions, a `postgres:18` service container on the runner, matching the production major version)
+- `ConnectionStrings__NeonConnectionUnitTests` - PostgreSQL connection for integration tests (in GitHub Actions, a `postgres:19` service container on the runner, matching the production major version)
 
 ## Architecture
 
