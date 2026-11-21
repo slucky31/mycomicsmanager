@@ -3,6 +3,7 @@ using Bunit;
 using Domain.Books;
 using Domain.Primitives;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
@@ -80,6 +81,18 @@ public sealed class BookActionsSheetTests : IAsyncDisposable
 
         _closed.Should().Be(1);
         _ctx.JSInterop.VerifyInvoke("open").Arguments.Should().Equal($"/api/books/{_book.Id}/download", "_blank");
+    }
+
+    [Fact]
+    public async Task DownloadAsync_Should_ReportTheError_WhenTheBrowserRefusesToOpenTheDownload()
+    {
+        _ctx.JSInterop.SetupVoid("open", _ => true).SetException(new JSException("Blocked by the browser"));
+        var cut = RenderSheet(isDigital: true);
+
+        await ClickAsync(cut, "Download CBZ");
+
+        _closed.Should().Be(1);
+        _snackbar.Received(1).Add("Unable to start the download", Severity.Error, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 
     [Theory]
