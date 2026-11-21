@@ -1,4 +1,4 @@
-using Application.ComicInfoSearch;
+﻿using Application.ComicInfoSearch;
 using Application.Interfaces;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -287,8 +287,9 @@ public sealed class ComicSearchServiceTests
             CoverUrl: coverUrl,
             Found: true);
 
+        // A failed upload may still come back with an url: only a successful upload is kept.
         var cloudinaryResult = new CloudinaryUploadResult(
-            Url: null,
+            Url: new Uri("https://res.cloudinary.com/test/partial.jpg"),
             PublicId: null,
             Success: false,
             Error: "Upload failed");
@@ -1604,6 +1605,47 @@ public sealed class ComicSearchServiceWithLocalCoverTests
 
         // Assert: exception is caught, ImageUrl falls back to empty string
         result.Found.Should().BeTrue();
+        result.ImageUrl.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_NotUploadTheStream_WhenItHasNoFileName_AndTheBookIsUnknown()
+    {
+        using var stream = new MemoryStream([1, 2, 3]);
+
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync("9782075162869", stream, null, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeFalse();
+        result.ImageUrl.Should().BeEmpty();
+        await _cloudinaryService.DidNotReceiveWithAnyArgs().UploadImageFromStreamAsync(default!, default!, default!, default!, default);
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_NotUploadTheStream_WhenItHasNoFileName_AndTheBookIsFound()
+    {
+        const string isbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>()).Returns(MakeBedethequeFound());
+
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, null, TestContext.Current.CancellationToken);
+
+        result.Found.Should().BeTrue();
+        result.ImageUrl.Should().BeEmpty();
+        await _cloudinaryService.DidNotReceiveWithAnyArgs().UploadImageFromStreamAsync(default!, default!, default!, default!, default);
+    }
+
+    [Fact]
+    public async Task SearchByIsbnWithLocalCoverAsync_Should_ReturnEmptyImageUrl_WhenTheStreamUploadIsNotSuccessful()
+    {
+        const string isbn = "9782075162869";
+        using var stream = new MemoryStream([1, 2, 3]);
+        _bedethequeService.SearchByIsbnAsync(isbn, Arg.Any<CancellationToken>()).Returns(MakeBedethequeFound());
+        _cloudinaryService.UploadImageFromStreamAsync(
+                Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(new Uri("https://res.cloudinary.com/test/partial.jpg"), null, false, "Upload failed"));
+
+        var result = await _sut.SearchByIsbnWithLocalCoverAsync(isbn, stream, "cover.webp", TestContext.Current.CancellationToken);
+
         result.ImageUrl.Should().BeEmpty();
     }
 }
