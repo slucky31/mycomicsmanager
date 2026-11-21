@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.82.0"></a>
+## [10.82.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.82.0) (2026-11-21)
+
+### ✨ Features
+
+* **quality:** scripts/verify.ps1 and a Claude Code Stop hook that runs it ([#1331](https://www.github.com/slucky31/mycomicsmanager/issues/1331)) ([056dd8b](https://www.github.com/slucky31/mycomicsmanager/commit/056dd8b69bb1eed86d9f3fee6d8f85532f4991ca))
+
 <a name="10.81.2"></a>
 ## [10.81.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.81.2) (2026-11-21)
 
