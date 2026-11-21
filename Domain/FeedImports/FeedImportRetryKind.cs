@@ -1,4 +1,4 @@
-﻿namespace Domain.FeedImports;
+namespace Domain.FeedImports;
 
 // Why a failed decision can be retried by the sync without the user.
 public enum FeedImportRetryKind

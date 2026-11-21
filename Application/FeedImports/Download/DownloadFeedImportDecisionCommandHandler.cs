@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.ImportJobs.Create;
 using Application.Interfaces;
 using Application.Libraries.Create;

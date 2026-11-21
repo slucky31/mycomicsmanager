@@ -1,4 +1,4 @@
-﻿using Domain.FeedImports;
+using Domain.FeedImports;
 
 namespace Application.Interfaces;
 

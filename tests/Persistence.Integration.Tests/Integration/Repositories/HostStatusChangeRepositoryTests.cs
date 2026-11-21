@@ -1,4 +1,4 @@
-﻿using Base.Integration.Tests;
+using Base.Integration.Tests;
 using Domain.FeedImports;
 
 namespace Persistence.Tests.Integration.Repositories;

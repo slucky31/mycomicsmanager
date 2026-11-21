@@ -1,4 +1,4 @@
-﻿using Application.Books.IsbnScan;
+using Application.Books.IsbnScan;
 using Application.ComicInfoSearch;
 using Application.ImportJobs;
 using Application.Interfaces;

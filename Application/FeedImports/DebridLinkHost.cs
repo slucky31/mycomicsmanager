@@ -1,4 +1,4 @@
-﻿using Domain.Extensions;
+using Domain.Extensions;
 
 namespace Application.FeedImports;
 

@@ -1,4 +1,4 @@
-﻿using Application.FeedImports;
+using Application.FeedImports;
 using AwesomeAssertions;
 using Web.Infrastructure;
 using Xunit;

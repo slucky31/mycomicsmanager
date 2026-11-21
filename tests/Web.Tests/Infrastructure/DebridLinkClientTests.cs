@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using AwesomeAssertions;
 using Domain.FeedImports;
@@ -150,11 +150,11 @@ public sealed class DebridLinkClientTests
         var first = await client.GetHostsAsync(TestContext.Current.CancellationToken);
         var second = await client.GetHostsAsync(TestContext.Current.CancellationToken);
 
-        first.Value.Should().BeEquivalentTo(new[]
-        {
+        first.Value.Should().BeEquivalentTo(
+        [
             new Application.FeedImports.DebridLinkHost("1fichier", true, ["1fichier.com", "alterupload.com"]),
             new Application.FeedImports.DebridLinkHost("ddl", false, ["ddl.to"])
-        });
+        ]);
         second.Value.Should().BeSameAs(first.Value);
         handler.Requests.Should().ContainSingle().Which.Should().Be("GET /api/v2/downloader/hosts");
     }

@@ -1,4 +1,4 @@
-﻿using Domain.FeedImports;
+using Domain.FeedImports;
 
 namespace Domain.UnitTests.FeedImports;
 
@@ -125,4 +125,24 @@ public class FeedImportDecisionAutoRetryTests
         decision.Retry(s_failedAt);
         decision.AutoRetryCount.Should().Be(0);
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void HostStatusChangeCreate_Should_ReturnBadRequest_WhenTheHostIsEmpty(string host) =>
+        HostStatusChange.Create(host, true).Error.Should().Be(FeedImportError.BadRequest);
+
+    [Fact]
+    public void HostStatusChangeCreate_Should_TrimTheHostAndDateTheChange()
+    {
+        var change = HostStatusChange.Create(" ddl ", false, new FixedTimeProvider(s_failedAt)).Value!;
+
+        change.Host.Should().Be("ddl");
+        change.IsUp.Should().BeFalse();
+        change.ChangedAt.Should().Be(s_failedAt);
+    }
+
+    [Fact]
+    public void HostStatusChangeCreate_Should_ReturnBadRequest_WhenTheHostIsTooLong() =>
+        HostStatusChange.Create(new string('a', FeedImportConstants.MaxHostLength + 1), true).Error.Should().Be(FeedImportError.BadRequest);
 }

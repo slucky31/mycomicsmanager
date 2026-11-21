@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Analyze;

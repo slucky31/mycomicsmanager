@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Application.FeedImports.HostStatus;
 using Domain.FeedImports;
 using Domain.Primitives;

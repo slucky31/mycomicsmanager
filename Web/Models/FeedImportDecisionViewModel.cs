@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Domain.FeedImports;
 using Domain.Primitives;
 

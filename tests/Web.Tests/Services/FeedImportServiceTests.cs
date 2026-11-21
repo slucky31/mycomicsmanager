@@ -1,4 +1,4 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Delete;

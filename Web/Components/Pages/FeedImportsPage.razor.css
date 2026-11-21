@@ -1,4 +1,4 @@
-﻿/* Feeds (S2, S3, T9, D6): status chips, compact cards, the detail under the card on a phone and beside the list from 960px. */
+/* Feeds (S2, S3, T9, D6): status chips, compact cards, the detail under the card on a phone and beside the list from 960px. */
 .feeds-page {
     min-height: 100dvh;
     background: var(--mcm-surface-muted);

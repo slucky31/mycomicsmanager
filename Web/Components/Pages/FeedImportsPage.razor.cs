@@ -1,4 +1,4 @@
-﻿using Application.FeedImports.Arbitrate;
+using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Manage;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components;

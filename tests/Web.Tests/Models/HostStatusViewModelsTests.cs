@@ -1,4 +1,4 @@
-﻿using Application.FeedImports.HostStatus;
+using Application.FeedImports.HostStatus;
 using Application.FeedImports.List;
 using AwesomeAssertions;
 using Domain.FeedImports;

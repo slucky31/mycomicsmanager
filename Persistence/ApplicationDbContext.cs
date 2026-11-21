@@ -1,4 +1,4 @@
-﻿using Domain.Books;
+using Domain.Books;
 using Domain.FeedImports;
 using Domain.ImportJobs;
 using Domain.Libraries;

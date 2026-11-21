@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Domain.FeedImports;
 
 namespace Application.FeedImports.Retry;

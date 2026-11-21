@@ -1,4 +1,4 @@
-﻿using Application.FeedImports;
+using Application.FeedImports;
 
 namespace Web.Infrastructure;
 

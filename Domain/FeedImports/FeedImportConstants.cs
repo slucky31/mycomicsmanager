@@ -1,4 +1,4 @@
-﻿namespace Domain.FeedImports;
+namespace Domain.FeedImports;
 
 public static class FeedImportConstants
 {
