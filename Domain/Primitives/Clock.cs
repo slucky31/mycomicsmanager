@@ -6,4 +6,6 @@ public static class Clock
 {
     public static DateTime UtcNow(TimeProvider? timeProvider) =>
         (timeProvider ?? TimeProvider.System).GetUtcNow().UtcDateTime;
+
+    public static DateTime BannedCheck() => DateTime.UtcNow;
 }
