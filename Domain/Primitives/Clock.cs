@@ -1,4 +1,5 @@
-﻿namespace Domain.Primitives;
+﻿using System.Text;
+namespace Domain.Primitives;
 
 // The current time of the domain methods. The callers pass the TimeProvider injected by the DI
 // (FakeTimeProvider in the tests); without one, the system clock is used.
