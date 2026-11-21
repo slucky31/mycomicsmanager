@@ -191,7 +191,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
 
         decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
         decision.ChosenMirror.Should().Be(RapidgatorUrl);
-        decision.Events.Should().Contain(e => e.Description.StartsWith("Mirror 1fichier.com failed", StringComparison.Ordinal));
+        decision.Events.Should().Contain(e => e.Description == $"Mirror 1fichier.com failed: {FeedImportError.DebridLinkFileUnavailable.Description}");
     }
 
     [Fact]
@@ -255,6 +255,8 @@ public class DownloadFeedImportDecisionCommandHandlerTests
 
         await _debridLink.DidNotReceive().UnlockAsync(FichierUrl, Arg.Any<CancellationToken>());
         decision.ChosenMirror.Should().Be(RapidgatorUrl);
+        decision.Events.Select(e => e.Description).Where(d => d.StartsWith("Mirror ", StringComparison.Ordinal))
+            .Should().Equal($"Mirror 1fichier.com failed: {FeedImportError.DebridLinkHostNotSupported.Description}");
     }
 
     [Fact]
@@ -324,7 +326,10 @@ public class DownloadFeedImportDecisionCommandHandlerTests
         await HandleAsync(decision);
 
         decision.Status.Should().Be(FeedImportDecisionStatus.Failed);
+        decision.ErrorMessage.Should().Be(ImportDirectoryStorageError.DepositFailed.Description);
         _importJob.Status.Should().Be(ImportJobStatus.Failed);
+        _importJob.ErrorStep.Should().Be(DownloadFeedImportDecisionCommandHandler.ImportStep);
+        _importJob.ErrorMessage.Should().Be(ImportDirectoryStorageError.DepositFailed.Description);
         _downloader.Received(1).Discard(TempPath);
         _enqueuer.DidNotReceiveWithAnyArgs().Enqueue(default);
     }
@@ -343,5 +348,205 @@ public class DownloadFeedImportDecisionCommandHandlerTests
         var ordered = DownloadFeedImportDecisionCommandHandler.OrderByPriority(mirrors, ["1fichier.com", "rapidgator.net"]);
 
         ordered.Select(m => m.Host).Should().Equal("1fichier.com", "www.rapidgator.net", "katfile.biz", "fileq.net");
+    }
+
+    [Fact]
+    public void OrderByPriority_Should_Throw_WhenAnArgumentIsNull()
+    {
+        var withoutMirrors = () => DownloadFeedImportDecisionCommandHandler.OrderByPriority(null!, []);
+        var withoutPriority = () => DownloadFeedImportDecisionCommandHandler.OrderByPriority([], null!);
+
+        withoutMirrors.Should().Throw<ArgumentNullException>();
+        withoutPriority.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task Handle_Should_Throw_WhenTheCommandIsNull()
+    {
+        var act = () => _handler.Handle(null!, TestContext.Current.CancellationToken);
+
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnBadRequest_WhenTheDecisionIdIsEmpty()
+    {
+        var result = await _handler.Handle(new DownloadFeedImportDecisionCommand(Guid.Empty), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FeedImportError.BadRequest);
+        await _repository.DidNotReceiveWithAnyArgs().GetByIdAsync(default, default);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenTheDecisionDoesNotExist()
+    {
+        var result = await _handler.Handle(new DownloadFeedImportDecisionCommand(Guid.CreateVersion7()), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FeedImportError.NotFound);
+    }
+
+    [Fact]
+    public async Task Handle_Should_FailTheDecision_WhenTheTargetLibraryCannotBeCreated()
+    {
+        _libraryReadService.GetByNameAsync("Imported", s_userId, Arg.Any<CancellationToken>()).Returns((Library?)null);
+        _createLibrary.Handle(Arg.Any<CreateLibraryCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result<Library>.Failure(new TError("LIB500", "Library not created")));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.Failed);
+        decision.ErrorStep.Should().Be(DownloadFeedImportDecisionCommandHandler.LibraryStep);
+        decision.ErrorMessage.Should().Be("Library not created");
+    }
+
+    [Fact]
+    public async Task Handle_Should_FailTheDecision_WhenTheImportDirectoryOfTheLibraryCannotBeCreated()
+    {
+        _storage.EnsureExists(_library.ImportDirectoryName).Returns(Result.Failure(new TError("DIR500", "Directory not created")));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.ErrorStep.Should().Be(DownloadFeedImportDecisionCommandHandler.LibraryStep);
+        decision.ErrorMessage.Should().Be("Directory not created");
+        await _debridLink.DidNotReceive().UnlockAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnTheSaveError_WhenTheStartOfTheDownloadCannotBeSaved()
+    {
+        var error = new TError("DB500", "down");
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(error));
+        var decision = GivenDecision();
+
+        var result = await HandleAsync(decision);
+
+        result.Error.Should().Be(error);
+        await _debridLink.DidNotReceive().UnlockAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_FailTheDecision_WhenDebridLinkSupportsNoMirror()
+    {
+        _debridLink.GetSupportedDomainsAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<string>>.Success(["katfile.biz"]));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.Failed);
+        decision.ErrorStep.Should().Be(DownloadFeedImportDecisionCommandHandler.DownloadStep);
+        decision.ErrorMessage.Should().Be(FeedImportError.DebridLinkHostNotSupported.Description);
+        await _debridLink.DidNotReceive().UnlockAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_TryTheMirrorsByPriority_WhenTheDomainListIsUnavailable()
+    {
+        _debridLink.GetSupportedDomainsAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<string>>.Failure(new TError("DL500", "down")));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
+        decision.ChosenMirror.Should().Be(FichierUrl);
+    }
+
+    [Fact]
+    public async Task Handle_Should_UseTheFileNameOfTheLink_WhenDebridLinkGivesNone()
+    {
+        _debridLink.UnlockAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DebridLinkFile>.Success(new DebridLinkFile(" ", 1_000, s_downloadUrl)));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
+        _storage.Received(1).GetAvailableFilePath(_library.ImportDirectoryName, "Blacksad T03.cbz");
+    }
+
+    [Fact]
+    public async Task Handle_Should_Download_WhenTheSizeIsExactlyTheLimit()
+    {
+        _debridLink.UnlockAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DebridLinkFile>.Success(new DebridLinkFile("Blacksad T03.cbz", 10L * 1024 * 1024, s_downloadUrl)));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
+        await _downloader.Received(1).DownloadAsync(s_downloadUrl, 10L * 1024 * 1024, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotDownload_WhenTheDownloadUrlIsNotHttps()
+    {
+        _debridLink.UnlockAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DebridLinkFile>.Success(new DebridLinkFile("Blacksad T03.cbz", 1_000, new Uri("http://srv1.debrid.link/dl/abc/Blacksad T03.cbz"))));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.Failed);
+        await _downloader.DidNotReceive().DownloadAsync(Arg.Any<Uri>(), Arg.Any<long>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_FailTheDecision_WhenEveryDownloadFails()
+    {
+        _downloader.DownloadAsync(Arg.Any<Uri>(), Arg.Any<long>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DownloadedFile>.Failure(new TError("DL502", "Connection lost")));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.Status.Should().Be(FeedImportDecisionStatus.Failed);
+        decision.ErrorStep.Should().Be(DownloadFeedImportDecisionCommandHandler.DownloadStep);
+        decision.ErrorMessage.Should().Be("Connection lost");
+        await _downloader.Received(2).DownloadAsync(Arg.Any<Uri>(), Arg.Any<long>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_DiscardTheFile_WhenNoNameIsFreeInTheImportDirectory()
+    {
+        _storage.GetAvailableFilePath(_library.ImportDirectoryName, "Blacksad T03.cbz")
+            .Returns(Result<string>.Failure(new TError("DIR409", "No free name")));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        decision.ErrorStep.Should().Be(DownloadFeedImportDecisionCommandHandler.ImportStep);
+        decision.ErrorMessage.Should().Be("No free name");
+        _downloader.Received(1).Discard(TempPath);
+        await _createImportJob.DidNotReceiveWithAnyArgs().Handle(default!, default);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnTheSaveError_AndNotEnqueue_WhenTheDownloadedDecisionCannotBeSaved()
+    {
+        var error = new TError("DB500", "down");
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1), Result<int>.Failure(error));
+        var decision = GivenDecision();
+
+        var result = await HandleAsync(decision);
+
+        result.Error.Should().Be(error);
+        _enqueuer.DidNotReceiveWithAnyArgs().Enqueue(default);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnTheSaveError_WhenTheFailureCannotBeSaved()
+    {
+        var error = new TError("DB500", "down");
+        var physical = Library.Create("Imported", "#5C6BC0", "CollectionsBookmark", LibraryBookType.Physical, s_userId).Value!;
+        _libraryReadService.GetByNameAsync("Imported", s_userId, Arg.Any<CancellationToken>()).Returns(physical);
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Failure(error));
+        var decision = GivenDecision();
+
+        var result = await HandleAsync(decision);
+
+        result.Error.Should().Be(error);
     }
 }
