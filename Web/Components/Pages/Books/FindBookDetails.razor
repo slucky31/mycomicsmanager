@@ -51,9 +51,9 @@
                     }
                 </div>
                 <div class="find-details-query-fields">
-                    <MudTextField T="string" @bind-Value="_queryTitle" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Class="find-details-query-title" />
-                    <MudTextField T="string" @bind-Value="_querySerie" Label="Series" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Class="find-details-query-serie" />
-                    <MudNumericField T="int?" @bind-Value="_queryVolume" Label="Volume" Min="0" HideSpinButtons="true" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Class="find-details-query-volume" />
+                    <MudTextField T="string" @bind-Value="_queryTitle" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Clearable="true" Class="find-details-query-title" />
+                    <MudTextField T="string" @bind-Value="_querySerie" Label="Series" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Clearable="true" Class="find-details-query-serie" />
+                    <MudNumericField T="int?" @bind-Value="_queryVolume" Label="Volume" Min="0" HideSpinButtons="true" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Clearable="true" Class="find-details-query-volume" />
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search"
                                Disabled="@(IsTextSearching || TextQuery.IsEmpty)" Class="find-details-query-search">Search</MudButton>
                 </div>

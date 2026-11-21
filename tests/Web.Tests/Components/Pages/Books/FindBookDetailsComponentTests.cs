@@ -508,6 +508,19 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task SearchByTextAsync_Should_SearchWithoutTheTitle_WhenItIsCleared()
+    {
+        var cut = await RenderEditionsFoundAsync();
+
+        await cut.Find(".find-details-query-title .mud-input-clear-button").ClickAsync(new());
+        await cut.Find("form").SubmitAsync();
+
+        await _bnfService.Received(1).SearchByTextAsync(s_bookQuery with { Title = string.Empty }, Arg.Any<CancellationToken>());
+        cut.FindAll(".find-details-query-serie .mud-input-clear-button").Should().ContainSingle();
+        cut.FindAll(".find-details-query-volume .mud-input-clear-button").Should().ContainSingle();
+    }
+
+    [Fact]
     public async Task SearchByTextAsync_Should_DropTheResultsOfAnOlderSearch()
     {
         var firstSearch = new TaskCompletionSource<BookCandidatesResult>();
