@@ -648,7 +648,7 @@ public class ProcessImportJobCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Book.Should().BeOfType<DigitalBook>();
-        result.Value.Book!.NumberOfPages.Should().Be(3);
+        result.Value.Book.NumberOfPages.Should().Be(3);
         result.Value.Book.Authors.Should().BeEmpty();
         result.Value.Book.Publishers.Should().BeEmpty();
         _bookRepository.Received(1).Add(Arg.Any<DigitalBook>());
@@ -674,7 +674,7 @@ public class ProcessImportJobCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.Book.Should().NotBeNull();
         job.Status.Should().Be(ImportJobStatus.Completed);
-        job.DigitalBookId.Should().Be(result.Value.Book!.Id);
+        job.DigitalBookId.Should().Be(result.Value.Book.Id);
         // One update for each of the 5 steps, then the completion.
         _importJobRepository.Received(6).Update(job);
     }
