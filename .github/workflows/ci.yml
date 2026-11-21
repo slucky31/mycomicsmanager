@@ -31,7 +31,9 @@ jobs:
         shell: bash
         run: |
           set +e
-          echo '{"stop_hook_active": false}' | dotnet tool run pwsh -NoProfile -File scripts/verify.ps1 -Fast -FromHook 2> "$RUNNER_TEMP/stderr.txt"
+          echo '{"stop_hook_active": false}' | dotnet tool run pwsh -NoProfile -File scripts/verify.ps1 -Fast -FromHook
+          echo "hook without C# change: exit $?"
+          dotnet tool run pwsh -NoProfile -File scripts/verify.ps1 -Fast 2> "$RUNNER_TEMP/stderr.txt"
           code=$?
           echo "exit $code"; echo "--- stderr ---"; cat "$RUNNER_TEMP/stderr.txt"
           exit $code
