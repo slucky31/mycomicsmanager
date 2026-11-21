@@ -27,7 +27,7 @@ public sealed class DebridLinkHealthCheckTests
         _client,
         FeatureToggles(enabled),
         Options.Create(new DebridLinkSettings { ApiKey = apiKey }),
-        new HealthCheckResultCache<DebridLinkHealthCheck>());
+        new HealthCheckResultCache<DebridLinkHealthCheck>(TimeProvider.System));
 
     [Fact]
     public async Task CheckHealthAsync_Should_ReturnHealthy_WhenAccountCheckSucceeds()

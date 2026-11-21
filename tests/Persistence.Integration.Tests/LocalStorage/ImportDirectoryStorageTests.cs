@@ -13,7 +13,7 @@ public sealed class ImportDirectoryStorageTests : IDisposable
     public ImportDirectoryStorageTests()
     {
         var settings = Options.Create(new ImportSettings { ImportDirectory = _root });
-        _sut = new ImportDirectoryStorage(settings);
+        _sut = new ImportDirectoryStorage(settings, TimeProvider.System);
     }
 
     public void Dispose()

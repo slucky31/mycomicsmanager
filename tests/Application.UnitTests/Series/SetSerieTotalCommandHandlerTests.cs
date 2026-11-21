@@ -20,7 +20,7 @@ public class SetSerieTotalCommandHandlerTests
 
     public SetSerieTotalCommandHandlerTests()
     {
-        _handler = new SetSerieTotalCommandHandler(_repository, _libraryRepository, _unitOfWork);
+        _handler = new SetSerieTotalCommandHandler(_repository, _libraryRepository, _unitOfWork, TimeProvider.System);
         _libraryRepository.GetByIdAsync(_library.Id).Returns(_library);
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
     }

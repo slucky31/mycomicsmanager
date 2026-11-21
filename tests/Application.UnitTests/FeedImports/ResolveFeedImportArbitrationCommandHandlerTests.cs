@@ -24,7 +24,7 @@ public class ResolveFeedImportArbitrationCommandHandlerTests
     {
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result<int>.Success(1));
         _bookReadService.ListIdentitiesByUserAsync(s_userId, Arg.Any<CancellationToken>()).Returns([]);
-        _handler = new ResolveFeedImportArbitrationCommandHandler(_repository, _bookReadService, _unitOfWork);
+        _handler = new ResolveFeedImportArbitrationCommandHandler(_repository, _bookReadService, _unitOfWork, TimeProvider.System);
     }
 
     private FeedImportDecision GivenAwaiting(FeedImportArbitrationKind kind, Guid? matchedBookId = null)
