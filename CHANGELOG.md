@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.80.4"></a>
+## [10.80.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.80.4) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* **renovate:** keep Mvc.Testing in the .NET group ([#1328](https://www.github.com/slucky31/mycomicsmanager/issues/1328)) ([a7b35c9](https://www.github.com/slucky31/mycomicsmanager/commit/a7b35c9111a019d5abd15c7d1fd021e599249fa8))
+
 <a name="10.80.3"></a>
 ## [10.80.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.80.3) (2026-11-18)
 
