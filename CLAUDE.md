@@ -34,6 +34,9 @@ cd tests/Domain.UnitTests && dotnet stryker --config-file ../../stryker-config.j
 # Run it from the test folder (from the repository root it exits silently). The Persistence services are tested in Application.UnitTests:
 cd tests/Persistence.Integration.Tests && dotnet stryker --config-file ../../stryker-config.json --project Persistence.csproj --test-project Persistence.Tests.csproj --test-project ../Application.UnitTests/Application.UnitTests.csproj
 
+# Same checks in one command (exit code 2 at the first failure; -Fast, -Mutation)
+dotnet tool run pwsh scripts/verify.ps1
+
 # Database migrations
 dotnet ef migrations add MigrationName --project Persistence
 dotnet ef database update --project Persistence
@@ -108,6 +111,7 @@ Analyzers run on every project through `GlobalPackageReference` in `Directory.Pa
 
 ## Commit & PR Guidelines
 
+- Before declaring a task done or pushing, run `dotnet tool restore` once, then `dotnet tool run pwsh scripts/verify.ps1` (`-Fast` for the build, unit tests and changed-lines coverage; `-Mutation` adds Stryker). It must exit 0. The Claude Code Stop hook (`.claude/settings.json`) runs `-Fast` on its own whenever C# files changed.
 - Conventional commits: `type(scope): summary` (e.g., `feat(books): add ISBN validation`)
 - PR titles must start with `feat` or `fix` (enforced by `.github/semantic.yml`)
 - Branch names are explicit: `<type>/<issue>-<short-kebab-summary>` (e.g., `feat/1088-feed-imports-delete-downloaded`, `fix/1095-auth-session-persistence`), one branch and one PR per issue

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="10.81.2"></a>
+## [10.81.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.81.2) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* **deps:** update tests et analyseurs ([#1325](https://www.github.com/slucky31/mycomicsmanager/issues/1325)) ([ba093a7](https://www.github.com/slucky31/mycomicsmanager/commit/ba093a750c2f64e07518dc0f362add0c75b8cff3))
+
 <a name="10.81.1"></a>
 ## [10.81.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v10.81.1) (2026-11-21)
 
