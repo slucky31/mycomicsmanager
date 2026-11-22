@@ -85,7 +85,7 @@ Radius steps: `--mcm-radius-s` 4px, `--mcm-radius-m` 8px, `--mcm-radius-l` 12px,
 - **Chips**: pill, 1px border; filled with the primary colour when selected.
 - **Page bar**: back arrow, title (`--mcm-font-title`) and subtitle in muted text; top-level pages use a large
   title (`--mcm-font-page`) instead.
-- **Notifications** (`snackbar.css`): every snackbar is a white speech balloon with a 2px ink outline
+- **Notifications** (end of `theme.css`): every snackbar is a white speech balloon with a 2px ink outline
   (`--mcm-text`) and its tail on the right; the severity is the colour of the disc behind the icon (the state's tint
   and stronger colour). On a phone they span the width 12px above the bottom bar (or above the home indicator
   when the bar is hidden); from 960px they sit at the bottom right, 420px wide.
