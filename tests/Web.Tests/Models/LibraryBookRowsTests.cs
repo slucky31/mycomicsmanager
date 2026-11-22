@@ -120,6 +120,34 @@ public sealed class LibraryBookRowsTests
         await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
     }
 
+    [Fact]
+    public async Task LoadFirstPageAsync_Should_CountTheBooks_AndKeepTheFirstPageForTheRows()
+    {
+        var rows = Create();
+
+        var count = await rows.LoadFirstPageAsync(TestContext.Current.CancellationToken);
+        var result = await rows.GetRowsAsync(0, 1, 3, TestContext.Current.CancellationToken);
+
+        count.Value.Should().Be(10);
+        Titles(result.Value!.Rows[0]).Should().Equal("Tome 0", "Tome 1", "Tome 2");
+        await _booksService.Received(1).GetPagedByLibrary(s_libraryId, 1, PageSize, BookSortOrder.IdAsc, "", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task LoadFirstPageAsync_Should_ReturnTheError_WhenTheFirstPageCannotBeLoaded()
+    {
+        _booksService.GetPagedByLibrary(s_libraryId, 1, PageSize, BookSortOrder.IdAsc, "", Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<IPagedList<BookSummaryDto>>(BooksError.BadRequest));
+
+        var count = await Create().LoadFirstPageAsync(TestContext.Current.CancellationToken);
+
+        count.Error.Should().Be(BooksError.BadRequest);
+    }
+
+    [Fact]
+    public void ShowsOtherBooksThan_Should_BeTrue_ForAnotherLibrary() =>
+        Create().ShowsOtherBooksThan(new LibraryBookRows(_booksService, Guid.CreateVersion7(), BookSortOrder.IdAsc, "", PageSize)).Should().BeTrue();
+
     [Theory]
     [InlineData(BookSortOrder.IdAsc, "", false)]
     [InlineData(BookSortOrder.IdDesc, "", true)]

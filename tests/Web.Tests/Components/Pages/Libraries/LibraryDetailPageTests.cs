@@ -6,7 +6,6 @@ using Bunit;
 using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
-using Domain.Settings;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
@@ -31,7 +30,6 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     private readonly ISnackbar _snackbar = Substitute.For<ISnackbar>();
     private readonly IDialogService _dialogService = Substitute.For<IDialogService>();
     private readonly LibraryStateService _stateService = new();
-    private readonly IFeatureToggles _featureToggles = Substitute.For<IFeatureToggles>();
     private readonly BunitJSModuleInterop _module;
     private readonly BookSummaryDto _blacksad = Book("Âme rouge", "Blacksad", 4);
     private readonly BookSummaryDto _hiver = Book("Hiver nucléaire", "Hiver nucléaire", 2);
@@ -50,7 +48,6 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_snackbar);
         _ctx.Services.AddSingleton(_dialogService);
         _ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
-        _ctx.Services.AddSingleton(_featureToggles);
     }
 
     public async ValueTask DisposeAsync()
@@ -72,7 +69,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     }
 
     private void GivenPage(int pageNumber, string search, Task<Result<IPagedList<BookSummaryDto>>> page) =>
-        _booksService.GetPagedByLibrary(_library.Id, pageNumber, LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), search, Arg.Any<CancellationToken>())
+        _booksService.GetPagedByLibrary(_library.Id, pageNumber, LibraryBookRows.DefaultPageSize, Arg.Any<BookSortOrder>(), search, Arg.Any<CancellationToken>())
             .Returns(page);
 
     private void GivenPage(int pageNumber, string search, IPagedList<BookSummaryDto> page) =>
@@ -97,20 +94,14 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task LibraryDetailPage_Should_RenderTheBooksVirtualized_AndOpenAgainOnTheFirstBookShown_WhenTheToggleIsOn()
+    public async Task LibraryDetailPage_Should_RenderTheBooksByRows_LoadedOnce_AndOpenAgainOnTheFirstBookShown()
     {
-        _featureToggles.IsEnabled(FeatureToggle.VirtualizedLibrary).Returns(true);
-        GivenLibrary(LibraryBookType.Physical, LibraryView.Covers);
-        var rowsPage = Page(2, false, _blacksad, _hiver);
-        _booksService.GetPagedByLibrary(_library.Id, 1, LibraryBookRows.DefaultPageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
-            .Returns(Result.Success(rowsPage));
+        var cut = await RenderAsync();
 
-        var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
-        await cut.WaitForAssertionAsync(() => cut.FindAll(".virtual-books").Should().ContainSingle());
-
-        cut.FindAll("#scroll-sentinel").Should().BeEmpty();
         var view = cut.FindComponent<VirtualBooksView>();
-        await cut.WaitForAssertionAsync(() => cut.FindAll(".virtual-row .cover-item").Should().HaveCount(2));
+        cut.FindAll(".virtual-row .cover-item").Should().HaveCount(2);
+        // The first page tells whether the library is empty, then gives the first rows.
+        await _booksService.Received(1).GetPagedByLibrary(_library.Id, 1, LibraryBookRows.DefaultPageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>());
         cut.Find(".virtual-row").GetAttribute("data-first-book").Should().Be("0");
         await CheckEveryBookAsync(cut);
         cut.FindAll(".virtual-row [role=checkbox][aria-checked=true]").Should().HaveCount(2);
@@ -153,7 +144,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         var other = Library.Create("Comics", "#2E7D32", "Star", LibraryBookType.Digital, Guid.CreateVersion7()).Value!;
         _librariesService.GetById(other.Id.ToString()).Returns(Result.Success<Library>(other));
         var otherPage = Page(1, false, _hiver);
-        _booksService.GetPagedByLibrary(other.Id, 1, LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
+        _booksService.GetPagedByLibrary(other.Id, 1, LibraryBookRows.DefaultPageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
             .Returns(Result.Success<IPagedList<BookSummaryDto>>(otherPage));
 
         cut.Render(p => p.Add(c => c.LibraryId, other.Id.ToString()));
@@ -186,7 +177,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         var other = Library.Create("Comics", "#2E7D32", "Star", LibraryBookType.Digital, Guid.CreateVersion7()).Value!;
         _librariesService.GetById(other.Id.ToString()).Returns(Result.Success<Library>(other));
         var otherPage = Page(0, false);
-        _booksService.GetPagedByLibrary(other.Id, 1, LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
+        _booksService.GetPagedByLibrary(other.Id, 1, LibraryBookRows.DefaultPageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
             .Returns(Result.Success<IPagedList<BookSummaryDto>>(otherPage));
 
         cut.Render(p => p.Add(c => c.LibraryId, other.Id.ToString()));
@@ -230,7 +221,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         await ChooseAsync(cut, "Sort and view", "Oldest first");
 
         await _librariesService.Received(1).Update(Arg.Is<UpdateLibraryRequest>(r => r.DefaultBookSortOrder == BookSortOrder.IdAsc), Arg.Any<CancellationToken>());
-        await _booksService.Received(1).GetPagedByLibrary(_library.Id, 1, LibraryDetailPage.PageSize, BookSortOrder.IdAsc, string.Empty, Arg.Any<CancellationToken>());
+        await _booksService.Received(1).GetPagedByLibrary(_library.Id, 1, LibraryBookRows.DefaultPageSize, BookSortOrder.IdAsc, string.Empty, Arg.Any<CancellationToken>());
         Subtitle(cut).Should().StartWith("24 books · Oldest first");
         cut.FindAll("[role=dialog]").Should().BeEmpty();
     }
@@ -325,7 +316,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         var cut = await RenderAsync();
         var olderSearch = new TaskCompletionSource<Result<IPagedList<BookSummaryDto>>>();
         var olderSearchAsked = new TaskCompletionSource();
-        _booksService.GetPagedByLibrary(_library.Id, 1, LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), "h", Arg.Any<CancellationToken>())
+        _booksService.GetPagedByLibrary(_library.Id, 1, LibraryBookRows.DefaultPageSize, Arg.Any<BookSortOrder>(), "h", Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
                 olderSearchAsked.TrySetResult();
@@ -428,80 +419,6 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         await _workflow.Received(1).ChooseAndMoveAsync(_hiver.Id, Arg.Any<CancellationToken>());
         Subtitle(cut).Should().StartWith("23 books");
         cut.FindAll("[role=dialog]").Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task LoadMoreBooksAsync_Should_AddTheNextPage()
-    {
-        var cut = await RenderAsync();
-        GivenPage(1, string.Empty, Page(3, true, _blacksad, _hiver));
-        await ChooseAsync(cut, "Sort and view", "Oldest first");
-        GivenPage(2, string.Empty, Page(3, false, Book("Elementa Chaos", "Sophia", 2)));
-        var observed = _ctx.JSInterop.Invocations["infiniteScroll.observe"].Count;
-
-        await cut.InvokeAsync(cut.Instance.LoadMoreBooksAsync);
-
-        cut.FindAll(".cover-item").Should().HaveCount(3);
-        // Observed again: a sentinel still on screen asks for the following page.
-        _ctx.JSInterop.Invocations["infiniteScroll.observe"].Count.Should().Be(observed + 1);
-    }
-
-    [Fact]
-    public async Task MoveAsync_Should_LoadAgainThePagesShown_SoThatTheScrollKeepsItsPlace()
-    {
-        var cut = await RenderAsync();
-        GivenPage(1, string.Empty, Page(4, true, _blacksad, _hiver));
-        await ChooseAsync(cut, "Sort and view", "Oldest first");
-        var chaos = Book("Elementa Chaos", "Sophia", 2);
-        GivenPage(2, string.Empty, Page(4, true, chaos));
-        await cut.InvokeAsync(cut.Instance.LoadMoreBooksAsync);
-        await cut.InvokeAsync(() => cut.Instance.OpenBookActionsAt(chaos.Id.ToString(), PopupAnchor.At(1, 1, 1024, 768)));
-        _workflow.ChooseAndMoveAsync(chaos.Id, Arg.Any<CancellationToken>()).Returns(true);
-        var reloaded = Page(3, true, _blacksad, _hiver);
-        _booksService.GetPagedByLibrary(_library.Id, 1, 2 * LibraryDetailPage.PageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
-            .Returns(Result.Success<IPagedList<BookSummaryDto>>(reloaded));
-
-        await cut.Find("[role=dialog] .action-sheet-item:contains('Move to another library')").ClickAsync(new());
-
-        await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item").Should().HaveCount(2));
-        // The next page comes after the two pages loaded again.
-        GivenPage(3, string.Empty, Page(3, false, Book("Thorgal", "Thorgal", 1)));
-        await cut.InvokeAsync(cut.Instance.LoadMoreBooksAsync);
-        cut.FindAll(".cover-item").Should().HaveCount(3);
-    }
-
-    [Fact]
-    public async Task LoadMoreBooksAsync_Should_DropTheNextPage_WhenTheBooksWereReloadedMeanwhile()
-    {
-        var cut = await RenderAsync();
-        GivenPage(1, string.Empty, Page(3, true, _blacksad, _hiver));
-        await ChooseAsync(cut, "Sort and view", "Oldest first");
-        var nextPage = new TaskCompletionSource<Result<IPagedList<BookSummaryDto>>>();
-        GivenPage(2, string.Empty, nextPage.Task);
-
-        var loadMore = cut.InvokeAsync(cut.Instance.LoadMoreBooksAsync);
-        await ChooseAsync(cut, "Sort and view", "Newest first");
-        nextPage.SetResult(Result.Success<IPagedList<BookSummaryDto>>(Page(3, false, Book("Elementa Chaos", "Sophia", 2))));
-        await loadMore;
-
-        cut.FindAll(".cover-item").Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task OnAfterRenderAsync_Should_ObserveTheSentinelWithThePage_WhenTheBooksAreShownBeforeTheScriptsAreReady()
-    {
-        // Back from a book (#1230): the books can be on screen before the browser answered the first script call.
-        _ctx.JSInterop.SetupVoid("bodyScroll.disable");
-        var firstPage = new TaskCompletionSource<Result<IPagedList<BookSummaryDto>>>();
-        GivenLibrary(LibraryBookType.Physical, LibraryView.Covers);
-        GivenPage(1, string.Empty, firstPage.Task);
-
-        var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
-        firstPage.SetResult(Result.Success<IPagedList<BookSummaryDto>>(Page(24, true, _blacksad, _hiver)));
-        await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item").Should().HaveCount(2));
-
-        var observe = _ctx.JSInterop.VerifyInvoke("infiniteScroll.observe");
-        observe.Arguments[0].Should().NotBeNull();
     }
 
     // ── Several books (#1150) ──────────────────────────────────────────

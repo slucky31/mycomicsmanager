@@ -38,7 +38,7 @@
                 </label>
             </div>
             <MudIconButton Icon="@Icons.Material.Filled.Search" OnClick="OpenSearch" aria-label="Search" Class="library-bar-search" />
-            @if (_displayedBooks.Count > 0)
+            @if (HasBooks)
             {
                 <MudIconButton Icon="@Icons.Material.Filled.Checklist" OnClick="() => StartSelecting()" aria-label="Select books" Class="library-bar-action" />
             }
@@ -54,7 +54,7 @@
             }
         </header>
 
-        @if (!string.IsNullOrEmpty(_shownSearch) && _displayedBooks.Count > 0)
+        @if (!string.IsNullOrEmpty(_shownSearch) && HasBooks)
         {
             <div class="library-search-results" role="status">@LibraryDisplay.SearchResults(_resultCount, _shownSearch)</div>
         }
@@ -65,7 +65,7 @@
         {
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="d-flex mx-auto mt-8" />
         }
-        else if (_displayedBooks.Count == 0 && string.IsNullOrEmpty(_shownSearch))
+        else if (!HasBooks && string.IsNullOrEmpty(_shownSearch))
         {
             <div class="library-empty">
                 <MudIcon Icon="@LibraryIcons.Resolve(_library?.Icon)" Style="@($"color: {_library?.Color}; font-size: 80px; opacity: 0.4;")" />
@@ -82,7 +82,7 @@
                 }
             </div>
         }
-        else if (_displayedBooks.Count == 0)
+        else if (!HasBooks)
         {
             <div class="library-empty">
                 <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 64px; opacity: 0.5;" />
@@ -92,29 +92,8 @@
         }
         else
         {
-            @if (_rows is not null)
-            {
-                <VirtualBooksView Rows="_rows" View="_currentViewMode" InitialBook="_initialBook" OnActions="OpenBookActionsAsync" Selection="_selection"
-                                  OnToggle="ToggleBook" From="@HereHref" OnPositionChanged="book => _firstBook = book" />
-            }
-            else if (_currentViewMode == LibraryView.List)
-            {
-                <BooksListView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" From="@HereHref" />
-            }
-            else
-            {
-                <BooksCoversView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" From="@HereHref" />
-            }
-            @if (_rows is null && _isLoadingMore)
-            {
-                <div class="d-flex justify-center pa-4">
-                    <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
-                </div>
-            }
-            @if (_rows is null)
-            {
-                <div id="scroll-sentinel"></div>
-            }
+            <VirtualBooksView @key="_currentViewMode" Rows="_rows!" View="_currentViewMode" InitialBook="_firstBook" OnActions="OpenBookActionsAsync"
+                              Selection="_selection" OnToggle="ToggleBook" From="@HereHref" OnPositionChanged="book => _firstBook = book" />
         }
     </div>
 </div>

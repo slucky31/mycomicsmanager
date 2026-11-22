@@ -1,6 +1,4 @@
-using Application.Interfaces;
 using Domain.Libraries;
-using Domain.Settings;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -22,11 +20,9 @@ public partial class LibraryDetailPage : IAsyncDisposable
     [Inject] private LibraryStateService LibraryStateService { get; set; } = default!;
     [Inject] private ILogger<LibraryDetailPage> Logger { get; set; } = default!;
     [Inject] private IIsbnScanService IsbnScanService { get; set; } = default!;
-    [Inject] private IFeatureToggles FeatureToggles { get; set; } = default!;
 
     [Parameter] public string? LibraryId { get; set; }
 
-    internal const int PageSize = 24;
     private const string SortAndViewButtonId = "library-sort-and-view";
     private const string MoreActionsButtonId = "library-more-actions";
     private const string AddBookButtonId = "library-add-book";
@@ -45,20 +41,12 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private bool _isStartingIsbnScan;
     private Guid _libraryGuid;
 
-    // Pages loaded so far (infinite scroll), the same for both views.
-    private readonly List<BookListItemViewModel> _displayedBooks = [];
-    private int _currentPage = 1;
-    private bool _hasNextPage;
-    private bool _isLoadingMore;
-    // Bumped by every reload of the first page: a next page asked for before it is dropped.
-    private int _loadVersion;
-
-    // Prototype (#1344, feature toggle): the books rendered by Virtualize, only those on screen, instead of the pages
-    // loaded so far; the library opens again on the first book that was on screen when it was left.
-    private bool _virtualized;
+    // The books of the current sort and search, rendered by Virtualize: only those on screen are in the page (#1344).
+    // The library opens again on the first book that was on screen when it was left.
     private LibraryBookRows? _rows;
-    private int _initialBook;
     private int _firstBook;
+    // Bumped by every load: books asked for before the last one are dropped.
+    private int _loadVersion;
 
     // Number of books of the library (known once a page was loaded without search) and of the shown results.
     private int? _libraryBookCount;
@@ -67,7 +55,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private string _shownSearch = string.Empty;
 
     private bool _isLoading = true;
-    private bool _observerInitialized;
     private bool _isSearchOpen;
     private bool _focusSearch;
 
@@ -106,6 +93,9 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private BookSortOrder _currentSortOrder = BookSortOrder.IdDesc;
 
     private bool IsDigital => _library?.BookType == LibraryBookType.Digital;
+
+    // Known once the first page of the current sort and search was loaded.
+    private bool HasBooks => _rows is not null && _resultCount > 0;
 
     // The library on screen: the side bar links to the other libraries, which are shown in this same page.
     private string? _shownLibraryId;
@@ -155,18 +145,13 @@ public partial class LibraryDetailPage : IAsyncDisposable
         _loadVersion++;
         _library = null;
         _rows = null;
-        _initialBook = 0;
         _firstBook = 0;
-        _displayedBooks.Clear();
-        _currentPage = 1;
-        _hasNextPage = false;
         _libraryBookCount = null;
         _resultCount = 0;
         _shownSearch = string.Empty;
         _searchTermValue = string.Empty;
         _isSearchOpen = false;
         _currentViewMode = LibraryView.Covers;
-        _observerInitialized = false;
         _openSheet = LibrarySheet.None;
         _actionsBook = null;
         _selection = BookSelection.None;
@@ -211,12 +196,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
                 _focusSearch = false;
             }
 
-            if (!_observerInitialized && !_isLoading && _displayedBooks.Count > 0 && _rows is null)
-            {
-                // Observed again after each page: a sentinel still on screen asks for the next one.
-                await JS.InvokeVoidAsync("infiniteScroll.observe", _disposalCts.Token, _dotNetRef, "scroll-sentinel", ".library-detail-content", nameof(LoadMoreBooksAsync));
-                _observerInitialized = true;
-            }
         }
         catch (OperationCanceledException)
         {
@@ -246,7 +225,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
         try
         {
             await JS.InvokeVoidAsync("bodyScroll.enable", CancellationToken.None);
-            await JS.InvokeVoidAsync("infiniteScroll.dispose", CancellationToken.None, "scroll-sentinel");
             if (_module is not null)
             {
                 await _module.InvokeVoidAsync("detach", CancellationToken.None, _content);
@@ -281,10 +259,8 @@ public partial class LibraryDetailPage : IAsyncDisposable
             {
                 _searchTermValue = saved.Search;
                 _isSearchOpen = !string.IsNullOrEmpty(saved.Search);
-                _initialBook = saved.FirstBook;
                 _firstBook = saved.FirstBook;
             }
-            _virtualized = FeatureToggles.IsEnabled(FeatureToggle.VirtualizedLibrary);
 
             var libResult = await LibrariesService.GetById(LibraryId);
             if (libResult.IsFailure)
@@ -318,93 +294,35 @@ public partial class LibraryDetailPage : IAsyncDisposable
 
     // ── Loading ────────────────────────────────────────────────────────
 
-    // Replaces the books on screen by the first pages of the current sort and search, in one query: after books
-    // left the library, as many pages as shown are loaded again, so that the scroll keeps its position.
-    private Task LoadFirstPageAsync(CancellationToken cancellationToken) => LoadFirstPagesAsync(1, cancellationToken);
-
-    private async Task LoadFirstPagesAsync(int pageCount, CancellationToken cancellationToken)
+    // Replaces the books on screen by those of the current sort and search, from their first page. The same sort and
+    // search again (books left the library) keep the scroll where it is; another one starts at the top.
+    private async Task LoadFirstPageAsync(CancellationToken cancellationToken)
     {
         var version = ++_loadVersion;
-        var sortOrder = _currentSortOrder;
-        var search = SearchTerm;
+        var rows = new LibraryBookRows(BooksService, _libraryGuid, _currentSortOrder, SearchTerm);
 
-        var result = await BooksService.GetPagedByLibrary(_libraryGuid, 1, pageCount * PageSize, sortOrder, search, cancellationToken);
+        var result = await rows.LoadFirstPageAsync(cancellationToken);
 
         // A newer load, sort or search started meanwhile: its own results will be shown.
-        if (version != _loadVersion || sortOrder != _currentSortOrder || search != SearchTerm)
+        if (version != _loadVersion || rows.SortOrder != _currentSortOrder || rows.Search != SearchTerm)
         {
             return;
         }
 
-        if (result.IsSuccess && result.Value?.Items is not null)
+        if (result.IsSuccess)
         {
-            _displayedBooks.Clear();
-            _displayedBooks.AddRange(result.Value.Items.Select(BookListItemViewModel.From));
-            _rows = _virtualized ? new LibraryBookRows(BooksService, _libraryGuid, sortOrder, search) : null;
-            _currentPage = pageCount;
-            _hasNextPage = result.Value.HasNextPage;
-            _resultCount = result.Value.TotalCount;
-            _shownSearch = search;
-            if (string.IsNullOrWhiteSpace(search))
+            _rows = rows;
+            _resultCount = result.Value;
+            _shownSearch = rows.Search;
+            if (string.IsNullOrWhiteSpace(rows.Search))
             {
-                _libraryBookCount = result.Value.TotalCount;
+                _libraryBookCount = result.Value;
             }
-            _observerInitialized = false;
         }
-        else if (result.IsFailure)
+        else
         {
             Snackbar.Add("Failed to load books", Severity.Error);
             Logger.LogError("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error!.Description);
-        }
-    }
-
-    [JSInvokable]
-    public async Task LoadMoreBooksAsync()
-    {
-        if (!_hasNextPage || _isLoadingMore)
-        {
-            return;
-        }
-
-        _isLoadingMore = true;
-        await InvokeAsync(StateHasChanged);
-
-        var version = _loadVersion;
-        var nextPage = _currentPage + 1;
-        var cancelled = false;
-
-        try
-        {
-            var result = await BooksService.GetPagedByLibrary(
-                _libraryGuid, nextPage, PageSize, _currentSortOrder, _shownSearch, _disposalCts.Token);
-
-            if (version == _loadVersion)
-            {
-                if (result.IsSuccess && result.Value?.Items is not null)
-                {
-                    _displayedBooks.AddRange(result.Value.Items.Select(BookListItemViewModel.From));
-                    _hasNextPage = result.Value.HasNextPage;
-                    _currentPage = nextPage;
-                    _observerInitialized = false;
-                }
-                else if (result.IsFailure)
-                {
-                    Snackbar.Add("Failed to load books", Severity.Error);
-                    Logger.LogError("Failed to load books for library {LibraryId}: {ErrorDescription}", _libraryGuid, result.Error!.Description);
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            cancelled = true;
-        }
-        finally
-        {
-            _isLoadingMore = false;
-            if (!cancelled)
-            {
-                await InvokeAsync(StateHasChanged);
-            }
         }
     }
 
@@ -522,8 +440,6 @@ public partial class LibraryDetailPage : IAsyncDisposable
         else if (_currentViewMode != view)
         {
             _currentViewMode = view;
-            // The sentinel is rendered again under the new view.
-            _observerInitialized = false;
         }
     }
 
@@ -574,7 +490,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     [JSInvokable]
     public void OpenBookActionsAt(string bookId, PopupAnchor anchor)
     {
-        var book = Guid.TryParse(bookId, out var id) ? _displayedBooks.Find(b => b.Id == id) ?? _rows?.Find(id) : null;
+        var book = Guid.TryParse(bookId, out var id) ? _rows?.Find(id) : null;
         if (book is null)
         {
             return;
@@ -687,7 +603,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
         {
             _libraryBookCount = Math.Max(count - booksGone, 0);
         }
-        await LoadFirstPagesAsync(_currentPage, _disposalCts.Token);
+        await LoadFirstPageAsync(_disposalCts.Token);
     }
 
     // ── Several books (#1150) ──────────────────────────────────────────
@@ -704,7 +620,7 @@ public partial class LibraryDetailPage : IAsyncDisposable
     private void ToggleBook(BookListItemViewModel book) => _selection = _selection.Toggle(book.Id);
 
     // The books loaded so far: those further down are loaded by scrolling.
-    private void CheckEveryShownBook() => _selection = _selection.With((_rows?.LoadedBooks ?? _displayedBooks).Select(b => b.Id));
+    private void CheckEveryShownBook() => _selection = _selection.With((_rows?.LoadedBooks ?? []).Select(b => b.Id));
 
     // Books checked were moved or deleted: the ones left are shown, none checked.
     private async Task BooksGoneAsync(int booksGone)

@@ -37,6 +37,7 @@ public sealed class LibraryBookRows(IBooksService booksService, Guid libraryId, 
     private readonly Dictionary<int, IReadOnlyList<BookListItemViewModel>> _pages = [];
     private int? _bookCount;
 
+    public Guid LibraryId { get; } = libraryId;
     public BookSortOrder SortOrder { get; } = sortOrder;
     public string Search { get; } = search;
 
@@ -45,9 +46,16 @@ public sealed class LibraryBookRows(IBooksService booksService, Guid libraryId, 
 
     public BookListItemViewModel? Find(Guid bookId) => LoadedBooks.FirstOrDefault(b => b.Id == bookId);
 
-    // Whether the rows are those of another sort or search, which start at the top again.
+    // Whether the rows are those of another library, sort or search, which start at the top again.
     public bool ShowsOtherBooksThan(LibraryBookRows? other) =>
-        other is null || other.SortOrder != SortOrder || !string.Equals(other.Search, Search, StringComparison.Ordinal);
+        other is null || other.LibraryId != LibraryId || other.SortOrder != SortOrder || !string.Equals(other.Search, Search, StringComparison.Ordinal);
+
+    // The first page, loaded before the rows are shown: it tells how many books there are (none: the library is empty).
+    public async Task<Result<int>> LoadFirstPageAsync(CancellationToken cancellationToken)
+    {
+        var loaded = await LoadPageAsync(0, cancellationToken);
+        return loaded.IsSuccess ? _bookCount!.Value : loaded.Error!;
+    }
 
     public async Task<Result<BookRows>> GetRowsAsync(int startRow, int rowCount, int columns, CancellationToken cancellationToken)
     {
@@ -104,7 +112,7 @@ public sealed class LibraryBookRows(IBooksService booksService, Guid libraryId, 
 
     private async Task<Result> LoadPageAsync(int page, CancellationToken cancellationToken)
     {
-        var result = await booksService.GetPagedByLibrary(libraryId, page + 1, pageSize, SortOrder, Search, cancellationToken);
+        var result = await booksService.GetPagedByLibrary(LibraryId, page + 1, pageSize, SortOrder, Search, cancellationToken);
         if (result.IsFailure || result.Value?.Items is null)
         {
             return result.Error ?? BooksError.NotFound;
