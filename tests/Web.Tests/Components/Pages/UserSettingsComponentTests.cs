@@ -1,14 +1,16 @@
-using AwesomeAssertions;
+﻿using AwesomeAssertions;
 using Bunit;
 using Domain.Primitives;
 using Domain.Users;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages;
 using Web.Infrastructure;
+using Web.Models;
 using Web.Services;
 using Xunit;
 
@@ -211,6 +213,41 @@ public sealed class UserSettingsComponentTests
         cut.Find(".settings-health-chip").TextContent.Should().Contain("Unavailable");
 
         snackbar.Received().Add("Failed to load system health", Severity.Error,
+            Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
+    }
+
+    [Fact]
+    public async Task ToggleDisplayDetailAsync_Should_ShowWhatThePageSeesOfTheScreen_AndHideItOnTheNextTap()
+    {
+        var (ctx, cut, _) = await RenderAsync(Healthy());
+        await using var _ = ctx;
+        ctx.JSInterop.Setup<DisplayDiagnostics>(DisplayDiagnosticsView.ScriptFunction)
+            .SetResult(new DisplayDiagnostics(false, "standalone", true, true, 59, 87, 852, 852));
+
+        await cut.Find("button[aria-controls='settings-display-detail']").ClickAsync(new());
+
+        cut.Find(".settings-display").TextContent.Should().Contain("Home Screen app");
+        cut.FindAll("#settings-display-detail li").Should().HaveCount(6);
+        cut.Find("#settings-display-detail").TextContent.Should().Contain("87 px");
+
+        await cut.Find("button[aria-controls='settings-display-detail']").ClickAsync(new());
+
+        cut.FindAll("#settings-display-detail").Should().BeEmpty();
+        cut.Find("button[aria-controls='settings-display-detail']").GetAttribute("aria-expanded").Should().Be("false");
+    }
+
+    [Fact]
+    public async Task ToggleDisplayDetailAsync_Should_ShowAnError_WhenTheScriptFails()
+    {
+        var (ctx, cut, snackbar) = await RenderAsync(Healthy());
+        await using var _ = ctx;
+        ctx.JSInterop.Setup<DisplayDiagnostics>(DisplayDiagnosticsView.ScriptFunction)
+            .SetException(new JSException("mcmDisplay is not defined"));
+
+        await cut.Find("button[aria-controls='settings-display-detail']").ClickAsync(new());
+
+        cut.FindAll("#settings-display-detail").Should().BeEmpty();
+        snackbar.Received(1).Add("Failed to read the display", Severity.Error,
             Arg.Any<Action<SnackbarOptions>?>(), Arg.Any<string?>());
     }
 }
