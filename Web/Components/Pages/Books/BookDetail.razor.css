@@ -265,37 +265,35 @@
     font-size: var(--mcm-font-body-l);
 }
 
-/* ── Other actions, with a label; they scroll sideways on a narrow phone ── */
+/* ── Other actions, with a label: one row of equal tiles on a phone, nothing hidden (#1346) ── */
 .book-actions {
     grid-area: actions;
-    display: flex;
-    gap: 8px;
-    margin: 0 -16px;
-    padding: 12px 16px 4px;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-
-.book-actions::-webkit-scrollbar {
-    display: none;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 12px 0 4px;
 }
 
 .book-action {
-    flex-shrink: 0;
-    height: 44px;
+    min-width: 0;
+    min-height: 64px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 0 14px;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
     border: 1px solid var(--mcm-border);
-    border-radius: 22px;
+    border-radius: var(--mcm-radius-l);
     background: #ffffff;
     font: inherit;
-    font-size: var(--mcm-font-label);
+    font-size: var(--mcm-font-caption);
     font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
     color: var(--mcm-text);
     text-decoration: none;
-    white-space: nowrap;
     cursor: pointer;
 }
 
@@ -306,6 +304,7 @@
 
 .book-action ::deep .mud-icon-root {
     font-size: var(--mcm-font-title);
+    color: var(--mcm-primary-strong);
 }
 
 /* ── Panels: details and reading history ── */
@@ -623,11 +622,26 @@
         font-size: var(--mcm-font-small);
     }
 
+    /* Wide enough for pills: the icon beside the label, wrapping when needed */
     .book-actions {
+        display: flex;
         flex-wrap: wrap;
-        margin: 0;
+        gap: 8px;
         padding: 4px 0 0;
-        overflow: visible;
+    }
+
+    .book-action {
+        flex-direction: row;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 22px;
+        font-size: var(--mcm-font-label);
+        white-space: nowrap;
+    }
+
+    .book-action ::deep .mud-icon-root {
+        color: inherit;
     }
 
     .book-panels {
