@@ -72,6 +72,11 @@ public class FeedImportDecisionReadService(ApplicationDbContext context) : IFeed
             .AsNoTracking()
             .CountAsync(d => d.UserId == userId && d.Status == status, cancellationToken);
 
+    public async Task<int> CountDownloadedAfterAutoRetryAsync(Guid userId, DateTime since, CancellationToken cancellationToken = default)
+        => await context.AutoRetryDownloads
+            .AsNoTracking()
+            .CountAsync(d => d.UserId == userId && d.DownloadedAt >= since, cancellationToken);
+
     public async Task<IReadOnlyDictionary<FeedImportDecisionStatus, int>> CountPerStatusAsync(Guid userId, string? host, CancellationToken cancellationToken = default)
         => await OnHost(context.FeedImportDecisions.AsNoTracking().Where(d => d.UserId == userId), host)
             .GroupBy(d => d.Status)

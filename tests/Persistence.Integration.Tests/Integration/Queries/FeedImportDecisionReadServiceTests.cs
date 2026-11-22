@@ -103,6 +103,51 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
         pending.Should().Be(1);
     }
 
+    private static readonly DownloadCandidate s_candidate = new("Blacksad T03", "Blacksad T03.cbz", null,
+        [new DownloadMirror("https://ddl.to/a", "ddl.to")]);
+
+    private static void FailOnHostDown(FeedImportDecision decision)
+    {
+        decision.RecordLinks([s_candidate], new ParsedComicTitle("Blacksad", null, 3), "1 link", FeedImportDecidedBy.Auto);
+        decision.StartDownload();
+        decision.Fail(FeedImportConstants.HostDownStep, "Host down on Debrid-Link. (ddl.to)");
+    }
+
+    private static void Download(FeedImportDecision decision)
+    {
+        decision.RecordLinks([s_candidate], new ParsedComicTitle("Blacksad", null, 3), "1 link", FeedImportDecidedBy.Auto);
+        decision.StartDownload();
+        decision.MarkDownloaded("https://ddl.to/a", Guid.CreateVersion7(), "Imported");
+    }
+
+    [Fact]
+    public async Task CountDownloadedAfterAutoRetryAsync_Should_CountTheDownloadsAfterAnAutomaticRetry_EvenWhenTheDecisionIsDeleted()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var decisions = await SeedAsync(userId, "Retried then downloaded", "Retried, downloaded, deleted");
+        foreach (var decision in decisions)
+        {
+            FailOnHostDown(decision);
+            decision.RetryAutomatically(_ => true);
+            Download(decision);
+            AutoRetryDownloadRepository.Add(AutoRetryDownload.From(decision)!);
+        }
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        FeedImportDecisionRepository.Remove(decisions[1]);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var recent = await FeedImportDecisionReadService.CountDownloadedAfterAutoRetryAsync(userId, DateTime.UtcNow.AddDays(-30), TestContext.Current.CancellationToken);
+        var future = await FeedImportDecisionReadService.CountDownloadedAfterAutoRetryAsync(userId, DateTime.UtcNow.AddDays(1), TestContext.Current.CancellationToken);
+        var otherUser = await FeedImportDecisionReadService.CountDownloadedAfterAutoRetryAsync(Guid.CreateVersion7(), DateTime.UtcNow.AddDays(-30), TestContext.Current.CancellationToken);
+
+        // Assert
+        recent.Should().Be(2);
+        future.Should().Be(0);
+        otherUser.Should().Be(0);
+    }
+
     [Fact]
     public async Task CountPerStatusAsync_Should_CountUserDecisionsOfEachStatus()
     {

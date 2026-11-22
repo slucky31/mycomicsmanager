@@ -314,6 +314,12 @@ public sealed class DownloadFeedImportDecisionCommandHandler(
             return marked;
         }
 
+        var autoRetryDownload = AutoRetryDownload.From(decision, timeProvider);
+        if (autoRetryDownload is not null)
+        {
+            depositServices.AutoRetryDownloads.Add(autoRetryDownload);
+        }
+
         var saved = await unitOfWork.SaveChangesAsync(cancellationToken);
         if (saved.IsFailure)
         {

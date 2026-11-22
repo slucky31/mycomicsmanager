@@ -34,6 +34,7 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<FeedImportDecisionEvent> FeedImportDecisionEvents => Set<FeedImportDecisionEvent>();
 
     public DbSet<HostStatusChange> HostStatusChanges => Set<HostStatusChange>();
+    public DbSet<AutoRetryDownload> AutoRetryDownloads => Set<AutoRetryDownload>();
 
     public DbSet<FeatureToggleOverride> FeatureToggleOverrides => Set<FeatureToggleOverride>();
 
@@ -161,5 +162,10 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
         hostStatusChange.Property(c => c.Id).ValueGeneratedNever();
         hostStatusChange.Property(c => c.Host).HasMaxLength(FeedImportConstants.MaxHostLength);
         hostStatusChange.HasIndex(c => new { c.Host, c.ChangedAt });
+
+        var autoRetryDownload = modelBuilder.Entity<AutoRetryDownload>();
+        autoRetryDownload.ToTable("AutoRetryDownloads");
+        autoRetryDownload.Property(d => d.Id).ValueGeneratedNever();
+        autoRetryDownload.HasIndex(d => new { d.UserId, d.DownloadedAt });
     }
 }

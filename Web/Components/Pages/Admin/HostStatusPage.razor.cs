@@ -16,6 +16,7 @@ public partial class HostStatusPage : IAsyncDisposable
     private HostStatusOverview _overview = HostStatusOverview.Empty;
     private HostStatusPageViewModel _view = HostStatusPageViewModel.Empty;
     private bool _isLoading;
+    private int _downloadedAfterRetry;
     private bool _downOnly;
     // The host whose history is shown; every host when null.
     private string? _host;
@@ -32,6 +33,7 @@ public partial class HostStatusPage : IAsyncDisposable
             {
                 _overview = result.Value!;
                 Rebuild();
+                _downloadedAfterRetry = await FeedImportService.CountDownloadedAfterAutoRetryAsync(_disposeCts.Token);
             }
             else if (result.IsFailure)
             {

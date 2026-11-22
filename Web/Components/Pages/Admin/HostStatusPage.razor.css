@@ -53,6 +53,29 @@
     font-size: var(--mcm-font-label);
 }
 
+/* Feeds the automatic retry got downloaded (#1318). */
+.hosts-stat {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--mcm-space-2);
+    padding: 10px 14px;
+    border: 1px solid var(--mcm-border);
+    border-radius: var(--mcm-radius-xl);
+    background: var(--mcm-surface);
+    font-size: var(--mcm-font-label);
+}
+
+.hosts-stat strong {
+    font-size: var(--mcm-font-subtitle);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.hosts-stat-window {
+    color: var(--mcm-text-muted);
+}
+
 .hosts-chips {
     display: flex;
     gap: var(--mcm-space-2);

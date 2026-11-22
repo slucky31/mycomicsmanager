@@ -160,8 +160,11 @@ public class FeedImportDecisionIntegrationTest : BaseIntegrationTest
 
     protected IFeedImportDecisionReadService FeedImportDecisionReadService { get; }
 
+    protected IAutoRetryDownloadRepository AutoRetryDownloadRepository { get; }
+
     public FeedImportDecisionIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
     {
+        AutoRetryDownloadRepository = _scope.ServiceProvider.GetRequiredService<IAutoRetryDownloadRepository>();
         FeedImportDecisionRepository = _scope.ServiceProvider.GetRequiredService<IFeedImportDecisionRepository>();
         FeedImportDecisionReadService = _scope.ServiceProvider.GetRequiredService<IFeedImportDecisionReadService>();
     }

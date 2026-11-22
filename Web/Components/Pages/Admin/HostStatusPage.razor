@@ -20,6 +20,13 @@
             <div class="hosts-note">Debrid-Link could not be reached: the states shown are the latest recorded ones.</div>
         }
 
+        <div class="hosts-stat">
+            <MudIcon Icon="@Icons.Material.Filled.Replay" Size="Size.Small" />
+            <span>Downloaded after an automatic retry</span>
+            <strong>@_downloadedAfterRetry</strong>
+            <span class="hosts-stat-window">(30 days)</span>
+        </div>
+
         <div class="hosts-chips" role="group" aria-label="Filter the hosts">
             <button type="button" class="hosts-chip" aria-pressed="@(_downOnly ? "false" : "true")" @onclick="() => SetDownOnly(false)">All</button>
             <button type="button" class="hosts-chip" aria-pressed="@(_downOnly ? "true" : "false")" @onclick="() => SetDownOnly(true)">
