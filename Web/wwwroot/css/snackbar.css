@@ -1,0 +1,139 @@
+/* Notifications (MudBlazor snackbars) drawn as a comic speech balloon: a white balloon with an ink
+   outline and a tail on the right; the colour of the icon's disc tells the severity. On a phone they sit above
+   the bottom bar and the home indicator, from the tablet on they stay at the bottom right. */
+
+/* ── Placement ─────────────────────────────────────────── */
+/* Phone without a bottom bar (forms, scanner): just above the home indicator. */
+#mud-snackbar-container {
+    left: max(var(--mcm-space-4), env(safe-area-inset-left, 0px));
+    right: max(var(--mcm-space-4), env(safe-area-inset-right, 0px));
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--mcm-space-4));
+    top: auto;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* Phone with the bottom bar (64px, NavBar.razor.css): 12px above it. */
+@media (max-width: 959.98px) {
+    body:has(.page-body.with-bottom-bar) #mud-snackbar-container {
+        bottom: calc(64px + env(safe-area-inset-bottom, 0px) + var(--mcm-space-3));
+    }
+}
+
+/* Rail and side bar: bottom right, as before. */
+@media (min-width: 960px) {
+    #mud-snackbar-container {
+        left: auto;
+        right: var(--mcm-space-5);
+        bottom: var(--mcm-space-5);
+        width: var(--mcm-snackbar-width);
+        max-width: calc(100vw - 2 * var(--mcm-space-5));
+    }
+}
+
+/* ── Balloon ──────────────────────────────────────────── */
+#mud-snackbar-container .mud-snackbar {
+    --snackbar-tint: var(--mcm-surface-sunken);
+    --snackbar-icon: var(--mcm-text-muted);
+    position: relative;
+    overflow: visible;
+    min-width: 0;
+    max-width: none;
+    margin-top: var(--mcm-space-1);
+    margin-bottom: var(--mcm-snackbar-tail);
+    padding: 5px 2px 5px 6px;
+    gap: var(--mcm-space-2);
+    background: var(--mcm-surface);
+    color: var(--mcm-text);
+    border: var(--mcm-snackbar-outline) solid var(--mcm-text);
+    border-radius: var(--mcm-radius-xl);
+    box-shadow: none;
+    font-size: var(--mcm-font-small);
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+/* The tail: an ink triangle, and a white one inside it that hides the outline where they meet. */
+#mud-snackbar-container .mud-snackbar::before,
+#mud-snackbar-container .mud-snackbar::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+#mud-snackbar-container .mud-snackbar::before {
+    right: 30px;
+    bottom: calc(-1 * var(--mcm-snackbar-tail));
+    border-width: var(--mcm-snackbar-tail) 12px 0 3px;
+    border-color: var(--mcm-text) transparent transparent transparent;
+}
+
+#mud-snackbar-container .mud-snackbar::after {
+    right: 32px;
+    bottom: calc(-1 * var(--mcm-snackbar-tail) + 4px);
+    border-width: 9px 8px 0 2px;
+    border-color: var(--mcm-surface) transparent transparent transparent;
+}
+
+#mud-snackbar-container .mud-snackbar .mud-snackbar-icon {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    opacity: 1;
+    border-radius: 50%;
+    background: var(--snackbar-tint);
+    color: var(--snackbar-icon);
+}
+
+#mud-snackbar-container .mud-snackbar .mud-snackbar-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+#mud-snackbar-container .mud-snackbar .mud-snackbar-content-message {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: var(--mcm-space-1) 0;
+}
+
+#mud-snackbar-container .mud-snackbar .mud-snackbar-content-action {
+    margin: 0;
+    padding: 0;
+}
+
+/* The close button keeps a 44px touch target without making the balloon taller. */
+#mud-snackbar-container .mud-snackbar .mud-snackbar-close-button {
+    width: 44px;
+    height: 44px;
+    margin: -8px 0;
+    color: var(--mcm-text-muted);
+}
+
+/* ── Severity: the colour of the icon's disc ──────────── */
+#mud-snackbar-container .mud-snackbar.mud-alert-filled-error {
+    --snackbar-tint: var(--mcm-error-soft);
+    --snackbar-icon: var(--mcm-error-strong);
+}
+
+#mud-snackbar-container .mud-snackbar.mud-alert-filled-success {
+    --snackbar-tint: var(--mcm-success-soft);
+    --snackbar-icon: var(--mcm-success-strong);
+}
+
+#mud-snackbar-container .mud-snackbar.mud-alert-filled-warning {
+    --snackbar-tint: var(--mcm-warning-soft);
+    --snackbar-icon: var(--mcm-warning-strong);
+}
+
+#mud-snackbar-container .mud-snackbar.mud-alert-filled-info {
+    --snackbar-tint: var(--mcm-info-soft);
+    --snackbar-icon: var(--mcm-info);
+}

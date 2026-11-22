@@ -68,6 +68,8 @@
     --mcm-info-soft: #E8EEFD;
     /* Warning text and outlines */
     --mcm-warning-strong: #8A5300;
+    /* Warning tint */
+    --mcm-warning-soft: #FFF4DC;
     /* Missing volumes */
     --mcm-missing: #8A3B00;
     /* Rating stars */
@@ -89,6 +91,10 @@
     /* The grids of covers: Covers view, series page and list of series. */
     --mcm-cover-grid-gap: 16px 12px;
     --mcm-cover-grid-gap-wide: 24px 20px;
+    /* Notifications drawn as a speech balloon (snackbar.css): outline, height of the tail, width from the tablet on. */
+    --mcm-snackbar-outline: 2px;
+    --mcm-snackbar-tail: 12px;
+    --mcm-snackbar-width: 420px;
     /* The space above the bars of the pages: the iPhone status bar. */
     --mcm-top-inset: env(safe-area-inset-top, 0px);
 }
