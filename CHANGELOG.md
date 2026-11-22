@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.6.0"></a>
+## [11.6.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.6.0) (2026-11-22)
+
+### ✨ Features
+
+* **books:** flag an ISBN already used while typing it ([#1361](https://www.github.com/slucky31/mycomicsmanager/issues/1361)) ([4d9bf5b](https://www.github.com/slucky31/mycomicsmanager/commit/4d9bf5b5204bd1ef598d90b26b242d87f2575f45))
+
 <a name="11.5.0"></a>
 ## [11.5.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.5.0) (2026-11-22)
 
