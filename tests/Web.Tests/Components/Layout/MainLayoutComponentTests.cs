@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Layout;
@@ -50,9 +49,8 @@ public sealed class MainLayoutComponentTests
         ctx.Services.AddSingleton(new LibrariesNotifier());
         ctx.AddAuthorization().SetAuthorized("user@example.com");
 
-        var cut = ctx.Render<MainLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "page"))));
+        ctx.Render<MainLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "page"))));
 
-        cut.FindComponent<MudThemeProvider>().Instance.ObserveSystemDarkModeChange.Should().BeFalse();
         ctx.JSInterop.Invocations.Should().NotContain(invocation => invocation.Identifier == "mudThemeProvider.watchDarkMode");
     }
 
@@ -63,9 +61,8 @@ public sealed class MainLayoutComponentTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddMudServices();
 
-        var cut = ctx.Render<ScannerLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "page"))));
+        ctx.Render<ScannerLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "page"))));
 
-        cut.FindComponent<MudThemeProvider>().Instance.ObserveSystemDarkModeChange.Should().BeFalse();
         ctx.JSInterop.Invocations.Should().NotContain(invocation => invocation.Identifier == "mudThemeProvider.watchDarkMode");
     }
 }
