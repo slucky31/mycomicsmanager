@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.2.0"></a>
+## [11.2.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.2.0) (2026-11-22)
+
+### ✨ Features
+
+* **feeds:** count the feeds downloaded after an automatic retry ([#1339](https://www.github.com/slucky31/mycomicsmanager/issues/1339)) ([75308f6](https://www.github.com/slucky31/mycomicsmanager/commit/75308f6050db5def1258717c1c6ee8669ed873d9))
+
 <a name="11.1.0"></a>
 ## [11.1.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.1.0) (2026-11-22)
 
