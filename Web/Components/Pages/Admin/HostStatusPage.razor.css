@@ -45,6 +45,15 @@
     color: var(--mcm-text-muted);
 }
 
+.hosts-check {
+    display: flex;
+    align-items: center;
+    gap: var(--mcm-space-2);
+    margin: 0;
+    font-size: var(--mcm-font-label);
+    color: var(--mcm-text-muted);
+}
+
 .hosts-note {
     padding: 10px 14px;
     border-radius: var(--mcm-radius-l);

@@ -104,7 +104,8 @@ public static class FeedImportFilters
 
 public static class HostStates
 {
-    // "Down since 21/11/2026 18:02", "Up, seen since ..." when the date is only the first reading, "Down" when not recorded yet.
+    // "Down since 21/11/2026 18:02", "Down since at least ..." when the date is only the first reading (the host was
+    // already in that state), "Down" when not recorded yet.
     public static string Describe(HostStatusRow state)
     {
         ArgumentNullException.ThrowIfNull(state);
@@ -115,6 +116,6 @@ public static class HostStates
         }
 
         var date = FeedImportDecisionViewModel.FormatDate(since);
-        return state.IsFirstReading ? $"{name}, checked since {date}" : $"{name} since {date}";
+        return state.IsFirstReading ? $"{name} since at least {date}" : $"{name} since {date}";
     }
 }
