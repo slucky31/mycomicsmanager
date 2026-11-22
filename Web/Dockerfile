@@ -13,7 +13,7 @@ COPY Directory.Packages.props .
 # layer: kept in the CI layer cache, they took longer to download back (~70 s) than to restore.
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     --mount=type=cache,id=nuget-http,target=/root/.local/share/NuGet/http-cache \
-    dotnet restore "./Web/Web.csproj" -a $TARGETARCH
+    dotnet restore "./Web/Web.csproj" -r linux-musl-$TARGETARCH
 
 # copy everything else and build app
 COPY . .
@@ -23,20 +23,20 @@ COPY . .
 # this restores the packages again.
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     --mount=type=cache,id=nuget-http,target=/root/.local/share/NuGet/http-cache \
-    dotnet publish "./Web/Web.csproj" -a $TARGETARCH -o /app -p:RunAnalyzers=false
+    dotnet publish "./Web/Web.csproj" -r linux-musl-$TARGETARCH -o /app -p:RunAnalyzers=false
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:11.0.0-resolute
+# Alpine (musl) halves the base image compared with Ubuntu (#1284). The -extra variant adds ICU and
+# tzdata, so culture-aware formatting and time zones work as on Ubuntu (no invariant globalization).
+FROM mcr.microsoft.com/dotnet/aspnet:11.0.0-alpine3.24-extra
 
 # tesseract-ocr reads the ISBN printed on the pages of the imported books.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl tesseract-ocr tesseract-ocr-eng \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng
 
 EXPOSE 8080
 WORKDIR /app
 COPY --from=build /app .
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -fsS http://localhost:8080/health/live || exit 1
+    CMD wget -q -O /dev/null http://localhost:8080/health/live || exit 1
 USER $APP_UID
 ENTRYPOINT ["./Web"]
