@@ -10,7 +10,9 @@ using Auth0.AspNetCore.Authentication;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -283,6 +285,11 @@ builder.Services.AddSingleton<ILegacyMigrationJobEnqueuer, HangfireLegacyMigrati
 builder.Services.AddHostedService<FileWatcherService>();
 builder.Services.AddHostedService<LibraryIconsWarmupService>();
 
+// Pauses the open circuits when the app stops, so a deployment keeps the pages where they were (#1342)
+builder.Services.AddSingleton<CircuitPauseOnShutdown>();
+builder.Services.AddSingleton<CircuitHandler>(sp => sp.GetRequiredService<CircuitPauseOnShutdown>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<CircuitPauseOnShutdown>());
+
 var app = builder.Build();
 
 // Apply pending EF Core migrations automatically on startup
@@ -361,7 +368,11 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     Authorization = [new HangfireAuthorizationFilter()]
 });
 
-app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+// A tab hidden for 2 minutes (the default) pauses its circuit, which resumes when the tab shows again (#1341).
+// The browser keeps the page state meanwhile; a field with unsaved changes prevents the pause.
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode()
+    .WithBrowserOptions(options => options.AddAutoPause());
 
 // Register Accounts Endpoints for Auth0 login/logout
 app.RegisterAccountEndpoints();
