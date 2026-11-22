@@ -1,7 +1,8 @@
 namespace Web.Services;
 
-// The view of a library is saved with it (#1210); only the search is kept for the time of the visit.
-public sealed record LibraryPageState(string Search);
+// The view of a library is saved with it (#1210); only the search is kept for the time of the visit, and the first
+// book on screen when the library is virtualized (#1344).
+public sealed record LibraryPageState(string Search, int FirstBook = 0);
 
 public sealed class LibraryStateService
 {

@@ -92,7 +92,12 @@
         }
         else
         {
-            @if (_currentViewMode == LibraryView.List)
+            @if (_rows is not null)
+            {
+                <VirtualBooksView Rows="_rows" View="_currentViewMode" InitialBook="_initialBook" OnActions="OpenBookActionsAsync" Selection="_selection"
+                                  OnToggle="ToggleBook" From="@HereHref" OnPositionChanged="book => _firstBook = book" />
+            }
+            else if (_currentViewMode == LibraryView.List)
             {
                 <BooksListView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" From="@HereHref" />
             }
@@ -100,13 +105,16 @@
             {
                 <BooksCoversView Books="@_displayedBooks" OnActions="OpenBookActionsAsync" Selection="_selection" OnToggle="ToggleBook" From="@HereHref" />
             }
-            @if (_isLoadingMore)
+            @if (_rows is null && _isLoadingMore)
             {
                 <div class="d-flex justify-center pa-4">
                     <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
                 </div>
             }
-            <div id="scroll-sentinel"></div>
+            @if (_rows is null)
+            {
+                <div id="scroll-sentinel"></div>
+            }
         }
     </div>
 </div>
