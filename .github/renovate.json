@@ -16,14 +16,19 @@
   ],
   "packageRules": [
     {
+      "description": "Images du Dockerfile épinglées par digest : une PR à chaque reconstruction de l'image de base (#1357)",
+      "matchManagers": ["dockerfile"],
+      "pinDigests": true
+    },
+    {
       "description": "Filet : toutes les autres mises à jour NuGet mineures/patch dans une seule PR",
       "matchManagers": ["nuget"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "NuGet (autres)"
     },
     {
-      "description": ".NET, ASP.NET Core (dont Mvc.Testing, lié à la version du runtime), EF Core, Npgsql et images Docker dotnet",
-      "matchUpdateTypes": ["minor", "patch"],
+      "description": ".NET, ASP.NET Core (dont Mvc.Testing, lié à la version du runtime), EF Core, Npgsql et images Docker dotnet (digest : reconstruction Microsoft, correctifs Alpine)",
+      "matchUpdateTypes": ["minor", "patch", "digest"],
       "matchPackageNames": [
         "Microsoft.*",
         "Npgsql*",
