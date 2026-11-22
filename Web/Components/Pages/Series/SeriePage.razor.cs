@@ -75,7 +75,7 @@ public partial class SeriePage : IAsyncDisposable
         }
     }
 
-    private async Task LoadAsync(bool bookGone = false)
+    private async Task LoadAsync()
     {
         var shown = _shown;
         if (string.IsNullOrWhiteSpace(shown.Name))
@@ -99,7 +99,9 @@ public partial class SeriePage : IAsyncDisposable
             }
             else if (result.IsFailure && result.Error == SeriesError.NotFound)
             {
-                ShowGone(shown.LibraryId, bookGone);
+                // Emptied here or elsewhere (its books moved, or renamed into another series), then reached again
+                // by Back: the list of the series, without an error, since nothing went wrong.
+                NavigationManager.NavigateTo(SerieDisplay.SeriesHref(shown.LibraryId));
             }
             else if (result.IsFailure)
             {
@@ -113,17 +115,6 @@ public partial class SeriePage : IAsyncDisposable
         {
             // Page left while loading.
         }
-    }
-
-    private void ShowGone(Guid libraryId, bool bookGone)
-    {
-        // When its last book was moved or deleted, the series is gone too: no need to say so.
-        if (!bookGone)
-        {
-            Snackbar.Add(SeriesError.NotFound.Description!, Severity.Error);
-        }
-
-        NavigationManager.NavigateTo(SerieDisplay.SeriesHref(libraryId));
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -194,7 +185,7 @@ public partial class SeriePage : IAsyncDisposable
     private void CloseActions() => _isActionsOpen = false;
 
     // A book moved or deleted leaves its place to a missing volume, or the series when it was the last one.
-    private Task ReloadAfterBookGoneAsync() => LoadAsync(bookGone: true);
+    private Task ReloadAfterBookGoneAsync() => LoadAsync();
 
     // ── Several books ──────────────────────────────────────────────────
 
@@ -217,7 +208,7 @@ public partial class SeriePage : IAsyncDisposable
     private async Task BooksGoneAsync(int booksGone)
     {
         _selection = BookSelection.None;
-        await LoadAsync(bookGone: true);
+        await LoadAsync();
     }
 
     // ── Number of volumes published ────────────────────────────────────

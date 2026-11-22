@@ -173,7 +173,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
     }
 
     [Fact]
-    public void SeriePage_Should_GoBackToTheSeries_WhenTheSeriesIsNotFound()
+    public void SeriePage_Should_GoBackToTheSeriesWithoutAnError_WhenTheSeriesIsNotFound()
     {
         _seriesService.GetSerie(s_libraryId, "XIII", Arg.Any<CancellationToken>()).Returns(SeriesError.NotFound);
         var navigation = _ctx.Services.GetRequiredService<NavigationManager>();
@@ -182,7 +182,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
 
         navigation.Uri.Should().EndWith($"/libraries/{s_libraryId}/series");
-        _snackbar.Received(1).Add("Series not found", Severity.Error);
+        _snackbar.DidNotReceive().Add(Arg.Any<string>(), Arg.Any<Severity>(), Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
     }
 
     [Fact]
