@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.5.0"></a>
+## [11.5.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.5.0) (2026-11-22)
+
+### ✨ Features
+
+* **blazor:** pause the circuits of hidden tabs and during deployments ([#1360](https://www.github.com/slucky31/mycomicsmanager/issues/1360)) ([3d52324](https://www.github.com/slucky31/mycomicsmanager/commit/3d52324e40d59c2a8ce63a5ac36cef3511ea19d2))
+
 <a name="11.4.4"></a>
 ## [11.4.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.4) (2026-11-22)
 
