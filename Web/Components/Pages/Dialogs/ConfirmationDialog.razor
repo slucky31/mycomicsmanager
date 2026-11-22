@@ -1,4 +1,4 @@
-@* A question before an action (E5, T13): what it does, the action named, and Cancel. *@
+﻿@* A question before an action (E5, T13): what it does, the action named, and Cancel. *@
 <MudDialog Class="app-dialog" ContentClass="app-dialog-content" role="alertdialog" aria-labelledby="@TitleId" aria-describedby="@TextId">
     <DialogContent>
         <div class="app-dialog-handle" aria-hidden="true"></div>
@@ -9,8 +9,8 @@
             }
             <h2 id="@TitleId">@MudDialog.Title</h2>
         </div>
-        <p id="@TextId" class="confirm-text">@ConfirmationMessage</p>
-        <div class="confirm-actions">
+        <p id="@TextId" class="confirm-text app-dialog-body">@ConfirmationMessage</p>
+        <div class="confirm-actions app-dialog-actions">
             <button type="button" class="confirm-button confirm-cancel" @onclick="Cancel">Cancel</button>
             <button type="button" class="@(IsDanger ? "confirm-button confirm-action confirm-danger" : "confirm-button confirm-action")" @onclick="Confirm">@ActionText</button>
         </div>
