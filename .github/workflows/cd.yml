@@ -249,20 +249,22 @@ jobs:
 
   github-release:
     name: GitHub Release
-    needs: [release, docker-web]
+    needs: [build, release, docker-web]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      # The tag of the version this run released (#1353): the first tag of the API list is the
+      # highest number, not the latest one, and pointed at v12.0.1 once 11.3.1 was released.
       - name: "Create release"
         uses: "actions/github-script@v9"
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
             try {
-              const tags_url = context.payload.repository.tags_url + "?per_page=1"
-              const result = await github.request(tags_url)
-              const current_tag = result.data[0].name
+              const current_tag = `v${process.env.VERSION}`
               await github.rest.repos.createRelease({
                 draft: false,
                 generate_release_notes: true,
