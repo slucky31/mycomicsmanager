@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.4.0"></a>
+## [11.4.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.0) (2026-11-22)
+
+### ✨ Features
+
+* **ui:** draw notifications as a comic speech balloon above the bottom bar ([#1351](https://www.github.com/slucky31/mycomicsmanager/issues/1351)) ([1662036](https://www.github.com/slucky31/mycomicsmanager/commit/1662036e62afb116b1947d74b27487b17d0baeec))
+
 <a name="11.3.1"></a>
 ## [11.3.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.3.1) (2026-11-22)
 
