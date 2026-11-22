@@ -11,12 +11,14 @@ public partial class HostStatusPage : IAsyncDisposable
     [Inject] private IFeedImportService FeedImportService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private ILogger<HostStatusPage> Logger { get; set; } = default!;
+    [Inject] private IHostCheckSchedule HostCheckSchedule { get; set; } = default!;
 
     private readonly CancellationTokenSource _disposeCts = new();
     private HostStatusOverview _overview = HostStatusOverview.Empty;
     private HostStatusPageViewModel _view = HostStatusPageViewModel.Empty;
     private bool _isLoading;
     private int _downloadedAfterRetry;
+    private HostCheckTimes _checkTimes = HostCheckTimes.Unknown;
     private bool _downOnly;
     // The host whose history is shown; every host when null.
     private string? _host;
@@ -34,6 +36,7 @@ public partial class HostStatusPage : IAsyncDisposable
                 _overview = result.Value!;
                 Rebuild();
                 _downloadedAfterRetry = await FeedImportService.CountDownloadedAfterAutoRetryAsync(_disposeCts.Token);
+                _checkTimes = HostCheckSchedule.GetCheckTimes();
             }
             else if (result.IsFailure)
             {

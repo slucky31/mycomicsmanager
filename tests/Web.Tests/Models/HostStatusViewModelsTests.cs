@@ -80,7 +80,7 @@ public sealed class HostStatusViewModelsTests
         var date = FeedImportDecisionViewModel.FormatDate(since);
 
         HostStates.Describe(new HostStatusRow("ddl", false, [], since, false, 1)).Should().Be($"Down since {date}");
-        HostStates.Describe(new HostStatusRow("ddl", true, [], since, true, 0)).Should().Be($"Up, checked since {date}");
+        HostStates.Describe(new HostStatusRow("ddl", true, [], since, true, 0)).Should().Be($"Up since at least {date}");
         HostStates.Describe(new HostStatusRow("ddl", true, [], null, false, 0)).Should().Be("Up");
     }
 

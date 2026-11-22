@@ -117,6 +117,7 @@ public static class FeedImportConfiguration
         services.AddScoped<ArticleLinkSources>();
         services.AddScoped<FeedImportNotifier>();
         services.AddScoped<IFeedImportService, FeedImportService>();
+        services.AddSingleton<IHostCheckSchedule, HostCheckSchedule>();
 
         return services;
     }
