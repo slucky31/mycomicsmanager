@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.4.3"></a>
+## [11.4.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.3) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **books:** show every action of a book on one row of tiles on a phone ([#1358](https://www.github.com/slucky31/mycomicsmanager/issues/1358)) ([273d47d](https://www.github.com/slucky31/mycomicsmanager/commit/273d47d35b2f8f2938a15a53cf4d31e639781b92))
+
 <a name="11.4.2"></a>
 ## [11.4.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.2) (2026-11-22)
 
