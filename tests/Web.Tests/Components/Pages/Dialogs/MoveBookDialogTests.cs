@@ -1,4 +1,4 @@
-using AwesomeAssertions;
+﻿using AwesomeAssertions;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
@@ -105,5 +105,16 @@ public sealed class MoveBookDialogTests : IAsyncDisposable
         await _provider.Find(".move-confirm").ClickAsync(new());
 
         dialog.Result.IsCompleted.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Render_Should_ScrollTheLibrariesOnly_AndKeepTheActionsBelowThem()
+    {
+        await ShowAsync(Choices(suggested: true));
+
+        var content = _provider.Find(".app-dialog-content");
+        content.Children.Select(c => c.ClassName).Should().Equal("app-dialog-handle", "move-heading", "move-libraries app-dialog-body", "move-actions app-dialog-actions");
+        _provider.FindAll(".app-dialog-body [role=radio]").Should().HaveCount(3);
+        _provider.FindAll(".app-dialog-actions .move-button").Should().HaveCount(2);
     }
 }

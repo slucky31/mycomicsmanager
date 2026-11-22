@@ -1,4 +1,4 @@
-@* The library to move a book, or several books of a library (#1150), to (E6, T14): a row per library, the current one shown but not chosen, then "Move to …". *@
+﻿@* The library to move a book, or several books of a library (#1150), to (E6, T14): a row per library, the current one shown but not chosen, then "Move to …". *@
 <MudDialog Class="app-dialog app-dialog-wide" ContentClass="app-dialog-content" aria-labelledby="@TitleId">
     <DialogContent>
         <div class="app-dialog-handle" aria-hidden="true"></div>
@@ -19,7 +19,7 @@
             <button type="button" class="move-close" aria-label="Close" title="Close" @onclick="Cancel"><MudIcon Icon="@Icons.Material.Filled.Close" /></button>
         </div>
 
-        <div class="move-libraries" role="radiogroup" aria-labelledby="@TitleId">
+        <div class="move-libraries app-dialog-body" role="radiogroup" aria-labelledby="@TitleId">
             @foreach (var library in Choices.Libraries)
             {
                 var selected = library.Id == _selected?.Id;
@@ -46,7 +46,7 @@
             }
         </div>
 
-        <div class="move-actions">
+        <div class="move-actions app-dialog-actions">
             <button type="button" class="move-button move-cancel" @onclick="Cancel">Cancel</button>
             <button type="button" class="move-button move-confirm" disabled="@(_selected is null)" @onclick="Confirm">
                 <MudIcon Icon="@Icons.Material.Filled.DriveFileMove" />@(_selected?.MoveLabel ?? "Move")

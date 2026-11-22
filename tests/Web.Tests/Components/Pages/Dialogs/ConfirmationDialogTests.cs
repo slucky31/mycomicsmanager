@@ -1,4 +1,4 @@
-using AwesomeAssertions;
+﻿using AwesomeAssertions;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
@@ -70,5 +70,15 @@ public sealed class ConfirmationDialogTests : IAsyncDisposable
         await _provider.Find(".confirm-action").ClickAsync(new());
 
         (await confirmation).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ShowConfirmationAsync_Should_ScrollTheTextOnly_AndKeepTheActionsBelowIt()
+    {
+        _ = AskAsync();
+
+        var content = _provider.Find(".app-dialog-content");
+        content.Children.Select(c => c.ClassName).Should().Equal("app-dialog-handle", "confirm-heading", "confirm-text app-dialog-body", "confirm-actions app-dialog-actions");
+        _provider.FindAll(".app-dialog-actions .confirm-button").Should().HaveCount(2);
     }
 }

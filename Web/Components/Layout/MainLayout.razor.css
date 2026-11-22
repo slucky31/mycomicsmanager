@@ -1,4 +1,4 @@
-/* The page leaves room for the navigation of its screen width (NavBar.razor.css) and for the
+﻿/* The page leaves room for the navigation of its screen width (NavBar.razor.css) and for the
    iPhone system areas (notch in landscape, home indicator). */
 .page-body {
     display: block;
@@ -73,9 +73,33 @@
     color: var(--mcm-text);
 }
 
+/* Three zones (#1340): the heading stays at the top, the body alone scrolls, the actions stay at the bottom. */
 .dialog-host ::deep .app-dialog-content {
-    padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+    --app-dialog-gutter: 20px;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 8px var(--app-dialog-gutter) calc(20px + env(safe-area-inset-bottom));
+    overflow: hidden;
+}
+
+/* Edge to edge, so that the focus ring of a row is not cut; a line shows above the actions
+   only while more rows are below (the white band, attached to the end of the rows, hides it there). */
+.dialog-host ::deep .app-dialog-body {
+    flex: 0 1 auto;
+    min-height: 0;
+    margin: 0 calc(-1 * var(--app-dialog-gutter));
+    padding: 4px var(--app-dialog-gutter);
     overflow-y: auto;
+    overscroll-behavior: contain;
+    background:
+        linear-gradient(var(--mcm-surface), var(--mcm-surface)) 0 100% / 100% 2px no-repeat local,
+        linear-gradient(var(--mcm-border), var(--mcm-border)) 0 100% / 100% 1px no-repeat scroll;
+}
+
+.dialog-host ::deep .app-dialog-actions {
+    flex-shrink: 0;
 }
 
 .dialog-host ::deep .app-dialog-handle {
@@ -104,6 +128,7 @@
     }
 
     .dialog-host ::deep .app-dialog-content {
+        --app-dialog-gutter: 24px;
         padding: 24px;
     }
 
