@@ -8,6 +8,9 @@ public interface IDebridLinkClient
     // Domains Debrid-Link can unlock (GET /downloader/domains).
     Task<Result<IReadOnlyList<string>>> GetSupportedDomainsAsync(CancellationToken cancellationToken = default);
 
+    // Hosts with their state on the Debrid-Link status page (GET /downloader/hosts, cached for a few minutes).
+    Task<Result<IReadOnlyList<DebridLinkHost>>> GetHostsAsync(CancellationToken cancellationToken = default);
+
     // Validates the API key and the API availability (GET /account/infos).
     Task<Result> CheckAccountAsync(CancellationToken cancellationToken = default);
 

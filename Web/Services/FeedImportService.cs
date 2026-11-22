@@ -1,8 +1,10 @@
 using Application.FeedImports;
 using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Delete;
+using Application.FeedImports.HostStatus;
 using Application.FeedImports.List;
 using Application.FeedImports.Manage;
+using Application.FeedImports.Retry;
 using Application.Interfaces;
 using Application.Libraries;
 using Domain.FeedImports;
@@ -63,8 +65,12 @@ public class FeedImportService(
             importLibraryId = library?.Id;
         }
 
+        // The mirrors show the state of their host on Debrid-Link (none when it could not be read).
+        var hosts = await GetHostStatusOverviewAsync(cancellationToken);
+        var overview = hosts.IsSuccess ? hosts.Value! : HostStatusOverview.Empty;
         var items = decisions
-            .Select(d => FeedImportDecisionViewModel.From(d, decisionPage.MultiBookEntryIds.Contains(d.MinifluxEntryId), importLibraryId, timeProvider))
+            .Select(d => FeedImportDecisionViewModel.From(
+                d, decisionPage.MultiBookEntryIds.Contains(d.MinifluxEntryId), importLibraryId, timeProvider, host => overview.FindByDomain(host)?.IsUp))
             .ToList();
         return new FeedImportDecisionPageViewModel(items, decisionPage.Decisions.TotalCount);
     }
@@ -199,8 +205,55 @@ public class FeedImportService(
         }
 
         var counts = await decisionReadService.CountPerHostAsync(userIdResult.Value, status, cancellationToken);
-        return FeedImportHostOptions.From(counts);
+        var hosts = await GetHostStatusOverviewAsync(cancellationToken);
+        return FeedImportHostOptions.From(counts, hosts.IsSuccess ? hosts.Value! : HostStatusOverview.Empty);
     }
+
+    public async Task<int> CountRetryableAsync(CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return 0;
+        }
+
+        var count = await RunAsync(h => h.CountRetryable.Handle(new CountRetryableFeedImportDecisionsQuery(userIdResult.Value), cancellationToken));
+        return count.IsSuccess ? count.Value : 0;
+    }
+
+    public async Task<Result<int>> RetryWaitingAsync(CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        var retried = await RunAsync(h => h.RetryWaiting.Handle(
+            new RetryWaitingFeedImportDecisionsCommand(userIdResult.Value, FeedImportDecidedBy.User), cancellationToken));
+        if (retried.IsFailure)
+        {
+            return retried.Error!;
+        }
+
+        var decisions = retried.Value!;
+        foreach (var decision in decisions.Where(d => d.Status == FeedImportDecisionStatus.LinksExtracted))
+        {
+            EnqueueDownload(decision.Id);
+        }
+
+        // One sync analyzes every decision sent back to Pending.
+        var pending = decisions.FirstOrDefault(d => d.Status == FeedImportDecisionStatus.Pending);
+        if (pending is not null)
+        {
+            StartNextStep(pending.Id, pending.Status);
+        }
+
+        return decisions.Count;
+    }
+
+    public Task<Result<HostStatusOverview>> GetHostStatusOverviewAsync(CancellationToken cancellationToken = default) =>
+        RunAsync(h => h.HostStatusOverview.Handle(new GetHostStatusOverviewQuery(), cancellationToken));
 
     private async Task<T> RunAsync<T>(Func<FeedImportHandlers, Task<T>> handle)
     {
@@ -215,17 +268,21 @@ public class FeedImportService(
             return result.Error!;
         }
 
-        if (result.Value == FeedImportDecisionStatus.LinksExtracted)
+        StartNextStep(decisionId, result.Value);
+        return Result.Success();
+    }
+
+    private void StartNextStep(Guid decisionId, FeedImportDecisionStatus status)
+    {
+        if (status == FeedImportDecisionStatus.LinksExtracted)
         {
             EnqueueDownload(decisionId);
         }
-        else if (result.Value == FeedImportDecisionStatus.Pending && IsSyncEnabled)
+        else if (status == FeedImportDecisionStatus.Pending && IsSyncEnabled)
         {
             // No link yet: the article is analyzed again by the sync.
             backgroundJobClient.Enqueue<FeedImportSyncJob>(job => job.SyncAsync(CancellationToken.None));
         }
-
-        return Result.Success();
     }
 
     private void EnqueueDownload(Guid decisionId)

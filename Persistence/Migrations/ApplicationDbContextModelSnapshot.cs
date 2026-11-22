@@ -8,641 +8,677 @@ using Persistence;
 
 #nullable disable
 
-namespace Persistence.Migrations
+namespace Persistence.Migrations;
+
+[DbContext(typeof(ApplicationDbContext))]
+partial class ApplicationDbContextModelSnapshot : ModelSnapshot
 {
-    [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    // If you encounter a merge conflict in the line below, it means you need to
+    // discard one of the migration branches and recreate its migrations on top of
+    // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
+    public override string LastMigrationId => "20261121230214_AddHostStatusChangesAndAutoRetryCount";
+
+    protected override void BuildModel(ModelBuilder modelBuilder)
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.14")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+        modelBuilder
+            .HasAnnotation("ProductVersion", "11.0.0")
+            .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+        NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain.Books.Book", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+        modelBuilder.Entity("Domain.Books.Book", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
 
-                    b.Property<string>("Authors")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("Authors")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ISBN")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                b.Property<string>("ISBN")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
 
-                    b.Property<string>("ImageLink")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                b.Property<string>("ImageLink")
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
 
-                    b.Property<Guid>("LibraryId")
-                        .HasColumnType("uuid");
+                b.Property<Guid>("LibraryId")
+                    .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("NumberOfPages")
-                        .HasColumnType("integer");
+                b.Property<int?>("NumberOfPages")
+                    .HasColumnType("integer");
 
-                    b.Property<DateOnly?>("PublishDate")
-                        .HasColumnType("date");
+                b.Property<DateOnly?>("PublishDate")
+                    .HasColumnType("date");
 
-                    b.Property<string>("Publishers")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("Publishers")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<string>("Serie")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("Serie")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("Title")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<int>("VolumeNumber")
-                        .HasColumnType("integer");
+                b.Property<int>("VolumeNumber")
+                    .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("LibraryId");
+                b.HasIndex("LibraryId");
 
-                    b.ToTable("Books", (string)null);
+                b.ToTable("Books");
 
-                    b.UseTptMappingStrategy();
-                });
+                b.UseTptMappingStrategy();
+            });
 
-            modelBuilder.Entity("Domain.Books.IsbnBedethequeUrl", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+        modelBuilder.Entity("Domain.Books.IsbnBedethequeUrl", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ISBN")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                b.Property<string>("ISBN")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                b.Property<string>("Url")
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("ISBN")
-                        .IsUnique();
+                b.HasIndex("ISBN")
+                    .IsUnique();
 
-                    b.ToTable("IsbnBedethequeUrls", (string)null);
-                });
+                b.ToTable("IsbnBedethequeUrls");
+            });
 
-            modelBuilder.Entity("Domain.Books.ReadingDate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+        modelBuilder.Entity("Domain.Books.ReadingDate", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
 
-                    b.Property<Guid>("BookId")
-                        .HasColumnType("uuid");
+                b.Property<Guid>("BookId")
+                    .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime>("Date")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer");
+                b.Property<int>("Rating")
+                    .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("BookId");
+                b.HasIndex("BookId");
 
-                    b.ToTable("ReadingDates", (string)null);
-                });
+                b.ToTable("ReadingDates");
+            });
 
-            modelBuilder.Entity("Domain.FeedImports.FeedImportDecision", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+        modelBuilder.Entity("Domain.FeedImports.FeedImportDecision", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
 
-                    b.Property<int>("ArbitrationKind")
-                        .HasColumnType("integer");
+                b.Property<int>("ArbitrationKind")
+                    .HasColumnType("integer");
 
-                    b.Property<string>("ChosenMirror")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                b.Property<int>("AutoRetryCount")
+                    .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<string>("ChosenMirror")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("DecidedBy")
-                        .HasColumnType("integer");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("EntryTitle")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                b.Property<int>("DecidedBy")
+                    .HasColumnType("integer");
 
-                    b.Property<string>("EntryUrl")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                b.Property<string>("EntryTitle")
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
 
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                b.Property<string>("EntryUrl")
+                    .IsRequired()
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
 
-                    b.Property<string>("ErrorStep")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                b.Property<string>("ErrorMessage")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
 
-                    b.PrimitiveCollection<string[]>("Hosts")
-                        .IsRequired()
-                        .HasColumnType("text[]");
+                b.Property<string>("ErrorStep")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
 
-                    b.Property<Guid?>("ImportJobId")
-                        .HasColumnType("uuid");
+                b.PrimitiveCollection<string[]>("Hosts")
+                    .IsRequired()
+                    .HasColumnType("text[]");
 
-                    b.Property<int>("ItemIndex")
-                        .HasColumnType("integer");
+                b.Property<Guid?>("ImportJobId")
+                    .HasColumnType("uuid");
 
-                    b.Property<string>("Links")
-                        .HasColumnType("jsonb");
+                b.Property<int>("ItemIndex")
+                    .HasColumnType("integer");
 
-                    b.Property<Guid?>("MatchedBookId")
-                        .HasColumnType("uuid");
+                b.Property<string>("Links")
+                    .HasColumnType("jsonb");
 
-                    b.Property<long>("MinifluxEntryId")
-                        .HasColumnType("bigint");
+                b.Property<Guid?>("MatchedBookId")
+                    .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<long>("MinifluxEntryId")
+                    .HasColumnType("bigint");
 
-                    b.Property<string>("ParsedSerie")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ParsedTitle")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
+                b.Property<string>("ParsedSerie")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<int?>("ParsedVolume")
-                        .HasColumnType("integer");
+                b.Property<string>("ParsedTitle")
+                    .HasMaxLength(300)
+                    .HasColumnType("character varying(300)");
 
-                    b.Property<DateTime?>("PublishedAt")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<int?>("ParsedVolume")
+                    .HasColumnType("integer");
 
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                b.Property<DateTime?>("PublishedAt")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                b.Property<string>("Reason")
+                    .IsRequired()
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<int>("Status")
+                    .HasColumnType("integer");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                b.Property<DateTime>("UpdatedAt")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
+                b.Property<Guid>("UserId")
+                    .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                b.Property<uint>("xmin")
+                    .IsConcurrencyToken()
+                    .ValueGeneratedOnAddOrUpdate()
+                    .HasColumnType("xid")
+                    .HasColumnName("xmin");
 
-                    b.HasIndex("UserId", "Status");
+                b.HasKey("Id");
 
-                    b.HasIndex("UserId", "MinifluxEntryId", "ItemIndex")
-                        .IsUnique();
+                b.HasIndex("UserId", "Status");
 
-                    b.ToTable("FeedImportDecisions", (string)null);
-                });
+                b.HasIndex("UserId", "MinifluxEntryId", "ItemIndex")
+                    .IsUnique();
 
-            modelBuilder.Entity("Domain.FeedImports.FeedImportDecisionEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                b.ToTable("FeedImportDecisions");
+            });
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+        modelBuilder.Entity("Domain.FeedImports.FeedImportDecisionEvent", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uuid");
 
-                    b.Property<int>("DecidedBy")
-                        .HasColumnType("integer");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                b.Property<int>("DecidedBy")
+                    .HasColumnType("integer");
 
-                    b.Property<Guid>("FeedImportDecisionId")
-                        .HasColumnType("uuid");
+                b.Property<string>("Description")
+                    .IsRequired()
+                    .HasMaxLength(1000)
+                    .HasColumnType("character varying(1000)");
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<Guid>("FeedImportDecisionId")
+                    .HasColumnType("uuid");
 
-                    b.Property<DateTime>("OccurredAt")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("PreviousStatus")
-                        .HasColumnType("integer");
+                b.Property<DateTime>("OccurredAt")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                b.Property<int?>("PreviousStatus")
+                    .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                b.Property<int>("Status")
+                    .HasColumnType("integer");
 
-                    b.HasIndex("FeedImportDecisionId");
+                b.HasKey("Id");
 
-                    b.ToTable("FeedImportDecisionEvents", (string)null);
-                });
+                b.HasIndex("FeedImportDecisionId");
 
-            modelBuilder.Entity("Domain.ImportJobs.ImportJob", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                b.ToTable("FeedImportDecisionEvents");
+            });
 
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
+        modelBuilder.Entity("Domain.FeedImports.HostStatusChange", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uuid");
 
-                    b.Property<int>("ConvertedImagesCount")
-                        .HasColumnType("integer");
+                b.Property<DateTime>("ChangedAt")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<string>("Host")
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .HasColumnType("character varying(255)");
 
-                    b.Property<Guid?>("DigitalBookId")
-                        .HasColumnType("uuid");
+                b.Property<bool>("IsUp")
+                    .HasColumnType("boolean");
 
-                    b.Property<string>("ErrorFilePath")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                b.HasKey("Id");
 
-                    b.Property<string>("ErrorStep")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                b.HasIndex("Host", "ChangedAt");
 
-                    b.Property<Guid>("LibraryId")
-                        .HasColumnType("uuid");
+                b.ToTable("HostStatusChanges");
+            });
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+        modelBuilder.Entity("Domain.ImportJobs.ImportJob", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
 
-                    b.Property<string>("OriginalFileName")
-                        .IsRequired()
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)");
+                b.Property<DateTime?>("CompletedAt")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("OriginalFilePath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                b.Property<int>("ConvertedImagesCount")
+                    .HasColumnType("integer");
 
-                    b.Property<long>("OriginalFileSize")
-                        .HasColumnType("bigint");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.PrimitiveCollection<string[]>("SplitFileNames")
-                        .IsRequired()
-                        .HasColumnType("text[]");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                b.Property<Guid?>("DigitalBookId")
+                    .HasColumnType("uuid");
 
-                    b.Property<int>("TotalImagesToConvert")
-                        .HasColumnType("integer");
+                b.Property<string>("ErrorFilePath")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
 
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
+                b.Property<string>("ErrorMessage")
+                    .HasMaxLength(2000)
+                    .HasColumnType("character varying(2000)");
 
-                    b.HasKey("Id");
+                b.Property<string>("ErrorStep")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
 
-                    b.HasIndex("LibraryId");
+                b.Property<Guid>("LibraryId")
+                    .HasColumnType("uuid");
 
-                    b.HasIndex("OriginalFilePath")
-                        .IsUnique()
-                        .HasFilter("\"Status\" NOT IN (6, 7, 8)");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.HasIndex("Status");
+                b.Property<string>("OriginalFileName")
+                    .IsRequired()
+                    .HasMaxLength(260)
+                    .HasColumnType("character varying(260)");
 
-                    b.ToTable("ImportJobs", (string)null);
-                });
+                b.Property<string>("OriginalFilePath")
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
 
-            modelBuilder.Entity("Domain.Libraries.Library", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                b.Property<long>("OriginalFileSize")
+                    .HasColumnType("bigint");
 
-                    b.Property<int>("BookType")
-                        .HasColumnType("integer");
+                b.PrimitiveCollection<string[]>("SplitFileNames")
+                    .IsRequired()
+                    .HasColumnType("text[]");
 
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasMaxLength(7)
-                        .HasColumnType("character varying(7)");
+                b.Property<int>("Status")
+                    .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<int>("TotalImagesToConvert")
+                    .HasColumnType("integer");
 
-                    b.Property<int>("DefaultBookSortOrder")
-                        .HasColumnType("integer");
+                b.Property<uint>("xmin")
+                    .IsConcurrencyToken()
+                    .ValueGeneratedOnAddOrUpdate()
+                    .HasColumnType("xid")
+                    .HasColumnName("xmin");
 
-                    b.Property<int>("DefaultView")
-                        .HasColumnType("integer");
+                b.HasKey("Id");
 
-                    b.Property<string>("Icon")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                b.HasIndex("LibraryId");
 
-                    b.Property<bool>("IsHidden")
-                        .HasColumnType("boolean");
+                b.HasIndex("OriginalFilePath")
+                    .IsUnique()
+                    .HasFilter("\"Status\" NOT IN (6, 7, 8)");
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.HasIndex("Status");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.ToTable("ImportJobs");
+            });
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+        modelBuilder.Entity("Domain.Libraries.Library", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                b.Property<int>("BookType")
+                    .HasColumnType("integer");
 
-                    b.ToTable("Libraries", (string)null);
-                });
+                b.Property<string>("Color")
+                    .IsRequired()
+                    .HasMaxLength(7)
+                    .HasColumnType("character varying(7)");
 
-            modelBuilder.Entity("Domain.Series.SeriesInfo", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<int>("DefaultBookSortOrder")
+                    .HasColumnType("integer");
 
-                    b.Property<bool>("IsFinished")
-                        .HasColumnType("boolean");
+                b.Property<int>("DefaultView")
+                    .HasColumnType("integer");
 
-                    b.Property<Guid>("LibraryId")
-                        .HasColumnType("uuid");
+                b.Property<string>("Icon")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<bool>("IsHidden")
+                    .HasColumnType("boolean");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("NormalizedName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<int?>("TotalVolumes")
-                        .HasColumnType("integer");
+                b.Property<Guid>("UserId")
+                    .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("LibraryId", "NormalizedName")
-                        .IsUnique();
+                b.ToTable("Libraries");
+            });
 
-                    b.ToTable("SeriesInfos", (string)null);
-                });
+        modelBuilder.Entity("Domain.Series.SeriesInfo", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
 
-            modelBuilder.Entity("Domain.Settings.FeatureToggleOverride", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<bool>("IsFinished")
+                    .HasColumnType("boolean");
 
-                    b.Property<bool>("Enabled")
-                        .HasColumnType("boolean");
+                b.Property<Guid>("LibraryId")
+                    .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Toggle")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.HasKey("Id");
+                b.Property<string>("NormalizedName")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.HasIndex("Toggle")
-                        .IsUnique();
+                b.Property<int?>("TotalVolumes")
+                    .HasColumnType("integer");
 
-                    b.ToTable("FeatureToggleOverrides", (string)null);
-                });
+                b.HasKey("Id");
 
-            modelBuilder.Entity("Domain.Users.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                b.HasIndex("LibraryId", "NormalizedName")
+                    .IsUnique();
 
-                    b.Property<string>("AuthId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                b.ToTable("SeriesInfos");
+            });
 
-                    b.Property<DateTime>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+        modelBuilder.Entity("Domain.Settings.FeatureToggleOverride", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("ModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<bool>("Enabled")
+                    .HasColumnType("boolean");
 
-                    b.Property<bool>("ShowHiddenLibraries")
-                        .HasColumnType("boolean");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                b.Property<string>("Toggle")
+                    .IsRequired()
+                    .HasMaxLength(64)
+                    .HasColumnType("character varying(64)");
 
-                    b.ToTable("Users", (string)null);
-                });
+                b.HasKey("Id");
 
-            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                b.HasIndex("Toggle")
+                    .IsUnique();
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                b.ToTable("FeatureToggleOverrides");
+            });
 
-                    b.Property<string>("FriendlyName")
-                        .HasColumnType("text");
+        modelBuilder.Entity("Domain.Users.User", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
 
-                    b.Property<string>("Xml")
-                        .HasColumnType("text");
+                b.Property<string>("AuthId")
+                    .IsRequired()
+                    .HasColumnType("text");
 
-                    b.HasKey("Id");
+                b.Property<DateTime>("CreatedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.ToTable("DataProtectionKeys");
-                });
+                b.Property<string>("Email")
+                    .IsRequired()
+                    .HasColumnType("text");
 
-            modelBuilder.Entity("Domain.Books.DigitalBook", b =>
-                {
-                    b.HasBaseType("Domain.Books.Book");
+                b.Property<DateTime?>("ModifiedOnUtc")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                b.Property<bool>("ShowHiddenLibraries")
+                    .HasColumnType("boolean");
 
-                    b.Property<long>("FileSize")
-                        .HasColumnType("bigint");
+                b.HasKey("Id");
 
-                    b.PrimitiveCollection<string[]>("IsbnCandidates")
-                        .IsRequired()
-                        .HasColumnType("text[]");
+                b.ToTable("Users");
+            });
 
-                    b.Property<DateTime?>("IsbnScannedAt")
-                        .HasColumnType("timestamp with time zone");
+        modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("integer");
 
-                    b.Property<DateTime?>("LastReadAt")
-                        .HasColumnType("timestamp with time zone");
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(id);
 
-                    b.Property<int>("LastReadPage")
-                        .HasColumnType("integer");
+                b.Property<string>("FriendlyName")
+                    .HasColumnType("text");
 
-                    b.Property<int>("ReaderLayout")
-                        .HasColumnType("integer");
+                b.Property<string>("Xml")
+                    .HasColumnType("text");
 
-                    b.Property<int>("ReaderScrolling")
-                        .HasColumnType("integer");
+                b.HasKey("Id");
 
-                    b.Property<int>("ReadingDirection")
-                        .HasColumnType("integer");
+                b.ToTable("DataProtectionKeys");
+            });
 
-                    b.ToTable("DigitalBooks", (string)null);
-                });
+        modelBuilder.Entity("Domain.Books.DigitalBook", b =>
+            {
+                b.HasBaseType("Domain.Books.Book");
 
-            modelBuilder.Entity("Domain.Books.PhysicalBook", b =>
-                {
-                    b.HasBaseType("Domain.Books.Book");
+                b.Property<string>("FilePath")
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
 
-                    b.ToTable("PhysicalBooks", (string)null);
-                });
+                b.Property<long>("FileSize")
+                    .HasColumnType("bigint");
 
-            modelBuilder.Entity("Domain.Books.Book", b =>
-                {
-                    b.HasOne("Domain.Libraries.Library", "Library")
-                        .WithMany("Books")
-                        .HasForeignKey("LibraryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.PrimitiveCollection<string[]>("IsbnCandidates")
+                    .IsRequired()
+                    .HasColumnType("text[]");
 
-                    b.Navigation("Library");
-                });
+                b.Property<DateTime?>("IsbnScannedAt")
+                    .HasColumnType("timestamp with time zone");
 
-            modelBuilder.Entity("Domain.Books.ReadingDate", b =>
-                {
-                    b.HasOne("Domain.Books.Book", null)
-                        .WithMany("ReadingDates")
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                b.Property<DateTime?>("LastReadAt")
+                    .HasColumnType("timestamp with time zone");
 
-            modelBuilder.Entity("Domain.FeedImports.FeedImportDecisionEvent", b =>
-                {
-                    b.HasOne("Domain.FeedImports.FeedImportDecision", null)
-                        .WithMany("Events")
-                        .HasForeignKey("FeedImportDecisionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                b.Property<int>("LastReadPage")
+                    .HasColumnType("integer");
 
-            modelBuilder.Entity("Domain.Series.SeriesInfo", b =>
-                {
-                    b.HasOne("Domain.Libraries.Library", null)
-                        .WithMany()
-                        .HasForeignKey("LibraryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                b.Property<int>("ReaderLayout")
+                    .HasColumnType("integer");
 
-            modelBuilder.Entity("Domain.Books.DigitalBook", b =>
-                {
-                    b.HasOne("Domain.Books.Book", null)
-                        .WithOne()
-                        .HasForeignKey("Domain.Books.DigitalBook", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                b.Property<int>("ReaderScrolling")
+                    .HasColumnType("integer");
 
-            modelBuilder.Entity("Domain.Books.PhysicalBook", b =>
-                {
-                    b.HasOne("Domain.Books.Book", null)
-                        .WithOne()
-                        .HasForeignKey("Domain.Books.PhysicalBook", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                b.Property<int>("ReadingDirection")
+                    .HasColumnType("integer");
 
-            modelBuilder.Entity("Domain.Books.Book", b =>
-                {
-                    b.Navigation("ReadingDates");
-                });
+                b.ToTable("DigitalBooks");
+            });
 
-            modelBuilder.Entity("Domain.FeedImports.FeedImportDecision", b =>
-                {
-                    b.Navigation("Events");
-                });
+        modelBuilder.Entity("Domain.Books.PhysicalBook", b =>
+            {
+                b.HasBaseType("Domain.Books.Book");
 
-            modelBuilder.Entity("Domain.Libraries.Library", b =>
-                {
-                    b.Navigation("Books");
-                });
+                b.ToTable("PhysicalBooks");
+            });
+
+        modelBuilder.Entity("Domain.Books.Book", b =>
+            {
+                b.HasOne("Domain.Libraries.Library", "Library")
+                    .WithMany("Books")
+                    .HasForeignKey("LibraryId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Library");
+            });
+
+        modelBuilder.Entity("Domain.Books.ReadingDate", b =>
+            {
+                b.HasOne("Domain.Books.Book", null)
+                    .WithMany("ReadingDates")
+                    .HasForeignKey("BookId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
+        modelBuilder.Entity("Domain.FeedImports.FeedImportDecisionEvent", b =>
+            {
+                b.HasOne("Domain.FeedImports.FeedImportDecision", null)
+                    .WithMany("Events")
+                    .HasForeignKey("FeedImportDecisionId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
+        modelBuilder.Entity("Domain.Series.SeriesInfo", b =>
+            {
+                b.HasOne("Domain.Libraries.Library", null)
+                    .WithMany()
+                    .HasForeignKey("LibraryId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
+        modelBuilder.Entity("Domain.Books.DigitalBook", b =>
+            {
+                b.HasOne("Domain.Books.Book", null)
+                    .WithOne()
+                    .HasForeignKey("Domain.Books.DigitalBook", "Id")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
+        modelBuilder.Entity("Domain.Books.PhysicalBook", b =>
+            {
+                b.HasOne("Domain.Books.Book", null)
+                    .WithOne()
+                    .HasForeignKey("Domain.Books.PhysicalBook", "Id")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
+        modelBuilder.Entity("Domain.Books.Book", b =>
+            {
+                b.Navigation("ReadingDates");
+            });
+
+        modelBuilder.Entity("Domain.FeedImports.FeedImportDecision", b =>
+            {
+                b.Navigation("Events");
+            });
+
+        modelBuilder.Entity("Domain.Libraries.Library", b =>
+            {
+                b.Navigation("Books");
+            });
 #pragma warning restore 612, 618
-        }
     }
 }

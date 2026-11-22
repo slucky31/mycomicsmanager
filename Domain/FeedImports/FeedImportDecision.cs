@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Domain.Primitives;
 
@@ -51,6 +52,9 @@ public class FeedImportDecision : Entity<Guid>
     public string? ErrorMessage { get; private set; }
 
     public string? ErrorStep { get; private set; }
+
+    // Retries made by the sync since the last user action (FeedImportConstants.MaxAutoRetries).
+    public int AutoRetryCount { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
 
@@ -382,7 +386,68 @@ public class FeedImportDecision : Entity<Guid>
             return FeedImportError.InvalidStatusTransition;
         }
 
-        Reopen("Retried by the user.", utcNow);
+        Reopen("Retried by the user.", FeedImportDecidedBy.User, utcNow);
+        return Result.Success();
+    }
+
+    // Why the sync may retry this failure on its own. Also recognizes the failures saved before the
+    // HostDown step existed, by their message (Download step).
+    public FeedImportRetryKind RetryKind => Status == FeedImportDecisionStatus.Failed ? ClassifyFailure(ErrorStep, ErrorMessage) : FeedImportRetryKind.None;
+
+    private static FeedImportRetryKind ClassifyFailure(string? step, string? message)
+    {
+        if (step == FeedImportConstants.HostDownStep)
+        {
+            return FeedImportRetryKind.HostDown;
+        }
+
+        if (step != FeedImportConstants.DownloadStep || string.IsNullOrWhiteSpace(message))
+        {
+            return FeedImportRetryKind.None;
+        }
+
+        if (StartsWith(message, FeedImportError.DebridLinkHostNotSupported) || StartsWith(message, FeedImportError.DebridLinkUnavailable))
+        {
+            return FeedImportRetryKind.HostDown;
+        }
+
+        return StartsWith(message, FeedImportError.DebridLinkQuotaReached) || StartsWith(message, FeedImportError.DebridLinkHostQuotaReached)
+            ? FeedImportRetryKind.Quota
+            : FeedImportRetryKind.None;
+    }
+
+    private static bool StartsWith(string message, TError error) =>
+        message.StartsWith(error.Description!, StringComparison.Ordinal);
+
+    // isHostUp: whether Debrid-Link reports the host (a value of Hosts) as up.
+    public bool IsRetryDue(Func<string, bool> isHostUp, DateTime utcNow)
+    {
+        ArgumentNullException.ThrowIfNull(isHostUp);
+        return RetryKind switch
+        {
+            FeedImportRetryKind.HostDown => Hosts.Any(isHostUp),
+            FeedImportRetryKind.Quota => utcNow - UpdatedAt >= FeedImportConstants.QuotaRetryDelay,
+            _ => false
+        };
+    }
+
+    public bool CanRetryAutomatically(Func<string, bool> isHostUp, DateTime utcNow) =>
+        AutoRetryCount < FeedImportConstants.MaxAutoRetries && IsRetryDue(isHostUp, utcNow);
+
+    // Back to Pending like a manual retry, decided by the sync.
+    public Result RetryAutomatically(Func<string, bool> isHostUp, TimeProvider? timeProvider = null)
+    {
+        var now = Clock.UtcNow(timeProvider);
+        var kind = RetryKind;
+        if (!CanRetryAutomatically(isHostUp, now))
+        {
+            return FeedImportError.InvalidStatusTransition;
+        }
+
+        AutoRetryCount++;
+        var cause = kind == FeedImportRetryKind.HostDown ? "Host back up on Debrid-Link" : "Debrid-Link quota period over";
+        Reopen(string.Create(CultureInfo.InvariantCulture, $"{cause}: retried automatically ({AutoRetryCount}/{FeedImportConstants.MaxAutoRetries})."),
+            FeedImportDecidedBy.Auto, now);
         return Result.Success();
     }
 
@@ -402,17 +467,22 @@ public class FeedImportDecision : Entity<Guid>
         ParsedTitle = TruncateOrNull(parsed.Title, FeedImportConstants.MaxParsedTitleLength);
         ParsedVolume = parsed.Volume;
         var volume = parsed.Volume is { } v ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $" T{v}") : string.Empty;
-        Reopen($"Corrected by the user: {ParsedSerie}{volume}{(ParsedTitle is null ? string.Empty : $" · {ParsedTitle}")}.", Clock.UtcNow(timeProvider));
+        Reopen($"Corrected by the user: {ParsedSerie}{volume}{(ParsedTitle is null ? string.Empty : $" · {ParsedTitle}")}.", FeedImportDecidedBy.User, Clock.UtcNow(timeProvider));
         return Result.Success();
     }
 
-    private void Reopen(string reason, DateTime now)
+    private void Reopen(string reason, FeedImportDecidedBy decidedBy, DateTime now)
     {
+        if (decidedBy == FeedImportDecidedBy.User)
+        {
+            AutoRetryCount = 0;
+        }
+
         MatchedBookId = null;
         ArbitrationKind = FeedImportArbitrationKind.None;
         ErrorStep = null;
         ErrorMessage = null;
-        Transition(FeedImportDecisionStatus.Pending, reason, FeedImportDecidedBy.User, now);
+        Transition(FeedImportDecisionStatus.Pending, reason, decidedBy, now);
     }
 
     public Result Fail(string step, string errorMessage, TimeProvider? timeProvider = null)

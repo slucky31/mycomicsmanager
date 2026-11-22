@@ -110,6 +110,8 @@ public static class FeedImportConfiguration
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
         services.AddScoped<FeedImportSyncJob>();
+        services.AddScoped<HostStatusJob>();
+        services.AddSingleton<DebridLinkHostCache>();
         services.AddScoped<FeedImportDownloadJob>();
         services.AddScoped<FeedImportHandlers>();
         services.AddScoped<ArticleLinkSources>();

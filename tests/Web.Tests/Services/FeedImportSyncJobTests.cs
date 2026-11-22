@@ -1,6 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.FeedImports;
 using Application.FeedImports.Analyze;
+using Application.FeedImports.Retry;
 using Application.FeedImports.Sync;
 using Application.Interfaces;
 using Application.Users;
@@ -29,6 +30,8 @@ public sealed class FeedImportSyncJobTests
     private readonly IUserReadService _userReadService;
     private readonly IFeedImportDecisionRepository _decisionRepository;
     private readonly ICommandHandler<AnalyzeFeedImportDecisionCommand> _analyzeHandler;
+    private readonly ICommandHandler<RetryWaitingFeedImportDecisionsCommand, IReadOnlyList<RetriedFeedImportDecision>> _retryHandler =
+        Substitute.For<ICommandHandler<RetryWaitingFeedImportDecisionsCommand, IReadOnlyList<RetriedFeedImportDecision>>>();
     private readonly IBackgroundJobClient _backgroundJobClient = Substitute.For<IBackgroundJobClient>();
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly FeedImportSettings _settings = new() { Enabled = true, UserEmail = UserEmail };
@@ -52,6 +55,9 @@ public sealed class FeedImportSyncJobTests
         serviceProvider.GetService(typeof(IFeedImportDecisionRepository)).Returns(_decisionRepository);
         serviceProvider.GetService(typeof(ICommandHandler<AnalyzeFeedImportDecisionCommand>)).Returns(_analyzeHandler);
         serviceProvider.GetService(typeof(IFeedImportFileDownloader)).Returns(_downloader);
+        serviceProvider.GetService(typeof(ICommandHandler<RetryWaitingFeedImportDecisionsCommand, IReadOnlyList<RetriedFeedImportDecision>>)).Returns(_retryHandler);
+        _retryHandler.Handle(Arg.Any<RetryWaitingFeedImportDecisionsCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success<IReadOnlyList<RetriedFeedImportDecision>>([]));
 
         var scope = Substitute.For<IServiceScope>();
         scope.ServiceProvider.Returns(serviceProvider);
@@ -210,5 +216,60 @@ public sealed class FeedImportSyncJobTests
         FeedImportSyncJob.Schedule(manager, new FeedImportSettings(), enabled: false);
 
         manager.Received(1).RemoveIfExists(FeedImportSyncJob.RecurringJobId);
+    }
+
+    [Fact]
+    public async Task SyncAsync_Should_RetryTheWaitingDecisionsAutomatically_WhenApiKeyIsSet()
+    {
+        var user = ArrangeUserWithFailedSync();
+
+        await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
+
+        await _retryHandler.Received(1).Handle(
+            Arg.Is<RetryWaitingFeedImportDecisionsCommand>(c => c.UserId == user.Id && c.DecidedBy == FeedImportDecidedBy.Auto),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SyncAsync_Should_NotRetryTheWaitingDecisions_WhenApiKeyIsNotSet()
+    {
+        ArrangeUserWithFailedSync();
+        _debridLinkSettings.ApiKey = string.Empty;
+
+        await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
+
+        await _retryHandler.DidNotReceive().Handle(Arg.Any<RetryWaitingFeedImportDecisionsCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SyncAsync_Should_KeepSyncing_WhenTheAutomaticRetryFails()
+    {
+        var user = ArrangeUserWithFailedSync();
+        _retryHandler.Handle(Arg.Any<RetryWaitingFeedImportDecisionsCommand>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<IReadOnlyList<RetriedFeedImportDecision>>(new TError("DB", "down")));
+
+        await CreateJob().SyncAsync(TestContext.Current.CancellationToken);
+
+        await _decisionRepository.Received(1).GetIdsByStatusAsync(user.Id, FeedImportDecisionStatus.LinksExtracted, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void Schedule_Should_AddTheHostStatusJob_WhenEnabled()
+    {
+        var manager = Substitute.For<IRecurringJobManager>();
+
+        FeedImportSyncJob.Schedule(manager, _settings, enabled: true);
+
+        manager.Received(1).AddOrUpdate(HostStatusJob.RecurringJobId, Arg.Any<Job>(), HostStatusJob.Cron, Arg.Any<RecurringJobOptions>());
+    }
+
+    [Fact]
+    public void Schedule_Should_RemoveTheHostStatusJob_WhenDisabled()
+    {
+        var manager = Substitute.For<IRecurringJobManager>();
+
+        FeedImportSyncJob.Schedule(manager, _settings, enabled: false);
+
+        manager.Received(1).RemoveIfExists(HostStatusJob.RecurringJobId);
     }
 }

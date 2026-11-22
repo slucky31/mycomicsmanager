@@ -166,3 +166,13 @@ public class FeedImportDecisionIntegrationTest : BaseIntegrationTest
         FeedImportDecisionReadService = _scope.ServiceProvider.GetRequiredService<IFeedImportDecisionReadService>();
     }
 }
+
+public class HostStatusChangeIntegrationTest : BaseIntegrationTest
+{
+    protected IHostStatusChangeRepository HostStatusChangeRepository { get; }
+
+    public HostStatusChangeIntegrationTest(IntegrationTestWebAppFactory factory) : base(factory)
+    {
+        HostStatusChangeRepository = _scope.ServiceProvider.GetRequiredService<IHostStatusChangeRepository>();
+    }
+}

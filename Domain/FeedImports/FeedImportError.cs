@@ -18,6 +18,7 @@ public static class FeedImportError
     public static readonly TError DebridLinkQuotaReached = new("FEED429D", "Debrid-Link quota reached.");
     public static readonly TError DebridLinkFileUnavailable = new("FEED410D", "File unavailable on the host (dead or deleted link).");
     public static readonly TError DebridLinkHostQuotaReached = new("FEED429H", "Debrid-Link quota reached for this host.");
+    public static readonly TError DebridLinkHostDown = new("FEED503H", "Host down on Debrid-Link.");
     public static readonly TError DebridLinkHostNotSupported = new("FEED422D", "Host not supported by Debrid-Link.");
     public static readonly TError DownloadHostNotAllowed = new("FEED403H", "Download domain not allowed.");
     public static readonly TError DownloadHostNotSupported = new("FEED422H", "Host not supported (FeedImport:AllowedDownloadHosts), download the file manually");

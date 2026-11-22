@@ -168,6 +168,10 @@
                                target="_blank" rel="noopener noreferrer nofollow"
                                title="@(mirror.IsChosen ? "Mirror used for the download" : null)">
                                 <MudIcon Icon="@(mirror.IsChosen ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.OpenInNew)" Size="Size.Small" />
+                                @if (mirror.IsHostUp is { } isUp)
+                                {
+                                    <span class="@($"host-dot {(isUp ? "up" : "down")}")" role="img" aria-label="@(isUp ? "Up on Debrid-Link" : "Down on Debrid-Link")"></span>
+                                }
                                 @mirror.Host
                             </a>
                         }
@@ -273,6 +277,17 @@
     @if (!FeedImportService.IsSyncEnabled)
     {
         <div class="feeds-note">Miniflux sync is turned off (Settings, Features).</div>
+    }
+
+    @if (_retryableCount > 0)
+    {
+        <div class="feeds-retry-banner" role="status">
+            <span>@(_retryableCount == 1 ? "1 failed item has a host back up on Debrid-Link." : $"{_retryableCount} failed items have a host back up on Debrid-Link.")</span>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="feed-pill" StartIcon="@Icons.Material.Filled.Replay"
+                       Disabled="_isRetryingWaiting" OnClick="RetryWaitingAsync">
+                @(_retryableCount == 1 ? "Retry it" : $"Retry these {_retryableCount}")
+            </MudButton>
+        </div>
     }
 
     @if (_selecting)
@@ -395,6 +410,7 @@
     @foreach (var option in _hostOptions.Options)
     {
         <ActionSheetItem Icon="@Icons.Material.Outlined.Dns" Text="@option.Label" Selected="@(option.Host == _host)"
+                         Description="@option.StateDisplay" IconColor="@HostStateColor(option.IsUp)"
                          OnClick="() => SelectHostAsync(option.Host)" />
     }
 </ActionSheet>

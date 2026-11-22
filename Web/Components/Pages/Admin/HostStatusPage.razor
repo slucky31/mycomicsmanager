@@ -1,0 +1,92 @@
+@page "/admin/hosts"
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Debrid-Link hosts — MyComicsManager</PageTitle>
+
+<div class="hosts-page">
+    <header class="hosts-bar">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="/settings" aria-label="Back to settings" Class="hosts-back" />
+        <h1>Debrid-Link hosts</h1>
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Disabled="_isLoading" OnClick="LoadAsync" aria-label="Refresh" Class="hosts-refresh" />
+    </header>
+
+    <div class="hosts-content">
+        <p class="hosts-hint">
+            The state of each host on the Debrid-Link status page, checked every 10 minutes. Only the changes are kept, for 90 days.
+            A host back up starts a sync, which retries the feeds waiting for it.
+        </p>
+        @if (!_view.IsLive && !_isLoading)
+        {
+            <div class="hosts-note">Debrid-Link could not be reached: the states shown are the latest recorded ones.</div>
+        }
+
+        <div class="hosts-chips" role="group" aria-label="Filter the hosts">
+            <button type="button" class="hosts-chip" aria-pressed="@(_downOnly ? "false" : "true")" @onclick="() => SetDownOnly(false)">All</button>
+            <button type="button" class="hosts-chip" aria-pressed="@(_downOnly ? "true" : "false")" @onclick="() => SetDownOnly(true)">
+                @(_view.DownCount > 0 ? $"Down · {_view.DownCount}" : "Down")
+            </button>
+        </div>
+
+        @if (_isLoading && _view.Hosts.Count == 0)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (_view.Hosts.Count == 0)
+        {
+            <div class="hosts-empty">@(_downOnly ? "No host is down." : "No host known yet.")</div>
+        }
+        else
+        {
+            <ul class="hosts-list">
+                @foreach (var host in _view.Hosts)
+                {
+                    <li @key="host.Name">
+                        <button type="button" class="@($"hosts-row{(host.Name == _host ? " selected" : "")}")"
+                                aria-pressed="@(host.Name == _host ? "true" : "false")" @onclick="() => SelectHost(host.Name)">
+                            <span class="@($"host-dot {(host.IsUp ? "up" : "down")}")" role="img" aria-label="@(host.IsUp ? "Up" : "Down")"></span>
+                            <span class="hosts-name">@host.Name</span>
+                            <span class="hosts-meta">
+                                <strong>@host.StateDisplay</strong>
+                                <span>@(host.DomainsDisplay is null ? host.ChangesDisplay : $"{host.DomainsDisplay} · {host.ChangesDisplay}")</span>
+                            </span>
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+
+        <section class="hosts-history" aria-labelledby="hosts-history-title">
+            <div class="hosts-history-head">
+                <h2 id="hosts-history-title">@(_host is null ? "History" : $"History · {_host}")</h2>
+                @if (_host is not null)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="() => SelectHost(null)" aria-label="Show every host" />
+                }
+            </div>
+            @if (_view.Days.Count == 0)
+            {
+                <div class="hosts-empty">No change recorded yet.</div>
+            }
+            @foreach (var day in _view.Days)
+            {
+                <div class="hosts-day">@day.Title</div>
+                <ul class="hosts-list">
+                    @foreach (var change in day.Changes)
+                    {
+                        <li class="hosts-row">
+                            <span class="@($"host-dot {(change.IsUp ? "up" : "down")}")" role="img" aria-label="@(change.IsUp ? "Up" : "Down")"></span>
+                            <span class="hosts-name">@(_host is null ? $"{change.Host} · {change.Text}" : change.Text)</span>
+                            <span class="hosts-meta">
+                                <strong>@change.TimeDisplay</strong>
+                                @if (change.PreviousDuration is not null)
+                                {
+                                    <span>@change.PreviousDuration</span>
+                                }
+                            </span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+</div>

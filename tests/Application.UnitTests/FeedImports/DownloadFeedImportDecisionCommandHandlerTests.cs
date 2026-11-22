@@ -58,6 +58,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
             .Returns(Result.Success<IReadOnlyList<string>>(["1fichier.com", "rapidgator.net"]));
         _debridLink.UnlockAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success<DebridLinkFile>(new DebridLinkFile("Blacksad T03.cbz", 1_000, s_downloadUrl)));
+        GivenHosts(fichierUp: true, rapidgatorUp: true);
         _downloader.DownloadAsync(Arg.Any<Uri>(), Arg.Any<long>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success<DownloadedFile>(new DownloadedFile(TempPath, 1_000)));
         _libraryReadService.GetByNameAsync("Imported", s_userId, Arg.Any<CancellationToken>()).Returns(_library);
@@ -83,6 +84,58 @@ public class DownloadFeedImportDecisionCommandHandlerTests
         decision.RecordLinks([candidate], new ParsedComicTitle("Blacksad", null, 3), "2 miroirs", FeedImportDecidedBy.Auto);
         _repository.GetByIdAsync(decision.Id, Arg.Any<CancellationToken>()).Returns(decision);
         return decision;
+    }
+
+    private void GivenHosts(bool fichierUp, bool rapidgatorUp) =>
+        _debridLink.GetHostsAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<DebridLinkHost>>(
+        [
+            new DebridLinkHost("1fichier", fichierUp, ["1fichier.com"]),
+            new DebridLinkHost("rapidgator", rapidgatorUp, ["rg.to", "rapidgator.net"])
+        ]));
+
+    [Fact]
+    public async Task Handle_Should_SkipTheMirrorOfAHostDown_WhenDebridLinkReportsIt()
+    {
+        GivenHosts(fichierUp: false, rapidgatorUp: true);
+        var decision = GivenDecision();
+
+        var result = await HandleAsync(decision);
+
+        result.IsSuccess.Should().BeTrue();
+        decision.ChosenMirror.Should().Be(RapidgatorUrl);
+        await _debridLink.DidNotReceive().UnlockAsync(FichierUrl, Arg.Any<CancellationToken>());
+        decision.Events.Should().Contain(e => e.Description == "Mirror 1fichier.com failed: Host down on Debrid-Link.");
+    }
+
+    [Fact]
+    public async Task Handle_Should_WaitForAHost_WhenEveryMirrorIsOnAHostDown()
+    {
+        GivenHosts(fichierUp: false, rapidgatorUp: false);
+        var decision = GivenDecision();
+
+        var result = await HandleAsync(decision);
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.Failed);
+        decision.ErrorStep.Should().Be(DownloadFeedImportDecisionCommandHandler.HostDownStep);
+        decision.ErrorMessage.Should().Be("Host down on Debrid-Link. (1fichier.com, rapidgator.net)");
+        decision.RetryKind.Should().Be(FeedImportRetryKind.HostDown);
+        await _debridLink.DidNotReceive().UnlockAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_TryEveryMirror_WhenTheHostStatesAreUnavailable()
+    {
+        _debridLink.GetHostsAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<IReadOnlyList<DebridLinkHost>>(FeedImportError.DebridLinkUnavailable));
+        _debridLink.UnlockAsync(FichierUrl, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<DebridLinkFile>(FeedImportError.DebridLinkFileUnavailable));
+        var decision = GivenDecision();
+
+        await HandleAsync(decision);
+
+        await _debridLink.Received(1).UnlockAsync(FichierUrl, Arg.Any<CancellationToken>());
+        await _debridLink.Received(1).UnlockAsync(RapidgatorUrl, Arg.Any<CancellationToken>());
     }
 
     private Task<Result> HandleAsync(FeedImportDecision decision) =>

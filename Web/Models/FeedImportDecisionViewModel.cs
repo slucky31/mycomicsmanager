@@ -12,7 +12,8 @@ public sealed record FeedImportDecisionEventViewModel(
     string Description);
 
 #pragma warning disable CA1054, CA1056 // URL displayed as a link, validated by the domain
-public sealed record FeedImportMirrorViewModel(string Url, string Host, bool IsChosen = false);
+// IsHostUp: state of the host on Debrid-Link, null when unknown.
+public sealed record FeedImportMirrorViewModel(string Url, string Host, bool IsChosen = false, bool? IsHostUp = null);
 
 public sealed record FeedImportCandidateViewModel(int Index, string Label, string? FileName, string? SizeDisplay, IReadOnlyList<FeedImportMirrorViewModel> Mirrors)
 {
@@ -59,6 +60,8 @@ public sealed record FeedImportDecisionViewModel(
     string? HostDisplay = null)
 #pragma warning restore CA1054, CA1056
 {
+    public const string WaitingForHostDisplay = "Waiting for host";
+
     public string CreatedAtDisplay => FormatDate(CreatedAt);
 
     public FeedImportDecisionActions ManualActions => Actions ?? FeedImportDecisionActions.None;
@@ -83,7 +86,13 @@ public sealed record FeedImportDecisionViewModel(
 
     // isPartOfMultiBookArticle: the article was split into several books, so the first one is labelled too.
     // importLibraryId: library the downloads are deposited in, preselected on the Import page.
-    public static FeedImportDecisionViewModel From(FeedImportDecision decision, bool isPartOfMultiBookArticle = false, Guid? importLibraryId = null, TimeProvider? timeProvider = null)
+    // hostState: state of a host on Debrid-Link (null when unknown), shown on the mirrors.
+    public static FeedImportDecisionViewModel From(
+        FeedImportDecision decision,
+        bool isPartOfMultiBookArticle = false,
+        Guid? importLibraryId = null,
+        TimeProvider? timeProvider = null,
+        Func<string, bool?>? hostState = null)
     {
         ArgumentNullException.ThrowIfNull(decision);
         var utcNow = Clock.UtcNow(timeProvider);
@@ -95,12 +104,12 @@ public sealed record FeedImportDecisionViewModel(
             PublishedAt: decision.PublishedAt,
             CreatedAt: decision.CreatedAt,
             Status: decision.Status,
-            StatusDisplay: GetStatusDisplay(decision.Status),
-            StatusCssClass: GetStatusCssClass(decision.Status),
+            StatusDisplay: decision.RetryKind == FeedImportRetryKind.HostDown ? WaitingForHostDisplay : GetStatusDisplay(decision.Status),
+            StatusCssClass: decision.RetryKind == FeedImportRetryKind.HostDown ? "feed-status-decide" : GetStatusCssClass(decision.Status),
             Reason: decision.Reason,
             DecidedByDisplay: GetDecidedByDisplay(decision.DecidedBy),
             ParsedDisplay: GetParsedDisplay(decision.ParsedSerie, decision.ParsedTitle, decision.ParsedVolume),
-            ErrorDisplay: GetErrorDisplay(decision.ErrorStep, decision.ErrorMessage),
+            ErrorDisplay: DescribeError(decision),
             Events: decision.Events
                 .OrderBy(e => e.OccurredAt)
                 .ThenBy(e => e.Id)
@@ -118,7 +127,7 @@ public sealed record FeedImportDecisionViewModel(
                     c.Label,
                     c.FileName,
                     c.SizeBytes.HasValue ? FormatSize(c.SizeBytes.Value) : null,
-                    c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host, m.Url == decision.ChosenMirror)).ToList()))
+                    c.Mirrors.Select(m => new FeedImportMirrorViewModel(m.Url, m.Host, m.Url == decision.ChosenMirror, hostState?.Invoke(m.Host))).ToList()))
                 .ToList(),
             ImportPageUrl: GetImportPageUrl(decision.Status, importLibraryId),
             Actions: new FeedImportDecisionActions(
@@ -161,7 +170,7 @@ public sealed record FeedImportDecisionViewModel(
     }
 
     // Fixed format: "03/10/2026 19:23" whatever the server culture (works in globalization-invariant mode).
-    private static string FormatDate(DateTime utc) =>
+    internal static string FormatDate(DateTime utc) =>
         utc.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
 
     private static string FormatSize(long bytes) => bytes switch
@@ -217,6 +226,31 @@ public sealed record FeedImportDecisionViewModel(
             parts.Add(title);
         }
         return parts.Count == 0 ? null : string.Join(" · ", parts);
+    }
+
+    // A failure the sync retries on its own says so (#1318).
+    private static string? DescribeError(FeedImportDecision decision)
+    {
+        // "Host: Host down on Debrid-Link (ddl.to)." would repeat itself: the message says it all.
+        var error = decision.ErrorStep == FeedImportConstants.HostDownStep
+            ? GetErrorDisplay(null, decision.ErrorMessage)
+            : GetErrorDisplay(decision.ErrorStep, decision.ErrorMessage);
+        var kind = decision.RetryKind;
+        if (error is null || kind == FeedImportRetryKind.None)
+        {
+            return error;
+        }
+
+        if (decision.AutoRetryCount >= FeedImportConstants.MaxAutoRetries)
+        {
+            return $"{error} Automatic retries used up: retry it by hand.";
+        }
+
+        var when = kind == FeedImportRetryKind.HostDown
+            ? "once one of its hosts is back up on Debrid-Link"
+            : string.Create(CultureInfo.InvariantCulture, $"{FeedImportConstants.QuotaRetryDelay.TotalHours:0} h after the failure");
+        return string.Create(CultureInfo.InvariantCulture,
+            $"{error} Retried automatically {when} (attempt {decision.AutoRetryCount + 1} of {FeedImportConstants.MaxAutoRetries}).");
     }
 
     private static string? GetErrorDisplay(string? step, string? message)
