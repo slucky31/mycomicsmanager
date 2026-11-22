@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.7.0"></a>
+## [11.7.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.7.0) (2026-11-22)
+
+### ✨ Features
+
+* **libraries:** prototype a virtualized library behind a feature toggle ([#1362](https://www.github.com/slucky31/mycomicsmanager/issues/1362)) ([8fc31e0](https://www.github.com/slucky31/mycomicsmanager/commit/8fc31e09d51d25b483dab1301d15ad9963e366f8))
+
 <a name="11.6.0"></a>
 ## [11.6.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.6.0) (2026-11-22)
 
