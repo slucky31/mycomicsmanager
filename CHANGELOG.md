@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.4.2"></a>
+## [11.4.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.2) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **layout:** keep the light theme when the phone turns dark ([#1355](https://www.github.com/slucky31/mycomicsmanager/issues/1355)) ([#1356](https://www.github.com/slucky31/mycomicsmanager/issues/1356)) ([babffa2](https://www.github.com/slucky31/mycomicsmanager/commit/babffa2666d991343eecc889a1c1173cc84fcc89))
+
 <a name="11.4.1"></a>
 ## [11.4.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.1) (2026-11-22)
 
