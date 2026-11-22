@@ -38,6 +38,7 @@ public sealed class LibraryDetailPageIsbnScanTests : IAsyncDisposable
         _ctx.Services.AddSingleton(booksService);
         _ctx.Services.AddSingleton(Substitute.For<IBookMoveWorkflow>());
         _ctx.Services.AddSingleton(new LibraryStateService());
+        _ctx.Services.AddSingleton(Substitute.For<IFeatureToggles>());
         _ctx.Services.AddSingleton(_isbnScanService);
         _ctx.Services.AddSingleton(_snackbar);
     }

@@ -1,0 +1,46 @@
+/* The virtualized library (#1344): each row is a grid of the view, without the spacing of a whole grid. */
+.virtual-books {
+    padding-top: var(--mcm-space-2);
+}
+
+.virtual-probe {
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.virtual-books ::deep .virtual-row > .covers-grid,
+.virtual-books ::deep .virtual-row > .list-grid {
+    padding-top: 0;
+    padding-bottom: 0;
+    border-top: 0;
+}
+
+.virtual-row {
+    padding-bottom: var(--mcm-space-4);
+}
+
+/* On a phone the list rows follow each other, as in the list that is not virtualized. */
+.virtual-row-list {
+    padding-bottom: 0;
+}
+
+.virtual-row-placeholder {
+    margin: 0 16px;
+    border-radius: var(--mcm-radius-m);
+    background: var(--mcm-surface-sunken);
+}
+
+@media (min-width: 600px) {
+    .virtual-row {
+        padding-bottom: var(--mcm-space-6);
+    }
+
+    .virtual-row-list {
+        padding-bottom: 12px;
+    }
+
+    .virtual-row-placeholder {
+        margin: 0 28px;
+    }
+}

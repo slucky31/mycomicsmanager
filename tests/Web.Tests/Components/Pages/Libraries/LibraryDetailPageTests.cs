@@ -6,6 +6,7 @@ using Bunit;
 using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
+using Domain.Settings;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
@@ -30,6 +31,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     private readonly ISnackbar _snackbar = Substitute.For<ISnackbar>();
     private readonly IDialogService _dialogService = Substitute.For<IDialogService>();
     private readonly LibraryStateService _stateService = new();
+    private readonly IFeatureToggles _featureToggles = Substitute.For<IFeatureToggles>();
     private readonly BunitJSModuleInterop _module;
     private readonly BookSummaryDto _blacksad = Book("Âme rouge", "Blacksad", 4);
     private readonly BookSummaryDto _hiver = Book("Hiver nucléaire", "Hiver nucléaire", 2);
@@ -48,6 +50,7 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_snackbar);
         _ctx.Services.AddSingleton(_dialogService);
         _ctx.Services.AddSingleton(Substitute.For<IIsbnScanService>());
+        _ctx.Services.AddSingleton(_featureToggles);
     }
 
     public async ValueTask DisposeAsync()
@@ -91,6 +94,32 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
         var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
         await cut.WaitForAssertionAsync(() => cut.FindAll(".cover-item, .list-item").Should().HaveCount(2));
         return cut;
+    }
+
+    [Fact]
+    public async Task LibraryDetailPage_Should_RenderTheBooksVirtualized_AndOpenAgainOnTheFirstBookShown_WhenTheToggleIsOn()
+    {
+        _featureToggles.IsEnabled(FeatureToggle.VirtualizedLibrary).Returns(true);
+        GivenLibrary(LibraryBookType.Physical, LibraryView.Covers);
+        var rowsPage = Page(2, false, _blacksad, _hiver);
+        _booksService.GetPagedByLibrary(_library.Id, 1, LibraryBookRows.DefaultPageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>())
+            .Returns(Result.Success(rowsPage));
+
+        var cut = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".virtual-books").Should().ContainSingle());
+
+        cut.FindAll("#scroll-sentinel").Should().BeEmpty();
+        var view = cut.FindComponent<VirtualBooksView>();
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".virtual-row .cover-item").Should().HaveCount(2));
+        cut.Find(".virtual-row").GetAttribute("data-first-book").Should().Be("0");
+        await CheckEveryBookAsync(cut);
+        cut.FindAll(".virtual-row [role=checkbox][aria-checked=true]").Should().HaveCount(2);
+        await cut.InvokeAsync(() => view.Instance.PositionChanged(30));
+        await cut.InvokeAsync(() => cut.Instance.DisposeAsync().AsTask());
+
+        _stateService.Load(_library.Id)!.FirstBook.Should().Be(30);
+        var again = _ctx.Render<LibraryDetailPage>(p => p.Add(c => c.LibraryId, _library.Id.ToString()));
+        await again.WaitForAssertionAsync(() => again.FindComponent<VirtualBooksView>().Instance.InitialBook.Should().Be(30));
     }
 
     private static string Subtitle(IRenderedComponent<LibraryDetailPage> cut) => cut.Find(".library-bar-subtitle").TextContent.Trim();

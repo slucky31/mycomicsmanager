@@ -30,6 +30,7 @@ public sealed record FeatureToggleViewModel(
         FeatureToggle.GoogleBooks => ("Google Books search", "Searches Google Books when looking up an ISBN.", "GoogleBooks:Enabled"),
         FeatureToggle.OpenLibrary => ("OpenLibrary search", "Searches OpenLibrary when looking up an ISBN.", "OpenLibrary:Enabled"),
         FeatureToggle.Bubble => ("Bubble search", "Searches Bubble (bubblebd.com) when looking up an ISBN; needs Bubble:ApiKey.", "Bubble:Enabled"),
+        FeatureToggle.VirtualizedLibrary => ("Virtualized library (prototype)", "Renders only the books on screen in a library, and opens it again where it was left.", "no configuration"),
         _ => (toggle.ToString(), string.Empty, $"{toggle}:Enabled")
     };
 }
