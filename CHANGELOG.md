@@ -2,23 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
-<a name="12.0.1"></a>
-## [12.0.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v12.0.1) (2026-11-22)
+<a name="11.3.0"></a>
+## [11.3.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.3.0) (2026-11-22)
 
-### 🐛 Bug Fixes
-
-* **layout:** recognise the iPhone Home Screen app when navigator.standalone is false ([#1350](https://www.github.com/slucky31/mycomicsmanager/issues/1350)) ([330c2ab](https://www.github.com/slucky31/mycomicsmanager/commit/330c2ab4226a8b0869d745f422b72f9ee9f761a2))
-
-<a name="12.0.0"></a>
-## [12.0.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v12.0.0) (2026-11-22)
+Replaces the 12.0.0 and 12.0.1 releases, numbered as a major version by mistake: their changes are listed here.
 
 ### ✨ Features
 
 * **docker:** run on Alpine and drop the unused /login page ([#1349](https://www.github.com/slucky31/mycomicsmanager/issues/1349)) ([87556ed](https://www.github.com/slucky31/mycomicsmanager/commit/87556ed17484f9f562a9bb32fff147d4ae2846d6))
 
-### Breaking Changes
+### 🐛 Bug Fixes
 
-* **docker:** run on Alpine and drop the unused /login page ([#1349](https://www.github.com/slucky31/mycomicsmanager/issues/1349)) ([87556ed](https://www.github.com/slucky31/mycomicsmanager/commit/87556ed17484f9f562a9bb32fff147d4ae2846d6))
+* **layout:** recognise the iPhone Home Screen app when navigator.standalone is false ([#1350](https://www.github.com/slucky31/mycomicsmanager/issues/1350)) ([330c2ab](https://www.github.com/slucky31/mycomicsmanager/commit/330c2ab4226a8b0869d745f422b72f9ee9f761a2))
 
 <a name="11.2.2"></a>
 ## [11.2.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.2.2) (2026-11-22)
