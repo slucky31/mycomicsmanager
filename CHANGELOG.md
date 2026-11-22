@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.2.2"></a>
+## [11.2.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.2.2) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **feeds:** show the last host check and say "since at least" on the first reading ([#1348](https://www.github.com/slucky31/mycomicsmanager/issues/1348)) ([1b3dd18](https://www.github.com/slucky31/mycomicsmanager/commit/1b3dd18b818c5a6643bcc10c2e55d8c5175a7090))
+
 <a name="11.2.1"></a>
 ## [11.2.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.2.1) (2026-11-22)
 
