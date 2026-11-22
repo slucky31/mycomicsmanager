@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.2.1"></a>
+## [11.2.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.2.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **dialogs:** keep the actions of a dialog visible, only its body scrolls ([#1340](https://www.github.com/slucky31/mycomicsmanager/issues/1340)) ([#1345](https://www.github.com/slucky31/mycomicsmanager/issues/1345)) ([16acc63](https://www.github.com/slucky31/mycomicsmanager/commit/16acc639f099d34640fd1c8b9a827e2c70ca081b))
+
 <a name="11.2.0"></a>
 ## [11.2.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.2.0) (2026-11-22)
 
