@@ -14,12 +14,23 @@
     </label>
     @TextField("book-serie", "Series", nameof(BookUiDto.Serie), Model.Serie, v => Model.Serie = v, SerieField)
     <div class="form-pair">
-        @TextField("book-isbn", "ISBN", nameof(BookUiDto.ISBN), Model.ISBN, v => Model.ISBN = v, IsbnField)
+        <FormField Id="book-isbn" Label="ISBN" Required="@Model.IsPhysical" Error="@IsbnError">
+            <input id="book-isbn" type="text" inputmode="numeric" value="@Model.ISBN"
+                   @oninput="OnIsbnInputAsync" @onchange="CheckIsbnAsync"
+                   aria-invalid="@(IsbnError is null ? "false" : "true")" aria-describedby="@FormFieldIds.DescribedBy("book-isbn", IsbnError, null)" />
+        </FormField>
         <FormField Id="book-volume" Label="Volume" Error="@Errors.For(nameof(BookUiDto.VolumeNumber))">
             <input id="book-volume" type="number" inputmode="numeric" min="1" @bind="Model.VolumeNumber" @bind:after="NotifyChangedAsync" readonly="@Model.IsOneShot"
                    aria-invalid="@Errors.AriaInvalid(nameof(BookUiDto.VolumeNumber))" aria-describedby="@Describe("book-volume", nameof(BookUiDto.VolumeNumber))" />
         </FormField>
     </div>
+    @if (_isbnOwner is { } owner)
+    {
+        @* The book that already holds the ISBN (#1343): an ISBN belongs to one physical and one digital book at most. *@
+        <div class="form-wide">
+            <IsbnOwnerCard Owner="@owner" Href="@ReturnLinks.Book(owner.BookId, null)" />
+        </div>
+    }
 </FormSection>
 
 <FormSection Id="book-form-details" Title="Details">
@@ -46,14 +57,10 @@
         public string? Placeholder { get; init; }
         public string? Help { get; init; }
         public string Type { get; init; } = "text";
-        public string? InputMode { get; init; }
         public bool ReadOnly { get; init; }
     }
 
     private static readonly FieldOptions RequiredField = new() { Required = true };
-
-    // A digital book may have no ISBN.
-    private FieldOptions IsbnField => new() { Required = Model.IsPhysical, InputMode = "numeric" };
 
     // A digital book takes its pages and its cover from its archive (#1193).
     private string? PagesHelp => Model.IsPhysical ? null : "Counted from the file";
@@ -74,7 +81,7 @@
     {
         var field = options ?? new FieldOptions();
         <FormField Id="@id" Label="@label" Required="@field.Required" Error="@Errors.For(property)" Help="@field.Help">
-            <input id="@id" type="@field.Type" inputmode="@field.InputMode" placeholder="@field.Placeholder" value="@value" readonly="@field.ReadOnly"
+            <input id="@id" type="@field.Type" placeholder="@field.Placeholder" value="@value" readonly="@field.ReadOnly"
                    @oninput="args => OnInputAsync(setValue, args)"
                    aria-invalid="@Errors.AriaInvalid(property)" aria-describedby="@FormFieldIds.DescribedBy(id, Errors.For(property), field.Help)" />
         </FormField>

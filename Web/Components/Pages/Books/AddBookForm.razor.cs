@@ -44,6 +44,8 @@ public sealed partial class AddBookForm : IDisposable
     private bool _submitted;
     private bool _isLoading;
     private bool _isSaving;
+    // Another book holds the ISBN typed (#1343): the form cannot be saved until it is changed.
+    private bool _isbnTaken;
 
     private string ExitHref => AddBookLinks.Exit(_model.LibraryId == Guid.Empty ? AddBookLinks.ParseLibraryId(LibraryId) : _model.LibraryId);
 
@@ -145,6 +147,8 @@ public sealed partial class AddBookForm : IDisposable
     {
         _step = AddBookStep.Found;
         _errors = FormErrors.None;
+        // The fields that checked the ISBN are gone: the save tells whether it is taken.
+        _isbnTaken = false;
         _submitted = false;
     }
 
@@ -159,7 +163,7 @@ public sealed partial class AddBookForm : IDisposable
 
     private async Task SaveAsync()
     {
-        if (_isSaving)
+        if (_isSaving || _isbnTaken)
         {
             return;
         }
