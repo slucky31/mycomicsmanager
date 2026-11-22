@@ -118,12 +118,12 @@
 
                 <div class="book-actions">
                     <a class="book-action" href="@FindDetailsHref"><MudIcon Icon="@Icons.Material.Filled.CloudDownload" />Import info</a>
+                    <button type="button" class="book-action" disabled="@_isMoving" @onclick="MoveBookAsync"><MudIcon Icon="@Icons.Material.Filled.DriveFileMove" />Move</button>
                     @if (view.IsDigital)
                     {
                         <button type="button" class="book-action" @onclick="FindIsbn"><MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" />Find ISBN</button>
                         <a class="book-action" href="@view.DownloadHref" download><MudIcon Icon="@Icons.Material.Filled.Download" />CBZ</a>
                     }
-                    <button type="button" class="book-action" disabled="@_isMoving" @onclick="MoveBookAsync"><MudIcon Icon="@Icons.Material.Filled.DriveFileMove" />Move</button>
                 </div>
 
                 <div class="book-panels">

@@ -111,7 +111,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
         cut.Find("a.book-primary-button").GetAttribute("href").Should().Be($"/books/{book.Id}/read?from=%2Fbooks%2F{book.Id}");
         cut.Find(".book-primary-text").TextContent.Should().Contain("Continue reading").And.Contain("Page 28 of 56");
         cut.Find(".book-progress > div").GetAttribute("style").Should().Contain("width: 50%");
-        cut.FindAll(".book-action").Select(a => a.TextContent).Should().Equal("Import info", "Find ISBN", "CBZ", "Move");
+        cut.FindAll(".book-action").Select(a => a.TextContent).Should().Equal("Import info", "Move", "Find ISBN", "CBZ");
         cut.Find("a.book-action[download]").GetAttribute("href").Should().Be($"/api/books/{book.Id}/download");
         cut.Find(".book-history-empty").TextContent.Should().Be("Not read yet");
     }
