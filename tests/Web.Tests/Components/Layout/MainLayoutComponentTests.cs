@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Layout;
@@ -36,5 +37,35 @@ public sealed class MainLayoutComponentTests
         await cut.WaitForAssertionAsync(() => cut.FindAll("nav.bottom-nav").Should().ContainSingle());
         cut.FindAll("nav.side-nav").Should().ContainSingle();
         cut.Find("main.page-body").ClassList.Should().Contain("with-bottom-bar");
+    }
+
+    [Fact]
+    public async Task MainLayout_Should_StayLight_WhenTheSystemTurnsDark()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddMudServices();
+        ctx.Services.AddSingleton(Substitute.For<IFeedImportService>());
+        ctx.Services.AddSingleton(new FeedImportNotifier());
+        ctx.Services.AddSingleton(new LibrariesNotifier());
+        ctx.AddAuthorization().SetAuthorized("user@example.com");
+
+        var cut = ctx.Render<MainLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "page"))));
+
+        cut.FindComponent<MudThemeProvider>().Instance.ObserveSystemDarkModeChange.Should().BeFalse();
+        ctx.JSInterop.Invocations.Should().NotContain(invocation => invocation.Identifier == "mudThemeProvider.watchDarkMode");
+    }
+
+    [Fact]
+    public async Task ScannerLayout_Should_StayLight_WhenTheSystemTurnsDark()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddMudServices();
+
+        var cut = ctx.Render<ScannerLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "page"))));
+
+        cut.FindComponent<MudThemeProvider>().Instance.ObserveSystemDarkModeChange.Should().BeFalse();
+        ctx.JSInterop.Invocations.Should().NotContain(invocation => invocation.Identifier == "mudThemeProvider.watchDarkMode");
     }
 }
