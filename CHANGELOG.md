@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.3.1"></a>
+## [11.3.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.3.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **release:** number the Alpine release 11.3.0 instead of 12.0.0 ([#1352](https://www.github.com/slucky31/mycomicsmanager/issues/1352)) ([9514f46](https://www.github.com/slucky31/mycomicsmanager/commit/9514f4643d1262e325dce7359f50d71519bffe40))
+
 <a name="11.3.0"></a>
 ## [11.3.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.3.0) (2026-11-22)
 
