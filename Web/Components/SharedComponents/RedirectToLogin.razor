@@ -1,8 +1,11 @@
 @inject NavigationManager NavigationManager
 
 @code {
+    // Fallback only: the global [Authorize] usually challenges Auth0 before the router gets here.
+    // The return path stays relative, so the login can only bring the user back into the app.
     protected override void OnInitialized()
     {
-        NavigationManager.NavigateTo("/login");
+        var returnPath = new Uri(NavigationManager.Uri).PathAndQuery;
+        NavigationManager.NavigateTo($"/Account/Login?redirectUri={Uri.EscapeDataString(returnPath)}", forceLoad: true);
     }
 }

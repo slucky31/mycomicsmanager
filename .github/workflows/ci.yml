@@ -166,7 +166,7 @@ jobs:
           platforms: linux/arm64
           file: ./Web/Dockerfile
           cache-from: type=gha
-          # Only the final image's layers (the apt-get one is worth keeping): the build stage
+          # Only the final image's layers (the apk add one is worth keeping): the build stage
           # changes with every commit, and its NuGet packages restore faster than they download
           # back from the cache.
           cache-to: type=gha,mode=min
