@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.4.1"></a>
+## [11.4.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **ci:** create the GitHub release on the tag of the released version ([#1354](https://www.github.com/slucky31/mycomicsmanager/issues/1354)) ([d8edfb6](https://www.github.com/slucky31/mycomicsmanager/commit/d8edfb6756c9c701ab7a3c4f10a9648dd57709e8))
+
 <a name="11.4.0"></a>
 ## [11.4.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.0) (2026-11-22)
 
