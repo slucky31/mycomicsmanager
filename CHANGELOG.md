@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.1.0"></a>
+## [11.1.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.1.0) (2026-11-22)
+
+### ✨ Features
+
+* **feeds:** retry the failed feeds when their Debrid-Link host is back up ([#1338](https://www.github.com/slucky31/mycomicsmanager/issues/1338)) ([c4ce55d](https://www.github.com/slucky31/mycomicsmanager/commit/c4ce55d7a0da795627f01f358522fedd371bd8ca))
+
 <a name="11.0.0"></a>
 ## [11.0.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.0.0) (2026-11-21)
 
