@@ -69,6 +69,8 @@ jobs:
       # and adds the rules of the SonarCloud quality profile, left to its quality gate.
       - name: Build (warnings as errors)
         run: dotnet build --configuration Release --no-restore -warnaserror
+      # docker:S8431 (tag and digest together) is off for the Dockerfile: the tag tells Renovate
+      # which version to update, the digest pins the image it rebuilds (#1357).
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -79,6 +81,9 @@ jobs:
           /v:"${{ steps.version.outputs.version }}"
           /d:sonar.cs.cobertura.reportsPaths="**/*.cobertura.xml"
           /d:sonar.coverage.exclusions="**/wwwroot/js/**"
+          /d:sonar.issue.ignore.multicriteria=dockertagdigest
+          /d:sonar.issue.ignore.multicriteria.dockertagdigest.ruleKey=docker:S8431
+          /d:sonar.issue.ignore.multicriteria.dockertagdigest.resourceKey=**/Dockerfile
       - name: Build
         run: dotnet build --configuration Release --no-restore --no-incremental
       # Checked over TCP: while initializing, the image runs a temporary server on the Unix
