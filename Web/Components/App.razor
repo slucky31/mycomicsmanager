@@ -1,4 +1,4 @@
-@using Web.Infrastructure
+﻿@using Web.Infrastructure
 
 <!DOCTYPE html>
 <html lang="en">
@@ -27,9 +27,48 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#F4F4F6" />
     <link rel="manifest" href="/favicon/site.webmanifest" />
-    @* The app added to the iPhone Home Screen (navigator.standalone): its pages start lower, out of the blur
-       iOS draws under the status bar (--mcm-top-inset, theme.css, #1250). Set before the first paint. *@
-    <script>if (navigator.standalone) { document.documentElement.classList.add('ios-standalone'); }</script>
+    @* The app added to the iPhone Home Screen: its pages start lower, out of the blur iOS draws under the status bar
+       (--mcm-top-inset, theme.css, #1250). Set before the first paint. navigator.standalone alone is no longer enough:
+       it turned false in the Home Screen app of iOS 27, so the app is also recognised by its display mode or, on an
+       iPhone, by a window that fills the whole screen (no Safari bar). Settings › Display shows what was seen. *@
+    <script>
+        window.mcmDisplay = (function () {
+            const root = document.documentElement;
+            const isIPhone = /iPhone|iPod/.test(navigator.userAgent);
+            const displayMode = () => ['fullscreen', 'standalone', 'minimal-ui', 'browser']
+                .find((mode) => window.matchMedia(`(display-mode: ${mode})`).matches) || 'unknown';
+            const fillsScreen = () => Math.max(window.innerWidth, window.innerHeight)
+                >= Math.max(window.screen.width, window.screen.height) - 1;
+            const signals = () => ({
+                standalone: navigator.standalone === true,
+                displayMode: displayMode(),
+                fillsScreen: isIPhone && fillsScreen()
+            });
+            const isHomeScreenApp = (seen) => seen.standalone
+                || (isIPhone && (seen.displayMode === 'standalone' || seen.displayMode === 'fullscreen' || seen.fillsScreen));
+            if (isHomeScreenApp(signals())) {
+                root.classList.add('ios-standalone');
+            }
+            // The height in pixels of a CSS length, measured on a hidden element.
+            const measure = (length) => {
+                const probe = document.createElement('div');
+                probe.style.cssText = `position:absolute;visibility:hidden;height:${length}`;
+                document.body.appendChild(probe);
+                const height = probe.getBoundingClientRect().height;
+                probe.remove();
+                return height;
+            };
+            return {
+                diagnostics: () => Object.assign({}, signals(), {
+                    appMode: root.classList.contains('ios-standalone'),
+                    statusBar: measure('env(safe-area-inset-top, 0px)'),
+                    topInset: measure('var(--mcm-top-inset)'),
+                    windowHeight: window.innerHeight,
+                    screenHeight: window.screen.height
+                })
+            };
+        })();
+    </script>
     @* No zoom in the app: pinching is blocked everywhere but inside an element marked data-allow-zoom (the book
        reader, where pinching is the only way to read a small balloon). Double-tap zoom is turned off by
        touch-action in theme.css and the zoom on a focused field by maximum-scale above. *@

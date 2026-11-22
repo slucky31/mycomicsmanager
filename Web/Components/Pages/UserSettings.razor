@@ -1,4 +1,4 @@
-@page "/settings"
+﻿@page "/settings"
 
 @using Web.Infrastructure
 @using Web.Models
@@ -67,6 +67,29 @@
                         <li class="settings-health-check">
                             <span class="settings-health-name">@check.Name</span>
                             <span class="@($"settings-health-chip {SystemHealthViewModel.CssClass(check.Tone)}")">@check.Status</span>
+                        </li>
+                    }
+                </ul>
+            }
+            @* What the page sees of the screen: explains the space at the top of the iPhone app (#1250). *@
+            <button type="button" class="settings-row settings-display" aria-expanded="@(_showDisplayDetail ? "true" : "false")" aria-controls="settings-display-detail"
+                    @onclick="ToggleDisplayDetailAsync">
+                <MudIcon Icon="@Icons.Material.Outlined.PhoneIphone" Class="settings-row-icon" />
+                <span class="settings-row-text">Display</span>
+                @if (_display is not null)
+                {
+                    <span class="settings-health-chip">@DisplayDiagnosticsView.Summary(_display)</span>
+                }
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="@($"settings-row-end settings-health-chevron{(_showDisplayDetail ? " expanded" : "")}")" />
+            </button>
+            @if (_showDisplayDetail && _display is not null)
+            {
+                <ul id="settings-display-detail" class="settings-health-detail">
+                    @foreach (var row in DisplayDiagnosticsView.Rows(_display))
+                    {
+                        <li class="settings-health-check">
+                            <span class="settings-health-name">@row.Name</span>
+                            <span class="settings-health-chip">@row.Value</span>
                         </li>
                     }
                 </ul>

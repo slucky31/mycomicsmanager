@@ -1,7 +1,8 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Web.Models;
 using Web.Services;
@@ -15,6 +16,7 @@ public partial class UserSettings
     [Inject] private ILogger<UserSettings> Logger { get; set; } = default!;
     [Inject] private IHiddenLibrariesService HiddenLibrariesService { get; set; } = default!;
     [Inject] private LibrariesNotifier LibrariesNotifier { get; set; } = default!;
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 
     private string _username = string.Empty;
     private string _email = string.Empty;
@@ -23,6 +25,9 @@ public partial class UserSettings
     private SystemHealthViewModel _health = SystemHealthViewModel.Unavailable;
     private bool _showHealthDetail;
     private bool _isLoadingHealth = true;
+
+    private DisplayDiagnostics? _display;
+    private bool _showDisplayDetail;
 
     private bool _showHiddenLibraries;
     private bool _isLoadingHidden = true;
@@ -126,4 +131,26 @@ public partial class UserSettings
     }
 
     private void ToggleHealthDetail() => _showHealthDetail = !_showHealthDetail;
+
+    // Read when the row is opened, so that it shows the screen as it is now (rotated, Home Screen app...).
+    private async Task ToggleDisplayDetailAsync()
+    {
+        if (_showDisplayDetail)
+        {
+            _showDisplayDetail = false;
+            return;
+        }
+
+        try
+        {
+            var display = await JS.InvokeAsync<DisplayDiagnostics>(DisplayDiagnosticsView.ScriptFunction);
+            _display = display;
+            _showDisplayDetail = true;
+        }
+        catch (JSException ex)
+        {
+            Snackbar.Add("Failed to read the display", Severity.Error);
+            Logger.LogError(ex, "Failed to read the display");
+        }
+    }
 }
