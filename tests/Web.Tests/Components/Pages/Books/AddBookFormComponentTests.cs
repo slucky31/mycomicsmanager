@@ -1,3 +1,4 @@
+using Application.Books.IsbnOwners;
 using Application.Interfaces;
 using AwesomeAssertions;
 using Bunit;
@@ -46,6 +47,8 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
         _booksService.Create(Arg.Any<CreateBookRequest>(), Arg.Any<CancellationToken>())
             .Returns(_ => Result.Success<Book>(PhysicalBook.Create(new BookMetadata("Extremity", "Extremity", Isbn), _readBooks.Id).Value!));
         _searchService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Extremity);
+        _booksService.GetIsbnOwner(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Result.Success<IReadOnlyList<IsbnOwnerDto>>([]));
 
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         _ctx.Services.AddMudServices();
@@ -168,6 +171,28 @@ public sealed class AddBookFormComponentTests : IAsyncDisposable
             Arg.Is<CreateBookRequest>(r => r.Title == "Tangente" && r.Isbn == "978-2-917237-35-9" && r.NumberOfPages == 82 && r.Rating == 0),
             Arg.Any<CancellationToken>());
         await _searchService.DidNotReceive().SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CheckIsbnAsync_Should_CheckTheIsbnAgainstTheLibraryChosen()
+    {
+        var owner = new IsbnOwnerDto(Isbn, Guid.CreateVersion7(), "Extremity", "Extremity", 1, "/covers/extremity.webp", "Wishlist");
+        _booksService.GetIsbnOwner(_wishlist.Id, Arg.Any<Guid>(), Isbn, Arg.Any<CancellationToken>())
+            .Returns(_ => Result.Success<IReadOnlyList<IsbnOwnerDto>>([owner]));
+        var cut = Render(string.Empty);
+
+        await TypeAsync(cut, "book-isbn", Isbn);
+        await cut.Find("#book-isbn").ChangeAsync(new() { Value = Isbn });
+
+        cut.FindAll("a.book-isbn-owner").Should().BeEmpty();
+        await _booksService.DidNotReceive().GetIsbnOwner(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+        await cut.Find("#book-library").ClickAsync(new());
+        await cut.Find("[role=dialog] .action-sheet-item:contains('Wishlist')").ClickAsync(new());
+
+        cut.Find("#book-isbn-error").TextContent.Should().Be("This ISBN is already used by another book");
+        cut.Find("img.book-isbn-owner-cover").GetAttribute("alt").Should().Be("Cover of Extremity");
+        cut.FindAll("button[type=submit]").Should().OnlyContain(b => b.HasAttribute("disabled"));
     }
 
     [Fact]

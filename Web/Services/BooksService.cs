@@ -119,6 +119,17 @@ public class BooksService(
         return await queries.GetIsbnCandidateOwners.Handle(new GetIsbnCandidateOwnersQuery(bookId, userIdResult.Value), cancellationToken);
     }
 
+    public async Task<Result<IReadOnlyList<IsbnOwnerDto>>> GetIsbnOwner(Guid libraryId, Guid bookId, string isbn, CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        if (userIdResult.IsFailure)
+        {
+            return userIdResult.Error!;
+        }
+
+        return await queries.GetIsbnOwner.Handle(new GetIsbnOwnerQuery(libraryId, bookId, isbn, userIdResult.Value), cancellationToken);
+    }
+
     public async Task<Result<ReadingDate>> AddReadingDate(string bookId, int rating, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(bookId, out var guidId))

@@ -21,7 +21,8 @@ public sealed record BookQueryHandlers(
     IQueryHandler<GetPagedBooksQuery, IPagedList<BookSummaryDto>> GetPagedBooks,
     IQueryHandler<SearchBooksQuery, BookSearchResult> Search,
     IQueryHandler<IsIsbnAvailableQuery, bool> IsIsbnAvailable,
-    IQueryHandler<GetIsbnCandidateOwnersQuery, IReadOnlyList<IsbnOwnerDto>> GetIsbnCandidateOwners);
+    IQueryHandler<GetIsbnCandidateOwnersQuery, IReadOnlyList<IsbnOwnerDto>> GetIsbnCandidateOwners,
+    IQueryHandler<GetIsbnOwnerQuery, IReadOnlyList<IsbnOwnerDto>> GetIsbnOwner);
 
 // The command handlers of BooksService, grouped so that its constructor stays short (S107).
 public sealed record BookCommandHandlers(

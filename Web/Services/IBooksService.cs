@@ -22,6 +22,9 @@ public interface IBooksService
     Task<Result<bool>> IsIsbnAvailable(string bookId, string isbn, CancellationToken cancellationToken = default);
     // The other books that already hold an ISBN read on the pages of the book (#1276), to compare them.
     Task<Result<IReadOnlyList<IsbnOwnerDto>>> GetIsbnCandidateOwners(Guid bookId, CancellationToken cancellationToken = default);
+
+    // The other book that already holds the ISBN typed in the book form (#1343): empty when it is free.
+    Task<Result<IReadOnlyList<IsbnOwnerDto>>> GetIsbnOwner(Guid libraryId, Guid bookId, string isbn, CancellationToken cancellationToken = default);
     Task<Result<List<Book>>> GetAll();
     Task<Result<List<Book>>> GetByLibrary(Guid libraryId, CancellationToken cancellationToken = default);
     Task<Result<IPagedList<BookSummaryDto>>> GetPagedByLibrary(Guid libraryId, int page, int pageSize, BookSortOrder sortOrder, string? searchTerm = null, CancellationToken cancellationToken = default);

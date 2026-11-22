@@ -1,0 +1,24 @@
+@* The other book that already holds an ISBN, with a link to open it: on the book page (#1276) and in the book form (#1343). *@
+<a class="book-isbn-owner" href="@Href">
+    @if (!string.IsNullOrEmpty(Owner.ImageLink))
+    {
+        <img class="book-isbn-owner-cover" src="@CoverImage.Sized(Owner.ImageLink, CoverSize.Small)" alt="@Owner.CoverAlt" loading="lazy" />
+    }
+    else
+    {
+        <span class="book-isbn-owner-cover book-isbn-owner-cover-none" role="img" aria-label="No cover"><MudIcon Icon="@Icons.Material.Filled.MenuBook" /></span>
+    }
+    <span class="book-isbn-owner-text">
+        @if (Isbn is not null)
+        {
+            <span class="book-isbn-owner-isbn"><span class="book-isbn-owner-number">@Isbn</span><span class="book-isbn-owner-used">Already used</span></span>
+        }
+        <span class="book-isbn-owner-title">@Owner.Title</span>
+        @if (Owner.SerieAndVolume is not null)
+        {
+            <span class="book-isbn-owner-muted">@Owner.SerieAndVolume</span>
+        }
+        <span class="book-isbn-owner-muted">Library: <strong>@Owner.LibraryName</strong></span>
+    </span>
+    <span class="book-isbn-owner-open">Open that book</span>
+</a>

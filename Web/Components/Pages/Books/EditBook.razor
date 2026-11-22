@@ -24,7 +24,7 @@
         var view = _view;
         <FormHeader Title="Edit book" Subtitle="@view.Subtitle" BackHref="@BookHref">
             <FormButton Variant="FormButtonVariant.Outlined" Href="@BookHref">Cancel</FormButton>
-            <FormButton Type="submit" Form="edit-book-form" Icon="@Icons.Material.Filled.Check" Disabled="_isSaving">Save changes</FormButton>
+            <FormButton Type="submit" Form="edit-book-form" Icon="@Icons.Material.Filled.Check" Disabled="@(_isSaving || _isbnTaken)">Save changes</FormButton>
         </FormHeader>
 
         <BookFormLayout FormId="edit-book-form" OnSubmit="SaveAsync" Errors="_errors" ImageLink="@_model.ImageLink">
@@ -42,7 +42,7 @@
                 </div>
             </Side>
             <ChildContent>
-                <BookFields Model="_model" Errors="_errors" OnChanged="Revalidate" />
+                <BookFields Model="_model" Errors="_errors" OnChanged="Revalidate" OnIsbnTakenChanged="taken => _isbnTaken = taken" />
 
                 <FormSection Id="book-form-readings" Title="Readings" Note="@view.ReadingsCountLabel">
                     <div class="form-wide edit-readings">
@@ -75,7 +75,7 @@
             <Footer>
                 <FormFooter>
                     <FormButton Variant="FormButtonVariant.Outlined" Href="@BookHref">Cancel</FormButton>
-                    <FormButton Type="submit" Icon="@Icons.Material.Filled.Check" Disabled="_isSaving">Save changes</FormButton>
+                    <FormButton Type="submit" Icon="@Icons.Material.Filled.Check" Disabled="@(_isSaving || _isbnTaken)">Save changes</FormButton>
                 </FormFooter>
             </Footer>
         </BookFormLayout>

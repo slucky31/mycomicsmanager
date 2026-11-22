@@ -166,26 +166,7 @@
                                 @foreach (var candidate in candidates.UsedCandidates)
                                 {
                                     var owner = candidate.Owner!;
-                                    <a class="book-isbn-owner" href="@OwnerHref(owner)">
-                                        @if (!string.IsNullOrEmpty(owner.ImageLink))
-                                        {
-                                            <img class="book-isbn-owner-cover" src="@CoverImage.Sized(owner.ImageLink, CoverSize.Small)" alt="@owner.CoverAlt" loading="lazy" />
-                                        }
-                                        else
-                                        {
-                                            <span class="book-isbn-owner-cover book-isbn-owner-cover-none" role="img" aria-label="No cover"><MudIcon Icon="@Icons.Material.Filled.MenuBook" /></span>
-                                        }
-                                        <span class="book-isbn-owner-text">
-                                            <span class="book-isbn-owner-isbn"><span class="book-isbn">@candidate.Isbn</span><span class="book-isbn-owner-used">Already used</span></span>
-                                            <span class="book-isbn-owner-title">@owner.Title</span>
-                                            @if (owner.SerieAndVolume is not null)
-                                            {
-                                                <span class="book-isbn-owner-muted">@owner.SerieAndVolume</span>
-                                            }
-                                            <span class="book-isbn-owner-muted">Library: <strong>@owner.LibraryName</strong></span>
-                                        </span>
-                                        <span class="book-isbn-owner-open">Open that book</span>
-                                    </a>
+                                    <IsbnOwnerCard Owner="owner" Href="@OwnerHref(owner)" Isbn="@candidate.Isbn" />
                                 }
                             </MudAlert>
                         }

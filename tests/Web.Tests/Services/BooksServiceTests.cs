@@ -36,6 +36,7 @@ public sealed class BooksServiceTests
     private readonly ICommandHandler<DeleteReadingDateCommand> _deleteReadingDateHandler;
     private readonly IQueryHandler<IsIsbnAvailableQuery, bool> _isIsbnAvailableHandler;
     private readonly IQueryHandler<GetIsbnCandidateOwnersQuery, IReadOnlyList<IsbnOwnerDto>> _getIsbnCandidateOwnersHandler;
+    private readonly IQueryHandler<GetIsbnOwnerQuery, IReadOnlyList<IsbnOwnerDto>> _getIsbnOwnerHandler = Substitute.For<IQueryHandler<GetIsbnOwnerQuery, IReadOnlyList<IsbnOwnerDto>>>();
     private readonly ICurrentUserService _currentUserService;
     private readonly BooksService _service;
 
@@ -61,7 +62,7 @@ public sealed class BooksServiceTests
         _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(DefaultUserId);
 
         _service = new BooksService(
-            new BookQueryHandlers(_getBookByIdHandler, _getBooksHandler, _getPagedBooksHandler, _searchBooksHandler, _isIsbnAvailableHandler, _getIsbnCandidateOwnersHandler),
+            new BookQueryHandlers(_getBookByIdHandler, _getBooksHandler, _getPagedBooksHandler, _searchBooksHandler, _isIsbnAvailableHandler, _getIsbnCandidateOwnersHandler, _getIsbnOwnerHandler),
             new BookCommandHandlers(_createBookHandler, _updateBookHandler, _deleteBookHandler, _deleteBooksHandler, _addReadingDateHandler, _deleteReadingDateHandler),
             _currentUserService);
     }
@@ -1362,6 +1363,34 @@ public sealed class BooksServiceTests
         var result = await _service.GetIsbnCandidateOwners(bookId, TestContext.Current.CancellationToken);
 
         result.Value.Should().BeEquivalentTo(owners);
+    }
+
+    #endregion
+
+    #region GetIsbnOwner
+
+    [Fact]
+    public async Task GetIsbnOwner_Should_NotAskTheHandler_WhenUserNotAuthenticated()
+    {
+        _currentUserService.GetCurrentUserIdAsync(TestContext.Current.CancellationToken).Returns(Result.Failure<Guid>(UsersError.NotFound));
+
+        var result = await _service.GetIsbnOwner(DefaultLibraryId, Guid.Empty, "9782012101333", TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(UsersError.NotFound);
+        await _getIsbnOwnerHandler.DidNotReceive().Handle(Arg.Any<GetIsbnOwnerQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetIsbnOwner_Should_AskTheHandlerForTheIsbnTypedByTheUser()
+    {
+        var bookId = Guid.CreateVersion7();
+        var owner = new IsbnOwnerDto("9782012101333", Guid.CreateVersion7(), "Astérix", "Le Tour de Gaule", 5, string.Empty, "BD");
+        _getIsbnOwnerHandler.Handle(new GetIsbnOwnerQuery(DefaultLibraryId, bookId, "9782012101333", DefaultUserId), Arg.Any<CancellationToken>())
+            .Returns(Result.Success<IReadOnlyList<IsbnOwnerDto>>([owner]));
+
+        var result = await _service.GetIsbnOwner(DefaultLibraryId, bookId, "9782012101333", TestContext.Current.CancellationToken);
+
+        result.Value.Should().ContainSingle().Which.Should().Be(owner);
     }
 
     #endregion

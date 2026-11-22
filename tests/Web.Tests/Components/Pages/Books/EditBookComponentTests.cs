@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using Bunit;
 using Bunit.TestDoubles;
+using Application.Books.IsbnOwners;
 using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
@@ -40,6 +41,8 @@ public sealed class EditBookComponentTests : IAsyncDisposable
         _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(_ => Result.Success<Book>(_book));
         _booksService.DeleteReadingDate(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
         _librariesService.GetById(Arg.Any<string?>()).Returns(_ => Result.Success<Library>(_library));
+        _booksService.GetIsbnOwner(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Result.Success<IReadOnlyList<IsbnOwnerDto>>([]));
         ConfirmDialogsWith(DialogResult.Ok(true));
 
         _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
@@ -216,6 +219,46 @@ public sealed class EditBookComponentTests : IAsyncDisposable
         _snackbar.Received(1).Add(message, Severity.Error);
         _navigation.Uri.Should().NotEndWith($"/books/{_book.Id}");
         cut.Find(".form-footer button[type=submit]").HasAttribute("disabled").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CheckIsbnAsync_Should_ShowTheBookHoldingTheIsbn_AndKeepTheFormFromBeingSaved_UntilTheIsbnIsChanged()
+    {
+        const string usedIsbn = "9782205049619";
+        var owner = new IsbnOwnerDto(usedIsbn, Guid.CreateVersion7(), "Blacksad", "Quelque part entre les ombres", 1, "", "BD physiques");
+        _booksService.GetIsbnOwner(_library.Id, _book.Id, usedIsbn, Arg.Any<CancellationToken>())
+            .Returns(_ => Result.Success<IReadOnlyList<IsbnOwnerDto>>([owner]));
+        var cut = Render();
+
+        await TypeAsync(cut, "book-isbn", usedIsbn);
+        await cut.Find("#book-isbn").ChangeAsync(new() { Value = usedIsbn });
+
+        cut.Find("#book-isbn").GetAttribute("aria-invalid").Should().Be("true");
+        cut.Find("#book-isbn-error").TextContent.Should().Be("This ISBN is already used by another book");
+        cut.Find("a.book-isbn-owner").GetAttribute("href").Should().Be($"/books/{owner.BookId}");
+        cut.Find("a.book-isbn-owner").TextContent.Should().Contain("Blacksad · Volume 1").And.Contain("Library: BD physiques");
+        cut.FindAll("button[type=submit]").Should().OnlyContain(b => b.HasAttribute("disabled"));
+        await cut.Find("form").SubmitAsync();
+        await _booksService.DidNotReceive().Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>());
+
+        await TypeAsync(cut, "book-isbn", "9782205049616");
+
+        cut.FindAll("a.book-isbn-owner").Should().BeEmpty();
+        cut.FindAll("button[type=submit]").Should().OnlyContain(b => !b.HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public async Task CheckIsbnAsync_Should_LetTheFormBeSaved_WhenTheIsbnCannotBeChecked()
+    {
+        _booksService.GetIsbnOwner(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Result.Failure<IReadOnlyList<IsbnOwnerDto>>(BooksError.BadRequest));
+        var cut = Render();
+
+        await cut.Find("#book-isbn").ChangeAsync(new() { Value = Isbn });
+        await cut.Find("form").SubmitAsync();
+
+        cut.FindAll("a.book-isbn-owner").Should().BeEmpty();
+        await _booksService.Received(1).Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

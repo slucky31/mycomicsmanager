@@ -39,6 +39,8 @@ public sealed partial class EditBook : IDisposable
     private bool _submitted;
     private bool _isLoading = true;
     private bool _isSaving;
+    // Another book holds the ISBN typed (#1343): the form cannot be saved until it is changed.
+    private bool _isbnTaken;
     private Guid? _deletingReadingId;
 
     private string BookHref => ReturnLinks.With($"/books/{BookId}", From);
@@ -108,7 +110,7 @@ public sealed partial class EditBook : IDisposable
 
     private async Task SaveAsync()
     {
-        if (_isSaving || _model is null)
+        if (_isSaving || _isbnTaken || _model is null)
         {
             return;
         }

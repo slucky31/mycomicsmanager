@@ -68,7 +68,7 @@
     {
         <FormHeader Title="Add a book" Subtitle="@FormSubtitle" BackHref="@ExitHref" OnBack="@(_found is null ? default : EventCallback.Factory.Create(this, ShowFound))">
             <FormButton Variant="FormButtonVariant.Outlined" Href="@ExitHref">Cancel</FormButton>
-            <FormButton Type="submit" Form="add-book-form" Icon="@Icons.Material.Filled.Add" Disabled="_isSaving">Add book</FormButton>
+            <FormButton Type="submit" Form="add-book-form" Icon="@Icons.Material.Filled.Add" Disabled="@(_isSaving || _isbnTaken)">Add book</FormButton>
         </FormHeader>
 
         <BookFormLayout FormId="add-book-form" OnSubmit="SaveAsync" Errors="_errors" ImageLink="@_model.ImageLink">
@@ -76,12 +76,12 @@
                 <LibrarySelect Libraries="_libraries" Value="_model.LibraryId" ValueChanged="ChooseLibrary" Error="@_errors.For(nameof(BookUiDto.LibraryId))" />
             </Side>
             <ChildContent>
-                <BookFields Model="_model" Errors="_errors" OnChanged="Revalidate" />
+                <BookFields Model="_model" Errors="_errors" OnChanged="Revalidate" OnIsbnTakenChanged="taken => _isbnTaken = taken" />
             </ChildContent>
             <Footer>
                 <FormFooter>
                     <FormButton Variant="FormButtonVariant.Outlined" Href="@ExitHref">Cancel</FormButton>
-                    <FormButton Type="submit" Icon="@Icons.Material.Filled.Add" Disabled="_isSaving">Add book</FormButton>
+                    <FormButton Type="submit" Icon="@Icons.Material.Filled.Add" Disabled="@(_isSaving || _isbnTaken)">Add book</FormButton>
                 </FormFooter>
             </Footer>
         </BookFormLayout>
