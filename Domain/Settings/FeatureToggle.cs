@@ -10,6 +10,5 @@ public enum FeatureToggle
     Bnf,         // BnfCatalogue:Enabled - BnF catalogue search
     GoogleBooks, // GoogleBooks:Enabled  - Google Books search
     OpenLibrary, // OpenLibrary:Enabled  - OpenLibrary search
-    Bubble,      // Bubble:Enabled       - Bubble search (needs Bubble:ApiKey)
-    VirtualizedLibrary // (no configuration) - prototype (#1344): the books of a library rendered by Virtualize
+    Bubble       // Bubble:Enabled       - Bubble search (needs Bubble:ApiKey)
 }

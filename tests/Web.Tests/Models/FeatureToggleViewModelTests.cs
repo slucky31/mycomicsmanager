@@ -16,7 +16,6 @@ public sealed class FeatureToggleViewModelTests
     [InlineData(FeatureToggle.GoogleBooks, "Google Books search", "GoogleBooks:Enabled")]
     [InlineData(FeatureToggle.OpenLibrary, "OpenLibrary search", "OpenLibrary:Enabled")]
     [InlineData(FeatureToggle.Bubble, "Bubble search", "Bubble:Enabled")]
-    [InlineData(FeatureToggle.VirtualizedLibrary, "Virtualized library (prototype)", "no configuration")]
     [InlineData((FeatureToggle)99, "99", "99:Enabled")]
     public void From_Should_DescribeTheFeature(FeatureToggle toggle, string label, string configurationKey)
     {
