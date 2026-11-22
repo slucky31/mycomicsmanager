@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.4.4"></a>
+## [11.4.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.4) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **docker:** apply the Alpine security fixes and pin the base images ([#1359](https://www.github.com/slucky31/mycomicsmanager/issues/1359)) ([935a2ec](https://www.github.com/slucky31/mycomicsmanager/commit/935a2ecf4fea6088eb18df375b012af586f598ca))
+
 <a name="11.4.3"></a>
 ## [11.4.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.4.3) (2026-11-22)
 
