@@ -37,4 +37,32 @@ public sealed class MainLayoutComponentTests
         cut.FindAll("nav.side-nav").Should().ContainSingle();
         cut.Find("main.page-body").ClassList.Should().Contain("with-bottom-bar");
     }
+
+    [Fact]
+    public async Task MainLayout_Should_StayLight_WhenTheSystemTurnsDark()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddMudServices();
+        ctx.Services.AddSingleton(Substitute.For<IFeedImportService>());
+        ctx.Services.AddSingleton(new FeedImportNotifier());
+        ctx.Services.AddSingleton(new LibrariesNotifier());
+        ctx.AddAuthorization().SetAuthorized("user@example.com");
+
+        ctx.Render<MainLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "page"))));
+
+        ctx.JSInterop.Invocations.Should().NotContain(invocation => invocation.Identifier == "mudThemeProvider.watchDarkMode");
+    }
+
+    [Fact]
+    public async Task ScannerLayout_Should_StayLight_WhenTheSystemTurnsDark()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddMudServices();
+
+        ctx.Render<ScannerLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "page"))));
+
+        ctx.JSInterop.Invocations.Should().NotContain(invocation => invocation.Identifier == "mudThemeProvider.watchDarkMode");
+    }
 }

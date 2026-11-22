@@ -1,7 +1,8 @@
 @inherits LayoutComponentBase
 @using Web.Infrastructure
 
-<MudThemeProvider Theme="AppTheme.Theme" />
+@* The app has a light theme only (DESIGN.md): MudBlazor must not switch to its dark palette when the phone turns dark (#1355). *@
+<MudThemeProvider Theme="AppTheme.Theme" ObserveSystemDarkModeChange="false" />
 <MudSnackbarProvider />
 <MudPopoverProvider />
 
