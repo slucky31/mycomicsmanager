@@ -1,4 +1,5 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:11.0.100-resolute AS build
+# Images pinned by digest: Renovate opens a PR each time Microsoft rebuilds them (#1357).
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:11.0.100-resolute@sha256:65f3c7c6a25a239ab3e6719f2896147e7b68242ff2d8818dd70498bde6ef8bea AS build
 ARG TARGETARCH
 WORKDIR /source
 
@@ -28,10 +29,12 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
 # final stage/image
 # Alpine (musl) halves the base image compared with Ubuntu (#1284). The -extra variant adds ICU and
 # tzdata, so culture-aware formatting and time zones work as on Ubuntu (no invariant globalization).
-FROM mcr.microsoft.com/dotnet/aspnet:11.0.0-alpine3.24-extra
+FROM mcr.microsoft.com/dotnet/aspnet:11.0.0-alpine3.24-extra@sha256:cd3d2caabadeef985cafe1cedd48f80357c2c72887ac3e74d48a1e70011277c9
 
+# apk upgrade applies the Alpine security fixes released since the base image was built (#1357).
 # tesseract-ocr reads the ISBN printed on the pages of the imported books.
-RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng
+RUN apk upgrade --no-cache \
+    && apk add --no-cache tesseract-ocr tesseract-ocr-data-eng
 
 EXPOSE 8080
 WORKDIR /app
