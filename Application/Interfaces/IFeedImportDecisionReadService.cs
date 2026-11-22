@@ -22,6 +22,10 @@ public interface IFeedImportDecisionReadService
 
     Task<int> CountByStatusAsync(Guid userId, FeedImportDecisionStatus status, CancellationToken cancellationToken = default);
 
+    // Decisions downloaded since the date after at least one automatic retry (#1318); the ones deleted from the
+    // Feeds page are no longer counted.
+    Task<int> CountDownloadedAfterAutoRetryAsync(Guid userId, DateTime since, CancellationToken cancellationToken = default);
+
     // The number of decisions of the user in each status, on a host when one is given; a status without decision is left out.
     Task<IReadOnlyDictionary<FeedImportDecisionStatus, int>> CountPerStatusAsync(Guid userId, string? host, CancellationToken cancellationToken = default);
 

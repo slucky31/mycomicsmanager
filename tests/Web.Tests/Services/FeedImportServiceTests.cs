@@ -454,4 +454,24 @@ public sealed class FeedImportServiceTests : IDisposable
 
         result.Error.Should().Be(UsersError.NotFound);
     }
+
+    [Fact]
+    public async Task CountDownloadedAfterAutoRetryAsync_Should_CountTheLast30Days()
+    {
+        _decisionReadService.CountDownloadedAfterAutoRetryAsync(s_userId, Arg.Any<DateTime>(), Arg.Any<CancellationToken>()).Returns(4);
+
+        var count = await _service.CountDownloadedAfterAutoRetryAsync(TestContext.Current.CancellationToken);
+
+        count.Should().Be(4);
+        await _decisionReadService.Received(1).CountDownloadedAfterAutoRetryAsync(
+            s_userId, Arg.Is<DateTime>(d => DateTime.UtcNow - d > TimeSpan.FromDays(29) && DateTime.UtcNow - d < TimeSpan.FromDays(31)), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CountDownloadedAfterAutoRetryAsync_Should_ReturnZero_WhenUserNotResolved()
+    {
+        _currentUserService.GetCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Guid>(UsersError.NotFound));
+
+        (await _service.CountDownloadedAfterAutoRetryAsync(TestContext.Current.CancellationToken)).Should().Be(0);
+    }
 }

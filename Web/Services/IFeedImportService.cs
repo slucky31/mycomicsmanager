@@ -55,4 +55,7 @@ public interface IFeedImportService
 
     // The Debrid-Link hosts with their state and recorded changes (Settings, Debrid-Link hosts).
     Task<Result<HostStatusOverview>> GetHostStatusOverviewAsync(CancellationToken cancellationToken = default);
+
+    // Feeds downloaded in the last 30 days after an automatic retry (Settings, Debrid-Link hosts); 0 when the user cannot be resolved.
+    Task<int> CountDownloadedAfterAutoRetryAsync(CancellationToken cancellationToken = default);
 }

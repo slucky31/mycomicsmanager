@@ -103,6 +103,47 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
         pending.Should().Be(1);
     }
 
+    private static readonly DownloadCandidate s_candidate = new("Blacksad T03", "Blacksad T03.cbz", null,
+        [new DownloadMirror("https://ddl.to/a", "ddl.to")]);
+
+    private static void FailOnHostDown(FeedImportDecision decision)
+    {
+        decision.RecordLinks([s_candidate], new ParsedComicTitle("Blacksad", null, 3), "1 link", FeedImportDecidedBy.Auto);
+        decision.StartDownload();
+        decision.Fail(FeedImportConstants.HostDownStep, "Host down on Debrid-Link. (ddl.to)");
+    }
+
+    private static void Download(FeedImportDecision decision)
+    {
+        decision.RecordLinks([s_candidate], new ParsedComicTitle("Blacksad", null, 3), "1 link", FeedImportDecidedBy.Auto);
+        decision.StartDownload();
+        decision.MarkDownloaded("https://ddl.to/a", Guid.CreateVersion7(), "Imported");
+    }
+
+    [Fact]
+    public async Task CountDownloadedAfterAutoRetryAsync_Should_CountOnlyTheDownloadsAfterAnAutomaticRetry()
+    {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var decisions = await SeedAsync(userId, "Retried then downloaded", "Downloaded", "Retried, failed again");
+        FailOnHostDown(decisions[0]);
+        decisions[0].RetryAutomatically(_ => true);
+        Download(decisions[0]);
+        Download(decisions[1]);
+        FailOnHostDown(decisions[2]);
+        decisions[2].RetryAutomatically(_ => true);
+        FailOnHostDown(decisions[2]);
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var recent = await FeedImportDecisionReadService.CountDownloadedAfterAutoRetryAsync(userId, DateTime.UtcNow.AddDays(-30), TestContext.Current.CancellationToken);
+        var future = await FeedImportDecisionReadService.CountDownloadedAfterAutoRetryAsync(userId, DateTime.UtcNow.AddDays(1), TestContext.Current.CancellationToken);
+
+        // Assert
+        recent.Should().Be(1);
+        future.Should().Be(0);
+    }
+
     [Fact]
     public async Task CountPerStatusAsync_Should_CountUserDecisionsOfEachStatus()
     {

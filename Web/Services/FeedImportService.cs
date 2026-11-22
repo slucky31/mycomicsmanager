@@ -252,6 +252,17 @@ public class FeedImportService(
         return decisions.Count;
     }
 
+    public static TimeSpan AutoRetryCountWindow => TimeSpan.FromDays(30);
+
+    public async Task<int> CountDownloadedAfterAutoRetryAsync(CancellationToken cancellationToken = default)
+    {
+        var userIdResult = await currentUserService.GetCurrentUserIdAsync(cancellationToken);
+        return userIdResult.IsFailure
+            ? 0
+            : await decisionReadService.CountDownloadedAfterAutoRetryAsync(
+                userIdResult.Value, timeProvider.GetUtcNow().UtcDateTime - AutoRetryCountWindow, cancellationToken);
+    }
+
     public Task<Result<HostStatusOverview>> GetHostStatusOverviewAsync(CancellationToken cancellationToken = default) =>
         RunAsync(h => h.HostStatusOverview.Handle(new GetHostStatusOverviewQuery(), cancellationToken));
 
