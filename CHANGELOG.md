@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="12.0.0"></a>
+## [12.0.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v12.0.0) (2026-11-22)
+
+### ✨ Features
+
+* **docker:** run on Alpine and drop the unused /login page ([#1349](https://www.github.com/slucky31/mycomicsmanager/issues/1349)) ([87556ed](https://www.github.com/slucky31/mycomicsmanager/commit/87556ed17484f9f562a9bb32fff147d4ae2846d6))
+
+### Breaking Changes
+
+* **docker:** run on Alpine and drop the unused /login page ([#1349](https://www.github.com/slucky31/mycomicsmanager/issues/1349)) ([87556ed](https://www.github.com/slucky31/mycomicsmanager/commit/87556ed17484f9f562a9bb32fff147d4ae2846d6))
+
 <a name="11.2.2"></a>
 ## [11.2.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.2.2) (2026-11-22)
 
