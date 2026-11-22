@@ -43,6 +43,7 @@ public static class ProjectDependencyInjection
         services.AddScoped<IImportJobRepository, ImportJobRepository>();
         services.AddScoped<IFeedImportDecisionRepository, FeedImportDecisionRepository>();
         services.AddScoped<IHostStatusChangeRepository, HostStatusChangeRepository>();
+        services.AddScoped<IAutoRetryDownloadRepository, AutoRetryDownloadRepository>();
         services.AddScoped<IFeatureToggleOverrideRepository, FeatureToggleOverrideRepository>();
         services.AddScoped<ISeriesInfoRepository, SeriesInfoRepository>();
 

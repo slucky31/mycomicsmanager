@@ -9,10 +9,12 @@ using Domain.Libraries;
 
 namespace Application.FeedImports.Download;
 
-// Handing the file over to the import pipeline: target library, import directory, ImportJob.
+// Handing the file over to the import pipeline: target library, import directory, ImportJob,
+// and the record of a download after an automatic retry.
 public sealed record FeedImportDepositServices(
     ILibraryReadService LibraryReadService,
     ICommandHandler<CreateLibraryCommand, Library> CreateLibraryHandler,
     IImportDirectoryStorage ImportDirectoryStorage,
     ICommandHandler<CreateImportJobCommand, ImportJob> CreateImportJobHandler,
-    IImportJobEnqueuer ImportJobEnqueuer);
+    IImportJobEnqueuer ImportJobEnqueuer,
+    IAutoRetryDownloadRepository AutoRetryDownloads);

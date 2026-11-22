@@ -121,27 +121,31 @@ public class FeedImportDecisionReadServiceTests(IntegrationTestWebAppFactory fac
     }
 
     [Fact]
-    public async Task CountDownloadedAfterAutoRetryAsync_Should_CountOnlyTheDownloadsAfterAnAutomaticRetry()
+    public async Task CountDownloadedAfterAutoRetryAsync_Should_CountTheDownloadsAfterAnAutomaticRetry_EvenWhenTheDecisionIsDeleted()
     {
         // Arrange
         var userId = Guid.CreateVersion7();
-        var decisions = await SeedAsync(userId, "Retried then downloaded", "Downloaded", "Retried, failed again");
-        FailOnHostDown(decisions[0]);
-        decisions[0].RetryAutomatically(_ => true);
-        Download(decisions[0]);
-        Download(decisions[1]);
-        FailOnHostDown(decisions[2]);
-        decisions[2].RetryAutomatically(_ => true);
-        FailOnHostDown(decisions[2]);
+        var decisions = await SeedAsync(userId, "Retried then downloaded", "Retried, downloaded, deleted");
+        foreach (var decision in decisions)
+        {
+            FailOnHostDown(decision);
+            decision.RetryAutomatically(_ => true);
+            Download(decision);
+            AutoRetryDownloadRepository.Add(AutoRetryDownload.From(decision)!);
+        }
+        await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        FeedImportDecisionRepository.Remove(decisions[1]);
         await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
         var recent = await FeedImportDecisionReadService.CountDownloadedAfterAutoRetryAsync(userId, DateTime.UtcNow.AddDays(-30), TestContext.Current.CancellationToken);
         var future = await FeedImportDecisionReadService.CountDownloadedAfterAutoRetryAsync(userId, DateTime.UtcNow.AddDays(1), TestContext.Current.CancellationToken);
+        var otherUser = await FeedImportDecisionReadService.CountDownloadedAfterAutoRetryAsync(Guid.CreateVersion7(), DateTime.UtcNow.AddDays(-30), TestContext.Current.CancellationToken);
 
         // Assert
-        recent.Should().Be(1);
+        recent.Should().Be(2);
         future.Should().Be(0);
+        otherUser.Should().Be(0);
     }
 
     [Fact]

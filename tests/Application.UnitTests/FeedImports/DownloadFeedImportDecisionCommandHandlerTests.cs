@@ -35,6 +35,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
     private readonly IImportDirectoryStorage _storage = Substitute.For<IImportDirectoryStorage>();
     private readonly ICommandHandler<CreateImportJobCommand, ImportJob> _createImportJob = Substitute.For<ICommandHandler<CreateImportJobCommand, ImportJob>>();
     private readonly IImportJobEnqueuer _enqueuer = Substitute.For<IImportJobEnqueuer>();
+    private readonly IAutoRetryDownloadRepository _autoRetryDownloads = Substitute.For<IAutoRetryDownloadRepository>();
     private readonly FeedImportSettings _feedImportSettings = new()
     {
         AllowedDownloadHosts = ["1fichier.com", "rapidgator.net"]
@@ -71,7 +72,7 @@ public class DownloadFeedImportDecisionCommandHandlerTests
             _repository,
             _unitOfWork,
             new FeedImportDownloadServices(_debridLink, _downloader),
-            new FeedImportDepositServices(_libraryReadService, _createLibrary, _storage, _createImportJob, _enqueuer),
+            new FeedImportDepositServices(_libraryReadService, _createLibrary, _storage, _createImportJob, _enqueuer, _autoRetryDownloads),
             new FeedImportDownloadOptions(Options.Create(_feedImportSettings), Options.Create(_debridLinkSettings), Options.Create(_importSettings)),
             NullLogger<DownloadFeedImportDecisionCommandHandler>.Instance, TimeProvider.System);
     }
@@ -158,6 +159,25 @@ public class DownloadFeedImportDecisionCommandHandlerTests
             new CreateImportJobCommand("Blacksad T03.cbz", TargetPath, 1_000, _library.Id, s_userId), Arg.Any<CancellationToken>());
         _storage.Received(1).DepositFile(TempPath, TargetPath);
         _enqueuer.Received(1).Enqueue(_importJob.Id);
+        _autoRetryDownloads.DidNotReceiveWithAnyArgs().Add(default!);
+    }
+
+    [Fact]
+    public async Task Handle_Should_RecordTheDownload_WhenTheDecisionWasRetriedAutomatically()
+    {
+        GivenHosts(fichierUp: false, rapidgatorUp: false);
+        var decision = GivenDecision();
+        await HandleAsync(decision);
+        decision.RetryAutomatically(_ => true).IsSuccess.Should().BeTrue();
+        decision.RecordLinks([new DownloadCandidate("Blacksad T03", "Blacksad T03.cbz", 1_000, [new DownloadMirror(FichierUrl, "1fichier.com")])], new ParsedComicTitle("Blacksad", null, 3), "2 miroirs", FeedImportDecidedBy.Auto);
+        GivenHosts(fichierUp: true, rapidgatorUp: true);
+
+        var result = await HandleAsync(decision);
+
+        result.IsSuccess.Should().BeTrue();
+        decision.Status.Should().Be(FeedImportDecisionStatus.Downloaded);
+        _autoRetryDownloads.Received(1).Add(Arg.Is<AutoRetryDownload>(d =>
+            d.DecisionId == decision.Id && d.UserId == s_userId && d.AutoRetryCount == 1));
     }
 
     [Fact]
