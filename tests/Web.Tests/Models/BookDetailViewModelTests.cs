@@ -79,6 +79,18 @@ public sealed class BookDetailViewModelTests
         view.SerieAndVolume.Should().Be("Volume 1");
     }
 
+    [Theory]
+    [InlineData("One Shot", 1, true)]
+    [InlineData("one shot", 1, true)]
+    [InlineData("One Shot", 2, false)]
+    [InlineData("Blacksad", 1, false)]
+    public void From_Should_TellWhetherTheBookIsAOneShot_WhenItsSerieIsOneShotAndItsVolume1(string serie, int volume, bool expected)
+    {
+        var view = BookDetailViewModel.From(Physical(new BookMetadata(serie, "Extremity", "9782413015406", volume)));
+
+        view.IsOneShot.Should().Be(expected);
+    }
+
     [Fact]
     public void From_Should_ShowTheLatestRatingAndTheReadingsNewestFirst_WhenTheBookWasRead()
     {

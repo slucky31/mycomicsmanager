@@ -111,7 +111,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
         cut.Find("a.book-primary-button").GetAttribute("href").Should().Be($"/books/{book.Id}/read?from=%2Fbooks%2F{book.Id}");
         cut.Find(".book-primary-text").TextContent.Should().Contain("Continue reading").And.Contain("Page 28 of 56");
         cut.Find(".book-progress > div").GetAttribute("style").Should().Contain("width: 50%");
-        cut.FindAll(".book-action").Select(a => a.TextContent).Should().Equal("Import info", "Move", "Find ISBN", "CBZ");
+        cut.FindAll(".book-action").Select(a => a.TextContent).Should().Equal("Import info", "Move", "To OneShot", "CBZ");
         cut.Find("a.book-action[download]").GetAttribute("href").Should().Be($"/api/books/{book.Id}/download");
         cut.Find(".book-history-empty").TextContent.Should().Be("Not read yet");
     }
@@ -210,7 +210,7 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
         cut.Find(".book-status .book-stars").GetAttribute("aria-label").Should().Be("Rated 3 out of 5");
         cut.Find(".book-read").TextContent.Should().Be("Read");
         cut.Find("button.book-primary-button").TextContent.Should().Contain("Add a reading");
-        cut.FindAll(".book-action").Select(a => a.TextContent).Should().Equal("Import info", "Move");
+        cut.FindAll(".book-action").Select(a => a.TextContent).Should().Equal("Import info", "Move", "To OneShot");
         cut.Find(".book-history li").TextContent.Should().Contain("21/08/2026");
         cut.Find(".book-isbn").TextContent.Should().Be("9782413015406");
     }
@@ -299,8 +299,77 @@ public sealed class BookDetailComponentTests : IAsyncDisposable
         sheet.ClassList.Should().NotContain("action-sheet-centered");
         cut.Find(".book-sheet-details").TextContent.Should().Be("Volume 4 · Digital");
         cut.FindAll(".action-sheet-item").Select(i => i.TextContent.Trim()).Should().Equal(
-            "Edit", "Import info from the web", "Move to another library", "Delete");
+            "Edit", "Import info from the web", "Find ISBN", "Move to another library", "Delete");
         cut.FindAll(".action-sheet-item-danger").Single().TextContent.Trim().Should().Be("Delete");
+    }
+
+    [Fact]
+    public async Task OpenActionsAsync_Should_NotOfferFindIsbn_WhenTheBookIsPaper()
+    {
+        var cut = await RenderAsync(PaperBook());
+
+        await cut.Find("button[aria-label='More actions']").ClickAsync(new());
+
+        cut.FindAll(".action-sheet-item").Select(i => i.TextContent.Trim()).Should().NotContain("Find ISBN");
+    }
+
+    [Fact]
+    public async Task FindIsbnFromActions_Should_CloseTheMenuAndOpenTheReaderInIsbnSearchMode()
+    {
+        var book = DigitalBook();
+        var cut = await RenderAsync(book);
+
+        await cut.Find("button[aria-label='More actions']").ClickAsync(new());
+        await ClickAsync(cut, ".action-sheet-item", "Find ISBN");
+
+        CurrentUri.Should().EndWith($"/books/{book.Id}/read?mode=isbn&from=%2Fbooks%2F{book.Id}");
+    }
+
+    [Fact]
+    public async Task ToOneShotAsync_Should_SaveTheBookAsOneShotVolume1_AndReloadIt()
+    {
+        var book = DigitalBook();
+        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(callInfo =>
+        {
+            var request = callInfo.Arg<UpdateBookRequest>();
+            book.Update(new BookMetadata(request.Series, request.Title, null, request.VolumeNumber, NumberOfPages: request.NumberOfPages));
+            return Result.Success<Book>(book);
+        });
+        var cut = await RenderAsync(book);
+
+        await ClickAsync(cut, ".book-action", "To OneShot");
+
+        await _booksService.Received(1).Update(
+            new UpdateBookRequest(book.Id.ToString(), BookConstants.OneShotSerie, "Âme rouge", string.Empty, 1, string.Empty, NumberOfPages: 56),
+            Arg.Any<CancellationToken>());
+        ShouldShow("Âme rouge is now a one shot", Severity.Success);
+        cut.Find(".book-serie").TextContent.Should().Be("One Shot · Volume 1");
+        cut.FindAll(".book-action").Select(a => a.TextContent).Should().Equal("Import info", "Move", "CBZ");
+    }
+
+    [Fact]
+    public async Task ToOneShotAsync_Should_KeepTheBookAndShowAnError_WhenSavingFails()
+    {
+        var book = PaperBook();
+        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).Returns(Result.Failure<Book>(BooksError.Duplicate));
+        var cut = await RenderAsync(book);
+
+        await ClickAsync(cut, ".book-action", "To OneShot");
+
+        ShouldShow(BookDetail.Msg_ToOneShotFailed, Severity.Error);
+        await _booksService.Received(1).GetById(book.Id.ToString());
+        cut.FindAll(".book-action").Single(a => a.TextContent == "To OneShot").HasAttribute("disabled").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ToOneShotAsync_Should_ShowAnError_WhenSavingThrows()
+    {
+        _booksService.Update(Arg.Any<UpdateBookRequest>(), Arg.Any<CancellationToken>()).ThrowsAsync(new InvalidOperationException());
+        var cut = await RenderAsync(PaperBook());
+
+        await ClickAsync(cut, ".book-action", "To OneShot");
+
+        ShouldShow(BookDetail.Msg_ToOneShotFailed, Severity.Error);
     }
 
     [Fact]

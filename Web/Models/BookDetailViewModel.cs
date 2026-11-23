@@ -1,6 +1,7 @@
 using System.Globalization;
 using Application.Helpers;
 using Domain.Books;
+using Domain.Series;
 
 namespace Web.Models;
 
@@ -22,6 +23,9 @@ public sealed record BookDetailViewModel
     public required string ImageLink { get; init; }
     public required string Authors { get; init; }
     public required bool IsDigital { get; init; }
+
+    // Not part of a series: its series is "One Shot" and its volume 1 (#1171), so "To OneShot" is not offered (#1373).
+    public bool IsOneShot { get; init; }
 
     // "Blacksad · Volume 4"; the series is left out when it is the title.
     public string? SerieAndVolume { get; init; }
@@ -83,6 +87,7 @@ public sealed record BookDetailViewModel
             ImageLink = book.ImageLink,
             Authors = book.Authors,
             IsDigital = digitalBook is not null,
+            IsOneShot = book.VolumeNumber == 1 && SerieNames.IsOneShot(book.Serie),
             SerieAndVolume = BookText.SerieAndVolume(book.Serie, book.Title, book.VolumeNumber),
             FormatLabel = digitalBook is null ? null : BookText.Join("Digital", BookText.PagesLabel(book.NumberOfPages)),
             ActionsDetails = BookText.Join(volume, digitalBook is null ? "Paper" : "Digital")!,
