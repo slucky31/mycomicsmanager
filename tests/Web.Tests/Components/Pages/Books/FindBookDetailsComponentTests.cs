@@ -185,8 +185,6 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         await _bnfService.DidNotReceive().SearchByTextAsync(Arg.Any<BookTextQuery>(), Arg.Any<CancellationToken>());
     }
 
-    private const string UploadedCover = "https://res.cloudinary.com/demo/cover.jpg";
-
     // Every source knows the book, with values of its own.
     private void EverySourceFindsTheBook()
     {
@@ -205,7 +203,6 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         _bubbleService.SearchByIsbnAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new BubbleBookResult("Bubble title", "Bubble serie", 4, ["Bubble author"], ["Bubble publisher"],
                 new DateOnly(2008, 6, 4), 59, new Uri("https://assets.bubblebd.com/img/1.jpg"), Found: true));
-        _comicSearchService.UploadCoverAsync(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(UploadedCover);
     }
 
     // Replaces the digital book of the page.
@@ -243,12 +240,12 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
         cut.FindAll("button").Single(b => b.TextContent.Contains("Apply", StringComparison.Ordinal)).ClickAsync(new());
 
     [Theory]
-    [InlineData("Bedetheque", "Bedetheque title", "Bedetheque serie", 3, "Bedetheque author", 2005, 56)]
-    [InlineData("Bubble", "Bubble title", "Bubble serie", 4, "Bubble author", 2008, 59)]
-    [InlineData("OpenLibrary", "OpenLibrary title", "Parsed serie", 2, "OpenLibrary author", 2006, 57)]
-    [InlineData("Google Books", "Google title", "Parsed serie", 2, "Google author", 2007, 58)]
+    [InlineData("Bedetheque", "Bedetheque title", "Bedetheque serie", 3, "Bedetheque author", 2005, 56, "https://www.bedetheque.com/media/Couvertures/Couv_1.jpg")]
+    [InlineData("Bubble", "Bubble title", "Bubble serie", 4, "Bubble author", 2008, 59, "https://assets.bubblebd.com/img/1.jpg")]
+    [InlineData("OpenLibrary", "OpenLibrary title", "Parsed serie", 2, "OpenLibrary author", 2006, 57, "https://covers.openlibrary.org/b/id/1-L.jpg")]
+    [InlineData("Google Books", "Google title", "Parsed serie", 2, "Google author", 2007, 58, "https://books.google.com/cover.jpg")]
     public async Task ApplyAndSaveAsync_Should_SaveEveryValueOfTheSourcePicked(
-        string source, string title, string serie, int volume, string author, int year, int pages)
+        string source, string title, string serie, int volume, string author, int year, int pages, string cover)
     {
         // A physical book has no file: its pages and its cover are taken from the web too.
         UseBook(PhysicalBook.Create(new BookMetadata("Blacksad", "Âme rouge", "9782205050196"), Guid.CreateVersion7()).Value!);
@@ -260,16 +257,14 @@ public sealed class FindBookDetailsComponentTests : IAsyncDisposable
 
         await _booksService.Received(1).Update(Arg.Is<UpdateBookRequest>(r =>
             r.Title == title && r.Series == serie && r.VolumeNumber == volume && r.Authors == author
-            && r.PublishDate!.Value.Year == year && r.NumberOfPages == pages && r.ImageLink == UploadedCover), Arg.Any<CancellationToken>());
+            && r.PublishDate!.Value.Year == year && r.NumberOfPages == pages && r.ImageLink == cover), Arg.Any<CancellationToken>());
         _ctx.Services.GetRequiredService<NavigationManager>().Uri.Should().EndWith($"/books/{_book.Id}");
     }
 
     [Fact]
-    public async Task ApplyAndSaveAsync_Should_KeepTheCoverUrl_WhenTheCoverCannotBeUploaded()
+    public async Task ApplyAndSaveAsync_Should_TakeTheWebCover_WhenTheDigitalBookHasNone()
     {
         EverySourceFindsTheBook();
-        _comicSearchService.UploadCoverAsync(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<string>(new HttpRequestException("Cloudinary unreachable")));
         var cut = await RenderOnceSearchedAsync();
 
         // The digital book has no cover: the web cover stands in for it, but not the pages.

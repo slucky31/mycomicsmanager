@@ -24,6 +24,8 @@ public static class ApplicationDependencyInjection
         );
 
         services.AddScoped<BookSaver>();
+        services.AddScoped<BookCoverStore>();
+        services.AddScoped<Books.Covers.UnusedCoverFinder>();
         services.AddScoped<ImportJobs.FailedImportJobLoader>();
         services.AddScoped<BookCatalogues>();
         services.AddScoped<IComicSearchService, ComicSearchService>();

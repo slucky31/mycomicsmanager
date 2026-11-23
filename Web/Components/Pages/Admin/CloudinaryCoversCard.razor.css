@@ -1,0 +1,86 @@
+.cloudinary-covers-title {
+    margin: var(--mcm-space-4) 0 var(--mcm-space-1);
+    font-size: var(--mcm-font-small);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mcm-text-muted);
+}
+
+.cloudinary-covers-hint {
+    margin: 0 0 var(--mcm-space-2);
+    font-size: var(--mcm-font-small);
+    color: var(--mcm-text-muted);
+}
+
+.cloudinary-covers-count {
+    display: flex;
+    align-items: center;
+    gap: var(--mcm-space-1);
+    margin: 0 0 var(--mcm-space-1);
+    font-size: var(--mcm-font-body-l);
+    font-variant-numeric: tabular-nums;
+}
+
+.cloudinary-covers-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mcm-space-2);
+    padding: var(--mcm-space-1) 0 10px;
+}
+
+.cloudinary-covers-button {
+    padding: var(--mcm-space-2) var(--mcm-space-4);
+    border: 0;
+    border-radius: var(--mcm-radius-m);
+    background: var(--mud-palette-primary);
+    color: var(--mcm-surface);
+    font: inherit;
+    cursor: pointer;
+}
+
+.cloudinary-covers-secondary {
+    border: 1px solid var(--mcm-border);
+    background: transparent;
+    color: var(--mcm-primary-strong);
+}
+
+.cloudinary-covers-danger {
+    background: var(--mcm-error-strong);
+}
+
+.cloudinary-covers-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.cloudinary-covers-panel {
+    display: grid;
+    gap: var(--mcm-space-2);
+    margin: 0 0 var(--mcm-space-2);
+    padding: 10px var(--mcm-space-3);
+    border-radius: var(--mcm-radius-m);
+    font-size: var(--mcm-font-small);
+}
+
+.cloudinary-covers-warning {
+    background: var(--mcm-warning-soft);
+    color: var(--mcm-text);
+}
+
+.cloudinary-covers-warning strong {
+    color: var(--mcm-warning-strong);
+}
+
+.cloudinary-covers-success {
+    background: var(--mcm-success-soft);
+    color: var(--mcm-success-strong);
+}
+
+.cloudinary-covers-sample {
+    margin: 0;
+    padding-left: var(--mcm-space-4);
+    overflow-x: auto;
+    font-size: var(--mcm-font-caption);
+    color: var(--mcm-text-muted);
+}

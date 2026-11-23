@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using Application.Helpers;
 using Application.Interfaces;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Application.ComicInfoSearch;
 
@@ -14,14 +13,10 @@ public partial class ComicSearchService : IComicSearchService
     private readonly IGoogleBooksService _googleBooksService;
     private readonly IBedethequeService _bedethequeService;
     private readonly IBubbleService _bubbleService;
-    private readonly ICloudinaryService _cloudinaryService;
-    private readonly CloudinarySettings _cloudinarySettings;
     private readonly ILogger<ComicSearchService> _logger;
 
     public ComicSearchService(
         BookCatalogues catalogues,
-        ICloudinaryService cloudinaryService,
-        IOptions<CloudinarySettings> cloudinarySettings,
         ILogger<ComicSearchService> logger)
     {
         _logger = logger;
@@ -30,8 +25,6 @@ public partial class ComicSearchService : IComicSearchService
         _googleBooksService = catalogues.GoogleBooks;
         _bedethequeService = catalogues.Bedetheque;
         _bubbleService = catalogues.Bubble;
-        _cloudinaryService = cloudinaryService;
-        _cloudinarySettings = cloudinarySettings.Value;
     }
 
     public async Task<ComicSearchResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
@@ -48,10 +41,8 @@ public partial class ComicSearchService : IComicSearchService
                 return CreateNotFoundResult(cleanIsbn);
             }
 
-            var imageUrl = match.CoverUrl != null
-                ? await UploadCoverToCloudinaryAsync(match.CoverUrl, cleanIsbn, cancellationToken)
-                : string.Empty;
-            return match.Metadata with { ImageUrl = imageUrl };
+            // The cover is stored once the book is saved, as the image of the book (#1225).
+            return match.Metadata with { ImageUrl = match.CoverUrl?.ToString() ?? string.Empty };
         }
         catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
         {
@@ -78,38 +69,6 @@ public partial class ComicSearchService : IComicSearchService
 
         var title = string.IsNullOrEmpty(result.Subtitle) ? serie : result.Subtitle;
         return (title, serie, volumeNumber);
-    }
-
-    public Task<string> UploadCoverAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken = default)
-        => UploadCoverToCloudinaryAsync(coverUrl, isbn, cancellationToken);
-
-    public async Task<ComicSearchResult> SearchByIsbnWithLocalCoverAsync(
-        string isbn,
-        Stream? coverStream,
-        string? coverFileName,
-        CancellationToken cancellationToken = default)
-    {
-        var cleanIsbn = isbn.Replace("-", "", StringComparison.Ordinal)
-                           .Replace(" ", "", StringComparison.Ordinal)
-                           .Trim();
-
-        if (!string.IsNullOrEmpty(cleanIsbn))
-        {
-            var match = await FindFirstAsync(cleanIsbn, cancellationToken);
-            if (match is not null)
-            {
-                var imageUrl = await UploadCoverStreamOrRemoteAsync(
-                    coverStream, coverFileName, match.CoverUrl, cleanIsbn, cancellationToken);
-                return match.Metadata with { ImageUrl = imageUrl };
-            }
-        }
-
-        // No metadata found – upload local cover only (guid-based publicId when no ISBN)
-        var coverImageUrl = coverStream != null && coverFileName != null
-            ? await UploadLocalCoverAsync(coverStream, coverFileName, cleanIsbn, cancellationToken)
-            : string.Empty;
-
-        return CreateNotFoundResult(cleanIsbn) with { ImageUrl = coverImageUrl };
     }
 
     // The metadata of the first source that knows the book (its ImageUrl not set yet) and the cover to upload.
@@ -215,89 +174,6 @@ public partial class ComicSearchService : IComicSearchService
             NumberOfPages: bookResult.NumberOfPages,
             Found: true
         );
-    }
-
-    private async Task<string> UploadCoverStreamOrRemoteAsync(
-        Stream? coverStream,
-        string? coverFileName,
-        Uri? remoteCoverUrl,
-        string isbn,
-        CancellationToken cancellationToken)
-    {
-        if (coverStream != null && coverFileName != null)
-        {
-            return await UploadLocalCoverAsync(coverStream, coverFileName, isbn, cancellationToken);
-        }
-
-        if (remoteCoverUrl != null)
-        {
-            return await UploadCoverToCloudinaryAsync(remoteCoverUrl, isbn, cancellationToken);
-        }
-
-        return string.Empty;
-    }
-
-    private async Task<string> UploadLocalCoverAsync(
-        Stream coverStream,
-        string coverFileName,
-        string isbn,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var publicId = string.IsNullOrEmpty(isbn)
-                ? $"digital-{Guid.NewGuid():N}"
-                : IsbnHelper.NormalizeIsbn(isbn);
-
-            var uploadResult = await _cloudinaryService.UploadImageFromStreamAsync(
-                coverStream,
-                coverFileName,
-                _cloudinarySettings.Folder,
-                publicId,
-                cancellationToken);
-
-            if (uploadResult.Success && uploadResult.Url != null)
-            {
-                _logger.LogInformation("Local cover uploaded to Cloudinary: {Url}", uploadResult.Url);
-                return uploadResult.Url.ToString();
-            }
-
-            _logger.LogWarning("Failed to upload local cover to Cloudinary: {Error}", uploadResult.Error);
-        }
-        catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
-        {
-            _logger.LogWarning(ex, "Unexpected error uploading local cover for ISBN {Isbn}", isbn);
-        }
-
-        return string.Empty;
-    }
-
-    private async Task<string> UploadCoverToCloudinaryAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var cleanIsbn = IsbnHelper.NormalizeIsbn(isbn);
-
-            var uploadResult = await _cloudinaryService.UploadImageFromUrlAsync(
-                coverUrl,
-                _cloudinarySettings.Folder,
-                cleanIsbn,
-                cancellationToken);
-
-            if (uploadResult.Success && uploadResult.Url != null)
-            {
-                _logger.LogInformation("Cover uploaded to Cloudinary: {Url}", uploadResult.Url);
-                return uploadResult.Url.ToString();
-            }
-
-            _logger.LogWarning("Failed to upload cover to Cloudinary: {Error}. Using original URL.", uploadResult.Error);
-        }
-        catch (Exception ex) when (IsUnexpectedException(ex, cancellationToken))
-        {
-            _logger.LogWarning(ex, "Unexpected error uploading cover to Cloudinary for {CoverUrl}. Using original URL.", coverUrl);
-        }
-
-        return coverUrl.ToString();
     }
 
     // Generated regex patterns for parsing volume and series from titles

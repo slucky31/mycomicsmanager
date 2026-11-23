@@ -259,6 +259,7 @@ builder.Services.AddScoped<ILegacyMigrationService, LegacyMigrationService>();
 builder.Services.AddScoped<IIsbnScanService, IsbnScanService>();
 builder.Services.AddScoped<IComicInfoSyncService, ComicInfoSyncService>();
 builder.Services.AddScoped<IArchiveRefreshService, ArchiveRefreshService>();
+builder.Services.AddScoped<ICloudinaryCoversService, CloudinaryCoversService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IReadingService, ReadingService>();
 builder.Services.AddScoped<ISeriesService, SeriesService>();
@@ -281,6 +282,8 @@ builder.Services.AddScoped<IComicInfoSyncOrchestrator, ComicInfoSyncOrchestrator
 builder.Services.AddSingleton<IComicInfoSyncJobEnqueuer, HangfireComicInfoSyncJobEnqueuer>();
 builder.Services.AddScoped<IArchiveRefreshOrchestrator, ArchiveRefreshOrchestrator>();
 builder.Services.AddSingleton<IArchiveRefreshJobEnqueuer, HangfireArchiveRefreshJobEnqueuer>();
+builder.Services.AddScoped<ICoverMoveOrchestrator, CoverMoveOrchestrator>();
+builder.Services.AddSingleton<ICoverMoveJobEnqueuer, HangfireCoverMoveJobEnqueuer>();
 builder.Services.AddScoped<ILegacyMigrationOrchestrator, LegacyMigrationOrchestrator>();
 builder.Services.AddSingleton<ILegacyMigrationJobEnqueuer, HangfireLegacyMigrationJobEnqueuer>();
 builder.Services.AddHostedService<FileWatcherService>();

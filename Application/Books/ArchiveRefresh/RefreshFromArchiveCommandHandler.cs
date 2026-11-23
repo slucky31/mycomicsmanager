@@ -13,7 +13,7 @@ namespace Application.Books.ArchiveRefresh;
 public sealed class RefreshFromArchiveCommandHandler(
     IBookRepository bookRepository,
     IComicPageReader pageReader,
-    ICloudinaryService cloudinary,
+    BookCoverStore coverStore,
     BookSaver bookSaver,
     ILogger<RefreshFromArchiveCommandHandler> logger) : ICommandHandler<RefreshFromArchiveCommand, ArchiveRefreshSummary>
 {
@@ -74,7 +74,7 @@ public sealed class RefreshFromArchiveCommandHandler(
             return BooksError.PageNotFound;
         }
 
-        var cover = DigitalCovers.IsFromArchive(book.ImageLink) ? null : await UploadCoverAsync(book, ct);
+        var cover = book.CoverSource == CoverSource.Archive ? null : await UploadCoverAsync(book, ct);
         if (book.NumberOfPages == countResult.Value && cover is null)
         {
             return false;
@@ -109,15 +109,6 @@ public sealed class RefreshFromArchiveCommandHandler(
         var page = pageResult.Value!;
         await using var stream = new MemoryStream(page.Content.ToArray(), writable: false);
         var fileName = "cover" + s_extensions.GetValueOrDefault(page.ContentType, ".jpg");
-        var uploadResult = await cloudinary.UploadImageFromStreamAsync(
-            stream, fileName, DigitalCovers.Folder, DigitalCovers.PublicId(book.ISBN, book.Id), ct);
-
-        if (uploadResult.Success && uploadResult.Url is not null)
-        {
-            return uploadResult.Url.ToString();
-        }
-
-        logger.LogWarning("Cover of book {BookId} not uploaded: {Error}", book.Id, uploadResult.Error);
-        return null;
+        return await coverStore.UploadStreamAsync(book.Id, stream, fileName, ct);
     }
 }

@@ -21,6 +21,8 @@ public sealed class DigitalBook : Book
 
     public ReadingDirection ReadingDirection { get; private set; }
 
+    public CoverSource CoverSource { get; private set; }
+
     public ReaderSettings ReaderSettings => new(ReaderLayout, ReaderScrolling, ReadingDirection);
 
     // ISBNs read on the pages that could not be assigned automatically (several of them): the user picks one.
@@ -64,12 +66,18 @@ public sealed class DigitalBook : Book
         }
 
         NumberOfPages = pageCount;
+        UseArchiveCover(coverLink);
+        return Result.Success();
+    }
+
+    // The first page of the archive, uploaded as the cover; an empty link keeps the current cover.
+    public void UseArchiveCover(string? coverLink)
+    {
         if (!string.IsNullOrWhiteSpace(coverLink))
         {
             ImageLink = coverLink;
+            CoverSource = CoverSource.Archive;
         }
-
-        return Result.Success();
     }
 
     // Once the book has an ISBN, the candidates are no longer needed.
@@ -140,7 +148,8 @@ public sealed class DigitalBook : Book
         BookMetadata metadata,
         Guid libraryId,
         string filePath,
-        long fileSize)
+        long fileSize,
+        Guid id = default)
     {
         if (string.IsNullOrWhiteSpace(metadata.Serie) ||
             string.IsNullOrWhiteSpace(metadata.Title) ||
@@ -151,9 +160,10 @@ public sealed class DigitalBook : Book
             return BooksError.BadRequest;
         }
 
+        // The id may be chosen before, to name the cover uploaded before the book is created (#1225).
         var book = new DigitalBook
         {
-            Id = Guid.CreateVersion7(),
+            Id = id == Guid.Empty ? Guid.CreateVersion7() : id,
             LibraryId = libraryId,
             Serie = metadata.Serie,
             Title = metadata.Title,

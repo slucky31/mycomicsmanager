@@ -8,7 +8,12 @@ using Domain.Primitives;
 
 namespace Application.Books.Create;
 
-public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUnitOfWork unitOfWork, IRepository<Library, Guid> libraryRepository, TimeProvider timeProvider) : ICommandHandler<CreateBookCommand, Book>
+public sealed class CreateBookCommandHandler(
+    IBookRepository bookRepository,
+    IUnitOfWork unitOfWork,
+    IRepository<Library, Guid> libraryRepository,
+    BookCoverStore coverStore,
+    TimeProvider timeProvider) : ICommandHandler<CreateBookCommand, Book>
 {
     public async Task<Result<Book>> Handle(CreateBookCommand request, CancellationToken cancellationToken)
     {
@@ -79,6 +84,9 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository, IUn
         {
             book.AddReadingDate(timeProvider.GetUtcNow().UtcDateTime, request.Rating);
         }
+
+        // Once every check passed: the cover found on the web becomes the image of the book.
+        await coverStore.StoreAsync(book, cancellationToken);
 
         bookRepository.Add(book);
         var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);

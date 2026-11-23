@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using Bunit;
 using Domain.Primitives;
 using Domain.Users;
@@ -40,6 +40,9 @@ public sealed class UserSettingsComponentTests
         ctx.Services.AddSingleton(legacyMigrationService);
         ctx.Services.AddSingleton(Substitute.For<IComicInfoSyncService>());
         ctx.Services.AddSingleton(Substitute.For<IArchiveRefreshService>());
+        var coversService = Substitute.For<ICloudinaryCoversService>();
+        coversService.CountToMoveAsync(Arg.Any<CancellationToken>()).Returns(Result.Success(0));
+        ctx.Services.AddSingleton(coversService);
         ctx.Services.AddSingleton(librariesService ?? HidingLibraries(show: false));
         ctx.Services.AddSingleton(librariesNotifier ?? new LibrariesNotifier());
         var authorization = ctx.AddAuthorization();

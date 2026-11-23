@@ -1,6 +1,7 @@
 using Application.ImportJobs;
 using Application.ImportJobs.Process;
 using Application.Interfaces;
+using Application.UnitTests.Books;
 using Domain.Books;
 using Domain.Errors;
 using Domain.ImportJobs;
@@ -76,7 +77,7 @@ public class ProcessImportJobCommandHandlerTests
             new ProcessImportJobFileProcessors(
                 _archiveExtractor, _pdfImageExtractor, _imageProcessor, _archiveBuilder, _comicInfoXmlService),
             new ProcessImportJobExternalServices(
-                _comicSearchService, _cloudinaryService, _tempWorkspace, _importDirectoryStorage, _isbnScanner, _clock),
+                _comicSearchService, TestCoverStores.Create(_cloudinaryService), _tempWorkspace, _importDirectoryStorage, _isbnScanner, _clock),
             NullLogger<ProcessImportJobCommandHandler>.Instance, TimeProvider.System);
     }
 
@@ -597,10 +598,13 @@ public class ProcessImportJobCommandHandlerTests
         SetupArchiveBuilder();
         SetupNoMetadataSearch();
 
-        await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
 
+        // The first page is the image of the book (#1225).
+        var book = result.Value!.Book!;
+        book.CoverSource.Should().Be(CoverSource.Archive);
         await _cloudinaryService.Received(1)
-            .UploadImageFromFileAsync(Arg.Any<string>(), "digital-covers", Arg.Any<string>(), Arg.Any<CancellationToken>());
+            .UploadImageFromFileAsync(Arg.Any<string>(), TestCoverStores.Folder, book.Id.ToString(), Arg.Any<CancellationToken>());
     }
 
     // ── Archive build ─────────────────────────────────────────────────────────
@@ -912,7 +916,7 @@ public class ProcessImportJobCommandHandlerTests
         result.Value!.Book!.ImageLink.Should().BeEmpty();
     }
 
-    private const string CatalogueCover = "https://res.cloudinary.com/demo/covers/9782075162869.jpg";
+    private const string CatalogueCover = "https://books.google.com/books/content?id=9782075162869";
 
     private ImportJob SetupJobFoundInTheCatalogue()
     {
@@ -952,6 +956,25 @@ public class ProcessImportJobCommandHandlerTests
 
         result.Value!.Book!.ImageLink.Should().Be(CatalogueCover);
         result.Value.Book.NumberOfPages.Should().Be(48);
+    }
+
+    [Fact]
+    public async Task Handle_Should_UploadTheCatalogueCoverAsTheImageOfTheBook_WhenTheFirstPageCannotBeUploaded()
+    {
+        var job = SetupJobFoundInTheCatalogue();
+        _cloudinaryService.UploadImageFromFileAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(null, null, false, "upload error"));
+        var stored = new Uri("https://res.cloudinary.com/demo/image/upload/v1/covers/book.jpg");
+        _cloudinaryService.UploadImageFromUrlAsync(new Uri(CatalogueCover), TestCoverStores.Folder, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(stored, "covers/book", true, null));
+
+        var result = await _handler.Handle(new ProcessImportJobCommand(job.Id), TestContext.Current.CancellationToken);
+
+        var book = result.Value!.Book!;
+        book.ImageLink.Should().Be(stored.ToString());
+        book.CoverSource.Should().Be(CoverSource.Web);
+        await _cloudinaryService.Received(1).UploadImageFromUrlAsync(Arg.Any<Uri>(), TestCoverStores.Folder, book.Id.ToString(), Arg.Any<CancellationToken>());
     }
 
     // ── Cover upload skipped when no webp files ───────────────────────────────

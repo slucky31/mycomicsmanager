@@ -3,7 +3,9 @@ using Application.ComicInfoSearch;
 using Application.Interfaces;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Domain.Books;
 using Domain.Extensions;
+using Domain.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -15,7 +17,15 @@ public class CloudinaryService : ICloudinaryService
         new(["www.bedetheque.com", "books.google.com", "books.googleusercontent.com", "covers.openlibrary.org", "assets.bubblebd.com"],
             StringComparer.OrdinalIgnoreCase);
 
+    // The covers are stored at most this wide (#1225): they are shown at 480 px at most.
+    internal const int MaxCoverWidth = 960;
+
+    // The Admin API lists 500 images and deletes 100 of them per call.
+    private const int ListPageSize = 500;
+    private const int DeleteBatchSize = 100;
+
     private readonly Cloudinary _cloudinary;
+    private readonly string _cloudName;
     private readonly ILogger<CloudinaryService> _logger;
 
     public CloudinaryService(IOptions<CloudinarySettings> settings, ILogger<CloudinaryService> logger)
@@ -23,6 +33,7 @@ public class CloudinaryService : ICloudinaryService
         _logger = logger;
         var config = settings.Value;
         var account = new Account(config.CloudName, config.ApiKey, config.ApiSecret);
+        _cloudName = config.CloudName;
         _cloudinary = new Cloudinary(account);
         _cloudinary.Api.Secure = true;
     }
@@ -33,7 +44,7 @@ public class CloudinaryService : ICloudinaryService
         string publicId,
         CancellationToken cancellationToken = default)
     {
-        if (!sourceUrl.IsAllowedHttpsHost(s_allowedCoverHosts))
+        if (!sourceUrl.IsAllowedHttpsHost(s_allowedCoverHosts) && !IsOwnImage(sourceUrl))
         {
             _logger.LogWarning("SSRF guard blocked Cloudinary upload from {SourceUrl}", sourceUrl);
             return new CloudinaryUploadResult(null, null, false,
@@ -95,6 +106,77 @@ public class CloudinaryService : ICloudinaryService
         return await ExecuteUploadAsync(uploadParams, fileName, cancellationToken);
     }
 
+    public async Task<Result<IReadOnlyList<CloudinaryImage>>> ListImagesAsync(string folder, CancellationToken cancellationToken = default)
+    {
+        var images = new List<CloudinaryImage>();
+        string? cursor = null;
+        try
+        {
+            do
+            {
+                var page = await _cloudinary.ListResourcesAsync(new ListResourcesByPrefixParams
+                {
+                    Prefix = folder + "/",
+                    Type = "upload",
+                    ResourceType = ResourceType.Image,
+                    MaxResults = ListPageSize,
+                    NextCursor = cursor
+                }, cancellationToken);
+
+                if (page.Error != null)
+                {
+                    _logger.LogError("Cloudinary images of {Folder} not listed: {Error}", folder, page.Error.Message);
+                    return BooksError.CoversNotListed;
+                }
+
+                images.AddRange(page.Resources.Select(r => new CloudinaryImage(r.PublicId, r.Bytes)));
+                cursor = page.NextCursor;
+            }
+            while (!string.IsNullOrEmpty(cursor));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogError(ex, "Cloudinary images of {Folder} not listed", folder);
+            return BooksError.CoversNotListed;
+        }
+
+        return images;
+    }
+
+    public async Task<Result<int>> DeleteImagesAsync(IReadOnlyList<string> publicIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(publicIds);
+
+        var deleted = 0;
+        try
+        {
+            foreach (var batch in publicIds.Chunk(DeleteBatchSize))
+            {
+                var result = await _cloudinary.DeleteResourcesAsync(new DelResParams
+                {
+                    PublicIds = [.. batch],
+                    Type = "upload",
+                    ResourceType = ResourceType.Image
+                }, cancellationToken);
+
+                if (result.Error != null)
+                {
+                    _logger.LogError("Cloudinary images not deleted: {Error}", result.Error.Message);
+                    return BooksError.CoversNotDeleted;
+                }
+
+                deleted += result.Deleted?.Count(d => d.Value == "deleted") ?? 0;
+            }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogError(ex, "Cloudinary images not deleted");
+            return BooksError.CoversNotDeleted;
+        }
+
+        return deleted;
+    }
+
     public async Task<bool> PingAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -109,6 +191,13 @@ public class CloudinaryService : ICloudinaryService
         }
     }
 
+    // An image of this Cloudinary account: a cover shared by several books is copied to each of them (#1225).
+    private bool IsOwnImage(Uri sourceUrl) =>
+        sourceUrl.Scheme == Uri.UriSchemeHttps
+        && string.Equals(sourceUrl.Host, "res.cloudinary.com", StringComparison.OrdinalIgnoreCase)
+        && sourceUrl.AbsolutePath.StartsWith($"/{_cloudName}/", StringComparison.Ordinal);
+
+    // Cloudinary reduces the image before storing it, and never enlarges a smaller one.
     private static ImageUploadParams CreateUploadParams(FileDescription file, string folder, string publicId) =>
         new()
         {
@@ -116,7 +205,8 @@ public class CloudinaryService : ICloudinaryService
             Folder = folder,
             PublicId = publicId,
             Overwrite = true,
-            UniqueFilename = false
+            UniqueFilename = false,
+            Transformation = new Transformation().Width(MaxCoverWidth).Crop("limit")
         };
 
     private async Task<CloudinaryUploadResult> ExecuteUploadAsync(

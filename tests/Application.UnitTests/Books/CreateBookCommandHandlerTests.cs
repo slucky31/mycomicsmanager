@@ -30,6 +30,7 @@ public class CreateBookCommandHandlerTests
     private readonly IBookRepository _bookRepositoryMock;
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly IRepository<Library, Guid> _libraryRepositoryMock;
+    private readonly ICloudinaryService _cloudinaryMock = Substitute.For<ICloudinaryService>();
 
     public CreateBookCommandHandlerTests()
     {
@@ -38,7 +39,8 @@ public class CreateBookCommandHandlerTests
         _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
 
-        _handler = new CreateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock, TimeProvider.System);
+        _handler = new CreateBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock,
+            TestCoverStores.Create(_cloudinaryMock), TimeProvider.System);
     }
 
     [Fact]
@@ -64,6 +66,24 @@ public class CreateBookCommandHandlerTests
         result.Value.ReadingDates[0].Rating.Should().Be(s_validCommand.Rating);
         _bookRepositoryMock.Received(1).Add(Arg.Any<Book>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_StoreTheCoverAsTheImageOfTheBook_WhenItIsUploaded()
+    {
+        // Arrange
+        _bookRepositoryMock.GetByIsbnAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Book?)null);
+        _libraryRepositoryMock.GetByIdAsync(s_validCommand.LibraryId).Returns(s_library);
+        var stored = new Uri("https://res.cloudinary.com/demo/image/upload/v1/covers/book.jpg");
+        _cloudinaryMock.UploadImageFromUrlAsync(new Uri(s_validCommand.ImageLink), TestCoverStores.Folder, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(stored, "covers/book", true, null));
+
+        // Act
+        var result = await _handler.Handle(s_validCommand, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Value!.ImageLink.Should().Be(stored.ToString());
+        await _cloudinaryMock.Received(1).UploadImageFromUrlAsync(Arg.Any<Uri>(), TestCoverStores.Folder, result.Value.Id.ToString(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

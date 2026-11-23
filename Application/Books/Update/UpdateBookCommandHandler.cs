@@ -11,6 +11,7 @@ namespace Application.Books.Update;
 public sealed class UpdateBookCommandHandler(
     IBookRepository bookRepository,
     IRepository<Library, Guid> libraryRepository,
+    BookCoverStore coverStore,
     BookSaver bookSaver) : ICommandHandler<UpdateBookCommand, Book>
 {
     public async Task<Result<Book>> Handle(UpdateBookCommand request, CancellationToken cancellationToken)
@@ -60,6 +61,9 @@ public sealed class UpdateBookCommandHandler(
         {
             return updateResult.Error!;
         }
+
+        // A cover chosen on the web becomes the image of the book.
+        await coverStore.StoreAsync(book, cancellationToken);
 
         var saveResult = await bookSaver.SaveAsync(book, previousComicInfo, cancellationToken);
         return saveResult.IsFailure ? saveResult.Error! : book;
