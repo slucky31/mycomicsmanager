@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.9.0"></a>
+## [11.9.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.9.0) (2026-11-23)
+
+### ✨ Features
+
+* **books:** add a To OneShot action to the book page ([#1374](https://www.github.com/slucky31/mycomicsmanager/issues/1374)) ([511a159](https://www.github.com/slucky31/mycomicsmanager/commit/511a1595b1b6f359cba1b1de148e275a6c6ab37d))
+
 <a name="11.8.1"></a>
 ## [11.8.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.8.1) (2026-11-23)
 
