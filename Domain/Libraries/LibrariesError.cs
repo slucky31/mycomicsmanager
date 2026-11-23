@@ -13,5 +13,7 @@ public static class LibrariesError
     public static readonly TError ValidationError = new("LIB504", "The parameter were not validated");
     public static readonly TError BookTypeMismatch = new("LIB505", "Book type does not match library type");
     public static readonly TError ImportedLibraryProtected = new("LIB506", "The Imported library cannot be deleted or renamed");
+    public static readonly TError FolderInUse = new("LIB409F", "Another library already uses the folder of this name (names differing only by case or accents share a folder)");
+    public static readonly TError FolderHasForeignFiles = new("LIB508", "The library folder holds files that are not books of this library");
     public static readonly TError ImportedLibraryNotHidden = new("LIB507", "The Imported library cannot be hidden");
 }

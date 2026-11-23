@@ -43,4 +43,10 @@ public interface ILibraryReadService
         Guid userId,
         Guid? excludeId = null,
         CancellationToken cancellationToken = default);
+
+    // Whether a digital library of any user, other than excludeId, has this folder (Library.FolderNameOf).
+    Task<bool> IsFolderUsedAsync(
+        string folderName,
+        Guid? excludeId = null,
+        CancellationToken cancellationToken = default);
 }

@@ -20,6 +20,7 @@ public class DeleteLibraryCommandTests
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryLocalStorage _libraryLocalStorageMock;
     private readonly IImportDirectoryStorage _importDirectoryStorageMock;
+    private readonly IBookRepository _bookRepository = Substitute.For<IBookRepository>();
 
     public DeleteLibraryCommandTests()
     {
@@ -29,8 +30,10 @@ public class DeleteLibraryCommandTests
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
         _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();
         _importDirectoryStorageMock.Delete(Arg.Any<string>()).Returns(Result.Success());
+        _bookRepository.ListByLibraryIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
+        _libraryLocalStorageMock.ListFiles(Arg.Any<string>()).Returns([]);
 
-        _handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryLocalStorageMock, _importDirectoryStorageMock);
+        _handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryLocalStorageMock, _importDirectoryStorageMock, _bookRepository);
     }
 
     [Fact]
@@ -141,5 +144,54 @@ public class DeleteLibraryCommandTests
         result.Error.Should().Be(LibrariesError.ImportedLibraryProtected);
         _libraryLocalStorageMock.DidNotReceive().Delete(Arg.Any<string>());
         _librayRepositoryMock.DidNotReceive().Remove(Arg.Any<Library>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepTheFilesOfAnotherLibrary_WhenBothNamesGiveTheSameFolder()
+    {
+        // Arrange: "Comics" and "Cômics" share the COMICS folder (#1369), with a real storage.
+        var root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        try
+        {
+            var storage = new Persistence.LocalStorage.LibraryLocalStorage(root);
+            var comics = Library.Create("Comics", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+            var accented = Library.Create("Cômics", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+            storage.Create(comics.RelativePath);
+            var file = Path.Combine(root, "COMICS", "Blacksad T01.cbz");
+            await File.WriteAllTextAsync(file, "comic", TestContext.Current.CancellationToken);
+            _librayRepositoryMock.GetByIdAsync(accented.Id).Returns(accented);
+            var handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, storage, _importDirectoryStorageMock, _bookRepository);
+
+            // Act
+            var result = await handler.Handle(new DeleteLibraryCommand(accented.Id, s_userId), TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Error.Should().Be(LibrariesError.FolderHasForeignFiles);
+            File.Exists(file).Should().BeTrue();
+            _librayRepositoryMock.DidNotReceive().Remove(Arg.Any<Library>());
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Handle_Should_DeleteTheFolder_WhenItHoldsOnlyTheBooksOfTheLibrary()
+    {
+        // Arrange
+        var library = Library.Create("digital-only", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+        var book = Domain.Books.DigitalBook.Create(new Domain.Books.BookMetadata("Serie", "Title", null), library.Id, "/data/DIGITAL-ONLY/a.cbz", 10).Value!;
+        _librayRepositoryMock.GetByIdAsync(library.Id).Returns(library);
+        _bookRepository.ListByLibraryIdAsync(library.Id, Arg.Any<CancellationToken>()).Returns([book]);
+        _libraryLocalStorageMock.ListFiles("DIGITAL-ONLY").Returns(["/data/DIGITAL-ONLY/a.cbz"]);
+        _libraryLocalStorageMock.Delete("DIGITAL-ONLY").Returns(Result.Success());
+
+        // Act
+        var result = await _handler.Handle(new DeleteLibraryCommand(library.Id, s_userId), TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _libraryLocalStorageMock.Received(1).Delete("DIGITAL-ONLY");
     }
 }

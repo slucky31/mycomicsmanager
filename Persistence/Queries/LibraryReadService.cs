@@ -135,4 +135,15 @@ public class LibraryReadService(ApplicationDbContext context) : ILibraryReadServ
 
         return await query.AnyAsync(cancellationToken);
     }
+
+    public async Task<bool> IsFolderUsedAsync(string folderName, Guid? excludeId = null, CancellationToken cancellationToken = default)
+    {
+        // The accents are removed in C#, not in SQL: the names of the digital libraries are few.
+        var names = await context.Libraries.AsNoTracking()
+            .Where(l => l.BookType == LibraryBookType.Digital && (excludeId == null || l.Id != excludeId))
+            .Select(l => l.Name)
+            .ToListAsync(cancellationToken);
+
+        return names.Exists(name => string.Equals(Library.FolderNameOf(name), folderName, StringComparison.Ordinal));
+    }
 }

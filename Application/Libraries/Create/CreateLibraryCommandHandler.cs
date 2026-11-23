@@ -31,6 +31,12 @@ public sealed class CreateLibraryCommandHandler(IRepository<Library, Guid> libra
         // Create the directories only for digital libraries
         if (request.BookType == LibraryBookType.Digital)
         {
+            // "Comics" and "Cômics" would share the folder, whoever owns them (#1369).
+            if (await libraryReadService.IsFolderUsedAsync(library.RelativePath, cancellationToken: cancellationToken))
+            {
+                return LibrariesError.FolderInUse;
+            }
+
             var storageResult = libraryLocalStorage.Create(library.RelativePath);
             if (storageResult.IsFailure)
             {

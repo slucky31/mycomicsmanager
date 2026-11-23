@@ -412,4 +412,40 @@ public class UpdateLibraryCommandTests
         _libraryLocalStorage.DidNotReceive().Move(Arg.Any<string>(), Arg.Any<string>());
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_Should_KeepTheLibrary_WhenTheNewFolderIsUsedByAnotherLibrary()
+    {
+        // Arrange
+        var library = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(library);
+        _libraryReadServiceMock.IsFolderUsedAsync("COMICS", library.Id, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _handler.Handle(s_command with { Name = "Cômics" }, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Error.Should().Be(LibrariesError.FolderInUse);
+        library.Name.Should().Be("digital-library");
+        _libraryLocalStorage.DidNotReceive().Move(Arg.Any<string>(), Arg.Any<string>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepTheLibrary_WhenItsFolderHoldsFilesOfNoBookOfIt()
+    {
+        // Arrange
+        var library = Library.Create("digital-library", "#5C6BC0", "Bookmark", LibraryBookType.Digital, s_userId).Value!;
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(library);
+        _bookRepository.ListByLibraryIdAsync(library.Id, Arg.Any<CancellationToken>()).Returns([DigitalBook(library, "/data/DIGITAL-LIBRARY/a.cbz")]);
+        _libraryLocalStorage.ListFiles("DIGITAL-LIBRARY").Returns(["/data/DIGITAL-LIBRARY/a.cbz", "/data/DIGITAL-LIBRARY/other.cbz"]);
+
+        // Act
+        var result = await _handler.Handle(s_command with { Name = "Comics" }, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Error.Should().Be(LibrariesError.FolderHasForeignFiles);
+        library.Name.Should().Be("digital-library");
+        _libraryLocalStorage.DidNotReceive().Move(Arg.Any<string>(), Arg.Any<string>());
+    }
 }

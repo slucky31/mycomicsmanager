@@ -6,7 +6,7 @@ using Domain.Primitives;
 
 namespace Application.Libraries.Delete;
 
-public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> librayRepository, IUnitOfWork unitOfWork, ILibraryLocalStorage libraryLocalStorage, IImportDirectoryStorage importDirectoryStorage) : ICommandHandler<DeleteLibraryCommand>
+public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> librayRepository, IUnitOfWork unitOfWork, ILibraryLocalStorage libraryLocalStorage, IImportDirectoryStorage importDirectoryStorage, IBookRepository bookRepository) : ICommandHandler<DeleteLibraryCommand>
 {
     public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {
@@ -31,6 +31,12 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
         // Delete folders only for digital libraries
         if (library.BookType == LibraryBookType.Digital)
         {
+            var books = await bookRepository.ListByLibraryIdAsync(library.Id, cancellationToken);
+            if (LibraryFolder.HasForeignFiles(libraryLocalStorage, library, books))
+            {
+                return LibrariesError.FolderHasForeignFiles;
+            }
+
             var storageResult = libraryLocalStorage.Delete(library.RelativePath);
             if (storageResult.IsFailure)
             {

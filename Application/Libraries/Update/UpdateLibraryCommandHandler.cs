@@ -101,21 +101,26 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
 
         var originPath = library.RelativePath;
         var originImportDirName = library.ImportDirectoryName;
-
-        var updateNameResult = library.UpdateName(name);
-        if (updateNameResult.IsFailure)
+        // Move folders only for digital libraries whose folder name changes (not for a change of case or accents)
+        var movesFolder = library.BookType == LibraryBookType.Digital && originPath != Library.FolderNameOf(name);
+        var books = movesFolder ? await bookRepository.ListByLibraryIdAsync(library.Id, cancellationToken) : [];
+        if (movesFolder)
         {
-            return updateNameResult.Error!;
+            var folderCheck = await CheckFolderCanMoveAsync(library, books, Library.FolderNameOf(name), cancellationToken);
+            if (folderCheck.IsFailure)
+            {
+                return folderCheck;
+            }
         }
 
-        // Move folders only for digital libraries whose folder name changes (not for a change of case or accents)
-        if (library.BookType != LibraryBookType.Digital || originPath == library.RelativePath)
+        var updateNameResult = library.UpdateName(name);
+        if (updateNameResult.IsFailure || !movesFolder)
         {
-            return Result.Success();
+            return updateNameResult;
         }
 
         // The files keep their place in the folder: their new paths are set before the folder is moved.
-        var relocated = await RelocateBooksAsync(library, originPath, cancellationToken);
+        var relocated = RelocateBooks(library, books, originPath);
         if (relocated.IsFailure)
         {
             return relocated;
@@ -137,9 +142,21 @@ public sealed class UpdateLibraryCommandHandler(IRepository<Library, Guid> libra
         return Result.Success();
     }
 
-    private async Task<Result> RelocateBooksAsync(Library library, string originPath, CancellationToken cancellationToken)
+    // Checked before the name changes: the library is left untouched when the folder cannot move (#1369).
+    private async Task<Result> CheckFolderCanMoveAsync(Library library, List<Book> books, string destination, CancellationToken cancellationToken)
     {
-        var books = await bookRepository.ListByLibraryIdAsync(library.Id, cancellationToken);
+        if (await libraryReadService.IsFolderUsedAsync(destination, library.Id, cancellationToken))
+        {
+            return LibrariesError.FolderInUse;
+        }
+
+        return LibraryFolder.HasForeignFiles(libraryLocalStorage, library, books)
+            ? LibrariesError.FolderHasForeignFiles
+            : Result.Success();
+    }
+
+    private Result RelocateBooks(Library library, List<Book> books, string originPath)
+    {
         foreach (var book in books.OfType<DigitalBook>())
         {
             var filePath = libraryLocalStorage.PathAfterMove(book.FilePath, originPath, library.RelativePath);

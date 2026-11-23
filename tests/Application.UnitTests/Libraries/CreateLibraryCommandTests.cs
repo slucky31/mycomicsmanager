@@ -153,4 +153,19 @@ public class CreateLibraryCommandTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(LibrariesError.Duplicate);
     }
+
+    [Fact]
+    public async Task Handle_Should_ReturnFolderInUse_WhenAnotherDigitalLibraryHasTheSameFolder()
+    {
+        // Arrange
+        _libraryReadServiceMock.IsFolderUsedAsync("DIGITAL-LIB", null, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _handler.Handle(s_digitalCommand with { Name = "digital-lïb" }, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Error.Should().Be(LibrariesError.FolderInUse);
+        _libraryLocalStorageMock.DidNotReceive().Create(Arg.Any<string>());
+        _libraryRepositoryMock.DidNotReceive().Add(Arg.Any<Library>());
+    }
 }
