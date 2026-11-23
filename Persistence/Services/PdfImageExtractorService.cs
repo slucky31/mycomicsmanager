@@ -6,8 +6,22 @@ using UglyToad.PdfPig;
 
 namespace Persistence.Services;
 
-public class PdfImageExtractorService(ILogger<PdfImageExtractorService> logger) : IPdfImageExtractor
+public class PdfImageExtractorService : IPdfImageExtractor
 {
+    private readonly ILogger<PdfImageExtractorService> _logger;
+    private readonly ExtractionLimits _limits;
+
+    public PdfImageExtractorService(ILogger<PdfImageExtractorService> logger)
+        : this(logger, ExtractionLimits.Default)
+    {
+    }
+
+    internal PdfImageExtractorService(ILogger<PdfImageExtractorService> logger, ExtractionLimits limits)
+    {
+        _logger = logger;
+        _limits = limits;
+    }
+
     public bool CanHandle(string filePath) =>
         string.Equals(Path.GetExtension(filePath), ".pdf", StringComparison.OrdinalIgnoreCase);
 
@@ -18,7 +32,7 @@ public class PdfImageExtractorService(ILogger<PdfImageExtractorService> logger) 
     {
         if (!File.Exists(pdfPath))
         {
-            logger.LogWarning("PDF not found: {Path}", pdfPath);
+            _logger.LogWarning("PDF not found: {Path}", pdfPath);
             return FileProcessingError.FileNotFound;
         }
 
@@ -29,7 +43,7 @@ public class PdfImageExtractorService(ILogger<PdfImageExtractorService> logger) 
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError(ex, "Failed to extract images from PDF: {Path}", pdfPath);
+            _logger.LogError(ex, "Failed to extract images from PDF: {Path}", pdfPath);
             return FileProcessingError.CorruptArchive;
         }
     }
@@ -40,27 +54,40 @@ public class PdfImageExtractorService(ILogger<PdfImageExtractorService> logger) 
         CancellationToken ct)
     {
         using var document = PdfDocument.Open(pdfPath);
+        if (document.NumberOfPages > _limits.MaxEntries)
+        {
+            _logger.LogWarning("PDF with {Count} pages refused", document.NumberOfPages);
+            return FileProcessingError.ExtractionLimitExceeded;
+        }
+
+        var remainingBytes = Math.Min(_limits.MaxBytes, ExtractionLimits.PdfSizeFactor * new FileInfo(pdfPath).Length);
         var extractedPaths = new List<string>();
-        var pageIndex = 1;
 
         foreach (var page in document.GetPages())
         {
-            ct.ThrowIfCancellationRequested();
-
             foreach (var image in page.GetImages())
             {
-                var rawBytes = image.RawBytes.ToArray();
-                var extension = DetermineExtension(rawBytes);
-                var fileName = $"page-{pageIndex:D3}{extension}";
+                ct.ThrowIfCancellationRequested();
+
+                var rawBytes = image.RawBytes;
+                remainingBytes -= rawBytes.Length;
+                if (extractedPaths.Count >= _limits.MaxEntries || remainingBytes < 0)
+                {
+                    // An image shown on every page is written once per page: a small PDF could fill the disk.
+                    _logger.LogWarning("PDF holds more images or image bytes than an import allows: refused");
+                    return FileProcessingError.ExtractionLimitExceeded;
+                }
+
+                var bytes = rawBytes.ToArray();
+                var fileName = $"page-{extractedPaths.Count + 1:D3}{DetermineExtension(bytes)}";
                 var filePath = Path.Combine(destinationPath, fileName);
 
-                File.WriteAllBytes(filePath, rawBytes);
+                File.WriteAllBytes(filePath, bytes);
                 extractedPaths.Add(filePath);
-                pageIndex++;
             }
         }
 
-        logger.LogInformation("Extracted {Count} images from PDF", extractedPaths.Count);
+        _logger.LogInformation("Extracted {Count} images from PDF", extractedPaths.Count);
         return new PdfExtractionResult(extractedPaths, extractedPaths.Count);
     }
 

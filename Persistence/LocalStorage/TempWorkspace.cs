@@ -5,6 +5,7 @@ using Domain.ImportJobs;
 using Domain.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Persistence.Services;
 
 namespace Persistence.LocalStorage;
 
@@ -21,19 +22,8 @@ internal sealed class TempWorkspace : ITempWorkspace
         _libraryRootPath = libraryStorage.rootPath;
     }
 
-    public bool HasFreeSpace(long requiredBytes)
-    {
-        try
-        {
-            var driveRoot = Path.GetPathRoot(_tempDirectory) ?? "/";
-            return new DriveInfo(driveRoot).AvailableFreeSpace >= requiredBytes;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            _logger.LogWarning(ex, "Could not check disk space for {TempDir}, proceeding anyway", _tempDirectory);
-            return true;
-        }
-    }
+    // Measured on the temp directory itself: it may be a volume of its own, not the one of "/" (#1370).
+    public bool HasFreeSpace(long requiredBytes) => DiskSpace.AvailableBytes(_tempDirectory) >= requiredBytes;
 
     public (string TempDir, string RawDir, string ConvertedDir) CreateScratch(Guid jobId)
     {

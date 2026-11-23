@@ -41,7 +41,7 @@ internal sealed class ImportDirectoryStorage : IImportDirectoryStorage
     {
         try
         {
-            if (!PathContainment.IsWithin(_rootPath, absolutePath))
+            if (!PathContainment.IsWithin(_rootPath, absolutePath) || PathContainment.GoesThroughLink(_rootPath, absolutePath))
             {
                 return ImportDirectoryStorageError.InvalidPath;
             }

@@ -12,6 +12,8 @@ public static class FileProcessingError
     public static readonly TError XmlReadError = new("FP501", "Failed to read the ComicInfo.xml file.");
     public static readonly TError XmlWriteError = new("FP502", "Failed to write the ComicInfo.xml file.");
     public static readonly TError ArchiveWithoutPages = new("FP406", "The archive contains no page.");
+    public static readonly TError NestedArchiveTooDeep = new("FP407", "An archive inside the archive holds other archives: only one level of archives is imported.");
+    public static readonly TError ExtractionLimitExceeded = new("FP413", "The file holds more pages or more data than an import allows.");
 
     public static TError InvalidImageContent(string fileName) =>
         new("FP503", $"Image '{fileName}' could not be converted: file is corrupt or has an unrecognized format.");

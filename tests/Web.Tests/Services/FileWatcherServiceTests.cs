@@ -249,4 +249,19 @@ public sealed class FileWatcherServiceTests : IDisposable
             Arg.Any<CreateImportJobCommand>(),
             Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task ProcessFileAsync_Should_IgnoreTheFile_WhenItIsASymbolicLink()
+    {
+        var libDir = Path.Combine(_importDir, _libraryId.ToString());
+        Directory.CreateDirectory(libDir);
+        var target = Path.Combine(_importDir, "target.cbz");
+        await File.WriteAllBytesAsync(target, new byte[512], TestContext.Current.CancellationToken);
+        var link = Path.Combine(libDir, "comic.cbz");
+        File.CreateSymbolicLink(link, target);
+
+        await _service.ProcessFileAsync(link, CancellationToken.None);
+
+        await _createHandler.DidNotReceive().Handle(Arg.Any<CreateImportJobCommand>(), Arg.Any<CancellationToken>());
+    }
 }

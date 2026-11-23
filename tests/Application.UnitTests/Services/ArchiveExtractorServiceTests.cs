@@ -269,4 +269,107 @@ public sealed class ArchiveExtractorServiceTests : IDisposable
         result.Value!.ExtractedFiles.Should().BeEmpty();
         result.Value.NestedArchives.Should().BeEmpty();
     }
+
+    // -------------------------------------------------------
+    // ExtractAsync — limits (#1370)
+    // -------------------------------------------------------
+
+    private static byte[] ZipBytes(params (string Name, byte[] Content)[] entries)
+    {
+        using var ms = new MemoryStream();
+        using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var (name, content) in entries)
+            {
+                using var stream = archive.CreateEntry(name).Open();
+                stream.Write(content);
+            }
+        }
+        return ms.ToArray();
+    }
+
+    private string WriteArchive(string fileName, byte[] bytes)
+    {
+        var path = Path.Combine(_tempDir, fileName);
+        File.WriteAllBytes(path, bytes);
+        return path;
+    }
+
+    // Sets the uncompressed size of every entry, in its local header and in the central directory, to 1 byte.
+    private static byte[] WithFalsifiedSizes(byte[] zip)
+    {
+        for (var i = 0; i + 30 < zip.Length; i++)
+        {
+            var signature = BitConverter.ToUInt32(zip, i);
+            var sizeOffset = signature switch
+            {
+                0x04034b50 => i + 22,
+                0x02014b50 => i + 24,
+                _ => -1
+            };
+            if (sizeOffset > 0)
+            {
+                BitConverter.GetBytes(1u).CopyTo(zip, sizeOffset);
+            }
+        }
+        return zip;
+    }
+
+    [Fact]
+    public async Task ExtractAsync_Should_StopAtTheDeclaredSize_WhenAnEntryHoldsMore()
+    {
+        // The audit fixture: a small zip whose page declares 1 byte but expands to 1 MiB.
+        var archivePath = WriteArchive("lying.cbz", WithFalsifiedSizes(ZipBytes(("page01.jpg", new byte[1024 * 1024]))));
+        var destDir = CreateDestDir();
+
+        var result = await _service.ExtractAsync(archivePath, destDir, TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FileProcessingError.ExtractionLimitExceeded);
+        Directory.GetFiles(destDir).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ExtractAsync_Should_ReturnInsufficientDiskSpace_WhenTheDeclaredSizeDoesNotFit()
+    {
+        var service = new ArchiveExtractorService(
+            NullLogger<ArchiveExtractorService>.Instance, ExtractionLimits.Default with { AvailableBytes = _ => 10 });
+        var archivePath = WriteArchive("big.cbz", ZipBytes(("page01.jpg", new byte[100])));
+
+        var result = await service.ExtractAsync(archivePath, CreateDestDir(), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(Domain.ImportJobs.ImportJobError.InsufficientDiskSpace);
+    }
+
+    [Fact]
+    public async Task ExtractAsync_Should_ExtractTheVolumes_WhenTheyAreArchivesOfPages()
+    {
+        // #1295: an archive holding several volumes is still split.
+        var volume = ZipBytes(("page01.jpg", [1, 2, 3]));
+        var archivePath = WriteArchive("volumes.zip", ZipBytes(("Serie - T01.cbz", volume), ("Serie - T02.cbz", volume)));
+
+        var result = await _service.ExtractAsync(archivePath, CreateDestDir(), TestContext.Current.CancellationToken);
+
+        result.Value!.NestedArchives.Select(Path.GetFileName).Should().Equal("Serie - T01.cbz", "Serie - T02.cbz");
+    }
+
+    [Fact]
+    public async Task ExtractAsync_Should_RefuseTheArchive_WhenAVolumeHoldsArchivesAgain()
+    {
+        // The audit fixture: 3 levels of 3 archives each.
+        var volume = ZipBytes(("page01.jpg", [1, 2, 3]));
+        var middle = ZipBytes(("a.cbz", volume), ("b.cbz", volume), ("c.cbz", volume));
+        var archivePath = WriteArchive("nested.zip", ZipBytes(("1.zip", middle), ("2.zip", middle), ("3.zip", middle)));
+
+        var result = await _service.ExtractAsync(archivePath, CreateDestDir(), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FileProcessingError.NestedArchiveTooDeep);
+    }
+
+    [Fact]
+    public void AvailableBytes_Should_MeasureTheClosestExistingFolder_WhenTheFolderIsNotCreatedYet()
+    {
+        var notCreated = Path.Combine(_tempDir, "not", "created");
+
+        DiskSpace.AvailableBytes(notCreated).Should().BeInRange(1, long.MaxValue - 1);
+    }
 }
