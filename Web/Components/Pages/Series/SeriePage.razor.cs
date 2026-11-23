@@ -10,7 +10,8 @@ using Web.Services;
 namespace Web.Components.Pages.Series;
 
 // A series of a library: how complete it is, and its volumes with the missing ones in their place (#1205),
-// each book with the actions it has among the covers of its library (#1220), and several chosen to move or delete them at once.
+// each book with the actions it has among the covers of its library (#1220), and several chosen to move or delete them at once;
+// only the rows of volumes on screen are rendered, and the series opens again on the first one left (#1366).
 public partial class SeriePage : IAsyncDisposable
 {
     [Inject] private ISeriesService SeriesService { get; set; } = default!;
@@ -19,8 +20,11 @@ public partial class SeriePage : IAsyncDisposable
     [Inject] private ILogger<SeriePage> Logger { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private PopupAnchorLocator PopupAnchorLocator { get; set; } = default!;
+    [Inject] private SeriesStateService SeriesStateService { get; set; } = default!;
 
     public const string Msg_LoadFailed = "Failed to load the series";
+
+    private static readonly Func<SerieSlotViewModel, object> KeyOf = slot => slot.Key;
 
     [Parameter] public Guid LibraryId { get; set; }
 
@@ -30,6 +34,8 @@ public partial class SeriePage : IAsyncDisposable
     private readonly CancellationTokenSource _disposalCts = new();
     private (Guid LibraryId, string? Name) _shown;
     private SeriePageViewModel? _serie;
+    private ListRows<SerieSlotViewModel> _slots = new([], string.Empty);
+    private int _firstSlot;
     private bool _isLoading = true;
     // The series could not be loaded, for another reason than it being gone: an error with Retry (#1241).
     private bool _loadFailed;
@@ -55,11 +61,22 @@ public partial class SeriePage : IAsyncDisposable
             return;
         }
 
+        SaveState();
         _shown = (LibraryId, Name);
+        _firstSlot = string.IsNullOrWhiteSpace(Name) ? 0 : SeriesStateService.LoadFirstVolume(LibraryId, Name);
         _isEditing = false;
         _selection = BookSelection.None;
         _serie = null;
         await RetryAsync();
+    }
+
+    // The series left opens again on the first volume that was on screen.
+    private void SaveState()
+    {
+        if (!string.IsNullOrWhiteSpace(_shown.Name))
+        {
+            SeriesStateService.SaveFirstVolume(_shown.LibraryId, _shown.Name, _firstSlot);
+        }
     }
 
     private async Task RetryAsync()
@@ -95,6 +112,8 @@ public partial class SeriePage : IAsyncDisposable
             if (result.IsSuccess)
             {
                 _serie = SeriePageViewModel.From(result.Value!);
+                // The same series again (a book left it) stays where it is.
+                _slots = new ListRows<SerieSlotViewModel>(_serie.Slots, shown.Name);
                 _loadFailed = false;
             }
             else if (result.IsFailure && result.Error == SeriesError.NotFound)
@@ -257,6 +276,7 @@ public partial class SeriePage : IAsyncDisposable
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
     public async ValueTask DisposeAsync()
     {
+        SaveState();
         await _disposalCts.CancelAsync();
         _disposalCts.Dispose();
         try

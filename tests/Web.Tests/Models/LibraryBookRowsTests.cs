@@ -37,7 +37,7 @@ public sealed class LibraryBookRowsTests
     private LibraryBookRows Create(BookSortOrder sortOrder = BookSortOrder.IdAsc, string search = "") =>
         new(_booksService, s_libraryId, sortOrder, search, PageSize);
 
-    private static IEnumerable<string> Titles(BookRow row) => row.Books.Select(b => b.Title);
+    private static IEnumerable<string> Titles(VirtualRow<BookListItemViewModel> row) => row.Items.Select(b => b.Title);
 
     [Fact]
     public async Task GetRowsAsync_Should_CutTheBooksInRowsOfAsManyBooksAsColumns_FromThePagesThatHoldThem()
@@ -47,7 +47,7 @@ public sealed class LibraryBookRowsTests
         var result = await rows.GetRowsAsync(1, 2, 3, TestContext.Current.CancellationToken);
 
         result.Value!.RowCount.Should().Be(4);
-        result.Value.Rows.Select(r => r.FirstBook).Should().Equal(3, 6);
+        result.Value.Rows.Select(r => r.FirstItem).Should().Equal(3, 6);
         Titles(result.Value.Rows[0]).Should().Equal("Tome 3", "Tome 4", "Tome 5");
         Titles(result.Value.Rows[1]).Should().Equal("Tome 6", "Tome 7", "Tome 8");
         await _booksService.Received(1).GetPagedByLibrary(s_libraryId, 1, PageSize, BookSortOrder.IdAsc, "", Arg.Any<CancellationToken>());
@@ -145,33 +145,16 @@ public sealed class LibraryBookRowsTests
     }
 
     [Fact]
-    public void ShowsOtherBooksThan_Should_BeTrue_ForAnotherLibrary() =>
-        Create().ShowsOtherBooksThan(new LibraryBookRows(_booksService, Guid.CreateVersion7(), BookSortOrder.IdAsc, "", PageSize)).Should().BeTrue();
+    public void ShowsOtherItemsThan_Should_BeTrue_ForAnotherLibrary() =>
+        Create().ShowsOtherItemsThan(new LibraryBookRows(_booksService, Guid.CreateVersion7(), BookSortOrder.IdAsc, "", PageSize)).Should().BeTrue();
 
     [Theory]
     [InlineData(BookSortOrder.IdAsc, "", false)]
     [InlineData(BookSortOrder.IdDesc, "", true)]
     [InlineData(BookSortOrder.IdAsc, "Blacksad", true)]
-    public void ShowsOtherBooksThan_Should_TellWhetherTheSortOrTheSearchChanged(BookSortOrder sortOrder, string search, bool expected)
+    public void ShowsOtherItemsThan_Should_TellWhetherTheSortOrTheSearchChanged(BookSortOrder sortOrder, string search, bool expected)
     {
-        Create(sortOrder, search).ShowsOtherBooksThan(Create()).Should().Be(expected);
-        Create().ShowsOtherBooksThan(null).Should().BeTrue();
-    }
-
-    [Fact]
-    public void BookRowComparer_Should_MatchTheRowsThatStartAtTheSameBook()
-    {
-        var first = BookListItemViewModel.From(_books[0]);
-        var second = BookListItemViewModel.From(_books[1]);
-        var row = new BookRow(0, [first, second]);
-        var comparer = BookRowComparer.Instance;
-
-        comparer.Equals(row, new BookRow(0, [first])).Should().BeTrue();
-        comparer.GetHashCode(row).Should().Be(comparer.GetHashCode(new BookRow(0, [first])));
-        comparer.Equals(row, new BookRow(0, [second])).Should().BeFalse();
-        comparer.Equals(row, new BookRow(3, [first])).Should().BeFalse();
-        comparer.Equals(new BookRow(0, []), new BookRow(0, [])).Should().BeTrue();
-        comparer.Equals(row, null).Should().BeFalse();
-        comparer.Equals(row, row).Should().BeTrue();
+        Create(sortOrder, search).ShowsOtherItemsThan(Create()).Should().Be(expected);
+        Create().ShowsOtherItemsThan(null).Should().BeTrue();
     }
 }

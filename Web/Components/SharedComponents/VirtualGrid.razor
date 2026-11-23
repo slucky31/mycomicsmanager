@@ -1,0 +1,24 @@
+@typeparam TItem
+
+@* A grid whose items are rendered only while their row is on screen (#1344): the library, the series and the volumes of a series (#1366). *@
+<div class="virtual-grid">
+    @* An empty grid like those of the rows, measured by the script to know how many items a row holds. *@
+    <div @ref="_probe" class="virtual-probe" aria-hidden="true">
+        @Probe
+    </div>
+
+    @if (_columns > 0)
+    {
+        <Virtualize @ref="_virtualize" TItem="VirtualRow<TItem>" ItemsProvider="LoadRowsAsync" ItemComparer="_comparer" ItemSize="@RowSize" OverscanCount="4"
+                    InitialItemIndex="@(InitialItem / _columns)">
+            <ItemContent Context="row">
+                <div class="@($"virtual-row {RowClass}".TrimEnd())" data-first-item="@row.FirstItem">
+                    @RowContent(row)
+                </div>
+            </ItemContent>
+            <Placeholder>
+                <div class="virtual-row virtual-row-placeholder" style="@($"height: {RowSize}px")"></div>
+            </Placeholder>
+        </Virtualize>
+    }
+</div>

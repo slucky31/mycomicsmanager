@@ -1,5 +1,5 @@
-// Virtualized library (#1344): the number of columns of the grid, followed as the screen is resized, and the first
-// book on screen, kept for the next visit.
+// Virtualized grids (#1344: the library, #1366: the series and the volumes of a series): the number of columns of the
+// grid, followed as the screen is resized, and the first item on screen, kept for the next visit.
 const POSITION_DELAY_MS = 250;
 const states = new Map();
 
@@ -16,14 +16,15 @@ function scrollerOf(element) {
             return node;
         }
     }
-    return document.scrollingElement;
+    // The page itself scrolls (the series pages): its scroll events reach the window.
+    return null;
 }
 
-function firstVisibleBook(scroller) {
-    const top = scroller.getBoundingClientRect().top;
-    for (const row of scroller.querySelectorAll('[data-first-book]')) {
+function firstVisibleItem(grid, scroller) {
+    const top = scroller ? scroller.getBoundingClientRect().top : 0;
+    for (const row of grid.querySelectorAll('[data-first-item]')) {
         if (row.getBoundingClientRect().bottom > top + 1) {
-            return Number(row.dataset.firstBook);
+            return Number(row.dataset.firstItem);
         }
     }
     return null;
@@ -47,19 +48,21 @@ export function observe(id, probe, dotNetRef) {
     resizeObserver.observe(probe);
 
     const scroller = scrollerOf(probe);
+    const target = scroller ?? window;
+    const grid = probe.parentElement;
     let timer = null;
     const onScroll = () => {
         clearTimeout(timer);
         timer = setTimeout(() => {
-            const first = firstVisibleBook(scroller);
+            const first = firstVisibleItem(grid, scroller);
             if (first !== null) {
                 dotNetRef.invokeMethodAsync('PositionChanged', first).catch(() => { /* circuit gone */ });
             }
         }, POSITION_DELAY_MS);
     };
-    scroller.addEventListener('scroll', onScroll, { passive: true });
+    target.addEventListener('scroll', onScroll, { passive: true });
 
-    states.set(id, { resizeObserver, scroller, onScroll, stop: () => clearTimeout(timer) });
+    states.set(id, { resizeObserver, target, onScroll, stop: () => clearTimeout(timer) });
     return columns;
 }
 
@@ -70,6 +73,6 @@ export function dispose(id) {
     }
     state.stop();
     state.resizeObserver.disconnect();
-    state.scroller.removeEventListener('scroll', state.onScroll);
+    state.target.removeEventListener('scroll', state.onScroll);
     states.delete(id);
 }

@@ -1,5 +1,5 @@
-/* The virtualized library (#1344): each row is a grid of the view, without the spacing of a whole grid. */
-.virtual-books {
+/* A virtualized grid (#1344, #1366): each row is a grid of the page, without the spacing of a whole grid. */
+.virtual-grid {
     padding-top: var(--mcm-space-2);
 }
 
@@ -9,8 +9,7 @@
     visibility: hidden;
 }
 
-.virtual-books ::deep .virtual-row > .covers-grid,
-.virtual-books ::deep .virtual-row > .list-grid {
+.virtual-grid ::deep .virtual-row > * {
     padding-top: 0;
     padding-bottom: 0;
     border-top: 0;
@@ -38,6 +37,11 @@
 
     .virtual-row-list {
         padding-bottom: 12px;
+    }
+
+    /* The cards of the series and the volumes of a series: the gap of their grid between the rows. */
+    .virtual-row-cards {
+        padding-bottom: 24px;
     }
 
     .virtual-row-placeholder {

@@ -24,37 +24,44 @@
     else
     {
         <div class="series-filters" role="group" aria-label="Show the series">
-            <FilterChip Text="@($"All · {_series.Count}")" Selected="@(_filter == SeriesFilter.All)" OnClick="() => _filter = SeriesFilter.All" />
-            <FilterChip Text="@($"Incomplete · {CountOf(SeriesFilter.Incomplete)}")" Selected="@(_filter == SeriesFilter.Incomplete)" OnClick="() => _filter = SeriesFilter.Incomplete" />
-            <FilterChip Text="@($"Complete · {CountOf(SeriesFilter.Complete)}")" Selected="@(_filter == SeriesFilter.Complete)" OnClick="() => _filter = SeriesFilter.Complete" />
+            <FilterChip Text="@($"All · {_series.Count}")" Selected="@(_filter == SeriesFilter.All)" OnClick="() => ChooseFilter(SeriesFilter.All)" />
+            <FilterChip Text="@($"Incomplete · {CountOf(SeriesFilter.Incomplete)}")" Selected="@(_filter == SeriesFilter.Incomplete)" OnClick="() => ChooseFilter(SeriesFilter.Incomplete)" />
+            <FilterChip Text="@($"Complete · {CountOf(SeriesFilter.Complete)}")" Selected="@(_filter == SeriesFilter.Complete)" OnClick="() => ChooseFilter(SeriesFilter.Complete)" />
         </div>
 
-        <div class="series-grid">
-            @foreach (var serie in _series.Where(s => s.Matches(_filter)))
-            {
-                <a @key="serie.Href" class="serie-card" href="@serie.Href">
-                    <span class="serie-stack">
-                        <span class="serie-stack-back serie-stack-back-far" aria-hidden="true"></span>
-                        <span class="serie-stack-back" aria-hidden="true"></span>
-                        @if (!string.IsNullOrEmpty(serie.Cover))
-                        {
-                            <img class="serie-cover" src="@CoverImage.Sized(serie.Cover, CoverSize.Medium)" alt="" loading="lazy" />
-                        }
-                        else
-                        {
-                            <span class="serie-cover serie-cover-placeholder" aria-hidden="true">@serie.Name</span>
-                        }
-                        <span class="serie-count">@serie.CountLabel</span>
-                        @if (serie.Badge is not null)
-                        {
-                            <span class="@(serie.BadgeKind == SerieBadgeKind.Complete ? "serie-badge serie-badge-complete" : "serie-badge serie-badge-missing")">@serie.Badge</span>
-                        }
-                    </span>
-                    <span class="serie-name">@serie.Name</span>
-                    <span class="serie-detail">@serie.Detail</span>
-                </a>
-            }
-        </div>
+        @* Only the rows of cards on screen are rendered, and the page opens again on the first one left (#1366). *@
+        <VirtualGrid TItem="SerieCardViewModel" Source="_rows" ItemKey="KeyOf" RowClass="virtual-row-cards" InitialItem="_firstSerie"
+                     OnPositionChanged="serie => _firstSerie = serie" LoadErrorMessage="@Msg_LoadFailed">
+            <Probe><div class="series-grid"></div></Probe>
+            <RowContent Context="row">
+                <div class="series-grid">
+                    @foreach (var serie in row.Items)
+                    {
+                        <a @key="serie.Href" class="serie-card" href="@serie.Href">
+                            <span class="serie-stack">
+                                <span class="serie-stack-back serie-stack-back-far" aria-hidden="true"></span>
+                                <span class="serie-stack-back" aria-hidden="true"></span>
+                                @if (!string.IsNullOrEmpty(serie.Cover))
+                                {
+                                    <img class="serie-cover" src="@CoverImage.Sized(serie.Cover, CoverSize.Medium)" alt="" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span class="serie-cover serie-cover-placeholder" aria-hidden="true">@serie.Name</span>
+                                }
+                                <span class="serie-count">@serie.CountLabel</span>
+                                @if (serie.Badge is not null)
+                                {
+                                    <span class="@(serie.BadgeKind == SerieBadgeKind.Complete ? "serie-badge serie-badge-complete" : "serie-badge serie-badge-missing")">@serie.Badge</span>
+                                }
+                            </span>
+                            <span class="serie-name">@serie.Name</span>
+                            <span class="serie-detail">@serie.Detail</span>
+                        </a>
+                    }
+                </div>
+            </RowContent>
+        </VirtualGrid>
     }
 </div>
 

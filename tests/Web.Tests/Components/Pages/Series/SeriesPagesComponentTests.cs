@@ -14,6 +14,7 @@ using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages.Dialogs;
 using Web.Components.Pages.Series;
+using Web.Components.SharedComponents;
 using Web.Models;
 using Web.Services;
 using Web.Tests.Models;
@@ -40,6 +41,7 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
         _ctx.Services.AddSingleton(_librariesService);
         _ctx.Services.AddSingleton(_snackbar);
         _ctx.Services.AddScoped<PopupAnchorLocator>();
+        _ctx.Services.AddScoped<SeriesStateService>();
         _ctx.Services.AddSingleton(_booksService);
         _ctx.Services.AddSingleton(_moveWorkflow);
         _librariesService.GetById(s_libraryId.ToString())
@@ -71,6 +73,30 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         cut.FindAll(".serie-name").Select(n => n.TextContent).Should().Equal("Thorgal");
         cut.Find(".serie-badge-missing").TextContent.Should().Be("1 missing");
+    }
+
+    [Fact]
+    public async Task LibrarySeriesPage_Should_OpenAgainWithTheFilter_OnTheFirstSeriesLeft()
+    {
+        _seriesService.GetLibrarySeries(s_libraryId, Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<SerieSummary>>(
+        [
+            SeriesTestData.Summary("Blacksad", [1, 2], total: 2),
+            SeriesTestData.Summary("Thorgal", [1, 3]),
+            SeriesTestData.Summary("XIII", [2]),
+        ]));
+        var cut = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".serie-card").Should().HaveCount(3));
+        cut.Find(".virtual-row").GetAttribute("data-first-item").Should().Be("0");
+
+        await cut.FindAll(".filter-chip")[1].ClickAsync(new());
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".serie-name").Select(n => n.TextContent).Should().Equal("Thorgal", "XIII"));
+        await cut.InvokeAsync(() => cut.FindComponent<VirtualGrid<SerieCardViewModel>>().Instance.PositionChanged(1));
+        await cut.InvokeAsync(() => cut.Instance.DisposeAsync().AsTask());
+
+        _ctx.Services.GetRequiredService<SeriesStateService>().LoadSeries(s_libraryId).Should().Be(new SeriesPageState(SeriesFilter.Incomplete, 1));
+        var again = _ctx.Render<LibrarySeriesPage>(p => p.Add(c => c.LibraryId, s_libraryId));
+        await again.WaitForAssertionAsync(() => again.FindComponent<VirtualGrid<SerieCardViewModel>>().Instance.InitialItem.Should().Be(1));
+        again.FindAll(".filter-chip")[1].GetAttribute("aria-pressed").Should().Be("true");
     }
 
     [Fact]
@@ -153,6 +179,23 @@ public sealed class SeriesPagesComponentTests : IAsyncDisposable
 
         cut.WaitForAssertion(() => _seriesService.Received(1).SetTotal(s_libraryId, "Thorgal", 5, true, Arg.Any<CancellationToken>()));
         cut.WaitForAssertion(() => cut.FindAll(".serie-total-field").Should().BeEmpty());
+    }
+
+    [Fact]
+    public async Task SeriePage_Should_OpenAgainOnTheFirstVolumeLeft()
+    {
+        _seriesService.GetSerie(s_libraryId, "Thorgal", Arg.Any<CancellationToken>())
+            .Returns(new SerieDetail("BD", SeriesTestData.Summary("Thorgal", [1, 3]), [SeriesTestData.Book("Thorgal", 1), SeriesTestData.Book("Thorgal", 3)]));
+        _ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/libraries/{s_libraryId}/serie?name=Thorgal");
+        var cut = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".serie-slot, .cover-item").Should().HaveCount(3));
+
+        await cut.InvokeAsync(() => cut.FindComponent<VirtualGrid<SerieSlotViewModel>>().Instance.PositionChanged(2));
+        await cut.InvokeAsync(() => cut.Instance.DisposeAsync().AsTask());
+
+        _ctx.Services.GetRequiredService<SeriesStateService>().LoadFirstVolume(s_libraryId, "Thorgal").Should().Be(2);
+        var again = _ctx.Render<SeriePage>(p => p.Add(c => c.LibraryId, s_libraryId));
+        await again.WaitForAssertionAsync(() => again.FindComponent<VirtualGrid<SerieSlotViewModel>>().Instance.InitialItem.Should().Be(2));
     }
 
     [Fact]
