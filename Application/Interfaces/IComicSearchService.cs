@@ -22,12 +22,6 @@ public record ComicSearchResult(
 public interface IComicSearchService
 {
     Task<ComicSearchResult> SearchByIsbnAsync(string isbn, CancellationToken cancellationToken = default);
-    Task<ComicSearchResult> SearchByIsbnWithLocalCoverAsync(
-        string isbn,
-        Stream? coverStream,
-        string? coverFileName,
-        CancellationToken cancellationToken = default);
     // The volume is null when the source does not tell it.
     (string Title, string Serie, int? VolumeNumber) ParseTitleInfo(IBookSearchResult result);
-    Task<string> UploadCoverAsync(Uri coverUrl, string isbn, CancellationToken cancellationToken = default);
 }

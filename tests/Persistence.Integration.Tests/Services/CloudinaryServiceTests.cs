@@ -2,6 +2,8 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using Application.ComicInfoSearch;
+using Application.Interfaces;
+using Domain.Books;
 using Microsoft.Extensions.Options;
 using Persistence.Services;
 
@@ -265,6 +267,112 @@ public class CloudinaryServiceTests
 
         result.Success.Should().BeFalse();
         result.Error.Should().Contain("not in the allowed list");
+    }
+
+    [Fact]
+    public async Task UploadImageFromUrlAsync_Should_CopyAnImageOfTheAccount_AndReduceItTo960Pixels()
+    {
+        using var handler = new JsonResponsesHandler("""{"public_id":"covers/book","secure_url":"https://res.cloudinary.com/testcloud/image/upload/covers/book.jpg"}""");
+        var service = CreateServiceWithMockHandler(handler);
+
+        var result = await service.UploadImageFromUrlAsync(
+            new Uri("https://res.cloudinary.com/testcloud/image/upload/v1/covers/9782205050196.jpg"), "covers", "book",
+            TestContext.Current.CancellationToken);
+
+        result.Success.Should().BeTrue();
+        handler.Requests.Should().ContainSingle().Which.Should().Contain("c_limit,w_960");
+    }
+
+    [Fact]
+    public async Task UploadImageFromUrlAsync_Should_ReturnFailure_WhenTheImageIsOfAnotherAccount()
+    {
+        using var handler = new JsonResponsesHandler();
+        var service = CreateServiceWithMockHandler(handler);
+
+        var result = await service.UploadImageFromUrlAsync(
+            new Uri("https://res.cloudinary.com/othercloud/image/upload/v1/covers/1.jpg"), "covers", "book",
+            TestContext.Current.CancellationToken);
+
+        result.Success.Should().BeFalse();
+        handler.Requests.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ListImagesAsync_Should_ReadEveryPageOfTheFolder()
+    {
+        using var handler = new JsonResponsesHandler(
+            """{"resources":[{"public_id":"covers/a","bytes":100}],"next_cursor":"next"}""",
+            """{"resources":[{"public_id":"covers/b","bytes":200}]}""");
+        var service = CreateServiceWithMockHandler(handler);
+
+        var result = await service.ListImagesAsync("covers", TestContext.Current.CancellationToken);
+
+        result.Value.Should().Equal(new CloudinaryImage("covers/a", 100), new CloudinaryImage("covers/b", 200));
+        handler.Requests.Should().HaveCount(2);
+        handler.Requests[1].Should().Contain("next_cursor=next");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ListImagesAsync_Should_ReturnCoversNotListed_WhenCloudinaryFails(bool throws)
+    {
+        using HttpMessageHandler handler = throws
+            ? new ThrowingHandler(new HttpRequestException("Network error"))
+            : new JsonResponsesHandler("""{"error":{"message":"Invalid credentials"}}""");
+        var service = CreateServiceWithMockHandler(handler);
+
+        var result = await service.ListImagesAsync("covers", TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(BooksError.CoversNotListed);
+    }
+
+    [Fact]
+    public async Task DeleteImagesAsync_Should_DeleteTheImagesByBatchesOf100_AndCountTheDeletedOnes()
+    {
+        var publicIds = Enumerable.Range(0, 101).Select(i => $"covers/{i}").ToList();
+        using var handler = new JsonResponsesHandler(
+            """{"deleted":{"covers/0":"deleted","covers/1":"not_found"}}""",
+            """{"deleted":{"covers/100":"deleted"}}""");
+        var service = CreateServiceWithMockHandler(handler);
+
+        var result = await service.DeleteImagesAsync(publicIds, TestContext.Current.CancellationToken);
+
+        result.Value.Should().Be(2);
+        handler.Requests.Should().HaveCount(2);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DeleteImagesAsync_Should_ReturnCoversNotDeleted_WhenCloudinaryFails(bool throws)
+    {
+        using HttpMessageHandler handler = throws
+            ? new ThrowingHandler(new HttpRequestException("Network error"))
+            : new JsonResponsesHandler("""{"error":{"message":"Rate limited"}}""");
+        var service = CreateServiceWithMockHandler(handler);
+
+        var result = await service.DeleteImagesAsync(["covers/a"], TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(BooksError.CoversNotDeleted);
+    }
+
+    // Answers each request with the next JSON body, and keeps the URL and body of the requests.
+    private sealed class JsonResponsesHandler(params string[] bodies) : HttpMessageHandler
+    {
+        private int _next;
+
+        public List<string> Requests { get; } = [];
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var content = request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken);
+            Requests.Add($"{request.RequestUri} {content}");
+            var body = bodies[Math.Min(_next++, bodies.Length - 1)];
+            var status = body.Contains("\"error\"", StringComparison.Ordinal) ? HttpStatusCode.BadRequest : HttpStatusCode.OK;
+            return new HttpResponseMessage(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+        }
     }
 
     private sealed class StaticResponseHandler(HttpResponseMessage response) : HttpMessageHandler

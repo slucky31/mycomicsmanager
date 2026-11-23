@@ -20,14 +20,14 @@
  *
  * The tool will:
  *   1. Query all books whose ImageLink is not empty and not already a Cloudinary URL
- *   2. For each book, upload the image to Cloudinary using the book's ISBN as publicId
+ *   2. For each book, upload the image to Cloudinary named after the book (its id)
  *   3. Update the book's ImageLink in the database with the Cloudinary URL
  *      (or the original URL if the upload fails)
  */
 
 using Application;
+using Application.Books;
 using Application.ComicInfoSearch;
-using Application.Helpers;
 using Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -143,7 +143,7 @@ var ct = CancellationToken.None;
 
 for (var i = 0; i < books.Count; i++)
 {
-    var (bookId, isbn, imageLink) = books[i];
+    var (bookId, _, imageLink) = books[i];
     var prefix = $"[{i + 1,4}/{books.Count}] {bookId}";
 
     if (!Uri.TryCreate(imageLink, UriKind.Absolute, out var imageUri))
@@ -159,9 +159,8 @@ for (var i = 0; i < books.Count; i++)
         var cloudinaryService = scope.ServiceProvider.GetRequiredService<ICloudinaryService>();
         var cloudinarySettings = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<CloudinarySettings>>().Value;
 
-        var publicId = string.IsNullOrEmpty(isbn)
-            ? bookId.ToString()
-            : IsbnHelper.NormalizeIsbn(isbn);
+        // Every cover is the image of its own book (#1225).
+        var publicId = BookCovers.PublicId(bookId);
 
         if (dryRun)
         {

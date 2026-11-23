@@ -9,6 +9,8 @@ public interface IBookRepository : IRepository<Book, Guid>
     Task<Book?> GetByIsbnAsync(string isbn, Guid libraryId, CancellationToken cancellationToken = default);
     void AddReadingDate(ReadingDate readingDate);
     Task<List<Book>> ListByLibraryIdAsync(Guid libraryId, CancellationToken cancellationToken = default);
+    // The books of every user, with their reading dates.
+    Task<List<Book>> ListAsync(CancellationToken cancellationToken);
     Task<List<Book>> ListByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
     // Digital books of the library without ISBN whose pages were never scanned for one.

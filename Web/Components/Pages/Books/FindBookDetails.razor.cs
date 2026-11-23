@@ -381,23 +381,8 @@ public partial class FindBookDetails
         var serie = GetResolvedValue(BookFieldKeys.Serie) ?? _currentBook.Serie;
         var authors = GetResolvedValue(BookFieldKeys.Authors) ?? _currentBook.Authors;
         var publishers = GetResolvedValue(BookFieldKeys.Publishers) ?? _currentBook.Publishers;
+        // The cover chosen on the web is copied to the image of the book when it is saved (#1225).
         var cover = GetResolvedValue(BookFieldKeys.Cover) ?? _currentBook.ImageLink;
-
-        if (!string.IsNullOrEmpty(cover) &&
-            !cover.Contains("res.cloudinary.com", StringComparison.OrdinalIgnoreCase) &&
-            Uri.TryCreate(cover, UriKind.Absolute, out var coverUri) &&
-            (coverUri.Scheme == Uri.UriSchemeHttp || coverUri.Scheme == Uri.UriSchemeHttps))
-        {
-            try
-            {
-                cover = await ComicSearchService.UploadCoverAsync(coverUri, SavedIsbn);
-            }
-            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
-            {
-                Logger.LogError(ex, "Failed to upload cover to Cloudinary for book {BookId}, keeping original URL", BookId);
-                Snackbar.Add("Cover could not be uploaded to Cloudinary. The original URL will be saved.", Severity.Warning);
-            }
-        }
 
         var volumeNumber = int.TryParse(GetResolvedValue(BookFieldKeys.VolumeNumber), CultureInfo.InvariantCulture, out var vol)
             ? vol

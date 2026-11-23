@@ -395,9 +395,9 @@ public class DigitalBookTests
     }
 
     [Theory]
-    [InlineData(null, "https://books.google.com/cover.jpg")]
-    [InlineData(ArchiveCover, ArchiveCover)]
-    public void RefreshFromArchive_Should_SetThePages_AndTheCoverWhenOneIsGiven(string? cover, string expectedCover)
+    [InlineData(null, "https://books.google.com/cover.jpg", CoverSource.Web)]
+    [InlineData(ArchiveCover, ArchiveCover, CoverSource.Archive)]
+    public void RefreshFromArchive_Should_SetThePages_AndTheCoverWhenOneIsGiven(string? cover, string expectedCover, CoverSource expectedSource)
     {
         var book = CreateBook("https://books.google.com/cover.jpg", 56);
 
@@ -406,6 +406,30 @@ public class DigitalBookTests
         result.IsSuccess.Should().BeTrue();
         book.NumberOfPages.Should().Be(48);
         book.ImageLink.Should().Be(expectedCover);
+        book.CoverSource.Should().Be(expectedSource);
+    }
+
+    [Fact]
+    public void Create_Should_TakeTheIdGiven_ToNameTheCoverBeforeTheBookExists()
+    {
+        var id = Guid.CreateVersion7();
+
+        var book = DigitalBook.Create(new BookMetadata(DefaultSerie, DefaultTitle, DefaultIsbn), DefaultLibraryId, DefaultFilePath, DefaultFileSize, id).Value!;
+
+        book.Id.Should().Be(id);
+        book.CoverSource.Should().Be(CoverSource.Web);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("https://res.cloudinary.com/demo/image/upload/covers/book.webp")]
+    public void UseStoredCover_Should_TakeTheCopiedCover_UnlessItIsEmpty(string link)
+    {
+        var book = CreateBook(ArchiveCover, 48);
+
+        book.UseStoredCover(link);
+
+        book.ImageLink.Should().Be(link.Length == 0 ? ArchiveCover : link);
     }
 
     [Theory]

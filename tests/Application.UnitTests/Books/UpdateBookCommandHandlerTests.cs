@@ -30,6 +30,7 @@ public class UpdateBookCommandHandlerTests
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly IRepository<Library, Guid> _libraryRepositoryMock;
     private readonly IComicInfoArchiveWriter _comicInfoWriterMock;
+    private readonly ICloudinaryService _cloudinaryMock = Substitute.For<ICloudinaryService>();
 
     public UpdateBookCommandHandlerTests()
     {
@@ -41,7 +42,7 @@ public class UpdateBookCommandHandlerTests
         _comicInfoWriterMock.WriteAsync(Arg.Any<string>(), Arg.Any<ComicInfoData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _libraryRepositoryMock,
+        _handler = new UpdateBookCommandHandler(_bookRepositoryMock, _libraryRepositoryMock, TestCoverStores.Create(_cloudinaryMock),
             new BookSaver(_bookRepositoryMock, _unitOfWorkMock, _comicInfoWriterMock, NullLogger<BookSaver>.Instance));
     }
 
@@ -407,6 +408,25 @@ public class UpdateBookCommandHandlerTests
         Guard.Against.Null(result.Value);
         result.IsSuccess.Should().BeTrue();
         result.Value.ImageLink.Should().Be("https://new-image.com/cover.jpg");
+    }
+
+    [Fact]
+    public async Task Handle_Should_StoreTheNewCoverAsTheImageOfTheBook_WhenItIsUploaded()
+    {
+        // Arrange
+        var existingBook = CreateBookWithId(s_bookId, "Original Serie", "Original Title", "978-3-16-148410-0");
+        var command = new UpdateBookCommand(s_bookId, "Serie", "Title", "978-3-16-148410-0", 1, "https://new-image.com/cover.jpg", s_userId);
+        _bookRepositoryMock.GetByIdAsync(command.Id).Returns(existingBook);
+        _libraryRepositoryMock.GetByIdAsync(s_testLibraryId).Returns(Library.Create("Test", "#FF0000", "book", LibraryBookType.Physical, s_userId).Value!);
+        var stored = new Uri($"https://res.cloudinary.com/demo/image/upload/v1/covers/{s_bookId}.jpg");
+        _cloudinaryMock.UploadImageFromUrlAsync(new Uri(command.ImageLink), TestCoverStores.Folder, s_bookId.ToString(), Arg.Any<CancellationToken>())
+            .Returns(new CloudinaryUploadResult(stored, $"covers/{s_bookId}", true, null));
+
+        // Act
+        var result = await _handler.Handle(command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Value!.ImageLink.Should().Be(stored.ToString());
     }
 
     [Fact]

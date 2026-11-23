@@ -1,5 +1,4 @@
 using Application.Abstractions.Messaging;
-using Application.Books;
 using Application.Helpers;
 using Application.Interfaces;
 using Domain.Books;
@@ -113,11 +112,12 @@ public sealed class ProcessImportJobCommandHandler(
             { return metaResult.Error!; }
             var (meta, isbnScan) = metaResult.Value;
 
+            // The book is named before it exists, so that its cover is its own image (#1225).
+            var bookId = Guid.CreateVersion7();
             var coverResult = await UploadCoverStepAsync(
-                importJob, meta.ISBN, webpFiles, ct);
+                importJob, bookId, meta.ImageLink, webpFiles, ct);
             if (coverResult.IsFailure)
             { return coverResult.Error!; }
-            var imageLink = coverResult.Value!;
 
             var archiveResult = await BuildArchiveStepAsync(
                 importJob, meta.ISBN, webpFiles, convertedDir, tempDir, ct);
@@ -125,7 +125,7 @@ public sealed class ProcessImportJobCommandHandler(
             { return archiveResult.Error!; }
 
             return await CompleteStepAsync(
-                importJob, library, meta, isbnScan, archiveResult.Value, imageLink, ct);
+                importJob, library, meta, isbnScan, archiveResult.Value, (bookId, coverResult.Value!), ct);
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException or HttpRequestException or InvalidDataException)
         { return await HandleUnexpectedExceptionAsync(importJob, ex, ct); }
@@ -487,8 +487,9 @@ public sealed class ProcessImportJobCommandHandler(
 
     // ── Step 5: UploadingCover (best-effort, never fails the pipeline) ────────
 
-    private async Task<Result<string>> UploadCoverStepAsync(
-        ImportJob importJob, string? isbn, IReadOnlyList<string> coverFiles, CancellationToken ct)
+    // The first page of the archive; the catalogue cover is only uploaded when the first page cannot be.
+    private async Task<Result<ImportedCover>> UploadCoverStepAsync(
+        ImportJob importJob, Guid bookId, string catalogueCover, IReadOnlyList<string> coverFiles, CancellationToken ct)
     {
         var advanceResult = await AdvanceAndSaveAsync(importJob, ImportJobStatus.UploadingCover, ct);
         if (advanceResult.IsFailure)
@@ -496,22 +497,20 @@ public sealed class ProcessImportJobCommandHandler(
             return await FailJobAsync(importJob, "UploadingCover", advanceResult.Error!, ct);
         }
 
-        if (coverFiles.Count == 0)
+        var archiveCover = coverFiles.Count > 0
+            ? await externalServices.Covers.UploadFileAsync(bookId, coverFiles[0], ct)
+            : null;
+        if (archiveCover is not null)
         {
-            return string.Empty;
-        }
-
-        var uploadResult = await externalServices.Cloudinary.UploadImageFromFileAsync(
-            coverFiles[0], DigitalCovers.Folder, DigitalCovers.PublicId(isbn, importJob.Id), ct);
-
-        if (uploadResult.Success && uploadResult.Url is not null)
-        {
-            return uploadResult.Url.ToString();
+            return new ImportedCover(archiveCover, CoverSource.Archive);
         }
 
         // Best-effort: a cover upload failure (including an unreadable file) never fails the pipeline.
-        logger.LogWarning("Cover upload failed for job {JobId}: {Error}", importJob.Id, uploadResult.Error);
-        return string.Empty;
+        logger.LogWarning("First page of job {JobId} not uploaded as the cover", importJob.Id);
+        var webCover = Uri.TryCreate(catalogueCover, UriKind.Absolute, out var catalogueUrl)
+            ? await externalServices.Covers.UploadUrlAsync(bookId, catalogueUrl, ct)
+            : null;
+        return new ImportedCover(webCover ?? catalogueCover, CoverSource.Web);
     }
 
     // ── Step 6: BuildingArchive ───────────────────────────────────────────────
@@ -554,17 +553,16 @@ public sealed class ProcessImportJobCommandHandler(
         BookMetadata meta,
         IsbnScanResult? isbnScan,
         (string OutputPath, string OutputFileName, long FileSize) archive,
-        string imageLink,
+        (Guid BookId, ImportedCover Cover) book,
         CancellationToken ct)
     {
         var normalizedIsbn = string.IsNullOrWhiteSpace(meta.ISBN)
             ? null
             : IsbnHelper.NormalizeIsbn(meta.ISBN);
 
-        // The catalogue cover stands in for a first page that could not be uploaded.
         var finalMeta = meta with
         {
-            ImageLink = string.IsNullOrWhiteSpace(imageLink) ? meta.ImageLink : imageLink,
+            ImageLink = book.Cover.Link,
             ISBN = normalizedIsbn
         };
 
@@ -581,7 +579,7 @@ public sealed class ProcessImportJobCommandHandler(
         }
         var finalPath = moveResult.Value!;
 
-        var bookResult = DigitalBook.Create(finalMeta, importJob.LibraryId, finalPath, archive.FileSize);
+        var bookResult = DigitalBook.Create(finalMeta, importJob.LibraryId, finalPath, archive.FileSize, book.BookId);
         if (bookResult.IsFailure)
         {
             // Pre-validation above guarantees this path is unreachable in practice; compensate defensively.
@@ -590,6 +588,11 @@ public sealed class ProcessImportJobCommandHandler(
         }
 
         var digitalBook = bookResult.Value!;
+        if (book.Cover.Source == CoverSource.Archive)
+        {
+            digitalBook.UseArchiveCover(book.Cover.Link);
+        }
+
         if (isbnScan is { Completed: true })
         {
             // The ISBNs read are kept as candidates, unless the single one read became the book's.
@@ -656,4 +659,6 @@ public sealed class ProcessImportJobCommandHandler(
         }
         return error;
     }
+
+    private sealed record ImportedCover(string Link, CoverSource Source);
 }

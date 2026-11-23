@@ -19,4 +19,7 @@ public static class BooksError
     public static readonly TError FileAlreadyExists = new("BOK412", "A file with the same name already exists in the target library");
     public static readonly TError NotDigital = new("BOK413", "Only digital books can be read");
     public static readonly TError PageNotFound = new("BOK414", "The requested page does not exist");
+    public static readonly TError CoversNotListed = new("BOK901", "The images of Cloudinary could not be listed");
+    public static readonly TError CoversNotDeleted = new("BOK902", "The images of Cloudinary could not be deleted");
+    public static readonly TError CoversNotMoved = new("BOK903", "Move the covers before deleting the unused images");
 }

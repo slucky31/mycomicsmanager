@@ -1,0 +1,84 @@
+<h2 class="cloudinary-covers-title">Cloudinary covers</h2>
+<p class="cloudinary-covers-hint">
+    Gives every book its own cover, named after the book and at most 960 px wide.
+</p>
+<div class="cloudinary-covers-count" aria-live="polite">
+    @if (_isCounting)
+    {
+        <span>Counting…</span>
+    }
+    else if (_toMove == 0)
+    {
+        <span>Every book has its own cover.</span>
+    }
+    else if (_toMove is int toMove)
+    {
+        <span><strong>@toMove</strong> @(toMove == 1 ? "book still uses" : "books still use") an old cover</span>
+    }
+    <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" aria-label="Count the books that use an old cover"
+                   Disabled="@_isCounting" OnClick="CountToMoveAsync" Class="cloudinary-covers-refresh" />
+</div>
+@if (_toMove != 0)
+{
+    <div class="cloudinary-covers-actions">
+        <button type="button" class="cloudinary-covers-button" disabled="@(_isStarting || _isCounting)" @onclick="StartMoveAsync">
+            @(_isStarting ? "Starting…" : "Move covers")
+        </button>
+    </div>
+}
+
+<h2 class="cloudinary-covers-title">Unused images</h2>
+<p class="cloudinary-covers-hint">
+    Finds the images of the covers folder that no book uses any more. Nothing is deleted before you confirm.
+</p>
+@if (_unused is { } unused)
+{
+    <div class="cloudinary-covers-panel cloudinary-covers-warning" role="status">
+        @if (unused.PublicIds.Count == 0)
+        {
+            <span>No unused image.</span>
+            <div class="cloudinary-covers-actions">
+                <button type="button" class="cloudinary-covers-button cloudinary-covers-secondary" @onclick="Cancel">Close</button>
+            </div>
+        }
+        else
+        {
+            <span><strong>@ImageCount(unused.PublicIds.Count)</strong> (@SizeLabel(unused.Bytes)) @(unused.PublicIds.Count == 1 ? "is" : "are") used by no book.</span>
+            <ul class="cloudinary-covers-sample">
+                @foreach (var publicId in unused.PublicIds.Take(SampleSize))
+                {
+                    <li>@publicId</li>
+                }
+                @if (unused.PublicIds.Count > SampleSize)
+                {
+                    <li>… and @(unused.PublicIds.Count - SampleSize) more</li>
+                }
+            </ul>
+            <span>Deleted images cannot be recovered.</span>
+            <div class="cloudinary-covers-actions">
+                <button type="button" class="cloudinary-covers-button cloudinary-covers-danger" disabled="@_isDeleting" @onclick="DeleteAsync">
+                    @(_isDeleting ? "Deleting…" : $"Delete {ImageCount(unused.PublicIds.Count)}")
+                </button>
+                <button type="button" class="cloudinary-covers-button cloudinary-covers-secondary" disabled="@_isDeleting" @onclick="Cancel">Cancel</button>
+            </div>
+        }
+    </div>
+}
+else
+{
+    @if (_deleted is { } deleted)
+    {
+        <div class="cloudinary-covers-panel cloudinary-covers-success" role="status">
+            @ImageCount(deleted.Deleted) deleted, @SizeLabel(deleted.Bytes) freed.
+        </div>
+    }
+    <div class="cloudinary-covers-actions">
+        <button type="button" class="cloudinary-covers-button cloudinary-covers-secondary" disabled="@(_isFinding || _toMove != 0)" @onclick="FindUnusedAsync">
+            @(_isFinding ? "Looking…" : "Find unused images")
+        </button>
+    </div>
+    @if (_toMove != 0)
+    {
+        <p class="cloudinary-covers-hint">Available once every cover has been moved.</p>
+    }
+}

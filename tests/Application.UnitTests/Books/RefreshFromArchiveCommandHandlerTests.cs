@@ -29,7 +29,7 @@ public sealed class RefreshFromArchiveCommandHandlerTests
             .Returns(Result.Success<ComicPage>(new ComicPage(new byte[] { 1, 2, 3 }, "image/webp", DateTime.UtcNow)));
         _cloudinary.UploadImageFromStreamAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new CloudinaryUploadResult(s_uploadedCover, "new", true, null));
-        _handler = new RefreshFromArchiveCommandHandler(_bookRepository, _pageReader, _cloudinary,
+        _handler = new RefreshFromArchiveCommandHandler(_bookRepository, _pageReader, TestCoverStores.Create(_cloudinary),
             new BookSaver(_bookRepository, _unitOfWork, _comicInfoWriter, NullLogger<BookSaver>.Instance),
             NullLogger<RefreshFromArchiveCommandHandler>.Instance);
     }
@@ -38,6 +38,11 @@ public sealed class RefreshFromArchiveCommandHandlerTests
     {
         var book = DigitalBook.Create(new BookMetadata("Blacksad", path, isbn, ImageLink: cover, NumberOfPages: pages),
             Guid.CreateVersion7(), path, 1024).Value!;
+        if (cover == ArchiveCover)
+        {
+            book.UseArchiveCover(cover);
+        }
+
         _pageReader.CountPagesAsync(path, Arg.Any<CancellationToken>()).Returns(archivePages);
         return book;
     }
@@ -57,8 +62,9 @@ public sealed class RefreshFromArchiveCommandHandlerTests
         result.Value.Should().Be(new ArchiveRefreshSummary(Updated: 1, Unchanged: 1, Failed: 2));
         replaced.NumberOfPages.Should().Be(48);
         replaced.ImageLink.Should().Be(s_uploadedCover.ToString());
+        replaced.CoverSource.Should().Be(CoverSource.Archive);
         physical.NumberOfPages.Should().Be(56);
-        await _cloudinary.Received(1).UploadImageFromStreamAsync(Arg.Any<Stream>(), "cover.webp", DigitalCovers.Folder, "9782205050196", Arg.Any<CancellationToken>());
+        await _cloudinary.Received(1).UploadImageFromStreamAsync(Arg.Any<Stream>(), "cover.webp", TestCoverStores.Folder, replaced.Id.ToString(), Arg.Any<CancellationToken>());
         await _comicInfoWriter.Received(1).WriteAsync("/data/a.cbz", Arg.Is<ComicInfoData>(d => d.PageCount == 48), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -88,7 +94,7 @@ public sealed class RefreshFromArchiveCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_UploadAnyOtherPageAsAJpeg_NamedByTheIdOfTheBook_WhenItHasNoIsbn()
+    public async Task Handle_Should_UploadAnyOtherPageAsAJpeg()
     {
         var book = BookWithPages("/data/a.cbz", null, string.Empty, 48, 48);
         _bookRepository.ListByUserIdAsync(s_userId, Arg.Any<CancellationToken>()).Returns([book]);
@@ -97,7 +103,7 @@ public sealed class RefreshFromArchiveCommandHandlerTests
 
         await _handler.Handle(new RefreshFromArchiveCommand(s_userId), TestContext.Current.CancellationToken);
 
-        await _cloudinary.Received(1).UploadImageFromStreamAsync(Arg.Any<Stream>(), "cover.jpg", DigitalCovers.Folder, $"digital-{book.Id}", Arg.Any<CancellationToken>());
+        await _cloudinary.Received(1).UploadImageFromStreamAsync(Arg.Any<Stream>(), "cover.jpg", TestCoverStores.Folder, book.Id.ToString(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

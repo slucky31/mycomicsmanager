@@ -90,6 +90,15 @@ public abstract class Book : Entity<Guid>
         return Result.Success();
     }
 
+    // The cover, once copied to the image of the book (#1225); an empty link keeps the current one.
+    public void UseStoredCover(string imageLink)
+    {
+        if (!string.IsNullOrWhiteSpace(imageLink))
+        {
+            ImageLink = imageLink;
+        }
+    }
+
     protected virtual Result ValidateMetadataForUpdate(BookMetadata metadata) => Result.Success();
 
     // The metadata a book reads from its file are not replaced by the ones given.
