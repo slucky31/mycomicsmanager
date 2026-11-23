@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Application.Books.IsbnScan;
 using Domain.Errors;
 using Microsoft.Extensions.Options;
@@ -50,6 +51,19 @@ public sealed class TesseractPageTextRecognizerTests : IDisposable
         return png.ToArray();
     }
 
+    // Random pixels do not compress: the PNG is larger than the pipe buffer, so writing it blocks until it is read.
+    private static byte[] CreateNoisyPage(int width, int height)
+    {
+        using var image = new SKBitmap(width, height);
+        var noise = RandomNumberGenerator.GetBytes(width * height * 3);
+        for (var i = 0; i < width * height; i++)
+        {
+            image.SetPixel(i % width, i / width, new SKColor(noise[i * 3], noise[(i * 3) + 1], noise[(i * 3) + 2]));
+        }
+        using var png = image.Encode(SKEncodedImageFormat.Png, 100);
+        return png.ToArray();
+    }
+
     [Fact]
     public async Task RecognizeAsync_Should_ReturnTheTextOfTesseract_WhenItReadsThePageFromItsInput()
     {
@@ -92,6 +106,16 @@ public sealed class TesseractPageTextRecognizerTests : IDisposable
         var tesseract = CreateFakeTesseract("cat > /dev/null\necho \"Error in pixReadStream\" >&2\nexit 1");
 
         var result = await CreateRecognizer(tesseract).RecognizeAsync(CreatePage(10, 10), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(OcrError.Failed);
+    }
+
+    [Fact]
+    public async Task RecognizeAsync_Should_ReturnFailed_WhenTesseractStopsBeforeReadingThePage()
+    {
+        var tesseract = CreateFakeTesseract("exit 0");
+
+        var result = await CreateRecognizer(tesseract).RecognizeAsync(CreateNoisyPage(400, 400), TestContext.Current.CancellationToken);
 
         result.Error.Should().Be(OcrError.Failed);
     }
