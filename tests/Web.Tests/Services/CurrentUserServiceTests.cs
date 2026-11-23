@@ -96,45 +96,6 @@ public sealed class CurrentUserServiceTests
     }
 
     [Fact]
-    public async Task CurrentUserService_Should_FallbackToEmail_WhenSubNotFoundInDatabase()
-    {
-        // Arrange — sub present but not in DB; email present and in DB (pre-migration user)
-        const string sub = "auth0|user456";
-        const string email = "existing@example.com";
-        var user = User.Create(email, "old-sid");
-        _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(sub, email));
-        _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(Result.Failure<User>(UsersError.NotFound));
-        _userReadService.GetUserByEmail(email, TestContext.Current.CancellationToken).Returns(user);
-
-        // Act
-        var result = await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(user.Id);
-    }
-
-    [Fact]
-    public async Task GetCurrentUserIdAsync_Should_ReturnError_WhenEmailLookupFails()
-    {
-        // Arrange — sub not in DB, email present but GetUserByEmail also fails
-        const string sub = "auth0|unknown";
-        const string email = "unknown@example.com";
-        _authStateProvider.GetAuthenticationStateAsync().Returns(CreateAuthState(sub, email));
-        _userReadService.GetUserByAuthId(sub, TestContext.Current.CancellationToken).Returns(Result.Failure<User>(UsersError.NotFound));
-        _userReadService.GetUserByEmail(email, TestContext.Current.CancellationToken).Returns(Result.Failure<User>(UsersError.NotFound));
-
-        // Act
-        var result = await _service.GetCurrentUserIdAsync(TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(UsersError.NotFound);
-        await _userReadService.Received(1).GetUserByAuthId(sub, TestContext.Current.CancellationToken);
-        await _userReadService.Received(1).GetUserByEmail(email, TestContext.Current.CancellationToken);
-    }
-
-    [Fact]
     public async Task CurrentUserService_Should_CallUserReadService_WhenSubIsPresent()
     {
         // Arrange

@@ -3,6 +3,7 @@ using Application.Abstractions.Messaging;
 using Application.ImportJobs.DownloadFile;
 using Application.Users;
 using Domain.ImportJobs;
+using Web.Services;
 
 namespace Web.EndPoints;
 
@@ -22,7 +23,7 @@ internal static class ImportJobsEndpoints
         IUserReadService userReadService,
         CancellationToken ct)
     {
-        var userId = await BooksEndpoints.ResolveUserIdAsync(user, userReadService, ct);
+        var userId = await UserIdentity.ResolveUserIdAsync(user, userReadService, ct);
         if (userId is null)
         {
             return Results.Unauthorized();

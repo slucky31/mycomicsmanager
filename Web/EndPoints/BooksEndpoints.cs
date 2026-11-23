@@ -7,6 +7,7 @@ using Application.Libraries;
 using Application.Users;
 using Domain.Books;
 using Microsoft.Net.Http.Headers;
+using Web.Services;
 
 namespace Web.EndPoints;
 
@@ -26,7 +27,7 @@ internal static class BooksEndpoints
         ILibraryLocalStorage libraryStorage,
         CancellationToken ct)
     {
-        var userId = await ResolveUserIdAsync(user, userReadService, ct);
+        var userId = await UserIdentity.ResolveUserIdAsync(user, userReadService, ct);
         if (userId is null)
         {
             return Results.Unauthorized();
@@ -71,7 +72,7 @@ internal static class BooksEndpoints
         IUserReadService userReadService,
         CancellationToken ct)
     {
-        var userId = await ResolveUserIdAsync(user, userReadService, ct);
+        var userId = await UserIdentity.ResolveUserIdAsync(user, userReadService, ct);
         if (userId is null)
         {
             return Results.Unauthorized();
@@ -90,31 +91,5 @@ internal static class BooksEndpoints
         httpContext.Response.Headers.CacheControl = "private, max-age=86400";
         var etag = new EntityTagHeaderValue($"\"{page.LastModifiedUtc.Ticks:x}-{pageIndex}\"");
         return Results.Bytes(page.Content, page.ContentType, lastModified: new DateTimeOffset(DateTime.SpecifyKind(page.LastModifiedUtc, DateTimeKind.Utc)), entityTag: etag);
-    }
-
-    // Resolves the application user id from the Auth0 "sub" claim, falling back to the email
-    // for users not yet migrated to sub-based AuthId. Returns null when the user is unknown.
-    internal static async Task<Guid?> ResolveUserIdAsync(ClaimsPrincipal user, IUserReadService userReadService, CancellationToken ct)
-    {
-        var sub = user.FindFirstValue("sub")
-               ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!string.IsNullOrEmpty(sub))
-        {
-            var byAuthId = await userReadService.GetUserByAuthId(sub, ct);
-            if (byAuthId.IsSuccess)
-            {
-                return byAuthId.Value!.Id;
-            }
-        }
-
-        var email = user.Identity?.Name;
-        if (string.IsNullOrEmpty(email))
-        {
-            return null;
-        }
-
-        var byEmail = await userReadService.GetUserByEmail(email, ct);
-        return byEmail.IsSuccess ? byEmail.Value!.Id : null;
     }
 }

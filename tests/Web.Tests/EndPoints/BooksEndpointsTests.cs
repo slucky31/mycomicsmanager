@@ -42,36 +42,6 @@ public sealed class BooksEndpointsTests
     }
 
     [Fact]
-    public async Task ResolveUserIdAsync_Should_ReturnUserFoundBySub()
-    {
-        _userReadService.GetUserByAuthId("auth0|42", Arg.Any<CancellationToken>()).Returns(_user);
-
-        var userId = await BooksEndpoints.ResolveUserIdAsync(Principal("auth0|42", null), _userReadService, TestContext.Current.CancellationToken);
-
-        userId.Should().Be(_user.Id);
-    }
-
-    [Fact]
-    public async Task ResolveUserIdAsync_Should_FallBackToEmail_WhenSubIsUnknown()
-    {
-        _userReadService.GetUserByEmail("reader@example.com", Arg.Any<CancellationToken>()).Returns(_user);
-
-        var userId = await BooksEndpoints.ResolveUserIdAsync(Principal("auth0|unknown", "reader@example.com"), _userReadService, TestContext.Current.CancellationToken);
-
-        userId.Should().Be(_user.Id);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("unknown@example.com")]
-    public async Task ResolveUserIdAsync_Should_ReturnNull_WhenUserIsUnknown(string? email)
-    {
-        var userId = await BooksEndpoints.ResolveUserIdAsync(Principal(null, email), _userReadService, TestContext.Current.CancellationToken);
-
-        userId.Should().BeNull();
-    }
-
-    [Fact]
     public async Task GetBookPageAsync_Should_ReturnUnauthorized_WhenUserIsUnknown()
     {
         var result = await BooksEndpoints.GetBookPageAsync(Guid.CreateVersion7(), 0, Principal(null, null), new DefaultHttpContext(), _pageHandler, _userReadService, TestContext.Current.CancellationToken);
