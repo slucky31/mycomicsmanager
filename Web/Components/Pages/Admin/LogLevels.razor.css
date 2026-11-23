@@ -60,8 +60,8 @@
     gap: 8px;
     padding: 0 12px;
     border: 1px solid var(--mcm-border);
-    border-radius: 22px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface);
     color: var(--mcm-text-muted);
 }
 
@@ -84,7 +84,7 @@
 ::deep .log-levels-reset {
     flex-shrink: 0;
     height: 44px;
-    border-radius: 22px;
+    border-radius: var(--mcm-radius-pill);
     text-transform: none;
 }
 
@@ -112,8 +112,8 @@
 .logger {
     padding: 12px;
     border: 1px solid var(--mcm-border);
-    border-radius: 14px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-l);
+    background: var(--mcm-surface);
 }
 
 .logger-head {
@@ -135,7 +135,7 @@
 .logger-inherited {
     flex-shrink: 0;
     padding: 0 8px;
-    border-radius: 10px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-surface-sunken);
     color: var(--mcm-text-muted);
     font-size: var(--mcm-font-caption);
@@ -153,7 +153,7 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
     margin-top: 8px;
     border: 1px solid var(--mcm-border);
-    border-radius: 10px;
+    border-radius: var(--mcm-radius-l);
     overflow: hidden;
 }
 
@@ -162,7 +162,7 @@
     padding: 0 2px;
     border: 0;
     border-left: 1px solid var(--mcm-border);
-    background: #ffffff;
+    background: var(--mcm-surface);
     color: var(--mcm-text);
     font: inherit;
     font-size: var(--mcm-font-small);
@@ -182,7 +182,7 @@
 }
 
 .logger-level[aria-pressed="true"] {
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
     font-weight: 500;
 }
 

@@ -3,8 +3,8 @@
     position: fixed;
     inset: 0;
     overflow: hidden;
-    background: #0B0D12;
-    color: #ffffff;
+    background: var(--mcm-dark-bg);
+    color: var(--mcm-text-inverse);
     font-family: Roboto, system-ui, sans-serif;
 }
 
@@ -43,14 +43,14 @@
     align-items: center;
     justify-content: center;
     border: 0;
-    border-radius: 22px;
+    border-radius: 50%;
     background: rgba(19, 27, 44, 0.45);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
     cursor: pointer;
 }
 
 .scan-icon-button[aria-pressed="true"] {
-    background: #ffffff;
+    background: var(--mcm-surface);
     color: var(--mcm-text);
 }
 
@@ -63,7 +63,7 @@
     height: 170px;
     max-width: 480px;
     margin: -85px auto 0;
-    border-radius: 16px;
+    border-radius: var(--mcm-radius-xl);
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
     pointer-events: none;
 }
@@ -72,7 +72,7 @@
     position: absolute;
     width: 36px;
     height: 36px;
-    border: 0 solid #ffffff;
+    border: 0 solid var(--mcm-text-inverse);
     transition: border-color 0.2s;
 }
 
@@ -114,8 +114,8 @@
     right: 20px;
     top: 50%;
     height: 2px;
-    background: #8B7FF5;
-    box-shadow: 0 0 12px #8B7FF5;
+    background: color-mix(in srgb, var(--mud-palette-primary) 70%, var(--mcm-surface));
+    box-shadow: 0 0 12px color-mix(in srgb, var(--mud-palette-primary) 70%, var(--mcm-surface));
     animation: scan-line 2s ease-in-out infinite;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .scan-frame-detected .scan-corner {
-    border-color: #4CAF50;
+    border-color: var(--mcm-dark-success);
 }
 
 .scan-frame-detected .scan-line {
@@ -168,7 +168,7 @@
     align-items: center;
     gap: 4px;
     padding: 0 14px;
-    border-radius: 18px;
+    border-radius: var(--mcm-radius-pill);
     background: rgba(255, 255, 255, 0.12);
     font-size: var(--mcm-font-label);
 }
@@ -185,9 +185,9 @@
     justify-content: center;
     gap: 10px;
     border: 0;
-    border-radius: 26px;
-    background: #2C2F3A;
-    color: #ffffff;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-dark-raised);
+    color: var(--mcm-text-inverse);
     font: inherit;
     font-size: var(--mcm-font-body-l);
     font-weight: 500;
@@ -201,7 +201,7 @@
 
 .scan-button:focus-visible,
 .scan-icon-button:focus-visible {
-    outline: 2px solid #ffffff;
+    outline: 2px solid var(--mcm-text-inverse);
     outline-offset: 2px;
 }
 
@@ -215,8 +215,8 @@
     max-width: 420px;
     margin: 0 auto;
     padding: 28px 24px;
-    border-radius: 20px;
-    background: #1C1C23;
+    border-radius: var(--mcm-radius-2xl);
+    background: var(--mcm-dark-surface);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -230,7 +230,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 32px;
+    border-radius: 50%;
     background: rgba(255, 255, 255, 0.08);
 }
 
@@ -247,7 +247,7 @@
 .scan-error p {
     margin: 0;
     font-size: var(--mcm-font-body);
-    color: #B9B9C6;
+    color: var(--mcm-text-inverse-muted);
 }
 
 .scan-error-buttons {

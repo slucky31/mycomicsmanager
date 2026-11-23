@@ -12,8 +12,8 @@
     gap: 8px;
     padding: 0 12px;
     border: 1px solid var(--mcm-border);
-    border-radius: 22px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface);
     color: var(--mcm-text-muted);
 }
 
@@ -60,14 +60,14 @@
     justify-content: center;
     padding: 0;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     background: var(--mcm-surface-muted);
     color: var(--mcm-text);
     cursor: pointer;
 }
 
 .icon-choice:hover {
-    background: #E9E8F5;
+    background: var(--mcm-primary-tint);
 }
 
 .icon-choice:focus-visible {
@@ -93,7 +93,7 @@
     }
 
     .icon-choice {
-        background: #ffffff;
+        background: var(--mcm-surface);
         border: 1px solid var(--mcm-border);
     }
 

@@ -62,13 +62,13 @@
 .serie-stack-back {
     position: absolute;
     inset: 6px -6px -6px 6px;
-    border-radius: 6px;
-    background: #8D84E8;
+    border-radius: var(--mcm-cover-radius);
+    background: color-mix(in srgb, var(--mud-palette-primary) 70%, var(--mcm-surface));
 }
 
 .serie-stack-back-far {
     inset: 12px -12px -12px 12px;
-    background: #C6C1F3;
+    background: color-mix(in srgb, var(--mud-palette-primary) 35%, var(--mcm-surface));
 }
 
 .serie-cover {
@@ -86,7 +86,7 @@
     padding: 10px;
     overflow: hidden;
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
     font-size: var(--mcm-font-small);
     font-weight: 500;
 }
@@ -98,7 +98,7 @@
     padding: 0 8px;
     display: flex;
     align-items: center;
-    border-radius: 11px;
+    border-radius: var(--mcm-radius-pill);
     font-size: var(--mcm-font-caption);
     font-weight: 700;
 }
@@ -107,7 +107,7 @@
     left: 6px;
     bottom: 6px;
     background: var(--mcm-badge);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
 }
 
 .serie-badge {
@@ -116,12 +116,12 @@
 }
 
 .serie-badge-complete {
-    background: #DCE7FF;
-    color: #1F3F8F;
+    background: var(--mcm-info-soft);
+    color: var(--mcm-info-strong);
 }
 
 .serie-badge-missing {
-    background: #FFE2C7;
+    background: var(--mcm-missing-soft);
     color: var(--mcm-missing);
 }
 

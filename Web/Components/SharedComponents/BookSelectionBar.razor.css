@@ -36,7 +36,7 @@
 ::deep .selection-bar-move {
     flex-shrink: 0;
     height: 40px;
-    border-radius: 20px;
+    border-radius: var(--mcm-radius-pill);
     text-transform: none;
 }
 

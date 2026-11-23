@@ -58,8 +58,8 @@
     height: 36px;
     padding: 0 14px;
     border: 1px solid var(--mcm-border);
-    border-radius: 18px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface);
     color: var(--mcm-text);
     font: inherit;
     font-size: var(--mcm-font-label);
@@ -70,7 +70,7 @@
 .feeds-chip[aria-pressed="true"] {
     border-color: var(--mud-palette-primary);
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
 }
 
 /* The host filter: under the status chips, it opens the list of the hosts. */
@@ -89,7 +89,7 @@
     height: 36px;
     padding: 0 8px 0 12px;
     border: 1px solid var(--mcm-border);
-    border-radius: 18px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-surface);
     color: var(--mcm-text);
     font: inherit;
@@ -123,7 +123,7 @@
 .feeds-note {
     margin: 0 16px 12px;
     padding: 10px 14px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     background: var(--mcm-info-soft);
     color: var(--mcm-info);
     font-size: var(--mcm-font-label);
@@ -137,7 +137,7 @@
     gap: 8px 12px;
     margin: 0 16px 12px;
     padding: 10px 14px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     background: var(--mcm-info-soft);
     color: var(--mcm-info);
     font-size: var(--mcm-font-label);
@@ -156,9 +156,9 @@
     gap: 8px;
     margin: 0 16px 12px;
     padding: 8px 8px 8px 14px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     background: var(--mcm-text);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
     font-size: var(--mcm-font-label);
 }
 
@@ -167,7 +167,7 @@
 }
 
 .feeds-selection ::deep .mud-button-text {
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
 }
 
 /* ── List ── */
@@ -202,8 +202,8 @@
 .feed-card {
     padding: 14px;
     border: 1px solid var(--mcm-border);
-    border-radius: 16px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-xl);
+    background: var(--mcm-surface);
 }
 
 .feed-card-head {
@@ -239,7 +239,7 @@
 .feed-card-main:focus-visible {
     outline: 2px solid var(--mud-palette-primary);
     outline-offset: 4px;
-    border-radius: 8px;
+    border-radius: var(--mcm-radius-m);
 }
 
 .feed-card-title {
@@ -290,7 +290,7 @@
     align-items: center;
     height: 24px;
     padding: 0 10px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-surface-sunken);
     color: var(--mcm-text-muted);
     font-size: var(--mcm-font-caption);
@@ -299,7 +299,7 @@
 }
 
 .feed-status-decide {
-    background: #FFF1DC;
+    background: var(--mcm-warning-soft);
     color: var(--mcm-warning-strong);
 }
 
@@ -329,7 +329,7 @@
 
 ::deep .feed-pill {
     min-height: 40px;
-    border-radius: 20px;
+    border-radius: var(--mcm-radius-pill);
     text-transform: none;
     font-size: var(--mcm-font-label);
 }
@@ -385,7 +385,7 @@
 
 .feed-box {
     padding: 14px 16px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     font-size: var(--mcm-font-label);
     overflow-wrap: anywhere;
 }
@@ -400,8 +400,8 @@
 }
 
 .feed-box-decide {
-    background: #FFF1DC;
-    color: #6B4100;
+    background: var(--mcm-warning-soft);
+    color: var(--mcm-warning-strong);
 }
 
 .feed-box-info {
@@ -416,7 +416,7 @@
 .feed-correction {
     padding: 12px;
     border: 1px solid var(--mcm-border);
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
 }
 
 .feed-correction-fields {
@@ -618,8 +618,8 @@
         box-sizing: border-box;
         padding: 20px;
         border: 1px solid var(--mcm-border);
-        border-radius: 16px;
-        background: #ffffff;
+        border-radius: var(--mcm-radius-xl);
+        background: var(--mcm-surface);
     }
 }
 

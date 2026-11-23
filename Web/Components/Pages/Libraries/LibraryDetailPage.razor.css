@@ -83,8 +83,8 @@
     align-items: center;
     gap: 8px;
     padding: 0 4px 0 12px;
-    border-radius: 22px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface);
     border: 2px solid var(--mud-palette-primary);
     color: var(--mcm-text-muted);
 }
@@ -188,7 +188,7 @@
         display: inline-flex;
         height: 44px;
         margin-left: 8px;
-        border-radius: 22px;
+        border-radius: var(--mcm-radius-pill);
         text-transform: none;
     }
 
@@ -260,9 +260,9 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    border-radius: 26px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
     font-size: var(--mcm-font-body-l);
     font-weight: 500;
     text-decoration: none;

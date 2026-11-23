@@ -26,16 +26,28 @@
     --mcm-radius-m: 8px;
     --mcm-radius-l: 12px;
     --mcm-radius-xl: 16px;
+    /* Bottom sheets, dialogs and the large state cards (#1364) */
+    --mcm-radius-2xl: 20px;
     --mcm-radius-pill: 999px;
 
     /* Pressed or hovered primary */
     --mcm-primary-strong: #4A3BC4;
     /* Primary tint behind a selected or highlighted item */
     --mcm-primary-soft: #F1EFFD;
+    /* Stronger primary tint: avatar, hovered choice, track of a progress bar */
+    --mcm-primary-tint: #E8E6FC;
     /* Body text and titles */
     --mcm-text: #1B1D24;
     /* Secondary text, captions, icons */
     --mcm-text-muted: #5C6070;
+    /* Text between the two above: a confirmation message, the chip of a hidden library */
+    --mcm-text-secondary: #3C4050;
+    /* Text and icons on the primary colour or on a dark surface (badges, side menu, scanner, reader) */
+    --mcm-text-inverse: #FFFFFF;
+    /* Secondary text on a dark surface */
+    --mcm-text-inverse-muted: #B9B9C6;
+    /* Faint icons: empty stars, the icon of a form state */
+    --mcm-icon-faint: #B5B8C4;
     /* Cards and lists on the page background */
     --mcm-surface: #FFFFFF;
     /* Page and form background */
@@ -48,6 +60,8 @@
     --mcm-border-strong: #C9CBD6;
     /* Inactive switch and slider tracks */
     --mcm-track: #C9CAD3;
+    /* Outline of an unchecked box and of a hidden library's card */
+    --mcm-control-outline: #8A8E9C;
     /* Dark volume badges on covers */
     --mcm-badge: #131B2C;
     /* Errors and destructive actions */
@@ -64,16 +78,31 @@
     --mcm-success-soft: #E6F4EA;
     /* Information text */
     --mcm-info: #1D4ED8;
+    /* Information text on a tinted background */
+    --mcm-info-strong: #1F3F8F;
     /* Information tint */
     --mcm-info-soft: #E8EEFD;
+    /* Warning badges (the counter of the navigation) */
+    --mcm-warning: #F5A524;
     /* Warning text and outlines */
     --mcm-warning-strong: #8A5300;
     /* Warning tint */
     --mcm-warning-soft: #FFF4DC;
     /* Missing volumes */
     --mcm-missing: #8A3B00;
+    /* Tint of a missing volumes badge */
+    --mcm-missing-soft: #FFE2C7;
+    /* The slot of a missing volume: background and dashed outline */
+    --mcm-missing-slot: #FFF6EE;
+    --mcm-missing-outline: #C08A5A;
     /* Rating stars */
     --mcm-star: #E8A317;
+    /* Dark screens: the barcode scanner (page, error card, buttons, detected code) and the reader */
+    --mcm-dark-bg: #0B0D12;
+    --mcm-dark-surface: #1C1C23;
+    --mcm-dark-raised: #2C2F3A;
+    --mcm-dark-success: #4CAF50;
+    --mcm-reader-bg: #000000;
 
     /* Covers: four sizes, all 2:3 (#1244). XS in menus and lists of results, S in lists, M in the grids, L on a book. */
     --mcm-cover-xs: 40px;

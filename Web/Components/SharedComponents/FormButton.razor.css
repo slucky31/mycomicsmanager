@@ -7,7 +7,7 @@
     gap: 8px;
     padding: 0 22px;
     border: 0;
-    border-radius: 26px;
+    border-radius: var(--mcm-radius-pill);
     background: none;
     color: var(--mcm-text);
     font: inherit;
@@ -30,7 +30,7 @@
 
 .form-button-primary {
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
 }
 
 .form-button-primary:hover:not(:disabled) {
@@ -39,7 +39,7 @@
 
 .form-button-outlined {
     border: 1px solid var(--mcm-border);
-    background: #ffffff;
+    background: var(--mcm-surface);
 }
 
 .form-button-text {

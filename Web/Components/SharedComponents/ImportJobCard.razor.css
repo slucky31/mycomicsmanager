@@ -4,8 +4,8 @@
     box-sizing: border-box;
     padding: 14px;
     border: 1px solid var(--mcm-border);
-    border-radius: 16px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-xl);
+    background: var(--mcm-surface);
     color: var(--mcm-text);
 }
 
@@ -46,7 +46,7 @@
     gap: 4px;
     height: 24px;
     padding: 0 10px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-surface-sunken);
     color: var(--mcm-text-muted);
     font-size: var(--mcm-font-caption);
@@ -77,13 +77,13 @@
 .import-job-progress {
     height: 6px;
     margin-top: 10px;
-    border-radius: 3px;
-    background: #E7E7EE;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface-sunken);
 }
 
 .import-job-progress-value {
     height: 100%;
-    border-radius: 3px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mud-palette-primary);
     transition: width 0.3s ease;
 }

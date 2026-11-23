@@ -18,8 +18,8 @@
     gap: 16px;
     padding: 16px;
     border: 1px solid var(--mcm-border);
-    border-radius: 16px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-xl);
+    background: var(--mcm-surface);
 }
 
 .found-cover {
@@ -73,7 +73,7 @@
     align-items: center;
     gap: 6px;
     padding: 0 10px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-success-soft);
     color: var(--mcm-success);
     font-size: var(--mcm-font-caption);
@@ -87,8 +87,8 @@
 .found-rating {
     padding: 14px 16px;
     border: 1px solid var(--mcm-border);
-    border-radius: 12px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-l);
+    background: var(--mcm-surface);
 }
 
 .found-rating-title {
@@ -130,8 +130,8 @@
         margin: 0 auto;
         gap: 18px;
         padding: 28px;
-        border-radius: 20px;
-        background: #ffffff;
+        border-radius: var(--mcm-radius-2xl);
+        background: var(--mcm-surface);
         box-shadow: 0 16px 40px rgba(19, 27, 44, 0.12);
     }
 

@@ -83,8 +83,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #3B2FB0 0%, var(--mud-palette-primary) 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, var(--mcm-primary-strong) 0%, var(--mud-palette-primary) 100%);
+    color: var(--mcm-text-inverse);
 }
 
 .book-heading {
@@ -133,7 +133,7 @@
     align-items: center;
     padding: 0 10px;
     border: 1px solid var(--mcm-primary-strong);
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-pill);
     font-size: var(--mcm-font-caption);
     color: var(--mcm-primary-strong);
 }
@@ -144,7 +144,7 @@
     align-items: center;
     gap: 4px;
     padding: 0 8px;
-    border-radius: 11px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-success-soft);
     font-size: var(--mcm-font-caption);
     font-weight: 500;
@@ -184,19 +184,19 @@
     gap: 10px;
     padding: 0 16px;
     border: 0;
-    border-radius: 26px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mud-palette-primary);
     font: inherit;
     font-size: var(--mcm-font-body-l);
     font-weight: 500;
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
     text-decoration: none;
     cursor: pointer;
 }
 
 .book-primary-outlined {
     border: 1px solid var(--mcm-border);
-    background: #ffffff;
+    background: var(--mcm-surface);
     color: var(--mcm-text);
 }
 
@@ -216,13 +216,13 @@
 .book-progress {
     height: 4px;
     margin: 10px 4px 0;
-    border-radius: 2px;
-    background: #E2E1F5;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-primary-tint);
 }
 
 .book-progress > div {
     height: 4px;
-    border-radius: 2px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mud-palette-primary);
 }
 
@@ -246,7 +246,7 @@
     margin-left: auto;
     padding: 4px;
     border: 0;
-    border-radius: 4px;
+    border-radius: var(--mcm-radius-s);
     background: none;
     color: var(--mud-palette-primary);
     font: inherit;
@@ -286,7 +286,7 @@
     padding: 8px 4px;
     border: 1px solid var(--mcm-border);
     border-radius: var(--mcm-radius-l);
-    background: #ffffff;
+    background: var(--mcm-surface);
     font: inherit;
     font-size: var(--mcm-font-caption);
     font-weight: 500;
@@ -320,8 +320,8 @@
     min-width: 0;
     padding: 16px;
     border: 1px solid var(--mcm-border);
-    border-radius: 16px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-xl);
+    background: var(--mcm-surface);
 }
 
 .book-panel h2 {
@@ -425,7 +425,7 @@
     gap: 8px;
     margin-top: 12px;
     padding: 12px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     background: var(--mcm-primary-soft);
 }
 
@@ -448,7 +448,7 @@
     justify-content: center;
     padding: 0;
     border: 0;
-    border-radius: 22px;
+    border-radius: 50%;
     background: none;
     color: var(--mcm-border-strong);
     cursor: pointer;
@@ -471,8 +471,8 @@
     flex: 1 1 0;
     height: 44px;
     border: 1px solid var(--mcm-border);
-    border-radius: 22px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface);
     font: inherit;
     font-size: var(--mcm-font-body);
     font-weight: 500;
@@ -483,7 +483,7 @@
 .book-reading-buttons .book-reading-save {
     border-color: var(--mud-palette-primary);
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
 }
 
 .book-reading-buttons .book-reading-save:disabled {
@@ -558,8 +558,8 @@
         display: inline-flex;
         height: 44px;
         border: 1px solid var(--mcm-border);
-        border-radius: 22px;
-        background: #ffffff;
+        border-radius: var(--mcm-radius-pill);
+        background: var(--mcm-surface);
         text-transform: none;
         font-size: var(--mcm-font-body);
     }
@@ -618,7 +618,7 @@
     .book-format {
         height: 26px;
         padding: 0 12px;
-        border-radius: 13px;
+        border-radius: var(--mcm-radius-pill);
         font-size: var(--mcm-font-small);
     }
 
@@ -635,7 +635,7 @@
         gap: 8px;
         min-height: 44px;
         padding: 0 14px;
-        border-radius: 22px;
+        border-radius: var(--mcm-radius-pill);
         font-size: var(--mcm-font-label);
         white-space: nowrap;
     }

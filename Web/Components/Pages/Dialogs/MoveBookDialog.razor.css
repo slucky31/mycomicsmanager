@@ -38,7 +38,7 @@
     justify-content: center;
     padding: 0;
     border: 0;
-    border-radius: 22px;
+    border-radius: 50%;
     background: none;
     color: var(--mcm-text-muted);
     cursor: pointer;
@@ -59,7 +59,7 @@
     gap: 12px;
     padding: 8px 12px;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     background: none;
     color: var(--mcm-text);
     font: inherit;
@@ -113,7 +113,7 @@
     display: inline-flex;
     align-items: center;
     padding: 0 8px;
-    border-radius: 11px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-success-soft);
     color: var(--mcm-success-strong);
     font-size: var(--mcm-font-caption);
@@ -135,16 +135,16 @@
     align-items: center;
     justify-content: center;
     border: 2px solid var(--mcm-border-strong);
-    border-radius: 11px;
+    border-radius: 50%;
 }
 
 .move-library-radio-on {
     width: 24px;
     height: 24px;
     border: 0;
-    border-radius: 12px;
+    border-radius: 50%;
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
 }
 
 .move-library-radio-on ::deep svg {
@@ -164,7 +164,7 @@
     justify-content: center;
     gap: 8px;
     padding: 0 20px;
-    border-radius: 26px;
+    border-radius: var(--mcm-radius-pill);
     font: inherit;
     font-size: var(--mcm-font-body-l);
     font-weight: 500;
@@ -174,7 +174,7 @@
 .move-cancel {
     flex: 1 1 0;
     border: 1px solid var(--mcm-border);
-    background: #ffffff;
+    background: var(--mcm-surface);
     color: var(--mcm-text);
 }
 
@@ -183,7 +183,7 @@
     min-width: 0;
     border: 0;
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
 }
 
 .move-confirm:disabled {

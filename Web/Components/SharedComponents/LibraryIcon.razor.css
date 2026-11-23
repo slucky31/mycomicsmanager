@@ -5,8 +5,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--library-color) 10%, #ffffff);
+    border-radius: var(--mcm-radius-m);
+    background: color-mix(in srgb, var(--library-color) 10%, var(--mcm-surface));
     color: var(--library-color);
 }
 

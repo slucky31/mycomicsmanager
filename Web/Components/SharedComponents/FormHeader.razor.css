@@ -16,7 +16,7 @@
     justify-content: center;
     padding: 0;
     border: 0;
-    border-radius: 22px;
+    border-radius: 50%;
     background: none;
     color: var(--mcm-text);
     cursor: pointer;

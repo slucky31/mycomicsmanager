@@ -20,9 +20,9 @@
 .comicinfo-sync-button {
     padding: 8px 16px;
     border: 0;
-    border-radius: 8px;
-    background: #5C6BC0;
-    color: #FFFFFF;
+    border-radius: var(--mcm-radius-m);
+    background: var(--mud-palette-primary);
+    color: var(--mcm-text-inverse);
     font: inherit;
     cursor: pointer;
 }

@@ -2,9 +2,9 @@
     flex-shrink: 0;
     height: 36px;
     padding: 0 14px;
-    border-radius: 18px;
+    border-radius: var(--mcm-radius-pill);
     border: 1px solid var(--mcm-border-strong);
-    background: #ffffff;
+    background: var(--mcm-surface);
     color: var(--mcm-text);
     font: inherit;
     font-size: var(--mcm-font-label);
@@ -14,6 +14,6 @@
 .filter-chip-selected {
     border-color: var(--mud-palette-primary);
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
     font-weight: 500;
 }
