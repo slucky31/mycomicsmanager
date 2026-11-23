@@ -119,9 +119,12 @@
                 <div class="book-actions">
                     <a class="book-action" href="@FindDetailsHref"><MudIcon Icon="@Icons.Material.Filled.CloudDownload" />Import info</a>
                     <button type="button" class="book-action" disabled="@_isMoving" @onclick="MoveBookAsync"><MudIcon Icon="@Icons.Material.Filled.DriveFileMove" />Move</button>
+                    @if (!view.IsOneShot)
+                    {
+                        <button type="button" class="book-action" disabled="@_isConvertingToOneShot" @onclick="ToOneShotAsync"><MudIcon Icon="@Icons.Material.Filled.LooksOne" />To OneShot</button>
+                    }
                     @if (view.IsDigital)
                     {
-                        <button type="button" class="book-action" @onclick="FindIsbn"><MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" />Find ISBN</button>
                         <a class="book-action" href="@view.DownloadHref" download><MudIcon Icon="@Icons.Material.Filled.Download" />CBZ</a>
                     }
                 </div>
@@ -258,6 +261,10 @@
             <ChildContent>
                 <ActionSheetItem Icon="@Icons.Material.Filled.Edit" Text="Edit" Href="@EditHref" />
                 <ActionSheetItem Icon="@Icons.Material.Filled.CloudDownload" Text="Import info from the web" Href="@FindDetailsHref" />
+                @if (view.IsDigital)
+                {
+                    <ActionSheetItem Icon="@Icons.Material.Filled.DocumentScanner" Text="Find ISBN" OnClick="FindIsbnFromActions" />
+                }
                 <ActionSheetItem Icon="@Icons.Material.Filled.DriveFileMove" Text="Move to another library" Disabled="_isMoving" OnClick="MoveFromActionsAsync" />
                 <div class="action-sheet-divider"></div>
                 <ActionSheetItem Icon="@Icons.Material.Filled.Delete" Text="Delete" Danger="true" OnClick="DeleteFromActionsAsync" />

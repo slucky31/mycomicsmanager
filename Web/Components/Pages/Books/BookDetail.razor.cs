@@ -24,6 +24,7 @@ public sealed partial class BookDetail : IDisposable
     public static readonly string Msg_LoadFailed = "Unable to load the book";
     public static readonly string Msg_StartOverFailed = "Unable to reset the reading progress";
     public static readonly string Msg_IsbnOwnersFailed = "Unable to check whether another book holds the ISBNs found";
+    public static readonly string Msg_ToOneShotFailed = "Unable to make this book a one shot";
 
     private const string ActionsButtonId = "book-actions";
 
@@ -46,6 +47,7 @@ public sealed partial class BookDetail : IDisposable
     private bool _isMoving;
     private bool _isScanningIsbn;
     private bool _isStartingOver;
+    private bool _isConvertingToOneShot;
     private bool _actionsOpen;
     private PopupAnchor? _sheetAnchor;
 
@@ -272,6 +274,54 @@ public sealed partial class BookDetail : IDisposable
 
     private void FindIsbn() => NavigationManager.NavigateTo(ReturnLinks.With($"/books/{BookId}/read?mode={BookReader.IsbnSearchMode}", HereHref));
 
+    // ── One shot ───────────────────────────────────────────────────────
+
+    // Right away, without confirmation (#1373): the series becomes "One Shot" and the volume 1, the rest is kept.
+    private async Task ToOneShotAsync()
+    {
+        if (_book is not { } book || _isConvertingToOneShot)
+        {
+            return;
+        }
+
+        _isConvertingToOneShot = true;
+        try
+        {
+            var request = new UpdateBookRequest(
+                book.Id.ToString(),
+                BookConstants.OneShotSerie,
+                book.Title,
+                book.ISBN ?? string.Empty,
+                1,
+                book.ImageLink,
+                book.Authors,
+                book.Publishers,
+                book.PublishDate,
+                book.NumberOfPages);
+
+            var result = await BooksService.Update(request, _disposalCts.Token);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add($"{book.Title} is now a one shot", Severity.Success);
+                await LoadBookAsync();
+            }
+            else
+            {
+                Snackbar.Add(Msg_ToOneShotFailed, Severity.Error);
+                Logger.LogError("Unable to make book {BookId} a one shot: {Error}", BookId, result.Error?.Description);
+            }
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or InvalidOperationException)
+        {
+            Snackbar.Add(Msg_ToOneShotFailed, Severity.Error);
+            Logger.LogError(ex, "Unexpected error while making book {BookId} a one shot", BookId);
+        }
+        finally
+        {
+            _isConvertingToOneShot = false;
+        }
+    }
+
     // ── Actions ────────────────────────────────────────────────────────
 
     private async Task OpenActionsAsync()
@@ -282,6 +332,12 @@ public sealed partial class BookDetail : IDisposable
     }
 
     private void CloseActions() => _actionsOpen = false;
+
+    private void FindIsbnFromActions()
+    {
+        CloseActions();
+        FindIsbn();
+    }
 
     private Task MoveFromActionsAsync()
     {
