@@ -14,6 +14,7 @@ using NSubstitute;
 using Web.Components.Pages.Dialogs;
 using Web.Components.Pages.Libraries;
 using Web.Components.Pages.Libraries.Views;
+using Web.Components.SharedComponents;
 using Web.Infrastructure;
 using Web.Models;
 using Web.Services;
@@ -98,14 +99,14 @@ public sealed class LibraryDetailPageTests : IAsyncDisposable
     {
         var cut = await RenderAsync();
 
-        var view = cut.FindComponent<VirtualBooksView>();
+        var grid = cut.FindComponent<VirtualGrid<BookListItemViewModel>>();
         cut.FindAll(".virtual-row .cover-item").Should().HaveCount(2);
         // The first page tells whether the library is empty, then gives the first rows.
         await _booksService.Received(1).GetPagedByLibrary(_library.Id, 1, LibraryBookRows.DefaultPageSize, Arg.Any<BookSortOrder>(), string.Empty, Arg.Any<CancellationToken>());
-        cut.Find(".virtual-row").GetAttribute("data-first-book").Should().Be("0");
+        cut.Find(".virtual-row").GetAttribute("data-first-item").Should().Be("0");
         await CheckEveryBookAsync(cut);
         cut.FindAll(".virtual-row [role=checkbox][aria-checked=true]").Should().HaveCount(2);
-        await cut.InvokeAsync(() => view.Instance.PositionChanged(30));
+        await cut.InvokeAsync(() => grid.Instance.PositionChanged(30));
         await cut.InvokeAsync(() => cut.Instance.DisposeAsync().AsTask());
 
         _stateService.Load(_library.Id)!.FirstBook.Should().Be(30);

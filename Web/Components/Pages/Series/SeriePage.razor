@@ -68,27 +68,34 @@
             </section>
         }
 
-        <div class="serie-volumes">
-            @foreach (var slot in serie.Slots)
-            {
-                @if (slot.IsMissing)
-                {
-                    <div @key="slot.Key" class="serie-slot">
-                        <span class="serie-slot-missing">
-                            <span class="serie-slot-missing-number">@slot.Badge</span>
-                            <span>Missing</span>
-                        </span>
-                        <span class="serie-slot-title-missing">Not in library</span>
-                    </div>
-                }
-                else
-                {
-                    <BookCover @key="slot.Key" BookId="@slot.Book!.Id" Title="@(slot.Title!)" Label="@slot.Label" ImageLink="@slot.ImageLink" Badge="@slot.Badge"
-                               Href="@slot.Href" OnActions="() => OpenBookActionsAsync(slot.Book)"
-                               Selecting="@_selection.IsActive" Checked="@_selection.IsChecked(slot.Book.Id)" OnToggle="() => ToggleBook(slot.Book.Id)" />
-                }
-            }
-        </div>
+        @* Only the rows of volumes on screen are rendered, and the series opens again on the first one left (#1366). *@
+        <VirtualGrid TItem="SerieSlotViewModel" Source="_slots" ItemKey="KeyOf" RowClass="virtual-row-cards" InitialItem="_firstSlot"
+                     OnPositionChanged="slot => _firstSlot = slot" LoadErrorMessage="@Msg_LoadFailed">
+            <Probe><div class="serie-volumes"></div></Probe>
+            <RowContent Context="row">
+                <div class="serie-volumes">
+                    @foreach (var slot in row.Items)
+                    {
+                        @if (slot.IsMissing)
+                        {
+                            <div @key="slot.Key" class="serie-slot">
+                                <span class="serie-slot-missing">
+                                    <span class="serie-slot-missing-number">@slot.Badge</span>
+                                    <span>Missing</span>
+                                </span>
+                                <span class="serie-slot-title-missing">Not in library</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <BookCover @key="slot.Key" BookId="@slot.Book!.Id" Title="@(slot.Title!)" Label="@slot.Label" ImageLink="@slot.ImageLink" Badge="@slot.Badge"
+                                       Href="@slot.Href" OnActions="() => OpenBookActionsAsync(slot.Book)"
+                                       Selecting="@_selection.IsActive" Checked="@_selection.IsChecked(slot.Book.Id)" OnToggle="() => ToggleBook(slot.Book.Id)" />
+                        }
+                    }
+                </div>
+            </RowContent>
+        </VirtualGrid>
     }
 </div>
 

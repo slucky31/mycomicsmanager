@@ -1,11 +1,10 @@
 @using Domain.Libraries
-@using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Web.Models
 
-@* The books of a library, only those on screen rendered (#1344, prototype behind a feature toggle). *@
-<div class="virtual-books">
-    @* An empty grid of the view, measured by the script to know how many books a row holds. *@
-    <div @ref="_probe" class="virtual-probe" aria-hidden="true">
+@* The books of a library, only those on screen rendered (#1344). *@
+<VirtualGrid TItem="BookListItemViewModel" Source="Rows" ItemKey="KeyOf" RowSize="RowSize" RowClass="@(View == LibraryView.List ? "virtual-row-list" : null)"
+             InitialItem="InitialBook" OnPositionChanged="OnPositionChanged" LoadErrorMessage="Failed to load books">
+    <Probe>
         @if (View == LibraryView.List)
         {
             <BooksListView Books="NoBooks" OnActions="OnActions" />
@@ -14,27 +13,15 @@
         {
             <BooksCoversView Books="NoBooks" OnActions="OnActions" />
         }
-    </div>
-
-    @if (_columns > 0)
-    {
-        <Virtualize @ref="_virtualize" TItem="BookRow" ItemsProvider="LoadRowsAsync" ItemComparer="BookRowComparer.Instance" ItemSize="@RowSize" OverscanCount="4"
-                    InitialItemIndex="@(InitialBook / _columns)">
-            <ItemContent Context="row">
-                <div class="@(View == LibraryView.List ? "virtual-row virtual-row-list" : "virtual-row")" data-first-book="@row.FirstBook">
-                    @if (View == LibraryView.List)
-                    {
-                        <BooksListView Books="@row.Books" OnActions="OnActions" Selection="Selection" OnToggle="OnToggle" From="@From" />
-                    }
-                    else
-                    {
-                        <BooksCoversView Books="@row.Books" OnActions="OnActions" Selection="Selection" OnToggle="OnToggle" From="@From" />
-                    }
-                </div>
-            </ItemContent>
-            <Placeholder>
-                <div class="virtual-row virtual-row-placeholder" style="@($"height: {RowSize}px")"></div>
-            </Placeholder>
-        </Virtualize>
-    }
-</div>
+    </Probe>
+    <RowContent Context="row">
+        @if (View == LibraryView.List)
+        {
+            <BooksListView Books="@row.Items" OnActions="OnActions" Selection="Selection" OnToggle="OnToggle" From="@From" />
+        }
+        else
+        {
+            <BooksCoversView Books="@row.Items" OnActions="OnActions" Selection="Selection" OnToggle="OnToggle" From="@From" />
+        }
+    </RowContent>
+</VirtualGrid>
