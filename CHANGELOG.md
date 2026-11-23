@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.8.1"></a>
+## [11.8.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.8.1) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **deps:** update github/codeql-action action to v4.39.4 ([#1371](https://www.github.com/slucky31/mycomicsmanager/issues/1371)) ([ffe679b](https://www.github.com/slucky31/mycomicsmanager/commit/ffe679bff6f11c8e00e1229e6ee30acc9b2c21f3))
+
 <a name="11.8.0"></a>
 ## [11.8.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.8.0) (2026-11-22)
 
