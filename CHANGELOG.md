@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.11.0"></a>
+## [11.11.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.11.0) (2026-11-23)
+
+### ✨ Features
+
+* **covers:** give every book its own Cloudinary cover ([#1376](https://www.github.com/slucky31/mycomicsmanager/issues/1376)) ([6a08827](https://www.github.com/slucky31/mycomicsmanager/commit/6a088272e5994c38d78759e85a854978cf5ba63b))
+
 <a name="11.10.0"></a>
 ## [11.10.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.10.0) (2026-11-23)
 
