@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.10.0"></a>
+## [11.10.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.10.0) (2026-11-23)
+
+### ✨ Features
+
+* **series:** show the series and the volumes of a series virtualized ([#1375](https://www.github.com/slucky31/mycomicsmanager/issues/1375)) ([b7ca896](https://www.github.com/slucky31/mycomicsmanager/commit/b7ca896a49d3c69f34caf6070ac7e0693b975b96))
+
 <a name="11.9.0"></a>
 ## [11.9.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.9.0) (2026-11-23)
 
