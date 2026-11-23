@@ -11,7 +11,8 @@ public sealed class DeleteBookCommandHandler(
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
     IRepository<Library, Guid> libraryRepository,
-    IBookFileService bookFileService) : ICommandHandler<DeleteBookCommand>
+    IBookFileService bookFileService,
+    BookCoverStore coverStore) : ICommandHandler<DeleteBookCommand>
 {
     public async Task<Result> Handle(DeleteBookCommand request, CancellationToken cancellationToken)
     {
@@ -40,6 +41,8 @@ public sealed class DeleteBookCommandHandler(
         {
             await bookFileService.DeleteFileAsync(digitalBook.FilePath, cancellationToken);
         }
+
+        await coverStore.DeleteAsync([book], cancellationToken);
 
         return Result.Success();
     }

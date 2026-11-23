@@ -20,6 +20,7 @@ public class DeleteBookCommandHandlerTests
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly IRepository<Library, Guid> _libraryRepositoryMock;
     private readonly IBookFileService _bookFileServiceMock;
+    private readonly ICloudinaryService _cloudinaryMock = Substitute.For<ICloudinaryService>();
 
     public DeleteBookCommandHandlerTests()
     {
@@ -28,8 +29,10 @@ public class DeleteBookCommandHandlerTests
         _libraryRepositoryMock = Substitute.For<IRepository<Library, Guid>>();
         _bookFileServiceMock = Substitute.For<IBookFileService>();
         _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<int>(1));
+        _cloudinaryMock.DeleteImagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>()).Returns(1);
 
-        _handler = new DeleteBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock, _bookFileServiceMock);
+        _handler = new DeleteBookCommandHandler(_bookRepositoryMock, _unitOfWorkMock, _libraryRepositoryMock, _bookFileServiceMock,
+            TestCoverStores.Create(_cloudinaryMock));
     }
 
     private static Library CreateLibrary(Guid userId)
@@ -257,6 +260,26 @@ public class DeleteBookCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(dbError);
         await _bookFileServiceMock.DidNotReceive().DeleteFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _cloudinaryMock.DidNotReceive().DeleteImagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_DeleteTheCoverOfTheBook_WhenTheBookIsDeleted()
+    {
+        // Arrange
+        var book = PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), s_libraryId).Value!;
+        book.UseStoredCover($"https://res.cloudinary.com/mcm/image/upload/v1/{TestCoverStores.Folder}/{book.Id}.webp");
+        _bookRepositoryMock.GetByIdAsync(book.Id).Returns(book);
+        _libraryRepositoryMock.GetByIdAsync(s_libraryId).Returns(CreateLibrary(s_userId));
+
+        // Act
+        var result = await _handler.Handle(new DeleteBookCommand(book.Id, s_userId), TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _cloudinaryMock.Received(1).DeleteImagesAsync(
+            Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == $"{TestCoverStores.Folder}/{book.Id}"),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

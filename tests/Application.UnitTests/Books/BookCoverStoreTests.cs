@@ -105,4 +105,39 @@ public sealed class BookCoverStoreTests
 
         link.Should().Be(stored.ToString());
     }
+
+    [Fact]
+    public async Task DeleteAsync_Should_DeleteOnlyTheOwnImagesOfTheBooks()
+    {
+        var own = Book(string.Empty);
+        own.UseStoredCover(OwnImage(own));
+        var shared = Book("https://res.cloudinary.com/mcm/image/upload/v1/covers/9782205050196.jpg");
+        var web = Book("https://books.google.com/cover.jpg");
+        _cloudinary.DeleteImagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>()).Returns(1);
+
+        await _store.DeleteAsync([own, shared, web, Book(string.Empty)], TestContext.Current.CancellationToken);
+
+        await _cloudinary.Received(1).DeleteImagesAsync(
+            Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == $"covers/{own.Id}"), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_CallNothing_WhenNoBookHasItsOwnImage()
+    {
+        await _store.DeleteAsync([Book("https://books.google.com/cover.jpg")], TestContext.Current.CancellationToken);
+
+        await _cloudinary.DidNotReceive().DeleteImagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_NotThrow_WhenTheImagesCannotBeDeleted()
+    {
+        var own = Book(string.Empty);
+        own.UseStoredCover(OwnImage(own));
+        _cloudinary.DeleteImagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>()).Returns(BooksError.CoversNotDeleted);
+
+        var act = () => _store.DeleteAsync([own], TestContext.Current.CancellationToken);
+
+        await act.Should().NotThrowAsync();
+    }
 }
