@@ -2,6 +2,7 @@ using Application.Abstractions.Messaging;
 using Application.Books.Covers;
 using AwesomeAssertions;
 using Domain.Primitives;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Web.Services;
 using Xunit;
@@ -16,7 +17,15 @@ public sealed class CloudinaryCoversServiceTests
     private readonly ICommandHandler<DeleteUnusedCoversCommand, DeletedCovers> _delete = Substitute.For<ICommandHandler<DeleteUnusedCoversCommand, DeletedCovers>>();
     private readonly CloudinaryCoversService _service;
 
-    public CloudinaryCoversServiceTests() => _service = new CloudinaryCoversService(_count, _start, _find, _delete);
+    public CloudinaryCoversServiceTests()
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => _count);
+        services.AddScoped(_ => _start);
+        services.AddScoped(_ => _find);
+        services.AddScoped(_ => _delete);
+        _service = new CloudinaryCoversService(services.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>());
+    }
 
     [Fact]
     public async Task Service_Should_PassEachRequestToItsHandler()
