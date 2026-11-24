@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.12.2"></a>
+## [11.12.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.12.2) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **auth:** no longer match an unknown sub to a user by Identity.Name ([#1382](https://www.github.com/slucky31/mycomicsmanager/issues/1382)) ([a1b2ef0](https://www.github.com/slucky31/mycomicsmanager/commit/a1b2ef09229a1a56d85d62e0a8362239d1cd521a))
+
 <a name="11.12.1"></a>
 ## [11.12.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.12.1) (2026-11-24)
 
