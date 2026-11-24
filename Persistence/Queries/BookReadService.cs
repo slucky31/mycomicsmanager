@@ -55,14 +55,9 @@ public class BookReadService(ApplicationDbContext context) : IBookReadService
             Authors = b.Authors,
             Publishers = b.Publishers,
             ReadCount = b.ReadingDates.Count,
-            LastRead = b.ReadingDates
-                .OrderByDescending(rd => rd.Date)
-                .Select(rd => (DateTime?)rd.Date)
-                .FirstOrDefault(),
-            LastRating = b.ReadingDates
-                .OrderByDescending(rd => rd.Date)
-                .Select(rd => (int?)rd.Rating)
-                .FirstOrDefault(),
+            // Translated to SQL (EF Core 11): the "!" only tells the compiler that SQL returns null when the book has no reading.
+            LastRead = (DateTime?)b.ReadingDates.MaxBy(rd => rd.Date)!.Date,
+            LastRating = (int?)b.ReadingDates.MaxBy(rd => rd.Date)!.Rating,
             // Null for a physical book (it always has an ISBN).
             IsbnCandidateCount = (int?)((DigitalBook)b).IsbnCandidates.Count,
             IsbnScannedAt = ((DigitalBook)b).IsbnScannedAt

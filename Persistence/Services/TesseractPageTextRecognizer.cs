@@ -5,6 +5,7 @@ using Domain.Errors;
 using Domain.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Win32.SafeHandles;
 using SkiaSharp;
 
 namespace Persistence.Services;
@@ -73,58 +74,74 @@ public sealed class TesseractPageTextRecognizer(
 
     private async Task<Result<string>> RunTesseractAsync(byte[] png, CancellationToken ct)
     {
-        using var process = new Process { StartInfo = CreateStartInfo() };
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(_settings.PageTimeoutSeconds));
+
+        // The image goes through a pipe: the read end becomes the standard input of Tesseract.
+        SafeFileHandle.CreateAnonymousPipe(out var inputRead, out var inputWrite, asyncRead: false, asyncWrite: true);
+        Task<ProcessTextOutput> run;
+        using (inputRead)
+        {
+            // On timeout, RunAndCaptureTextAsync kills the process before throwing.
+            run = Process.RunAndCaptureTextAsync(CreateStartInfo(inputRead), timeout.Token);
+        }
+
+        bool written;
+        using (inputWrite)
+        {
+            written = await WriteInputAsync(inputWrite, png, timeout.Token);
+        }
+
         try
         {
-            process.Start();
+            var result = await run;
+            if (!written)
+            {
+                logger.LogWarning("Tesseract stopped while reading the page");
+                return OcrError.Failed;
+            }
+
+            if (result.ExitStatus.ExitCode != 0)
+            {
+                logger.LogWarning("Tesseract failed with exit code {ExitCode}: {Error}", result.ExitStatus.ExitCode, result.StandardError);
+                return OcrError.Failed;
+            }
+
+            return result.StandardOutput;
         }
         catch (Win32Exception ex)
         {
             logger.LogWarning(ex, "Tesseract cannot be started from {Path}", _settings.TesseractPath);
             return OcrError.Unavailable;
         }
-
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(TimeSpan.FromSeconds(_settings.PageTimeoutSeconds));
-
-        try
-        {
-            var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
-            var error = process.StandardError.ReadToEndAsync(timeout.Token);
-            await process.StandardInput.BaseStream.WriteAsync(png, timeout.Token);
-            process.StandardInput.Close();
-            await process.WaitForExitAsync(timeout.Token);
-
-            if (process.ExitCode != 0)
-            {
-                logger.LogWarning("Tesseract failed with exit code {ExitCode}: {Error}", process.ExitCode, await error);
-                return OcrError.Failed;
-            }
-
-            return await output;
-        }
         catch (OperationCanceledException ex) when (!ct.IsCancellationRequested)
         {
             logger.LogWarning(ex, "Tesseract did not read the page within {Timeout} s", _settings.PageTimeoutSeconds);
             return OcrError.Timeout;
         }
-        catch (IOException ex)
+    }
+
+    // False when Tesseract closed its input (it stopped, or was never started) before reading the whole image.
+    private static async Task<bool> WriteInputAsync(SafeFileHandle inputWrite, byte[] png, CancellationToken ct)
+    {
+        try
         {
-            // Tesseract closed its input before reading the whole image.
-            logger.LogWarning(ex, "Tesseract stopped while reading the page");
-            return OcrError.Failed;
+            await using var input = new FileStream(inputWrite, FileAccess.Write, bufferSize: 1, isAsync: true);
+            await input.WriteAsync(png, ct);
+            return true;
         }
-        finally
+        catch (Exception ex) when (ex is IOException or OperationCanceledException)
         {
-            StopIfRunning(process);
+            // A timeout is reported by the process run, which is cancelled by the same token.
+            return false;
         }
     }
 
-    private ProcessStartInfo CreateStartInfo()
+    private ProcessStartInfo CreateStartInfo(SafeFileHandle input)
     {
         var startInfo = new ProcessStartInfo(_settings.TesseractPath)
         {
-            RedirectStandardInput = true,
+            StandardInputHandle = input,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -136,20 +153,5 @@ public sealed class TesseractPageTextRecognizer(
         // One thread per page: the background jobs already run in parallel.
         startInfo.Environment["OMP_THREAD_LIMIT"] = "1";
         return startInfo;
-    }
-
-    private static void StopIfRunning(Process process)
-    {
-        try
-        {
-            if (!process.HasExited)
-            {
-                process.Kill(entireProcessTree: true);
-            }
-        }
-        catch (InvalidOperationException)
-        {
-            // The process already exited.
-        }
     }
 }
