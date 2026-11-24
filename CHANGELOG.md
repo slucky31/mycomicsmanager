@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.12.0"></a>
+## [11.12.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.12.0) (2026-11-24)
+
+### ✨ Features
+
+* **covers:** delete the cover of a deleted book from Cloudinary ([#1378](https://www.github.com/slucky31/mycomicsmanager/issues/1378)) ([44ef03c](https://www.github.com/slucky31/mycomicsmanager/commit/44ef03ca60e2d8606354d8aa5192d224b32ff610))
+
 <a name="11.11.3"></a>
 ## [11.11.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.11.3) (2026-11-24)
 
