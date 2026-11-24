@@ -11,9 +11,9 @@
     justify-content: center;
     padding: 0;
     border: 0;
-    border-radius: 22px;
+    border-radius: 50%;
     background: none;
-    color: #B5B8C4;
+    color: var(--mcm-icon-faint);
     cursor: pointer;
 }
 

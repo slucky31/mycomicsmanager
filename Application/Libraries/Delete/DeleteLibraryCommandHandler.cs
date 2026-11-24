@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.Books;
 using Application.ImportJobs;
 using Application.Interfaces;
 using Domain.Libraries;
@@ -6,7 +7,13 @@ using Domain.Primitives;
 
 namespace Application.Libraries.Delete;
 
-public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> librayRepository, IUnitOfWork unitOfWork, ILibraryLocalStorage libraryLocalStorage, IImportDirectoryStorage importDirectoryStorage, IBookRepository bookRepository) : ICommandHandler<DeleteLibraryCommand>
+public sealed class DeleteLibraryCommandHandler(
+    IRepository<Library, Guid> librayRepository,
+    IUnitOfWork unitOfWork,
+    ILibraryLocalStorage libraryLocalStorage,
+    IImportDirectoryStorage importDirectoryStorage,
+    IBookRepository bookRepository,
+    BookCoverStore coverStore) : ICommandHandler<DeleteLibraryCommand>
 {
     public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {
@@ -28,10 +35,12 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
             return LibrariesError.ImportedLibraryProtected;
         }
 
+        // The books go with the library: their covers are deleted once the library is.
+        var books = await bookRepository.ListByLibraryIdAsync(library.Id, cancellationToken);
+
         // Delete folders only for digital libraries
         if (library.BookType == LibraryBookType.Digital)
         {
-            var books = await bookRepository.ListByLibraryIdAsync(library.Id, cancellationToken);
             if (LibraryFolder.HasForeignFiles(libraryLocalStorage, library, books))
             {
                 return LibrariesError.FolderHasForeignFiles;
@@ -52,6 +61,8 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
         {
             return saveResult.Error!;
         }
+
+        await coverStore.DeleteAsync(books, cancellationToken);
 
         return Result.Success();
     }

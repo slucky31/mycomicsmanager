@@ -36,17 +36,17 @@
 .legacy-migration-count {
     width: 80px;
     padding: 6px 8px;
-    border: 1px solid #C5C7D2;
-    border-radius: 8px;
+    border: 1px solid var(--mcm-border-strong);
+    border-radius: var(--mcm-radius-m);
     font: inherit;
 }
 
 .legacy-migration-button {
     padding: 8px 16px;
     border: 0;
-    border-radius: 8px;
-    background: #5C6BC0;
-    color: #FFFFFF;
+    border-radius: var(--mcm-radius-m);
+    background: var(--mud-palette-primary);
+    color: var(--mcm-text-inverse);
     font: inherit;
     cursor: pointer;
 }

@@ -67,8 +67,8 @@
     max-width: none;
     max-height: 90dvh;
     margin: 0;
-    border-radius: 20px 20px 0 0;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-2xl) var(--mcm-radius-2xl) 0 0;
+    background: var(--mcm-surface);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
     color: var(--mcm-text);
 }
@@ -106,7 +106,7 @@
     width: 36px;
     height: 4px;
     margin: 0 auto 12px;
-    border-radius: 2px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-border-strong);
 }
 
@@ -119,7 +119,7 @@
     .dialog-host ::deep .mud-dialog.app-dialog {
         width: 440px;
         max-width: calc(100vw - 48px);
-        border-radius: 20px;
+        border-radius: var(--mcm-radius-2xl);
         box-shadow: 0 16px 40px rgba(19, 27, 44, 0.25);
     }
 

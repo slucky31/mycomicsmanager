@@ -39,9 +39,9 @@
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: #ffffff;
+    background: var(--mcm-surface);
     border: 1px solid var(--mcm-border);
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     color: var(--mcm-text);
     text-decoration: none;
 }
@@ -97,9 +97,9 @@
     padding: 0 8px;
     display: flex;
     align-items: center;
-    border-radius: 12px;
-    border: 1px dashed #C08A5A;
-    background: #FFF6EE;
+    border-radius: var(--mcm-radius-pill);
+    border: 1px dashed var(--mcm-missing-outline);
+    background: var(--mcm-missing-slot);
     color: var(--mcm-missing);
     font-size: var(--mcm-font-caption);
     font-weight: 600;

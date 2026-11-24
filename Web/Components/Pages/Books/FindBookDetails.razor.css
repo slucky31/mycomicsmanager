@@ -63,8 +63,8 @@
 .find-details-card {
     padding: 12px 14px;
     border: 1px solid var(--mcm-border);
-    border-radius: 12px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-l);
+    background: var(--mcm-surface);
     font-size: var(--mcm-font-label);
 }
 
@@ -116,8 +116,8 @@
     gap: 10px;
     padding: 9px 13px;
     border: 1px solid var(--mcm-border);
-    border-radius: 12px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-l);
+    background: var(--mcm-surface);
     color: var(--mcm-text);
     font: inherit;
     text-align: left;
@@ -193,7 +193,7 @@
 
 ::deep .find-details-query-search {
     min-height: 44px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     text-transform: none;
 }
 
@@ -248,7 +248,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #ECEDF2;
+    background: var(--mcm-surface-sunken);
     color: var(--mcm-text-muted);
 }
 
@@ -266,7 +266,7 @@
     align-items: flex-start;
     gap: 10px;
     padding: 12px 14px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     background: var(--mcm-success-soft);
     color: var(--mcm-success-strong);
     font-size: var(--mcm-font-label);
@@ -327,7 +327,7 @@
 ::deep .find-details-apply {
     flex: 1 1 0;
     min-height: 48px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     text-transform: none;
     font-size: var(--mcm-font-body-l);
 }

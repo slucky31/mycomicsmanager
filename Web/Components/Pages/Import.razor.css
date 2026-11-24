@@ -40,13 +40,13 @@
 .import-card {
     padding: 12px 14px;
     border: 1px solid var(--mcm-border);
-    border-radius: 12px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-l);
+    background: var(--mcm-surface);
     font-size: var(--mcm-font-label);
 }
 
 .import-error {
-    border-color: #F4C7C3;
+    border-color: color-mix(in srgb, var(--mcm-error) 25%, var(--mcm-surface));
     background: var(--mcm-error-soft);
     color: var(--mcm-error-strong);
 }
@@ -75,7 +75,7 @@
 ::deep .import-choose {
     width: 100%;
     height: 52px;
-    border-radius: 26px;
+    border-radius: var(--mcm-radius-pill);
     font-size: var(--mcm-font-body-l);
     text-transform: none;
 }

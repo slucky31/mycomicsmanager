@@ -1,8 +1,8 @@
 .book-reader {
     position: fixed;
     inset: 0;
-    background: #000;
-    color: #fff;
+    background: var(--mcm-reader-bg);
+    color: var(--mcm-text-inverse);
     overflow: hidden;
     user-select: none;
 }
@@ -205,7 +205,7 @@
 }
 
 .reader-quick-gap {
-    color: #fff;
+    color: var(--mcm-text-inverse);
     padding: 0 4px;
 }
 
@@ -223,8 +223,8 @@
     width: 340px;
     max-width: calc(100vw - 24px);
     padding: 12px 16px 16px;
-    border-radius: 12px;
-    background: #fff;
+    border-radius: var(--mcm-radius-l);
+    background: var(--mcm-surface);
     color: var(--mcm-text);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     z-index: 4;
@@ -238,7 +238,7 @@
         bottom: 0;
         width: auto;
         max-width: none;
-        border-radius: 16px 16px 0 0;
+        border-radius: var(--mcm-radius-xl) var(--mcm-radius-xl) 0 0;
         padding-bottom: calc(16px + env(safe-area-inset-bottom));
     }
 }
@@ -270,8 +270,8 @@
     gap: 2px;
     padding: 6px 4px;
     border: 1px solid var(--mcm-border);
-    border-radius: 8px;
-    background: #fff;
+    border-radius: var(--mcm-radius-m);
+    background: var(--mcm-surface);
     color: var(--mcm-text);
     font: inherit;
     font-size: var(--mcm-font-small);
@@ -281,7 +281,7 @@
 .reader-option-selected {
     border-color: var(--mud-palette-primary);
     /* The primary color at 10 % over white, opaque so that the contrast (5.2:1) can be checked. */
-    background: #EEEDFC;
+    background: var(--mcm-primary-soft);
     color: var(--mud-palette-primary);
     font-weight: 500;
 }

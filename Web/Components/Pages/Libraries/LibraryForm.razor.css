@@ -47,7 +47,7 @@
 
 .library-form-summary {
     padding: 12px 14px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     background: var(--mcm-error-soft);
     font-size: var(--mcm-font-label);
 }
@@ -87,9 +87,9 @@
     align-items: flex-start;
     gap: 14px;
     padding: 16px;
-    background: #ffffff;
+    background: var(--mcm-surface);
     border: 1px solid var(--mcm-border);
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     cursor: pointer;
 }
 
@@ -129,7 +129,7 @@
     flex-shrink: 0;
     width: 51px;
     height: 31px;
-    border-radius: 16px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-track);
     transition: background 0.15s ease;
 }
@@ -141,7 +141,7 @@
     width: 27px;
     height: 27px;
     border-radius: 50%;
-    background: #ffffff;
+    background: var(--mcm-surface);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     transition: transform 0.15s ease;
 }
@@ -173,8 +173,8 @@
     gap: 6px;
     padding: 13px;
     border: 1px solid var(--mcm-border);
-    border-radius: 12px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-l);
+    background: var(--mcm-surface);
     cursor: pointer;
 }
 
@@ -233,8 +233,8 @@
     justify-content: center;
     padding: 0;
     border: 0;
-    border-radius: 22px;
-    color: #ffffff;
+    border-radius: 50%;
+    color: var(--mcm-text-inverse);
     cursor: pointer;
 }
 
@@ -256,8 +256,8 @@
     gap: 12px;
     padding: 0 12px;
     border: 1px solid var(--mcm-border);
-    border-radius: 12px;
-    background: #ffffff;
+    border-radius: var(--mcm-radius-l);
+    background: var(--mcm-surface);
     color: var(--mcm-text-muted);
     font: inherit;
     text-align: left;
