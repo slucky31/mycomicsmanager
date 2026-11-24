@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.11.3"></a>
+## [11.11.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.11.3) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **design:** replace hard-coded colours and radii with the design tokens ([#1377](https://www.github.com/slucky31/mycomicsmanager/issues/1377)) ([07443aa](https://www.github.com/slucky31/mycomicsmanager/commit/07443aaafbe5086f832a6430d3bc6ee5131c4598))
+
 <a name="11.11.2"></a>
 ## [11.11.2](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.11.2) (2026-11-23)
 
