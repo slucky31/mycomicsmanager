@@ -69,6 +69,29 @@ public sealed class BookCoverStore(
     public async Task<string?> UploadStreamAsync(Guid bookId, Stream image, string fileName, CancellationToken ct) =>
         Link(bookId, await cloudinary.UploadImageFromStreamAsync(image, fileName, Folder, BookCovers.PublicId(bookId), ct));
 
+    // Deletes the own images of books that were deleted (#1365): an image shared with other books, or found on the web,
+    // stays. A failure is only logged, the books are already deleted and the unused images can be cleaned in Settings.
+    public async Task DeleteAsync(IEnumerable<Book> books, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(books);
+
+        var publicIds = books
+            .Where(book => BookCovers.IsStoredFor(book.ImageLink, Folder, book.Id))
+            .Select(book => $"{Folder}/{BookCovers.PublicId(book.Id)}")
+            .ToList();
+        if (publicIds.Count == 0)
+        {
+            return;
+        }
+
+        var result = await cloudinary.DeleteImagesAsync(publicIds, ct);
+        if (result.IsFailure)
+        {
+            logger.LogWarning("Covers of {Count} deleted book(s) not deleted from Cloudinary: {Error}",
+                publicIds.Count, result.Error?.Description);
+        }
+    }
+
     private string? Link(Guid bookId, CloudinaryUploadResult? result)
     {
         if (result is { Success: true, Url: not null })

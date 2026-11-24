@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.Books;
 using Application.ImportJobs;
 using Application.Interfaces;
 using Domain.Libraries;
@@ -6,7 +7,13 @@ using Domain.Primitives;
 
 namespace Application.Libraries.Delete;
 
-public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> librayRepository, IUnitOfWork unitOfWork, ILibraryLocalStorage libraryLocalStorage, IImportDirectoryStorage importDirectoryStorage) : ICommandHandler<DeleteLibraryCommand>
+public sealed class DeleteLibraryCommandHandler(
+    IRepository<Library, Guid> librayRepository,
+    IUnitOfWork unitOfWork,
+    ILibraryLocalStorage libraryLocalStorage,
+    IImportDirectoryStorage importDirectoryStorage,
+    IBookRepository bookRepository,
+    BookCoverStore coverStore) : ICommandHandler<DeleteLibraryCommand>
 {
     public async Task<Result> Handle(DeleteLibraryCommand request, CancellationToken cancellationToken)
     {
@@ -40,12 +47,17 @@ public sealed class DeleteLibraryCommandHandler(IRepository<Library, Guid> libra
             importDirectoryStorage.Delete(library.ImportDirectoryName);
         }
 
+        // The books go with the library: their covers are deleted once the library is.
+        var books = await bookRepository.ListByLibraryIdAsync(library.Id, cancellationToken);
+
         librayRepository.Remove(library);
         var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);
         if (saveResult.IsFailure)
         {
             return saveResult.Error!;
         }
+
+        await coverStore.DeleteAsync(books, cancellationToken);
 
         return Result.Success();
     }

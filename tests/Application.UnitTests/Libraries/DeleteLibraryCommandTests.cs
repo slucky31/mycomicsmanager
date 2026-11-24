@@ -2,6 +2,8 @@ using Application.ImportJobs;
 using Application.Interfaces;
 using Application.Libraries;
 using Application.Libraries.Delete;
+using Application.UnitTests.Books;
+using Domain.Books;
 using Domain.Libraries;
 using Domain.Primitives;
 using NSubstitute;
@@ -20,6 +22,8 @@ public class DeleteLibraryCommandTests
     private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILibraryLocalStorage _libraryLocalStorageMock;
     private readonly IImportDirectoryStorage _importDirectoryStorageMock;
+    private readonly IBookRepository _bookRepositoryMock = Substitute.For<IBookRepository>();
+    private readonly ICloudinaryService _cloudinaryMock = Substitute.For<ICloudinaryService>();
 
     public DeleteLibraryCommandTests()
     {
@@ -29,8 +33,11 @@ public class DeleteLibraryCommandTests
         _libraryLocalStorageMock = Substitute.For<ILibraryLocalStorage>();
         _importDirectoryStorageMock = Substitute.For<IImportDirectoryStorage>();
         _importDirectoryStorageMock.Delete(Arg.Any<string>()).Returns(Result.Success());
+        _bookRepositoryMock.ListByLibraryIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
+        _cloudinaryMock.DeleteImagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>()).Returns(1);
 
-        _handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryLocalStorageMock, _importDirectoryStorageMock);
+        _handler = new DeleteLibraryCommandHandler(_librayRepositoryMock, _unitOfWorkMock, _libraryLocalStorageMock, _importDirectoryStorageMock,
+            _bookRepositoryMock, TestCoverStores.Create(_cloudinaryMock));
     }
 
     [Fact]
@@ -141,5 +148,42 @@ public class DeleteLibraryCommandTests
         result.Error.Should().Be(LibrariesError.ImportedLibraryProtected);
         _libraryLocalStorageMock.DidNotReceive().Delete(Arg.Any<string>());
         _librayRepositoryMock.DidNotReceive().Remove(Arg.Any<Library>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_DeleteTheCoversOfTheBooks_WhenTheLibraryIsDeleted()
+    {
+        // Arrange
+        var book = PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), s_library.Id).Value!;
+        book.UseStoredCover($"https://res.cloudinary.com/mcm/image/upload/v1/{TestCoverStores.Folder}/{book.Id}.webp");
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
+        _bookRepositoryMock.ListByLibraryIdAsync(s_library.Id, Arg.Any<CancellationToken>()).Returns([book]);
+
+        // Act
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _cloudinaryMock.Received(1).DeleteImagesAsync(
+            Arg.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == $"{TestCoverStores.Folder}/{book.Id}"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_KeepTheCovers_WhenTheLibraryIsNotDeleted()
+    {
+        // Arrange
+        var book = PhysicalBook.Create(new BookMetadata("Serie", "Title", "978-3-16-148410-0"), s_library.Id).Value!;
+        book.UseStoredCover($"https://res.cloudinary.com/mcm/image/upload/v1/{TestCoverStores.Folder}/{book.Id}.webp");
+        _librayRepositoryMock.GetByIdAsync(s_command.Id).Returns(s_library);
+        _bookRepositoryMock.ListByLibraryIdAsync(s_library.Id, Arg.Any<CancellationToken>()).Returns([book]);
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(new TError("DB_UPDATE_ERROR", "conflict"));
+
+        // Act
+        var result = await _handler.Handle(s_command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        await _cloudinaryMock.DidNotReceive().DeleteImagesAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>());
     }
 }
