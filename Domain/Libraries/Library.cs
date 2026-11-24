@@ -23,7 +23,10 @@ public class Library : Entity<Guid>
     // Left out of the lists of the user, unless they show the hidden libraries (#1215).
     public bool IsHidden { get; protected set; }
 
-    public string RelativePath => Name.RemoveDiacritics().ToUpperInvariant();
+    public string RelativePath => FolderNameOf(Name);
+
+    // The folder of a digital library: two names that differ only by case or accents share it (#1369).
+    public static string FolderNameOf(string name) => name.RemoveDiacritics().ToUpperInvariant();
 
     public string ImportDirectoryName => $"{RelativePath}_{Id}";
 

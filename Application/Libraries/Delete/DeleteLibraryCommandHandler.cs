@@ -35,9 +35,17 @@ public sealed class DeleteLibraryCommandHandler(
             return LibrariesError.ImportedLibraryProtected;
         }
 
+        // The books go with the library: their covers are deleted once the library is.
+        var books = await bookRepository.ListByLibraryIdAsync(library.Id, cancellationToken);
+
         // Delete folders only for digital libraries
         if (library.BookType == LibraryBookType.Digital)
         {
+            if (LibraryFolder.HasForeignFiles(libraryLocalStorage, library, books))
+            {
+                return LibrariesError.FolderHasForeignFiles;
+            }
+
             var storageResult = libraryLocalStorage.Delete(library.RelativePath);
             if (storageResult.IsFailure)
             {
@@ -46,9 +54,6 @@ public sealed class DeleteLibraryCommandHandler(
 
             importDirectoryStorage.Delete(library.ImportDirectoryName);
         }
-
-        // The books go with the library: their covers are deleted once the library is.
-        var books = await bookRepository.ListByLibraryIdAsync(library.Id, cancellationToken);
 
         librayRepository.Remove(library);
         var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken);

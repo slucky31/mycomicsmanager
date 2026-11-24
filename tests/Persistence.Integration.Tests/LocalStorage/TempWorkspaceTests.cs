@@ -184,6 +184,7 @@ public sealed class TempWorkspaceTests : IDisposable
         public Result Create(string folderName) => Result.Success();
         public Result Delete(string folderName) => Result.Success();
         public Result Move(string originFolderName, string destinationFolderName) => Result.Success();
+        public IReadOnlyList<string> ListFiles(string folderName) => [];
         public Result<string> MoveFile(string sourceFilePath, string destinationFolderName) => sourceFilePath;
         public string? PathAfterMove(string filePath, string originFolderName, string destinationFolderName) => filePath;
     }

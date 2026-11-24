@@ -439,4 +439,27 @@ public class LibraryLocalStorageTests(IntegrationTestWebAppFactory factory) : Li
         LibraryLocalStorage.PathAfterMove("", "A TRIER", "IMPORTED").Should().BeNull();
         _libraryLocalStorageWithEmptyRootPath.PathAfterMove("/data/A TRIER/T03.cbz", "A TRIER", "IMPORTED").Should().BeNull();
     }
+
+    [Fact]
+    public void ListFiles_Should_ListTheFilesOfTheFolderAndItsSubfolders()
+    {
+        var folder = Guid.NewGuid().ToString();
+        var directory = Path.Combine(LibraryLocalStorage.rootPath, folder);
+        Directory.CreateDirectory(Path.Combine(directory, "Blacksad"));
+        CreateFile(Path.Combine(directory, "T01.cbz"));
+        CreateFile(Path.Combine(directory, "Blacksad", "T02.cbz"));
+
+        var files = LibraryLocalStorage.ListFiles(folder);
+
+        files.Select(Path.GetFileName).Should().BeEquivalentTo("T01.cbz", "T02.cbz");
+    }
+
+    [Fact]
+    public void ListFiles_Should_ListNothing_WhenTheFolderIsMissingOrInvalid()
+    {
+        LibraryLocalStorage.ListFiles(Guid.NewGuid().ToString()).Should().BeEmpty();
+        LibraryLocalStorage.ListFiles("../outside").Should().BeEmpty();
+        LibraryLocalStorage.ListFiles("").Should().BeEmpty();
+        _libraryLocalStorageWithEmptyRootPath.ListFiles("COMICS").Should().BeEmpty();
+    }
 }

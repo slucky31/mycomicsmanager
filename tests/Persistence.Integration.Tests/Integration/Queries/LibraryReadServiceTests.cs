@@ -337,4 +337,22 @@ public class LibraryReadServiceTests(IntegrationTestWebAppFactory factory) : Lib
         paged.Items.Select(l => l.Id).Should().HaveCount(6).And.NotContain(_lib3.Id);
         hiddenIds.Should().Equal(_lib3.Id);
     }
+
+    [Fact]
+    public async Task IsFolderUsedAsync_Should_FindADigitalLibraryOfAnyUser_WhoseNameDiffersOnlyByCaseOrAccents()
+    {
+        // Arrange
+        var suffix = Guid.NewGuid().ToString("N");
+        var comics = Library.Create($"Comics {suffix}", "#5C6BC0", "Bookmark", LibraryBookType.Digital, Guid.CreateVersion7()).Value!;
+        var physical = Library.Create($"Mangas {suffix}", "#5C6BC0", "Bookmark", LibraryBookType.Physical, s_userId).Value!;
+        LibraryRepository.Add(comics);
+        LibraryRepository.Add(physical);
+        await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+        var ct = TestContext.Current.CancellationToken;
+
+        // Act / Assert
+        (await LibraryReadService.IsFolderUsedAsync(Library.FolderNameOf($"Cômics {suffix}"), cancellationToken: ct)).Should().BeTrue();
+        (await LibraryReadService.IsFolderUsedAsync(comics.RelativePath, comics.Id, ct)).Should().BeFalse();
+        (await LibraryReadService.IsFolderUsedAsync(physical.RelativePath, cancellationToken: ct)).Should().BeFalse();
+    }
 }
