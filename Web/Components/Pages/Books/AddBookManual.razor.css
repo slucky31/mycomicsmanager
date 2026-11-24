@@ -10,7 +10,7 @@
 
 .isbn-form ::deep .isbn-input {
     height: 56px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     font-size: var(--mcm-font-title-l);
     letter-spacing: 0.04em;
     font-variant-numeric: tabular-nums;
@@ -23,9 +23,9 @@
     justify-content: center;
     gap: 10px;
     border: 0;
-    border-radius: 26px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
     font: inherit;
     font-size: var(--mcm-font-body-l);
     font-weight: 500;

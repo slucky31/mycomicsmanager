@@ -4,6 +4,7 @@
 }
 
 ::deep .isbn-state-badge .mud-badge {
+    /* Exception to the 12px minimum (#1364): a count or an icon in the small MudBadge dot of an icon, not text to read. */
     font-size: 0.65rem;
     font-weight: 700;
 }

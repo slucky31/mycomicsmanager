@@ -29,7 +29,7 @@
     align-items: center;
     gap: 8px;
     padding: 12px 14px;
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-l);
     background: var(--mcm-error-soft);
     color: var(--mcm-error);
     font-size: var(--mcm-font-label);

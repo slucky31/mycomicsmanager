@@ -13,12 +13,19 @@ consistent from one screen to the other.
 ## Colors
 
 - **Primary** (`--mud-palette-primary`, #594AE2): primary actions, current selection, links. Pressed:
-  `--mcm-primary-strong`; tint behind a selected item: `--mcm-primary-soft`.
-- **Text** (`--mcm-text`, #1B1D24) and **muted text** (`--mcm-text-muted`, #5C6070, also for placeholders).
+  `--mcm-primary-strong`; tint behind a selected item: `--mcm-primary-soft`, a stronger one (avatar, hovered choice,
+  progress track): `--mcm-primary-tint`. Lighter shades (stacked covers, the scanner line) are `color-mix` of the
+  primary with `--mcm-surface`.
+- **Text** (`--mcm-text`, #1B1D24), **secondary text** (`--mcm-text-secondary`, #3C4050) and **muted text**
+  (`--mcm-text-muted`, #5C6070, also for placeholders). On the primary colour or a dark surface: `--mcm-text-inverse`
+  (white) and `--mcm-text-inverse-muted`. Faint icons (empty stars, a form state): `--mcm-icon-faint`.
 - **Surfaces**: white cards (`--mcm-surface`) on `--mcm-surface-muted`; `--mcm-surface-sunken` for placeholders and neutral chips.
-- **Lines**: `--mcm-border`, `--mcm-border-strong`.
+- **Lines**: `--mcm-border`, `--mcm-border-strong`; `--mcm-control-outline` for an unchecked box.
 - **States**: error, success, info and warning each have a colour, a stronger colour for text on a tint, and a
-  tint (`--mcm-error`, `--mcm-error-strong`, `--mcm-error-soft`…).
+  tint (`--mcm-error`, `--mcm-error-strong`, `--mcm-error-soft`…). Missing volumes: `--mcm-missing` (text),
+  `--mcm-missing-soft` (badge), `--mcm-missing-slot` and `--mcm-missing-outline` (dashed slot).
+- **Dark screens** (scanner, reader): `--mcm-dark-bg`, `--mcm-dark-surface`, `--mcm-dark-raised`,
+  `--mcm-dark-success`, `--mcm-reader-bg`.
 - **Library colours** (`LibraryColors`): free for borders, tints and icons. Written as text, they are mixed with
   the text colour (`color-mix(in srgb, var(--library-color) 45%, var(--mcm-text))`) so that every one of them
   reaches 4.5:1.
@@ -77,7 +84,9 @@ Flat cards with a 1px border (`--mcm-border`) on a muted background. Shadows onl
 ## Shapes
 
 Radius steps: `--mcm-radius-s` 4px, `--mcm-radius-m` 8px, `--mcm-radius-l` 12px, `--mcm-radius-xl` 16px (cards),
-`--mcm-radius-pill` (chips, pill buttons).
+`--mcm-radius-2xl` 20px (bottom sheets, dialogs, large state cards), `--mcm-radius-pill` (chips, pill buttons,
+switches, progress bars: anything whose radius is half its height). A round element (44px icon button, radio) uses
+`50%`.
 
 ## Components
 

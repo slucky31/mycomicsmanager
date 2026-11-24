@@ -11,9 +11,9 @@
     align-items: center;
     gap: 16px;
     padding: 14px;
-    background: #ffffff;
+    background: var(--mcm-surface);
     border: 1px solid var(--mcm-border);
-    border-radius: 16px;
+    border-radius: var(--mcm-radius-xl);
 }
 
 .library-card-link {
@@ -29,7 +29,7 @@
 /* A hidden library, listed when "Show hidden libraries" is on (#1215). */
 .library-card-hidden {
     border-style: dashed;
-    border-color: #9A9DAB;
+    border-color: var(--mcm-control-outline);
 }
 
 .library-card-hidden .library-card-link {
@@ -39,9 +39,9 @@
 .library-hidden-chip {
     flex-shrink: 0;
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-surface-sunken);
-    color: #3D4150;
+    color: var(--mcm-text-secondary);
     font-size: var(--mcm-font-caption);
     font-weight: 600;
 }
@@ -88,7 +88,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px dashed #D0D2DB;
+    border: 2px dashed var(--mcm-border-strong);
     box-shadow: none;
     color: var(--mcm-text-muted);
 }
@@ -99,7 +99,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: color-mix(in srgb, var(--library-color) 10%, #ffffff);
+    background: color-mix(in srgb, var(--library-color) 10%, var(--mcm-surface));
     border: 1px solid var(--mcm-border);
     box-shadow: none;
     color: var(--library-color);
@@ -144,7 +144,7 @@
     padding: 0 10px;
     box-sizing: border-box;
     border: 1px solid var(--library-color);
-    border-radius: 12px;
+    border-radius: var(--mcm-radius-pill);
     /* The library colour darkened enough to be read on white, whatever the colour (#1245). */
     color: color-mix(in srgb, var(--library-color) 45%, var(--mcm-text));
     font-size: var(--mcm-font-caption);

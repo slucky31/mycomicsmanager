@@ -23,5 +23,5 @@
 
 .form-state ::deep .form-state-icon {
     font-size: var(--mcm-font-hero);
-    color: #B5B8C4;
+    color: var(--mcm-icon-faint);
 }

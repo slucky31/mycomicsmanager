@@ -34,9 +34,9 @@
     gap: 10px;
     margin: 8px 16px 4px;
     padding: 14px 16px;
-    background: #ffffff;
+    background: var(--mcm-surface);
     border: 1px solid var(--mcm-border);
-    border-radius: 16px;
+    border-radius: var(--mcm-radius-xl);
 }
 
 .serie-progress-head {
@@ -59,8 +59,8 @@
 
 .serie-progress-bar {
     height: 8px;
-    border-radius: 4px;
-    background: #ECEDF2;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface-sunken);
     overflow: hidden;
 }
 
@@ -98,7 +98,7 @@
     height: 44px;
     padding: 0 12px;
     border: 1px solid var(--mcm-border-strong);
-    border-radius: 8px;
+    border-radius: var(--mcm-radius-m);
     font: inherit;
     /* 16px: iOS does not zoom on the field */
     font-size: var(--mcm-font-body-l);
@@ -156,9 +156,9 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    border: 2px dashed #C08A5A;
+    border: 2px dashed var(--mcm-missing-outline);
     border-radius: var(--mcm-cover-radius);
-    background: #FFF6EE;
+    background: var(--mcm-missing-slot);
     color: var(--mcm-missing);
     font-size: var(--mcm-font-caption);
     font-weight: 600;

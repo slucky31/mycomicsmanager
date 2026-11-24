@@ -18,7 +18,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 22px;
+    border-radius: 50%;
     background: var(--mcm-error-soft);
     color: var(--mcm-error-strong);
 }
@@ -27,7 +27,7 @@
     margin: 12px 0 0;
     font-size: var(--mcm-font-body);
     line-height: 1.45;
-    color: #3C4050;
+    color: var(--mcm-text-secondary);
 }
 
 /* On a phone, the action above Cancel, within reach of the thumb; Cancel stays first for the focus. */
@@ -41,7 +41,7 @@
 .confirm-button {
     height: 52px;
     padding: 0 22px;
-    border-radius: 26px;
+    border-radius: var(--mcm-radius-pill);
     font: inherit;
     font-size: var(--mcm-font-body-l);
     font-weight: 500;
@@ -55,14 +55,14 @@
 
 .confirm-cancel {
     border: 1px solid var(--mcm-border);
-    background: #ffffff;
+    background: var(--mcm-surface);
     color: var(--mcm-text);
 }
 
 .confirm-action {
     border: 0;
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
 }
 
 .confirm-danger {

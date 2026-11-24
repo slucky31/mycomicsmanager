@@ -40,9 +40,9 @@
 }
 
 .stats-card {
-    background: #ffffff;
+    background: var(--mcm-surface);
     border: 1px solid var(--mcm-border);
-    border-radius: 16px;
+    border-radius: var(--mcm-radius-xl);
 }
 
 .stats-headline {
@@ -76,13 +76,13 @@
 .stats-progress {
     height: 8px;
     margin-top: 10px;
-    border-radius: 4px;
-    background: #E7E7EE;
+    border-radius: var(--mcm-radius-pill);
+    background: var(--mcm-surface-sunken);
 }
 
 .stats-progress-value {
     height: 100%;
-    border-radius: 4px;
+    border-radius: var(--mcm-radius-s);
     background: var(--mud-palette-primary);
 }
 
@@ -102,7 +102,7 @@
 .stats-tile {
     min-width: 0;
     padding: 12px;
-    border-radius: 14px;
+    border-radius: var(--mcm-radius-l);
 }
 
 .stats-tile-label {
@@ -177,7 +177,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    border-top: 1px solid #E7E7EE;
+    border-top: 1px solid var(--mcm-border);
 }
 
 .stats-chart-grid span {
@@ -212,7 +212,7 @@
     width: 50%;
     max-width: 28px;
     min-height: 4px;
-    border-radius: 4px 4px 0 0;
+    border-radius: var(--mcm-radius-s) var(--mcm-radius-s) 0 0;
     background: var(--mud-palette-primary);
 }
 
@@ -278,7 +278,7 @@
     .stats-progress {
         height: 10px;
         margin-top: 12px;
-        border-radius: 5px;
+        border-radius: var(--mcm-radius-pill);
     }
 
     .stats-headline-percent {

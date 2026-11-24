@@ -133,7 +133,7 @@
     align-items: center;
     justify-content: center;
     border: 0;
-    border-radius: 22px;
+    border-radius: 50%;
     background: none;
     color: var(--mcm-text-muted);
     cursor: pointer;
@@ -236,6 +236,7 @@
 }
 
 .reading-empty ::deep .reading-empty-icon {
+    /* The size of an icon, not of text: kept off the type scale (#1364). */
     font-size: 80px;
     opacity: 0.4;
 }

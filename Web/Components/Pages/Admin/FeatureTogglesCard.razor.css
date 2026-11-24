@@ -55,7 +55,7 @@
 .feature-toggle-overridden {
     padding: 0 8px;
     border: 1px solid var(--mcm-warning-strong);
-    border-radius: 10px;
+    border-radius: var(--mcm-radius-pill);
     color: var(--mcm-warning-strong);
     line-height: 18px;
 }
@@ -74,7 +74,7 @@
     flex-shrink: 0;
     width: 51px;
     height: 31px;
-    border-radius: 16px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-track);
     transition: background 0.15s ease;
 }
@@ -86,7 +86,7 @@
     width: 27px;
     height: 27px;
     border-radius: 50%;
-    background: #ffffff;
+    background: var(--mcm-surface);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     transition: transform 0.15s ease;
 }

@@ -2,7 +2,7 @@
 .list-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    background: #ffffff;
+    background: var(--mcm-surface);
     border-top: 1px solid var(--mcm-border);
 }
 
@@ -85,7 +85,7 @@
 
 ::deep .list-star {
     font-size: var(--mcm-font-body-l);
-    color: #F5A524;
+    color: var(--mcm-star);
 }
 
 .list-read {
@@ -94,7 +94,7 @@
     align-items: center;
     gap: 4px;
     padding: 0 8px;
-    border-radius: 11px;
+    border-radius: var(--mcm-radius-pill);
     background: var(--mcm-success-soft);
     color: var(--mcm-success);
     font-size: var(--mcm-font-caption);
@@ -113,7 +113,7 @@
     align-items: center;
     justify-content: center;
     border: 0;
-    border-radius: 22px;
+    border-radius: 50%;
     background: none;
     color: var(--mcm-text-muted);
     cursor: pointer;
@@ -135,9 +135,9 @@
 
     .list-item {
         padding: 12px 4px 12px 14px;
-        background: #ffffff;
+        background: var(--mcm-surface);
         border: 1px solid var(--mcm-border);
-        border-radius: 12px;
+        border-radius: var(--mcm-radius-l);
     }
 
     .list-link {
@@ -179,7 +179,7 @@ button.list-link {
 button.list-link:focus-visible {
     outline: 2px solid var(--mud-palette-primary);
     outline-offset: 4px;
-    border-radius: 8px;
+    border-radius: var(--mcm-radius-m);
 }
 
 .list-check {
@@ -191,7 +191,7 @@ button.list-link:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #8A8E9C;
+    border: 2px solid var(--mcm-control-outline);
     border-radius: 50%;
     color: transparent;
 }
@@ -207,5 +207,5 @@ button.list-link:focus-visible {
 .list-item-checked .list-check {
     border-color: var(--mud-palette-primary);
     background: var(--mud-palette-primary);
-    color: #ffffff;
+    color: var(--mcm-text-inverse);
 }
