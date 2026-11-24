@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.12.1"></a>
+## [11.12.1](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.12.1) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **auth:** only follow a local path after sign-in and sign-out ([#1381](https://www.github.com/slucky31/mycomicsmanager/issues/1381)) ([de7555e](https://www.github.com/slucky31/mycomicsmanager/commit/de7555e6d5bbb88411d278a8df985d1cdb784ad4))
+
+### Other
+
+* **ocr:** use Process.RunAndCaptureTextAsync and MaxBy (.NET 11) ([#1380](https://www.github.com/slucky31/mycomicsmanager/issues/1380)) ([5a6f65c](https://www.github.com/slucky31/mycomicsmanager/commit/5a6f65c86ad2bedbc0cafafc516d2f7d7d555633))
+
 <a name="11.12.0"></a>
 ## [11.12.0](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.12.0) (2026-11-24)
 
