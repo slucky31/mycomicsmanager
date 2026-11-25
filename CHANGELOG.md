@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.12.4"></a>
+## [11.12.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.12.4) (2026-11-25)
+
+### 🐛 Bug Fixes
+
+* **imports:** bound what an import extracts ([#1384](https://www.github.com/slucky31/mycomicsmanager/issues/1384)) ([9845d2c](https://www.github.com/slucky31/mycomicsmanager/commit/9845d2c7708e53bf0a7de9b092bbaa04e401a547))
+
 <a name="11.12.3"></a>
 ## [11.12.3](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.12.3) (2026-11-24)
 
