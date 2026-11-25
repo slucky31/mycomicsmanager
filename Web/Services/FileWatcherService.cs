@@ -190,6 +190,13 @@ public sealed class FileWatcherService : IHostedService, IDisposable
             return;
         }
 
+        // Its deletion after the import would follow the link out of the import directory (#1370).
+        if (IsLink(filePath) || IsLink(parentDir))
+        {
+            _logger.LogWarning("Ignoring symbolic link in the import directory: {FilePath}", filePath);
+            return;
+        }
+
         // Load the library to obtain its owning UserId
         Guid userId;
         await using (var scope = _scopeFactory.CreateAsyncScope())
@@ -247,6 +254,8 @@ public sealed class FileWatcherService : IHostedService, IDisposable
     // Extracts the LibraryId GUID from a directory name.
     // Supports {RelativePath}_{Guid} format (e.g. MYCOMICS_01967e23-...)
     // and legacy plain GUID format for backward compatibility.
+    private static bool IsLink(string path) => new FileInfo(path).LinkTarget is not null;
+
     private static bool TryExtractLibraryId(string directoryName, out Guid libraryId)
     {
         var lastUnderscore = directoryName.LastIndexOf('_', StringComparison.Ordinal);

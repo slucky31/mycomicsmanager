@@ -228,4 +228,88 @@ public sealed class PdfImageExtractorServiceTests : IDisposable
     [Fact]
     public void DetermineExtension_Should_DefaultToJpg_ForTooFewBytes()
         => PdfImageExtractorService.DetermineExtension([0xFF]).Should().Be(".jpg");
+
+    // -------------------------------------------------------
+    // ExtractImagesAsync — limits (#1370)
+    // -------------------------------------------------------
+
+    // A PDF whose pages all show the same image object: written once in the file, extracted once per page.
+    private static byte[] CreatePdfWithTheSameImageOnEveryPage(int pageCount, int imageBytes)
+    {
+        var jpeg = new byte[imageBytes];
+        jpeg[0] = 0xFF;
+        jpeg[1] = 0xD8;
+
+        using var ms = new MemoryStream();
+        var offsets = new List<long>();
+        void WriteAscii(string s) => ms.Write(System.Text.Encoding.ASCII.GetBytes(s));
+
+        WriteAscii("%PDF-1.4\n");
+        offsets.Add(ms.Position);
+        WriteAscii("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+        var kids = string.Join(' ', Enumerable.Range(5, pageCount).Select(n => $"{n} 0 R"));
+        offsets.Add(ms.Position);
+        WriteAscii($"2 0 obj\n<< /Type /Pages /Kids [{kids}] /Count {pageCount} >>\nendobj\n");
+        const string content = "q 10 0 0 10 0 0 cm /Im0 Do Q";
+        offsets.Add(ms.Position);
+        WriteAscii($"3 0 obj\n<< /Length {content.Length} >>\nstream\n{content}\nendstream\nendobj\n");
+        offsets.Add(ms.Position);
+        WriteAscii("4 0 obj\n<< /Type /XObject /Subtype /Image /Width 1 /Height 1 " +
+                   $"/ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /DCTDecode /Length {jpeg.Length} >>\nstream\n");
+        ms.Write(jpeg);
+        WriteAscii("\nendstream\nendobj\n");
+        for (var page = 0; page < pageCount; page++)
+        {
+            offsets.Add(ms.Position);
+            WriteAscii($"{page + 5} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 10 10] " +
+                       "/Resources << /XObject << /Im0 4 0 R >> >> /Contents 3 0 R >>\nendobj\n");
+        }
+
+        var xrefOffset = ms.Position;
+        WriteAscii($"xref\n0 {offsets.Count + 1}\n0000000000 65535 f \n");
+        foreach (var offset in offsets)
+        {
+            WriteAscii($"{offset:D10} 00000 n \n");
+        }
+        WriteAscii($"trailer\n<< /Size {offsets.Count + 1} /Root 1 0 R >>\nstartxref\n{xrefOffset}\n%%EOF");
+        return ms.ToArray();
+    }
+
+    [Fact]
+    public async Task ExtractImagesAsync_Should_RefuseThePdf_WhenAReusedImageAddsUpToMoreThanTheFile()
+    {
+        // 20 pages of a 4 KB image: 80 KB extracted from a file of about 7 KB.
+        var pdfPath = Path.Combine(_tempDir, "reused.pdf");
+        await File.WriteAllBytesAsync(pdfPath, CreatePdfWithTheSameImageOnEveryPage(20, 4096), TestContext.Current.CancellationToken);
+        var destDir = Path.Combine(_tempDir, "dest");
+
+        var result = await _service.ExtractImagesAsync(pdfPath, destDir, TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FileProcessingError.ExtractionLimitExceeded);
+        Directory.GetFiles(destDir).Length.Should().BeLessThan(20);
+    }
+
+    [Fact]
+    public async Task ExtractImagesAsync_Should_ExtractEveryPage_WhenTheReusedImageStaysWithinTheLimit()
+    {
+        var pdfPath = Path.Combine(_tempDir, "logo.pdf");
+        await File.WriteAllBytesAsync(pdfPath, CreatePdfWithTheSameImageOnEveryPage(3, 64), TestContext.Current.CancellationToken);
+
+        var result = await _service.ExtractImagesAsync(pdfPath, Path.Combine(_tempDir, "dest"), TestContext.Current.CancellationToken);
+
+        result.Value!.ExtractedImagePaths.Select(Path.GetFileName).Should().Equal("page-001.jpg", "page-002.jpg", "page-003.jpg");
+    }
+
+    [Fact]
+    public async Task ExtractImagesAsync_Should_RefuseThePdf_WhenItHasMorePagesThanAllowed()
+    {
+        var service = new PdfImageExtractorService(
+            NullLogger<PdfImageExtractorService>.Instance, ExtractionLimits.Default with { MaxEntries = 2 });
+        var pdfPath = Path.Combine(_tempDir, "long.pdf");
+        await File.WriteAllBytesAsync(pdfPath, CreatePdfWithTheSameImageOnEveryPage(3, 64), TestContext.Current.CancellationToken);
+
+        var result = await service.ExtractImagesAsync(pdfPath, Path.Combine(_tempDir, "dest"), TestContext.Current.CancellationToken);
+
+        result.Error.Should().Be(FileProcessingError.ExtractionLimitExceeded);
+    }
 }

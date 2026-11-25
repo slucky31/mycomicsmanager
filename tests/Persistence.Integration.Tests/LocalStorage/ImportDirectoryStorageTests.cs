@@ -432,4 +432,27 @@ public sealed class ImportDirectoryStorageTests : IDisposable
 
         result.Error.Should().Be(ImportDirectoryStorageError.SourceFileNotFound);
     }
+
+    [Fact]
+    public void DeleteOriginalFile_Should_ReturnInvalidPath_WhenTheLibraryFolderIsALinkOutOfTheRoot()
+    {
+        // #1370: import/LIB_x -> elsewhere, the delete would remove the real file outside the root.
+        var outside = Directory.CreateTempSubdirectory("import-dir-outside-").FullName;
+        try
+        {
+            var outsideFile = Path.Combine(outside, "comic.cbz");
+            File.WriteAllText(outsideFile, "content");
+            var link = Path.Combine(_root, "LIB_link");
+            Directory.CreateSymbolicLink(link, outside);
+
+            var result = _sut.DeleteOriginalFile(Path.Combine(link, "comic.cbz"));
+
+            result.Error.Should().Be(ImportDirectoryStorageError.InvalidPath);
+            File.Exists(outsideFile).Should().BeTrue();
+        }
+        finally
+        {
+            Directory.Delete(outside, true);
+        }
+    }
 }

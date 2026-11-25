@@ -21,4 +21,26 @@ internal static class PathContainment
     /// </summary>
     public static bool IsWithinNormalizedRoot(string normalizedRootWithSeparator, string candidatePath, StringComparison comparison = StringComparison.OrdinalIgnoreCase) =>
         Path.GetFullPath(candidatePath).StartsWith(normalizedRootWithSeparator, comparison);
+
+    /// <summary>
+    /// Whether the candidate, or one of its folders below the root, is a symbolic link (#1370): the containment
+    /// check reads the path as written, while a delete or a move follows the link out of the root.
+    /// </summary>
+    public static bool GoesThroughLink(string rootDirectory, string candidatePath)
+    {
+        var root = Path.GetFullPath(rootDirectory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var current = Path.GetFullPath(candidatePath);
+        while (current.Length > root.Length)
+        {
+            // Null for a path that is not a link, or does not exist yet (a destination).
+            if (new FileInfo(current).LinkTarget is not null)
+            {
+                return true;
+            }
+
+            current = Path.GetDirectoryName(current) ?? root;
+        }
+
+        return false;
+    }
 }
