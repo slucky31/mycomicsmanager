@@ -7,12 +7,14 @@ using Bunit;
 using Domain.FeedImports;
 using Domain.Primitives;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Web.Components.Pages;
 using Web.Components.Pages.Dialogs;
 using Web.Components.SharedComponents;
+using Web.Infrastructure;
 using Web.Models;
 using Web.Services;
 using Xunit;
@@ -296,6 +298,50 @@ public sealed class FeedImportsComponentTests
         await service.Received(1).GetDecisionsAsync(FeedImportDecisionStatus.AwaitingArbitration, "1fichier.com", "Blacksad", 2, 20, Arg.Any<CancellationToken>());
         cut.Find($"#{FeedImportsPage.CardId(decision.Id)}").ClassList.Should().Contain("selected");
         await cut.WaitForAssertionAsync(() => ctx.JSInterop.VerifyInvoke("scrollToCard").Arguments.Should().Equal(FeedImportsPage.CardId(decision.Id)));
+    }
+
+    [Fact]
+    public async Task OnInitializedAsync_Should_LeaveTheScrollAlone_WhenTheCardLeftIsNoLongerListed()
+    {
+        var service = CreateService();
+        var state = new FeedImportsStateService();
+        state.Save(new FeedImportsPageState(FeedImportFilter.All, null, null, 1, null, Guid.CreateVersion7()));
+
+        var (ctx, cut, _) = await RenderAsync(service, state: state);
+        await using var _ = ctx;
+
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad T3"));
+        cut.Render();
+        ctx.JSInterop.Invocations.Should().NotContain(i => i.Identifier == "scrollToCard");
+    }
+
+    [Fact]
+    public async Task OnAfterRenderAsync_Should_KeepThePage_WhenTheCardCannotBeBroughtBackOnScreen()
+    {
+        var decision = CreateProbableDuplicate();
+        var service = CreateService();
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success<FeedImportDecisionPageViewModel>(new FeedImportDecisionPageViewModel([decision], 1)));
+        var state = new FeedImportsStateService();
+        state.Save(new FeedImportsPageState(FeedImportFilter.All, null, null, 1, null, decision.Id));
+        var ctx = new BunitContext();
+        await using var _ = ctx;
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.JSInterop.SetupModule(AppVersion.Versioned("./js/feedImports.js"))
+            .SetupVoid("scrollToCard", FeedImportsPage.CardId(decision.Id)).SetException(new JSException("No card"));
+        ctx.Services.AddMudServices();
+        ctx.Services.AddSingleton(service);
+        ctx.Services.AddSingleton(Substitute.For<ISnackbar>());
+        ctx.Services.AddSingleton(new FeedImportNotifier());
+        ctx.Services.AddScoped<PopupAnchorLocator>();
+        ctx.Services.AddSingleton(state);
+
+        var cut = ctx.Render<FeedImportsPage>();
+
+        await cut.WaitForAssertionAsync(() => ctx.JSInterop.Invocations.Should().ContainSingle(i => i.Identifier == "scrollToCard"));
+        cut.Render();
+        cut.Markup.Should().Contain("Blacksad - Tome 3");
+        ctx.JSInterop.Invocations.Should().ContainSingle(i => i.Identifier == "scrollToCard");
     }
 
     [Fact]
