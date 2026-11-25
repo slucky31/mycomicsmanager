@@ -11,6 +11,8 @@ public static class ReturnLinks
 
     public const string ReadingHref = "/reading";
 
+    public const string FeedImportsHref = "/feed-imports";
+
     // The link is rebuilt from the screens a book can be opened from, never followed as given:
     // anything else ("https://…", "//host", another page) is dropped, so it cannot leave the site (open redirect).
     public static string? Local(string? from)
@@ -30,6 +32,7 @@ public static class ReturnLinks
         return path.Split('/', StringSplitOptions.RemoveEmptyEntries) switch
         {
             ["reading"] when path == ReadingHref => ReadingHref,
+            ["feed-imports"] when path == FeedImportsHref => FeedImportsHref,
             ["books", var id] when Guid.TryParse(id, out var bookId) => Book(bookId, Query(QueryName)),
             ["libraries", var id] when Guid.TryParse(id, out var libraryId) => $"/libraries/{libraryId}",
             ["libraries", var id, "series"] when Guid.TryParse(id, out var libraryId) => SerieDisplay.SeriesHref(libraryId),

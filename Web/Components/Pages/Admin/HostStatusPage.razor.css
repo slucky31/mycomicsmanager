@@ -156,7 +156,17 @@ button.hosts-row:hover,
     overflow-wrap: anywhere;
 }
 
+/* The name of a host stays on one line (#1385): its state and its domains wrap instead. */
+button.hosts-row .hosts-name {
+    flex-shrink: 0;
+    max-width: 50%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .hosts-meta {
+    min-width: 0;
     margin-left: auto;
     display: flex;
     flex-direction: column;

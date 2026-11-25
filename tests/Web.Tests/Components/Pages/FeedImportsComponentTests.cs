@@ -31,7 +31,7 @@ public sealed class FeedImportsComponentTests
     }
 
     private static async Task<(BunitContext Ctx, IRenderedComponent<FeedImportsPage> Cut, ISnackbar Snackbar)> RenderAsync(
-        IFeedImportService service, IDialogService? dialogService = null)
+        IFeedImportService service, IDialogService? dialogService = null, FeedImportsStateService? state = null)
     {
         var snackbar = Substitute.For<ISnackbar>();
         var ctx = new BunitContext();
@@ -41,6 +41,7 @@ public sealed class FeedImportsComponentTests
         ctx.Services.AddSingleton(snackbar);
         ctx.Services.AddSingleton(new FeedImportNotifier());
         ctx.Services.AddScoped<PopupAnchorLocator>();
+        ctx.Services.AddSingleton(state ?? new FeedImportsStateService());
         if (dialogService is not null)
         {
             ctx.Services.AddSingleton(dialogService);
@@ -255,6 +256,46 @@ public sealed class FeedImportsComponentTests
         await service.Received(1).ResolveArbitrationAsync(decision.Id, FeedImportArbitrationAction.NotDuplicate, null, Arg.Any<CancellationToken>());
         snackbar.Received(1).Add("Decision updated.", Severity.Success, Arg.Any<Action<SnackbarOptions>>(), Arg.Any<string>());
         await service.Received(2).GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Should_KeepTheFeedsAsLeft_WhenTheExistingBookIsOpened()
+    {
+        var decision = CreateProbableDuplicate();
+        var service = CreateService();
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success<FeedImportDecisionPageViewModel>(new FeedImportDecisionPageViewModel([decision], 1)));
+        var state = new FeedImportsStateService();
+
+        var (ctx, cut, _) = await RenderAsync(service, state: state);
+        await cut.WaitForAssertionAsync(() => cut.Markup.Should().Contain("Blacksad - Tome 3"));
+        await cut.InvokeAsync(() => cut.Instance.SelectFilterAsync(FeedImportFilter.ToDecide));
+        var link = cut.FindAll("a.feed-link").Single();
+        await link.ClickAsync(new());
+        await ctx.DisposeAsync();
+
+        link.GetAttribute("href").Should().Be($"/books/{decision.MatchedBookId}?from=%2Ffeed-imports");
+        state.Load().Should().Be(new FeedImportsPageState(FeedImportFilter.ToDecide, null, null, 1, null, decision.Id));
+    }
+
+    [Fact]
+    public async Task OnInitializedAsync_Should_ReopenTheFeedsAsLeft_AndBringTheCardBackOnScreen()
+    {
+        var decision = CreateProbableDuplicate();
+        var service = CreateService();
+        service.GetDecisionsAsync(Arg.Any<FeedImportDecisionStatus?>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success<FeedImportDecisionPageViewModel>(new FeedImportDecisionPageViewModel([decision], 30)));
+        var state = new FeedImportsStateService();
+        state.Save(new FeedImportsPageState(FeedImportFilter.ToDecide, "1fichier.com", "Blacksad", 2, decision.Id, null));
+
+        var (ctx, cut, _) = await RenderAsync(service, state: state);
+        await using var _ = ctx;
+
+        await cut.WaitForAssertionAsync(() => cut.FindAll(".feeds-panel .feed-detail").Should().ContainSingle());
+        await service.Received(1).GetDecisionsAsync(FeedImportDecisionStatus.AwaitingArbitration, "1fichier.com", "Blacksad", 1, 20, Arg.Any<CancellationToken>());
+        await service.Received(1).GetDecisionsAsync(FeedImportDecisionStatus.AwaitingArbitration, "1fichier.com", "Blacksad", 2, 20, Arg.Any<CancellationToken>());
+        cut.Find($"#{FeedImportsPage.CardId(decision.Id)}").ClassList.Should().Contain("selected");
+        await cut.WaitForAssertionAsync(() => ctx.JSInterop.VerifyInvoke("scrollToCard").Arguments.Should().Equal(FeedImportsPage.CardId(decision.Id)));
     }
 
     [Fact]

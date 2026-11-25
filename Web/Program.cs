@@ -271,6 +271,7 @@ builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<LibraryStateService>();
 builder.Services.AddScoped<SeriesStateService>();
+builder.Services.AddScoped<FeedImportsStateService>();
 builder.Services.AddScoped<LibrariesNotifier>();
 builder.Services.AddScoped<IHiddenLibrariesService, HiddenLibrariesService>();
 builder.Services.AddScoped<PopupAnchorLocator>();
