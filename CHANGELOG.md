@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="11.12.5"></a>
+## [11.12.5](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.12.5) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **feeds:** back to the feeds from the existing book, host names on one line ([#1387](https://www.github.com/slucky31/mycomicsmanager/issues/1387)) ([869fde5](https://www.github.com/slucky31/mycomicsmanager/commit/869fde5729e4c99451e4cd0fdc041410308ca0fa))
+
 <a name="11.12.4"></a>
 ## [11.12.4](https://www.github.com/slucky31/mycomicsmanager/releases/tag/v11.12.4) (2026-11-25)
 
