@@ -10,6 +10,7 @@ public sealed class ReturnLinksTests
 
     [Theory]
     [InlineData("/reading")]
+    [InlineData("/feed-imports")]
     [InlineData("/books/0199e0a4-5f6b-7c8d-9e0f-112233445566")]
     [InlineData("/books/0199e0a4-5f6b-7c8d-9e0f-112233445566?from=%2Freading")]
     [InlineData("/libraries/0199e0a4-5f6b-7c8d-9e0f-112233445566")]
@@ -29,6 +30,7 @@ public sealed class ReturnLinksTests
     [InlineData("//evil.example/")]
     [InlineData("/\\evil.example/")]
     [InlineData("//reading")]
+    [InlineData("//feed-imports")]
     [InlineData("/statistics")]
     [InlineData("/books/not-a-guid")]
     [InlineData("/libraries/0199e0a4-5f6b-7c8d-9e0f-112233445566/serie")]

@@ -199,7 +199,8 @@
     @<div class="feed-actions">
         @if (decision.MatchedBookId is not null)
         {
-            <a class="feed-link" href="@($"/books/{decision.MatchedBookId}")">View the existing book</a>
+            <a class="feed-link" href="@ReturnLinks.Book(decision.MatchedBookId.Value, ReturnLinks.FeedImportsHref)"
+               @onclick="() => RememberAnchor(decision.Id)">View the existing book</a>
         }
         <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="feed-pill"
                    Disabled="@IsBusy(decision.Id)"
@@ -316,7 +317,7 @@
             @foreach (var decision in _items)
             {
                 var expanded = _selectedId == decision.Id;
-                <article @key="decision.Id" class="@($"feed-card{(expanded ? " selected" : "")}")">
+                <article @key="decision.Id" id="@CardId(decision.Id)" class="@($"feed-card{(expanded ? " selected" : "")}")">
                     <div class="feed-card-head">
                         @if (_selecting)
                         {

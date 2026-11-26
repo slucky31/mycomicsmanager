@@ -2,8 +2,10 @@ using Application.FeedImports.Arbitrate;
 using Application.FeedImports.Manage;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Web.Extensions;
+using Web.Infrastructure;
 using Web.Models;
 using Web.Services;
 
@@ -31,6 +33,8 @@ public partial class FeedImportsPage : IAsyncDisposable
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ILogger<FeedImportsPage> Logger { get; set; } = default!;
     [Inject] private PopupAnchorLocator PopupAnchorLocator { get; set; } = default!;
+    [Inject] private FeedImportsStateService StateService { get; set; } = default!;
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 
     private readonly CancellationTokenSource _disposeCts = new();
     private FeedImportFilter _filter = FeedImportFilter.All;
@@ -60,6 +64,12 @@ public partial class FeedImportsPage : IAsyncDisposable
     // The decision shown in detail: under its card on a phone, in the side panel from the tablet on.
     private Guid? _selectedId;
 
+    // The decision whose existing book was opened (#1386): its card comes back on screen on the way back.
+    private Guid? _anchorId;
+
+    // The card to bring back on screen once the feeds left are shown again.
+    private Guid? _scrollToId;
+
     // "Select several" (menu ⋯): the decisions checked for deletion.
     private bool _selecting;
     private readonly HashSet<Guid> _checkedIds = [];
@@ -68,11 +78,61 @@ public partial class FeedImportsPage : IAsyncDisposable
 
     private FeedImportDecisionViewModel? SelectedDecision => _items.Find(d => d.Id == _selectedId);
 
+    internal static string CardId(Guid decisionId) => $"feed-{decisionId}";
+
+    // Back from a book (#1386): the feeds open again with the filters, the pages and the detail they were left with.
     protected override async Task OnInitializedAsync()
     {
-        await LoadFirstPageAsync();
+        if (StateService.Load() is { } saved)
+        {
+            _filter = saved.Filter;
+            _host = saved.Host;
+            _searchTerm = saved.SearchTerm;
+            _selectedId = saved.SelectedId;
+            _scrollToId = saved.AnchorId ?? saved.SelectedId;
+            await LoadPagesAsync(1, Math.Max(saved.Pages, 1));
+        }
+        else
+        {
+            await LoadFirstPageAsync();
+        }
+
         await LoadCountsAsync();
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_scrollToId is not { } id || _isLoading)
+        {
+            return;
+        }
+
+        if (!_items.Exists(d => d.Id == id))
+        {
+            _scrollToId = null;
+            return;
+        }
+
+        try
+        {
+            var module = await JS.InvokeAsync<IJSObjectReference>("import", _disposeCts.Token, AppVersion.Versioned("./js/feedImports.js"));
+            await module.InvokeVoidAsync("scrollToCard", _disposeCts.Token, CardId(id));
+            await module.DisposeAsync();
+            _scrollToId = null;
+        }
+        catch (OperationCanceledException)
+        {
+            // Page left while rendering.
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException)
+        {
+            _scrollToId = null;
+            Logger.LogWarning(ex, "FeedImports: unable to bring the card {DecisionId} back on screen", id);
+        }
+    }
+
+    // "View the existing book": the card of the decision is the one to bring back on screen.
+    private void RememberAnchor(Guid decisionId) => _anchorId = decisionId;
 
     // After an action: the pages shown are loaded again, then the counts of the filters, so that the list keeps
     // its length and the scroll its position. One query after the other: the circuit's DbContext does not
@@ -522,6 +582,7 @@ public partial class FeedImportsPage : IAsyncDisposable
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816", Justification = "No finalizer; S3971 prohibits GC.SuppressFinalize in DisposeAsync.")]
     public async ValueTask DisposeAsync()
     {
+        StateService.Save(new FeedImportsPageState(_filter, _host, _searchTerm, _page, _selectedId, _anchorId));
         await _disposeCts.CancelAsync();
         _disposeCts.Dispose();
     }
